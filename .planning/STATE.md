@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 5
 current_phase_name: Mobile Shell & Navigation Foundation
 status: executing
-stopped_at: Phase 5 UI-SPEC approved
-last_updated: "2026-09-11T18:32:42.277Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-09-11T20:21:55.532Z"
 last_activity: 2026-09-11
-last_activity_desc: Phase 5 planning complete — 6 plans ready
-state_head: dbb63eab4f60ea94f97ba9f587b1c8084208ec9b
+last_activity_desc: Phase 5 execution started
+state_head: 354079e1e57b9a369b65597571b970217621bb94
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 6
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -25,16 +25,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-11)
 
 **Core value:** Every container, VM, and config on the host can be backed up consistently and restored completely — a dead server is rebuilt from the restic repo alone.
-**Current focus:** Phase 5 — Mobile Shell & Navigation Foundation (v1.1 Mobile Interface)
+**Current focus:** Phase 5 — Mobile Shell & Navigation Foundation
 
 ## Current Position
 
-Phase: 5 (Mobile Shell & Navigation Foundation) — READY TO EXECUTE
-Plan: not planned yet
+Phase: 5 (Mobile Shell & Navigation Foundation) — EXECUTING
+Plan: 2 of 6
 Total Plans in Phase: 6
 Status: Ready to execute
-Last activity: 2026-09-11 — Phase 5 planning complete
-Last Activity Description: Phase 5 planning complete — 6 plans ready
+Last activity: 2026-09-11 — Phase 5 execution started
+Last Activity Description: Phase 5 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -81,12 +81,15 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P02 | 40min | 2 tasks | 4 files |
 | Phase 04 P03 | 38 min | 3 tasks | 7 files |
 | Phase 04 P04 | 8 min | 2 tasks | 3 files |
+| Phase 05 P01 | 71min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
 ### Decisions
 
 Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key Decisions. v1.1 scope locked by user (2026-09-11): responsive SPA (no PWA, no native wrapper, no second route tree); full operational parity with desktop; bottom bar (Home, Containers, Files, Settings) + More sheet; search/filter + load-more lists; M3 + HIG platform-adaptive chrome; Playwright harness + real-device exit criterion + de/fr narrow-viewport sweeps.
+
+- [Phase 05]: webServer.command must be an absolute path: Playwright spawns the command INSIDE its cwd option, so the planned ../bombvault with cwd=repo root would resolve outside the repo — Verified against installed playwright/lib/runner/index.js:841,877; absolute join(repoRoot, bombvault[.exe]) keeps cwd=repo root so DATA_DIR lands at repo root as planned
 
 ### Pending Todos
 
@@ -109,9 +112,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-11T16:18:41.917Z
-Stopped at: Phase 5 UI-SPEC approved
-Resume file: .planning/phases/05-mobile-shell-navigation-foundation/05-UI-SPEC.md
+Last session: 2026-09-11T20:21:55.516Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
