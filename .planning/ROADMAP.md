@@ -37,7 +37,16 @@
   2. On a notched phone in portrait and landscape, the bottom bar, headers, and pinned bars clear the notch and home indicator, the layout resizes correctly with browser chrome and the Android keyboard (no content lost under bars, no `100vh` trap), and the two-step login completes without iOS focus-zoom
   3. The More sheet behaves as a proper touch surface — focus-trapped, scroll-contained, safe-area padded, thumb-reachable, clearly dismissible — as the first consumer of the hand-rolled bottom-sheet primitive
   4. At desktop width (≥48rem) every page renders today's desktop layout unchanged, asserted per-page by the new Playwright harness, and a mobile-shell or desktop-layout regression fails CI
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Playwright harness foundation: legitimacy-gated exact-pinned @playwright/test, 4-project webServer config over the compiled binary, /api/health smoke
+- [ ] 05-02-PLAN.md — ONE nav registry (navModel) + Sidebar rewired to consume it + useMediaQuery breakpoint hook with the jsdom matchMedia stub
+- [ ] 05-03-PLAN.md — PRIM-01 BottomSheet primitive (lifted useConfirm mechanics) + nav.more across all locales + IconEllipsis glyph
+- [ ] 05-04-PLAN.md — Viewport correctness: safe-area custom properties, extended meta + theme-color mirror (FOUC bytes untouched), mobile-correct login, source-assert guards
+- [ ] 05-05-PLAN.md — Mobile shell slice: Layout chrome switch (h-dvh) + BottomNav + MoreSheet + Layout-level iOS keyboard mechanism, first mobile e2e smoke
+- [ ] 05-06-PLAN.md — E2E gate: desktop-untouched 10-route loop, exactly-5-slots, narrow-viewport de/fr backstop, lint.yml playwright job, web/dist phase close
+
 **UI hint**: yes
 
 ### Phase 6: Maquette Screens
@@ -87,7 +96,7 @@
 | 2. Container Panel Tree Selection | v1.0 | 3/3 | Complete | 2026-09-11 |
 | 3. Selection Trust & Controls | v1.0 | 3/3 | Complete | 2026-09-11 |
 | 4. File Sets Parity | v1.0 | 4/4 | Complete | 2026-09-11 |
-| 5. Mobile Shell & Navigation Foundation | v1.1 | 0/TBD | Not started | - |
+| 5. Mobile Shell & Navigation Foundation | v1.1 | 0/6 | Not started | - |
 | 6. Maquette Screens | v1.1 | 0/TBD | Not started | - |
 | 7. Remaining Destinations & Operational Parity | v1.1 | 0/TBD | Not started | - |
 | 8. Guided Restore & Real-Device Verification | v1.1 | 0/TBD | Not started | - |
