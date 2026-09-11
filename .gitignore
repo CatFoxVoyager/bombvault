@@ -39,3 +39,10 @@ web/dist/*
 .DS_Store
 Thumbs.db
 *conflicted copy*
+
+# Playwright harness (never commit artifacts or the built binary)
+web/test-results/
+web/playwright-report/
+.playwright-data/
+/bombvault
+/bombvault.exe
