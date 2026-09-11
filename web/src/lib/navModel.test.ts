@@ -98,7 +98,7 @@ describe("destinations — the ONE ordered registry", () => {
     for (const d of destinations(ALL_ON)) {
       expect(d.labelKey).toMatch(/^nav\./);
       expect(
-        en[d.labelKey as keyof typeof en],
+        en[d.labelKey],
         `${d.to} carries labelKey "${d.labelKey}" which the en table does not define`
       ).toBeDefined();
     }

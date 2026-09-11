@@ -43,6 +43,7 @@
 // ---------------------------------------------------------------------------
 import type { ComponentType } from "react";
 import type { Settings } from "./api";
+import type { TranslationKey } from "./i18n";
 import {
   IconContainers,
   IconConfig,
@@ -65,8 +66,10 @@ export interface NavDestination {
   /** Route path — matches the frozen route table in app/router.tsx. */
   to: string;
   /** Existing `nav.*` i18n key (en table in lib/i18n.ts), reused verbatim —
-   *  never a second copy of the label text. */
-  labelKey: string;
+   *  never a second copy of the label text. Typed as the translation-key
+   *  union itself, so a key that is not in the en table is a compile error,
+   *  not a runtime blank. */
+  labelKey: TranslationKey;
   /** The destination's glyph, as a component reference (no JSX here, which is
    *  why this file stays .ts). Rendered by the consumer as `<d.icon />`. */
   icon: ComponentType;

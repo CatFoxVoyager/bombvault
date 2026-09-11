@@ -6,21 +6,13 @@ import { useAdvanced } from "../lib/advanced";
 import { hueVars, rainbowAt } from "../lib/appearance";
 import { useRainbow } from "../lib/useRainbow";
 
-import {
-  IconContainers,
-  IconVM,
-  IconFiles,
-  IconReceiver,
-  IconFleet,
-  IconDashboard,
-  IconRecovery,
-  IconFlash,
-  IconConfig,
-  IconViewSimple,
-  IconViewAdvanced,
-  IconGear,
-  IconPower,
-} from "./navGlyphs";
+// Only the footer/controls glyphs are still referenced directly in this file:
+// the nav destinations' route + label + icon data now comes from the ONE
+// registry (lib/navModel.ts — SHELL-03), which this rail renders instead of
+// hand-typing. The glyph re-export block below is untouched; dozens of files
+// import IconTrash and friends FROM here and none of them can see this change.
+import { IconPower, IconViewAdvanced, IconViewSimple } from "./navGlyphs";
+import { destinations, type NavDestination } from "../lib/navModel";
 import { useLabelMode } from "../lib/useLabelMode";
 import { hidesLabel, labelWidth } from "../lib/controls";
 import { useTipBubble } from "../lib/useTipBubble";
@@ -479,12 +471,6 @@ function SidebarControls({ hueIndex }: { hueIndex: number }) {
 export function Sidebar({ settings, authEnabled }: SidebarProps) {
   const { t } = useT();
   const navigate = useNavigate();
-  const vmsEnabled = settings?.vmsEnabled ?? false;
-  const flashEnabled = settings?.flashEnabled ?? false;
-  const configEnabled = settings?.configEnabled ?? false;
-  const filesEnabled = settings?.filesEnabled ?? false;
-  const receiverEnabled = settings?.receiverEnabled ?? false;
-  const fleetEnabled = settings?.fleetEnabled ?? false;
 
   // #178: the logo row lives IN the rail, so it follows the rail's own axis
   // like every other row does. jdp's call after seeing the centred glyph
@@ -585,7 +571,15 @@ export function Sidebar({ settings, authEnabled }: SidebarProps) {
     //     avoid.
     // 6rem holds the 48px mark plus the row's own `px-3.5`, with the glyph
     // column still centred in it.
-    <aside className={`flex flex-col ${railNarrow ? "w-24" : "w-56"} shrink-0 h-full bg-carbon-sidebar`}>
+    // `data-testid="desktop-sidebar"` — the phase-5 Playwright harness's
+    // desktop-untouched spec locates the rail by this testid (asserting it is
+    // visible at >= 48rem and the mobile bar is absent). A hook, not a
+    // styling surface: no class reads it, and the desktop render is otherwise
+    // untouched.
+    <aside
+      data-testid="desktop-sidebar"
+      className={`flex flex-col ${railNarrow ? "w-24" : "w-56"} shrink-0 h-full bg-carbon-sidebar`}
+    >
       {/* Logo + wordmark → Dashboard. Two theme-specific marks auto-switch via the
           `dark:` variant (dark mark on the light surface, light mark on the dark
           surface). A short click navigates to the Dashboard; press-and-hold fires
@@ -719,55 +713,42 @@ export function Sidebar({ settings, authEnabled }: SidebarProps) {
           showing VMs/Flash/Files/Config/Receiver/Fleet only ever
           shifts the POSITIONS of tabs after it in this list, never the
           identity-to-position mapping of the ones before it, and never
-          leaves a gap in the sequence. */}
+          leaves a gap in the sequence. (SHELL-03 extraction: the destination
+          list itself now lives in lib/navModel.ts and the gates ride its
+          per-entry `enabled` flag — the map below skips a disabled entry
+          before calling `nextHue()`, which is the SAME short-circuit with
+          the flag read off the registry instead of a JSX `&&`.) */}
       {(() => {
         let hueSeq = 0;
         const nextHue = () => hueSeq++;
+        // The ONE registry (SHELL-03): this rail renders navModel's list —
+        // same order, same gates — instead of hand-typing it, so the phase-5
+        // mobile chrome can derive from the identical source and the two can
+        // never drift. The one sanctioned route literal in this file is the
+        // "/settings" lookup below: the footer row is pulled out of the SAME
+        // registry by path, so its label and icon still come from the
+        // registry too.
+        const dests = destinations(settings);
+        const settingsEntry = dests.find((d) => d.to === "/settings");
+        const mainList = dests.filter((d) => d.to !== "/settings");
+        const renderEntry = (d: NavDestination) => {
+          const Icon = d.icon;
+          return (
+            <NavItem key={d.to} to={d.to} label={t(d.labelKey)} icon={<Icon />} hueIndex={nextHue()} />
+          );
+        };
         return (
           <>
             {/* Navigation */}
             <nav className="flex flex-col gap-1 p-3 flex-1">
-              <NavItem
-                to="/dashboard"
-                label={t("nav.dashboard")}
-                icon={<IconDashboard />}
-                hueIndex={nextHue()}
-              />
-              {/* Always visible: disaster recovery is a core, non-expert flow. */}
-              <NavItem
-                to="/recovery"
-                label={t("nav.recovery")}
-                icon={<IconRecovery />}
-                hueIndex={nextHue()}
-              />
-              <NavItem
-                to="/containers"
-                label={t("nav.containers")}
-                icon={<IconContainers />}
-                hueIndex={nextHue()}
-              />
-              {/* VMs / Flash / Files tabs appear only once their domain is enabled. */}
-              {vmsEnabled && (
-                <NavItem to="/vms" label={t("nav.vms")} icon={<IconVM />} hueIndex={nextHue()} />
-              )}
-              {flashEnabled && (
-                <NavItem to="/flash" label={t("nav.flash")} icon={<IconFlash />} hueIndex={nextHue()} />
-              )}
-              {filesEnabled && (
-                <NavItem to="/files" label={t("nav.files")} icon={<IconFiles />} hueIndex={nextHue()} />
-              )}
-              {/* Config self-backup tab appears only once its domain is enabled. */}
-              {configEnabled && (
-                <NavItem to="/config" label={t("nav.config")} icon={<IconConfig />} hueIndex={nextHue()} />
-              )}
-              {/* Receiver dashboard appears only once its domain is enabled. */}
-              {receiverEnabled && (
-                <NavItem to="/receiver" label={t("nav.receiver")} icon={<IconReceiver />} hueIndex={nextHue()} />
-              )}
-              {/* Fleet view appears only once its domain is enabled. */}
-              {fleetEnabled && (
-                <NavItem to="/fleet" label={t("nav.fleet")} icon={<IconFleet />} hueIndex={nextHue()} />
-              )}
+              {/* Registry order, gated by the entries' own `enabled` flag:
+                  the ternary skips a disabled entry BEFORE renderEntry (and
+                  so before nextHue()) runs — the gate short-circuit described
+                  in this block's opening comment, byte-identical to the old
+                  inline `{flag && <NavItem .../>}` sequence. "Always visible:
+                  disaster recovery is a core, non-expert flow" and the
+                  per-domain gate notes moved with the list into navModel.ts. */}
+              {mainList.map((d) => (d.enabled ? renderEntry(d) : null))}
             </nav>
 
             {/* Bottom group: sign-out (only with a password set), the
@@ -783,12 +764,7 @@ export function Sidebar({ settings, authEnabled }: SidebarProps) {
             <div className="flex flex-col gap-1 p-3">
               {authEnabled && <SidebarSignOut hueIndex={nextHue()} />}
               <SidebarControls hueIndex={nextHue()} />
-              <NavItem
-                to="/settings"
-                label={t("nav.settings")}
-                icon={<IconGear />}
-                hueIndex={nextHue()}
-              />
+              {settingsEntry ? renderEntry(settingsEntry) : null}
             </div>
           </>
         );
