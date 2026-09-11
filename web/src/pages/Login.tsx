@@ -64,7 +64,15 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const submitDisabled = busy || password === "" || (needCode && code.trim() === "");
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-carbon-background">
+    // Mobile viewport contract (SHELL-05/07): min-h-dvh tracks the DYNAMIC
+    // viewport so the page keeps filling the screen when the iOS keyboard
+    // collapses the browser chrome (a static viewport unit would keep the
+    // pre-keyboard height and strand the card off-screen — the
+    // mobileShellSource guard suite bans both static literals in this file).
+    // The safe-area paddings read the --safe-area-* custom properties from
+    // index.css so the card clears the home indicator and rounded corners in
+    // every orientation; they resolve to 0 on desktop.
+    <div className="flex items-center justify-center min-h-dvh bg-carbon-background pl-[var(--safe-area-left)] pr-[var(--safe-area-right)] pb-[var(--safe-area-bottom)]">
       <div className="w-full max-w-sm rounded-card bg-carbon-surface p-8 flex flex-col gap-6 shadow-lg">
         {/* Title */}
         <h1 className="text-2xl font-semibold text-carbon-text text-center">
@@ -80,6 +88,10 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             >
               {t("auth.passwordLabel")}
             </label>
+            {/* max-md:text-base on both fields: iOS Safari zooms the viewport
+                on focus for any input under a 16px effective font — the one
+                place the 14px body token is overridden on narrow viewports
+                (SHELL-07). Desktop rendering is unchanged. */}
             <RevealInput
               {...reveal}
               id="bv-password"
@@ -88,7 +100,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               autoFocus
               autoComplete="current-password"
               wrapperClassName="w-full"
-              className="rounded-control bg-carbon-surface2 text-carbon-text text-sm px-3 py-2 glim-field-focus"
+              className="rounded-control bg-carbon-surface2 text-carbon-text text-sm max-md:text-base px-3 py-2 glim-field-focus"
             />
           </div>
 
@@ -101,6 +113,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               >
                 {t("auth.codeLabel")}
               </label>
+              {/* Same 16px-effective-font rule as the password field. */}
               <input
                 id="bv-code"
                 value={code}
@@ -109,7 +122,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 placeholder="000000"
-                className="w-full rounded-control bg-carbon-surface2 text-carbon-text text-sm px-3 py-2 tracking-[0.35em] glim-field-focus"
+                className="w-full rounded-control bg-carbon-surface2 text-carbon-text text-sm max-md:text-base px-3 py-2 tracking-[0.35em] glim-field-focus"
               />
               <p className="text-xs text-carbon-textSub">{t("auth.codeHint")}</p>
             </div>
