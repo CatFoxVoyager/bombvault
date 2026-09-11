@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Mobile Interface
 status: planning
-last_updated: "2026-09-11T13:52:14.780Z"
+last_updated: "2026-09-11T14:30:00.000Z"
 last_activity: 2026-09-11
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,20 +20,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-11)
 
 **Core value:** Every container, VM, and config on the host can be backed up consistently and restored completely — a dead server is rebuilt from the restic repo alone.
-**Current focus:** Planning next milestone
+**Current focus:** Phase 5 — Mobile Shell & Navigation Foundation (v1.1 Mobile Interface)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-09-11 — Milestone v1.1 started
+Phase: 5 — Mobile Shell & Navigation Foundation (v1.1 phase 1 of 4)
+Plan: not planned yet
+Status: Ready to plan (/gsd-plan-phase 5)
+Last activity: 2026-09-11 — v1.1 roadmap created: 4 phases (5-8), 29/29 requirements mapped
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 18
+- Total plans completed: 15 (all v1.0)
 - Average duration: —
 - Total execution time: —
 
@@ -41,18 +43,18 @@ Last activity: 2026-09-11 — Milestone v1.1 started
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01 | 5 | - | - |
-| 02 | 3 | ~71m | ~24m |
-| 02 | 3 | - | - |
-| 3 | 3 | - | - |
-| 4 | 4 | - | - |
+| v1.0 P1 | 5 | - | - |
+| v1.0 P2 | 3 | ~71m | ~24m |
+| v1.0 P3 | 3 | ~63m | ~21m |
+| v1.0 P4 | 4 | ~108m | ~27m |
 
 **Recent Trend:**
 
-- Last 5 plans: —
-- Trend: —
+- Last 5 plans: 40m, 22min, 40min, 38min, 8min
+- Trend: Stable
 
 *Updated after each plan completion*
+
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -67,17 +69,17 @@ Last activity: 2026-09-11 — Milestone v1.1 started
 | Phase 02 P03 | 22m | 3 tasks | 6 files |
 | Phase 03 P01 | 13min | 2 tasks | 9 files |
 | Phase 03 P02 | 10min | 2 tasks | 46 files |
-| Phase 3 P03 | 40m | 3 tasks | 48 files |
+| Phase 03 P03 | 40m | 3 tasks | 48 files |
 | Phase 04 P01 | 22min | 2 tasks | 10 files |
-| Phase 4 P02 | 40min | 2 tasks | 4 files |
-| Phase 4 P03 | 38 min | 3 tasks | 7 files |
+| Phase 04 P02 | 40min | 2 tasks | 4 files |
+| Phase 04 P03 | 38 min | 3 tasks | 7 files |
 | Phase 04 P04 | 8 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
 ### Decisions
 
-Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key Decisions; per-phase decision detail is archived under `.planning/milestones/v1.0-phases/`.
+Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key Decisions. v1.1 scope locked by user (2026-09-11): responsive SPA (no PWA, no native wrapper, no second route tree); full operational parity with desktop; bottom bar (Home, Containers, Files, Settings) + More sheet; search/filter + load-more lists; M3 + HIG platform-adaptive chrome; Playwright harness + real-device exit criterion + de/fr narrow-viewport sweeps.
 
 ### Pending Todos
 
@@ -85,7 +87,7 @@ None yet.
 
 ### Blockers/Concerns
 
-None open. Historical resolutions (2026-09-09 coverage diff deferred to v2 as SELECT-06; 2026-09-10 restic contract test proven, CI green at fork HEAD) and the 2 acknowledged deferred items are recorded in the v1.0 archive and in Deferred Items below.
+Research flags for planning (`.planning/research/SUMMARY.md`): Phase 5 Playwright harness setup (config, device descriptors, CI wiring into `lint.yml`) has no in-repo precedent; Phase 6 touch SelectionTree variant is the milestone's hardest work (pointer semantics, roving-tabindex-on-tap, hit areas) — targeted research recommended at plan time. Design bible reference: `design/mobile/README.md` + maquettes @0b64c7df (branch `mobile-design-concepts`).
 
 ## Deferred Items
 
@@ -100,10 +102,10 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-11T10:39:50.000Z
-Stopped at: Milestone v1.0 closed
+Last session: 2026-09-11
+Stopped at: v1.1 ROADMAP.md + STATE.md written; REQUIREMENTS.md traceability filled (29 requirements → Phases 5-8)
 Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Review `.planning/ROADMAP.md`, then start Phase 5 with /gsd-plan-phase 5

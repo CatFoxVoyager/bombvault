@@ -11,7 +11,7 @@
 
 ### Mobile Shell
 
-- [ ] **SHELL-01**: Below the 48rem breakpoint the SPA swaps the desktop Sidebar for the mobile shell (bottom bar + More sheet) via one quarantined media-query decision in `Layout.tsx`; at or above the breakpoint the desktop layout renders unchanged (per-page "no visible change at md" audits, asserted by the Playwright harness)
+- [ ] **SHELL-01**: responsive mobile shell — bottom nav + More sheet, safe areas, desktop intact
 - [ ] **SHELL-02**: Bottom bar with the 4 destinations (Home, Containers, Files, Settings): non-scrolling, accent-tinted active item, tap-on-active returns to top of view, touch targets ≥ 44px, in normal flow (flex sibling — never `position:fixed`)
 - [ ] **SHELL-03**: "More" sheet presenting the remaining destinations (Recovery, VMs, Flash, Config, Receiver, Fleet), derived with the bottom bar from ONE pure nav registry (`destinations(settings)`) feeding both Sidebar and MoreSheet so settings-gated tabs can never drift; sign-out reachable in mobile chrome
 - [ ] **SHELL-04**: Safe-area correctness: `viewport-fit=cover` + `env(safe-area-inset-*)` centralized as CSS custom properties; bottom bar, pinned action bars, and headers pad by insets; desktop reports 0 and is unaffected
@@ -111,4 +111,32 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (filled by roadmap) | — | Pending |
+| SHELL-01 | Phase 5 | Pending |
+| SHELL-02 | Phase 5 | Pending |
+| SHELL-03 | Phase 5 | Pending |
+| SHELL-04 | Phase 5 | Pending |
+| SHELL-05 | Phase 5 | Pending |
+| SHELL-06 | Phase 5 | Pending |
+| SHELL-07 | Phase 5 | Pending |
+| PRIM-01 | Phase 5 | Pending |
+| VERIFY-01 | Phase 5 | Pending |
+| SCRN-01 | Phase 6 | Pending |
+| SCRN-02 | Phase 6 | Pending |
+| SCRN-03 | Phase 6 | Pending |
+| SCRN-04 | Phase 6 | Pending |
+| SCRN-05 | Phase 6 | Pending |
+| PRIM-02 | Phase 6 | Pending |
+| PRIM-03 | Phase 6 | Pending |
+| PRIM-04 | Phase 6 | Pending |
+| FLOW-03 | Phase 6 | Pending |
+| MORE-01 | Phase 7 | Pending |
+| MORE-02 | Phase 7 | Pending |
+| FLOW-01 | Phase 7 | Pending |
+| FLOW-02 | Phase 7 | Pending |
+| LISTS-01 | Phase 7 | Pending |
+| PLAT-01 | Phase 7 | Pending |
+| SCRN-06 | Phase 8 | Pending |
+| VERIFY-02 | Phase 8 | Pending |
+| VERIFY-03 | Phase 8 | Pending |
+| VERIFY-04 | Phase 8 | Pending |
+| VERIFY-05 | Phase 8 | Pending |
