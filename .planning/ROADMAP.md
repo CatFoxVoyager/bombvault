@@ -29,60 +29,80 @@
 ## Phase Details
 
 ### Phase 5: Mobile Shell & Navigation Foundation
+
 **Goal**: Below the 48rem breakpoint the SPA presents a working mobile shell — bottom bar, More sheet, safe-area- and keyboard-correct viewport — while the desktop layout above the breakpoint renders unchanged, and the Playwright harness makes responsive regressions fail CI from here on.
 **Depends on**: Nothing (first phase of milestone v1.1; builds on the four shipped v1.0 phases)
 **Requirements**: SHELL-01, SHELL-02, SHELL-03, SHELL-04, SHELL-05, SHELL-06, SHELL-07, PRIM-01, VERIFY-01
 **Success Criteria** (what must be TRUE):
+
   1. On a phone-width viewport the user navigates the entire app from mobile chrome: the four bottom-bar destinations work (tap-on-active returns to the top of the view), the More sheet reaches Recovery, VMs, Flash, Config, Receiver, Fleet, and sign-out, and the destination set always matches the desktop sidebar for the same settings (one shared nav registry)
   2. On a notched phone in portrait and landscape, the bottom bar, headers, and pinned bars clear the notch and home indicator, the layout resizes correctly with browser chrome and the Android keyboard (no content lost under bars, no `100vh` trap), and the two-step login completes without iOS focus-zoom
   3. The More sheet behaves as a proper touch surface — focus-trapped, scroll-contained, safe-area padded, thumb-reachable, clearly dismissible — as the first consumer of the hand-rolled bottom-sheet primitive
   4. At desktop width (≥48rem) every page renders today's desktop layout unchanged, asserted per-page by the new Playwright harness, and a mobile-shell or desktop-layout regression fails CI
+
 **Plans**: 6 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 05-01-PLAN.md — Playwright harness foundation: legitimacy-gated exact-pinned @playwright/test, 4-project webServer config over the compiled binary, /api/health smoke
 - [ ] 05-02-PLAN.md — ONE nav registry (navModel) + Sidebar rewired to consume it + useMediaQuery breakpoint hook with the jsdom matchMedia stub
 - [ ] 05-03-PLAN.md — PRIM-01 BottomSheet primitive (lifted useConfirm mechanics) + nav.more across all locales + IconEllipsis glyph
 - [ ] 05-04-PLAN.md — Viewport correctness: safe-area custom properties, extended meta + theme-color mirror (FOUC bytes untouched), mobile-correct login, source-assert guards
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 05-05-PLAN.md — Mobile shell slice: Layout chrome switch (h-dvh) + BottomNav + MoreSheet + Layout-level iOS keyboard mechanism, first mobile e2e smoke
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 05-06-PLAN.md — E2E gate: desktop-untouched 10-route loop, exactly-5-slots, narrow-viewport de/fr backstop, lint.yml playwright job, web/dist phase close
 
 **UI hint**: yes
 
 ### Phase 6: Maquette Screens
+
 **Goal**: The design bible's core surfaces are fully operational on a phone — glanceable Home with backup triggering, Containers with touch folder selection, File sets with the same tree, and Run detail — with tap-popovers, fail-tone sheet confirmations, and visibility-aware live progress working below the breakpoint.
 **Depends on**: Phase 5
 **Requirements**: SCRN-01, SCRN-02, SCRN-03, SCRN-04, SCRN-05, PRIM-02, PRIM-03, PRIM-04, FLOW-03
 **Success Criteria** (what must be TRUE):
+
   1. From Home on a phone the user reads instance identity, next run, recent runs with four-status badges, and repository health (offsite-copy age in offsite blue) in one glance, and starts a backup from the thumb-zone action — passing a consequence-aware confirmation and deep-linking into the live run; triggering from container and file-set surfaces behaves identically
   2. On a container the user unfolds a mount and ticks/unticks subfolders by touch — full-row ≥44px targets, chevron/check hit-area separation, muted excluded rows, the live "handed to restic · n of m ticked" count, Save pinned in a bottom action bar — and the edit saves through the same serialized queue with desktop-identical semantics; the file-set screen embeds the same tree with coverage cards and its empty-selection copy
   3. The user opens a finished run and reads completion time, duration, monospace snapshot id, the new/changed/unchanged triad, and an activity log naming exclusion reasons (unticked / CACHEDIR.TAG); verify-integrity and browse-snapshot-files work as touch rows, with the restore entry point reachable
   4. Hover-dependent affordances (info bubbles, filter and color pickers) work by tap below the breakpoint while desktop hover behavior is untouched; destructive confirmations present as fail-tone bottom sheets with consequence-naming buttons and no default-focused destructive control; live progress pauses when the page is hidden and reconciles a run that finished in the background on return
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 7: Remaining Destinations & Operational Parity
+
 **Goal**: Every remaining destination — VMs, Flash, Config, Receiver, Fleet, Settings — operates in the same mobile card language with sheet editors, schedule/notification/replication parity, list ergonomics, and the design bible's platform-adaptive chrome, closing the "no desktop-only settings" contract.
 **Depends on**: Phase 6
 **Requirements**: MORE-01, MORE-02, FLOW-01, FLOW-02, LISTS-01, PLAT-01
 **Success Criteria** (what must be TRUE):
+
   1. The user opens VMs, Flash, Config, Receiver, and Fleet on a phone and gets block-level item cards with status, last run, and offsite state; can trigger backups and reach schedule entry points from each; Config surfaces the existing restore guard chain readably, and Fleet peers show reachability, last contact, and protection summary
   2. The user edits a schedule on the phone: TimePicker / CadenceBuilder open as full-screen sheets with large targets, and the human-readable effective-schedule preview stays visible on the invoking card
   3. Notification channels and off-site replication targets are fully editable on mobile — no desktop-only settings remain
   4. Settings works on the phone — stacked setting cards, full-screen sheet editors, dark mode / language / accent as today, a defined treatment for the 7-tab Selector strip — and long lists (runs, containers, sets, logs) offer sticky search + filter chips with load-more pagination and ≥44px rows
   5. On Android the app presents the Material 3 expression (navpill bar, FAB primary action, tonal chips) and on iOS the HIG expression (large title, circular checks) — same information architecture, translated chrome only
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 8: Guided Restore & Real-Device Verification
+
 **Goal**: The milestone's exit criteria are met — the guided restore flow runs end-to-end from a phone on proven primitives, and the whole mobile app passes the real-device, i18n, touch-target, and theme verification sweep on both platforms.
 **Depends on**: Phase 7
 **Requirements**: SCRN-06, VERIFY-02, VERIFY-03, VERIFY-04, VERIFY-05
 **Success Criteria** (what must be TRUE):
+
   1. The user completes a guided restore on the phone: preflight summary → confirmation naming overwrite consequences → optional dry-run/verify → live progress with log → completion — restore controls secondary-styled and away from the thumb's default path, with the server guard chain unchanged
   2. The real-device pass succeeds as the milestone exit criterion: notched iPhone Safari, SE-class iPhone Safari, and Android Chrome, portrait and landscape, including a guided restore exercised on device
   3. Every mobile string ships through the `t()` pipeline with 42-locale parity, and German and French pass narrow-viewport (320-360px) checks on the shell and key screens
   4. Every interactive control below the breakpoint is ≥44px and every hover-dependent affordance has a non-hover path; both themes are verified on mobile with four-status language carried by text labels (never color alone) and semantic tokens only — no hard-coded design-bible hex values
+
 **Plans**: TBD
 **UI hint**: yes
 
