@@ -105,7 +105,13 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
           </button>
         )}
       </div>
-      <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} settings={settings} />
+      <MoreSheet
+        open={moreOpen}
+        onClose={() => setMoreOpen(false)}
+        settings={settings}
+        authEnabled={authEnabled}
+        scrollMainToTop={scrollMainToTop}
+      />
     </nav>
   );
 }
