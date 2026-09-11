@@ -1,120 +1,179 @@
-# Stack Research
+# Stack Research — v1.1 Mobile Interface (Responsive SPA Layer)
 
-**Domain:** Tree-based sub-folder backup selection (lazy directory tree UI + restic path translation) for BombVault
-**Researched:** 2026-09-09
-**Confidence:** HIGH overall (core restic/Go facts cross-checked against official docs; UI patterns from official React/W3C sources)
+**Domain:** Mobile-responsive layer on an existing hand-rolled React/Vite SPA (Go-embedded, self-hosted backup UI)
+**Researched:** 2026-09-11
+**Confidence:** MEDIUM
 
-## Verdict First
+## Headline Verdict
 
-**Zero new dependencies.** Everything this feature needs already exists in the stack: extend the existing `GET /api/browse` endpoint for lazy child listings, hand-roll the collapsible tree with native checkboxes in the existing SPA idiom, and translate selections into **explicit restic target paths** through the unchanged `BackupArgs` builder. The tree is a view over the flat `backupPaths` set, exactly as PROJECT.md decided. The only new API surface is one optional field on the browse response and one save-time normalization rule.
+**Zero new npm dependencies.** The entire mobile-responsive layer is built from things the project already has, plus four small hand-rolled additions:
+
+1. **Two-line edit to `web/index.html`** — extend the viewport meta (`viewport-fit=cover`, `interactive-widget=resizes-content`) and add `theme-color`. This is the only "install-like" change in the milestone.
+2. **~40–60 lines of hand-rolled CSS in `web/src/index.css`** — safe-area padding utilities, touch-affordance rules, overscroll containment. No new build step.
+3. **One ~15-line `useMediaQuery` hook in `web/src/lib/`** — the only new JS, for JS-driven chrome swapping (Sidebar ↔ bottom bar). `matchMedia` is already used in `lib/theme.ts`, so the pattern has precedent.
+4. **Tailwind responsive variants (`max-md:` / `md:`) on existing components** — Tailwind CSS v4 is already the styling system (`@import 'tailwindcss'` + `@theme` tokens in index.css); breakpoints, `dvh` height utilities, and touch-safe hover behavior ship with it.
+
+Go backend: **zero changes** (every endpoint the mobile UI needs exists; SSE works in mobile browsers in-tab). Vite config, the committed `web/dist` embed, and the Docker multi-arch build: **zero changes** — `index.html` is the Vite entry, so meta edits flow into the committed dist automatically via the existing `tsc --noEmit && vite build` process.
 
 ## Recommended Stack
 
 ### Core Technologies
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `GET /api/browse` (extended) | existing (api.go:257, handlers.go:4143) | Lazy child listing for tree expansion | Already exists with traversal guards, relative-to-`HostMountRoot` contract, dirs-only filtering, hidden-entry skip, sorted output, `ok:false` error shape. The tree needs **one endpoint, called N times** — one listing per expansion. Do not create a second browse route. Confidence: HIGH (read the code). |
-| Explicit restic target paths (unchanged `BackupArgs`) | restic 0.17 floor (restic.go:361) | Selection → backup content | restic preserves the **full absolute path** of each explicitly passed target inside the snapshot (verified: `restic backup /home/user/work.txt` → snapshot contains `/home`, `/home/user`, `/home/user/work.txt`). So passing `/mnt/user/appdata/plex/config` and `/mnt/user/appdata/plex/metadata` as targets yields a snapshot browsable at the real paths, merged at shared prefixes — no basename flattening, no restore-layout surprise. `backupPaths` is *already* this list; `effectiveBackupPaths` already feeds it to restic. The translation layer is near-zero. Confidence: HIGH (restic stable docs + Context7 corpus). |
-| Go `os.ReadDir` + `DirEntry` | Go stdlib (1.25 floor) | Directory listing without per-entry stat | `os.ReadDir` returns sorted `DirEntry` values; `IsDir()`/`Type()` come from the dirent (getdents) data — no `stat` syscall per entry. The existing handler already uses it; keep it. For a bounded emptiness probe (if ever needed): `f.ReadDir(1)` reads at most one entry and returns `io.EOF` at directory end — but see the `hasChildren` decision below; we recommend **not** probing. Confidence: HIGH. |
-| Go `os.Root` (`os.OpenRoot`) | Go 1.24 core API, Go 1.25 expanded methods | Symlink-safe listing inside `HostMountRoot` | `os.Root` methods resolve names only within the opened root and **refuse symlinks that resolve outside it**; it is concurrency-safe and holds a directory fd. This closes a real gap: the current handler's `paths.Resolve` guard is purely *lexical* — a symlink inside appdata pointing to `/etc` would be followed by `os.ReadDir` and its contents listed. Fallback that works on any Go ≥ 1.24: `root.Open(rel).ReadDir(-1)`. Confidence: HIGH on API behavior (Go source + API diffs); MEDIUM that the current lexical guard is exploitable in practice (reasoned from code + stdlib semantics, not exploited). |
-| Native `<input type="checkbox">` + `indeterminate` DOM property | HTML / React 19 | Per-node tri-state checkbox | The mixed (partial) state is the DOM `indeterminate` *property* — it is not an HTML attribute and has no JSX prop; set it with a callback ref (`(el) => { if (el) el.indeterminate = isMixed; }`). Semantics match the W3C APG tri-state checkbox: all children checked → checked, none → unchecked, some → mixed. Announced correctly by screen readers on native checkboxes with zero extra ARIA work. Confidence: HIGH. |
-| Fetch-on-expand with a module-level promise cache | React 19 pattern | Lazy children without a data library | React's own guidance for on-demand data is: fetch in the event handler, cache the promise outside React state (`Map` keyed by path), render from local state; `useSyncExternalStore` is only needed if the cache must be shared across components reactively. For one panel, a small `treeCache.ts` module (`Map<string, Promise<Entry[]>>` + a loaded-children `Map`) with `useState` is the whole data layer. Confidence: HIGH (react.dev patterns). |
+| Technology | Version | Purpose | Why / Verdict |
+|------------|---------|---------|---------------|
+| Tailwind CSS (existing) | 4.3.3 | Breakpoint switch, mobile layout, `min-h-dvh`, `overscroll-contain`, `touch-*` utilities | Already the project's styling engine with carbon tokens in `@theme`. v4 breakpoints: `sm`=40rem (640px), `md`=**48rem (768px)**, `lg`=64rem. v4's `hover:` variant already compiles inside `@media (hover: hover)`, so desktop hover styles will NOT stick on touch — a v3-era reason to add libraries that no longer exists. **Keep; add nothing.** |
+| react-router-dom (existing) | 7.18.1 | Bottom-bar navigation via `NavLink` (gives `aria-current="page"` + active class for the M3 navpill/HIG tint) | Bottom bar is just four `NavLink`s in a `fixed bottom-0` flex row. **Keep; add nothing.** |
+| React (existing) | 19.2.7 | More-sheet + shell state via local `useState`; `inert` boolean attribute to blind the background while the More sheet is open | React 19 handles `inert` as a true boolean attribute (`setAttribute('inert','')`), so `<div inert={sheetOpen}>` is one prop, no workaround. More-sheet open state is component-local — no state library. **Keep; add nothing.** |
+| Vite (existing) | 8.1.5 | Build; committed `web/dist` embed | Default `build.target` is `baseline-widely-available` (2026-01-01): Chrome 111+, Edge 111+, Firefox 114+, **Safari 16.4+**. The bundle already requires iOS 16.4+; every CSS feature this milestone needs is at or below that floor, so the mobile layer introduces no support regression. **No config change.** |
+| `useMediaQuery` hook (new, hand-rolled) | — | Flip `Layout.tsx` chrome (Sidebar ↔ bottom bar + More sheet) below the breakpoint | ~15 lines: `matchMedia` + `useSyncExternalStore`. Precedent exists (`lib/theme.ts`, `Dashboard.tsx` use `matchMedia`). CSS media queries do the styling; the hook is only for conditional *subtrees*. A library (`react-responsive`) would violate the hand-rolled constraint for no capability gain. |
 
-### Supporting Libraries
+### The Four Concrete Additions (code, not packages)
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| None | — | — | Genuinely nothing. Every candidate (TanStack Query, react-arborist, react-window) is either banned by the zero-dep constraint or solves a problem this feature does not have. See "What NOT to Use". |
+**1. Viewport meta — edit `web/index.html` line 34:**
+
+```html
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+<meta name="theme-color" content="#161616" />
+```
+
+- `viewport-fit=cover` — required for `env(safe-area-inset-*)` to ever be non-zero on iOS; without it Safari auto-insets the page and the fixed bottom bar can never extend its surface under the home indicator (WebKit, "Designing Websites for iPhone X").
+- `interactive-widget=resizes-content` — Chrome Android 108+ defaults to `resizes-visual`: the keyboard overlays the layout viewport and a `position: fixed` bottom bar stays put and gets buried. This key restores layout resizing so the bar/inputs sit atop the keyboard. iOS Safari ignores the key harmlessly (it has always behaved visual-only; resize logic there is handled by the keyboard being an overlay with visual-viewport scrolls). Unknown meta keys are ignored by all other browsers — the addition is safe everywhere (Chrome Dev blog, "viewport resize behavior").
+- `theme-color` — tints mobile browser chrome to the carbon `bg` `#161616`; no manifest needed. (If a light theme value is wanted later, use the two-`<meta>` `media=` pattern; the FOUC script at the top of index.html is untouched.)
+
+**2. Safe-area CSS — new utilities in `web/src/index.css`** (greenfield: no `env(`/`safe-area`/`dvh` rules exist yet):
+
+```css
+/* Bottom bar: background extends under the home indicator; controls stay above it. */
+.mobile-nav {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+/* Page content: clear the bar plus the inset. */
+.safe-bottom {
+  padding-bottom: calc(3.75rem + env(safe-area-inset-bottom, 0px));
+}
+```
+
+Key facts driving this: insets are `0` when browser UI already occupies the space (iOS Safari portrait in-tab reports bottom inset 0; Chrome Android with the toolbar shown likewise), non-zero in landscape (side insets) and in standalone/home-screen mode (~34px bottom). So use `env()` unconditionally with a `0px` fallback — it is free when 0 and correct when not. Legacy `constant()` (pre-iOS 11.2) is dead; do not add it. Where a base padding must survive 0 insets, use the `max(base, env(...))` form inside `@supports (padding: max(0px))` per the WebKit pattern.
+
+**3. Touch-affordance CSS — also `web/src/index.css`:**
+
+```css
+.touch-target  { touch-action: manipulation; }        /* kill double-tap-zoom pause on tree toggles, nav */
+.no-touch-ink  { -webkit-tap-highlight-color: transparent; }  /* pair with :active states instead */
+.scroll-contain{ overscroll-behavior: contain; }      /* More sheet: no scroll-chaining to body */
+.nav-row       { user-select: none; }                  /* no long-press selection on nav/tree rows (logs stay selectable) */
+```
+
+Nothing else is needed for "touch feel": the 300 ms tap delay is long gone with a correct viewport meta; momentum scrolling is default; `-webkit-overflow-scrolling` is obsolete.
+
+**4. Viewport height — use `dvh` with a `vh` fallback for full-height shells:**
+
+```css
+/* or Tailwind: min-h-screen min-h-dvh (v4 ships h-dvh / min-h-dvh / min-h-svh) */
+.shell { min-height: 100vh; min-height: 100dvh; }
+```
+
+`100vh` on mobile is the *large* viewport, so a 100vh shell bleeds under Safari's expanded toolbar. `dvh` tracks the live toolbar state; `svh` is the conservative choice for always-visible chrome. Support (Chrome/Edge 108, Firefox 101, Safari 15.4) sits below the Vite 8 JS floor (Safari 16.4), and the cascade fallback makes it moot anyway. Note `dvh` does *not* react to the keyboard (keyboard ≠ UA UI) — the `interactive-widget` meta is the keyboard fix.
+
+### Breakpoint Strategy (single decision the roadmap needs)
+
+**One switch at `md:` = 48rem / 768px (Tailwind default; no `@theme --breakpoint-*` override needed).**
+
+- Below 768px: mobile shell — bottom bar (Home, Containers, Files, Settings) + "More" sheet, per the design bible's 392/390px prototypes.
+- At/above 768px: existing desktop layout untouched. iPad portrait (768px) gets the desktop UI, which is acceptable (it has room for the sidebar) and — critically — guarantees "desktop intact above the breakpoint" is testable with one number.
+- Implementation rule: desktop protection comes from *only adding* `max-md:` variants and mobile-gated CSS; never editing classes the desktop layout depends on. If a rare edge needs mobile-only custom CSS, wrap it in one `@media (width < 48rem)` block rather than sprinkling queries.
 
 ### Development Tools
 
 | Tool | Purpose | Notes |
 |------|---------|-------|
-| restic CLI spot-check (already on dev PATH) | Verify two documented behaviors against the pinned 0.17 floor | Two commands, 30 seconds, run once during the phase: (1) `restic backup <abs path>` + `restic ls <snap>` confirms full absolute path preservation; (2) an `--exclude` pattern matching an explicit target confirms "excludes never drop explicitly passed targets". Docs verified against restic **0.19.1 stable**; both behaviors are long-standing but the project floor is 0.17 — check, don't assume. Confidence: MEDIUM until spot-checked. |
-| `go test` + `restic_args_test.go` idiom | Argv-level tests for the normalization + any new browse handler logic | The repo already unit-tests argv construction; add the same for: ancestry pruning of the target list, and a handler test for symlink-outside-root rejection once `os.Root` lands. |
+| Existing vitest + jsdom + testing-library | Component tests for bottom bar / More sheet | No new tooling. Two known gaps: jsdom does not implement `window.matchMedia` (the `useMediaQuery` hook needs a mock — likely already stubbed somewhere for theme tests) and jsdom does no layout, so breakpoint behavior itself is CSS-only and untestable there; test DOM structure/aria, not pixels. |
+| Chrome DevTools device mode | Breakpoint + touch emulation during dev | Existing `npm run dev` + proxy to `https://localhost:3443`. |
+| Real phone against the Docker image | Safe-area/keyboard/overscroll verification | These four behaviors are unreliable in emulation; the multi-arch image + self-signed TLS already supports LAN testing from a phone. |
 
-## The Two Design Cores (prescriptive)
+## Installation
 
-### 1. API pattern for the lazy tree
-
-Keep `/api/browse` as a **shallow, per-directory listing** and build the tree entirely client-side:
-
-- **Request:** `GET /api/browse?path=<relative>` — unchanged contract (relative to `HostMountRoot`, `paths.Resolve` containment, generic error message on traversal attempts).
-- **Response:** current `{ok, root, path, dirs: [{name, path}]}` — keep dirs-only (backup selection is folder granularity; files are the ExcludesEditor's job per the Key Decision in PROJECT.md).
-- **`hasChildren` field: do not add a server-side probe.** Decide that **every listed dir is expandable**. On expand, an empty dir just renders nothing under it (the VS Code remote-explorer / Ant Design `loadData` behavior). Rationale: on Unraid, appdata lives on SHFS (FUSE) — a `Readdirnames(1)` emptiness probe per listed subdir turns one listing round-trip into N+1 FUSE ops, doubling the latency of every expansion for a cosmetic expander glyph. The dominant real subtrees (Plex-style appdata) are never empty at the levels users expand.
-- **Caching:** client-side only, keyed by relative path, lifetime = panel mount. No server cache, no ETags. Listings are cheap; stale-tree confusion costs more than re-fetching.
-- **Hidden entries:** keep skipping dot-prefixed dirs (existing behavior). Document in the UI hint that hidden dirs are not shown/selectable even though restic would back them up if inside a selected folder — consistent with the current picker.
-
-### 2. Selection model → restic translation
-
-UI state = `Set<string>` of explicitly checked paths (a mirror of `backupPaths`). Everything else is **derived**, never stored:
-
-- **Ancestor-dominance display rule:** a node renders *checked* if its path or any ancestor is in the set; *mixed* if no ancestor is in the set and at least one loaded descendant is in the set; *unchecked* otherwise. No expansion is ever triggered just to compute display state.
-- **The one hard rule — materialize on uncheck:** unchecking a descendant of a checked parent cannot be expressed in a flat path set, so replace the parent with its **immediate children minus the unchecked one** (one server listing, usually already loaded because the node was visible/expanded). Never recursively materialize deeper levels; the flat set stays minimal and the restic target list stays small. This is the standard resolution for flat-persistence + lazy-tree (Vorta's include list and Kopia's policy `include` lists resolve identically). Confidence: HIGH on the mechanics; MEDIUM on "everyone does it this way" (synthesized from the backup-UI landscape, not a single citable doc).
-- **Check a mixed/checked parent = re-collapse:** add the parent path and prune stored descendants (ancestry pruning, below).
-- **Save-time ancestry pruning (make it a server invariant):** in/near `SetBackupPaths`, drop any stored path that has an ancestor also stored. Three reasons: (a) it is the normalization restic wants — never pass `/mnt/user/appdata/plex` and `/mnt/user/appdata/plex/config` as targets together (overlapping-target behavior is not crisply documented; pruning makes the question moot); (b) it keeps the snapshot `paths` metadata canonical, and restic picks its incremental **parent by `host,paths`** — a canonical list keeps parent selection stable between runs; (c) it also fixes legacy duplicates from custom-path entry, protecting old deployments. Confidence: MEDIUM on restic overlap behavior; HIGH that pruning is correct regardless.
-- **Restic invocation:** unchanged `BackupArgs(repo, prunedPaths, tags, mode, excludes...)`. Do not add `--parent` management; accept the one parentless full-rescan after a selection edit (restic groups parents by `host,paths`, so a changed list = no parent for exactly one run; dedup means repo growth stays ~zero — only scan IO is paid once).
-- **Division of labor with excludes is real and verified:** restic docs state excludes **do not apply to targets explicitly passed** (a user's `*.log`-style pattern cannot silently kill a checked folder), but content *inside* a selected dir is still filtered by excludes. That is precisely the tree=folders / ExcludesEditor=files-and-globs split PROJECT.md decided on. Generating `--exclude` patterns from unchecked folders would invert the persistence model, and restic's negation rules make exclude-based "select" one-way: *once a directory is excluded, descendants cannot be re-included*. Confidence: HIGH (verbatim from stable docs).
+```bash
+# Nothing to install. Zero new dependencies, zero dev dependencies.
+# All changes are edits to:
+#   web/index.html                    (viewport meta + theme-color)
+#   web/src/index.css                 (safe-area, touch, dvh utilities)
+#   web/src/lib/useMediaQuery.ts      (new, ~15 lines, hand-rolled)
+#   web/src/app/Layout.tsx            (chrome swap + bottom bar + More sheet, hand-rolled)
+# Then the existing process: cd web && npm run build && commit web/dist
+```
 
 ## Alternatives Considered
 
-| Recommended | Alternative | When to Use Alternative |
-|-------------|-------------|-------------------------|
-| Extend `/api/browse` | New `/api/tree` endpoint returning nested nodes | Never — two endpoints for one listing, plus a nested-response shape invites eager recursion bugs. |
-| Explicit target paths | Mount root as single target + generated `--exclude` per unchecked folder | Only if snapshot layout ever had to stay byte-identical across selection changes; it doesn't (paths are absolute → layout is stable per selection), and excludes lose the ability to re-include descendants. |
-| Always-expandable dirs (no `hasChildren`) | Server probes emptiness per listed dir (`Readdirnames(1)`) | Only if the browse endpoint moves off FUSE-hosted paths (e.g. local-disk file sets on generic hosts) AND users complain about empty-dir spinner flicker. Cheap to add later as `hasChildren?: boolean` — absent = expandable, so it's non-breaking. |
-| Client-side promise cache | TanStack Query / SWR | Never here — one endpoint, panel-lifetime cache, manual invalidation; a library is 40 kB of dependency for a `Map`. |
-| Recursive React component rows | Full APG `role="tree"` with roving tabindex | Phase 2 if keyboard-tree navigation is requested. V1: plain collapsible rows with natively focusable buttons + checkboxes (matches the existing folder-picker idiom and i18n/dark-mode plumbing); add `role="tree"/treeitem/group`, `aria-expanded`, `aria-checked="mixed"` if audit demands. |
-| `os.Root` for listing | Keep lexical `paths.Resolve` only | If Go floor ever drops below 1.24. Keep `paths.Resolve` anyway as defense-in-depth — they compose. |
+| Recommended | Alternative | When the Alternative Would Win |
+|-------------|-------------|-------------------------------|
+| Tailwind default `md:` 48rem breakpoint, used as-is | Custom `--breakpoint-*` in `@theme` (e.g. 42rem) | Only if testing shows 640–767px devices (large phones, small tablets) look wrong as desktop. Decide from device testing, not upfront — the override is one line if needed. |
+| One `useMediaQuery` hook | `react-responsive`, `usehooks`-style packages | Never here — any of them is a dependency bought to avoid 15 lines, against the constraint. |
+| Hand-rolled More sheet (`fixed` + backdrop + `inert` + existing `useConfirm.tsx` focus-trap pattern) | Radix UI / React Aria / vaul / Headless UI for bottom sheets | If swipe-to-dismiss-with-velocity physics were required. It is not — the design bible specifies tap-outside/close affordances. Reuse the project's existing focus-trap (`useConfirm.tsx`) rather than adding `focus-trap-react`. |
+| `viewport-fit=cover` + own inset padding | Safari's default `viewport-fit=auto` auto-insetting | Only if the design never extends under device UI — but the bottom bar must (its surface should run under the home indicator in landscape/standalone), so `cover` is required. |
+| `theme-color` meta only | Full PWA manifest + icons + service worker | See "What NOT to Use" — the milestone is a responsive layer, not installability. |
 
 ## What NOT to Use
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| TanStack Query, SWR, RTK Query | New dependency; violates the explicit no-state-library constraint; cache/invalidation needs here are one `Map` and a panel lifetime | `treeCache.ts` promise cache + `useState` (react.dev's documented fetch-in-event-handler pattern) |
-| react-arborist, react-complex-tree, Ant Design Tree, MUI X TreeView | UI-kit territory (banned); none natively models *lazy load + tri-state checkboxes + flat-path selection with ancestor dominance* — all three would still be hand-written; styling fights Tailwind-4 dark mode; react-arborist's maintenance cadence is a risk | ~200–300 lines of recursive rows; the hard part (selection semantics) is independent of rendering anyway |
-| react-window / react-virtualized | Premature: only expanded paths render; dirs-only listings keep sibling counts modest. Plex cache dirs can have many *entries* but most are files, which the tree doesn't list | If a pathological dir ever hurts, hand-roll windowing in that one component — do not take a dependency |
-| Translating unchecked folders into `--exclude`/`--iexclude` patterns | Inverts the persistence model (persistence is include-paths); restic negation is one-way (excluded dir = descendants permanently un-includable); would poison the ExcludesEditor live preview with machine-generated patterns users didn't write; excludes don't stop restic from walking *to* the exclusion points when the parent is a target, so IO savings are partial anyway | Explicit target paths + save-time ancestry pruning |
-| `--files-from` / `--files-from-verbatim` for the target list | `--files-from` **expands glob patterns** in the file — literal paths containing `*?[` would silently reinterpret; adds a temp-file round-trip for no gain | Positional targets after `--` in `BackupArgs` — already injection-safe and already unit-tested |
-| Negative entries ("all except X") in `backupPaths` | Changes the persistence format — explicitly out of scope (PROJECT.md); old deployments must keep working | Materialize-on-uncheck (parent → immediate children minus unchecked) |
-| Eager full-tree endpoint (one `GET /api/tree?root=appdata/plex`) | Appdata trees are exactly the huge, slow case (Plex `transcoding` subtrees); eager recursion stalls both the panel and the SHFS backend — this was the pre-existing decision in PROJECT.md | Shallow per-directory listing, fetch on expand |
-| Storing the *expanded* set server-side | Expansion is presentation, not selection; server-side expansion state would leak UI concerns into `backupPaths` | Keep `expanded` + `loaded` sets in component state |
+| Any UI kit (MUI, Mantine, AntD) or headless primitive (Radix, React Aria, Base UI, Headless UI, vaul) | Project constraint (no UI kit) and design bible is locked to carbon tokens; kits ship their own token systems that fight it | Hand-rolled components per `components/` conventions, reusing `useConfirm.tsx` focus-trap and `Button.tsx`/`Toggle.tsx` patterns |
+| State libraries (zustand, jotai, redux) for sheet/nav state | One boolean of UI state does not justify a dependency; constraint says no state library | Component-local `useState` lifted to `Layout.tsx` |
+| PWA tooling (`vite-plugin-pwa`, service workers, manifest in this milestone) | A service worker caching a **committed-dist, self-upgrading** self-hosted app is a stale-bundle liability: every Docker image serves its own hashed assets, and an SW pinned to old chunks survives container upgrades — a classic "my UI didn't update" support burden on exactly the audience (self-hosters) least equipped to debug it. Also pure scope creep: installability is not a v1.1 requirement | `theme-color` + existing `apple-touch-icon` now; manifest/icons only if a later milestone explicitly wants A2HS standalone (then: manifest with `display: standalone` + 192/512 icons; note `apple-mobile-web-app-capable` is deprecated and Safari warns on it) |
+| `@custom-variant hover (&:hover)` to restore v3 tap-hover | Deliberately reintroduces sticky hover states on touch | Keep v4's `@media (hover: hover)` gating; add `:active` styles for touch feedback instead |
+| `100vh`-based full-height layout | Large-viewport unit: content bleeds under mobile toolbars | `min-h-dvh` (Tailwind v4 ships it) or the `100vh; 100dvh` two-line cascade |
+| React-18 `inert=""` string workaround | React 19 treats `inert` as a proper boolean attribute; empty strings trigger a dev warning | `<div inert={isOpen}>` |
+| Second route tree / separate mobile pages | Duplicates i18n strings and API wiring across 42 locales; doubles the parity-test surface | Same routes, swapped chrome in `Layout.tsx`; pages adapt internally with `max-md:` variants |
+| Native wrapper (Capacitor/Ionic), `touch-action: none` globally, `-webkit-overflow-scrolling: touch`, `constant()` insets | Out of scope / obsolete / would break scrolling | Browser-tab responsive SPA per the design bible |
 
 ## Stack Patterns by Variant
 
-**If the target is a container mount (bind or named volume) under appdata:**
-- Tree roots at the mount's host path from existing discovery (`resolveAppdataPaths`); browse relative to `HostMountRoot` as today.
-- Expect FUSE latency — show per-node spinners on expand; do not prefetch children on hover (SHFS makes hover-prefetch a cost amplifier, unlike the react.dev hover-preload example, which assumes cheap fetches).
+**If a mobile screen needs a structurally different subtree (e.g. touch selection tree vs desktop checkboxes):**
+- Gate with the `useMediaQuery` hook (or `hidden max-md:flex` classes), keep one component per concept, extend via additive-optional props — the same rule that let `SelectionTree` serve containers and file sets (Key Decision, PROJECT.md). One tree implementation, two presentations.
 
-**If the target is a File Set root (arbitrary host dir, may be local disk):**
-- Same component, same endpoint, same semantics — only the initial path differs. No special-casing; this is the payoff of reusing `/api/browse`.
+**If device testing shows 640–767px devices render desktop badly:**
+- Add `@theme { --breakpoint-mobile: 48rem; }`-style override or drop the switch to `sm:` (40rem) — one-line change, no code motion. Decide empirically in MOBILE-01, not speculatively.
 
-**If a listed dir disappears mid-edit (container stopped, mount gone):**
-- `ok:false` listing → render the node with a retry affordance, leave selection untouched. `SetBackupPaths` already tolerates non-existent paths (existence is not required — verified in service tests), so a vanished folder never blocks saving.
+**If home-screen install (standalone) is ever wanted:**
+- Safe-area work is already correct (that's why `viewport-fit=cover` + `env()` lands in this milestone even though insets are mostly 0 in-tab). Then add: manifest (`name`, 192/512 icons, `start_url`, `display: standalone`) + regenerate icons. The status-bar levers (`apple-mobile-web-app-status-bar-style`) remain iOS-only meta tags.
 
-**If the user checks a parent and some children were already individually stored:**
-- Ancestry pruning at save handles it (descendants dropped when ancestor present). Do this server-side so it is an invariant, not a UI promise.
+**If the keyboard hides form fields on iOS despite the above:**
+- iOS has no `interactive-widget` equivalent; the pattern is `scrollIntoView` on focus within the More sheet/schedule forms (VisualViewport listener). Handle per-screen only if observed — do not pre-build.
 
 ## Version Compatibility
 
-| Component | Compatible With | Notes |
-|-----------|-----------------|-------|
-| restic behaviors relied on | 0.17 floor (docs verified at 0.19.1 stable) | Spot-check two behaviors against 0.17 CLI during the phase: absolute-path preservation in snapshots; excludes not dropping explicitly passed targets. Both are long-standing; the check is two commands. |
-| `os.Root` | Go ≥ 1.24 (project floor 1.25 — fine) | Go 1.24: core methods; Go 1.25: expanded (Chmod/Chown/MkdirAll/ReadFile/Rename, per `api/go1.25.txt`). Use `root.Open(rel).ReadDir(-1)` for listing — works across both. Keep `paths.Resolve` for the pre-existing error messages/tests. |
-| React patterns | React 19.x (19.2 current) | Event-handler fetch + external promise cache; `indeterminate` via callback ref. No Suspense/`use()` needed for a settings panel — do not introduce Suspense boundaries around form rows. |
-| Existing SPA plumbing | React 19 + TS + Vite + Tailwind 4, embedded `web/dist` | Any `web/` change requires the frontend build committed per repo convention. |
+| Package / Feature | Compatible With | Notes |
+|-------------------|-----------------|-------|
+| Tailwind CSS 4.3.3 + Vite 8.1.5 + React 19.2.7 | Already coexisting in repo | No new peers introduced; the milestone adds no package at all |
+| CSS `env(safe-area-inset-*)` | iOS 11.2+, Chrome 69+, Firefox 65+ | Far below the Vite 8 JS floor (Safari 16.4); fallback arg covers the rest |
+| CSS `dvh/svh` | Chrome/Edge 108, Firefox 101, Safari 15.4 | Below the JS floor; `vh` cascade fallback for anything older |
+| `inert` | Chrome 102+, Firefox 112+, Safari 15.5+ | At/below the JS floor |
+| `interactive-widget=resizes-content` | Chrome Android 108+ only | Ignored elsewhere by design; iOS keyboard handled per-screen if needed |
+| v4 `hover:` gating (`@media (hover: hover)`) | All v4 versions | Existing desktop hover styles already behave correctly on touch — verify no raw `.foo:hover` CSS rules in index.css bypass it (spot-check during MOBILE-01) |
+
+## Integration Points with the Existing Setup
+
+- **`web/index.html`**: the meta edit sits below the existing FOUC-prevention script, which stays byte-identical. Vite copies index.html into `web/dist` on build — the committed-dist embed ships the change with zero Go/infrastructure work.
+- **`web/src/app/Layout.tsx`** (209 lines, `<Sidebar/>` + `<main>` scroll container): the swap point. Bottom bar + More sheet render here; `<main>` gains the `safe-bottom` padding so content clears the bar. Existing sidebar sticky-footer/flex conventions in this file should be preserved above the breakpoint.
+- **i18n (42 locales)**: bottom-bar labels and More-sheet strings are new keys through the existing `lib/i18n.ts`; the parity/orphan tests will enforce translation coverage automatically. Bottom bar direction: flexbox flips under RTL automatically — no extra work, but add one RTL assertion for the bar.
+- **Dark-only carbon theme**: `theme-color` `#161616` matches `--carbon-bg`; no theme-switch interplay (the `data-theme` machinery is untouched).
+- **Go backend / Docker**: zero changes. Mobile clients use the same `/api` + SSE surface; the browser handles reconnection on mobile network flaps.
 
 ## Sources
 
-- restic official docs, "Backing up" (readthedocs stable 0.19.1) — absolute/relative path snapshot layout, parent selection groups by `host,paths`, exclude pattern grammar (`filepath.Match` + `**`, leading-`/` anchor, `!` negation limits), "excludes do not apply to explicitly passed backup sources", symlinks not followed. Fetched verbatim this session. **HIGH** (cross-checked with Context7 `/restic/restic` corpus of the same docs).
-- Context7 `/restic/restic` — snapshot metadata (`paths`, `excludes` fields), symlink node structure, snapshot filter semantics. **MEDIUM** (seam tier; corroborates the readthedocs text).
-- Context7 `/golang/go` — `os/root.go` doc comment (symlinks may not resolve outside root; concurrency-safe; fd-backed), `api/go1.24.txt` (`os.OpenRoot`), `api/go1.25.txt` (expanded method set), `os/dir.go` (`File.ReadDir(n)` bounded batches). **HIGH** for behavior, from Go source; **MEDIUM** for the exact 1.25 method list (corpus truncation — hence the `Root.Open().ReadDir` fallback).
-- Context7 `/reactjs/react.dev` — "You Might Not Need an Effect" (external store subscription), `useSyncExternalStore`, `use()`/Suspense cached-promise pattern, "Choosing the State Structure" (Set-based selection). **MEDIUM** (seam tier) but these are official React docs.
-- Context7 `/w3c/wai-aria-practices` — APG Checkbox pattern (tri-state/mixed semantics) and Tree View pattern (`role=tree/treeitem/group`, `aria-expanded`). **HIGH** (W3C examples, fetched verbatim).
-- Codebase seams (read this session): `internal/api/api.go:257`, `internal/api/handlers.go:4143` (`handleBrowse`), `internal/restic/restic.go:361` (`BackupArgs`), `internal/api/service.go:3771` (`SetBackupPaths`), `web/src/lib/api.ts:468` (browse client types). **HIGH** (primary source).
-- Overlapping-restic-target behavior and backup-UI landscape (Vorta/Kopia materialization analogy): **LOW–MEDIUM** — synthesized; no single authoritative source. This is why save-time ancestry pruning is recommended unconditionally rather than relying on restic deduplicating overlapping targets.
+Per the classify-confidence seam: Context7 (official library docs) = MEDIUM; web fetches = LOW tier, though all are primary/authoritative platform sources (vendor blogs and standards bodies), which is why the overall file confidence is MEDIUM.
+
+- Context7 `/websites/tailwindcss` (Tailwind v4 docs) — default breakpoints, `@theme --breakpoint-*` customization, v4 `hover:` = `@media (hover: hover)` (MEDIUM)
+- Context7 `/vitejs/vite/v8.0.10` (Vite docs + source) — default `build.target` = `baseline-widely-available` (Chrome 111+/Firefox 114+/Safari 16.4+) (MEDIUM)
+- Context7 `/react/react/v19.2.7` (React source + fixtures) — `inert` boolean-attribute handling in React 19 (MEDIUM)
+- WebKit blog "Designing Websites for iPhone X" — `viewport-fit=cover`, `env()` vs legacy `constant()`, `max(env())` pattern (LOW tier, primary source)
+- developer.chrome.com "viewport resize behavior" — `interactive-widget` semantics, Chrome 108 default change (LOW tier, primary source)
+- web.dev "Viewport units" (via current URL) — svh/lvh/dvh definitions, support matrix (Chrome 108/FF 101/Safari 15.4), fallback pattern (LOW tier, primary source)
+- W3C WAI WCAG 2.2 Understanding 2.5.8 Target Size (Minimum) — 24×24px rule, spacing exception, nav-bar applicability (LOW tier, primary source)
+- MDN `env()` and Web/Apps Manifest — inset-zero conditions, bottom-bar padding example; manifest installability fields, iOS A2HS/standalone behavior, deprecated `apple-mobile-web-app-capable` (LOW tier, primary source)
+- Repo ground truth — `web/package.json`, `web/index.html`, `web/src/index.css`, `web/src/app/Layout.tsx`, `web/src/components/ConfirmDialog.tsx`/`lib/useConfirm.tsx`, `web/vite.config.ts`, `.planning/codebase/STACK.md` (verified by direct inspection, 2026-09-11)
 
 ---
-*Stack research for: BombVault tree-based sub-folder backup selection*
-*Researched: 2026-09-09*
+*Stack research for: BombVault v1.1 Mobile Interface — responsive SPA layer*
+*Researched: 2026-09-11*

@@ -1,145 +1,166 @@
-# Research Summary — Tree-Based Sub-Folder Backup Selection
+# Project Research Summary
 
-**Project:** BombVault tree-based sub-folder backup selection (lazy directory tree UI + restic path translation)
-**Synthesized:** 2026-09-09
-**Research files:** STACK.md, FEATURES.md, ARCHITECTURE.md, PITFALLS.md
-
----
+**Project:** BombVault v1.1 — Mobile Interface
+**Domain:** Responsive mobile layer on an existing desktop-first React 19 / Vite 8 / Tailwind 4 SPA (Go-embedded, self-hosted backup UI)
+**Researched:** 2026-09-11
+**Confidence:** HIGH
 
 ## Executive Summary
 
-Tree-based sub-folder selection for BombVault is a brownfield feature that, per all four research files, is a **pure new view over existing data**: extend the existing `GET /api/browse` endpoint (one small opt-in addition), hand-roll a lazy tri-state checkbox tree in the existing SPA idiom, and compile selections into **explicit restic positional target paths** through the unchanged `BackupArgs` builder. The stack needs **zero new dependencies** — TanStack Query, react-arborist, and friends are all either banned by constraint or solve problems this feature does not have. The tree's browsable universe (paths under `HostMountRoot`) is by construction identical to the backable universe, so one generic endpoint serves every consumer and the tree can never offer a path the engine cannot reach.
+v1.1 turns the existing BombVault SPA into a fully operational mobile interface: a breakpoint-scoped mobile shell (bottom bar with Home / Containers / Files / Settings + a "More" sheet) per the locked design bible (design/mobile/README.md, commit 0b64c7df on branch mobile-design-concepts), with the desktop layout untouched above the breakpoint and **full operational parity below it** — not a view-only companion. Competitive research is unambiguous: every restic-ecosystem UI (Backrest, Vorta-class) and NAS/container admin tool (Unraid, TrueNAS, Proxmox, Portainer) ships desktop-first pages rendered on glass; only Home Assistant proves one-responsive-codebase-with-parity is achievable. Parity on a phone is therefore both the table stakes (responsive shell) and the differentiator (operate, don't just watch — trigger backups, edit selections, run guided restores from the driveway).
 
-The central technical decision — **resolved here, because STACK and ARCHITECTURE align and PITFALLS' alternative is technically broken** — is: selections compile to *maximal checked roots* passed as restic positional paths, never to parent-plus-derived-`--exclude`. This is not a style preference: restic's excludes **do not apply to positional backup sources** (verified against official docs), so the parent+exclude hybrid is an error class, not a design option; restic's `!` negation also cannot re-include inside an excluded directory. PITFALLS raises one legitimate concern against pure decomposition (Pitfall 2): replacing a stored parent with its children is an allowlist — folders created *after* the save under that parent are silently not backed up, and the flat set cannot express "all except X". The synthesis: **accept explicit-positional-targets as the engine model; surface the future-children semantic as a deliberate, communicated consequence** — a narrowing-selection note in the UI ("new snapshots will contain only the selected folders") plus a backup-time coverage warning — rather than solving it with exclude semantics that restic does not support. The fanout escape hatch ("exclude this subfolder instead" routing to the existing ExcludesEditor) covers the "mount minus junk" case where the denylist instinct is strongest.
+The recommended approach is **zero new dependencies and zero backend changes**. Everything is built from what the repo already has: a two-token viewport meta edit, ~60 lines of hand-rolled CSS (safe-area, touch affordance, dvh), one ~15-line `useMediaQuery` hook quarantined to `Layout.tsx` (the single chrome switch point), hand-rolled `BottomNav`/`MoreSheet` components in a new `components/mobile/` folder, and Tailwind `max-md:` variants / container queries adapting pages **in place** — never a second page tree. `router.tsx`, `web/src/lib/api.ts`, and all of `internal/**` are frozen. The milestone is presentation-only.
 
-The key risks are UI-semantics traps, not engine work: unchecking everything silently resurrects auto-detection (empty-selection inversion); mixed-state derivation must come from the flat stored set, never from lazily-loaded children; the listing endpoint's lexical containment guard is not symlink containment (`os.Root` hardening); and selection churn makes restore coupling first-class — restore replays the last run's stored path list against an older snapshot that may not contain those paths, which aborts mid-restore *after* destructive teardown. That restore hardening (intersect stored paths with the chosen snapshot's recorded `Paths`) must ship **before** the tree does.
-
----
+The dominant risks are all *invisible in desktop testing*: `100vh` puts the bottom bar under the mobile URL bar; safe areas are a two-half contract (`viewport-fit=cover` AND `env()`); iOS keyboards never resize the layout viewport; Tailwind v4 already gates `hover:` behind `@media (hover: hover)` so hover-only affordances silently vanish on touch; jsdom does no layout and there is no e2e suite, so responsive regressions fail no existing test; and emulation is not a device. Mitigation is structural: a Playwright smoke harness (with desktop-untouched assertions) lands in Phase 1, the real-device pass is a Phase 4 exit criterion, and every mobile style is scoped below one breakpoint (48rem / Tailwind `md:`) so "desktop intact" is testable with one number.
 
 ## Key Findings
 
-### From STACK.md (confidence: HIGH)
+### Recommended Stack
 
-- **Zero new dependencies.** Extend `GET /api/browse` (api.go:257, handlers.go:4143) for lazy child listings; hand-roll the tree (~200-300 lines of recursive rows); translation layer is near-zero since `backupPaths` already feeds `BackupArgs` positionals.
-- **restic preserves full absolute paths** of explicitly passed targets in snapshots — merged at shared prefixes, no basename flattening. Snapshot layout is stable per selection.
-- **Excludes do not apply to explicitly passed targets** (HIGH, verbatim docs) — which is exactly the desired tree=folders / ExcludesEditor=files-and-globs split, and why exclude-based "select" is disqualified.
-- **Save-time ancestry pruning as a server invariant** in/near `SetBackupPaths`: drop any stored path with a stored ancestor. Canonical lists keep restic's parent-snapshot selection (by `host,paths`) stable; also fixes legacy duplicates.
-- **No `hasChildren` server probe** — SHFS/FUSE makes emptiness probes an N+1 latency multiplier; every dir is expandable, empty renders nothing.
-- **`os.Root` (Go >=1.24, repo floor 1.25)** for symlink-safe listing; keep `paths.Resolve` as defense-in-depth.
-- Native checkboxes with the `indeterminate` DOM property set via callback ref; module-level promise cache instead of a data library.
+Zero new npm dependencies, zero Go changes, zero Docker/build changes. See `.planning/research/STACK.md`.
 
-### From FEATURES.md (confidence: HIGH core UX; LOW vendor specifics)
+**Core technologies (all existing):**
+- **Tailwind CSS 4.3.3** — breakpoints (`md:` = 48rem = the one switch), `dvh` utilities, built-in container queries, and `hover:` already gated by `@media (hover: hover)` — keep; add nothing.
+- **React 19.2.7** — `useSyncExternalStore` for the media-query hook; `inert` as a true boolean prop for the More sheet backdrop; component-local `useState` for all chrome state. No state library.
+- **react-router-dom 7.18.1** — bottom bar is four `NavLink`s to the *same* flat routes; `router.tsx` untouched.
+- **Vite 8.1.5** — `viewport-fit=cover` / `theme-color` in `web/index.html` flow into the embedded dist automatically; default build target (Safari 16.4+) already covers every CSS feature needed.
 
-- **Demand proof:** Unraid's "Plex Backup Fine Tuning" guide exists *because* subfolder selection is missing — users physically move folders and hand-write cron scripts to work around all-or-nothing appdata backups. **No restic frontend offers tree selection** (Backrest/Vorta stop at text paths + globs); BombVault would be first.
-- **Table stakes (P1):** lazy collapsible tree, cascade semantics (tick includes subtree), mixed-state parents, normalization to/from flat `backupPaths`, state reconstruction on reopen + reviewable exclusions, both Container panel and File Sets, keyboard/a11y, empty-vs-unreadable handling.
-- **Differentiators (v1.x):** confirm-first junk-folder suggestions (Plex `transcoding`, `node_modules`, `@eaDir`), effective-selection preview, tree search/filter, `CACHEDIR.TAG` toggle (argv-only, ships anytime).
-- **Anti-features (do not build):** silent auto-exclusion, file-type masks inside the tree, eager size computation, nested-tree JSON persistence, per-subfolder retention/schedules, arbitrary-path browsing, per-subfolder recency, virtualized mega-tree.
-- **Normalization is the keystone** — cascade + mixed state + flat persistence meet in one function; get it first.
+**Four hand-rolled additions (code, not packages):**
+1. Viewport meta extension + `theme-color` (`web/index.html`, below the untouched FOUC script).
+2. ~40–60 lines of CSS in `web/src/index.css`: safe-area (`env()` with `0px` fallback, centralized as custom properties), `touch-action: manipulation`, `overscroll-behavior: contain`, `svh`/`dvh` cascade.
+3. A new `web/src/lib/useMediaQuery.ts` (~15 lines) will hold the one breakpoint literal `DESKTOP_QUERY = "(min-width: 48rem)"` as a fragile pair with the CSS `md:` boundary, pinned by a guard test.
+4. Tailwind `max-md:` variants on existing components; new chrome in `components/mobile/`.
 
-### From ARCHITECTURE.md (confidence: HIGH, all seams read from source)
+**Explicitly rejected:** any UI kit or headless sheet library (Radix, vaul, MUI), state libraries, PWA/service-worker tooling (stale-bundle liability for a committed-dist self-hosted app), native wrappers (Capacitor/React Native), a second mobile route tree, `hover:` custom-variant, `100vh`, and zoom-disabling viewport hacks.
 
-- **Three path namespaces, one relative suffix:** browse-relative / host (PATCH wire format, UI display) / container-visible (`targets.selected_paths`, restic positionals, `snapshot.Paths`). Translation is pure prefix arithmetic with `HostSourceRoot`/`HostMountRoot`, both already shipped by `GET /api/containers/{name}/mounts`.
-- **Persistence: nothing moves.** Selection lives in `targets.selected_paths` via the owned setter `store.SetBackupPaths` — not the settings row (a settings-row write inside a mutation fn deadlocks on the single pooled connection). Empty list = auto-detection; preserve exactly.
-- **One listing extension needed: `?hidden=1`.** The uncheck-inside-checked-parent rewrite replaces a parent with its complete child list; hidden dot-dirs must be included or they get silently deselected (restic does back up dot-directories).
-- **Restore hardening (recommended milestone work):** in `prepareRestoreForTarget`, intersect stored `AppdataPaths` with the chosen snapshot's `Paths`; today a changed path list aborts mid-restore after stop/remove.
-- **Build order:** (1) normalization + namespace plumbing (pure Go), (2) `?hidden=1` + contract test, (3) restore hardening, (4) `SelectionTree` component, (5) wire into FoldersEditor, (6) File Sets (decision point: single vs multi-root), (7) i18n/web-dist tail.
-- **File Sets:** multi-root needs only an append-only migration (`selected_paths` nullable) — `FilesRestic.Backup` already takes a `[]string`.
+### Expected Features
 
-### From PITFALLS.md (confidence: HIGH code-grounded)
+See `.planning/research/FEATURES.md`. The five maquette surfaces (Home, Containers, touch selection tree, File sets, Run detail/Recovery) are locked by the design bible; the six More destinations extend the same language.
 
-Top pitfalls, mapped to phases:
+**Must have (table stakes — P1):**
+- Mobile shell: bottom bar (4 tabs) + More sheet, safe-area correct, `dvh`/`svh` sizing, desktop untouched above 48rem — **gates everything**
+- Bottom-sheet + tap-popover primitives (hand-rolled, focus-trapped, scroll-contained) — gate 6+ later surfaces
+- Glanceable Home: next run, recent runs (four-status badges), repo health, thumb-zone "New backup" with consequence-aware confirm + deep-link to the live run
+- Containers: summary line + status cards, then per-container detail
+- Touch tri-state selection tree: full-row targets of at least 44px, chevron/check hit-area separation, pinned live "handed to restic" count, Save pinned in a bottom action bar — wired to the existing serialized save queue, semantics byte-identical
+- File sets screen (shares the tree implementation by construction)
+- Run detail: stats triad, mono snapshot id, activity log naming exclusion reasons, verify/browse, restore entry point
+- Guided restore mobile flow: preflight, consequence-naming bottom-sheet confirm, dry-run/verify, live progress; restore control secondary-styled
+- Visibility-aware refresh: SSE pauses on `visibilitychange` hidden, refetch on visible (background tabs throttle timers; SSE tabs are exempt — the app must explicitly stop work)
 
-1. **Empty-selection -> auto-detect inversion (CRITICAL, P2/P3):** "uncheck everything" collides with empty = auto. Guard at the PATCH boundary; disable/redirect the last uncheck with an explanation.
-2. **Decomposition drops future children (CRITICAL, P2 decision):** the allowlist/denylist gap. **Resolution in this synthesis:** the denylist encoding (parent + generated excludes) is technically broken (see tension resolution below), so this becomes a *communicated semantic* — narrowing note in UI + backup-time coverage diff — not an engine workaround.
-3. **restic no-reinclude + snapshot-layout mixing (CRITICAL, P2/P4/P5):** excluded dir = descendants permanently un-includable; passing leaf paths vs parent changes snapshot shape and resets restic change detection (one full re-walk, #189 class). Restore must map by `snapshot.paths` longest-prefix, never first path component.
-4. **Symlink escape in listing (P1):** `paths.Resolve` is lexical only; direct-address `GET /api/browse?path=appdata/link-to-etc` lists outside the mount. Harden with `os.Root` *before* the tree leans on the endpoint.
-5. **False-empty trap (P1/P3):** permission-denied must render `restricted`, never empty — first symptom is otherwise a restore missing a whole branch (PUID/PGID reality).
-6. **Save races + `{ok:false}` envelope (P3):** HTTP is always 200; check the envelope, single-flight the PATCH queue, abort superseded requests.
-7. **Mixed-state under laziness (P2/P3):** node state derives *only* from the flat stored set (prefix checks); never from loaded siblings; the uncheck-rewrite is the one operation that needs the child list.
-8. **Snapshot-structure mixing erodes full-coverage history (P5):** retention identity is safe (never `--group-by paths`, #91); the fix is restore robustness + one communicated narrowing note.
+**Should have (differentiators — P2):**
+- VMs, Flash, Config, Receiver, Fleet in the card language (mostly re-chrome)
+- Settings with full-screen sheet editors; schedule / notification / replication editing parity
+- Sticky search/filter + load-more pagination (never infinite scroll)
+- Platform-adaptive chrome completion (M3 navpill/FAB vs HIG large-title)
+- Full operational parity itself — unmatched in the restic/NAS space
 
----
+**Defer (v2+):** PWA installability, web push (server notification channels already cover alerting), junk-folder suggestion chips, tree fanout into ExcludesEditor, biometric/native integrations.
 
-## Resolved Cross-Dimension Tension: selection -> restic encoding
+**Anti-features (do not build):** hamburger-drawer primary nav; native wrappers/push; drag-to-reorder on touch (conflicts with scroll); hover-dependent affordances ported as-is; a fifth status hue; desktop tables with horizontal scroll; per-subfolder retention/schedules (#91/#24 discipline); confirm-in-confirm modal chains.
 
-**STACK and ARCHITECTURE agree; PITFALLS' floated alternative (parent + tree-derived `--exclude`) is overruled on technical grounds, not averaged away.**
+### Architecture Approach
 
-- **Positional maximal-roots wins** because restic's excludes **do not apply to positional backup sources** — a path that is both a stored target and "excluded" silently gets backed up anyway. The hybrid is not less elegant; it is a hard error class, verified against official restic docs (HIGH confidence). It also pollutes `snapshot.Excludes` and the ExcludesEditor UX with machine-generated patterns, conflates two deliberately separate features, and breaks restore granularity (only the parent is a subtree).
-- **Pitfalls' legitimate concern is preserved as a product requirement, not an engine change:** decomposing a partially-unchecked parent into child paths means future folders created under that parent are silently not backed up (the flat set is an allowlist and cannot say "all except X"). Since the broken encoding is off the table, this becomes a **deliberate, documented semantic of partial selection**, addressed in three places:
-  1. **UI (P3):** when a selection narrows an item with existing snapshots, show a one-time note ("new snapshots will contain only the selected folders; older snapshots still hold everything").
-  2. **Backup time (P4):** coverage diff — list the stored paths' parents and warn when a sibling exists that is neither selected nor excluded; make absence visible once per run, not per restore.
-  3. **Escape hatch (P3, follow-up):** the fanout affordance "exclude this subfolder instead" routes to the existing per-container ExcludesEditor — the *user-owned* exclude channel is the correct denylist mechanism when the user consciously wants "mount minus junk" with future-children coverage.
-- **Log this in PROJECT.md Key Decisions during the semantics phase**, as PITFALLS prescribes.
+The architecture research (`.planning/research/ARCHITECTURE.md`) verified in-code that this is a clean, presentation-only integration. Five patterns define it:
 
----
+1. **Hybrid breakpoint strategy:** exactly one JS media-query decision (Layout choosing Sidebar vs BottomNav+MoreSheet); all in-page adaptation is CSS-only. CSS-hiding the live Sidebar is rejected (it runs subscriptions/dialogs); a route-level split is rejected (breaks single-URL, doubles i18n across 42 locales).
+2. **Bottom bar + More sheet = second rendering of one nav registry.** Extract a pure `destinations(settings)` derivation into a new `web/src/lib/navModel.ts` that will feed both Sidebar and MoreSheet so settings-gated tabs can never drift; sign-out must be reachable in mobile chrome.
+3. **Pages responsive in place** — `PAGE_SHELL` gains responsive rhythm (`gap-6 md:gap-10`); container queries inside cards for tree-adjacent affordances; per-page "no visible change at or above md" audits.
+4. **Shell correctness:** `h-dvh` root; bottom bar **in normal flow** (flex sibling), not `position:fixed` — sidesteps toolbar/keyboard/rubber-band pitfalls entirely.
+5. **SelectionTree under touch = presentation only.** The APG contract (`aria-checked`, roving tabindex, Space-through-`onToggle`) stays byte-identical; ALL pointer input funnels into the same `onToggle`; tap updates roving tabindex; the pinned count re-presents existing SELECT-03 state with zero new computation.
+
+**Explicitly frozen:** `router.tsx`, `web/src/lib/api.ts`, `web/src/lib/progress.ts`, the selection/backupPaths contracts, everything under `internal/**`.
+
+### Critical Pitfalls
+
+See `.planning/research/PITFALLS.md` for all twelve. The top five:
+
+1. **Mobile shell collides with lint-enforced desktop conventions** (`page-uses-page-shell`, routed-pages test, single-Sidebar assumption) — decide the PAGE_SHELL architecture in Phase 1, declare exceptions only in `eslint.config.js` with rationale (never inline disables), one nav registry, sign-out preserved.
+2. **A second input path into the selection tree** (pointer handlers writing selection state, bypassing the D-04 guard / save queue; tap not updating roving tabindex) — all input funnels through the same `onToggle`; activation on `click` only; dom-test twins for tap and keyboard.
+3. **`100vh` shell trap + safe areas done half-way** — `svh` cascade for static chrome, `dvh` only where tracking is wanted; `viewport-fit=cover` AND `env()` together, insets centralized as CSS custom properties; bottom bar in normal flow; verified in both orientations on notched and SE-class devices.
+4. **Hover-only affordances silently vanish on touch** (Tailwind v4 gates `hover:` behind `@media (hover: hover)`) — every interactive affordance must have a non-hover path; grep `hover:opacity-*` / `group-hover:` / `hover:flex` reveal patterns during the screen phases.
+5. **Responsive regressions are invisible to the entire test stack, and emulation is not a device** — jsdom does no layout, there is no e2e suite, Playwright emulation fakes no safe areas/keyboard/PTG. Minimal Playwright smoke harness (desktop-untouched assertions + mobile descriptors) from Phase 1; real iPhone Safari + Android Chrome checklist is the Phase 4 exit criterion.
+
+Also load-bearing: keyboard vs fixed bar on iOS (the `interactive-widget` meta is Android-only — one `focusin`/visualViewport mechanism in Phase 1); 42-locale text overflow in compact chrome (de+fr passes at 320–360px are definition-of-done for the shell); bundle growth in the single un-code-split chunk (baseline in Phase 1, budget in Phase 4); never hard-code the design bible's dark hex values — semantic tokens only, both themes verified (light theme exists and mobile is new code).
 
 ## Implications for Roadmap
 
-PITFALLS' phase vocabulary (P1-P5) is adopted as the roadmap skeleton, merged with ARCHITECTURE's build order. Suggested 6 phases:
+Research converges on a four-phase structure: infrastructure before chrome, chrome before pages, tree-adjacent screens before the long tail, parity sweep last. Every phase boundary has a provably-empty desktop diff.
 
-### Phase 1 — Browse backend hardening & contract (Go)
-- `os.Root` symlink-safe listing (Pitfall 4 — foundational), `?hidden=1` opt-in flag, entry cap + `truncated` flag, `r.Context()` cancellation, per-node state classifier (`ok`/`restricted`/`missing`, Pitfall 7). Contract tests: traversal guard, escaping-symlink fixture, split-root + identity-root tables.
-- **Rationale:** everything else depends on the listing contract; harden before the tree leans on it. No behavior change for existing clients.
-- Research flag: **none needed** — fully specified by this research (skip `--research-phase`).
+### Phase 1: Mobile shell foundation (MOBILE-01)
+**Rationale:** the shell gates everything; every convention, unit-policy, and harness decision made here is inherited by all later phases and is far cheaper to get right first than to retrofit across 11 screens.
+**Delivers:** matchMedia test stub (desktop-default, installed in `vitest.config.ts` setupFiles); `useMediaQuery` + breakpoint literal + fragile-pair guard test; Layout chrome switch (Sidebar | BottomNav+MoreSheet) via one nav registry (`navModel.ts`); `h-dvh`; `viewport-fit=cover` + `theme-color`; centralized safe-area CSS variables; touch-affordance utilities; scroll-container policy (`overscroll-behavior`); keyboard mechanism (`focusin`/visualViewport); Playwright smoke harness with desktop-untouched assertions; bundle-size baseline; de/fr narrow-viewport pass on the chrome.
+**Addresses:** Table-stakes shell; More sheet stub. **Avoids:** Pitfalls 1, 3, 4, 5, 6 (policy), 9 (chrome), 10 (harness), 11 (baseline), 12 (token discipline).
 
-### Phase 2 — Selection semantics & normalization (pure Go, decisions)
-- Server-side ancestry pruning in `SetBackupPaths` (maximal-roots invariant, pure, tested); uncheck-rewrite rules; empty-selection guard at PATCH boundary (Pitfall 1); host<->container translation discipline; **log the positional-targets Key Decision + future-children semantic in PROJECT.md**; pin the save contract (envelope, single-flight) and the flat-set node-state model.
-- **Rationale:** the keystone — every later phase consumes these semantics.
-- Research flag: **none needed** — decisions are made; this is specification + pure-function implementation.
+### Phase 2: The four maquette screens (MOBILE-02)
+**Rationale:** the design bible's five locked surfaces, sequenced after the shell exists; includes the milestone's hardest UI work (touch tree) and an early real-device reality check to recalibrate before the long tail.
+**Delivers:** Home (glanceable + trigger backup + visibility-aware refresh), Containers + touch SelectionTree variant (pinned count, 44px-class rows, save queue unchanged) with the early device check, File sets (shares the tree), Run detail / Recovery. Begins the hover-reveal audit and touch-target sweep.
+**Addresses:** P1 core screens; the signature touch tree; differentiator parity begins. **Avoids:** Pitfalls 2, 7, 8; verify keyboard parity (APG suite) after touch lands.
 
-### Phase 3 — Restore hardening (Go)
-- Intersect stored `AppdataPaths` with chosen snapshot's `Paths` in `prepareRestoreForTarget`; restore mapping by `snapshot.paths` longest-prefix (structure-agnostic); tests for restore-oldest/newest across a selection change.
-- **Rationale:** must precede tree-wide availability — the tree makes selection churn first-class, and today's restore aborts mid-restore *after* destructive teardown. Independent of Phases 4-5; can be built in parallel.
-- Research flag: **none needed.**
+### Phase 3: Remaining destinations (MOBILE-03)
+**Rationale:** the More sheet's six destinations land independently once shell + card + sheet patterns are proven; mostly re-chrome over existing data plumbing.
+**Delivers:** VMs, Flash, Config, Receiver, Fleet, Settings (Selector-strip 1424px treatment lives here); full-screen sheet editors over TimePicker/CadenceBuilder; notification + replication parity; sticky search/filter + load-more; per-destination de/fr and touch-target sweeps; hover audit completed.
+**Addresses:** P2 parity contract. **Avoids:** Pitfalls 1 (Settings exception comment updated deliberately, never bypassed), 7, 8, 9.
 
-### Phase 4 — Tree UI (SPA, containers)
-- `SelectionTree` component (lazy fetch-on-expand, promise cache, tri-state from the flat set, ARIA mixed-state, dom tests); wire into FoldersEditor with live-save via single-flight envelope-checked helper; locked/restricted nodes; narrowing note; fanout escape hatch as follow-up affordance. Both i18n locales; commit `web/dist`.
-- **Rationale:** depends on Phases 1-2; the component is the feature.
-- Research flag: **consider `--research-phase` only if the implementer wants deeper a11y/ARIA-tree detail** — otherwise STACK.md's APG guidance suffices.
+### Phase 4: Parity, polish, real-device verification (MOBILE-04)
+**Rationale:** cross-cutting verification is meaningless until every screen exists; guided restore and touch polish ride on proven primitives.
+**Delivers:** guided restore wizard end-to-end on device (with sessionStorage checkpoint against pull-to-refresh), InfoBubble tap fallback, drag-reorder fallback decision, dialogs at 360px, landscape insets, keyboard-open verification of every form, both themes, de/fr, APG keyboard regression suite, bundle audit vs budget (code-split decision), stale-embed discipline, and the **real-device pass (notched + SE-class iPhone Safari, Android Chrome, portrait + landscape) as the exit criterion**.
+**Addresses:** "Looks Done But Isn't" checklist; differentiator DR-from-phone. **Avoids:** Pitfalls 2 (re-verify), 5, 6, 10, 11, 12.
 
-### Phase 5 — Backup-time visibility & coverage (Go + light UI)
-- Coverage diff (warn when a sibling of a stored path is neither selected nor excluded — the future-children mitigation); argv tests in `restic_args_test.go` (multi-path, same-basename leaves, nested-under-checked); `CACHEDIR.TAG` toggle if desired (argv-only).
-- **Rationale:** converts the accepted semantic gap into a visible, per-run warning.
-- Research flag: **none.**
+### Phase Ordering Rationale
 
-### Phase 6 — File Sets parity
-- Decide single-root tree picker vs multi-root selection (recommend multi-root — strict superset, matches the Active requirement); append-only migration + accessor + resolve-at-backup + restore enumeration; reuse the tree component.
-- **Rationale:** architecture supports both; the component lands first with containers, file sets follow cheaply.
-- Research flag: **decide the single/multi-root question during planning**, not research.
+- **Dependency-driven:** the shell + primitives gate all ten destinations (FEATURES dependency graph); sheet/popover primitives gate 6+ surfaces and are built once in Phase 1/2.
+- **One tree implementation stays one:** the touch variant is an interaction-layer variant of `SelectionTree`, built once in Phase 2, reused by Containers and File sets by construction.
+- **Desktop non-regression at every boundary:** each phase's desktop diff is auditable as empty — the architecture's per-page audit rule plus the Phase 1 Playwright assertions make "desktop intact above the breakpoint" asserted, not vibes.
+- **Device testing is front-loaded (early Phase 2 check) and back-loaded (Phase 4 exit criterion)** — cheap recalibration early, systemic sign-off late; "deferring all devices to the end" is a named debt pattern.
 
-**Later milestones (from FEATURES.md, out of this roadmap):** junk-folder suggestion chips (confirm-first), effective-selection preview, tree search/filter, whitelist mode, per-folder size hints (needs background-job machinery), restore-side tree over snapshot listings.
+### Research Flags
 
----
+Phases likely needing deeper research during planning (`/gsd-plan-phase --research-phase`):
+- **Phase 2:** the touch SelectionTree variant is the milestone's hardest work — pointer-event semantics, roving-tabindex-on-tap, and hit-area mechanics deserve targeted research at plan time.
+- **Phase 1:** Playwright harness setup (config, device descriptors, CI wiring into `lint.yml`) has no in-repo precedent.
+
+Phases with standard patterns (skip research-phase):
+- **Phase 3:** card re-chrome over existing pages; sheet editors reuse proven primitives.
+- **Phase 4:** verification sweep; mechanisms all exist by then.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | restic/Go facts cross-checked against official docs and source; only NEW gap is restic overlapping-target behavior (LOW-MEDIUM) — moot because ancestry pruning is recommended unconditionally |
-| Features | HIGH | Core UX from canonical vendor docs (Duplicati, Veeam, W3C APG); Synology/Backblaze specifics LOW (bot-blocked) and not load-bearing |
-| Architecture | HIGH | Every integration seam read from source with file:line; restic doc claims at MEDIUM (spot-check two behaviors against the 0.17 floor during Phase 5) |
-| Pitfalls | HIGH for code-grounded items | MEDIUM for restic/Go semantics; the empty-selection collision and future-children gap are reasoned analysis, not post-mortems — verify with the prescribed boundary tests |
+| Stack | MEDIUM-HIGH | Zero-dependency approach grounded in direct repo inspection + primary vendor sources (WebKit, Chrome, MDN) at the LOW webfetch tier but cross-checked; Context7 MEDIUM for Tailwind/Vite/React specifics |
+| Features | HIGH for product decisions | Locked design bible + maquettes @0b64c7df + live codebase inventory (local, primary); ecosystem claims MEDIUM where vendor pages were unfetchable (Synology, M3/HIG specifics) |
+| Architecture | HIGH | Every integration claim verified directly against the repo (Layout/router/pageShell/SelectionTree/jsdom probe); framework mechanics MEDIUM |
+| Pitfalls | HIGH | Code-grounded pitfalls cited file:line; platform behavior claims all from official vendor docs, several cross-checked across two independent sources |
 
-### Gaps to Address During Planning
+**Overall confidence:** HIGH — this milestone is unusually well-grounded because it is presentation-only on a codebase the research verified directly, against a locked design bible.
 
-1. **restic 0.17 spot-check** (two commands): absolute-path preservation; excludes-not-dropping-explicit-targets. Docs verified at 0.19.1; floor is 0.17.
-2. **File Sets: single-root vs multi-root** — decide during Phase 6 planning (recommend multi-root).
-3. **Click-on-mixed behavior** (fill vs cycle) — spec it in Phase 4; APG allows either, fill is the common expectation.
-4. **Coverage-diff UX placement** (run report vs item card) — decide in Phase 5.
-5. **Overlapping-restic-target behavior** — unresolved upstream; neutralized by pruning, but don't rely on restic deduplicating overlapping positionals.
+### Gaps to Address
 
----
+- **React 19 `inert` boolean-attribute support** — Context7 query drifted; confirm before relying on `<div inert={open}>` (fallback: `setAttribute` in an effect).
+- **iOS standalone/A2HS with self-signed TLS** — unverified; only relevant if PWA is ever revisited (deferred to v2+ anyway).
+- **Breakpoint edge (640–767px devices)** — decide empirically in Phase 1 device testing; the `--breakpoint-*` override is a one-line change if large phones render desktop badly.
+- **iOS keyboard overlap in sheets** — no `interactive-widget` equivalent; `scrollIntoView`/VisualViewport pattern only if observed, per-screen; do not pre-build.
+- **M3 / HIG platform-adaptive specifics** — m3.material.io and Apple HIG were JS-shelled and unfetchable; treat cited specifics (navpill, large-title) as directional and verify wording before user-facing docs.
+- **`just web` vs "commit `web/dist`"** — the CLAUDE.md says commit dist; the researcher found `.gitignore` keeps dist ignored except a placeholder (build-fresh-in-Docker is the enforced mechanism). Resolve the doc discrepancy during Phase 1; do not touch `.gitignore` without an explicit decision.
 
 ## Sources
 
-Aggregated from the four research files (see each file for full detail):
+### Primary (HIGH confidence)
+- design/mobile/README.md + `android.html` / `ios.html` maquettes @0b64c7df — locked tokens, four-status rule, bottom-nav IA, per-screen content
+- Direct codebase inspection: `Layout.tsx`, `router.tsx`, `pageShell.ts`, `Sidebar.tsx`, `SelectionTree.tsx`, `index.html`, `package.json`, `vitest.config.ts`, `.planning/codebase/` — shell structure, contracts, test-stack reality
+- `.planning/PROJECT.md` — Key Decisions (Space-through-onToggle, one-deep save queue, D-04 guard)
 
-- **Codebase (HIGH, primary):** `handlers.go:4143` (`handleBrowse`), `service.go` (`toContainerPath` :1137, `toHostPath` :3684, `SetBackupPaths` :3766, configured/effective :3816-3888, restore :5242-5462, `RestorePaths` :6752), `store/targets.go` (`selected_paths`, owned setter), `restic.go:357-384` (`BackupArgs`), `paths/paths.go` (`Resolve`), `Containers.tsx` (FoldersEditor, live-save conventions), `SnapshotFileTree.tsx`/`FolderBrowser.tsx`.
-- **restic official docs (HIGH-MEDIUM):** 040_backup.rst — positional sources bypass excludes; `!` negation cannot re-include in excluded dirs; absolute/relative path change detection; snapshot `paths`/`excludes`; parent selection by `host,paths`; symlinks stored not followed.
-- **Go stdlib (HIGH):** `os.Root` (1.24+), `os.ReadDir`/`DirEntry`, go 1.25 floor.
-- **React/W3C (HIGH-MEDIUM):** react.dev fetch-in-event-handler + Set-state patterns; W3C APG checkbox (mixed) and treeview patterns.
-- **Competitor docs (HIGH for Duplicati/Veeam/Kopia/Backrest/restic; LOW for Synology/Backblaze/CrashPlan — bot-blocked):** tree+tri-state UX model, junk-filter precedents, and the restic-frontend tree-selection gap; Unraid community Plex guide as demand proof.
-- **Derived analysis (MEDIUM):** empty-selection/auto-detect collision, future-children gap, coverage-diff design.
+### Secondary (MEDIUM confidence)
+- Context7: Tailwind v4 (breakpoints, `hover:` gating), Vite 8 (build target), React 19 (`useSyncExternalStore`, `inert`)
+- Category consensus: NAS/container admin mobile posture (Unraid/TrueNAS/Proxmox/Portainer), Home Assistant responsive model
+
+### Tertiary (LOW confidence — primary vendor/spec sources at the webfetch seam tier)
+- WebKit blog (viewport-fit, env(), rotation), Chrome Developers blog (interactive-widget, resizes-visual), MDN (dvh/svh, overscroll-behavior, Page Visibility, env())
+- W3C WCAG 2.2 Understanding (2.5.8 target size, 1.4.1 use of color), W3C ARIA APG tree pattern
+- NN/g confirmation-dialog guidance; Material bottom-navigation archive; Backrest/Uptime Kuma READMEs (gap evidence)
+- Flagged for implementation-time verification: React 19 `inert`, iOS A2HS + self-signed TLS, HIG/M3 specifics
 
 ---
-*Synthesis of research for: BombVault tree-based sub-folder backup selection*
+*Research completed: 2026-09-11*
+*Ready for roadmap: yes*
