@@ -1,7 +1,7 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
 import { BottomNav } from "../components/mobile/BottomNav";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { getSettings, getAuth, getHealth, type Settings } from "../lib/api";
 import { useIsDesktop } from "../lib/useMediaQuery";
 import { LoginPage } from "../pages/Login";
@@ -57,6 +57,92 @@ export function Layout() {
   const scrollMainToTop = useCallback(() => {
     document.getElementById("bv-main")?.scrollTo({ top: 0 });
   }, []);
+
+  // Ref on the shell root: the keyboard mechanism's focus listeners attach
+  // HERE (not document-wide), so they exist only while a shell is rendered.
+  const shellRef = useRef<HTMLDivElement>(null);
+
+  // THE keyboard mechanism (SHELL-05/06) — ONE listener set at Layout level,
+  // the locked decision: a per-component listener would multiply with every
+  // new input-bearing page and drift exactly the way duplicated logic does.
+  //
+  // Why it exists at all: plan 04's `interactive-widget=resizes-content`
+  // viewport meta makes the LAYOUT viewport shrink when the Android keyboard
+  // opens, and the h-dvh root tracks that shrinkage — but a focused field can
+  // still end up ABOVE the shrunken scroller's visible area if it sat below
+  // the fold before the keyboard opened. This mechanism guarantees the field
+  // the user is typing into stays visible: when the visual viewport resizes
+  // while a text field inside the shell holds focus, that field is scrolled
+  // back into view within the bv-main scroller (block "nearest" — never a
+  // jump, only the minimal scroll that reveals it), deferred to the next
+  // frame so the resize has settled and the browser's own scroll anchoring
+  // has had its pass first.
+  //
+  // The mechanism only ever SCROLLS (no layout mutation, no focus stealing —
+  // T-05-11, the DoS-class boundary is availability, and scrolling is the
+  // gentlest possible response). The visualViewport presence guard is the
+  // jsdom discipline (lib/testSetup/matchMedia.ts): environments without the
+  // API — jsdom, old browsers — no-op the whole mechanism.
+  //
+  // Attachment discipline: active ONLY on the mobile branch (desktop never
+  // pays the cost, and a desktop resize is a window resize the browser
+  // already handles), and only while the shell actually renders — hence the
+  // authGate dependency, because blocked/loading render no shell root at all.
+  // Every listener added here is removed in the cleanup, so a branch switch
+  // or unmount tears the whole set down (asserted by mobileShellSource.test).
+  useEffect(() => {
+    if (isDesktop || authGate !== "pass") return;
+    const root = shellRef.current;
+    if (!root) return;
+    // The field currently holding focus, or null. focusout carries
+    // relatedTarget (where focus is GOING), so a hop between two fields
+    // never blips the tracking through null.
+    let focusedField: HTMLElement | null = null;
+    const isTextField = (el: EventTarget | null): el is HTMLElement => {
+      if (!(el instanceof HTMLElement)) return false;
+      if (el.isContentEditable) return true;
+      if (el.tagName === "TEXTAREA") return true;
+      if (el.tagName === "INPUT") {
+        // Buttons and pickers open no keyboard; tracking them would scroll
+        // on pure UI clicks.
+        const type = (el as HTMLInputElement).type;
+        return type !== "checkbox" && type !== "radio" && type !== "button" && type !== "submit" && type !== "file";
+      }
+      return false;
+    };
+    const onFocusIn = (e: FocusEvent) => {
+      if (isTextField(e.target)) focusedField = e.target;
+    };
+    const onFocusOut = (e: FocusEvent) => {
+      if (isTextField(e.relatedTarget)) return;
+      focusedField = null;
+    };
+    // The guard IS the contract: without visualViewport there is no resize
+    // signal to listen to, and synthesizing one (polling innerHeight) is the
+    // kind of cleverness that fires spuriously on desktop-browser chrome.
+    if (typeof window === "undefined" || typeof window.visualViewport === "undefined") return;
+    const viewport = window.visualViewport;
+    // TS's lib types keep `| null` after the typeof guard, and some engines
+    // report the property as null rather than absent — the bail-out covers
+    // both shapes of "no visual viewport here".
+    if (!viewport) return;
+    const onViewportResize = () => {
+      if (!focusedField) return;
+      // Next frame: the resize event lands before the layout viewport has
+      // settled; scrolling in the same tick measures a stale box.
+      requestAnimationFrame(() => {
+        focusedField?.scrollIntoView({ block: "nearest" });
+      });
+    };
+    root.addEventListener("focusin", onFocusIn);
+    root.addEventListener("focusout", onFocusOut);
+    viewport.addEventListener("resize", onViewportResize);
+    return () => {
+      root.removeEventListener("focusin", onFocusIn);
+      root.removeEventListener("focusout", onFocusOut);
+      viewport.removeEventListener("resize", onViewportResize);
+    };
+  }, [isDesktop, authGate]);
 
   // Check auth state; used on mount and after a successful login.
   const checkAuth = useCallback(() => {
@@ -245,7 +331,7 @@ export function Layout() {
   // browser reserves its height and the scroller ends above it by
   // construction).
   return (
-    <div className={`flex h-dvh overflow-hidden bg-carbon-background ${isDesktop ? "" : "flex-col"}`}>
+    <div ref={shellRef} className={`flex h-dvh overflow-hidden bg-carbon-background ${isDesktop ? "" : "flex-col"}`}>
       {/* THE ONE CHROME SWITCH — exactly one chrome surface renders at a time.
           The desktop branch is today's tree verbatim (same Sidebar, same
           scroller, same classes); the mobile branch is the same scroller with

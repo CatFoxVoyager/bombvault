@@ -43,6 +43,9 @@ const indexHtml = readFileSync(join(WEB, "index.html"), "utf8");
 const indexCss = readFileSync(join(SRC, "index.css"), "utf8");
 const login = readFileSync(join(SRC, "pages", "Login.tsx"), "utf8");
 const layout = readFileSync(join(HERE, "Layout.tsx"), "utf8");
+const sidebar = readFileSync(join(SRC, "components", "Sidebar.tsx"), "utf8");
+const bottomNav = readFileSync(join(SRC, "components", "mobile", "BottomNav.tsx"), "utf8");
+const moreSheet = readFileSync(join(SRC, "components", "mobile", "MoreSheet.tsx"), "utf8");
 
 // The FOUC script copied verbatim from index.html — indentation included.
 // This is a BYTE constant: it must not be reformatted, requoted, or "tidied",
@@ -281,7 +284,9 @@ describe("SHELL-07 — login renders before any shell, structurally", () => {
   // the root's height is now h-dvh (SHELL-05) and its className is a template
   // literal, because the ONE chrome switch appends `flex-col` on the mobile
   // branch — so the root div no longer matches a plain `className="flex` string.
-  const shell = /<div className=\{`flex h-dvh/.exec(layout);
+  // The root also carries the shell ref (the keyboard mechanism's focus
+  // listeners attach to it), which is why the match anchors the ref attribute.
+  const shell = /<div ref=\{shellRef\} className=\{`flex h-dvh/.exec(layout);
 
   it("finds both the blocked branch and the shell root at all (self-guard)", () => {
     expect(
@@ -292,8 +297,8 @@ describe("SHELL-07 — login renders before any shell, structurally", () => {
     ).not.toBeNull();
     expect(
       shell,
-      "Layout.tsx no longer renders a `<div className={`flex h-dvh ...`}>` shell root — " +
-        "the shell root moved or was renamed; update this guard deliberately."
+      "Layout.tsx no longer renders a `<div ref={shellRef} className={`flex h-dvh ...`}>` " +
+        "shell root — the shell root moved or was renamed; update this guard deliberately."
     ).not.toBeNull();
   });
 
@@ -305,5 +310,146 @@ describe("SHELL-07 — login renders before any shell, structurally", () => {
         "never appear on login because the blocked branch returns before any shell " +
         "renders. Preserve that order."
     ).toBeLessThan(shell!.index);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The Layout/mobile-shell asserts deferred to plan 05 (this file's scope
+// note pre-announced the extension): the shell root's viewport discipline,
+// the stable scroll target, the ONE guarded keyboard mechanism, and the
+// chrome testids living in the mobile component sources. Same rules as the
+// rest of the suite — every assert carries a self-guard and a why.
+// ---------------------------------------------------------------------------
+describe("SHELL-05 — the shell root's viewport discipline", () => {
+  // Vacuity guard: every assert below reads dead text if the component moved.
+  it("is reading the real Layout component (self-guard)", () => {
+    expect(
+      layout,
+      "Layout.tsx no longer exports Layout — the shell asserts below are running " +
+        "against a file that no longer contains the component."
+    ).toContain("export function Layout");
+  });
+
+  it("sizes the shell root with the dynamic viewport unit", () => {
+    expect(
+      layout.includes("h-dvh"),
+      "Layout.tsx's shell root no longer uses h-dvh. The dynamic unit is what keeps " +
+        "the shell filling the visual viewport as mobile browser chrome collapses " +
+        "and expands (SHELL-05); a static unit keeps the pre-chrome height and " +
+        "strands bottom-docked content under expanded chrome."
+    ).toBe(true);
+  });
+
+  it("contains no banned viewport-height literal", () => {
+    expect(
+      layout.includes("100vh") || layout.includes("min-h-screen"),
+      "Layout.tsx contains a banned viewport-height literal (`100vh` or " +
+        "`min-h-screen`). The mobile shell uses dvh/svh exclusively (SHELL-05): the " +
+        "static forms keep the LARGEST viewport height, which is exactly the trap " +
+        "that strands content under the iOS keyboard or expanded browser chrome. " +
+        "Use the dynamic unit."
+    ).toBe(false);
+  });
+
+  it("keeps the bv-main id on the scroller, the chrome's stable scroll target", () => {
+    expect(
+      layout.includes('id="bv-main"'),
+      "Layout.tsx's scroller no longer carries id=\"bv-main\". Both chrome surfaces " +
+        "address the scroller through that id (tap-on-active, the keyboard " +
+        "mechanism) and never query for it any other way — without it the " +
+        "tap-on-active scroll silently no-ops."
+    ).toBe(true);
+  });
+});
+
+describe("SHELL-05/06 — the ONE keyboard mechanism lives at Layout level", () => {
+  it("guards the mechanism on visualViewport presence, so jsdom and old browsers no-op", () => {
+    expect(
+      /typeof window\.visualViewport\s*===\s*"undefined"/.test(layout),
+      "Layout.tsx's keyboard mechanism lost the visualViewport presence guard. The " +
+        "guard IS the contract (the jsdom discipline, lib/testSetup/matchMedia.ts): " +
+        "environments without the API must no-op the whole mechanism, not throw — " +
+        "without it every Layout-rendering dom test crashes and old browsers break."
+    ).toBe(true);
+  });
+
+  it("wires the focusin listener exactly once — one mechanism, not one per component", () => {
+    const count = layout.match(/addEventListener\("focusin"/g)?.length ?? 0;
+    expect(
+      count,
+      "Layout.tsx wires addEventListener(\"focusin\") more than once (or not at " +
+        "all). ONE listener set at Layout level is the locked decision: a " +
+        "per-component listener would multiply with every new input-bearing page " +
+        "and drift exactly the way duplicated logic does."
+    ).toBe(1);
+  });
+
+  it("tears down every listener it adds (cleanup in the effect's return)", () => {
+    for (const event of ["focusin", "focusout", "resize"]) {
+      expect(
+        layout.includes(`removeEventListener("${event}"`),
+        `Layout.tsx's keyboard mechanism no longer removes its "${event}" listener ` +
+          "on cleanup. The mechanism attaches only while the mobile branch renders; " +
+          "without the teardown a branch switch to desktop (or an unmount) leaks " +
+          "listeners that keep scrolling a shell that no longer exists."
+      ).toBe(true);
+    }
+  });
+
+  it("attaches the mechanism only while the mobile branch renders", () => {
+    expect(
+      /if \(isDesktop \|\| authGate !== "pass"\) return;/.test(layout),
+      "Layout.tsx's keyboard mechanism lost its isDesktop/authGate bail-out. The " +
+        "mechanism must attach ONLY on the mobile branch of a rendered shell: " +
+        "desktop never pays the cost, and the blocked/loading states render no " +
+        "shell root to attach to."
+    ).toBe(true);
+  });
+
+  it("is the only visualViewport consumer in the chrome (zero listeners outside Layout)", () => {
+    for (const [name, source] of [
+      ["Sidebar.tsx", sidebar],
+      ["BottomNav.tsx", bottomNav],
+      ["MoreSheet.tsx", moreSheet],
+    ] as const) {
+      expect(
+        source.includes("visualViewport"),
+        `${name} touches visualViewport. The keyboard mechanism is ONE Layout-level ` +
+          "listener set — a second viewport-resize consumer in a chrome component " +
+          "is exactly the drift the locked decision forbids."
+      ).toBe(false);
+    }
+  });
+});
+
+describe("SHELL-02/03 — the chrome testids live in the mobile component sources", () => {
+  // Vacuity guards: the testid asserts below pass vacuously against renamed
+  // or replaced components.
+  it("is reading the real mobile chrome components (self-guards)", () => {
+    expect(
+      bottomNav,
+      "BottomNav.tsx no longer exports BottomNav — the testid asserts below are " +
+        "running against a file that no longer contains the component."
+    ).toContain("export function BottomNav");
+    expect(
+      moreSheet,
+      "MoreSheet.tsx no longer exports MoreSheet — the testid asserts below are " +
+        "running against a file that no longer contains the component."
+    ).toContain("export function MoreSheet");
+  });
+
+  it("carries data-testid=bottom-nav on the bar and data-testid=more-sheet in the sheet", () => {
+    expect(
+      bottomNav.includes('data-testid="bottom-nav"'),
+      "BottomNav.tsx lost data-testid=\"bottom-nav\". The e2e suite locates the bar " +
+        "through that testid on both mobile projects — without it the chrome-switch " +
+        "smoke and every sheet assertion fail."
+    ).toBe(true);
+    expect(
+      moreSheet.includes('data-testid="more-sheet"'),
+      "MoreSheet.tsx lost data-testid=\"more-sheet\". The e2e suite locates the " +
+        "sheet content through that testid — without it the SHELL-03 assertions " +
+        "cannot run."
+    ).toBe(true);
   });
 });
