@@ -453,7 +453,9 @@ for (const route of ["/dashboard", "/recovery", "/containers", "/vms", "/flash",
 | A3 | WebKit headless on ubuntu-latest renders this SPA's layout correctly (no engine-specific crash) | Standard Stack / CI | If WebKit proves flaky in CI, the fallback is dropping to Chromium-only temporarily — but that contradicts a locked decision, so treat as escalation, not silent choice |
 | A4 | `import.meta.dirname` / Node 24 file-URL math is available in the playwright config (Node 24 both locally and in CI) | Code Examples | Use `fileURLToPath`/`path.join` fallback — trivial rewrite if tsc target objects |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> **Resolution (2026-09-11, at plan time):** Q1 — the Files bar slot derives from the single nav registry: `destinations(settings)` filtered to enabled tab entries, so with `/files` gated off the bar renders 3 destination slots + More (3+1), matching desktop Sidebar gating. Resolved in **05-02-PLAN.md** (Task 1: `barDestinations` = `destinations` filtered to `bar && enabled`; see also the objective note there). Q2 resolved in 05-01 Task 2 (`npm install -D --save-exact @playwright/test` — exact pin). Q3 resolved in 05-01's `desktop-768` project (768px exactly, per UI-SPEC). Items kept below as the original research record.
 
 1. **The bottom bar's "Files" slot when `filesEnabled` is false**
    - What we know: the Sidebar gates `/files` behind `filesEnabled` (`Sidebar.tsx:756-758`), but REQUIREMENTS SHELL-02 fixes the bar as Home/Containers/Files/Settings, and the UI-SPEC both marks `files*` as settings-gated in navModel AND calls the bar a "fixed 4+1 grid" whose only defined collapse is the auth-disabled More-slot case.
