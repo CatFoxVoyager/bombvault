@@ -1,0 +1,200 @@
+// ---------------------------------------------------------------------------
+// NAV MODEL — guard tests for the ONE ordered navigation registry.
+//
+// Node environment, no DOM: this renders nothing; it asserts the registry's
+// pure data contract the way app/routedPages.test.ts reads source text —
+// because the registry's whole job is to be the ONE list every chrome surface
+// (desktop Sidebar today, the phase-5 mobile bar + More sheet next) derives
+// from, so the contract itself is what must hold: full-list order, gates that
+// flip only their own entry's `enabled`, bar/More as structural filter
+// derivations, and never a hue field (hue assignment stays Sidebar's render-
+// time nextHue() counter — see navModel.ts's header comment for why).
+// ---------------------------------------------------------------------------
+import { describe, expect, it } from "vitest";
+import type { Settings } from "./api";
+import { en } from "./i18n";
+import { barDestinations, destinations, moreDestinations } from "./navModel";
+
+// Only the six domain gates destinations() reads; every other Settings field
+// is unused by the registry. `as Settings` matches this repo's own established
+// partial-fixture convention (Sidebar.tabColor.dom.test.tsx's `allOn` stub).
+const ALL_OFF = {
+  vmsEnabled: false,
+  flashEnabled: false,
+  filesEnabled: false,
+  configEnabled: false,
+  receiverEnabled: false,
+  fleetEnabled: false,
+} as Settings;
+
+const ALL_ON = {
+  ...ALL_OFF,
+  vmsEnabled: true,
+  flashEnabled: true,
+  filesEnabled: true,
+  configEnabled: true,
+  receiverEnabled: true,
+  fleetEnabled: true,
+} as Settings;
+
+// The documented desktop Sidebar order — the order the extracted JSX used to
+// evaluate in (dashboard, recovery, containers, the six gated tabs, settings).
+const SIDEBAR_ORDER = [
+  "/dashboard",
+  "/recovery",
+  "/containers",
+  "/vms",
+  "/flash",
+  "/files",
+  "/config",
+  "/receiver",
+  "/fleet",
+  "/settings",
+];
+
+// SHELL-02's four bottom-bar destinations.
+const BAR_ROUTES = ["/dashboard", "/containers", "/files", "/settings"];
+
+describe("destinations — the ONE ordered registry", () => {
+  it("finds the full registry at all (guards against this test silently matching nothing)", () => {
+    expect(destinations(ALL_ON)).toHaveLength(SIDEBAR_ORDER.length);
+  });
+
+  it("returns the FULL ten-entry list in desktop Sidebar order, all enabled with every gate on", () => {
+    const dests = destinations(ALL_ON);
+    expect(dests.map((d) => d.to)).toEqual(SIDEBAR_ORDER);
+    expect(dests.every((d) => d.enabled)).toBe(true);
+  });
+
+  it("routes are unique (a duplicate route would render two rows for one destination)", () => {
+    const routes = destinations(ALL_ON).map((d) => d.to);
+    expect(new Set(routes).size).toBe(routes.length);
+  });
+
+  it("gates never pre-filter: with every domain off the full list still comes back, only `enabled` shrunken", () => {
+    // Sidebar's nextHue() render counter consumes the FULL list and skips
+    // disabled entries itself, so the registry must always hand out all ten.
+    const dests = destinations(ALL_OFF);
+    expect(dests.map((d) => d.to)).toEqual(SIDEBAR_ORDER);
+    expect(dests.filter((d) => d.enabled).map((d) => d.to)).toEqual([
+      "/dashboard",
+      "/recovery",
+      "/containers",
+      "/settings",
+    ]);
+  });
+
+  it("null settings (Sidebar's pre-boot state) behaves exactly like every gate off", () => {
+    expect(destinations(null).map((d) => d.to)).toEqual(SIDEBAR_ORDER);
+    expect(destinations(null).filter((d) => d.enabled).map((d) => d.to)).toEqual([
+      "/dashboard",
+      "/recovery",
+      "/containers",
+      "/settings",
+    ]);
+  });
+
+  it("every labelKey is a real nav.* key in the en table (labels are reused verbatim, never re-typed)", () => {
+    for (const d of destinations(ALL_ON)) {
+      expect(d.labelKey).toMatch(/^nav\./);
+      expect(
+        en[d.labelKey as keyof typeof en],
+        `${d.to} carries labelKey "${d.labelKey}" which the en table does not define`
+      ).toBeDefined();
+    }
+  });
+});
+
+// ADJACENCY probe: toggling any single gate changes only that entry's
+// `enabled` flag — no other entry's position, adjacency, or identity moves.
+// This is what lets Sidebar's hue counter stay byte-identical across a gate
+// flip for every tab the flip does not touch.
+describe("destinations — each gate flips exactly its own entry", () => {
+  const GATES = [
+    ["vmsEnabled", "/vms"],
+    ["flashEnabled", "/flash"],
+    ["filesEnabled", "/files"],
+    ["configEnabled", "/config"],
+    ["receiverEnabled", "/receiver"],
+    ["fleetEnabled", "/fleet"],
+  ] as const;
+
+  it.each(GATES)("%s toggles only %s", (field, route) => {
+    const before = destinations(ALL_OFF);
+    const after = destinations({ ...ALL_OFF, [field]: true });
+    // Identity and position of every entry unchanged...
+    expect(after.map((d) => d.to)).toEqual(before.map((d) => d.to));
+    for (let i = 0; i < after.length; i++) {
+      if (after[i].to === route) {
+        expect(after[i].enabled, `${route} must be enabled by ${field}`).toBe(true);
+      } else {
+        expect(
+          after[i].enabled,
+          `${after[i].to} must not change when ${field} flips`
+        ).toBe(before[i].enabled);
+      }
+    }
+  });
+
+  it("bar and More derivations keep their relative order across a gate flip (filters of the ONE list)", () => {
+    const beforeBar = barDestinations(ALL_OFF).map((d) => d.to);
+    const afterBar = barDestinations({ ...ALL_OFF, fleetEnabled: true }).map((d) => d.to);
+    expect(afterBar).toEqual(beforeBar); // fleet is not a bar destination
+    const beforeMore = moreDestinations(ALL_OFF).map((d) => d.to);
+    const afterMore = moreDestinations({ ...ALL_OFF, fleetEnabled: true }).map((d) => d.to);
+    // The entries that existed before keep their exact relative order; fleet
+    // joins at its registry position (after Recovery, before nothing else).
+    expect(afterMore.filter((r) => beforeMore.includes(r))).toEqual(beforeMore);
+    expect(afterMore).toEqual(["/recovery", "/fleet"]);
+  });
+});
+
+describe("barDestinations — the bottom bar's slot list (SHELL-02)", () => {
+  it("at full config: dashboard, containers, files, settings in registry order", () => {
+    expect(barDestinations(ALL_ON).map((d) => d.to)).toEqual(BAR_ROUTES);
+  });
+
+  it("filesEnabled=false drops exactly the Files slot (the resolved open question — planner call in 05-02-PLAN.md: bar slots are destinations(settings) filtered to enabled bar entries, matching desktop Sidebar gating, so a gated tab never appears in mobile chrome when the Sidebar hides it)", () => {
+    const filesOn = { ...ALL_OFF, filesEnabled: true } as Settings;
+    expect(barDestinations(filesOn).map((d) => d.to)).toEqual(["/dashboard", "/containers", "/files", "/settings"]);
+    expect(barDestinations(ALL_OFF).map((d) => d.to)).toEqual(["/dashboard", "/containers", "/settings"]);
+  });
+
+  it("never surfaces a disabled entry, whatever else is on (prohibition 8 holds by construction)", () => {
+    for (const d of barDestinations(ALL_ON)) {
+      expect(d.enabled).toBe(true);
+    }
+    for (const d of barDestinations(ALL_OFF)) {
+      expect(d.enabled).toBe(true);
+    }
+  });
+});
+
+describe("moreDestinations — the More sheet's list (SHELL-03)", () => {
+  it("Recovery-first sidebar order at full config, excluding every bar destination", () => {
+    const more = moreDestinations(ALL_ON);
+    expect(more.map((d) => d.to)).toEqual(["/recovery", "/vms", "/flash", "/config", "/receiver", "/fleet"]);
+    for (const bar of BAR_ROUTES) {
+      expect(more.find((d) => d.to === bar), `${bar} must never appear in More`).toBeUndefined();
+    }
+  });
+
+  it("EMPTY probe: with every gate off, Recovery is still there — no caller can ever receive an empty navigation", () => {
+    expect(moreDestinations(ALL_OFF).map((d) => d.to)).toEqual(["/recovery"]);
+  });
+});
+
+describe("registry shape", () => {
+  it("no entry carries any hue or colour field — hue assignment is Sidebar's render-time counter, never data (Pitfall 5)", () => {
+    for (const d of destinations(ALL_ON)) {
+      const hueish = Object.keys(d).filter((k) => /hue|colou?r/i.test(k));
+      expect(hueish, `${d.to} carries colour data: ${hueish.join(", ")}`).toEqual([]);
+    }
+  });
+
+  it("every entry carries a renderable icon component reference", () => {
+    for (const d of destinations(ALL_ON)) {
+      expect(typeof d.icon, `${d.to} has no icon component`).toBe("function");
+    }
+  });
+});
