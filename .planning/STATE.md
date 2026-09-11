@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 5
 current_phase_name: Mobile Shell & Navigation Foundation
 status: executing
-stopped_at: Completed 05-04-PLAN.md
-last_updated: "2026-09-11T21:48:07.709Z"
+stopped_at: Completed 05-05-PLAN.md
+last_updated: "2026-09-11T23:47:10.620Z"
 last_activity: 2026-09-11
 last_activity_desc: Phase 5 execution started
-state_head: adffea3dbee96847c8ba674bdddf1dd8bf425b3f
+state_head: 27b2bb809843060ea16e27065b62e177f028f8be
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-11)
 ## Current Position
 
 Phase: 5 (Mobile Shell & Navigation Foundation) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Total Plans in Phase: 6
 Status: Ready to execute
 Last activity: 2026-09-11 — Phase 5 execution started
@@ -85,6 +85,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P02 | 16min | 3 tasks | 7 files |
 | Phase 05 P03 | 35min | 3 tasks | 45 files |
 | Phase 05 P04 | 13min | 3 tasks | 5 files |
+| Phase 05 P05 | 102 min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,8 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 05]: Safe-area custom properties and the viewport-fit=cover meta are guarded as ONE contract - env() reads 0px everywhere without the directive, so mobileShellSource.test.ts pins both halves and dropping either fails CI — SHELL-04's pairing is the kind of silent-0px drift a behavior test cannot see; source asserts make the drift loud
 - [Phase 05]: FOUC script bytes in web/index.html are pinned by an inline byte constant in mobileShellSource.test.ts (T-05-03), proven live by mutation (red -> restored -> green); lines 1-33 sha256-identical through this plan — First-paint theme logic is security-adjacent; any edit must be a deliberate act that updates EXPECTED_FOUC_SCRIPT in the same commit
 - [Phase 05]: theme-color mirrors from paint() (the single choke point) as #161616/#f4f4f4 with a null guard; banned viewport literals are FILE-WIDE byte bans - the guard suite's negative needles are their only sanctioned appearance — setTheme/applyStoredTheme/system-flip all funnel through paint() so one write covers every path; the file-wide ban is what makes the SHELL-05 discipline future-proof
+- [Phase 5]: Landscape e2e asserted at 740x360 (sub-breakpoint); the width-only 48rem DESKTOP_QUERY gives landscape phones >=768px the desktop rail - UI-SPEC 'no landscape side rail' needs a height-aware query decision (05-05 deviation 4)
+- [Phase 5]: BottomNav derives slots internally from settings+authEnabled via the ONE registry; scrollMainToTop lives in Layout and is passed down to bar and sheet rows (05-05)
 
 ### Pending Todos
 
@@ -126,8 +129,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-11T21:48:07.692Z
-Stopped at: Completed 05-04-PLAN.md
+Last session: 2026-09-11T23:46:53.075Z
+Stopped at: Completed 05-05-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
