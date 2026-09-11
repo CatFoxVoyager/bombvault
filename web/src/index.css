@@ -203,6 +203,34 @@
   --btn-w-lg: 15rem;
 }
 
+/* Safe-area insets (SHELL-04) — the four edges a device's own hardware claims
+   (notch, rounded corners, home indicator) exposed as :root custom properties
+   so any component can pad past them without knowing the device.
+
+   These resolve to real lengths ONLY because web/index.html declares
+   viewport-fit=cover on its viewport meta: without that directive the layout
+   viewport is inset by the system chrome and every env(safe-area-inset-*)
+   below reads 0px, silently. The two files are one contract — change them
+   together (mobileShellSource.test.ts pins both halves).
+
+   The max(..., 0px) clamp is defensive, not cosmetic: env() resolves to 0px
+   on devices with no inset on a side, but on a browser that supports the
+   syntax yet reports nothing (desktop, some Android WebViews) the raw env()
+   can behave as an invalid/unset value in a var() chain — clamping to an
+   explicit 0px floor keeps every consumer's calc()/padding valid everywhere.
+
+   Consumers today: LoginPage's container padding (SHELL-07). Consumers
+   landing in plan 05: the bottom bar's bottom padding and the More sheet's
+   bottom padding (both already reference --safe-area-bottom forward-
+   compatibly from plan 03's BottomSheet). Desktop reports 0 everywhere and
+   is unaffected. */
+:root {
+  --safe-area-top: max(env(safe-area-inset-top), 0px);
+  --safe-area-right: max(env(safe-area-inset-right), 0px);
+  --safe-area-bottom: max(env(safe-area-inset-bottom), 0px);
+  --safe-area-left: max(env(safe-area-inset-left), 0px);
+}
+
 /* The one raised surface, from GlimStone. It was already being used on the
    glyph gallery and defined nowhere, so that element rendered with no ground,
    no radius and no elevation at all. Nothing failed and no test went red: a
