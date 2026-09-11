@@ -15,6 +15,7 @@ const ca: Partial<Translations> = {
   "nav.receiver": "Receptor",
   "nav.fleet": "Flota",
   "nav.settings": "Configuració",
+  "nav.more": "Més",
 
   // Mode toggle
   "about.title": "Quant a BombVault",

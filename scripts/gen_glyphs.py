@@ -394,6 +394,28 @@ EXTRA_NAV = [
              (3.0, 1.0, 18.0, 22.0), "integrity"),
     imported("IconTabStorage", "Paths and storage tab", "0 0 448 512",
              (0.0, 0.0, 448.0, 512.0), "storage"),
+    # ---------------------------------------------------------------------
+    # The mobile bottom bar's "More" trigger (SHELL-02, v1.1 phase 5).
+    #
+    # Hand-drawn here rather than imported because Streamline's ellipsis
+    # glyphs are stroke-based outlines, and this file's family is solid
+    # fills — the same reason IconAdd and IconClose are drawings. Three
+    # dots of the cross's own 2.2-unit bar width ([514]/[526]) keep the
+    # mark inside the family's established stroke vocabulary.
+    #
+    # The viewBox follows the one sizing mechanism, cropped square and
+    # centred on the ink, so the dot row reaches the box edge exactly
+    # where a frame-filling neighbour's ink lands — an uncropped 14-unit
+    # grid would render the row at 80% and read as the small mark in the
+    # bar, the exact complaint [426] settled for the crosses. The declared
+    # ink is exact by construction (three circles of radius 1.1 at
+    # cx 2.5/7/11.5, cy 7): x spans 1.4..12.6, y spans 5.9..8.1.
+    # ---------------------------------------------------------------------
+    ("IconEllipsis", "More, the mobile navigation overflow trigger (SHELL-02).",
+     cropped_box((1.4, 5.9, 11.2, 2.2)),
+     '<circle cx="2.5" cy="7" r="1.1" />'
+     '<circle cx="7" cy="7" r="1.1" />'
+     '<circle cx="11.5" cy="7" r="1.1" />'),
 ]
 
 # Same two marks for the ACTION set, from the same constants. IconCancel is the

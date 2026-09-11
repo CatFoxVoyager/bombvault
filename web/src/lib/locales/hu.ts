@@ -12,6 +12,7 @@ const hu: Partial<Translations> = {
   "nav.vms": "VM-ek",
   "nav.flash": "Flash",
   "nav.settings": "Beállítások",
+  "nav.more": "Több",
   "about.title": "A BombVault névjegye",
   "about.body": "Egy lovag, egy hadjárat: szabad, nyílt forráskódú eszközök, amelyek így nem léteztek. Semmi fiók, semmi telemetria, és semmi olvasható nem hagyja el a saját falaidat. Estéken és hétvégéken kovácsolva, sok szívvel, mert a várakozás nem volt opció.",
   "about.coffee": "A BombVault ingyenes, és az is marad. Egy adomány életben tartja a projektet, és fedezi, amibe kerül: a domaint, a szervert és az esti órákat, amik belemennek.",

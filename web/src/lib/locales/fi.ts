@@ -12,6 +12,7 @@ const fi: Partial<Translations> = {
   "nav.vms": "VMs",
   "nav.flash": "Flash",
   "nav.settings": "Asetukset",
+  "nav.more": "Lisää",
   "about.title": "Tietoja BombVaultista",
   "about.body": "Yksi ritari, yksi ristiretki: vapaita, avoimen lähdekoodin työkaluja, joita ei tällaisina ollut. Ei tilejä, ei telemetriaa, eikä mikään luettava poistu koskaan omien muuriesi sisältä. Taottu iltaisin ja viikonloppuisin sydämellä, koska odottaminen ei ollut vaihtoehto.",
   "about.coffee": "BombVault on ilmainen ja pysyy sellaisena. Lahjoitus pitää projektin hengissä ja kattaa sen kulut: verkkotunnuksen, palvelimen ja illat, jotka siihen kuluvat.",

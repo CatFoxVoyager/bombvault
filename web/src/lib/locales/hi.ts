@@ -15,6 +15,7 @@ const hi: Partial<Translations> = {
   "nav.receiver": "रिसीवर",
   "nav.fleet": "फ़्लीट",
   "nav.settings": "सेटिंग्स",
+  "nav.more": "और",
 
   // Mode toggle
   "about.title": "BombVault के बारे में",

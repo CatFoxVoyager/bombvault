@@ -15,6 +15,7 @@ const is: Partial<Translations> = {
   "nav.receiver": "Móttakandi",
   "nav.fleet": "Floti",
   "nav.settings": "Stillingar",
+  "nav.more": "Meira",
 
   // Mode toggle
   "about.title": "Um BombVault",

@@ -15,6 +15,7 @@ const gl: Partial<Translations> = {
   "nav.receiver": "Receptor",
   "nav.fleet": "Frota",
   "nav.settings": "Configuración",
+  "nav.more": "Máis",
 
   // Mode toggle
   "about.title": "Sobre BombVault",

@@ -12,6 +12,7 @@ const sv: Partial<Translations> = {
   "nav.vms": "VMs",
   "nav.flash": "Flash",
   "nav.settings": "Inställningar",
+  "nav.more": "Mer",
   "about.title": "Om BombVault",
   "about.body": "En enda riddare, ett korståg: fria verktyg med öppen källkod som inte fanns i den här formen. Inga konton, ingen telemetri, och inget läsbart lämnar någonsin dina egna murar. Smitt på kvällar och helger med mycket hjärta, för att vänta var inget alternativ.",
   "about.coffee": "BombVault är gratis och förblir det. En donation håller projektet vid liv och täcker vad det kostar: domänen, servern och kvällarna som går åt.",

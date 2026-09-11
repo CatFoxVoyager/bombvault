@@ -67,6 +67,10 @@ export const en = {
   "nav.receiver": "Receiver",
   "nav.fleet": "Fleet",
   "nav.settings": "Settings",
+  // The mobile bottom bar's overflow trigger and its sheet's title share this
+  // one key (SHELL-02), so the words must read as a section title, not just a
+  // button label.
+  "nav.more": "More",
   "about.title": "About BombVault",
   "about.body":
     "A one-knight crusade: free, open-source tools that did not exist in this shape. No accounts, no telemetry, and nothing readable ever leaves your own walls. Forged on evenings and weekends with a lot of heart, because waiting was not an option.",
@@ -1903,6 +1907,7 @@ export const de: Translations = {
   "nav.receiver": "Empfänger",
   "nav.fleet": "Flotte",
   "nav.settings": "Einstellungen",
+  "nav.more": "Mehr",
   "about.title": "Über BombVault",
   "about.body":
     "Ein einzelner Ritter, ein Feldzug: freie, quelloffene Werkzeuge, die es so nicht gab. Keine Konten, keine Telemetrie, und nichts Lesbares verlässt deine eigenen Mauern. An Abenden und Wochenenden mit viel Herzblut geschmiedet, weil Warten keine Option war.",

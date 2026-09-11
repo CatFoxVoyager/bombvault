@@ -15,6 +15,7 @@ const sl: Partial<Translations> = {
   "nav.receiver": "Sprejemnik",
   "nav.fleet": "Flota",
   "nav.settings": "Nastavitve",
+  "nav.more": "Več",
 
   // Mode toggle
   "about.title": "O programu BombVault",

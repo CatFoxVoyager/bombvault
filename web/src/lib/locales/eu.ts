@@ -15,6 +15,7 @@ const eu: Partial<Translations> = {
   "nav.receiver": "Hartzailea",
   "nav.fleet": "Flota",
   "nav.settings": "Ezarpenak",
+  "nav.more": "Gehiago",
 
   // Mode toggle
   "about.title": "BombVault-i buruz",

@@ -12,6 +12,7 @@ const it: Partial<Translations> = {
   "nav.vms": "VM",
   "nav.flash": "Flash",
   "nav.settings": "Impostazioni",
+  "nav.more": "Altro",
   "about.title": "Informazioni su BombVault",
   "about.body": "Un solo cavaliere, una crociata: strumenti liberi e open source che così non esistevano. Nessun account, nessuna telemetria, e niente di leggibile lascia mai le tue mura. Forgiato di sera e nei fine settimana con molto cuore, perché aspettare non era un'opzione.",
   "about.coffee": "BombVault è gratuito e resta così. Una donazione tiene in vita il progetto e copre quello che costa: il dominio, il server e le sere che ci finiscono dentro.",

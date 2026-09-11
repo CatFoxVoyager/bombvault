@@ -15,6 +15,7 @@ const sk: Partial<Translations> = {
   "nav.receiver": "Prijímač",
   "nav.fleet": "Flotila",
   "nav.settings": "Nastavenia",
+  "nav.more": "Viac",
 
   // Mode toggle
   "about.title": "O aplikácii BombVault",

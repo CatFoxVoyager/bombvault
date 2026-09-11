@@ -15,6 +15,7 @@ const lv: Partial<Translations> = {
   "nav.receiver": "Uztvērējs",
   "nav.fleet": "Flote",
   "nav.settings": "Iestatījumi",
+  "nav.more": "Vēl",
 
   // Mode toggle
   "about.title": "Par BombVault",

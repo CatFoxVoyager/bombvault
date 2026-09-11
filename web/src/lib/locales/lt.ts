@@ -15,6 +15,7 @@ const lt: Partial<Translations> = {
   "nav.receiver": "Imtuvas",
   "nav.fleet": "Parkas",
   "nav.settings": "Nustatymai",
+  "nav.more": "Daugiau",
 
   // Mode toggle
   "about.title": "Apie BombVault",

@@ -15,6 +15,7 @@ const fa: Partial<Translations> = {
   "nav.receiver": "گیرنده",
   "nav.fleet": "ناوگان",
   "nav.settings": "تنظیمات",
+  "nav.more": "بیشتر",
 
   // Mode toggle
   "about.title": "درباره BombVault",

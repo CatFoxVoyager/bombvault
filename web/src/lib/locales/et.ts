@@ -15,6 +15,7 @@ const et: Partial<Translations> = {
   "nav.receiver": "Vastuvõtja",
   "nav.fleet": "Laevastik",
   "nav.settings": "Seaded",
+  "nav.more": "Rohkem",
 
   // Mode toggle
   "about.title": "Teave BombVaulti kohta",

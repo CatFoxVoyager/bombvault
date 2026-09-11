@@ -12,6 +12,7 @@ const zh: Partial<Translations> = {
   "nav.vms": "虚拟机",
   "nav.flash": "闪存",
   "nav.settings": "设置",
+  "nav.more": "更多",
   "about.title": "关于 BombVault",
   "about.body": "一位骑士的远征：这样的自由开源工具此前并不存在。没有账户，没有遥测，任何可读的东西都不会离开你自己的城墙。在夜晚和周末用心锻造，因为等待不是选项。",
   "about.coffee": "BombVault 是免费的，而且会一直免费。捐赠让项目活着，并覆盖它的开销：域名、服务器，以及投入其中的夜晚。",

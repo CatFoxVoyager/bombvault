@@ -12,6 +12,7 @@ const pl: Partial<Translations> = {
   "nav.vms": "Maszyny wirtualne",
   "nav.flash": "Flash",
   "nav.settings": "Ustawienia",
+  "nav.more": "Więcej",
   "about.title": "O programie BombVault",
   "about.body": "Jeden rycerz, jedna wyprawa: wolne, otwartoźródłowe narzędzia, których w tej postaci nie było. Żadnych kont, żadnej telemetrii i nic czytelnego nigdy nie opuszcza twoich murów. Kute wieczorami i w weekendy z sercem, bo czekanie nie wchodziło w grę.",
   "about.coffee": "BombVault jest darmowy i taki zostanie. Darowizna utrzymuje projekt przy życiu i pokrywa jego koszty: domenę, serwer i wieczory, które w niego idą.",

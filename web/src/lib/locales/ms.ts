@@ -15,6 +15,7 @@ const ms: Partial<Translations> = {
   "nav.receiver": "Penerima",
   "nav.fleet": "Armada",
   "nav.settings": "Tetapan",
+  "nav.more": "Lagi",
 
   // Mode toggle
   "about.title": "Perihal BombVault",

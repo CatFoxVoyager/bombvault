@@ -15,6 +15,7 @@ const id: Partial<Translations> = {
   "nav.receiver": "Penerima",
   "nav.fleet": "Armada",
   "nav.settings": "Pengaturan",
+  "nav.more": "Lainnya",
 
   // Mode toggle
   "about.title": "Tentang BombVault",
