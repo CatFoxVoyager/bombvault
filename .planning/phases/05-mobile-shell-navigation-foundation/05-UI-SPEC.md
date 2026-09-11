@@ -1,7 +1,8 @@
 ---
 phase: 5
 slug: mobile-shell-navigation-foundation
-status: draft
+status: approved
+reviewed_at: 2026-09-11
 shadcn_initialized: false
 preset: none
 created: 2026-09-11
@@ -48,8 +49,7 @@ Declared values (multiples of 4 only — Tailwind's existing scale, no new token
 | Token | Value | Usage |
 |-------|-------|-------|
 | xs | 4px (`gap-1`) | icon-to-label gap inside a bar item |
-| sm | 8px (`gap-2`, `p-2`) | compact element spacing, bar horizontal padding |
-| md | 12px | sheet row vertical padding |
+| sm | 8px (`gap-2`, `p-2`, `py-2`) | compact element spacing, bar horizontal padding, More-sheet row vertical padding (the 52px `min-h` exception below governs row height — padding never does) |
 | lg | 16px (`p-4`) | sheet side padding, default element spacing |
 | xl | 24px (`p-6`, `gap-6`) | `main` padding (unchanged), section spacing |
 | 2xl | 32px | layout gaps inside the sheet |
@@ -171,7 +171,7 @@ enforce the rest. German/French chrome must fit 320–360px (bar labels ellipsiz
 | `navModel.ts` | `lib/navModel.ts` | ONE pure `destinations(settings)` derivation feeding BOTH Sidebar and MoreSheet: ordered list (sidebar order: dashboard, recovery, containers, vms*, flash*, files*, config*, receiver*, fleet*) + which four own bottom-bar slots (dashboard, containers, files, settings). Settings-gated items (* appear only when enabled) can never drift between desktop and mobile — same source, two renderings |
 | `useMediaQuery.ts` | `lib/useMediaQuery.ts` | ~15-line `useSyncExternalStore` hook; owns the one `DESKTOP_QUERY` literal; guard test pins it to the CSS `md:` boundary |
 | `BottomNav.tsx` | `components/mobile/BottomNav.tsx` | 5 equal slots (`grid grid-cols-5` / flex-1): Home, Containers, Files, Settings + "More" trigger. Item = 24px icon (w-6, from navGlyphs) over 11px caption label, 4px gap; rest: `--carbon-text-muted`; active: `accentText` + `accentSoft` icon backdrop; ≥44px targets; `padding-bottom: var(--safe-area-bottom)`; top hairline `border-carbon-border`; surface `bg-carbon-sidebar`. More trigger opens the sheet; its icon is a new ellipsis-class glyph in navGlyphs' Streamline family |
-| `MoreSheet.tsx` | `components/mobile/MoreSheet.tsx` | BottomSheet consumer. Title row ("More" + close `IconClose` button); destination rows in sidebar order: 20px glyph (`glim-nav-row` sizing) + 14px body label, 52px min rows, `rounded-control`, active row = `accentSoft` + `accentText`; hairline separator + muted sign-out row (IconPower) at the bottom. Focus-trapped, scroll-contained, safe-area padded |
+| `MoreSheet.tsx` | `components/mobile/MoreSheet.tsx` | BottomSheet consumer. Title row ("More" + close `IconClose` button; icon-only, so it carries an accessible label: `aria-label={t("common.close")}` — key already exists in `web/src/lib/i18n.ts` (en "Close" / de "Schließen"), no new locale entries); destination rows in sidebar order: 20px glyph (`glim-nav-row` sizing) + 14px body label, 52px min rows (`py-2` vertical padding inside the min-h floor), `rounded-control`, active row = `accentSoft` + `accentText`; hairline separator + muted sign-out row (IconPower) at the bottom. Focus-trapped, scroll-contained, safe-area padded |
 | `BottomSheet.tsx` | `components/mobile/BottomSheet.tsx` | PRIM-01 primitive: portal to `document.body` (ConfirmDialog precedent), scrim `bg-black/60` z-50 (same as ConfirmDialog), panel `bg-carbon-surface`, top radius `--radius-card` (16px), `max-h-[85dvh]`, internal scroll with `overscroll-behavior: contain`, `padding-bottom: var(--safe-area-bottom)`, actions in the bottom (thumb) zone. NO drag-to-dismiss gesture this phase (dismiss = scrim tap / Escape / close button) — a static grabber is therefore NOT rendered; the title+close row is the dismissal affordance. Slide-up animation gated behind `prefers-reduced-motion: no-preference` (house pattern). Reused later by confirmations (PRIM-03), pickers (PRIM-02), editors (FLOW-01/02) |
 | jsdom matchMedia stub | vitest setup (`vitest.config.ts` `setupFiles`, new) | jsdom 30 has no layout: stub `window.matchMedia` desktop-default (desktop query matches) so existing + new tests keep desktop semantics; mobile behavior asserted by Playwright, not jsdom |
 | Playwright harness | `web/playwright.config.ts` + `web/e2e/` | VERIFY-01 — see Verification Harness below |
