@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 5
 current_phase_name: Mobile Shell & Navigation Foundation
 status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-09-11T20:55:08.048Z"
+stopped_at: Completed 05-03-PLAN.md
+last_updated: "2026-09-11T21:30:19.230Z"
 last_activity: 2026-09-11
 last_activity_desc: Phase 5 execution started
-state_head: c08f7b4f14bf61e27a4117dd0fe800dfa0b15334
+state_head: 33ece61742c8796db00123b8732bf6aad54e3251
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 6
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-11)
 ## Current Position
 
 Phase: 5 (Mobile Shell & Navigation Foundation) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Total Plans in Phase: 6
 Status: Ready to execute
 Last activity: 2026-09-11 — Phase 5 execution started
@@ -83,6 +83,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P04 | 8 min | 2 tasks | 3 files |
 | Phase 05 P01 | 71min | 2 tasks | 5 files |
 | Phase 05 P02 | 16min | 3 tasks | 7 files |
+| Phase 05 P03 | 35min | 3 tasks | 45 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,10 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 5]: destinations(settings: Settings | null): null = every gate off (pre-boot Sidebar state), preserving the old ?? false defaults; labelKey typed TranslationKey so bad nav keys are compile errors
 - [Phase 5]: DESKTOP_QUERY = (min-width: 48rem) lives ONLY in web/src/lib/useMediaQuery.ts, pinned to Tailwind md by a node-env source-assert guard that fails with the why; useIsDesktop on useSyncExternalStore (theme.ts subscribe shape)
 - [Phase 5]: jsdom matchMedia gap filled by a guarded desktop-default stub via vitest setupFiles — installs only when window exists AND matchMedia is absent, so node suites are untouched and per-file stubs keep winning
+- [Phase 5]: BottomSheet scrim is aria-hidden with panel-as-sibling, NOT the plan's inert attribute - Playwright probe: inert elements are skipped in hit-testing in Chromium AND WebKit, so a scrim click passes through to background content and the target===currentTarget close path can never fire
+- [Phase 5]: slide-up entrance is a motion-safe-only transition flip (translate-y-full -> translate-y-0 after a double rAF), not the glim-modal-in pop - a 10px pop is the wrong motion for a bottom-anchored surface; glim-modal-card class deliberately not carried
+- [Phase 5]: trigger capture and initial focus-in share ONE open effect with capture strictly BEFORE the focus move; no autoFocus attribute anywhere (React applies it during commit, which would make the sheet's own close button the captured trigger)
+- [Phase 5]: IconEllipsis lands as a gen_glyphs.py EXTRA_NAV entry + verbatim hand emission - navGlyphs.tsx is generated ('do not hand-edit'), so regeneration survival requires the generator entry; full regen needs the unavailable Streamline source folder
 
 ### Pending Todos
 
@@ -117,8 +122,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-11T20:55:08.031Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-09-11T21:30:19.212Z
+Stopped at: Completed 05-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

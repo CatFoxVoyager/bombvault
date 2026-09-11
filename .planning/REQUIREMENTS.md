@@ -21,7 +21,7 @@
 
 ### Shared Primitives
 
-- [ ] **PRIM-01**: Hand-rolled bottom-sheet primitive (no UI kit): focus-trapped, scroll-contained (`overscroll-behavior`), safe-area padded, thumb-reachable; reused by confirmations, pickers, and editors
+- [x] **PRIM-01**: Hand-rolled bottom-sheet primitive (no UI kit): focus-trapped, scroll-contained (`overscroll-behavior`), safe-area padded, thumb-reachable; reused by confirmations, pickers, and editors
 - [ ] **PRIM-02**: Tap-popover primitive below the breakpoint for hover-dependent affordances (InfoBubble, FilterPopover, ColorPickerPopover): tap-anchored, clearly dismissible; desktop hover behavior untouched
 - [ ] **PRIM-03**: Destructive confirmations render as bottom sheets with fail-tone styling, consequence-naming copy, and outcome-naming buttons; no default-focused destructive control; rides the existing `useConfirm` semantics (one confirm implementation, new presentation)
 - [ ] **PRIM-04**: Visibility-aware refresh: live progress (SSE) pauses when the page is hidden and refetches/reconnects on visible; a run finishing while backgrounded is reconciled on return, never silently stale
@@ -118,7 +118,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SHELL-05 | Phase 5 | Pending |
 | SHELL-06 | Phase 5 | Pending |
 | SHELL-07 | Phase 5 | Pending |
-| PRIM-01 | Phase 5 | Pending |
+| PRIM-01 | Phase 5 | Complete |
 | VERIFY-01 | Phase 5 | Pending |
 | SCRN-01 | Phase 6 | Pending |
 | SCRN-02 | Phase 6 | Pending |

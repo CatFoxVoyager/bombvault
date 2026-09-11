@@ -40,14 +40,14 @@
   3. The More sheet behaves as a proper touch surface — focus-trapped, scroll-contained, safe-area padded, thumb-reachable, clearly dismissible — as the first consumer of the hand-rolled bottom-sheet primitive
   4. At desktop width (≥48rem) every page renders today's desktop layout unchanged, asserted per-page by the new Playwright harness, and a mobile-shell or desktop-layout regression fails CI
 
-**Plans**: 2/6 plans executed
+**Plans**: 3/6 plans executed
 
 Plans:
 **Wave 1**
 
 - [x] 05-01-PLAN.md — Playwright harness foundation: legitimacy-gated exact-pinned @playwright/test, 4-project webServer config over the compiled binary, /api/health smoke
 - [x] 05-02-PLAN.md — ONE nav registry (navModel) + Sidebar rewired to consume it + useMediaQuery breakpoint hook with the jsdom matchMedia stub
-- [ ] 05-03-PLAN.md — PRIM-01 BottomSheet primitive (lifted useConfirm mechanics) + nav.more across all locales + IconEllipsis glyph
+- [x] 05-03-PLAN.md — PRIM-01 BottomSheet primitive (lifted useConfirm mechanics) + nav.more across all locales + IconEllipsis glyph
 - [ ] 05-04-PLAN.md — Viewport correctness: safe-area custom properties, extended meta + theme-color mirror (FOUC bytes untouched), mobile-correct login, source-assert guards
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -116,7 +116,7 @@ Plans:
 | 2. Container Panel Tree Selection | v1.0 | 3/3 | Complete | 2026-09-11 |
 | 3. Selection Trust & Controls | v1.0 | 3/3 | Complete | 2026-09-11 |
 | 4. File Sets Parity | v1.0 | 4/4 | Complete | 2026-09-11 |
-| 5. Mobile Shell & Navigation Foundation | v1.1 | 2/6 | In Progress|  |
+| 5. Mobile Shell & Navigation Foundation | v1.1 | 3/6 | In Progress|  |
 | 6. Maquette Screens | v1.1 | 0/TBD | Not started | - |
 | 7. Remaining Destinations & Operational Parity | v1.1 | 0/TBD | Not started | - |
 | 8. Guided Restore & Real-Device Verification | v1.1 | 0/TBD | Not started | - |
