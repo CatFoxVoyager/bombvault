@@ -277,7 +277,11 @@ describe("SHELL-07 — login renders before any shell, structurally", () => {
   // the Layout/mobile-shell asserts — asserting viewport classes here would
   // leave the suite red for all of Wave 1.
   const blocked = /if \(authGate === "blocked"\) \{\s*\n\s*return <LoginPage/.exec(layout);
-  const shell = /return \(\s*\n\s*<div className="flex/.exec(layout);
+  // Plan 05 rewired the shell root (the extension this scope note pre-announced):
+  // the root's height is now h-dvh (SHELL-05) and its className is a template
+  // literal, because the ONE chrome switch appends `flex-col` on the mobile
+  // branch — so the root div no longer matches a plain `className="flex` string.
+  const shell = /<div className=\{`flex h-dvh/.exec(layout);
 
   it("finds both the blocked branch and the shell root at all (self-guard)", () => {
     expect(
@@ -288,7 +292,7 @@ describe("SHELL-07 — login renders before any shell, structurally", () => {
     ).not.toBeNull();
     expect(
       shell,
-      'Layout.tsx no longer has a `return (` rendering a `<div className="flex` root — ' +
+      "Layout.tsx no longer renders a `<div className={`flex h-dvh ...`}>` shell root — " +
         "the shell root moved or was renamed; update this guard deliberately."
     ).not.toBeNull();
   });

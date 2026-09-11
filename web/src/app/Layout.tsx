@@ -1,7 +1,9 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
+import { BottomNav } from "../components/mobile/BottomNav";
 import { useEffect, useState, useCallback } from "react";
 import { getSettings, getAuth, getHealth, type Settings } from "../lib/api";
+import { useIsDesktop } from "../lib/useMediaQuery";
 import { LoginPage } from "../pages/Login";
 import { WhatsNewDialog } from "../components/WhatsNewDialog";
 import { sync as syncDisplayPrefs } from "../lib/displayPrefs";
@@ -37,6 +39,24 @@ export function Layout() {
   // The version to show the "What's new" dialog for (null = don't show).
   const [whatsNewVersion, setWhatsNewVersion] = useState<string | null>(null);
   const location = useLocation();
+  // THE ONE chrome switch (phase 5): at/above Tailwind's md breakpoint the
+  // desktop shell renders exactly as it always has; below it the mobile shell
+  // renders in its place. The breakpoint literal lives only in
+  // lib/useMediaQuery.ts, and this hook call is its only consumer — a second
+  // JS breakpoint anywhere else would let the two chrome systems disagree for
+  // the 1px window where their answers differ.
+  const isDesktop = useIsDesktop();
+
+  // Tap-on-active (SHELL-02): tapping the ALREADY-active destination scrolls
+  // the main scroller back to the top instead of navigating. The scroller is
+  // THIS component's <main id="bv-main"> below, so the mechanism lives here
+  // and the chrome surfaces receive it as a prop — they never query the DOM
+  // for the scroller themselves. `?.` guards the guarded: the element exists
+  // in every state this can be called from, but a callback that throws because
+  // of a render-order surprise is worse than a no-op.
+  const scrollMainToTop = useCallback(() => {
+    document.getElementById("bv-main")?.scrollTo({ top: 0 });
+  }, []);
 
   // Check auth state; used on mount and after a successful login.
   const checkAuth = useCallback(() => {
@@ -60,14 +80,17 @@ export function Layout() {
     checkAuth();
   }, [checkAuth]);
 
-  // Load settings to drive the sidebar's domain tabs.
+  // Load settings to drive the chrome's destination lists (desktop sidebar and
+  // mobile bar/sheet alike — both read the ONE registry through this state).
   const loadSettings = useCallback(() => {
     getSettings()
       .then((res) => {
         if (res.ok) setSettings(res.settings);
       })
       .catch(() => {
-        // Non-fatal: sidebar simply won't reveal VMs/Flash tabs.
+        // Non-fatal: chrome simply won't reveal VMs/Flash tabs. The mobile
+        // surfaces inherit exactly this degradation (UI-SPEC: the chrome
+        // performs no fetches; settings stays non-fatal here).
       });
   }, []);
 
@@ -167,19 +190,28 @@ export function Layout() {
     return null;
   }
 
-  // Auth is ON and not authenticated — show the login screen.
+  // Auth is ON and not authenticated — show the login screen. This branch
+  // returns BEFORE the shell root below, which is why login never renders any
+  // chrome (no Sidebar, no bottom bar): the guarantee is structural, not CSS
+  // (SHELL-07).
   if (authGate === "blocked") {
     return <LoginPage onLogin={checkAuth} />;
   }
 
-  return (
-    <div className="flex h-screen overflow-hidden bg-carbon-background">
-      <Sidebar settings={settings} authEnabled={authEnabled} />
+  // The scroller — identical in both chrome branches on purpose: per-page
+  // content (the Outlet subtree) must never know which chrome is mounted
+  // around it, so `main` keeps the exact class contract it has always had and
+  // gains only the `bv-main` id, the stable scroll target both chrome surfaces
+  // address (tap-on-active). Carrying the id in BOTH branches is the point:
+  // a page cannot tell, and a resize across the breakpoint re-attaches to the
+  // same id either way.
+  const scroller = (
+    <main id="bv-main" className="flex-1 flex flex-col overflow-y-auto p-6 min-w-0">
       {/* `flex flex-col` added here (sticky-footer page-shell fix, jdp live
           review — "die Versionsnummer soll unterhalb der untersten Card
           stehen, nicht die Cards durchfahren lassen"): `main` is the actual
-          scrollable viewport (overflow-y-auto, sized to exactly 100vh minus
-          its own p-6 padding via the h-screen row's flex-stretch above) — a
+          scrollable viewport (overflow-y-auto, sized to exactly the shell
+          height minus its own p-6 padding via the flex-stretch above) — a
           page that wants its own footer to sit flush with the BOTTOM of this
           box when its content is short, while still scrolling normally
           underneath it when content is tall, needs `main`'s direct child to
@@ -187,20 +219,56 @@ export function Layout() {
           OTHER route: a page that doesn't opt into filling that height (see
           `glim-page-enter` below) just renders at its own natural height with
           invisible blank flex space below it — no visible change. */}
-      <main className="flex-1 flex flex-col overflow-y-auto p-6 min-w-0">
-        {/* `flex-1 flex flex-col` added (same fix as above): makes this
-            per-route wrapper fill `main`'s available height (a definite size,
-            since it's now a flex item of a sized flex column) AND pass a flex
-            column context down to whichever page Outlet renders — Settings.tsx
-            is the one page that currently uses this to push its own
-            AboutFooter to the bottom of the column instead of leaving it
-            fixed to the viewport (see AboutFooter's own header comment for
-            the full before/after). Every other page ignores the extra
-            height exactly as described above. */}
-        <div key={location.pathname} className="glim-page-enter flex-1 flex flex-col">
-          <Outlet />
-        </div>
-      </main>
+      {/* `flex-1 flex flex-col` added (same fix as above): makes this
+          per-route wrapper fill `main`'s available height (a definite size,
+          since it's now a flex item of a sized flex column) AND pass a flex
+          column context down to whichever page Outlet renders — Settings.tsx
+          is the one page that currently uses this to push its own
+          AboutFooter to the bottom of the column instead of leaving it
+          fixed to the viewport (see AboutFooter's own header comment for
+          the full before/after). Every other page ignores the extra
+          height exactly as described above. */}
+      <div key={location.pathname} className="glim-page-enter flex-1 flex flex-col">
+        <Outlet />
+      </div>
+    </main>
+  );
+
+  // The shell root. `h-dvh` (SHELL-05) tracks the visual viewport as mobile
+  // browser chrome collapses/expands — the static screen-height class it
+  // replaced kept the LARGEST viewport height and stranded bottom-docked
+  // content under expanded browser chrome. On desktop dvh equals the viewport
+  // height, so the desktop shell renders unchanged. The flex DIRECTION is the
+  // chrome switch's other half: desktop is the historical row (rail | main);
+  // mobile stacks the scroller over its normal-flow bottom bar (SHELL-02 —
+  // the bar is a flex SIBLING of `main`, never a fixed overlay, so the
+  // browser reserves its height and the scroller ends above it by
+  // construction).
+  return (
+    <div className={`flex h-dvh overflow-hidden bg-carbon-background ${isDesktop ? "" : "flex-col"}`}>
+      {/* THE ONE CHROME SWITCH — exactly one chrome surface renders at a time.
+          The desktop branch is today's tree verbatim (same Sidebar, same
+          scroller, same classes); the mobile branch is the same scroller with
+          the bottom bar as its flex sibling BELOW it. The hidden surface is
+          NOT RENDERED at all, never CSS-hidden: a display:none Sidebar would
+          still run its subscriptions, dialogs and label engine below the
+          breakpoint. What'sNewDialog renders outside the switch — it is a
+          fixed-position dialog and belongs to both shells. */}
+      {isDesktop ? (
+        <>
+          <Sidebar settings={settings} authEnabled={authEnabled} />
+          {scroller}
+        </>
+      ) : (
+        <>
+          {scroller}
+          <BottomNav
+            settings={settings}
+            authEnabled={authEnabled}
+            scrollMainToTop={scrollMainToTop}
+          />
+        </>
+      )}
       {whatsNewVersion && (
         <WhatsNewDialog version={whatsNewVersion} onClose={() => setWhatsNewVersion(null)} />
       )}
