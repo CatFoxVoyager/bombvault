@@ -14,10 +14,10 @@
 - [ ] **SHELL-01**: responsive mobile shell — bottom nav + More sheet, safe areas, desktop intact
 - [ ] **SHELL-02**: Bottom bar with the 4 destinations (Home, Containers, Files, Settings): non-scrolling, accent-tinted active item, tap-on-active returns to top of view, touch targets ≥ 44px, in normal flow (flex sibling — never `position:fixed`)
 - [ ] **SHELL-03**: "More" sheet presenting the remaining destinations (Recovery, VMs, Flash, Config, Receiver, Fleet), derived with the bottom bar from ONE pure nav registry (`destinations(settings)`) feeding both Sidebar and MoreSheet so settings-gated tabs can never drift; sign-out reachable in mobile chrome
-- [ ] **SHELL-04**: Safe-area correctness: `viewport-fit=cover` + `env(safe-area-inset-*)` centralized as CSS custom properties; bottom bar, pinned action bars, and headers pad by insets; desktop reports 0 and is unaffected
+- [x] **SHELL-04**: Safe-area correctness: `viewport-fit=cover` + `env(safe-area-inset-*)` centralized as CSS custom properties; bottom bar, pinned action bars, and headers pad by insets; desktop reports 0 and is unaffected
 - [ ] **SHELL-05**: Viewport-height correctness: root sized with `dvh` (`svh` where chrome must stay visible), never `100vh`; Android keyboard handling via `interactive-widget=resizes-content` in the viewport meta (iOS handled explicitly, never assumed)
-- [ ] **SHELL-06**: Viewport meta extension + `theme-color` (carbon background) in `web/index.html`, below the untouched FOUC script
-- [ ] **SHELL-07**: Login on mobile: the two-step flow works untouched, inputs ≥ 16px effective font (no iOS focus-zoom), safe-area correct
+- [x] **SHELL-06**: Viewport meta extension + `theme-color` (carbon background) in `web/index.html`, below the untouched FOUC script
+- [x] **SHELL-07**: Login on mobile: the two-step flow works untouched, inputs ≥ 16px effective font (no iOS focus-zoom), safe-area correct
 
 ### Shared Primitives
 
@@ -114,10 +114,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SHELL-01 | Phase 5 | Pending |
 | SHELL-02 | Phase 5 | Pending |
 | SHELL-03 | Phase 5 | Pending |
-| SHELL-04 | Phase 5 | Pending |
+| SHELL-04 | Phase 5 | Complete |
 | SHELL-05 | Phase 5 | Pending |
-| SHELL-06 | Phase 5 | Pending |
-| SHELL-07 | Phase 5 | Pending |
+| SHELL-06 | Phase 5 | Complete |
+| SHELL-07 | Phase 5 | Complete |
 | PRIM-01 | Phase 5 | Complete |
 | VERIFY-01 | Phase 5 | Pending |
 | SCRN-01 | Phase 6 | Pending |
