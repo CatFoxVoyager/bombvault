@@ -8,6 +8,16 @@ Backup and full disaster recovery for Unraid servers (Docker containers, KVM VMs
 
 Every container, VM, and config on the host can be backed up consistently and restored completely — a dead server is rebuilt from the restic repo alone.
 
+## Current Milestone: v1.1 Mobile Interface
+
+**Goal:** The BombVault SPA becomes fully operational on mobile — a dedicated responsive layout following the design bible from the `0b64c7df` prototypes, with desktop untouched above the breakpoint.
+
+**Target features:**
+- Mobile SPA shell: bottom bar (Home, Containers, Files, Settings) + "More" sheet for the remaining destinations, safe-area aware, hand-rolled (no state library, no UI kit)
+- The five maquette screens: Home/dashboard, Containers with touch selection tree, File sets with tree, Run detail/Recovery
+- Remaining destinations in the same mobile language: VMs, Flash, Config, Receiver, Fleet, Settings
+- Full operational parity on mobile: backup triggering, tree selection editing, guided restore, schedules, notifications, off-site replication
+
 ## Requirements
 
 ### Validated
@@ -38,8 +48,10 @@ Every container, VM, and config on the host can be backed up consistently and re
 
 <!-- Current scope. Building toward these. -->
 
-- [ ] SELECT-06: backup-time coverage diff (what changed since the last snapshot's selection)
-- [ ] TREE-07: tree search/filter; TREE-08: restore-side tree picker; SELECT-05: size hints per node
+- [ ] MOBILE-01: responsive mobile shell — bottom nav + More sheet, safe areas, desktop intact
+- [ ] MOBILE-02: maquette screens (Home, Containers + tree, File sets + tree, Run detail/Recovery)
+- [ ] MOBILE-03: remaining destinations (VMs, Flash, Config, Receiver, Fleet, Settings) in the mobile language
+- [ ] MOBILE-04: full operational parity — trigger, tree editing, guided restore, schedules, notifications, replication
 
 ### Out of Scope
 
@@ -57,6 +69,7 @@ Every container, VM, and config on the host can be backed up consistently and re
 - Typical pain solved: Plex-style appdata where `transcoding`/cache subfolders dwarf the real config — untick them per-node instead of dropping the mount; snapshots stop carrying data nobody wants restored.
 - Known deferred debt: 2 pre-existing eslint warnings (ActivityLog.tsx:234, Sidebar.tsx:567, warn-only), the stacked-descriptor failure-revert window in the Containers save queue (narrow window, next successful save re-converges), and v2 requirements (SELECT-06, TREE-07/08, SELECT-05) tracked in REQUIREMENTS.md.
 - Public repo (has always been public): no real user data or IPs anywhere, including examples.
+- Mobile design bible (v1.1 reference): `design/mobile/README.md` + prototypes `android.html`/`ios.html` (commit `0b64c7df`, branch `mobile-design-concepts`) — locked carbon tokens, four-status rule, platform mapping; the responsive SPA implements that language.
 
 ## Constraints
 
@@ -88,8 +101,6 @@ Every container, VM, and config on the host can be backed up consistently and re
 
 ## Evolution
 
-## Evolution
-
 This document evolves at phase transitions and milestone boundaries.
 
 **After each phase transition** (via `/gsd-transition`):
@@ -106,4 +117,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-11 after v1.0 milestone*
+*Last updated: 2026-09-11 after v1.1 milestone start*
