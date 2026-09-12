@@ -776,6 +776,11 @@ export const en = {
   // over-promise what the switch does.
   "folders.cachedirToggle": "Skip cache folders (CACHEDIR.TAG)",
   "folders.cachedirScope": "Applies to the entire backup of this container, not only this folder.",
+  // Phase 6 (D-03): the mobile Save bar's live count. Invariant {n}, no
+  // plural fork (folders.previewPaths precedent) — the zero case reads "0
+  // folders handed to restic" on purpose: it is a statement of exactly what
+  // the next backup hands restic, and zero is a real answer.
+  "folders.handedToRestic": "{n} folders handed to restic",
   "stophook.title": "Stop other containers",
   "stophook.hint": "Stop these other containers while this one is backed up (for example a database), then start them again afterwards.",
   "stophook.noCandidates": "No other installed containers found.",
@@ -1189,6 +1194,9 @@ export const en = {
   // over the button would stutter.
   "common.expand": "Expand",
   "common.collapse": "Collapse",
+  // Phase 6 (SCRN-02): mobile stacked-detail back row. A visible label (not an
+  // icon-only affordance) — the maquette's back row reads chevron + "Back".
+  "common.back": "Back",
   "common.loadingBackups": "Loading backups…",
   "common.saving": "Saving…",
   "common.restoreRunning": "A restore is running…",
@@ -2525,6 +2533,9 @@ export const de: Translations = {
     "Die Auswahl umfasst jetzt weniger Ordner als zuvor. Ab der nächsten Sicherung enthalten Snapshots nur noch die ausgewählten Ordner. Bestehende Snapshots bleiben unverändert.",
   "folders.cachedirToggle": "Cache-Ordner überspringen (CACHEDIR.TAG)",
   "folders.cachedirScope": "Gilt für die gesamte Sicherung dieses Containers, nicht nur für diesen Ordner.",
+  // Phase 6 (D-03): Live-Zählung der mobilen Save-Leiste. Invariantes {n},
+  // keine Pluralform (folders.previewPaths als Präzedenz).
+  "folders.handedToRestic": "{n} Ordner an restic übergeben",
   "stophook.title": "Andere Container stoppen",
   "stophook.hint": "Diese anderen Container während des Backups dieses Containers stoppen (zum Beispiel eine Datenbank) und danach wieder starten.",
   "stophook.noCandidates": "Keine anderen installierten Container gefunden.",
@@ -2843,6 +2854,9 @@ export const de: Translations = {
   // SelectionTree touch chevron (D-02) — same keys as the en block above.
   "common.expand": "Ausklappen",
   "common.collapse": "Einklappen",
+  // Phase 6 (SCRN-02): Zurück-Zeile der gestapelten Detailansicht — Chevron
+  // mit sichtbarem Schriftlabel (nicht nur Icon), wie in der Maquette.
+  "common.back": "Zurück",
   "common.loadingBackups": "Sicherungen werden geladen…",
   "common.saving": "Speichern…",
   "common.restoreRunning": "Eine Wiederherstellung läuft…",

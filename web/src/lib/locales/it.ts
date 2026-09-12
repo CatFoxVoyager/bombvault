@@ -565,6 +565,7 @@ const it: Partial<Translations> = {
   "common.close": "Chiudi",
   "common.expand": "Espandi",
   "common.collapse": "Comprimi",
+  "common.back": "Indietro",
 
   // Failure fallbacks
   "common.actionFailed": "Azione non riuscita",
@@ -614,6 +615,7 @@ const it: Partial<Translations> = {
   "folders.narrowedNote": "La selezione ora comprende meno cartelle di prima. Dal prossimo backup in poi, le istantanee conterranno solo le cartelle selezionate. Le istantanee esistenti restano invariate.",
   "folders.cachedirToggle": "Salta le cartelle di cache (CACHEDIR.TAG)",
   "folders.cachedirScope": "Si applica all'intero backup di questo contenitore, non solo a questa cartella.",
+  "folders.handedToRestic": "{n} cartelle consegnate a restic",
   // Notifications
   "notify.title": "Notifiche",
   "notify.hint": "Ricevi una notifica al termine di un backup e scegli qui sotto quali eventi la attivano. Le notifiche Unraid funzionano già in modalità Semplice; altri canali di consegna (webhook, Matrix, Healthchecks, email) si trovano in Avanzate.",

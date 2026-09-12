@@ -557,6 +557,7 @@ const vi: Partial<Translations> = {
   "common.close": "Đóng",
   "common.expand": "Mở rộng",
   "common.collapse": "Thu gọn",
+  "common.back": "Quay lại",
 
   // Failure fallbacks
   "common.actionFailed": "Thao tác thất bại",
@@ -606,6 +607,7 @@ const vi: Partial<Translations> = {
   "folders.narrowedNote": "Lựa chọn hiện bao phủ ít thư mục hơn trước. Từ bản sao lưu tiếp theo, các snapshot sẽ chỉ chứa các thư mục đã chọn. Các snapshot hiện có không thay đổi.",
   "folders.cachedirToggle": "Bỏ qua thư mục bộ nhớ đệm (CACHEDIR.TAG)",
   "folders.cachedirScope": "Áp dụng cho toàn bộ bản sao lưu của container này, không chỉ thư mục này.",
+  "folders.handedToRestic": "{n} thư mục đã bàn giao cho restic",
   // Notifications
   "notify.title": "Thông báo",
   "notify.hint": "Nhận thông báo khi một bản sao lưu hoàn tất, và chọn bên dưới sự kiện nào sẽ kích hoạt nó. Thông báo Unraid đã hoạt động ở chế độ Đơn giản; thêm các kênh gửi (webhook, Matrix, Healthchecks, email) có trong phần Nâng cao.",

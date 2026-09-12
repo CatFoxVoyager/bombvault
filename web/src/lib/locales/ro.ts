@@ -562,6 +562,7 @@ const ro: Partial<Translations> = {
   "common.close": "Închide",
   "common.expand": "Extinde",
   "common.collapse": "Restrânge",
+  "common.back": "Înapoi",
 
   // Failure fallbacks
   "common.actionFailed": "Acțiunea a eșuat",
@@ -611,6 +612,7 @@ const ro: Partial<Translations> = {
   "folders.narrowedNote": "Selecția acoperă acum mai puține foldere decât înainte. Începând cu următoarea copie de rezervă, snapshot-urile vor conține doar folderele selectate. Snapshot-urile existente rămân neschimbate.",
   "folders.cachedirToggle": "Omite folderele de cache (CACHEDIR.TAG)",
   "folders.cachedirScope": "Se aplică întregii copii de rezervă a acestui container, nu doar acestui folder.",
+  "folders.handedToRestic": "{n} dosare predate către restic",
   // Notifications
   "notify.title": "Notificări",
   "notify.hint": "Primește o notificare la finalizarea unei copii de rezervă și alege mai jos ce evenimente o declanșează. Notificările Unraid funcționează deja în modul Simplu; mai multe canale de livrare (webhook, Matrix, Healthchecks, e-mail) se găsesc la Avansat.",

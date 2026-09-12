@@ -557,6 +557,7 @@ const ru: Partial<Translations> = {
   "common.close": "Закрыть",
   "common.expand": "Развернуть",
   "common.collapse": "Свернуть",
+  "common.back": "Назад",
 
   // Failure fallbacks
   "common.actionFailed": "Не удалось выполнить действие",
@@ -606,6 +607,7 @@ const ru: Partial<Translations> = {
   "folders.narrowedNote": "Выбор теперь охватывает меньше папок, чем раньше. Начиная со следующей резервной копии, снимки будут содержать только выбранные папки. Существующие снимки не изменятся.",
   "folders.cachedirToggle": "Пропускать папки кеша (CACHEDIR.TAG)",
   "folders.cachedirScope": "Применяется ко всей резервной копии этого контейнера, а не только к этой папке.",
+  "folders.handedToRestic": "{n} папок передано restic",
   // Notifications
   "notify.title": "Уведомления",
   "notify.hint": "Получайте уведомление по завершении резервного копирования и выберите ниже, какие события его вызывают. Уведомления Unraid уже работают в простом режиме; больше каналов доставки (webhook, Matrix, Healthchecks, email) находится в разделе «Расширенные».",

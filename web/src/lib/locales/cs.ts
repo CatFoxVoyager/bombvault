@@ -563,6 +563,7 @@ const cs: Partial<Translations> = {
   "common.close": "Zavřít",
   "common.expand": "Rozbalit",
   "common.collapse": "Sbalit",
+  "common.back": "Zpět",
 
   // Failure fallbacks
   "common.actionFailed": "Akce se nezdařila",
@@ -612,6 +613,7 @@ const cs: Partial<Translations> = {
   "folders.narrowedNote": "Výběr nyní zahrnuje méně složek než dříve. Od příštího zálohování budou snímky obsahovat pouze vybrané složky. Stávající snímky zůstávají beze změny.",
   "folders.cachedirToggle": "Přeskočit složky mezipaměti (CACHEDIR.TAG)",
   "folders.cachedirScope": "Platí pro celou zálohu tohoto kontejneru, nejen pro tuto složku.",
+  "folders.handedToRestic": "{n} složek předáno nástroji restic",
   // Notifications
   "notify.title": "Oznámení",
   "notify.hint": "Nechte si poslat upozornění po dokončení zálohy a níže vyberte, jaké události ho spustí. Upozornění Unraid fungují už v jednoduchém režimu; další doručovací kanály (webhook, Matrix, Healthchecks, e-mail) najdete v Pokročilém.",

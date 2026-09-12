@@ -557,6 +557,7 @@ const ja: Partial<Translations> = {
   "common.close": "閉じる",
   "common.expand": "展開",
   "common.collapse": "折りたたみ",
+  "common.back": "戻る",
 
   // Failure fallbacks
   "common.actionFailed": "操作に失敗しました",
@@ -606,6 +607,7 @@ const ja: Partial<Translations> = {
   "folders.narrowedNote": "選択範囲は以前より少ないフォルダをカバーしています。次回のバックアップから、スナップショットには選択されたフォルダのみが含まれます。既存のスナップショットは変更されません。",
   "folders.cachedirToggle": "キャッシュフォルダをスキップ（CACHEDIR.TAG）",
   "folders.cachedirScope": "このコンテナのバックアップ全体に適用されます。このフォルダだけではありません。",
+  "folders.handedToRestic": "{n} 個のフォルダーを restic に引き渡しました",
   // Notifications
   "notify.title": "通知",
   "notify.hint": "バックアップ完了時に通知を受け取り、どのイベントで発火するかを下で選びます。Unraid通知はシンプルモードでも動作します。ほかの配信チャネル（Webhook、Matrix、Healthchecks、メール）は詳細設定にあります。",

@@ -565,6 +565,7 @@ const tr: Partial<Translations> = {
   "common.close": "Kapat",
   "common.expand": "Genişlet",
   "common.collapse": "Daralt",
+  "common.back": "Geri",
 
   // Failure fallbacks
   "common.actionFailed": "İşlem başarısız",
@@ -614,6 +615,7 @@ const tr: Partial<Translations> = {
   "folders.narrowedNote": "Seçim artık öncekinden daha az klasörü kapsıyor. Bir sonraki yedeklemeden itibaren anlık görüntüler yalnızca seçilen klasörleri içerecek. Mevcut anlık görüntüler değişmez.",
   "folders.cachedirToggle": "Önbellek klasörlerini atla (CACHEDIR.TAG)",
   "folders.cachedirScope": "Bu kapsayıcının yedeklemesinin tamamına uygulanır, yalnızca bu klasöre değil.",
+  "folders.handedToRestic": "{n} klasör restic'e teslim edildi",
   // Notifications
   "notify.title": "Bildirimler",
   "notify.hint": "Bir yedekleme tamamlandığında bildirim alın ve aşağıda hangi olayların bunu tetikleyeceğini seçin. Unraid bildirimleri Basit modda zaten çalışır; daha fazla iletim kanalı (webhook, Matrix, Healthchecks, e-posta) Gelişmiş bölümünde bulunur.",

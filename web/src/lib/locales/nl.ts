@@ -559,6 +559,7 @@ const nl: Partial<Translations> = {
   "common.close": "Sluiten",
   "common.expand": "Uitklappen",
   "common.collapse": "Inklappen",
+  "common.back": "Terug",
 
   // Failure fallbacks
   "common.actionFailed": "Actie mislukt",
@@ -608,6 +609,7 @@ const nl: Partial<Translations> = {
   "folders.narrowedNote": "De selectie beslaat nu minder mappen dan voorheen. Vanaf de volgende back-up bevatten snapshots alleen de geselecteerde mappen. Bestaande snapshots blijven ongewijzigd.",
   "folders.cachedirToggle": "Cachemappen overslaan (CACHEDIR.TAG)",
   "folders.cachedirScope": "Geldt voor de volledige back-up van deze container, niet alleen voor deze map.",
+  "folders.handedToRestic": "{n} mappen overgedragen aan restic",
   // Notifications
   "notify.title": "Meldingen",
   "notify.hint": "Krijg een melding wanneer een back-up klaar is, en kies hieronder welke gebeurtenissen dit activeren. Unraid-meldingen werken al in de eenvoudige modus; meer bezorgkanalen (webhook, Matrix, Healthchecks, e-mail) vind je bij Geavanceerd.",

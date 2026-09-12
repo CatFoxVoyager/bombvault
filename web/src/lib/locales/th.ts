@@ -565,6 +565,7 @@ const th: Partial<Translations> = {
   "common.close": "ปิด",
   "common.expand": "ขยาย",
   "common.collapse": "ย่อ",
+  "common.back": "ย้อนกลับ",
 
   // Failure fallbacks
   "common.actionFailed": "การดำเนินการล้มเหลว",
@@ -614,6 +615,7 @@ const th: Partial<Translations> = {
   "folders.narrowedNote": "การเลือกครอบคลุมโฟลเดอร์น้อยลงกว่าเดิม ตั้งแต่การสำรองข้อมูลครั้งถัดไป สแนปช็อตจะมีเฉพาะโฟลเดอร์ที่เลือกเท่านั้น สแนปช็อตที่มีอยู่แล้วไม่เปลี่ยนแปลง",
   "folders.cachedirToggle": "ข้ามโฟลเดอร์แคช (CACHEDIR.TAG)",
   "folders.cachedirScope": "ใช้กับการสำรองข้อมูลทั้งหมดของคอนเทนเนอร์นี้ ไม่ใช่เฉพาะโฟลเดอร์นี้",
+  "folders.handedToRestic": "ส่งโฟลเดอร์ {n} รายการให้ restic",
   // Notifications
   "notify.title": "การแจ้งเตือน",
   "notify.hint": "รับการแจ้งเตือนเมื่อการสำรองข้อมูลเสร็จสิ้น และเลือกด้านล่างว่าเหตุการณ์ใดเป็นตัวกระตุ้น การแจ้งเตือนของ Unraid ทำงานได้แล้วในโหมดง่าย ส่วนช่องทางการส่งเพิ่มเติม (webhook, Matrix, Healthchecks, อีเมล) อยู่ในโหมดขั้นสูง",

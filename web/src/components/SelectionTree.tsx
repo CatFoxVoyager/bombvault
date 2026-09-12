@@ -135,6 +135,21 @@ export interface SelectionTreeProps {
    *  chrome) still has a coarse primary pointer, and a hybrid touchpad
    *  laptop still has a fine one. Width is the chrome axis only. */
   interactionMode?: "pointer" | "touch";
+  /** Viewport (scroll container) classes for the tree root, REPLACING the
+   *  default `h-[clamp(12rem,55vh,32rem)] overflow-y-auto` cap. Absent keeps
+   *  the default byte-identically for every existing mount. Deliberately a
+   *  REPLACEMENT, not an append: two competing h-* utilities on one element
+   *  resolve by stylesheet order, which no call site can reason about (the
+   *  same doctrine as Button's TONE_TABLE / BottomSheet's tone union) — a
+   *  caller that needs a different viewport states the whole set.
+   *
+   *  The one consumer is the phase 6 stacked container detail (D-04): it
+   *  passes a full-height class ("h-auto") so the tree renders its natural
+   *  height and THE PAGE owns scrolling — the detail view owns the scroll,
+   *  the tree scrolls within it — instead of a second scroll container
+   *  clamped to a phone's viewport fraction inside an already-scrolling
+   *  page. */
+  viewportClassName?: string;
 }
 
 /** What one treeitem row needs; children specs derive from listings. */
@@ -176,6 +191,7 @@ export function SelectionTree({
   blockedPath,
   blockedMessage,
   interactionMode = "pointer",
+  viewportClassName,
 }: SelectionTreeProps) {
   const { t } = useT();
   // D-01: the touch adaptation is an interaction-layer branch INSIDE the one
@@ -813,7 +829,10 @@ export function SelectionTree({
       role="tree"
       aria-label={t("folders.treeLabel")}
       onKeyDown={handleTreeKeyDown}
-      className="h-[clamp(12rem,55vh,32rem)] overflow-y-auto"
+      // Default viewport cap (Phase 2) — replaced wholesale when a caller
+      // passes viewportClassName (see the prop's doc: replacement, never an
+      // append, so no two competing h-* utilities ever coexist here).
+      className={viewportClassName ?? "h-[clamp(12rem,55vh,32rem)] overflow-y-auto"}
     >
       {rootSpecs.map(renderSpec)}
     </div>

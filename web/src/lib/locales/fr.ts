@@ -565,6 +565,7 @@ const fr: Partial<Translations> = {
   "common.close": "Fermer",
   "common.expand": "Déplier",
   "common.collapse": "Replier",
+  "common.back": "Retour",
 
   // Failure fallbacks
   "common.actionFailed": "Échec de l'action",
@@ -614,6 +615,7 @@ const fr: Partial<Translations> = {
   "folders.narrowedNote": "La sélection couvre désormais moins de dossiers qu'avant. À partir de la prochaine sauvegarde, les instantanés ne contiendront que les dossiers sélectionnés. Les instantanés existants restent inchangés.",
   "folders.cachedirToggle": "Ignorer les dossiers de cache (CACHEDIR.TAG)",
   "folders.cachedirScope": "S'applique à toute la sauvegarde de ce conteneur, pas seulement à ce dossier.",
+  "folders.handedToRestic": "{n} dossiers confiés à restic",
   // Notifications
   "notify.title": "Notifications",
   "notify.hint": "Soyez averti à la fin d'une sauvegarde, et choisissez ci-dessous les événements qui le déclenchent. Les notifications Unraid fonctionnent déjà en mode Simple ; d'autres canaux de diffusion (webhook, Matrix, Healthchecks, e-mail) se trouvent dans Avancé.",

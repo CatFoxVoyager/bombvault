@@ -565,6 +565,7 @@ const ar: Partial<Translations> = {
   "common.close": "إغلاق",
   "common.expand": "توسيع",
   "common.collapse": "طي",
+  "common.back": "رجوع",
 
   // Failure fallbacks
   "common.actionFailed": "فشل الإجراء",
@@ -614,6 +615,7 @@ const ar: Partial<Translations> = {
   "folders.narrowedNote": "يغطي التحديد الآن مجلدات أقل من قبل. بدءاً من النسخة الاحتياطية التالية، ستحتوي اللقطات على المجلدات المحددة فقط. اللقطات الحالية تبقى دون تغيير.",
   "folders.cachedirToggle": "تخطي مجلدات الكاش (CACHEDIR.TAG)",
   "folders.cachedirScope": "ينطبق على النسخة الاحتياطية الكاملة لهذه الحاوية، وليس على هذا المجلد فقط.",
+  "folders.handedToRestic": "{n} مجلدات مُسلَّمة إلى restic",
   // Notifications
   "notify.title": "الإشعارات",
   "notify.hint": "احصل على إشعار عند انتهاء النسخ الاحتياطي، واختر أدناه الأحداث التي تُفعّله. تعمل إشعارات Unraid هنا في الوضع البسيط؛ مزيد من قنوات التسليم (Webhook وMatrix وHealthchecks والبريد الإلكتروني) تجدها ضمن الإعدادات المتقدمة.",

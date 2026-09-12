@@ -565,6 +565,7 @@ const el: Partial<Translations> = {
   "common.close": "Κλείσιμο",
   "common.expand": "Ανάπτυξη",
   "common.collapse": "Σύμπτυξη",
+  "common.back": "Πίσω",
 
   // Failure fallbacks
   "common.actionFailed": "Η ενέργεια απέτυχε",
@@ -614,6 +615,7 @@ const el: Partial<Translations> = {
   "folders.narrowedNote": "Η επιλογή καλύπτει πλέον λιγότερους φακέλους από πριν. Από το επόμενο αντίγραφο ασφαλείας και μετά, τα snapshots θα περιέχουν μόνο τους επιλεγμένους φακέλους. Τα υπάρχοντα snapshots παραμένουν αμετάβλητα.",
   "folders.cachedirToggle": "Παράλειψη φακέλων προσωρινής μνήμης (CACHEDIR.TAG)",
   "folders.cachedirScope": "Ισχύει για ολόκληρο το αντίγραφο ασφαλείας αυτού του container, όχι μόνο για αυτόν τον φάκελο.",
+  "folders.handedToRestic": "{n} φάκελοι παραδόθηκαν στο restic",
   // Notifications
   "notify.title": "Ειδοποιήσεις",
   "notify.hint": "Λάβετε ειδοποίηση όταν ολοκληρωθεί ένα αντίγραφο και επιλέξτε παρακάτω ποια συμβάντα την ενεργοποιούν. Οι ειδοποιήσεις Unraid λειτουργούν ήδη σε απλή λειτουργία· περισσότερα κανάλια παράδοσης (webhook, Matrix, Healthchecks, email) βρίσκονται στις Ρυθμίσεις για προχωρημένους.",

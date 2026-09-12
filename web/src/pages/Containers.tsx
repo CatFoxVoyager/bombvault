@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { listContainers, deleteBackups, backupAll, restore, restoreStack, discover, setContainerHooks, getContainerMounts, setContainerTargets, setStopContainers, setContainerExcludes, previewContainerExcludes, suggestContainerExcludes, exportContainer, setIncludeAll, setUpdateAfterBackup, getBackupOrder, setBackupOrder, ApiError, type ContainerTargetsBody } from "../lib/api";
+import { useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { listContainers, deleteBackups, backupAll, restore, restoreStack, discover, setContainerHooks, getContainerMounts, setContainerTargets, setStopContainers, setContainerExcludes, previewContainerExcludes, suggestContainerExcludes, exportContainer, setIncludeAll, setUpdateAfterBackup, getBackupOrder, setBackupOrder, ApiError, type ContainerTargetsBody, type ContainerMountsResponse } from "../lib/api";
 import type { Container, ExcludeSuggestion, MountInfo, CustomPath, ContainerOrder, BrowseResponse } from "../lib/api";
 import { applyToggle, browseRelToHost, partitionCustomPaths, toFlatList } from "../lib/selectionTree";
-import { useIsCoarsePointer } from "../lib/useMediaQuery";
+import { useIsCoarsePointer, useIsDesktop } from "../lib/useMediaQuery";
 import { SelectionTree } from "../components/SelectionTree";
+import { StickyActionBar } from "../components/mobile/StickyActionBar";
 import { FolderBrowser } from "../components/FolderBrowser";
 import { humanBytes } from "../lib/forecast";
 import { FilterPopover } from "../components/FilterPopover";
@@ -758,12 +759,30 @@ type SaveDesc =
  *  can never collide with a tree row's key in the same maps. */
 const RESET_ROW_KEY = "__resetSelection__";
 
+/** Busy/shake map key for the mobile Save bar's flush (phase 6, D-03/SCRN-03).
+ *  Same "not a host path" guarantee as RESET_ROW_KEY: a failed flush shakes
+ *  THIS key, and the published shakeNonce re-keys the Save button so the bar
+ *  itself shakes — the row-row maps it rides in are never touched by a tree
+ *  row, and vice versa. */
+const SAVE_FLUSH_KEY = "__saveBarFlush__";
+
+/** The live state the container editor publishes to the mobile Save bar
+ *  (SCRN-03): how many folders the next backup hands restic, whether the
+ *  serialized queue currently has an attempt in flight (spinner + disabled
+ *  Save), and the flush-failure shake nonce. Published through an additive
+ *  FoldersEditor prop so the ONE desktop-identical queue stays the only
+ *  source of save truth — the bar derives everything it shows from it. */
+type SaveBarState = { ticked: number; inFlight: boolean; shakeNonce: number };
+
 export function FoldersEditor({
   name,
   stack,
   open,
   t,
   lastBackup = null,
+  onSaveState,
+  flushRef,
+  treeViewportClassName,
 }: {
   name: string;
   stack: string;
@@ -777,6 +796,28 @@ export function FoldersEditor({
    *  about. Optional only so the dom harnesses can omit it; the production
    *  caller (ContainerRow) always passes container.lastBackup. */
   lastBackup?: number | null;
+  /** Phase 6 (SCRN-03, D-03): receives the Save bar's live state — the
+   *  ticked-include count, whether the queue has an attempt in flight, and
+   *  the flush-failure shake nonce. Read-only plumbing: the bar derives
+   *  everything it shows from the SAME queue the desktop editor drives, so
+   *  there is no second save mechanism to keep in sync. Optional; the mobile
+   *  stacked detail (Containers()) is the only caller that passes it — the
+   *  desktop ContainerRow mount simply omits it and nothing publishes.
+   *  useState's setter is a stable function identity, so the publishing
+   *  effect below can list it in its deps without re-firing per render. */
+  onSaveState?: (s: SaveBarState) => void;
+  /** Phase 6 (SCRN-03): filled with the flush closure the Save bar's press
+   *  invokes — drain any pending attempt of the serialized queue, then
+   *  re-assert the live mirror so an idle press still lands a confirmation
+   *  save through the one existing path. Assigned every render (no dep
+   *  array) so the closure can never go stale against the mirror refs.
+   *  Optional; same single-caller story as onSaveState. */
+  flushRef?: RefObject<(() => void) | null>;
+  /** Phase 6 (D-04): passed through to SelectionTree's viewportClassName —
+   *  the stacked detail renders the tree at natural height so the PAGE owns
+   *  scrolling instead of an inner clamp-height scrollbox. Optional; every
+   *  existing mount (desktop ContainerRow) omits it and keeps the clamp. */
+  treeViewportClassName?: string;
 }) {
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -805,6 +846,11 @@ export function FoldersEditor({
   // revert/shake — see addCustom/removeCustomPath's own comments below.
   const [rowBusy, setRowBusy] = useState<Record<string, boolean>>({});
   const [rowShake, setRowShake] = useState<Record<string, number>>({});
+  // Phase 6 (SCRN-03): a React-state MIRROR of queueRef.current.inFlight, so
+  // the Save bar (rendered by the parent, outside this component) can re-render
+  // when a drain starts and settles. The queue itself stays ref-driven — this
+  // flag is publish-only and never read by the save logic.
+  const [queueBusy, setQueueBusy] = useState(false);
   // D-04 (pulled forward from plan 02 — see the plan-01 SUMMARY deviations):
   // the path whose last toggle was refused client-side for emptying the
   // selection; SelectionTree renders the inline warn line under that row.
@@ -987,6 +1033,7 @@ export function FoldersEditor({
   // CACHEDIR flip riding behind a selection save (T-03-07).
   async function attemptSave(): Promise<void> {
     queueRef.current.inFlight = true;
+    setQueueBusy(true);
     const rows = [...pendingRowsRef.current];
     pendingRowsRef.current.clear();
     const owed = new Set(owedRef.current);
@@ -1106,6 +1153,7 @@ export function FoldersEditor({
       if (owed.has("caches") && cachesDesc) revertCachesFrom(cachesDesc);
     } finally {
       queueRef.current.inFlight = false;
+      setQueueBusy(false);
       setRowBusy((b) => {
         const n = { ...b };
         for (const p of rows) n[p] = false;
@@ -1320,6 +1368,69 @@ export function FoldersEditor({
     scheduleSave({ cls: "caches", node: hostPath, caches: { path: hostPath, pre, next } });
   }
 
+  // Phase 6 (SCRN-03, D-03): the mobile Save bar's flush descriptor — a
+  // paths-class desc whose pre and sent are BOTH the live mirror (an EMPTY
+  // delta). It exists so an idle Save press still routes through the ONE
+  // serialized queue: the drain sends the live flat list under "tree", the ok
+  // path toasts t("folders.saved") exactly as a toggle's save does, and a
+  // failure reverts a zero delta (a no-op on the mirror) while shaking
+  // SAVE_FLUSH_KEY — which the published shakeNonce turns into a bar shake.
+  // A toggle desc's revert recipe is never displaced by it in the idle case
+  // (scheduleSave composes a fresh pendingDescs per attempt); in the
+  // mid-flight case flushSaveQueue only fills an ABSENT paths slot, so a
+  // pending toggle's or reset's desc always wins (WR-01 stays intact).
+  function flushDesc(): Extract<SaveDesc, { cls: "paths" }> {
+    const live = mirrorRef.current;
+    return {
+      cls: "paths",
+      node: SAVE_FLUSH_KEY,
+      pre: { includes: live.inc, exclusions: live.exc },
+      sent: { includes: live.inc, exclusions: live.exc },
+      structural: false,
+      source: "tree",
+    };
+  }
+
+  // The Save bar press itself. Two queues states, two honest behaviours:
+  // mid-drain, the press marks the queue dirty and owes the paths class so
+  // the running attempt's finally chain drains again with the LATEST mirror —
+  // the same stacking a tree toggle during flight gets, byte for byte. Idle,
+  // the press schedules the empty-delta flush — which re-asserts the live
+  // mirror against the server and lands the confirmation toast, so "Save"
+  // with nothing pending still completes as a save, not a dead button. A
+  // zero-tick idle press is a deliberate no-op: the zero-include guard
+  // forbids a "tree"-sourced empty selection, and the count row above already
+  // states exactly what would be handed to restic (nothing).
+  function flushSaveQueue(): void {
+    if (queueRef.current.inFlight) {
+      queueRef.current.dirty = true;
+      owedRef.current.add("paths");
+      if (!pendingDescsRef.current.paths) pendingDescsRef.current.paths = flushDesc();
+      return;
+    }
+    if (mirrorRef.current.inc.size === 0) return;
+    scheduleSave(flushDesc());
+  }
+
+  // Publish the Save bar's live state. One effect per state change burst —
+  // the parent's setter is stable, so this fires only when the count, the
+  // queue's in-flight mirror, or a shake nonce actually moves.
+  useEffect(() => {
+    if (!onSaveState) return;
+    onSaveState({
+      ticked: includes.size,
+      inFlight: queueBusy,
+      shakeNonce: rowShake[SAVE_FLUSH_KEY] ?? 0,
+    });
+  }, [onSaveState, includes, queueBusy, rowShake]); // eslint-disable-line react-hooks/exhaustive-deps -- onSaveState is a stable useState setter from the only caller that passes it; publishing on its identity would be a no-op re-fire
+
+  // Hand the flush closure to the Save bar. Re-assigned every render (no dep
+  // array) so the closure always reads the live mirror refs — the same
+  // fresh-closure discipline the queue's own read path follows.
+  useEffect(() => {
+    if (flushRef) flushRef.current = flushSaveQueue;
+  });
+
   // Sub-include absorption (INTEG-01, D-02, RESEARCH Q1): the server files
   // every include that is not EXACTLY a mount root under custom[], so a
   // sub-include under a reachable mount arrives here as a custom row. Those
@@ -1382,6 +1493,7 @@ export function FoldersEditor({
           shakeCounts={rowShake}
           blockedPath={blockedPath}
           interactionMode={coarsePointer ? "touch" : "pointer"}
+          viewportClassName={treeViewportClassName}
         />
       )}
       {/* D-02 (SELECT-03 second half): the narrowing note — event-driven,
@@ -1452,6 +1564,191 @@ export function FoldersEditor({
         />
       </div>
       {confirmDialog}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Phase 6 (SCRN-02, D-04) — the mobile card list + locally stacked detail.
+//
+// Both components exist ONLY below the breakpoint (the page renders them
+// behind `!isDesktop`, and every desktop-only wrapper above them carries
+// `max-md:hidden`), so the >=48rem DOM is byte-identical to pre-phase markup.
+// D-04 keeps the stacked detail IN this page (component-local openContainer
+// state, list hidden-not-unmounted so Back restores scroll) — it is not a
+// BottomSheet and not a route (router.tsx is frozen).
+//
+// The per-card selection summary reuses the EXISTING mounts endpoint — the
+// container list payload carries no mount data, and no new endpoint is
+// authorised. One lazy GET per card, cached at module scope so re-renders and
+// list refetches never re-fire it; a cache entry is dropped when its detail
+// closes so the card refetches a post-edit count. A failed fetch renders NO
+// count at all rather than a wrong one.
+// ---------------------------------------------------------------------------
+
+/** Page-lifetime cache for the card summary/detail-meta fetches. Plain Map of
+ *  promises — a failed fetch resolves to null and is NOT retried for the
+ *  page's lifetime (a card without a count line beats a spinner forever). */
+const cardMountsCache = new Map<string, Promise<ContainerMountsResponse | null>>();
+
+function mountsMeta(name: string): Promise<ContainerMountsResponse | null> {
+  let p = cardMountsCache.get(name);
+  if (!p) {
+    p = getContainerMounts(name)
+      .then((r) => (r.ok ? r : null))
+      .catch(() => null);
+    cardMountsCache.set(name, p);
+  }
+  return p;
+}
+
+/** The ticked-include count a fresh FoldersEditor would seed from this
+ *  response — selected AND reachable mount sources plus custom paths, the
+ *  exact load-block rule (Containers.tsx FoldersEditor). Same derivation
+ *  family as folders.handedToRestic, so the card's count line and the Save
+ *  bar's can never disagree about what "n" means. */
+function tickedCountFrom(r: ContainerMountsResponse): number {
+  return new Set([
+    ...(r.mounts ?? []).filter((m) => m.selected && m.reachable).map((m) => m.source),
+    ...(r.custom ?? []).map((c) => c.path),
+  ]).size;
+}
+
+function MobileContainerCard({
+  container,
+  t,
+  index,
+  nonce,
+  onOpen,
+}: {
+  container: Container;
+  t: T;
+  /** Rainbow position — continues the desktop list's index space so the two
+   *  presentations of one list never hand the same hue to two containers. */
+  index: number;
+  /** Bumped by the page when a detail closes: cards of the edited container
+   *  re-read the (refreshed) cache and drop the pre-edit count. */
+  nonce: number;
+  onOpen: () => void;
+}) {
+  // null = not fetched yet / fetch failed — both render NO count line (a
+  // missing number is honest, a wrong one is not).
+  const [ticked, setTicked] = useState<number | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void mountsMeta(container.name).then((r) => {
+      if (!alive || !r) return;
+      setTicked(tickedCountFrom(r));
+    });
+    return () => {
+      alive = false;
+    };
+  }, [container.name, nonce]);
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      style={{ ...hueVars(rainbowAt(index)) } as CSSProperties}
+      className="w-full text-start bg-carbon-surface rounded-card p-4 flex items-center gap-3 glim-hue min-h-[2.75rem] glim-content-fade"
+    >
+      <span
+        aria-hidden
+        className="h-10 w-10 shrink-0 rounded-card bg-carbon-surface2 flex items-center justify-center text-sm font-semibold text-carbon-textSub"
+      >
+        {container.name.charAt(0).toUpperCase()}
+      </span>
+      <span className="flex-1 min-w-0 flex flex-col gap-1">
+        <span className="text-sm font-semibold text-carbon-text truncate">{container.name}</span>
+        <span className="text-xs text-carbon-textMuted">
+          {/* folders.previewPaths ("{n} paths") is the sanctioned existing key
+              for this line: the ticked include count IS the mount+custom
+              folder count the editor and the Save bar both derive. */}
+          {ticked === null ? "" : t("folders.previewPaths").replace("{n}", String(ticked))}
+        </span>
+      </span>
+      {container.installed ? (
+        <Badge tone={stateTone(container.state)}>{stateLabel(t, container.state)}</Badge>
+      ) : (
+        <Badge tone="neutral">{t("containers.notInstalled")}</Badge>
+      )}
+    </button>
+  );
+}
+
+function MobileContainerDetail({
+  container,
+  t,
+  nonce,
+  onBack,
+  onSaveState,
+  flushRef,
+}: {
+  container: Container;
+  t: T;
+  nonce: number;
+  onBack: () => void;
+  /** Save-bar plumbing, passed straight through to the FoldersEditor — see
+   *  the props' own comments there. */
+  onSaveState: (s: SaveBarState) => void;
+  flushRef: RefObject<(() => void) | null>;
+}) {
+  // The host mount root for the detail's mono meta line — served by the same
+  // already-cached mounts response the cards use (T-06-05: React escaping
+  // plus LTR isolation on the path; break-all wraps long host paths).
+  const [hostMountRoot, setHostMountRoot] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void mountsMeta(container.name).then((r) => {
+      if (alive) setHostMountRoot(r?.hostMountRoot ?? null);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [container.name, nonce]);
+  return (
+    <div className="flex flex-col gap-4 glim-content-fade">
+      {/* Back row (SCRN-02): chevron + VISIBLE label, never icon-only. The
+          accessible name leads with the container so a screen-reader user
+          coming from the card knows exactly what they are leaving. The
+          chevron is the SnapshotFileTree/SelectionTree presentational
+          triangle, mirrored left. */}
+      <button
+        type="button"
+        onClick={onBack}
+        aria-label={`${container.name}, ${t("common.back")}`}
+        className="flex items-center gap-2 -ms-2 pe-3 rounded-control text-sm font-medium text-carbon-text hover:bg-carbon-surface2 min-h-[2.75rem]"
+      >
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path fill="currentColor" d="M8 1.3 3.5 6 8 10.7Z" />
+        </svg>
+        {t("common.back")}
+      </button>
+      <div className="flex flex-col gap-1">
+        <h2 className="text-lg font-semibold text-carbon-text">{container.name}</h2>
+        {hostMountRoot && (
+          <p dir="ltr" className="text-xs text-carbon-textMuted font-mono break-all text-start">
+            {hostMountRoot}
+          </p>
+        )}
+      </div>
+      {/* The SAME editor the desktop row expands — one tree, one queue, zero
+          forks. Keyed by container identity (T-06-06a): switching targets can
+          never inherit the previous container's mirror, browse cache or save
+          queue. Advanced+installed gating mirrors the desktop row's folders
+          chip exactly. */}
+      <Advanced when={container.installed}>
+        <FoldersEditor
+          key={container.name}
+          name={container.name}
+          stack={container.stack}
+          open
+          t={t}
+          lastBackup={container.lastBackup}
+          treeViewportClassName="h-auto"
+          onSaveState={onSaveState}
+          flushRef={flushRef}
+        />
+      </Advanced>
     </div>
   );
 }
@@ -3232,6 +3529,62 @@ export function Containers() {
   // hint, instead of relying on the 409 round-trip.
   const running = anyActive(progress);
 
+  // Phase 6 (SCRN-02, D-04): the locally stacked detail's target. Component-
+  // local state on purpose — the detail is NOT a route (router.tsx frozen)
+  // and NOT a BottomSheet; it stacks IN the page column while the list stays
+  // mounted beneath it (hidden, not unmounted) so Back restores the list's
+  // scroll position.
+  const isDesktop = useIsDesktop();
+  const [openContainer, setOpenContainer] = useState<Container | null>(null);
+  // Scroll handoff: captured from main#bv-main when a card opens the detail,
+  // restored when Back closes it (after the commit that unhides the list, so
+  // the full list height exists to scroll back into).
+  const listScrollRef = useRef(0);
+  const restoreScrollRef = useRef(false);
+  // The Save bar's published live state + the flush closure handle — see
+  // SaveBarState and FoldersEditor's onSaveState/flushRef props. saveState is
+  // reset per open so the bar can never show the PREVIOUS container's count
+  // in the frame before this editor's first publish.
+  const [saveState, setSaveState] = useState<SaveBarState>({ ticked: 0, inFlight: false, shakeNonce: 0 });
+  const saveFlushRef = useRef<(() => void) | null>(null);
+  // Bumped when a detail closes: cards of the edited container re-read the
+  // (cache-invalidated) mounts response so their count line reflects the edit.
+  const [cardNonce, setCardNonce] = useState(0);
+
+  function openCard(c: Container) {
+    listScrollRef.current = document.getElementById("bv-main")?.scrollTop ?? 0;
+    setSaveState({ ticked: 0, inFlight: false, shakeNonce: 0 });
+    setOpenContainer(c);
+    // After the detail commits, the page reads from the top (the back row is
+    // the first thing on screen, as the maquette draws it).
+    requestAnimationFrame(() => {
+      document.getElementById("bv-main")?.scrollTo(0, 0);
+    });
+  }
+
+  function closeDetail() {
+    if (!openContainer) return;
+    // The editor session is over: drop this container's cached mounts
+    // response so the card list refetches the just-saved selection, then let
+    // the post-commit effect below put the scroll position back.
+    cardMountsCache.delete(openContainer.name);
+    restoreScrollRef.current = true;
+    setCardNonce((n) => n + 1);
+    setOpenContainer(null);
+  }
+
+  useEffect(() => {
+    if (openContainer !== null || !restoreScrollRef.current) return;
+    restoreScrollRef.current = false;
+    document.getElementById("bv-main")?.scrollTo(0, listScrollRef.current);
+  }, [openContainer]);
+
+  // While the stacked detail is open on a phone, the list CHROME (toolbar,
+  // bulk bar, feature panels) hides with the list — the detail replaces the
+  // list experience instead of stacking under its controls. Desktop is
+  // untouched: isDesktop is always true there, so this is permanently false.
+  const listChromeHidden = !isDesktop && openContainer !== null;
+
   function loadContainers() {
     return listContainers()
       .then((res) => {
@@ -3560,6 +3913,25 @@ export function Containers() {
         </div>
       )}
 
+      {/* Phase 6 (SCRN-02, D-04): the locally stacked container detail, mobile
+          only. Renders in the page column ABOVE the (hidden) list — the back
+          row is the first thing on screen after openCard scrolls to top. The
+          list itself stays mounted in its slot below (hidden class swap), so
+          Back restores its scroll position; the shared StickyActionBar Save
+          bar for this detail renders as the page column's LAST child, further
+          down. Desktop never evaluates this branch (`!isDesktop`), keeping
+          the >=48rem DOM byte-identical. */}
+      {!isDesktop && openContainer !== null && (
+        <MobileContainerDetail
+          container={openContainer}
+          t={t}
+          nonce={cardNonce}
+          onBack={closeDetail}
+          onSaveState={setSaveState}
+          flushRef={saveFlushRef}
+        />
+      )}
+
       {/* Container list */}
       {loading && (
         <p className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</p>
@@ -3604,7 +3976,7 @@ export function Containers() {
           because it moved together with the stacks panel — the two kept their
           relative order, and both still precede the not-installed section's
           own notch. Re-check that if a notch is ever added to the toolbar. */}
-      {!loading && !error && (
+      {!loading && !error && !listChromeHidden && (
         <Advanced>
           <BackupOrderPanel containers={containers} t={t} hueIndex={advanced ? nextHue() : undefined} />
         </Advanced>
@@ -3621,7 +3993,7 @@ export function Containers() {
           one index late. Gating on the parent's own precomputed
           `stackGroups` (see its own comment above) keeps the counter
           honest, same reasoning as BackupOrderPanel's `advanced` gate. */}
-      {!loading && !error && (
+      {!loading && !error && !listChromeHidden && (
         <StacksPanel
           containers={containers}
           onRestored={() => void loadContainers()}
@@ -3633,7 +4005,7 @@ export function Containers() {
       {/* Controls: search + filter (installed / schedule / backup) + sort.
           Directly above the list it filters — see the backup-order card's own
           comment above for why the two feature cards moved above this row. */}
-      {!loading && containers.length > 0 && (
+      {!loading && !listChromeHidden && containers.length > 0 && (
         <div className="flex items-center gap-x-6 gap-y-2 flex-wrap">
           <FilterPopover label={t("filter.button")} active={filtersActive}>
             <input
@@ -3695,7 +4067,7 @@ export function Containers() {
       )}
 
       {/* Bulk action bar — appears when one or more containers are selected. */}
-      {!loading && selected.size > 0 && (
+      {!loading && !listChromeHidden && selected.size > 0 && (
         <div className="flex items-center gap-3 flex-wrap rounded-card bg-carbon-surface2 px-3 py-2">
           <span className="text-xs text-carbon-textSub">
             {selected.size} {t("containers.selectedCount")}
@@ -3746,8 +4118,12 @@ export function Containers() {
         <p className="text-xs text-carbon-textSub">{t("containers.working")}</p>
       )}
 
+      {/* The desktop list. `max-md:hidden` (not a JS gate) is what keeps this
+          markup byte-identical at >=48rem while ceding the phone to the card
+          list below — the desktop rows and their editors stay mounted and
+          untouched underneath the breakpoint. */}
       {!loading && filterKey !== "notInstalled" && live.length > 0 && (
-        <div className="flex flex-col gap-3 glim-content-fade">
+        <div className="max-md:hidden flex flex-col gap-3 glim-content-fade">
           {live.map((c, i) => (
             <ContainerRow
               key={c.name}
@@ -3763,9 +4139,53 @@ export function Containers() {
         </div>
       )}
 
+      {/* Phase 6 (SCRN-02): the mobile card list — summary line, one card per
+          installed container, then the not-installed section. Mobile only
+          (`!isDesktop` keeps it out of the desktop DOM entirely); hidden —
+          NOT unmounted — while the stacked detail is open, which is what
+          makes Back's scroll restoration possible (D-04). */}
+      {!isDesktop && !loading && !error && !listChromeHidden && (live.length > 0 || orphans.length > 0) && (
+        <div className="flex flex-col gap-3 glim-content-fade">
+          {live.length > 0 && (
+            <p className="text-xs text-carbon-textMuted">
+              {/* Derived from the same list payload the desktop protection
+                  summary reads — no new endpoint, no new key. */}
+              {`${live.length} ${t("nav.containers")}${
+                live.some((c) => c.includeInSchedule)
+                  ? ` · ${live.filter((c) => c.includeInSchedule).length} ${t("filter.scheduled")}`
+                  : ""
+              }`}
+            </p>
+          )}
+          {filterKey !== "notInstalled" &&
+            live.map((c, i) => (
+              <MobileContainerCard key={c.name} container={c} t={t} index={i} nonce={cardNonce} onOpen={() => openCard(c)} />
+            ))}
+          {filterKey !== "installed" && orphans.length > 0 && (
+            <div className="flex flex-col gap-3 pt-2">
+              <div>
+                <h2 className="relative flex items-center">
+                  {/* Continues the page hue sequence after both panels — the
+                      same render-order discipline the desktop heading below
+                      follows (see its comment). */}
+                  <Badge tone="heading" size="heading" wrap hueIndex={nextHue()}>
+                    {t("containers.notInstalledTitle")}
+                  </Badge>
+                </h2>
+                <p className="mt-1 text-xs text-carbon-textMuted">{t("containers.notInstalledHint")}</p>
+                <p className="mt-1 text-xs text-carbon-textMuted">{t("containers.notInstalledSkipped")}</p>
+              </div>
+              {orphans.map((c, i) => (
+                <MobileContainerCard key={c.name} container={c} t={t} index={live.length + i} nonce={cardNonce} onOpen={() => openCard(c)} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Not-installed containers that still have backups. */}
       {!loading && filterKey !== "installed" && orphans.length > 0 && (
-        <div className="flex flex-col gap-3 glim-content-fade">
+        <div className="max-md:hidden flex flex-col gap-3 glim-content-fade">
           <div>
             {/* GlimStone follow-up pass ("half-overlap card notch"):
                 `relative` directly on this <h2> — same bare-heading case as
@@ -3822,8 +4242,53 @@ export function Containers() {
       )}
 
       {/* No container matches the active search / schedule / backup / installed filters. */}
-      {!loading && !error && noMatch && (
+      {!loading && !error && !listChromeHidden && noMatch && (
         <p className="text-sm text-carbon-textMuted">{t("filter.noMatch")}</p>
+      )}
+      {/* Phase 6 (D-03, SCRN-03): the container detail's sticky Save bar — the
+          page column's LAST visible child, so its sticky positioning resolves
+          against main#bv-main (Pitfall 3: nested in a Card it would stick
+          only within the card's own box). Row 1 = live "handed to restic"
+          count (accentSoft chip, tabular) + the queue spinner; row 2 = Save,
+          which flushes the ONE serialized queue; row 3 = the CACHEDIR.TAG
+          plain-language line (per-root switches remain in the tree — state
+          lives there, this row only says what the flag does item-wide).
+          Rendered only while the detail is open AND its editor is present
+          (advanced + installed) — with no editor there is no queue to flush. */}
+      {!isDesktop && openContainer !== null && openContainer.installed && advanced && (
+        <StickyActionBar className="md:hidden">
+          <div className="flex items-center gap-2 min-h-[1.25rem]">
+            {saveState.inFlight && (
+              <span
+                aria-hidden
+                className="h-3 w-3 rounded-full border-2 border-t-transparent animate-spin inline-block"
+                style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }}
+              />
+            )}
+            <Badge tone="active" className="tabular-nums">
+              {t("folders.handedToRestic").replace("{n}", String(saveState.ticked))}
+            </Badge>
+          </div>
+          {/* Save = FLUSH (SCRN-03): no mobile buffer, no second save path —
+              the press drains the desktop-identical queue. Re-keyed by the
+              published shake nonce so a failed flush shakes THIS button
+              (failure toasts AND shakes, the house live-save semantics). */}
+          <Button
+            key={saveState.shakeNonce}
+            label={t("folders.save")}
+            labelKey="folders.save"
+            tone="accent"
+            keepLabel
+            disabled={saveState.inFlight}
+            busy={saveState.inFlight}
+            onClick={() => saveFlushRef.current?.()}
+            className={`w-full min-h-[2.75rem] justify-center${saveState.shakeNonce ? " glim-shake" : ""}`}
+          />
+          <p className="flex items-center gap-1.5 text-xs text-carbon-textMuted">
+            {t("folders.cachedirToggle")}
+            <InfoBubble tip={t("folders.cachedirScope")} />
+          </p>
+        </StickyActionBar>
       )}
       {confirmDialog}
     </div>

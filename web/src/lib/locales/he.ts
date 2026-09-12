@@ -565,6 +565,7 @@ const he: Partial<Translations> = {
   "common.close": "סגור",
   "common.expand": "הרחב",
   "common.collapse": "כווץ",
+  "common.back": "חזרה",
 
   // Failure fallbacks
   "common.actionFailed": "הפעולה נכשלה",
@@ -614,6 +615,7 @@ const he: Partial<Translations> = {
   "folders.narrowedNote": "הבחירה מכסה כעת פחות תיקיות מלפני כן. החל מהגיבוי הבא, תמונות המצב יכילו רק את התיקיות שנבחרו. תמונות מצב קיימות אינן משתנות.",
   "folders.cachedirToggle": "דלג על תיקיות מטמון (CACHEDIR.TAG)",
   "folders.cachedirScope": "חל על הגיבוי המלא של המכל הזה, לא רק על תיקייה זו.",
+  "folders.handedToRestic": "{n} תיקיות נמסרו ל־restic",
   // Notifications
   "notify.title": "התראות",
   "notify.hint": "קבל התראה כשגיבוי מסתיים, ובחר למטה אילו אירועים מפעילים אותה. התראות Unraid פועלות כאן גם במצב פשוט; ערוצי מסירה נוספים (webhook, Matrix, Healthchecks, דוא\"ל) נמצאים תחת מתקדם.",

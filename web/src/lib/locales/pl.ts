@@ -557,6 +557,7 @@ const pl: Partial<Translations> = {
   "common.close": "Zamknij",
   "common.expand": "Rozwiń",
   "common.collapse": "Zwiń",
+  "common.back": "Wstecz",
 
   // Failure fallbacks
   "common.actionFailed": "Akcja nie powiodła się",
@@ -606,6 +607,7 @@ const pl: Partial<Translations> = {
   "folders.narrowedNote": "Wybór obejmuje teraz mniej folderów niż wcześniej. Od następnej kopii zapasowej migawki będą zawierać tylko wybrane foldery. Istniejące migawki pozostają bez zmian.",
   "folders.cachedirToggle": "Pomiń foldery pamięci podręcznej (CACHEDIR.TAG)",
   "folders.cachedirScope": "Dotyczy całej kopii zapasowej tego kontenera, a nie tylko tego folderu.",
+  "folders.handedToRestic": "{n} folderów przekazanych do restic",
   // Notifications
   "notify.title": "Powiadomienia",
   "notify.hint": "Otrzymuj powiadomienie po zakończeniu kopii zapasowej i wybierz poniżej, które zdarzenia je wyzwalają. Powiadomienia Unraid działają już w trybie prostym; więcej kanałów dostarczania (webhook, Matrix, Healthchecks, e-mail) znajdziesz w trybie zaawansowanym.",

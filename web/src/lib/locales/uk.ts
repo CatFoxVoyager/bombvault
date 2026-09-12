@@ -560,6 +560,7 @@ const uk: Partial<Translations> = {
   "common.close": "Закрити",
   "common.expand": "Розгорнути",
   "common.collapse": "Згорнути",
+  "common.back": "Назад",
 
   // Failure fallbacks
   "common.actionFailed": "Не вдалося виконати дію",
@@ -609,6 +610,7 @@ const uk: Partial<Translations> = {
   "folders.narrowedNote": "Вибір тепер охоплює менше папок, ніж раніше. Починаючи з наступної резервної копії, знімки міститимуть лише вибрані папки. Наявні знімки залишаються без змін.",
   "folders.cachedirToggle": "Пропускати папки кешу (CACHEDIR.TAG)",
   "folders.cachedirScope": "Стосується всієї резервної копії цього контейнера, а не лише цієї папки.",
+  "folders.handedToRestic": "{n} папок передано restic",
   // Notifications
   "notify.title": "Сповіщення",
   "notify.hint": "Отримуйте сповіщення після завершення резервного копіювання і виберіть нижче, які події його викликають. Сповіщення Unraid уже працюють у простому режимі; більше каналів доставки (webhook, Matrix, Healthchecks, email) знаходяться в розширених налаштуваннях.",

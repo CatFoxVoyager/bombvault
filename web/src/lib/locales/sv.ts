@@ -565,6 +565,7 @@ const sv: Partial<Translations> = {
   "common.close": "Stäng",
   "common.expand": "Fäll ut",
   "common.collapse": "Fäll ihop",
+  "common.back": "Tillbaka",
 
   // Failure fallbacks
   "common.actionFailed": "Åtgärden misslyckades",
@@ -614,6 +615,7 @@ const sv: Partial<Translations> = {
   "folders.narrowedNote": "Urvalet omfattar nu färre mappar än tidigare. Från och med nästa säkerhetskopiering innehåller snapshots endast de valda mapparna. Befintliga snapshots förblir oförändrade.",
   "folders.cachedirToggle": "Hoppa över cachemappar (CACHEDIR.TAG)",
   "folders.cachedirScope": "Gäller hela säkerhetskopieringen av denna container, inte bara denna mapp.",
+  "folders.handedToRestic": "{n} mappar överlämnade till restic",
   // Notifications
   "notify.title": "Aviseringar",
   "notify.hint": "Få en avisering när en säkerhetskopiering är klar, och välj nedan vilka händelser som utlöser den. Unraid-aviseringar fungerar redan i enkelt läge; fler leveranskanaler (webhook, Matrix, Healthchecks, e-post) finns under Avancerat.",

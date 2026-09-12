@@ -562,6 +562,7 @@ const pt: Partial<Translations> = {
   "common.close": "Fechar",
   "common.expand": "Expandir",
   "common.collapse": "Recolher",
+  "common.back": "Voltar",
 
   // Failure fallbacks
   "common.actionFailed": "A ação falhou",
@@ -611,6 +612,7 @@ const pt: Partial<Translations> = {
   "folders.narrowedNote": "A seleção agora abrange menos pastas do que antes. A partir da próxima cópia, as snapshots conterão apenas as pastas selecionadas. As snapshots existentes ficam inalteradas.",
   "folders.cachedirToggle": "Ignorar pastas de cache (CACHEDIR.TAG)",
   "folders.cachedirScope": "Aplica-se a toda a cópia de segurança deste contentor, não apenas a esta pasta.",
+  "folders.handedToRestic": "{n} pastas entregues ao restic",
   // Notifications
   "notify.title": "Notificações",
   "notify.hint": "Seja notificado quando uma cópia terminar e escolha abaixo quais eventos a acionam. As notificações do Unraid já funcionam no modo Simples; mais canais de entrega (webhook, Matrix, Healthchecks, e-mail) estão em Avançado.",
