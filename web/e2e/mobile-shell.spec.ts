@@ -29,15 +29,16 @@ import { expect, test, type Page } from "@playwright/test";
 const MOBILE_PROJECTS = new Set(["mobile-iphone", "mobile-android"]);
 
 // The look's truth lives on the SERVER (displayPrefs.ts, #191): at boot the
-// page adopts the harness DB's stored display prefs, bv-lang included. A
-// stored bv-lang (a de/fr backstop run leaves one behind on the persistent
-// DATA_DIR) would silently rewrite every localized label under these
-// assertions ("More" -> "Mehr"), and parallel workers would each see
-// whichever locale booted first. So every test cuts the boot-time
-// reconciliation fetch — sync()'s fetch failing is the app's own documented
-// degradation path ("offline: the cache is the look") — and pages boot in
-// the harness default locale deterministically, with nothing PUT back to
-// the shared server.
+// page adopts the harness DB's stored display prefs, bv-lang included. The
+// DATA_DIR is wiped before every RUN, not per worker (playwright.config.ts's
+// wipe-then-boot webServer command), so nothing survives from a previous
+// run; but all four projects still share that ONE server for the whole run,
+// so a locale any worker PUTs would rewrite every localized label for the
+// workers that boot after it ("More" -> "Mehr"). So every test cuts the
+// boot-time reconciliation fetch — sync()'s fetch failing is the app's own
+// documented degradation path ("offline: the cache is the look") — which
+// keeps every worker on the harness default locale regardless of what its
+// siblings do, with nothing PUT back to the shared server.
 async function bootWithoutServerLook(page: Page): Promise<void> {
   await page.route("**/api/display-prefs*", (route) => route.abort());
   await page.goto("/dashboard");
