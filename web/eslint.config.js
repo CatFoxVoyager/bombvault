@@ -126,6 +126,13 @@ export default [
             // in de; capping the root at PAGE_SHELL's 1152px breaks the strip
             // onto two rows. Same 40px rhythm, no width cap.
             "Settings.tsx": "PAGE_SHELL_TABBED",
+            // Phase 6 (SCRN-02/04): the two tree-bearing pages restructured for
+            // phones take the responsive rhythm (gap-6 below the 48rem
+            // breakpoint, gap-10 at and above - identical to PAGE_SHELL on
+            // desktop by construction). See PAGE_SHELL_RESPONSIVE in
+            // src/lib/pageShell.ts.
+            "Containers.tsx": "PAGE_SHELL_RESPONSIVE",
+            "Files.tsx": "PAGE_SHELL_RESPONSIVE",
             // Not a routed page at all: Layout.tsx returns it BEFORE the
             // sidebar/<main> shell when auth is blocked, so it never sits
             // under <Outlet />. Its `w-full max-w-sm` is a centred

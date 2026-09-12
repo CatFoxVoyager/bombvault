@@ -1161,6 +1161,7 @@ const pl: Partial<Translations> = {
   "files.noPath": "Nie ustawiono folderu",
   "files.noPathHint": "Odbudowany z kopii zapasowych bez folderu. Ustaw folder, aby znów tworzyć kopie. Przywracanie do folderu działa już teraz.",
   "files.deleteSet": "Usuń zestaw",
+  "files.emptyRule": "Zestaw potrzebuje co najmniej jednego folderu. Ostatniego zaznaczenia nie można usunąć. Użyj {action}, aby usunąć go całkowicie.",
   "files.deleteSetConfirm": "Usunąć ten zestaw folderów z listy? Jego kopie zapasowe nie zostaną usunięte i można je później odkryć ponownie.",
   "files.deleteBackupsConfirm": "Usunąć WSZYSTKIE kopie zapasowe tego zestawu folderów? Migawki zostaną trwale usunięte, repozytorium przycięte, a zestaw zapomniany. Nie można cofnąć.",
   "files.restoreOriginal": "Przywróć do oryginalnej lokalizacji",

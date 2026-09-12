@@ -1166,6 +1166,7 @@ const tr: Partial<Translations> = {
   "files.noPath": "Klasör ayarlanmadı",
   "files.noPathHint": "Klasör olmadan yedeklerden yeniden oluşturuldu. Yeniden yedeklemek için bir klasör ayarlayın. Bir klasöre geri yükleme şimdiden çalışıyor.",
   "files.deleteSet": "Seti kaldır",
+  "files.emptyRule": "Bir set en az bir klasör gerektirir. Son işaret kaldırılamaz. Tamamen kaldırmak için {action} kullanın.",
   "files.deleteSetConfirm": "Bu klasör seti listeden kaldırılsın mı? Yedekleri silinmez ve daha sonra yeniden keşfedilebilir.",
   "files.deleteBackupsConfirm": "Bu klasör setinin TÜM yedekleri silinsin mi? Anlık görüntüler kalıcı olarak kaldırılır, depo budanır ve set unutulur. Geri alınamaz.",
   "files.restoreOriginal": "Orijinal konuma geri yükle",

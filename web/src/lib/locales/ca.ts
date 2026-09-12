@@ -1337,6 +1337,7 @@ const ca: Partial<Translations> = {
   "files.noPath": "Cap carpeta configurada",
   "files.noPathHint": "Reconstruït des de còpies sense carpeta. Configura una carpeta per tornar a copiar. Restaurar a una carpeta ja funciona.",
   "files.deleteSet": "Elimina el conjunt",
+  "files.emptyRule": "Un conjunt necessita almenys una carpeta. L'última marca no es pot treure. Utilitza {action} per eliminar-lo completament.",
   "files.deleteSetConfirm": "Vols eliminar aquest conjunt de carpetes de la llista? Les seves còpies no s'eliminen i es poden tornar a descobrir més endavant.",
   "files.deleteBackupsConfirm": "Vols eliminar TOTES les còpies d'aquest conjunt de carpetes? Els instantanis s'eliminen permanentment, el repositori es neteja i el conjunt s'oblida. Això no es pot desfer.",
   "files.restoreOriginal": "Restaura a la ubicació original",

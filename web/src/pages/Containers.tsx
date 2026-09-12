@@ -14,7 +14,7 @@ import { OffsiteIndicator } from "../components/OffsiteIndicator";
 import { BULK_HUE } from "../lib/bulkHue";
 import { useT, stateLabel, type TranslationKey } from "../lib/i18n";
 import { InfoBubble } from "../components/InfoBubble";
-import { PAGE_SHELL } from "../lib/pageShell";
+import { PAGE_SHELL_RESPONSIVE } from "../lib/pageShell";
 import { Advanced, useAdvanced } from "../lib/advanced";
 import { BackupButton } from "../components/BackupButton";
 import { fireAndWaitRun } from "../lib/backupWatch";
@@ -772,7 +772,7 @@ const SAVE_FLUSH_KEY = "__saveBarFlush__";
  *  Save), and the flush-failure shake nonce. Published through an additive
  *  FoldersEditor prop so the ONE desktop-identical queue stays the only
  *  source of save truth — the bar derives everything it shows from it. */
-type SaveBarState = { ticked: number; inFlight: boolean; shakeNonce: number };
+export type SaveBarState = { ticked: number; inFlight: boolean; shakeNonce: number };
 
 export function FoldersEditor({
   name,
@@ -1413,8 +1413,9 @@ export function FoldersEditor({
   }
 
   // Publish the Save bar's live state. One effect per state change burst —
-  // the parent's setter is stable, so this fires only when the count, the
-  // queue's in-flight mirror, or a shake nonce actually moves.
+  // the parent's setter is stable (a useState setter from the only caller
+  // that passes it), so this fires only when the count, the queue's in-flight
+  // mirror, or a shake nonce actually moves.
   useEffect(() => {
     if (!onSaveState) return;
     onSaveState({
@@ -1422,7 +1423,7 @@ export function FoldersEditor({
       inFlight: queueBusy,
       shakeNonce: rowShake[SAVE_FLUSH_KEY] ?? 0,
     });
-  }, [onSaveState, includes, queueBusy, rowShake]); // eslint-disable-line react-hooks/exhaustive-deps -- onSaveState is a stable useState setter from the only caller that passes it; publishing on its identity would be a no-op re-fire
+  }, [onSaveState, includes, queueBusy, rowShake]);
 
   // Hand the flush closure to the Save bar. Re-assigned every render (no dep
   // array) so the closure always reads the live mirror refs — the same
@@ -3871,7 +3872,11 @@ export function Containers() {
     // loading/error/empty branches), so it takes the same 40px as everything
     // else — verified live at 1152px, where it reads as its own band between
     // heading and list rather than looking orphaned.
-    <div className={PAGE_SHELL}>
+    //   Phase 6 (SCRN-02/04): swapped to PAGE_SHELL_RESPONSIVE — gap-6 below
+    // the 48rem breakpoint (the stacked detail + Save bar live on a phone),
+    // gap-10 at and above, byte-identical to this page's settled desktop
+    // rhythm by construction. Exception declared in eslint.config.js.
+    <div className={PAGE_SHELL_RESPONSIVE}>
       {/* Page heading + Discover (disaster-recovery) action */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>

@@ -1158,6 +1158,7 @@ const ja: Partial<Translations> = {
   "files.noPath": "フォルダー未設定",
   "files.noPathHint": "フォルダー情報なしでバックアップから再構築されました。再びバックアップするにはフォルダーを設定してください。フォルダーへの復元は今すぐ使えます。",
   "files.deleteSet": "セットを削除",
+  "files.emptyRule": "セットにはフォルダーが少なくとも 1 つ必要です。最後のチェックは外せません。完全に削除するには {action} を使用してください。",
   "files.deleteSetConfirm": "このフォルダーセットを一覧から削除しますか？バックアップは削除されず、後で再発見できます。",
   "files.deleteBackupsConfirm": "このフォルダーセットのバックアップをすべて削除しますか？スナップショットは完全に削除され、リポジトリが整理され、セットは忘れられます。元に戻せません。",
   "files.restoreOriginal": "元の場所に復元",

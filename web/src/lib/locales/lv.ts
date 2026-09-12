@@ -1337,6 +1337,7 @@ const lv: Partial<Translations> = {
   "files.noPath": "Mape nav iestatīta",
   "files.noPathHint": "Atjaunots no rezerves kopijām bez mapes. Iestatiet mapi, lai atkal dublētu. Atjaunošana mapē jau darbojas.",
   "files.deleteSet": "Noņemt kopu",
+  "files.emptyRule": "Komplektam vajag vismaz vienu mapi. Pēdējo atzīmi nevar noņemt. Pilnībā noņemiet to ar {action}.",
   "files.deleteSetConfirm": "Noņemt šo mapju kopu no saraksta? Tās rezerves kopijas netiek dzēstas, un tās var atkal atklāt vēlāk.",
   "files.deleteBackupsConfirm": "Dzēst VISAS šīs mapju kopas rezerves kopijas? Momentuzņēmumi tiek neatgriezeniski noņemti, repozitorijs tiek iztīrīts, un kopa tiek aizmirsta. Šo darbību nevar atsaukt.",
   "files.restoreOriginal": "Atjaunot sākotnējā atrašanās vietā",

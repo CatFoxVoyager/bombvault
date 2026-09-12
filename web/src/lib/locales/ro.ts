@@ -1169,6 +1169,7 @@ const ro: Partial<Translations> = {
   "files.noPath": "Niciun folder setat",
   "files.noPathHint": "Reconstruit din copiile de rezervă fără folder. Setați un folder pentru a-l copia din nou. Restaurarea într-un folder funcționează deja.",
   "files.deleteSet": "Elimină setul",
+  "files.emptyRule": "Un set are nevoie de cel puțin un dosar. Ultima bifare nu poate fi scoasă. Folosiți {action} pentru a-l elimina complet.",
   "files.deleteSetConfirm": "Eliminați acest set de foldere din listă? Copiile sale de rezervă nu sunt șterse și pot fi redescoperite mai târziu.",
   "files.deleteBackupsConfirm": "Ștergeți TOATE copiile de rezervă ale acestui set de foldere? Instantaneele sunt eliminate permanent, depozitul este curățat, iar setul este uitat. Nu poate fi anulat.",
   "files.restoreOriginal": "Restaurare în locația originală",

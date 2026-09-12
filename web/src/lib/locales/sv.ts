@@ -1166,6 +1166,7 @@ const sv: Partial<Translations> = {
   "files.noPath": "Ingen mapp angiven",
   "files.noPathHint": "Återuppbyggd från säkerhetskopior utan mapp. Ange en mapp för att säkerhetskopiera igen. Återställning till en mapp fungerar redan.",
   "files.deleteSet": "Ta bort uppsättning",
+  "files.emptyRule": "En uppsättning behöver minst en mapp. Senaste bocken kan inte tas bort. Använd {action} för att ta bort den helt.",
   "files.deleteSetConfirm": "Ta bort denna mappuppsättning från listan? Dess säkerhetskopior tas inte bort och kan återupptäckas senare.",
   "files.deleteBackupsConfirm": "Ta bort ALLA säkerhetskopior av denna mappuppsättning? Ögonblicksbilderna tas bort permanent, repositoriet rensas och uppsättningen glöms. Detta kan inte ångras.",
   "files.restoreOriginal": "Återställ till ursprunglig plats",

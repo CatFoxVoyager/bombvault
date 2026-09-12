@@ -88,6 +88,22 @@
 export const PAGE_SHELL = "flex flex-col gap-10 max-w-6xl";
 
 /**
+ * Phase 6 (SCRN-02/04) — the responsive rhythm for the two tree-bearing pages.
+ *
+ * Identical to PAGE_SHELL at >=48rem (md:gap-10 IS gap-10, same 1152px cap),
+ * so the desktop layout is unchanged by construction; below the breakpoint the
+ * Card rhythm steps down to 24px, where 40px gaps read as wasted scroll on a
+ * phone-width column.
+ *
+ * A stated, two-file exception (Containers.tsx, Files.tsx) in eslint.config.js
+ * — the same data-not-inferred discipline as Settings' PAGE_SHELL_TABBED, and
+ * deliberately NOT a replacement of PAGE_SHELL itself: retuning every routed
+ * page's mobile rhythm is nobody's decision but the pages' own, and this
+ * constant exists because exactly two screens were restructured for phones.
+ */
+export const PAGE_SHELL_RESPONSIVE = "flex flex-col gap-6 md:gap-10 max-w-6xl";
+
+/**
  * Settings only — the ONE stated exception to PAGE_SHELL's width.
  *
  * Same 40px rhythm, but no `max-w-6xl`, plus the `flex-1` its sticky

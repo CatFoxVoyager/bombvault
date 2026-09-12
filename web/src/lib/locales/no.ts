@@ -1166,6 +1166,7 @@ const no: Partial<Translations> = {
   "files.noPath": "Ingen mappe angitt",
   "files.noPathHint": "Gjenoppbygd fra sikkerhetskopier uten mappe. Angi en mappe for å sikkerhetskopiere igjen. Gjenoppretting til en mappe virker allerede.",
   "files.deleteSet": "Fjern sett",
+  "files.emptyRule": "Et sett trenger minst én mappe. Det siste haket kan ikke fjernes. Bruk {action} for å fjerne det helt.",
   "files.deleteSetConfirm": "Fjerne dette mappesettet fra listen? Sikkerhetskopiene slettes ikke og kan gjenoppdages senere.",
   "files.deleteBackupsConfirm": "Slette ALLE sikkerhetskopier av dette mappesettet? Snapshotene fjernes permanent, repositoriet beskjæres og settet glemmes. Kan ikke angres.",
   "files.restoreOriginal": "Gjenopprett til opprinnelig plassering",

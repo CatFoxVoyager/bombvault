@@ -1337,6 +1337,7 @@ const et: Partial<Translations> = {
   "files.noPath": "Kausta pole määratud",
   "files.noPathHint": "Ehitatud üles varundustest ilma kaustata. Määra kaust taasvarundamiseks. Taastamine kausta töötab juba.",
   "files.deleteSet": "Eemalda komplekt",
+  "files.emptyRule": "Komplekt vajab vähemalt ühte kausta. Viimast märket ei saa eemaldada. Eemaldage see täielikult toiminguga {action}.",
   "files.deleteSetConfirm": "Kas eemaldada see kaustakomplekt loendist? Selle varundusi ei kustutata ja need saab hiljem uuesti leida.",
   "files.deleteBackupsConfirm": "Kas kustutada selle kaustakomplekti KÕIK varundused? Hetktõmmised eemaldatakse jäädavalt, hoidla puhastatakse ja komplekt unustatakse. Seda ei saa tagasi võtta.",
   "files.restoreOriginal": "Taasta algsesse asukohta",

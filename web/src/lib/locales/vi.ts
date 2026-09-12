@@ -1158,6 +1158,7 @@ const vi: Partial<Translations> = {
   "files.noPath": "Chưa đặt thư mục",
   "files.noPathHint": "Được dựng lại từ các bản sao lưu mà không có thư mục. Đặt một thư mục để sao lưu lại. Khôi phục vào thư mục đã hoạt động ngay.",
   "files.deleteSet": "Gỡ bộ",
+  "files.emptyRule": "Một bộ cần ít nhất một thư mục. Không thể bỏ tích cuối cùng. Dùng {action} để xóa bỏ hoàn toàn.",
   "files.deleteSetConfirm": "Gỡ bộ thư mục này khỏi danh sách? Các bản sao lưu của nó không bị xóa và có thể được phát hiện lại sau.",
   "files.deleteBackupsConfirm": "Xóa TẤT CẢ bản sao lưu của bộ thư mục này? Các snapshot bị xóa vĩnh viễn, kho được dọn bớt và bộ sẽ bị quên. Không thể hoàn tác.",
   "files.restoreOriginal": "Khôi phục về vị trí gốc",

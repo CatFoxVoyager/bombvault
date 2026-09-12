@@ -1663,6 +1663,11 @@ export const en = {
   "files.noPath": "No folder set",
   "files.noPathHint": "Rebuilt from backups without a folder. Set a folder to back it up again. Restoring to a folder already works.",
   "files.deleteSet": "Remove set",
+  // Phase 6 (SCRN-04): the deselect-floor rule, stated where it bites. The
+  // {action} slot is interpolated at RENDER time from the EXISTING
+  // files.deleteSet value - never re-authored - so the sentence can never
+  // name an action the UI does not have.
+  "files.emptyRule": "A set needs at least one folder. The last tick cannot be removed. Use {action} to remove it entirely.",
   "files.deleteSetConfirm": "Remove this folder set from the list? Its backups are not deleted and can be rediscovered later.",
   "files.deleteBackupsConfirm": "Delete ALL backups of this folder set? The snapshots are permanently removed, the repository is pruned and the set is forgotten. This cannot be undone.",
   "files.restoreOriginal": "Restore to original location",
@@ -3266,6 +3271,7 @@ export const de: Translations = {
   "files.noPath": "Kein Ordner gesetzt",
   "files.noPathHint": "Aus Backups ohne Ordner wiederaufgebaut. Setze einen Ordner, um wieder zu sichern. Die Wiederherstellung in einen Ordner funktioniert schon jetzt.",
   "files.deleteSet": "Set entfernen",
+  "files.emptyRule": "Ein Set braucht mindestens einen Ordner. Der letzte Haken kann nicht entfernt werden. Mit {action} wird es vollständig entfernt.",
   "files.deleteSetConfirm": "Dieses Ordner-Set aus der Liste entfernen? Seine Backups werden nicht gelöscht und können später wiederentdeckt werden.",
   "files.deleteBackupsConfirm": "ALLE Backups dieses Ordner-Sets löschen? Die Snapshots werden dauerhaft entfernt, das Repository wird aufgeräumt und das Set wird vergessen. Kann nicht rückgängig gemacht werden.",
   "files.restoreOriginal": "An den Originalort wiederherstellen",

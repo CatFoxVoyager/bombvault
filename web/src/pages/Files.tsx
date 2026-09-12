@@ -8,7 +8,7 @@
 // FolderBrowser path picker and an excludes textarea (one pattern per line).
 // ---------------------------------------------------------------------------
 
-import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import {
   listFileSets,
@@ -30,8 +30,10 @@ import {
 import type { BrowseResponse, FileSetView, Snapshot, FileEntry, FileSetPresetResponse } from "../lib/api";
 import { applyToggle, browseRelToHost, splitFlatSet, toFlatList } from "../lib/selectionTree";
 import { SelectionTree } from "../components/SelectionTree";
+import { StickyActionBar } from "../components/mobile/StickyActionBar";
+import { useIsCoarsePointer, useIsDesktop } from "../lib/useMediaQuery";
 import { SourceToggle, type RepoSource } from "../components/SourceToggle";
-import { PAGE_SHELL } from "../lib/pageShell";
+import { PAGE_SHELL_RESPONSIVE } from "../lib/pageShell";
 import { OffsiteIndicator } from "../components/OffsiteIndicator";
 import { EffectiveScheduleLine } from "../components/EffectiveScheduleLine";
 import { FolderBrowser } from "../components/FolderBrowser";
@@ -63,8 +65,19 @@ import { ToggleRow } from "./settings/shared";
 import { CheckDraw } from "../components/CheckDraw";
 import { useToast } from "../lib/toast";
 import { IconRestore } from "../components/Sidebar";
+// Type-only (erased at build): the Save bar's published live state is the SAME
+// shape Containers.tsx's FoldersEditor publishes — one contract, no fork.
+import type { SaveBarState } from "./Containers";
 
 type T = ReturnType<typeof useT>["t"];
+
+/** Twin of Containers.tsx's SAVE_FLUSH_KEY, on purpose: the busy/shake map
+ *  keys are component-local (each editor owns its own maps), so the files
+ *  editor's flush shakes ITS OWN key and never a container row's — but the
+ *  VALUE must stay identical so the "not a host path" guarantee and the
+ *  Save-bar shake plumbing read as one mechanism (the seam-duplicate
+ *  precedent: internal/backup's deliberate regex twins). */
+const SAVE_FLUSH_KEY = "__saveBarFlush__";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -1130,13 +1143,30 @@ export function FileSetFoldersEditor({
   set,
   hostMountRoot,
   t,
+  defaultOpen = false,
+  onSaveState,
+  flushRef,
 }: {
   set: FileSetView;
   hostMountRoot: string;
   t: T;
+  /** Phase 6 (SCRN-04): initial disclosure state. The mobile list opens the
+   *  editor expanded (the card tap IS the disclosure), so the tree is visible
+   *  the moment the row renders — desktop keeps its collapsed-by-default
+   *  disclosure. Initial value only: the fileSetEditorKey remount contract
+   *  governs reseeding, and this prop never joins that key. */
+  defaultOpen?: boolean;
+  /** Phase 6 (SCRN-04): publishes the Save bar's live state — the identical
+   *  contract FoldersEditor's props carry (see Containers.tsx for the full
+   *  why). Optional; the mobile list is the only caller that passes it. */
+  onSaveState?: (s: SaveBarState) => void;
+  /** Phase 6 (SCRN-04): filled with the flush closure the page-level Save
+   *  bar invokes; assigned every render so the closure always reads the live
+   *  mirror refs. Optional; same single-caller story as onSaveState. */
+  flushRef?: RefObject<(() => void) | null>;
 }) {
   const regionId = useId();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const noPath = set.path === "";
   // The set's resolved host path, cleaned on both segments (browseRelToHost is
   // the exact inverse of the browse prefix swap the tree performs below).
@@ -1182,6 +1212,14 @@ export function FileSetFoldersEditor({
   // always carries the live mirror); each row's busy flag clears exactly when
   // the attempt that acknowledges its effect settles.
   const pendingRowsRef = useRef<Set<string>>(new Set());
+  // React-side mirror of queueRef.current.inFlight (the queue itself runs on
+  // refs to stay closure-free): publishing it through state is what makes the
+  // Save bar's spinner/blocked Save button track the real PATCH, not a guess.
+  const [queueBusy, setQueueBusy] = useState(false);
+  // Touch keyboards and hover-dependent rows (Phase 6 D-01/D-03): the tree
+  // renders its touch interaction mode on coarse pointers, desktop keeps the
+  // pointer mode the existing suites pin.
+  const coarsePointer = useIsCoarsePointer();
 
   function applyMirror(inc: Set<string>, exc: Set<string>): void {
     mirrorRef.current = { inc, exc };
@@ -1209,6 +1247,7 @@ export function FileSetFoldersEditor({
   // ever concurrent (maxConcurrentPatches === 1, pinned in the harness).
   async function attemptSave(): Promise<void> {
     queueRef.current.inFlight = true;
+    setQueueBusy(true);
     const rows = [...pendingRowsRef.current];
     pendingRowsRef.current.clear();
     const desc = pendingDescRef.current;
@@ -1237,6 +1276,7 @@ export function FileSetFoldersEditor({
       if (desc) revertFrom(desc);
     } finally {
       queueRef.current.inFlight = false;
+      setQueueBusy(false);
       setRowBusy((b) => {
         const n = { ...b };
         for (const p of rows) n[p] = false;
@@ -1299,6 +1339,54 @@ export function FileSetFoldersEditor({
     });
   }
 
+  // ---- Phase 6 (SCRN-04): Save bar flush + state publish -------------------
+  // The mobile list renders ONE page-level Save bar (the StickyActionBar) for
+  // whichever set's editor is expanded; these three members are the editor's
+  // half of that contract. Identical shape to FoldersEditor's — the files
+  // desc has no structural/source fields, so the flush desc is the pure
+  // zero-delta (pre === sent === live mirror): a flush failure therefore
+  // reverts NOTHING (delta 0) and only shakes the bar (SAVE_FLUSH_KEY row).
+  function flushDesc(): FileSetSaveDesc {
+    const live = mirrorRef.current;
+    return {
+      node: SAVE_FLUSH_KEY,
+      pre: { includes: live.inc, exclusions: live.exc },
+      sent: { includes: live.inc, exclusions: live.exc },
+    };
+  }
+
+  // The Save button's one entry point. Mid-flight (queue.inFlight): mark dirty
+  // and fill ONLY an ABSENT pendingDesc slot — a pending toggle's desc is its
+  // revert recipe and must never be displaced by the flush (overwriting it
+  // would turn a later failure into a revert-to-flush-mirror, silently
+  // swallowing the failed toggle's own delta). Idle: a zero-tick flush is a
+  // no-op (the empty-selection guard makes it unsendable anyway); otherwise
+  // the standard queue entry sends the live mirror as one PATCH.
+  function flushSaveQueue(): void {
+    if (queueRef.current.inFlight) {
+      queueRef.current.dirty = true;
+      if (!pendingDescRef.current) pendingDescRef.current = flushDesc();
+      return;
+    }
+    if (mirrorRef.current.inc.size === 0) return;
+    scheduleSave(flushDesc());
+  }
+
+  // Publish the bar's live state after every commit that can move it: the
+  // tick count, the queue's busy flag, and the flush row's shake nonce.
+  useEffect(() => {
+    onSaveState?.({ ticked: includes.size, inFlight: queueBusy, shakeNonce: rowShake[SAVE_FLUSH_KEY] ?? 0 });
+    // onSaveState identity is stable (a useState setter in the page); listing
+    // it keeps the lint honest without re-firing on parent renders.
+  }, [onSaveState, includes, queueBusy, rowShake]);
+
+  // Assigned EVERY render (no dep array): the closure must always read the
+  // live mirror refs, never a stale render's snapshot — the same assign-per-
+  // render contract FoldersEditor's flushRef uses.
+  useEffect(() => {
+    if (flushRef) flushRef.current = flushSaveQueue;
+  });
+
   // A no-Path set has nothing to present — the card's files.noPathHint line
   // stands in (D-02). Guarded here AND at the FileSetRow call site, so the
   // disclosure can never render for a set the tree cannot represent, even if
@@ -1349,6 +1437,10 @@ export function FileSetFoldersEditor({
             containerName={`fileset-${set.id}`}
             browseCache={browseCache.current}
             onToggle={onToggle}
+            // Phase 6 D-01: coarse pointers get the touch interaction mode
+            // (always-hit rows, no hover reveal); desktop stays on the pointer
+            // mode the existing suites pin (jsdom answers desktop there).
+            interactionMode={coarsePointer ? "touch" : "pointer"}
             // customPaths is always [] so the remove chip can never render;
             // the prop stays required on SelectionTreeProps (container shape).
             onRemoveCustom={() => {}}
@@ -1378,6 +1470,9 @@ export function FileSetRow({
   onRefresh,
   onEdit,
   index,
+  editorDefaultOpen = false,
+  onSaveState,
+  flushRef,
 }: {
   set: FileSetView;
   hostMountRoot: string;
@@ -1389,6 +1484,13 @@ export function FileSetRow({
    *  form-engine Phase 2, Task 2). Assigned by LIST INDEX, never a hash of
    *  `set.id`/name — see the caller below. */
   index: number;
+  /** Phase 6 (SCRN-04): pass-throughs to FileSetFoldersEditor — the mobile
+   *  list opens the editor expanded and wires its Save bar contract. Optional;
+   *  the desktop list (and any other caller) omits them and gets the
+   *  collapsed, contract-less editor exactly as before. */
+  editorDefaultOpen?: boolean;
+  onSaveState?: (s: SaveBarState) => void;
+  flushRef?: RefObject<(() => void) | null>;
 }) {
   const progressMap = useProgress();
   const progress = progressMap[`files:${set.name}`];
@@ -1587,7 +1689,15 @@ export function FileSetRow({
           from mount-time props only, so an anchor or selection-presence change
           (a dialog path edit and its server-side A3 clear) must remount it. */}
       {!noPath && (
-        <FileSetFoldersEditor key={fileSetEditorKey(set)} set={set} hostMountRoot={hostMountRoot} t={t} />
+        <FileSetFoldersEditor
+          key={fileSetEditorKey(set)}
+          set={set}
+          hostMountRoot={hostMountRoot}
+          t={t}
+          defaultOpen={editorDefaultOpen}
+          onSaveState={onSaveState}
+          flushRef={flushRef}
+        />
       )}
 
       {/* Live backup/restore progress, pinned to the card's bottom edge */}
@@ -1599,6 +1709,111 @@ export function FileSetRow({
         />
       )}
       {confirmDialog}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Mobile coverage card (Phase 6, SCRN-04) — the phone's list row. Collapsed,
+// the card IS the disclosure: name, path, ticked count, last run, the
+// four-status Badge, and the identity bar; expanded, the full FileSetRow
+// (with its editor opened) renders below it. A path-less set has nothing to
+// disclose — its card renders as a plain div (no button, no aria-expanded)
+// so a control never pretends to do something it cannot.
+// ---------------------------------------------------------------------------
+
+function MobileFileSetCard({
+  set,
+  hostMountRoot,
+  t,
+  index,
+  expanded,
+  onToggle,
+}: {
+  set: FileSetView;
+  hostMountRoot: string;
+  t: T;
+  /** Rainbow position — the SAME list index the desktop row would receive, so
+   *  the two presentations of one list hand identical hues to identical sets. */
+  index: number;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const noPath = set.path === "";
+  const pathMissing = !noPath && !set.pathExists;
+  // The ticked count the next backup hands restic — the EXACT derivation the
+  // editor seeds from (splitFlatSet over the stored selection, NULL seeded as
+  // the synthetic root include), read straight from the view prop like the
+  // desktop card's stats. The expanded editor publishes the LIVE count to the
+  // Save bar; this line is the at-rest preview.
+  const root = noPath ? "" : browseRelToHost(set.path, hostMountRoot);
+  const ticked = splitFlatSet(noPath ? [] : (set.selectedPaths ?? [root])).includes.size;
+  const path = noPath ? "" : `${hostMountRoot}/${set.path}`;
+
+  const identity = (
+    <>
+      <span
+        aria-hidden
+        className="h-10 w-10 shrink-0 rounded-card bg-accentSoft flex items-center justify-center text-accentText"
+      >
+        <IconFiles />
+      </span>
+      <span className="flex-1 min-w-0 flex flex-col gap-1">
+        <span className="text-sm font-semibold text-carbon-text break-all">{set.name}</span>
+        {!noPath && (
+          <span dir="ltr" className="text-xs font-mono text-carbon-textMuted break-all" title={path}>
+            {path}
+          </span>
+        )}
+        <span className="text-xs text-carbon-textMuted">
+          {/* folders.previewPaths ("{n} paths") — the sanctioned existing key,
+              same line the container cards render (see Containers.tsx). */}
+          {t("folders.previewPaths").replace("{n}", String(ticked))}
+        </span>
+        <span className="text-xs text-carbon-textMuted">
+          {t("containers.lastBackup")}: {set.lastBackup ? formatTs(set.lastBackup) : t("containers.never")}
+        </span>
+      </span>
+      {/* Four-status Badge, loudest problem first: folder missing on disk
+          (fail) beats no folder at all (warn); otherwise backup recency (ok /
+          neutral). Same priority order the desktop row's header chips use. */}
+      {pathMissing ? (
+        <Badge tone="fail">{t("files.pathMissing")}</Badge>
+      ) : noPath ? (
+        <Badge tone="warn" wrap title={t("files.noPathHint")}>
+          {t("files.noPath")}
+        </Badge>
+      ) : set.lastBackup != null ? (
+        <Badge tone="ok">{t("filter.backedUp")}</Badge>
+      ) : (
+        <Badge tone="neutral">{t("filter.neverBackedUp")}</Badge>
+      )}
+    </>
+  );
+
+  return (
+    <div
+      style={{ ...hueVars(rainbowAt(index)) } as CSSProperties}
+      className="bg-carbon-surface rounded-card p-4 flex flex-col gap-3 glim-hue glim-content-fade"
+    >
+      {noPath ? (
+        <div className="flex items-center gap-3 min-h-[2.75rem]">{identity}</div>
+      ) : (
+        <button
+          type="button"
+          aria-expanded={expanded}
+          onClick={onToggle}
+          className="flex items-center gap-3 min-h-[2.75rem] text-start"
+        >
+          {identity}
+        </button>
+      )}
+      {/* The identity bar (UI-SPEC SCRN-04): a decorative full-width fill on a
+          6px rounded track — always full, never a progress value; hue comes
+          from the card's own glim-hue cascade. aria-hidden: pure identity. */}
+      <span aria-hidden className="block h-1.5 rounded-full bg-carbon-surface2 overflow-hidden">
+        <span className="block h-full w-full bg-accent" />
+      </span>
     </div>
   );
 }
@@ -1645,6 +1860,24 @@ export function Files() {
   // Same shake-on-failure treatment for the "back up all" batch start — mirrors
   // Containers.tsx's backupSelected/shakeBackupSelected.
   const [shakeBackupAll, setShakeBackupAll] = useState(0);
+
+  // ---- Phase 6 (SCRN-04): mobile list presentation --------------------------
+  // Phones render the list as coverage cards; one card at a time is expanded
+  // (the tap IS the disclosure), and the expanded set's editor wires the
+  // page-level Save bar through the SAME contract Containers' detail uses.
+  const isDesktop = useIsDesktop();
+  const [expandedSetId, setExpandedSetId] = useState<string | null>(null);
+  const [saveState, setSaveState] = useState<SaveBarState>({ ticked: 0, inFlight: false, shakeNonce: 0 });
+  const saveFlushRef = useRef<(() => void) | null>(null);
+  // Resolved from the CURRENT list, never cached: a loadSets() refetch (save,
+  // discover, dialog save) replaces the views, and a stale id would pin the
+  // bar to a dead row.
+  const expandedSet = sets.find((s) => s.id === expandedSetId) ?? null;
+
+  function toggleExpanded(id: string): void {
+    setSaveState({ ticked: 0, inFlight: false, shakeNonce: 0 });
+    setExpandedSetId((cur) => (cur === id ? null : id));
+  }
 
   function loadSets() {
     return listFileSets()
@@ -1767,7 +2000,12 @@ export function Files() {
     // off-standard pair, alongside Containers and VMs. Flat 40px, same
     // reasoning as Containers: this page's "Alle jetzt sichern" action row is
     // a sibling of the heading, not part of it. See lib/pageShell.ts.
-    <div className={PAGE_SHELL}>
+    // Phase 6 (SCRN-02/04): both tree-bearing pages take PAGE_SHELL_RESPONSIVE
+    // — gap-6 below the 48rem breakpoint (phones breathe; the Save bar sits at
+    // the bottom of a short page), gap-10 at and above, which is byte-identical
+    // to the old desktop rhythm by construction. The lint exception lives in
+    // eslint.config.js's page-uses-page-shell data, not a disable comment.
+    <div className={PAGE_SHELL_RESPONSIVE}>
       {/* Page heading + Discover (disaster-recovery) + Add actions */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
@@ -1920,9 +2158,14 @@ export function Files() {
         </div>
       )}
 
-      {/* File-set cards */}
+      {/* File-set cards — DESKTOP presentation (unchanged list; hidden below
+          the 48rem breakpoint, where the coverage-card list above takes over).
+          max-md:hidden, not a JSX gate: the desktop row's expansion memory and
+          browse caches live in this subtree, and hiding keeps every desktop
+          test's DOM intact (the jsdom media stub answers desktop=true anyway,
+          so this branch is the one tests see). */}
       {!loading && sets.length > 0 && (
-        <div className="flex flex-col gap-3 glim-content-fade">
+        <div className="flex flex-col gap-3 glim-content-fade max-md:hidden">
           {sets.map((s, i) => (
             <FileSetRow
               key={s.id}
@@ -1936,6 +2179,90 @@ export function Files() {
             />
           ))}
         </div>
+      )}
+
+      {/* File-set cards — MOBILE presentation (Phase 6, SCRN-04): coverage
+          cards; one tap expands a set, which renders the FULL FileSetRow below
+          the card (the card is the disclosure header; zero-fork access to the
+          toggle/backup/restore controls per the plan's "same page, stacked"
+          reading). The emptyRule card closes the list: the deselect-floor rule
+          stated where it bites. JSX-gated on !isDesktop (mirrors the
+          Containers list gate) — the jsdom media stub never renders it in the
+          existing suites. */}
+      {!isDesktop && !loading && !error && sets.length > 0 && (
+        <div className="flex flex-col gap-3 glim-content-fade">
+          {sets.map((s, i) => {
+            const expanded = expandedSetId === s.id;
+            return (
+              <div key={s.id} className="flex flex-col gap-3">
+                <MobileFileSetCard
+                  set={s}
+                  hostMountRoot={hostMountRoot}
+                  t={t}
+                  index={i}
+                  expanded={expanded}
+                  onToggle={() => toggleExpanded(s.id)}
+                />
+                {expanded && (
+                  <FileSetRow
+                    set={s}
+                    hostMountRoot={hostMountRoot}
+                    restoreFolder={restoreFolder}
+                    t={t}
+                    onRefresh={() => void loadSets()}
+                    onEdit={() => setDialog(s)}
+                    index={i}
+                    editorDefaultOpen
+                    onSaveState={setSaveState}
+                    flushRef={saveFlushRef}
+                  />
+                )}
+              </div>
+            );
+          })}
+          {/* The deselect-floor rule, stated in the list itself (SCRN-04):
+              outline card, muted caption — it describes a boundary, it is not
+              an error. {action} interpolated at render time from the existing
+              files.deleteSet value. */}
+          <div className="rounded-card border border-carbon-border p-4">
+            <p className="text-xs text-carbon-textMuted">
+              {t("files.emptyRule").replace("{action}", t("files.deleteSet"))}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Save bar (SCRN-03/04): the expanded set's flush, the identical
+          two rows the container detail renders — count + spinner row, Save row.
+          NO cachedir row: the files domain has no CACHEDIR.TMP concept. With
+          no expanded editor there is no queue to flush, so the bar only
+          renders while a path-bearing set is expanded. */}
+      {!isDesktop && expandedSet !== null && expandedSet.path !== "" && (
+        <StickyActionBar className="md:hidden">
+          <div className="flex items-center gap-2 min-h-[1.25rem]">
+            {saveState.inFlight && (
+              <span
+                aria-hidden
+                className="h-3 w-3 rounded-full border-2 border-t-transparent animate-spin inline-block"
+                style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }}
+              />
+            )}
+            <Badge tone="active" className="tabular-nums">
+              {t("folders.handedToRestic").replace("{n}", String(saveState.ticked))}
+            </Badge>
+          </div>
+          <Button
+            key={saveState.shakeNonce}
+            label={t("folders.save")}
+            labelKey="folders.save"
+            tone="accent"
+            keepLabel
+            disabled={saveState.inFlight}
+            busy={saveState.inFlight}
+            onClick={() => saveFlushRef.current?.()}
+            className={`w-full min-h-[2.75rem] justify-center${saveState.shakeNonce ? " glim-shake" : ""}`}
+          />
+        </StickyActionBar>
       )}
 
       {/* Add / edit dialog */}

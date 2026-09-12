@@ -1337,6 +1337,7 @@ const gl: Partial<Translations> = {
   "files.noPath": "Non hai cartafol configurado",
   "files.noPathHint": "Reconstruído desde copias sen cartafol. Configura un cartafol para volver copiar. Restaurar nun cartafol xa funciona.",
   "files.deleteSet": "Eliminar conxunto",
+  "files.emptyRule": "Un conxunto precisa polo menos un cartafol. A última marca non se pode quitar. Usa {action} para eliminalo por completo.",
   "files.deleteSetConfirm": "Eliminar este conxunto de cartafoles da lista? As súas copias non se eliminan e pódense volver descubrir máis tarde.",
   "files.deleteBackupsConfirm": "Eliminar TODAS as copias deste conxunto de cartafoles? As instantáneas elimínanse para sempre, o repositorio límpase e o conxunto esquécese. Isto non se pode desfacer.",
   "files.restoreOriginal": "Restaurar na localización orixinal",
