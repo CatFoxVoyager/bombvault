@@ -224,6 +224,8 @@ const lt: Partial<Translations> = {
   "run.statusFailed": "Nepavyko",
   "run.statusSkipped": "Praleista",
   "run.statusCancelled": "Atšaukta",
+  "run.statVolume": "Duomenų apimtis",
+  "run.statSnapshot": "Momentinė kopija",
   "common.selectItem": "Pasirinkti {name}",
   "run.historyTitle": "Vykdymo istorija",
   "run.filterDay": "Diena:",

@@ -153,6 +153,8 @@ const uk: Partial<Translations> = {
   "run.statusFailed": "Помилка",
   "run.statusSkipped": "Пропущено",
   "run.statusCancelled": "Скасовано",
+  "run.statVolume": "Обсяг даних",
+  "run.statSnapshot": "Знімок",
   "common.selectItem": "Вибрати {name}",
   "run.historyTitle": "Історія запусків",
   "run.filterDay": "День:",

@@ -154,6 +154,8 @@ const da: Partial<Translations> = {
   "run.statusFailed": "Mislykkedes",
   "run.statusSkipped": "Sprunget over",
   "run.statusCancelled": "Annulleret",
+  "run.statVolume": "Datamængde",
+  "run.statSnapshot": "Snapshot",
   "common.selectItem": "Vælg {name}",
   "run.historyTitle": "Kørselsoversigt",
   "run.filterDay": "Dag:",

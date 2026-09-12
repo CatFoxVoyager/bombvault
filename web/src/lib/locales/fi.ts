@@ -154,6 +154,8 @@ const fi: Partial<Translations> = {
   "run.statusFailed": "Epäonnistui",
   "run.statusSkipped": "Ohitettu",
   "run.statusCancelled": "Peruutettu",
+  "run.statVolume": "Datamäärä",
+  "run.statSnapshot": "Snapshot",
   "common.selectItem": "Valitse {name}",
   "run.historyTitle": "Ajohistoria",
   "run.filterDay": "Päivä:",

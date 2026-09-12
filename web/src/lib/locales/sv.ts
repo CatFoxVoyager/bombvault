@@ -154,6 +154,8 @@ const sv: Partial<Translations> = {
   "run.statusFailed": "Misslyckades",
   "run.statusSkipped": "Överhoppad",
   "run.statusCancelled": "Avbruten",
+  "run.statVolume": "Datamängd",
+  "run.statSnapshot": "Snapshot",
   "common.selectItem": "Välj {name}",
   "run.historyTitle": "Körningshistorik",
   "run.filterDay": "Dag:",

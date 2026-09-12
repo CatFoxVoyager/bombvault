@@ -154,6 +154,8 @@ const hu: Partial<Translations> = {
   "run.statusFailed": "Sikertelen",
   "run.statusSkipped": "Kihagyva",
   "run.statusCancelled": "Megszakítva",
+  "run.statVolume": "Adatmennyiség",
+  "run.statSnapshot": "Pillanatkép",
   "common.selectItem": "{name} kijelölése",
   "run.historyTitle": "Futási előzmények",
   "run.filterDay": "Nap:",

@@ -152,6 +152,8 @@ const pl: Partial<Translations> = {
   "run.statusFailed": "Niepowodzenie",
   "run.statusSkipped": "Pominięto",
   "run.statusCancelled": "Anulowano",
+  "run.statVolume": "Ilość danych",
+  "run.statSnapshot": "Migawka",
   "common.selectItem": "Zaznacz {name}",
   "run.historyTitle": "Historia uruchomień",
   "run.filterDay": "Dzień:",

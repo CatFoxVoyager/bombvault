@@ -224,6 +224,8 @@ const lv: Partial<Translations> = {
   "run.statusFailed": "Neveiksmīgi",
   "run.statusSkipped": "Izlaists",
   "run.statusCancelled": "Atcelts",
+  "run.statVolume": "Datu apjoms",
+  "run.statSnapshot": "Momentuzņēmums",
   "common.selectItem": "Atlasīt {name}",
   "run.historyTitle": "Izpildījumu vēsture",
   "run.filterDay": "Diena:",

@@ -224,6 +224,8 @@ const sr: Partial<Translations> = {
   "run.statusFailed": "Неуспешно",
   "run.statusSkipped": "Прескочено",
   "run.statusCancelled": "Отказано",
+  "run.statVolume": "Volumen podataka",
+  "run.statSnapshot": "Snimak",
   "common.selectItem": "Изабери {name}",
   "run.historyTitle": "Историја извршавања",
   "run.filterDay": "Дан:",

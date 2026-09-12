@@ -224,6 +224,8 @@ const gl: Partial<Translations> = {
   "run.statusFailed": "Fallido",
   "run.statusSkipped": "Omitido",
   "run.statusCancelled": "Cancelado",
+  "run.statVolume": "Volume de datos",
+  "run.statSnapshot": "Instantánea",
   "common.selectItem": "Seleccionar {name}",
   "run.historyTitle": "Historial de execucións",
   "run.filterDay": "Día:",

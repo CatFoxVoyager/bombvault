@@ -154,6 +154,8 @@ const ja: Partial<Translations> = {
   "run.statusFailed": "失敗",
   "run.statusSkipped": "スキップ済み",
   "run.statusCancelled": "キャンセル",
+  "run.statVolume": "データ量",
+  "run.statSnapshot": "スナップショット",
   "common.selectItem": "{name} を選択",
   "run.historyTitle": "実行履歴",
   "run.filterDay": "日付：",

@@ -154,6 +154,8 @@ const zh: Partial<Translations> = {
   "run.statusFailed": "失败",
   "run.statusSkipped": "已跳过",
   "run.statusCancelled": "已取消",
+  "run.statVolume": "数据量",
+  "run.statSnapshot": "快照",
   "common.selectItem": "选择 {name}",
   "run.historyTitle": "运行历史",
   "run.filterDay": "日期：",

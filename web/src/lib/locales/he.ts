@@ -154,6 +154,8 @@ const he: Partial<Translations> = {
   "run.statusFailed": "כשל",
   "run.statusSkipped": "דולג",
   "run.statusCancelled": "בוטל",
+  "run.statVolume": "נפח נתונים",
+  "run.statSnapshot": "תמונת מצב",
   "common.selectItem": "בחר את {name}",
   "run.historyTitle": "היסטוריית הרצות",
   "run.filterDay": "יום:",

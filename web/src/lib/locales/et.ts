@@ -224,6 +224,8 @@ const et: Partial<Translations> = {
   "run.statusFailed": "Ebaõnnestus",
   "run.statusSkipped": "Vahele jäetud",
   "run.statusCancelled": "Tühistatud",
+  "run.statVolume": "Andmete maht",
+  "run.statSnapshot": "Hetktõmmis",
   "common.selectItem": "Vali {name}",
   "run.historyTitle": "Käivituste ajalugu",
   "run.filterDay": "Päev:",

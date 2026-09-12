@@ -224,6 +224,8 @@ const is: Partial<Translations> = {
   "run.statusFailed": "Mistókst",
   "run.statusSkipped": "Sleppt",
   "run.statusCancelled": "Hætt við",
+  "run.statVolume": "Gagnamagn",
+  "run.statSnapshot": "Skyndimynd",
   "common.selectItem": "Velja {name}",
   "run.historyTitle": "Keyrslusaga",
   "run.filterDay": "Dagur:",

@@ -152,6 +152,8 @@ const ru: Partial<Translations> = {
   "run.statusFailed": "Ошибка",
   "run.statusSkipped": "Пропущено",
   "run.statusCancelled": "Отменено",
+  "run.statVolume": "Объём данных",
+  "run.statSnapshot": "Снимок",
   "common.selectItem": "Выбрать {name}",
   "run.historyTitle": "История запусков",
   "run.filterDay": "День:",

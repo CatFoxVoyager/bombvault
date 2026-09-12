@@ -152,6 +152,8 @@ const nl: Partial<Translations> = {
   "run.statusFailed": "Mislukt",
   "run.statusSkipped": "Overgeslagen",
   "run.statusCancelled": "Geannuleerd",
+  "run.statVolume": "Datavolume",
+  "run.statSnapshot": "Momentopname",
   "common.selectItem": "{name} selecteren",
   "run.historyTitle": "Uitvoeringsgeschiedenis",
   "run.filterDay": "Dag:",

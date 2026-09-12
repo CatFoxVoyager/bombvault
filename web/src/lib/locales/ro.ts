@@ -153,6 +153,8 @@ const ro: Partial<Translations> = {
   "run.statusFailed": "Eșuat",
   "run.statusSkipped": "Omis",
   "run.statusCancelled": "Anulat",
+  "run.statVolume": "Volum de date",
+  "run.statSnapshot": "Instantaneu",
   "common.selectItem": "Selectează {name}",
   "run.historyTitle": "Istoricul rulărilor",
   "run.filterDay": "Zi:",

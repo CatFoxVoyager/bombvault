@@ -224,6 +224,8 @@ const sk: Partial<Translations> = {
   "run.statusFailed": "Zlyhalo",
   "run.statusSkipped": "Preskočené",
   "run.statusCancelled": "Zrušené",
+  "run.statVolume": "Objem dát",
+  "run.statSnapshot": "Snímka",
   "common.selectItem": "Vybrať {name}",
   "run.historyTitle": "História behov",
   "run.filterDay": "Deň:",

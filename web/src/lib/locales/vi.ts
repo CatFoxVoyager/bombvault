@@ -154,6 +154,8 @@ const vi: Partial<Translations> = {
   "run.statusFailed": "Thất bại",
   "run.statusSkipped": "Đã bỏ qua",
   "run.statusCancelled": "Đã hủy",
+  "run.statVolume": "Dung lượng dữ liệu",
+  "run.statSnapshot": "Bản chụp",
   "common.selectItem": "Chọn {name}",
   "run.historyTitle": "Lịch sử chạy",
   "run.filterDay": "Ngày:",

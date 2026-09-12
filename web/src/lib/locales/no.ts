@@ -153,6 +153,8 @@ const no: Partial<Translations> = {
   "run.statusFailed": "Mislyktes",
   "run.statusSkipped": "Hoppet over",
   "run.statusCancelled": "Avbrutt",
+  "run.statVolume": "Datamengde",
+  "run.statSnapshot": "Snapshot",
   "common.selectItem": "Velg {name}",
   "run.historyTitle": "Kjørehistorikk",
   "run.filterDay": "Dag:",

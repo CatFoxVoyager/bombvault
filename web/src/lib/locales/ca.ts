@@ -224,6 +224,8 @@ const ca: Partial<Translations> = {
   "run.statusFailed": "Fallit",
   "run.statusSkipped": "Omès",
   "run.statusCancelled": "Cancel·lat",
+  "run.statVolume": "Volum de dades",
+  "run.statSnapshot": "Instantània",
   "common.selectItem": "Selecciona {name}",
   "run.historyTitle": "Historial d'execucions",
   "run.filterDay": "Dia:",

@@ -224,6 +224,8 @@ const bg: Partial<Translations> = {
   "run.statusFailed": "Неуспешно",
   "run.statusSkipped": "Пропуснато",
   "run.statusCancelled": "Отменено",
+  "run.statVolume": "Обем данни",
+  "run.statSnapshot": "Снимка",
   "common.selectItem": "Избери {name}",
   "run.historyTitle": "История на изпълненията",
   "run.filterDay": "Ден:",

@@ -224,6 +224,8 @@ const fa: Partial<Translations> = {
   "run.statusFailed": "ناموفق",
   "run.statusSkipped": "رد شد",
   "run.statusCancelled": "لغو شد",
+  "run.statVolume": "حجم داده‌ها",
+  "run.statSnapshot": "اسنپ‌شات",
   "common.selectItem": "انتخاب {name}",
   "run.historyTitle": "تاریخچه اجراها",
   "run.filterDay": "روز:",

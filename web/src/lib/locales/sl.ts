@@ -224,6 +224,8 @@ const sl: Partial<Translations> = {
   "run.statusFailed": "Neuspešno",
   "run.statusSkipped": "Preskočeno",
   "run.statusCancelled": "Preklicano",
+  "run.statVolume": "Količina podatkov",
+  "run.statSnapshot": "Posnetek",
   "common.selectItem": "Izberi {name}",
   "run.historyTitle": "Zgodovina zagonov",
   "run.filterDay": "Dan:",

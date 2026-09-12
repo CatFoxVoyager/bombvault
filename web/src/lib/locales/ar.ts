@@ -154,6 +154,8 @@ const ar: Partial<Translations> = {
   "run.statusFailed": "فشل",
   "run.statusSkipped": "تم التخطي",
   "run.statusCancelled": "أُلغي",
+  "run.statVolume": "حجم البيانات",
+  "run.statSnapshot": "لقطة",
   "common.selectItem": "تحديد {name}",
   "run.historyTitle": "سجل التشغيلات",
   "run.filterDay": "اليوم:",

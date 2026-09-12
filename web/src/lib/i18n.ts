@@ -285,6 +285,10 @@ export const en = {
   "run.statusFailed": "Failed",
   "run.statusSkipped": "Skipped",
   "run.statusCancelled": "Cancelled",
+  // SCRN-05's Frozen-API Data Adaptations tiles (06-04): the honest substitutes
+  // rendered on the run-detail sheet — no per-file counts exist on the run.
+  "run.statVolume": "Data volume",
+  "run.statSnapshot": "Snapshot",
   "common.selectItem": "Select {name}",
   "run.historyTitle": "Run History",
   "run.filterDay": "Day:",
@@ -2122,6 +2126,8 @@ export const de: Translations = {
   "run.statusFailed": "Fehlgeschlagen",
   "run.statusSkipped": "Übersprungen",
   "run.statusCancelled": "Abgebrochen",
+  "run.statVolume": "Datenmenge",
+  "run.statSnapshot": "Snapshot",
   "common.selectItem": "{name} auswählen",
   "run.historyTitle": "Ausführungsverlauf",
   "run.filterDay": "Tag:",

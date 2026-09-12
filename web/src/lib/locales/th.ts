@@ -154,6 +154,8 @@ const th: Partial<Translations> = {
   "run.statusFailed": "ล้มเหลว",
   "run.statusSkipped": "ข้ามไป",
   "run.statusCancelled": "ยกเลิกแล้ว",
+  "run.statVolume": "ปริมาณข้อมูล",
+  "run.statSnapshot": "สแนปช็อต",
   "common.selectItem": "เลือก {name}",
   "run.historyTitle": "ประวัติการทำงาน",
   "run.filterDay": "วัน:",

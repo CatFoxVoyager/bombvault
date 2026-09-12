@@ -154,6 +154,8 @@ const ko: Partial<Translations> = {
   "run.statusFailed": "실패",
   "run.statusSkipped": "건너뜀",
   "run.statusCancelled": "취소됨",
+  "run.statVolume": "데이터 용량",
+  "run.statSnapshot": "스냅샷",
   "common.selectItem": "{name} 선택",
   "run.historyTitle": "실행 기록",
   "run.filterDay": "날짜:",

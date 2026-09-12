@@ -224,6 +224,8 @@ const ms: Partial<Translations> = {
   "run.statusFailed": "Gagal",
   "run.statusSkipped": "Dilangkau",
   "run.statusCancelled": "Dibatalkan",
+  "run.statVolume": "Isipadu data",
+  "run.statSnapshot": "Snapshot",
   "common.selectItem": "Pilih {name}",
   "run.historyTitle": "Sejarah larian",
   "run.filterDay": "Hari:",
