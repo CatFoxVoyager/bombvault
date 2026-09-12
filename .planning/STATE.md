@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 06
 current_phase_name: Maquette Screens
 status: executing
-stopped_at: Completed 06-05-PLAN.md
-last_updated: "2026-09-12T16:11:37.823Z"
+stopped_at: Completed 06-06-PLAN.md
+last_updated: "2026-09-12T18:14:45.214Z"
 last_activity: 2026-09-12
 last_activity_desc: Phase 06 execution started
-state_head: 19f05132fd15eb452666956fb3bae5f2a11ac6ce
+state_head: b3c55a706842d53e6ac77b5660ee41a961382bf7
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
   percent: 25
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-11)
 ## Current Position
 
 Phase: 06 (Maquette Screens) — EXECUTING
-Plan: 6 of 7
+Plan: 7 of 7
 Total Plans in Phase: 7
 Status: Ready to execute
 Last activity: 2026-09-12 — Phase 06 execution started
@@ -93,6 +93,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 06 P03 | 1h44m | 3 tasks | 7 files |
 | Phase 06 P04 | 1h15m | 3 tasks | 10 files |
 | Phase 06 P05 | 2h38m | 3 tasks | 14 files |
+| Phase 06 P06 | 1h58m | 3 tasks | 48 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,10 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 06]: Save bar is a publish contract: editor owns the queue and passes a stable setState + flushRef; the bar derives everything and its Save press only flushes the desktop-identical queue (zero new save mechanism)
 - [Phase 06]: FLOW-03 seam lives in the hook: useBackupWatch optional onRun (ref-mirrored) reports the baseline-id-correlated run every poll; BackupButton/FileSetBackupButton onRunCorrelated passthrough; consumers host RunDetailSheet component-locally with a dismissal latch; desktop omits and is unchanged
 - [Phase 06]: Desktop >=48rem identity is asserted in e2e: desktop-1280 scenario proves no stacked view, no Save-bar count line, no w-full.bg-accent trigger on /containers or /files; full dom suite green
+- [Phase 06]: 06-06: mobile Home blocks REPLACE the desktop grid below md (max-md:hidden + !isDesktop double gate, Containers precedent); jsdom stays desktop so existing dom tests keep the desktop page
+- [Phase 06]: 06-06: Home trigger = useBackupWatch with progressKey '' (everything parent publishes no SSE key) + matchRun domain==='everything'; onRun deep-links RunDetailSheet, sheetDismissed latch guards re-open not record refresh
+- [Phase 06]: 06-06: worstRpoStatus/worstRpoLabel/nextBackupFireAt extracted as shared derivations - SummaryTier and the mobile next-run/repo-health cards cannot disagree on /api/schedule/next or /api/status
+- [Phase 06]: 06-06: home.newBackup/home.newBackupConfirm bound in all 42 tables in the same commit that renders them; de confirm copy uses Bereich/Gesamt-Backup house vocabulary; offsite age chip is text-only text-statusOffsite (index.css scope comment names both consumers now)
 
 ### Pending Todos
 
@@ -155,8 +160,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-12T16:11:37.661Z
-Stopped at: Completed 06-05-PLAN.md
+Last session: 2026-09-12T18:14:45.042Z
+Stopped at: Completed 06-06-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

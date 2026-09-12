@@ -28,7 +28,7 @@
 
 ### Maquette Screens
 
-- [ ] **SCRN-01**: Home: instance identity header, Next run card, recent runs with four-status badges, repository health (incl. offsite-copy age in offsite blue), one primary thumb-zone action "New backup" with consequence-aware confirm and deep-link to the live run; glanceable in one screenful
+- [x] **SCRN-01**: Home: instance identity header, Next run card, recent runs with four-status badges, repository health (incl. offsite-copy age in offsite blue), one primary thumb-zone action "New backup" with consequence-aware confirm and deep-link to the live run; glanceable in one screenful
 - [x] **SCRN-02**: Containers: summary line + one card per container (mount count, selection summary, four-status badge) → container detail; entry into the selection tree from there
 - [x] **SCRN-03**: Touch selection tree: an interaction-layer variant of the ONE `SelectionTree` (never a fork) — full-row ≥ 44px targets, chevron/check hit-area separation, EXCLUDED rows muted, per-root CACHEDIR.TAG toggle with plain-language line, pinned live "handed to restic · n of m ticked" count, Save pinned in a bottom action bar; wired to the existing serialized save queue; semantics byte-identical (APG `aria-checked`/roving tabindex/Space-through-`onToggle` preserved); empty-deselect rule surfaced in copy
 - [x] **SCRN-04**: File sets: coverage cards ("n of m folders ticked"), status, last-run line; empty-selection rule in copy ("Use Delete set to remove it entirely"); the same touch tree inside
@@ -120,7 +120,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SHELL-07 | Phase 5 | Complete |
 | PRIM-01 | Phase 5 | Complete |
 | VERIFY-01 | Phase 5 | Complete |
-| SCRN-01 | Phase 6 | Pending |
+| SCRN-01 | Phase 6 | Complete |
 | SCRN-02 | Phase 6 | Complete |
 | SCRN-03 | Phase 6 | Complete |
 | SCRN-04 | Phase 6 | Complete |

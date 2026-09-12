@@ -72,7 +72,7 @@ Plans:
   3. The user opens a finished run and reads completion time, duration, monospace snapshot id, the new/changed/unchanged triad, and an activity log naming exclusion reasons (unticked / CACHEDIR.TAG); verify-integrity and browse-snapshot-files work as touch rows, with the restore entry point reachable
   4. Hover-dependent affordances (info bubbles, filter and color pickers) work by tap below the breakpoint while desktop hover behavior is untouched; destructive confirmations present as fail-tone bottom sheets with consequence-naming buttons and no default-focused destructive control; live progress pauses when the page is hidden and reconciles a run that finished in the background on return
 
-**Plans**: 5/7 plans executed
+**Plans**: 6/7 plans executed
 
 Plans:
 **Wave 1** *(parallel — no shared files; i18n.ts + locales/ are single-owner this wave: 06-01 adds the only new keys — 06-02/06-03 consume existing keys and declare that prohibition)*
@@ -91,7 +91,7 @@ Plans:
 
 **Wave 4** *(after 06-02/06-04/06-05)*
 
-- [ ] 06-06-PLAN.md — SCRN-01: glanceable mobile Dashboard blocks + thumb-zone New-backup trigger with confirm deep-link into the run sheet (SCRN-01, FLOW-03)
+- [x] 06-06-PLAN.md — SCRN-01: glanceable mobile Dashboard blocks + thumb-zone New-backup trigger with confirm deep-link into the run sheet (SCRN-01, FLOW-03)
 
 **Wave 5** *(phase gate — after all)*
 
@@ -141,6 +141,6 @@ Plans:
 | 3. Selection Trust & Controls | v1.0 | 3/3 | Complete | 2026-09-11 |
 | 4. File Sets Parity | v1.0 | 4/4 | Complete | 2026-09-11 |
 | 5. Mobile Shell & Navigation Foundation | v1.1 | 6/6 | Complete    | 2026-09-12 |
-| 6. Maquette Screens | v1.1 | 5/7 | In Progress|  |
+| 6. Maquette Screens | v1.1 | 6/7 | In Progress|  |
 | 7. Remaining Destinations & Operational Parity | v1.1 | 0/TBD | Not started | - |
 | 8. Guided Restore & Real-Device Verification | v1.1 | 0/TBD | Not started | - |
