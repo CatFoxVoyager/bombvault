@@ -28,6 +28,7 @@ import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 
 import { listRuns, type Run } from "./api";
 import { useProgress } from "./progress";
 import { useT } from "./i18n";
+import { isPageVisible } from "./useVisibilityGate";
 
 /** The translate function, same alias every page in this app uses. */
 type T = ReturnType<typeof useT>["t"];
@@ -124,6 +125,14 @@ export function useBackupWatch({ progressKey, start, matchRun, kind = "backup", 
   // Mirror the (optional) cancelled flag ref the same way, so the poll closure
   // always reads the latest one without re-subscribing.
   const cancelledRefRef = useRef(cancelledRef);
+  // Re-entrancy gate for poll(): the visibilitychange restart below can fire
+  // while a poll hop is still in flight (its fetch is awaiting), and two
+  // concurrent hops would each schedule a successor — silently doubling the
+  // chain. One busy flag keeps the chain linear.
+  const pollBusy = useRef(false);
+  // The CURRENT poll fn, mirrored for the mount-once visibility listener below
+  // (poll is created inside fire(); the effect must always call the latest).
+  const pollRef = useRef<() => void>(() => {});
   matchRef.current = matchRun;
   kindRef.current = kind;
   onDoneRef.current = onDone;
@@ -257,36 +266,67 @@ export function useBackupWatch({ progressKey, start, matchRun, kind = "backup", 
 
     const startedAt = Date.now();
     const poll = async () => {
-      if (!watching.current) return;
-      const outcome = await resolveFromRuns();
-      if (outcome === "resolved" || !watching.current) return;
-      // No-run fallback: some flows record no run at all (restore-files /
-      // restore-to on a container without a target row), so run polling alone
-      // would pend forever. Once the SSE progress entry was seen active and
-      // then vanished (the work IS finished), a few clean polls that still
-      // find no run end the watch with a generic success. A run that IS found
-      // stays authoritative — it resolves above before this can trigger.
-      if (progressVanished.current && outcome === "no-run") {
-        pollsSinceVanished.current += 1;
-        if (pollsSinceVanished.current >= RUNLESS_GRACE_POLLS) {
-          // A cancel with no recorded run must NOT masquerade as success: if the
-          // paired cancel button flagged a cancel, finish neutral-cancelled.
-          finish(cancelledRefRef.current?.current ? { phase: "cancelled" } : { phase: "success" });
+      if (!watching.current || pollBusy.current) return;
+      pollBusy.current = true;
+      try {
+        // PRIM-04 (D-10): while the page is hidden the chain stops scheduling —
+        // a background tab must not poll the runs API on a timer. The
+        // visibilitychange effect below is the ONLY thing that restarts the
+        // chain, and it restarts with the refetch itself: the return trip runs
+        // resolveFromRuns() FIRST (whose baseline-id match is the correlation
+        // contract), then normal cadence resumes. The baseline seeding order
+        // in fire() is untouched; fireAndWaitRun's bulk loop is deliberately
+        // NOT gated (a plain promise loop with its own deadline, scoped out by
+        // the plan).
+        if (!isPageVisible()) return;
+        const outcome = await resolveFromRuns();
+        if (outcome === "resolved" || !watching.current) return;
+        // No-run fallback: some flows record no run at all (restore-files /
+        // restore-to on a container without a target row), so run polling alone
+        // would pend forever. Once the SSE progress entry was seen active and
+        // then vanished (the work IS finished), a few clean polls that still
+        // find no run end the watch with a generic success. A run that IS found
+        // stays authoritative — it resolves above before this can trigger.
+        if (progressVanished.current && outcome === "no-run") {
+          pollsSinceVanished.current += 1;
+          if (pollsSinceVanished.current >= RUNLESS_GRACE_POLLS) {
+            // A cancel with no recorded run must NOT masquerade as success: if the
+            // paired cancel button flagged a cancel, finish neutral-cancelled.
+            finish(cancelledRefRef.current?.current ? { phase: "cancelled" } : { phase: "success" });
+            return;
+          }
+        }
+        if (Date.now() - startedAt > watchTimeoutMs(kindRef.current)) {
+          finish({
+            phase: "error",
+            message: `Timed out waiting for the ${kindRef.current} to finish`,
+          });
           return;
         }
+        setTimeout(() => void poll(), POLL_INTERVAL_MS);
+      } finally {
+        pollBusy.current = false;
       }
-      if (Date.now() - startedAt > watchTimeoutMs(kindRef.current)) {
-        finish({
-          phase: "error",
-          message: `Timed out waiting for the ${kindRef.current} to finish`,
-        });
-        return;
-      }
-      setTimeout(() => void poll(), POLL_INTERVAL_MS);
     };
+    pollRef.current = () => void poll();
     // Kick the first poll soon; a very fast run may already be recorded.
     setTimeout(() => void poll(), 600);
   }, [start, resolveFromRuns, finish, t]);
+
+  // PRIM-04's reconcile edge: on return to a visible page, a running watch
+  // refetches IMMEDIATELY (poll() opens with resolveFromRuns() — the
+  // listRuns call that reconciles against the baseline ids), then the normal
+  // cadence resumes from there. Mount-once: it reads only refs, so it never
+  // re-subscribes, exactly like the poll chain itself.
+  useEffect(() => {
+    if (typeof document === "undefined" || typeof document.addEventListener !== "function") return;
+    const onVisibility = () => {
+      if (!isPageVisible() || !watching.current) return;
+      pollRef.current();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
 
   // Clear a lingering success/error banner (e.g. when the user changes the
   // selection a stale result would misdescribe). No-op while a watch runs —

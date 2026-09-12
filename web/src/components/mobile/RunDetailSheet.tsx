@@ -10,6 +10,7 @@ import { runKindLabel, runTargetText, statusLabel, statusTone } from "../../lib/
 import { buildLogLines, formatLogDate } from "../../lib/activityLog";
 import type { LogLine, ResolveName } from "../../lib/activityLog";
 import { useProgress } from "../../lib/progress";
+import { useVisibilityGate } from "../../lib/useVisibilityGate";
 import { loadErrorMessage } from "../../lib/errors";
 import { Badge } from "../Badge";
 import { CheckDraw } from "../CheckDraw";
@@ -75,9 +76,13 @@ import { BottomSheet } from "./BottomSheet";
 //   - verify: container/vm/flash/files (checkDomain's domain union). The
 //     "config" and "everything" domains have no check endpoint, so the row is
 //     absent there.
-//   - live section: running/checking runs whose domain has a progress key.
-//     The "everything" parent run streams no key of its own (its children do),
-//     so it shows terminal content only.
+//   - live section: running/checking runs whose domain has a progress key,
+//     gated on page visibility (PRIM-04): a hidden page unmounts the section,
+//     which IS the SSE unsubscribe (progress.ts's ref-count closes the shared
+//     EventSource); on return the remount reconnects into the backend's
+//     snapshot replay, and completion arrives through the consumer's refetched
+//     run record — never extrapolated. The "everything" parent run streams no
+//     key of its own (its children do), so it shows terminal content only.
 // ---------------------------------------------------------------------------
 export interface RunDetailSheetProps {
   /** The run to render. The consumer refetches it (listRuns) on visibility
@@ -182,11 +187,11 @@ function LogList({ lines }: { lines: LogLine[] }) {
 }
 
 // The in-flight half of the log section: the ONLY place this sheet subscribes
-// to the shared progress singleton. Mounting is the subscription — Task 3's
-// visibility gate wraps this component in `{visible && ...}`, so hiding the
-// page unmounts it and the frozen singleton's ref-count drops the shared
-// EventSource (whose reconnect replays the server snapshot — progress.ts's
-// closeSource contract).
+// to the shared progress singleton. Mounting is the subscription — the parent
+// renders this conditionally on useVisibilityGate() (`{visible && ...}`,
+// below), so hiding the page unmounts it and the frozen singleton's ref-count
+// drops the shared EventSource (whose reconnect replays the server snapshot —
+// progress.ts's closeSource contract).
 function LiveRunSection({ run, progressKey }: { run: Run; progressKey: string | null }) {
   const { t } = useT();
   const progressMap = useProgress();
@@ -283,6 +288,11 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
   const pKey = progressKeyFor(run);
   const browseSupported = run.domain === "container" || run.domain === "files";
   const verifyDomain = verifyDomainFor(run.domain);
+  // PRIM-04's pause gate (kept with the other hooks, above the !open early
+  // return — hooks rules). Gating the LIVE SECTION below, nothing else: the
+  // sheet's terminal content is a pure view over the `run` record and needs
+  // no live connection.
+  const visible = useVisibilityGate();
 
   // --- browse section (the SnapshotFileTree mount + its fetch state) --------
   const [browseOpen, setBrowseOpen] = useState(false);
@@ -482,11 +492,25 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
           </div>
         </div>
 
-        {/* Live section — in-flight runs get the progress bar + live log tail
-            (Task 3 gates this on the visibility hook). Terminal runs get the
-            same builder's history line. Both render through LogList, so the
-            sheet can never grow a second log style. */}
-        {inFlight ? <LiveRunSection run={run} progressKey={pKey} /> : <HistoryLogSection run={run} />}
+        {/* Live section — in-flight runs get the progress bar + live log tail,
+            conditionally on the visibility gate (PRIM-04/D-10): hiding the
+            page unmounts this subtree, which IS the unsubscribe — the frozen
+            singleton's ref-count drops the shared EventSource and drops its
+            cached state; showing the page remounts + resubscribes into the
+            backend's snapshot replay. While hidden the slot renders nothing
+            (an in-flight run has no history line to fall back to, and nobody
+            is watching). A run that finished while hidden arrives as a
+            refetched `run` record from the consumer — the terminal flip is
+            server state, never extrapolated here. Terminal runs get the same
+            builder's history line. Both render through LogList, so the sheet
+            can never grow a second log style. */}
+        {inFlight ? (
+          visible ? (
+            <LiveRunSection run={run} progressKey={pKey} />
+          ) : null
+        ) : (
+          <HistoryLogSection run={run} />
+        )}
 
         {/* Browse section — the SnapshotFileTree mount (Recovery.tsx:606 /
             Files.tsx:345 precedent: purely presentational tree, the parent

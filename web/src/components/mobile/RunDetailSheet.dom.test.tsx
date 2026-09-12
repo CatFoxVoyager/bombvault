@@ -67,10 +67,16 @@ const instances: FakeEventSource[] = [];
 class FakeEventSource {
   onmessage: ((ev: MessageEvent<string>) => void) | null = null;
   onerror: (() => void) | null = null;
+  // Set by close() — the observable form of progress.ts's closeSource
+  // contract (last unsubscribe closes the shared connection and drops its
+  // cached state).
+  closed = false;
   constructor(_url: string) {
     instances.push(this);
   }
-  close(): void {}
+  close(): void {
+    this.closed = true;
+  }
   emit(payload: unknown): void {
     this.onmessage?.({ data: JSON.stringify(payload) } as MessageEvent<string>);
   }
@@ -85,7 +91,23 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
+  // Restore jsdom's prototype getter (default "visible") — the visibility
+  // tests below shadow it with an own property.
+  delete (document as { visibilityState?: unknown }).visibilityState;
 });
+
+// Shadow document.visibilityState (jsdom never flips it by itself) and flip
+// the gate the way a real browser does: a visibilitychange event. act() so
+// React flushes the store subscription before the assertion reads the DOM.
+function setPageVisibility(state: "visible" | "hidden"): void {
+  Object.defineProperty(document, "visibilityState", {
+    configurable: true,
+    get: () => state,
+  });
+  act(() => {
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+}
 
 // ---------------------------------------------------------------------------
 
@@ -237,5 +259,79 @@ describe("RunDetailSheet (SCRN-05)", () => {
       instances[0].emit({ key: "container:plex", phase: "backup", percent: 42.5, active: true, startedAt: DONE_RUN.startedAt });
     });
     expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("43");
+  });
+
+  // --- PRIM-04 / D-10: the live section is gated on page visibility ----------
+
+  it("hidden page unmounts the live section — which unsubscribes the shared SSE connection", () => {
+    vi.useFakeTimers();
+    renderSheet(makeRun({ status: "running", finishedAt: null }));
+    act(() => {
+      instances[0].emit({ key: "container:plex", phase: "backup", percent: 10, active: true, startedAt: DONE_RUN.startedAt });
+    });
+    expect(screen.getByRole("progressbar")).toBeTruthy();
+
+    setPageVisibility("hidden");
+    // The gated subtree is gone...
+    expect(screen.queryByRole("progressbar")).toBeNull();
+    // ...and unmounting it WAS the unsubscribe: progress.ts's ref-count hit
+    // zero and closeSource() closed the shared EventSource.
+    expect(instances[0].closed).toBe(true);
+  });
+
+  it("visible again remounts the live section and resubscribes into a fresh connection", () => {
+    vi.useFakeTimers();
+    renderSheet(makeRun({ status: "running", finishedAt: null }));
+    act(() => {
+      instances[0].emit({ key: "container:plex", phase: "backup", percent: 10, active: true, startedAt: DONE_RUN.startedAt });
+    });
+    setPageVisibility("hidden");
+    expect(screen.queryByRole("progressbar")).toBeNull();
+
+    setPageVisibility("visible");
+    // A SECOND EventSource exists: the remount re-subscribed, and the frozen
+    // singleton reconnected (whose server snapshot replay repopulates state).
+    expect(instances.length).toBe(2);
+    expect(instances[1].closed).toBe(false);
+    // Fresh subscription starts from an empty cache (closeSource dropped it) —
+    // the bar is back only once the replayed stream delivers a frame again.
+    expect(screen.queryByRole("progressbar")).toBeNull();
+    act(() => {
+      instances[1].emit({ key: "container:plex", phase: "backup", percent: 55, active: true, startedAt: DONE_RUN.startedAt });
+    });
+    expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("55");
+  });
+
+  it("a run that finished while hidden reconciles from the refetched server record on return", () => {
+    vi.useFakeTimers();
+    // The consumer's refetch is modeled the only way it can be here: a new
+    // `run` record from listRuns (the sheet is a pure view over that record —
+    // D-10 forbids extrapolating completion from clocks).
+    const { rerender } = renderSheet(makeRun({ status: "running", finishedAt: null }));
+    act(() => {
+      instances[0].emit({ key: "container:plex", phase: "backup", percent: 10, active: true, startedAt: DONE_RUN.startedAt });
+    });
+    setPageVisibility("hidden");
+    expect(screen.queryByRole("progressbar")).toBeNull();
+
+    // The run finishes in the background; the page returns and the consumer
+    // refetches, handing the sheet the completed record.
+    setPageVisibility("visible");
+    // Between the flip and the refetched record there is one transient
+    // resubscribe (the sheet still believes the run is in flight, so it
+    // reconnects and lets the server replay — by design, not a leak).
+    expect(instances.length).toBe(2);
+    rerender(
+      <I18nProvider>
+        <RunDetailSheet run={DONE_RUN} open onClose={() => {}} />
+      </I18nProvider>
+    );
+    // Terminal content: the history line through the real builder, and the
+    // live machinery is gone again — the terminal record unmounted the
+    // resubscribed consumer (instances[1] closed; nothing else ever opened).
+    expect(screen.getByText(/plex backed up: 4\.7 GB in 1h 0m/)).toBeTruthy();
+    expect(screen.queryByRole("progressbar")).toBeNull();
+    expect(instances.length).toBe(2);
+    expect(instances[1].closed).toBe(true);
   });
 });
