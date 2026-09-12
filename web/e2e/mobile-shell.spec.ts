@@ -17,6 +17,10 @@
 // Branching on the Playwright project name (rather than a viewport probe in
 // the test) keeps every assertion honest about WHICH contract each project
 // verifies.
+//
+// Plan 06 Task 1 tightens the Task-1 smoke into the SHELL-02 exactness
+// contract: the bar renders EXACTLY the registry slots — the enabled bar
+// destinations plus the More trigger, nothing else (bar-exactness test below).
 // ---------------------------------------------------------------------------
 import { expect, test } from "@playwright/test";
 
@@ -38,6 +42,32 @@ test("chrome switches with the viewport: bar on mobile, Sidebar on desktop", asy
     await expect(page.getByTestId("desktop-sidebar")).toBeVisible();
     await expect(page.getByTestId("bottom-nav")).toHaveCount(0);
   }
+});
+
+test("the bar renders EXACTLY the registry slots: enabled destinations + More, nothing else", async ({ page }, testInfo) => {
+  test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "mobile-only: bar exactness is the SHELL-02 mobile contract");
+  await page.goto("/dashboard");
+  const bar = page.getByTestId("bottom-nav");
+  // The slot row is the bar's only inline child (the More sheet is a portal
+  // to document.body, never a slot); its direct children ARE the slots.
+  const slots = bar.locator("div.flex.h-14 > *");
+  // Fresh-DB gating is the environment under test: every domain gate off —
+  // files_enabled defaults false (internal/store/settings_test.go pins it) —
+  // so the registry yields Dashboard, Containers, Settings as bar
+  // destinations, plus the always-contentful More trigger = 4 slots.
+  // ("Exactly 5" holds only once files is enabled; the substance of the
+  // SHELL-02 contract is the EXACTNESS — the bar renders the enabled
+  // destinations + More and never a hand-added or leaked slot, per the ONE
+  // nav registry's gate semantics documented in 05-05-SUMMARY.)
+  await expect(slots).toHaveCount(4);
+  await expect(bar.getByRole("link", { name: "Dashboard" })).toHaveCount(1);
+  await expect(bar.getByRole("link", { name: "Containers" })).toHaveCount(1);
+  await expect(bar.getByRole("link", { name: "Settings" })).toHaveCount(1);
+  await expect(bar.getByRole("button", { name: "More" })).toHaveCount(1);
+  // And nothing else: zero destination links beyond the three named above —
+  // no gated destination (files among them) leaks into the bar while its
+  // desktop Sidebar gate is off.
+  await expect(bar.getByRole("link")).toHaveCount(3);
 });
 
 test("the More sheet opens with the fresh-DB registry and closes via all three paths", async ({ page }, testInfo) => {
