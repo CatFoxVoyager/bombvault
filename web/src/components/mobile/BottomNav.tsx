@@ -27,11 +27,14 @@
 // text token. Status colors never touch controls; tokens only, no hex.
 //
 // Tap-on-active (SHELL-02): tapping the ALREADY-active destination scrolls
-// the scroller back to the top instead of navigating. The scroller is
-// Layout's <main id="bv-main">, so the mechanism is passed down from Layout
-// as a prop and nothing here queries the DOM for it.
+// the scroller back to the top instead of navigating — and the navigation is
+// actively SUPPRESSED (preventDefault before react-router's own handler, see
+// tapDestination), not merely followed by a scroll, so the tap never stacks a
+// duplicate history entry. The scroller is Layout's <main id="bv-main">, so
+// the mechanism is passed down from Layout as a prop and nothing here queries
+// the DOM for it.
 // ---------------------------------------------------------------------------
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import type { Settings } from "../../lib/api";
 import { useT } from "../../lib/i18n";
@@ -68,11 +71,21 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
   const slots = barDestinations(settings);
   const hasMore = moreDestinations(settings).length > 0 || authEnabled;
 
-  // NavLink's onClick fires BEFORE the navigation commits, so the current
+  // NavLink's onClick fires BEFORE react-router's own Link handler, and Link
+  // checks event.defaultPrevented before navigating (verified against the
+  // installed react-router: `if (onClick) onClick(event); if
+  // (!event.defaultPrevented) internalOnClick(event);`). So the current
   // location still equals the slot's route exactly when this tap is a
-  // tap-on-active — scroll to top instead of re-navigating.
-  const tapDestination = (to: string) => {
-    if (location.pathname === to) scrollMainToTop();
+  // tap-on-active, and preventDefault() there suppresses the navigation —
+  // without it every tap on the already-active slot ALSO pushes a duplicate
+  // history entry (react-router has no same-location dedup), and the first
+  // Android back-gesture appears to do nothing while the second leaves the
+  // app: the broken-back-button read the SHELL-02 contract exists to prevent.
+  const tapDestination = (e: MouseEvent, to: string) => {
+    if (location.pathname === to) {
+      e.preventDefault();
+      scrollMainToTop();
+    }
   };
 
   return (
@@ -92,7 +105,7 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
           (SHELL-05: static chrome sizes against svh semantics). */}
       <div className="flex h-14">
         {slots.map((d) => (
-          <BarSlot key={d.to} destination={d} onTap={() => tapDestination(d.to)} />
+          <BarSlot key={d.to} destination={d} onTap={(e) => tapDestination(e, d.to)} />
         ))}
         {hasMore && (
           <button type="button" onClick={() => setMoreOpen(true)} className={`${slotBase} text-carbon-textMuted`}>
@@ -119,7 +132,7 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
 // One destination slot. NavLink drives the active language off the route
 // (native aria-current), the same className-by-isActive shape the desktop
 // rail's NavItem uses — no parallel active-state bookkeeping to keep in sync.
-function BarSlot({ destination, onTap }: { destination: NavDestination; onTap: () => void }) {
+function BarSlot({ destination, onTap }: { destination: NavDestination; onTap: (e: MouseEvent) => void }) {
   const { t } = useT();
   const Icon = destination.icon;
   return (

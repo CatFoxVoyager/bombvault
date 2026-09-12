@@ -84,12 +84,20 @@ export function MoreSheet({ open, onClose, settings, authEnabled, scrollMainToTo
             <NavLink
               key={d.to}
               to={d.to}
-              onClick={() => {
-                // NavLink's onClick fires BEFORE the navigation commits, so
-                // the current location still equals the row's route exactly
-                // when this tap is a tap-on-active — scroll to top instead of
-                // re-navigating (the bar slot's exact contract, SHELL-02).
-                if (location.pathname === d.to) scrollMainToTop();
+              onClick={(e) => {
+                // NavLink's onClick fires BEFORE react-router's own Link
+                // handler, and Link checks event.defaultPrevented before
+                // navigating — preventDefault() on a tap-on-active suppresses
+                // the re-navigation (the bar slot's exact contract, SHELL-02;
+                // an unsuppressed tap would stack a duplicate history entry).
+                // The close below fires in BOTH cases: the navigate case
+                // closes the sheet so the destination is visible behind it,
+                // and the tap-on-active case reveals the scroller it just
+                // sent back to the top.
+                if (location.pathname === d.to) {
+                  e.preventDefault();
+                  scrollMainToTop();
+                }
                 onClose();
               }}
               className={({ isActive }) => `${rowBase} ${isActive ? "bg-accentSoft text-accentText" : "text-carbon-text"}`}

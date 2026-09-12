@@ -187,8 +187,20 @@ test("tapping the already-active bar slot scrolls the scroller back to the top",
   await expect
     .poll(() => page.locator("#bv-main").evaluate((el) => el.scrollTop))
     .toBeGreaterThan(0);
+  // The no-navigation half of the contract, made executable: react-router
+  // has no same-location dedup, so an UNSUPPRESSED NavLink click also pushes
+  // a duplicate /dashboard entry — the scroll-to-top poll below would pass
+  // either way, and the first Android back-gesture would appear dead while
+  // the second leaves the app. History depth after the tap must equal the
+  // depth before it (asserted relative, so engine differences in the
+  // absolute starting depth cannot flake it).
+  const historyDepthBefore = await page.evaluate(() => history.length);
   await page.getByTestId("bottom-nav").getByRole("link", { name: "Dashboard" }).click();
   await expect
     .poll(() => page.locator("#bv-main").evaluate((el) => el.scrollTop))
     .toBe(0);
+  expect(
+    await page.evaluate(() => history.length),
+    "tapping the active slot must not push a history entry — the SHELL-02 contract suppresses the navigation instead of re-navigating to the same path"
+  ).toBe(historyDepthBefore);
 });
