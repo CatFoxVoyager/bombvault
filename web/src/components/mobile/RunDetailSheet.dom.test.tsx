@@ -212,7 +212,10 @@ describe("RunDetailSheet (SCRN-05)", () => {
   });
 
   it("vm runs: verify offered, browse/restore honestly absent (no file-listing API)", () => {
-    renderSheet(makeRun({ targetId: "win11", target: "win11", domain: "vm" }));
+    // Backend shape (api.ts Run docs): targetId is the 32-hex vm_targets row
+    // id, target is the human name — never set equal (that coincidence once
+    // hid the progress-key bug the live tests below pin).
+    renderSheet(makeRun({ targetId: "a1b2c3d4e5f60718293a4b5c6d7e8f90", target: "win11", domain: "vm" }));
     expect(screen.getByRole("button", { name: en["integrity.verify"] })).toBeTruthy();
     expect(screen.queryByRole("button", { name: en["recovery.foreignStepBrowse"] })).toBeNull();
     expect(screen.queryByRole("button", { name: en["snapshots.restore"] })).toBeNull();
@@ -259,6 +262,47 @@ describe("RunDetailSheet (SCRN-05)", () => {
       instances[0].emit({ key: "container:plex", phase: "backup", percent: 42.5, active: true, startedAt: DONE_RUN.startedAt });
     });
     expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("43");
+  });
+
+  // The progress key is the run NAME (run.target), never the 32-hex row id
+  // (run.targetId): the backend records vm/files runs under the row id but
+  // publishes SSE under "vm:"+name / "files:"+set.Name (internal/api/service.go).
+  // These two pins keep the sheet's lookup on the published side of that split
+  // — a regression to targetId would leave both bars dead (no frame matches).
+  it("vm live run: the channel resolves under the run NAME — a 32-hex targetId keys nothing", () => {
+    vi.useFakeTimers();
+    renderSheet(
+      makeRun({
+        status: "running",
+        finishedAt: null,
+        domain: "vm",
+        targetId: "a1b2c3d4e5f60718293a4b5c6d7e8f90", // vm_targets.id — what the backend records
+        target: "win11", // the name the SSE publishes under ("vm:"+name)
+      })
+    );
+    expect(instances.length).toBe(1);
+    act(() => {
+      instances[0].emit({ key: "vm:win11", phase: "backup", percent: 30, active: true, startedAt: DONE_RUN.startedAt });
+    });
+    expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("30");
+  });
+
+  it("files live run: same name-keyed channel — the set id never appears in the progress key", () => {
+    vi.useFakeTimers();
+    renderSheet(
+      makeRun({
+        status: "running",
+        finishedAt: null,
+        domain: "files",
+        targetId: "f0e1d2c3b4a5968778695a4b3c2d1e0f", // file_sets.id — what the backend records
+        target: "docs", // the name the SSE publishes under ("files:"+set.Name)
+      })
+    );
+    expect(instances.length).toBe(1);
+    act(() => {
+      instances[0].emit({ key: "files:docs", phase: "backup", percent: 12, active: true, startedAt: DONE_RUN.startedAt });
+    });
+    expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("12");
   });
 
   // --- PRIM-04 / D-10: the live section is gated on page visibility ----------

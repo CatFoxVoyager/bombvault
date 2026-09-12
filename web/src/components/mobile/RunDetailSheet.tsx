@@ -106,19 +106,29 @@ const LIVE_TICK_MS = 1000;
  *  children are the ones that publish — store.EverythingTargetID). Shapes
  *  mirror the wire examples in progress.ts ("container:plex", "vm:win11") and
  *  the consumers (BackupButton.tsx:59, VMs.tsx:470, Files.tsx:195, Config.tsx
- *  "config", flash as the bare "flash"). */
+ *  "config", flash as the bare "flash").
+ *
+ *  The suffix is run.target — the NAME — never run.targetId. The backend
+ *  RECORDS vm/files runs under the row's 32-hex id (StartRun(tg.ID) /
+ *  StartRun(set.ID)) but PUBLISHES progress under the human name: "vm:"+name
+ *  (the backup vkey and the restore rkey, internal/api/service.go) and
+ *  "files:"+set.Name (the files backup key; both restore rkeys use the set
+ *  name too). Keying by targetId looked up entries the backend never
+ *  publishes, so the live section stayed dark for both domains — the
+ *  container domain only ever worked by coincidence: a container's id IS its
+ *  name. */
 function progressKeyFor(run: Run): string | null {
   switch (run.domain) {
     case "container":
-      return `container:${run.targetId}`;
     case "vm":
-      return `vm:${run.targetId}`;
+    case "files":
+      // target = the name the SSE key publishes under (see above); targetId is
+      // the 32-hex row id for vm/files and matches no published key.
+      return `${run.domain}:${run.target}`;
     case "flash":
       return "flash";
     case "config":
       return "config";
-    case "files":
-      return `files:${run.targetId}`;
     default:
       return null;
   }
