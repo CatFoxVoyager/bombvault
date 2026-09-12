@@ -8,6 +8,8 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { useT } from "../lib/i18n";
+import { useIsDesktop } from "../lib/useMediaQuery";
+import { TapPopover } from "./mobile/TapPopover";
 
 // ---------------------------------------------------------------------------
 // ColorPickerSwatch — the shared custom-colour trigger (design-language.md,
@@ -138,6 +140,10 @@ export function ColorPickerSwatch({
   className?: string;
 }) {
   const { t } = useT();
+  // PRIM-02 presentation axis (D-11: the width axis decides chrome, never the
+  // pointer): desktop keeps the original portalled panel; below the
+  // breakpoint the SAME picker body mounts through TapPopover.
+  const isDesktop = useIsDesktop();
   const [open, setOpen] = useState(false);
   const [hsv, setHsv] = useState<Hsv>(() => hexToHsv(value) ?? DEFAULT_HSV);
   const [hexDraft, setHexDraft] = useState(value);
@@ -187,7 +193,7 @@ export function ColorPickerSwatch({
   // position lands before the browser's next paint — no visible jump from a
   // top-left flash to the real spot.
   useLayoutEffect(() => {
-    if (!open) return;
+    if (!open || !isDesktop) return;
     const trigger = triggerRef.current;
     const panel = panelRef.current;
     if (!trigger || !panel) return;
@@ -200,29 +206,47 @@ export function ColorPickerSwatch({
     const fitsBelow = rect.bottom + 8 + height <= vh;
     const top = fitsBelow ? rect.bottom + 8 : Math.max(8, rect.top - 8 - height);
     setPos({ left, top });
-  }, [open]);
+    // Mobile placement is TapPopover's job (computeBubblePosition); this
+    // inline clamp is the desktop presentation's own.
+  }, [open, isDesktop]);
 
-  // Dismissal: outside pointerdown, Escape, or scroll/resize — reference's
-  // own documented set. Scroll/resize CLOSE rather than reposition (a fixed
-  // popover de-anchored from its trigger reads as broken either way; see
-  // this file's header comment).
+  // Dismissal, desktop half: outside pointerdown, on top of the shared
+  // Escape/scroll/resize listener below — reference's own documented set.
+  // Scroll/resize CLOSE rather than reposition (a fixed popover de-anchored
+  // from its trigger reads as broken either way; see this file's header
+  // comment).
+  //
+  // The outside-mousedown half deliberately does NOT run below the
+  // breakpoint: there the panel lives inside TapPopover, whose consuming
+  // backdrop owns the outside tap. A document-level mousedown closing the
+  // popover mid-gesture would unmount that backdrop between mousedown and
+  // click, leaving the tap's click to land wherever the browser then
+  // hit-tests — the exact leak the backdrop exists to prevent (threat
+  // T-06-03). Escape still closes from both listeners (benign double
+  // dispatch — setOpen(false) twice is the house useConfirm/BottomSheet
+  // precedent), and scroll/resize still close on mobile: a scrolled-away
+  // fixed popover is de-anchored on either pointer.
   useEffect(() => {
-    if (!open) return;
+    if (!open || !isDesktop) return;
     function onPointerDown(e: MouseEvent) {
       const target = e.target as Node;
       if (panelRef.current?.contains(target)) return;
       if (triggerRef.current?.contains(target)) return;
       closeSelf();
     }
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
+  }, [open, isDesktop, closeSelf]);
+
+  useEffect(() => {
+    if (!open) return;
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") closeSelf();
     }
-    document.addEventListener("mousedown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
     window.addEventListener("scroll", closeSelf, true);
     window.addEventListener("resize", closeSelf);
     return () => {
-      document.removeEventListener("mousedown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("scroll", closeSelf, true);
       window.removeEventListener("resize", closeSelf);
@@ -381,6 +405,132 @@ export function ColorPickerSwatch({
     // dependency list from lying about what this effect reads.
   }, [open, apply]);
 
+  // The swatch's visual classes — desktop and mobile share the SAME contract:
+  // the caller's `className` fully owns size/shape/border when given (both
+  // call sites pass their own, to sit flush beside their neighbouring preset
+  // swatches), otherwise the default 24px bordered pill.
+  const swatchClasses =
+    className ??
+    "w-6 h-6 rounded-pill border-2 border-carbon-border transition-transform hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50";
+
+  // The picker's inner surface, shared VERBATIM by both presentations: the
+  // refs and the key/drag handlers are the same objects, so drag and keyboard
+  // colour entry behave identically either way. (The mobile branch wraps it
+  // in a fixed-width column — see the note there for why the width cannot
+  // ride on the glim-picker div itself.)
+  const pickerBody = (
+    <>
+      <div className="glim-picker">
+        {/* role="slider" on a 2-D control is a deliberate approximation:
+            ARIA has no two-axis slider, and the alternatives (two linked
+            sliders, or role="application") either double the tab stops or
+            hand the whole panel's key handling to the page. aria-valuetext
+            carries BOTH axes so a screen reader still announces the real
+            position; aria-valuenow tracks saturation, the axis the arrow
+            keys move first. */}
+        <div
+          ref={svRef}
+          role="slider"
+          tabIndex={0}
+          aria-label={t("picker.saturationBrightness")}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(hsv.s * 100)}
+          aria-valuetext={`${Math.round(hsv.s * 100)}% / ${Math.round(hsv.v * 100)}%`}
+          onKeyDown={onSvKeyDown}
+          className="glim-picker-sv"
+          style={{
+            background: `linear-gradient(to top, #000, rgba(0,0,0,0)), linear-gradient(to right, #fff, hsl(${Math.round(hsv.h)},100%,50%))`,
+          }}
+        >
+          <span
+            className="glim-picker-dot"
+            style={{ left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%` }}
+          />
+        </div>
+        <div
+          ref={hueRef}
+          role="slider"
+          tabIndex={0}
+          aria-label={t("picker.hue")}
+          aria-valuemin={0}
+          aria-valuemax={359}
+          aria-valuenow={Math.round(hsv.h)}
+          onKeyDown={onHueKeyDown}
+          className="glim-picker-hue"
+        >
+          <span className="glim-picker-hdot" style={{ left: `${(hsv.h / 360) * 100}%` }} />
+        </div>
+      </div>
+      <input
+        type="text"
+        value={hexDraft}
+        onChange={(e) => {
+          const raw = e.target.value;
+          // The field's own displayed text stays exactly what was
+          // typed (reference never overwrites it back to a normalized
+          // form here) — only the DRAG handlers above resync it to a
+          // freshly-computed hex. See this component's header comment
+          // for why.
+          setHexDraft(raw);
+          const normalized = normalizeHex(raw);
+          if (!normalized) return;
+          const parsed = hexToHsv(normalized);
+          if (!parsed) return;
+          hsvRef.current = parsed;
+          setHsv(parsed);
+          onChangeRef.current(normalized);
+        }}
+        maxLength={7}
+        spellCheck={false}
+        aria-label="Hex"
+        className="glim-picker-hex"
+      />
+    </>
+  );
+
+  // Below the breakpoint (PRIM-02 / D-09): the same picker body mounted
+  // through TapPopover for viewport-clamped anchoring and the touch dismissal
+  // contract. CONTROLLED mode, deliberately: this component's drag wiring,
+  // desktop positioning and dismissal effects are all gated on this very
+  // `open` state and must stay live on mobile — an uncontrolled TapPopover
+  // would strand them off. handleOpen remains the open path, so the
+  // activeCloser singleton and the resync from `value` run on every open,
+  // tap included.
+  //
+  // The trigger wraps the same swatch in the 44px touch floor; the negative
+  // margin gives the extra box back to the layout so rows of preset swatches
+  // keep their exact rhythm (the wrapper is transparent — the swatch IS the
+  // visual). triggerLabel feeds the wrapper button's aria-label + title so
+  // the accessible name survives the extra element.
+  if (!isDesktop) {
+    return (
+      <TapPopover
+        label={label}
+        disabled={disabled}
+        open={open}
+        onOpenChange={(next) => (next ? handleOpen() : closeSelf())}
+        triggerLabel={label}
+        triggerStyle={{ backgroundColor: value }}
+        triggerClassName="-m-2.5 h-11 w-11 rounded-pill"
+        trigger={<span style={{ backgroundColor: value }} className={`block ${swatchClasses}`} />}
+        /* .glim-picker-popover's box recipe re-homed: same 0.75rem padding
+           on the panel; the column direction, 0.5rem gap and 13.75rem content
+           width move onto the wrapper div below — the surface chrome
+           (carbon-surface, radius, elevation, fade) is TapPopover's own.
+           The width lives on a WRAPPER because .glim-picker's own unlayered
+           `width: 100%` rule (index.css) beats any Tailwind utility applied
+           to that same element, while a wrapper div carries the utility
+           unopposed — and on desktop the descendant
+           `.glim-picker-popover .glim-picker` rule keeps supplying the width,
+           so the desktop DOM is untouched. */
+        panelClassName="p-3"
+      >
+        <div className="flex w-[13.75rem] flex-col gap-2">{pickerBody}</div>
+      </TapPopover>
+    );
+  }
+
   return (
     <>
       <button
@@ -393,10 +543,7 @@ export function ColorPickerSwatch({
         disabled={disabled}
         onClick={handleOpen}
         style={{ backgroundColor: value }}
-        className={
-          className ??
-          "w-6 h-6 rounded-pill border-2 border-carbon-border transition-transform hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50"
-        }
+        className={swatchClasses}
       />
       {open &&
         createPortal(
@@ -407,72 +554,7 @@ export function ColorPickerSwatch({
             className="glim-picker-popover glim-fade"
             style={{ left: pos?.left ?? -9999, top: pos?.top ?? -9999 }}
           >
-            <div className="glim-picker">
-              {/* role="slider" on a 2-D control is a deliberate approximation:
-                  ARIA has no two-axis slider, and the alternatives (two linked
-                  sliders, or role="application") either double the tab stops or
-                  hand the whole panel's key handling to the page. aria-valuetext
-                  carries BOTH axes so a screen reader still announces the real
-                  position; aria-valuenow tracks saturation, the axis the arrow
-                  keys move first. */}
-              <div
-                ref={svRef}
-                role="slider"
-                tabIndex={0}
-                aria-label={t("picker.saturationBrightness")}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round(hsv.s * 100)}
-                aria-valuetext={`${Math.round(hsv.s * 100)}% / ${Math.round(hsv.v * 100)}%`}
-                onKeyDown={onSvKeyDown}
-                className="glim-picker-sv"
-                style={{
-                  background: `linear-gradient(to top, #000, rgba(0,0,0,0)), linear-gradient(to right, #fff, hsl(${Math.round(hsv.h)},100%,50%))`,
-                }}
-              >
-                <span
-                  className="glim-picker-dot"
-                  style={{ left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%` }}
-                />
-              </div>
-              <div
-                ref={hueRef}
-                role="slider"
-                tabIndex={0}
-                aria-label={t("picker.hue")}
-                aria-valuemin={0}
-                aria-valuemax={359}
-                aria-valuenow={Math.round(hsv.h)}
-                onKeyDown={onHueKeyDown}
-                className="glim-picker-hue"
-              >
-                <span className="glim-picker-hdot" style={{ left: `${(hsv.h / 360) * 100}%` }} />
-              </div>
-            </div>
-            <input
-              type="text"
-              value={hexDraft}
-              onChange={(e) => {
-                const raw = e.target.value;
-                // The field's own displayed text stays exactly what was
-                // typed (reference never overwrites it back to a normalized
-                // form here) — only the DRAG handlers above resync it to a
-                // freshly-computed hex. See this component's header comment
-                // for why.
-                setHexDraft(raw);
-                const normalized = normalizeHex(raw);
-                if (!normalized) return;
-                const parsed = hexToHsv(normalized);
-                if (!parsed) return;
-                hsvRef.current = parsed;
-                setHsv(parsed);
-                onChangeRef.current(normalized);
-              }}
-              maxLength={7}
-              spellCheck={false}
-              aria-label="Hex"
-              className="glim-picker-hex"
-            />
+            {pickerBody}
           </div>,
           document.body
         )}
