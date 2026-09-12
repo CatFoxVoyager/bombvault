@@ -378,4 +378,45 @@ describe("RunDetailSheet (SCRN-05)", () => {
     expect(instances.length).toBe(2);
     expect(instances[1].closed).toBe(true);
   });
+
+  // --- fresh-success CheckDraw gate: only a WITNESSED transition draws ------
+  // (.glim-check-draw is CheckDraw's stroke path; the sheet's only other
+  // CheckDraw sits behind a verify press these tests never make.)
+
+  it("witnessed running to success while open draws the check; the next open starts clean", () => {
+    const draws = () => document.body.querySelectorAll(".glim-check-draw").length;
+    const sheet = (run: Run, open: boolean) => (
+      <I18nProvider>
+        <RunDetailSheet run={run} open={open} onClose={() => {}} />
+      </I18nProvider>
+    );
+    const { rerender } = render(sheet(makeRun({ status: "running", finishedAt: null }), true));
+    expect(draws()).toBe(0);
+    // The transition lands while the sheet is OPEN: the user is watching, the
+    // check draws.
+    rerender(sheet(makeRun({ status: "success" }), true));
+    expect(draws()).toBe(1);
+    // Close + reopen consumes it: the animation belongs to the session that
+    // witnessed the completion, never to the next one.
+    rerender(sheet(makeRun({ status: "success" }), false));
+    rerender(sheet(makeRun({ status: "success" }), true));
+    expect(draws()).toBe(0);
+  });
+
+  it("a running to success flip that lands while closed never animates on reopen", () => {
+    const draws = () => document.body.querySelectorAll(".glim-check-draw").length;
+    const sheet = (run: Run, open: boolean) => (
+      <I18nProvider>
+        <RunDetailSheet run={run} open={open} onClose={() => {}} />
+      </I18nProvider>
+    );
+    // Hosts keep the sheet MOUNTED when closed and keep feeding it refreshed
+    // records from their poll — modeled exactly: the record flips to success
+    // behind the closed sheet...
+    const { rerender } = render(sheet(makeRun({ status: "running", finishedAt: null }), false));
+    rerender(sheet(makeRun({ status: "success" }), false));
+    // ...so the reopen shows the completed run WITHOUT the animation.
+    rerender(sheet(makeRun({ status: "success" }), true));
+    expect(draws()).toBe(0);
+  });
 });

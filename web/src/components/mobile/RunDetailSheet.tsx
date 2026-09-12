@@ -364,8 +364,35 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
     }
   }
 
+  // --- fresh-success CheckDraw gate -----------------------------------------
+  // CheckDraw's own contract (CheckDraw.tsx): it may only appear at the exact
+  // moment state transitions busy → FRESH success, never at initial mount —
+  // a sheet opened on an old successful run must not animate a checkmark as
+  // if the run just completed. One ref-carrying effect watches for that
+  // transition — but only counts it WHILE THE SHEET IS OPEN: every host keeps
+  // the sheet mounted when closed and keeps feeding it refreshed records from
+  // its own poll, so a running → success flip landing behind a dismissed
+  // sheet was never witnessed by the user and must not arm the animation for
+  // the reopen. prevStatusRef keeps updating unconditionally either way, so
+  // the unwitnessed transition is consumed while closed and can never re-fire
+  // on reopen. openRef is the house ref-mirror (useBackupWatch's pattern):
+  // the effect keys on run.status alone and reads `open` through the ref.
+  const [freshOk, setFreshOk] = useState(false);
+  const prevStatusRef = useRef(run.status);
+  const openRef = useRef(open);
+  openRef.current = open;
+  useEffect(() => {
+    const was = prevStatusRef.current;
+    prevStatusRef.current = run.status;
+    if (run.status === "success" && (was === "running" || was === "checking") && openRef.current)
+      setFreshOk(true);
+    else if (run.status !== "success") setFreshOk(false);
+  }, [run.status]);
+
   // Everything the sheet holds is per-open-session state; reset on close so a
-  // consumer reusing the same mount for a different run starts clean.
+  // consumer reusing the same mount for a different run starts clean — the
+  // check gate included: a witnessed animation belongs to the open session
+  // that saw the transition, never to the next one.
   useEffect(() => {
     if (open) return;
     setBrowseOpen(false);
@@ -376,22 +403,8 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
     setSelected(new Set());
     setVerifyState("idle");
     setVerifyError(null);
+    setFreshOk(false);
   }, [open]);
-
-  // --- fresh-success CheckDraw gate -----------------------------------------
-  // CheckDraw's own contract (CheckDraw.tsx): it may only appear at the exact
-  // moment state transitions busy → FRESH success, never at initial mount —
-  // a sheet opened on an old successful run must not animate a checkmark as
-  // if the run just completed. One ref-carrying effect watches for that
-  // transition while the sheet is open.
-  const [freshOk, setFreshOk] = useState(false);
-  const prevStatusRef = useRef(run.status);
-  useEffect(() => {
-    const was = prevStatusRef.current;
-    prevStatusRef.current = run.status;
-    if (run.status === "success" && (was === "running" || was === "checking")) setFreshOk(true);
-    else if (run.status !== "success") setFreshOk(false);
-  }, [run.status]);
 
   if (!open) return null;
 
