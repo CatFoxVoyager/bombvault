@@ -178,13 +178,28 @@ test("tapping the already-active bar slot scrolls the scroller back to the top",
   test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "mobile-only: tap-on-active contract of the bottom bar");
   await bootWithoutServerLook(page);
   // Make the scroller deterministically scrollable: the dashboard's content
-  // height varies, the mechanism under test does not. Shrink the scroller,
-  // push it down, tap the ACTIVE slot (we are on /dashboard), and the
-  // Layout-owned scroll-to-top must fire instead of a re-navigation.
+  // height varies, the mechanism under test does not. GROW THE PAGE, never
+  // shrink the scroller: #bv-main is a flex-1 item of the flex-col shell
+  // (Layout.tsx), so an inline height on it is IGNORED — flex-basis 0% owns
+  // the main axis and the used size comes from the flex algorithm (the old
+  // style.height = "200px" here was a silent no-op; the test passed only on
+  // the dashboard's natural content overflow). A tall first child — the
+  // per-route wrapper around the Outlet — guarantees scrollHeight >
+  // clientHeight under any flex sizing, independent of what the dashboard
+  // renders. Then push the scroller down, tap the ACTIVE slot (we are on
+  // /dashboard), and the Layout-owned scroll-to-top must fire instead of a
+  // re-navigation.
   await page.locator("#bv-main").evaluate((el) => {
-    (el as HTMLElement).style.height = "200px";
+    const first = el.firstElementChild as HTMLElement | null;
+    if (first) first.style.minHeight = `${el.clientHeight + 500}px`;
     el.scrollTop = 300;
   });
+  // Honest precondition assert: if a future shell change makes the grow
+  // above a no-op again (as the old height shrink was), fail HERE with a
+  // reason instead of as a confusing poll timeout below.
+  expect(
+    await page.locator("#bv-main").evaluate((el) => el.scrollHeight > el.clientHeight),
+  ).toBe(true);
   await expect
     .poll(() => page.locator("#bv-main").evaluate((el) => el.scrollTop))
     .toBeGreaterThan(0);
