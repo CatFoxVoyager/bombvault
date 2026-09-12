@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 5
+open_count: 7
 waived_count: 0
 fixed_count: 0
-total_count: 5
-last_updated: 2026-09-10T20:13:17.161Z
+total_count: 7
+last_updated: 2026-09-12T12:10:10.137Z
 ---
 
 # Broken Windows Ledger
@@ -20,6 +20,8 @@ last_updated: 2026-09-10T20:13:17.161Z
 | 3 | 3 | deviation | web/src/components/SelectionTree.dom.test.tsx |  | Mock migrated from retired setBackupPaths to setContainerTargets during 03-03 Task 2 (Rule 3); two D-04 copy assertions updated to Task 1 wording | open |  | 2026-09-10T20:13:13.009Z |  |
 | 4 | 3 | deviation | web/src/components/SelectionTree.keyboard.dom.test.tsx |  | Mock migrated from retired setBackupPaths to setContainerTargets during 03-03 Task 2 (Rule 3) | open |  | 2026-09-10T20:13:16.924Z |  |
 | 5 | 3 | deviation | web/src/pages/Containers.tree.dom.test.tsx |  | RED tests used jest-dom matchers absent from this repo and asserted the shake on the classless presentation wrapper; fixed to plain property checks on the inner row (Rule 1) | open |  | 2026-09-10T20:13:17.161Z |  |
+| 6 | 06 | deviation | web/src/components/InfoBubble.tsx |  | Rule 1 auto-fix: destructure left JSX tail referencing removed tooltip object (ReferenceError); fixed by adding bubble to destructure (e24eda30) | open |  | 2026-09-12T12:10:09.881Z |  |
+| 7 | 06 | deviation | web/e2e/tap-popovers.spec.ts |  | Rule 1 auto-fix: e2e asserted translated label 'Filter' but actual string is 'Filters'; assertions corrected (768f87bd) | open |  | 2026-09-12T12:10:10.137Z |  |
 
 ````json
 [
@@ -81,6 +83,30 @@ last_updated: 2026-09-10T20:13:17.161Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-10T20:13:17.161Z",
+    "resolved_at": null
+  },
+  {
+    "id": 6,
+    "kind": "deviation",
+    "phase": "06",
+    "file": "web/src/components/InfoBubble.tsx",
+    "line": null,
+    "description": "Rule 1 auto-fix: destructure left JSX tail referencing removed tooltip object (ReferenceError); fixed by adding bubble to destructure (e24eda30)",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-12T12:10:09.881Z",
+    "resolved_at": null
+  },
+  {
+    "id": 7,
+    "kind": "deviation",
+    "phase": "06",
+    "file": "web/e2e/tap-popovers.spec.ts",
+    "line": null,
+    "description": "Rule 1 auto-fix: e2e asserted translated label 'Filter' but actual string is 'Filters'; assertions corrected (768f87bd)",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-12T12:10:10.137Z",
     "resolved_at": null
   }
 ]

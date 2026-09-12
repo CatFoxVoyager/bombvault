@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 06
 current_phase_name: Maquette Screens
 status: executing
-stopped_at: Completed 06-02-PLAN.md (ConfirmSheet + responsive shell)
-last_updated: "2026-09-12T10:18:41.826Z"
+stopped_at: Completed 06-03-PLAN.md
+last_updated: "2026-09-12T12:09:54.701Z"
 last_activity: 2026-09-12
 last_activity_desc: Phase 06 execution started
-state_head: f2c5ccc9c144769e9f97e5711d96b5ae09ca0e7c
+state_head: 768f87bdb315c6d14a4905a6e23c165c529a478f
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 13
-  completed_plans: 8
+  completed_plans: 9
   percent: 25
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-11)
 ## Current Position
 
 Phase: 06 (Maquette Screens) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Total Plans in Phase: 7
 Status: Ready to execute
 Last activity: 2026-09-12 — Phase 06 execution started
@@ -90,6 +90,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 05 P06 | 39 min | 3 tasks | 5 files |
 | Phase 06 P01 | 85min | 3 tasks | 48 files |
 | Phase 06 P02 | 60min | 3 tasks | 7 files |
+| Phase 06 P03 | 1h44m | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,10 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 06]: e2e container domain staged at Playwright route layer (harness has no Docker; fresh DB can never hold a container) - Go JSON shapes field-for-field + advanced seed + Saved-toast pacing
 - [Phase 06]: D-07 landed: useConfirm's portal branches on useIsDesktop - ConfirmDialog desktop byte-identical, ConfirmSheet (fail/warn-toned BottomSheet, destructive top / safe cancel thumb-default, no autoFocus) below 48rem; zero per-call-site changes
 - [Phase 06]: BottomSheet grew closed tone union + fullHeight + footer (all additive, absent = Phase 5 sheet); 05-UI-REVIEW findings 1+6 absorbed once at the primitive (inset-clamped physical sides, 44px close with exception marker)
+- [Phase 06]: TapPopover PRIM-02: portaled dialog + consuming backdrop (z-40 under z-50), computeBubblePosition anchoring, light focus restore; controlled AND uncontrolled open
+- [Phase 06]: InfoBubble tap path is OPEN-ONLY (Android fires focus before click; a click-toggle would re-hide what focus just opened); re-tap deliberately not a close
+- [Phase 06]: ColorPickerPopover rides TapPopover controlled; its outside-mousedown dismissal is desktop-only (document mousedown mid-tap would unmount the backdrop between mousedown and click - T-06-03)
+- [Phase 06]: Mobile picker width lives on a wrapper div: .glim-picker width:100% is unlayered author CSS that beats Tailwind v4 layered utilities on the same element
 
 ### Pending Todos
 
@@ -142,8 +147,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-12T10:18:41.675Z
-Stopped at: Completed 06-02-PLAN.md (ConfirmSheet + responsive shell)
+Last session: 2026-09-12T12:09:43.569Z
+Stopped at: Completed 06-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
