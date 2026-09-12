@@ -22,14 +22,29 @@
 // contract: the bar renders EXACTLY the registry slots — the enabled bar
 // destinations plus the More trigger, nothing else (bar-exactness test below).
 // ---------------------------------------------------------------------------
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 // The two device projects from playwright.config.ts. Everything else is a
 // desktop project.
 const MOBILE_PROJECTS = new Set(["mobile-iphone", "mobile-android"]);
 
-test("chrome switches with the viewport: bar on mobile, Sidebar on desktop", async ({ page }, testInfo) => {
+// The look's truth lives on the SERVER (displayPrefs.ts, #191): at boot the
+// page adopts the harness DB's stored display prefs, bv-lang included. A
+// stored bv-lang (a de/fr backstop run leaves one behind on the persistent
+// DATA_DIR) would silently rewrite every localized label under these
+// assertions ("More" -> "Mehr"), and parallel workers would each see
+// whichever locale booted first. So every test cuts the boot-time
+// reconciliation fetch — sync()'s fetch failing is the app's own documented
+// degradation path ("offline: the cache is the look") — and pages boot in
+// the harness default locale deterministically, with nothing PUT back to
+// the shared server.
+async function bootWithoutServerLook(page: Page): Promise<void> {
+  await page.route("**/api/display-prefs*", (route) => route.abort());
   await page.goto("/dashboard");
+}
+
+test("chrome switches with the viewport: bar on mobile, Sidebar on desktop", async ({ page }, testInfo) => {
+  await bootWithoutServerLook(page);
   if (MOBILE_PROJECTS.has(testInfo.project.name)) {
     // Mobile: the bottom bar is present exactly once, the desktop Sidebar is
     // not in the DOM at all, and main is the scroller.
@@ -46,7 +61,7 @@ test("chrome switches with the viewport: bar on mobile, Sidebar on desktop", asy
 
 test("the bar renders EXACTLY the registry slots: enabled destinations + More, nothing else", async ({ page }, testInfo) => {
   test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "mobile-only: bar exactness is the SHELL-02 mobile contract");
-  await page.goto("/dashboard");
+  await bootWithoutServerLook(page);
   const bar = page.getByTestId("bottom-nav");
   // The slot row is the bar's only inline child (the More sheet is a portal
   // to document.body, never a slot); its direct children ARE the slots.
@@ -72,7 +87,7 @@ test("the bar renders EXACTLY the registry slots: enabled destinations + More, n
 
 test("the More sheet opens with the fresh-DB registry and closes via all three paths", async ({ page }, testInfo) => {
   test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "mobile-only: the More trigger exists below the breakpoint");
-  await page.goto("/dashboard");
+  await bootWithoutServerLook(page);
 
   const bar = page.getByTestId("bottom-nav");
   const moreTrigger = bar.getByRole("button", { name: "More" });
@@ -124,7 +139,7 @@ test("the More sheet opens with the fresh-DB registry and closes via all three p
 });
 
 test("sign-out parity: the fresh DB shows the row on NEITHER chrome surface", async ({ page }, testInfo) => {
-  await page.goto("/dashboard");
+  await bootWithoutServerLook(page);
   if (MOBILE_PROJECTS.has(testInfo.project.name)) {
     // Mobile: open the sheet — with auth disabled the sign-out row must not
     // exist inside it (the emptiness-adjacent half of the same gate).
@@ -147,7 +162,7 @@ test("the bar stays bottom-docked in landscape", async ({ page }, testInfo) => {
   // bar; documented in 05-05-SUMMARY as a deviation, with the breakpoint
   // semantics flagged for a product decision.)
   await page.setViewportSize({ width: 740, height: 360 });
-  await page.goto("/dashboard");
+  await bootWithoutServerLook(page);
   const box = await page.getByTestId("bottom-nav").boundingBox();
   expect(box).not.toBeNull();
   // Normal-flow sibling (never fixed): the browser reserves the bar's row at
@@ -160,7 +175,7 @@ test("the bar stays bottom-docked in landscape", async ({ page }, testInfo) => {
 
 test("tapping the already-active bar slot scrolls the scroller back to the top", async ({ page }, testInfo) => {
   test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "mobile-only: tap-on-active contract of the bottom bar");
-  await page.goto("/dashboard");
+  await bootWithoutServerLook(page);
   // Make the scroller deterministically scrollable: the dashboard's content
   // height varies, the mechanism under test does not. Shrink the scroller,
   // push it down, tap the ACTIVE slot (we are on /dashboard), and the
