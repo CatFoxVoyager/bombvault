@@ -611,6 +611,12 @@ export function SelectionTree({
             // control inside the row outside the roving set — same precedent
             // as the retry Button and the exclusions disclosure: the keydown
             // target guard hands it its own Space/Enter semantics.
+            //
+            // bv-convention-exception: one-icon-badge-size -- this is not an
+            // icon badge but a TOUCH TAP TARGET: D-02/UI-SPEC SCRN-03 mandate
+            // a dedicated >=44x44px expand zone (the e2e geometry gate
+            // measures the box), and a 32px Badge tile would shrink the
+            // finger target the whole mode exists to provide.
             <button
               type="button"
               aria-label={t(expanded ? "common.collapse" : "common.expand")}
