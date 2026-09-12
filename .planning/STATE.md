@@ -4,17 +4,17 @@ milestone: v1.1
 milestone_name: Mobile Interface
 current_phase: 06
 current_phase_name: Maquette Screens
-status: executing
-stopped_at: Completed 06-06-PLAN.md
-last_updated: "2026-09-12T18:14:45.214Z"
+status: verifying
+stopped_at: "Completed 06-07-PLAN.md (phase 6 execute: all 7 plans done, ready for verification)"
+last_updated: "2026-09-12T19:10:53.913Z"
 last_activity: 2026-09-12
 last_activity_desc: Phase 06 execution started
-state_head: b3c55a706842d53e6ac77b5660ee41a961382bf7
+state_head: d27973040ef6065b79aa2fc71157ebec00b44da3
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
   percent: 25
 ---
 
@@ -32,7 +32,7 @@ See: .planning/PROJECT.md (updated 2026-09-11)
 Phase: 06 (Maquette Screens) — EXECUTING
 Plan: 7 of 7
 Total Plans in Phase: 7
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-12 — Phase 06 execution started
 Last Activity Description: Phase 06 execution started
 
@@ -94,6 +94,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 06 P04 | 1h15m | 3 tasks | 10 files |
 | Phase 06 P05 | 2h38m | 3 tasks | 14 files |
 | Phase 06 P06 | 1h58m | 3 tasks | 48 files |
+| Phase 06 P07 | 45m | 3 tasks | 46 files |
 
 ## Accumulated Context
 
@@ -138,6 +139,9 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 06]: 06-06: Home trigger = useBackupWatch with progressKey '' (everything parent publishes no SSE key) + matchRun domain==='everything'; onRun deep-links RunDetailSheet, sheetDismissed latch guards re-open not record refresh
 - [Phase 06]: 06-06: worstRpoStatus/worstRpoLabel/nextBackupFireAt extracted as shared derivations - SummaryTier and the mobile next-run/repo-health cards cannot disagree on /api/schedule/next or /api/status
 - [Phase 06]: 06-06: home.newBackup/home.newBackupConfirm bound in all 42 tables in the same commit that renders them; de confirm copy uses Bereich/Gesamt-Backup house vocabulary; offsite age chip is text-only text-statusOffsite (index.css scope comment names both consumers now)
+- [Phase 06]: Leakage guards assert absence by role/text first; the one class-signature check (StickyActionBar chrome combo) was verified unique in src/
+- [Phase 06]: Stale mobile e2e entry points (touch-tree, run-detail-visibility) rerouted to the 06-05 stacked-detail flow rather than weakening assertions - found by the first full four-project gate run
+- [Phase 06]: nav.mobileNavigation translated per language across all 40 locale modules via one-shot codemod; parity+orphans tests fence the 42-table sweep
 
 ### Pending Todos
 
@@ -160,8 +164,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-12T18:14:45.042Z
-Stopped at: Completed 06-06-PLAN.md
+Last session: 2026-09-12T19:10:53.745Z
+Stopped at: Completed 06-07-PLAN.md (phase 6 execute: all 7 plans done, ready for verification)
 Resume file: None
 
 ## Operator Next Steps
