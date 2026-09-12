@@ -118,3 +118,7 @@ Windows Playwright stalls recurred and the remedy is now a two-step playbook: (a
 - InfoBubble is now 44px on coarse pointers — pages stacking several bubbles in one row should be checked for wrap on the maquette screens.
 - Sticky bars span the p-4 gutter (06-02 convention) — keep new mobile chrome consistent.
 - Windows Playwright stall remedy above applies to every remaining e2e run this phase.
+
+## Self-Check: PASSED
+
+All created files exist on disk; all four commit hashes (260820c9, e24eda30, 768f87bd, 15465998) verified in git history.
