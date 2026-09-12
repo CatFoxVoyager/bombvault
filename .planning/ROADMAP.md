@@ -75,7 +75,7 @@ Plans:
 **Plans**: 7 plans
 
 Plans:
-**Wave 1** *(parallel — no shared files)*
+**Wave 1** *(parallel — no shared files; i18n.ts + locales/ are single-owner this wave: 06-01 adds the only new keys — 06-02/06-03 consume existing keys and declare that prohibition)*
 
 - [ ] 06-01-PLAN.md — Touch selection tree seam: useIsCoarsePointer + interactionMode, full-row ≥44px targets, chevron/check separation, roving-on-tap in FoldersEditor (SCRN-03)
 - [ ] 06-02-PLAN.md — PRIM-03: ConfirmSheet fail-tone presentation + BottomSheet fullHeight/footer extensions + Layout scroller rhythm (PRIM-03)
@@ -85,11 +85,11 @@ Plans:
 
 - [ ] 06-04-PLAN.md — SCRN-05: runDisplay helper extraction, RunDetailSheet with honest stat tiles + activity log, useVisibilityGate live-progress reconcile (SCRN-05, PRIM-04)
 
-**Wave 3** *(after 06-01/06-02/06-04)*
+**Wave 3** *(after 06-01/06-02/06-03/06-04)*
 
 - [ ] 06-05-PLAN.md — SCRN-02/03/04: stacked container detail + StickyActionBar + full-height touch tree, file sets coverage cards + emptyRule, FLOW-03 trigger rows (SCRN-02, SCRN-03, SCRN-04, FLOW-03)
 
-**Wave 4** *(after 06-02/06-04)*
+**Wave 4** *(after 06-02/06-04/06-05)*
 
 - [ ] 06-06-PLAN.md — SCRN-01: glanceable mobile Dashboard blocks + thumb-zone New-backup trigger with confirm deep-link into the run sheet (SCRN-01, FLOW-03)
 

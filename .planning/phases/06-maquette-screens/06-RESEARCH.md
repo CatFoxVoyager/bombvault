@@ -526,24 +526,28 @@ Omitted — not a rename/refactor/migration phase. (Presentation-only milestone;
 | A4 | New locale keys must land in every locale module; module count is 40-42 (sources disagree) | Pitfall 9 | LOW — parity test catches any miss; count confirmed at execution |
 | A5 | `tap()` inside the desktop-768 project is never needed (mouse project) | Validation Architecture | LOW — touch assertions are scoped to the two mobile projects |
 
-## Open Questions
+## Open Questions (RESOLVED — all four closed at plan time, 2026-09-12)
 
-1. **D-05 content extraction seam — which desktop component(s) hold run-detail content?**
+1. **D-05 content extraction seam — which desktop component(s) hold run-detail content?** **(RESOLVED — plan 06-04)**
    - What we know: Dashboard.tsx owns run presentation helpers (`runKindLabel` 66-92, `runTargetText` 107-112, `statusLabel` 387-406, `statusTone` 340 — session code read) and the runs list; D-05 mandates the planner map the exact extraction source with no duplication.
    - What's unclear: whether the detail content lives as an expanded-row renderer, a dialog, or inline sections in Dashboard.
    - Recommendation: planner pins the extraction boundary as the FIRST task of the run-detail plan; extract content into a shared component consumed by both desktop surface and the full-screen sheet.
+   - Resolution: 06-04 Task 1 pins the source — the six presentation helpers (`runKindLabel`, `runDomainLabel`, `isDomainOpRunKind`, `runTargetText`, `statusTone`, `statusLabel`) move verbatim from Dashboard.tsx into the new `web/src/lib/runDisplay.ts`, Dashboard imports them back (behavior-identical refactor), and the RunDetailSheet renders the detail content from the same helpers — no duplication, no second surface.
 
-2. **Locale module count for new i18n keys (42 vs 40)?**
+2. **Locale module count for new i18n keys (42 vs 40)?** **(RESOLVED — plans 06-01/04/05/06/07)**
    - What we know: CONTEXT says 42-locale parity; 05-UI-REVIEW verified "40/40 modules" for `nav.more`.
    - Recommendation: treat the parity test as the authority; add keys to every module present.
+   - Resolution: parity/orphans tests are the authority, exactly as recommended. All Phase 6 plans add each new key to the en + de inline blocks in i18n.ts AND all 40 modules under `web/src/lib/locales/` in the same commit (42 surfaces total), and every plan's verify runs `i18n.parity.test.ts` + `i18n.orphans.test.ts`.
 
-3. **What drives `interactionMode` — adopt `(pointer: coarse)`?**
+3. **What drives `interactionMode` — adopt `(pointer: coarse)`?** **(RESOLVED — user-locked as D-11, 2026-09-12; implemented by plan 06-01)**
    - What we know: D-01/D-02 don't pin the switch point; `useIsDesktop` is width-based and user-locked as the CHROME authority; landscape phones (≥48rem) still receive touch.
    - Recommendation: add `useIsCoarsePointer` (`(pointer: coarse)`) in `useMediaQuery.ts` beside the existing hook — width authority untouched; confirm with user at discuss/plan if A2 should be locked.
+   - Resolution: locked as D-11 at /gsd-discuss-phase exactly per the recommendation — `POINTER_COARSE_QUERY = "(pointer: coarse)"` + `useIsCoarsePointer()` as an additive twin beside `useIsDesktop`; DESKTOP_QUERY remains the single width/chrome authority; hybrid fine-pointer devices stay on the pointer tree.
 
-4. **Full-height run-detail sheet: `h-dvh` variant shape?**
+4. **Full-height run-detail sheet: `h-dvh` variant shape?** **(RESOLVED — plan 06-02 Task 1)**
    - What we know: BottomSheet panel is `max-h-[85dvh]` today; D-05 says full-screen.
    - Recommendation: additive prop on BottomSheet (e.g. fullHeight) switching the panel class to `h-dvh`; keep 85dvh default for all existing consumers (MoreSheet backward-compat).
+   - Resolution: implemented as recommended — additive `fullHeight?: boolean` prop on BottomSheet rendering `h-dvh` instead of `max-h-[85dvh]`; default untouched so MoreSheet and every existing dom test pass unchanged; 06-04's RunDetailSheet is the fullHeight consumer.
 
 ## Environment Availability
 
