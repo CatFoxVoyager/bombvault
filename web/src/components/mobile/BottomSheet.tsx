@@ -46,6 +46,30 @@ import { useT } from "../../lib/i18n";
 // scrim and panel are SIBLINGS inside the portal: the panel must not be a DOM
 // child of an aria-hidden element, or the dialog itself would be hidden from
 // assistive technology.
+//
+// Phase 6 additions (all ADDITIVE — absent props render exactly the Phase 5
+// sheet, which is why MoreSheet and every existing dom test pass untouched):
+//   - `fullHeight` (D-05): the run-detail sheet renders h-dvh instead of the
+//     85dvh cap. A boolean, not a class pass-through, so the primitive keeps
+//     owning its own viewport contract.
+//   - `footer`: a flex-none row AFTER the scroll body in the chrome language
+//     (bg-carbon-sidebar + top hairline, like the bottom bar and the sticky
+//     action bars) — actions pinned while content scrolls, never scrolled
+//     away. The safe-area bottom inset moves onto the footer so the LAST
+//     surface on screen owns the home-indicator gap.
+//   - `tone` (PRIM-03): a closed two-value union — the same shape as
+//     ConfirmDialog's `tone` — that swaps the panel surface to the status
+//     tokens for the fail-tone confirm sheet. A closed union rather than a
+//     className pass-through for the reason Button.tsx's TONE_TABLE documents:
+//     two competing bg-* utilities on one element resolve by stylesheet order,
+//     which is not something a call site can reason about.
+//   - 05-UI-REVIEW findings 1 and 6, absorbed ONCE here because every Phase 6
+//     sheet reuses this primitive (finding 1): the header and body side
+//     padding is inset-clamped — each physical side takes max(1rem, its OWN
+//     safe-area inset) — so content clears landscape display cutouts on
+//     notched phones (finding 6): the close button's hit box is the 44px
+//     touch floor, not the old ~40px p-2 square. Both carry inline markers
+//     at the site.
 // ---------------------------------------------------------------------------
 
 export interface BottomSheetProps {
@@ -57,7 +81,31 @@ export interface BottomSheetProps {
   title: string;
   /** The sheet body. */
   children: ReactNode;
+  /** Full-height variant (D-05 run detail): the panel renders h-dvh instead
+   *  of the max-h-[85dvh] cap. Default (absent) = the Phase 5 sheet exactly. */
+  fullHeight?: boolean;
+  /** Optional action row pinned AFTER the scroll body — flex-none, chrome
+   *  language (bg-carbon-sidebar + top hairline), safe-area padded. It never
+   *  scrolls away; the body keeps min-h-0 flex-1 so the split always holds.
+   *  Content padding is the consumer's (the container only owns chrome). */
+  footer?: ReactNode;
+  /** Panel surface. "default" (absent) is the Phase 5 carbon-surface sheet;
+   *  "fail"/"warn" tint the panel with the matching status tokens — PRIM-03's
+   *  fail-tone confirm sheet is the fail consumer. Closed union, same shape
+   *  as ConfirmDialog's `tone`: a className pass-through would pit two bg-*
+   *  utilities against each other in stylesheet order (Button.tsx's
+   *  TONE_TABLE note). */
+  tone?: "default" | "fail" | "warn";
 }
+
+// Panel surface per `tone`. Values are token utilities only — no raw hex
+// (design-language rule); the hairline border ships only with the toned
+// surfaces, which read as alert cards, not as chrome.
+const TONE_PANEL_CLASS: Record<NonNullable<BottomSheetProps["tone"]>, string> = {
+  default: "bg-carbon-surface",
+  fail: "bg-statusFailBg border border-statusFailBorder",
+  warn: "bg-statusWarnBg border border-statusWarnBorder",
+};
 
 // The panel's own focusable controls, in DOM/tab order. Lifted verbatim from
 // useConfirm.tsx:78-79 — same candidate set, same genericity (not hardcoded
@@ -69,7 +117,7 @@ function focusableElements(root: HTMLElement): HTMLElement[] {
   return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
 }
 
-export function BottomSheet({ open, onClose, title, children }: BottomSheetProps) {
+export function BottomSheet({ open, onClose, title, children, fullHeight, footer, tone }: BottomSheetProps) {
   const { t } = useT();
   const titleId = useId();
   // The panel's DOM node (for the Tab trap) and whatever had focus the moment
@@ -191,12 +239,19 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`fixed inset-x-0 bottom-0 z-50 flex max-h-[85dvh] flex-col rounded-t-card bg-carbon-surface shadow-2xl motion-safe:transition-transform motion-safe:duration-200 ${
+        className={`fixed inset-x-0 bottom-0 z-50 flex ${
+          fullHeight ? "h-dvh" : "max-h-[85dvh]"
+        } flex-col rounded-t-card ${TONE_PANEL_CLASS[tone ?? "default"]} shadow-2xl motion-safe:transition-transform motion-safe:duration-200 ${
           entered ? "translate-y-0" : "translate-y-full"
         }`}
       >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 px-4 py-4">
+        {/* Header — side padding is inset-clamped (05-UI-REVIEW finding 1):
+            each PHYSICAL side clamps against its own safe-area inset, so the
+            close button and title clear a landscape display cutout on either
+            rotation. Physical pl/pr + physical inset vars, not logical
+            padding-inline, so the mapping stays correct under direction:rtl
+            (the env() insets never flip with writing direction). */}
+        <div className="flex items-start justify-between gap-4 py-4 pl-[max(1rem,var(--safe-area-left))] pr-[max(1rem,var(--safe-area-right))]">
           {/* Same title-as-window-chrome treatment as ConfirmDialog's header:
               the <h2> carries the id that aria-labelledby reads (the Badge's
               computed text content is included), just rendered as a heading
@@ -214,12 +269,17 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
               distinct accessible name per the ConfirmDialog strict-mode
               discipline (#178: two identically-named controls broke Playwright
               strict matching). */}
+          {/* bv-convention-exception: one-icon-badge-size -- a mandated >=44px
+              touch tap target (05-UI-REVIEW finding 6; the UI-SPEC exceptions
+              table), not a square icon badge — the same exception the touch
+              tree chevron carries. The 44px floor is the PRIM-03/SCRN-05 reuse
+              blocker this primitive had to absorb before any Phase 6 sheet. */}
           <button
             ref={closeRef}
             type="button"
             aria-label={t("common.close")}
             onClick={onClose}
-            className="shrink-0 rounded-control p-2 text-carbon-textSub hover:bg-carbon-hover motion-safe:active:scale-[.97]"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control text-carbon-textSub hover:bg-carbon-hover motion-safe:active:scale-[.97]"
           >
             <IconClose />
           </button>
@@ -227,10 +287,22 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
         {/* Body (scrolls) — the sheet's own scroll contains all interaction;
             background content is unreachable through the Tab trap, so there is
             no body-scroll-lock. The bottom padding clears the device safe
-            area (resolves to 0 until plan 05 defines the variable). */}
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[var(--safe-area-bottom)]">
+            area (resolves to 0 until plan 05 defines the variable); the sides
+            are inset-clamped like the header (finding 1, same mapping). */}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[var(--safe-area-bottom)] pl-[max(1rem,var(--safe-area-left))] pr-[max(1rem,var(--safe-area-right))]">
           {children}
         </div>
+        {/* Footer (optional, phase 6) — pinned AFTER the scroll body so actions
+            never scroll away; chrome language (bottom bar / sticky action bar
+            tokens), safe-area padded: with a footer on screen it is the LAST
+            surface, so the home-indicator inset belongs here. Sides are
+            inset-clamped like the header and body. Content padding is the
+            consumer's; this element only owns chrome. */}
+        {footer !== undefined && (
+          <div className="flex-none border-t border-carbon-border bg-carbon-sidebar pb-[var(--safe-area-bottom)] pl-[max(1rem,var(--safe-area-left))] pr-[max(1rem,var(--safe-area-right))]">
+            {footer}
+          </div>
+        )}
       </div>
     </>,
     document.body,

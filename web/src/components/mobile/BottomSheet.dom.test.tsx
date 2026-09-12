@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
-import { BottomSheet } from "./BottomSheet";
+import { BottomSheet, type BottomSheetProps } from "./BottomSheet";
 import { en, I18nProvider } from "../../lib/i18n";
 
 // Behavioral proof for PRIM-01 (plan 05-03 Task 3): every mechanism lifted
@@ -19,6 +19,14 @@ import { en, I18nProvider } from "../../lib/i18n";
 //       (header close button + body controls) in both directions
 //   (f) focus is captured from the trigger at open (and moved inside, the
 //       ConfirmDialog autoFocus parity) and restored to the trigger on close
+//
+// Phase 6 additions (plan 06-02 Task 1) assert the additive capabilities the
+// same way, with one documented exception to the no-class-snapshot rule: the
+// new fullHeight / footer / tone / inset-clamped-padding / 44px-close contracts
+// are STYLING contracts, and jsdom computes no geometry, so the observable
+// form of "the panel is h-dvh" IS the class token. These tests assert the
+// PRESENCE of the load-bearing tokens (has-class, never a whole className
+// string) — the same targeted-token discipline, not a snapshot.
 //
 // Deliberately self-sufficient: BottomSheet touches no matchMedia /
 // visualViewport API, so this suite passes whether or not plan 02's
@@ -145,5 +153,113 @@ describe("BottomSheet", () => {
     fireEvent.keyDown(document, { key: "Escape" }); // closes via Escape
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(document.activeElement).toBe(trigger); // restored
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase 6 extension contracts (plan 06-02 Task 1). PropsHarness forwards the
+// additive props onto an already-open sheet — the capabilities are consumed
+// with the sheet open, exactly as RunDetailSheet (fullHeight + footer, 06-04)
+// and ConfirmSheet (tone, 06-02 Task 2) will mount them.
+// ---------------------------------------------------------------------------
+function PropsHarness({ sheetProps }: { sheetProps: Partial<BottomSheetProps> }) {
+  return (
+    <I18nProvider>
+      <BottomSheet open onClose={vi.fn()} title={en["nav.more"]} {...sheetProps}>
+        <p>body content</p>
+      </BottomSheet>
+    </I18nProvider>
+  );
+}
+
+/** The header div is the close button's parent; the scroll body is its next
+ *  sibling — the panel's structural order, readable without testids. */
+function headerAndBody(): { header: HTMLElement; body: HTMLElement; panel: HTMLElement } {
+  const panel = screen.getByRole("dialog");
+  const header = screen.getByRole("button", { name: en["common.close"] }).parentElement as HTMLElement;
+  const body = header.nextElementSibling as HTMLElement;
+  return { panel, header, body };
+}
+
+describe("BottomSheet phase 6 extensions", () => {
+  afterEach(cleanup);
+
+  it("keeps the capped panel by default and switches to h-dvh only with fullHeight", () => {
+    // Default (MoreSheet's mount): the 85dvh cap, never the full-height class.
+    const { unmount } = render(<PropsHarness sheetProps={{}} />);
+    let panel = screen.getByRole("dialog");
+    expect(panel.className).toContain("max-h-[85dvh]");
+    expect(panel.className).not.toContain("h-dvh");
+    unmount();
+
+    // D-05 run-detail variant: h-dvh replaces the cap.
+    render(<PropsHarness sheetProps={{ fullHeight: true }} />);
+    panel = screen.getByRole("dialog");
+    expect(panel.className).toContain("h-dvh");
+    expect(panel.className).not.toContain("max-h-[85dvh]");
+  });
+
+  it("clamps header and body side padding to the safe-area insets", () => {
+    render(<PropsHarness sheetProps={{}} />);
+    const { header, body } = headerAndBody();
+    // Each physical side clamps against its OWN inset (max(1rem, inset)):
+    // content clears a landscape display cutout on either rotation.
+    for (const el of [header, body]) {
+      expect(el.className).toContain("pl-[max(1rem,var(--safe-area-left))]");
+      expect(el.className).toContain("pr-[max(1rem,var(--safe-area-right))]");
+    }
+    // The body keeps its bottom safe-area padding (unchanged contract).
+    expect(body.className).toContain("pb-[var(--safe-area-bottom)]");
+  });
+
+  it("gives the close button the 44px touch hit box (05-UI-REVIEW finding 6)", () => {
+    render(<PropsHarness sheetProps={{}} />);
+    const close = screen.getByRole("button", { name: en["common.close"] });
+    // h-11 / w-11 = 44px — the touch floor. Asserted as tokens (jsdom has no
+    // geometry); the e2e harness asserts the rendered pixels on device views.
+    expect(close.className).toContain("h-11");
+    expect(close.className).toContain("w-11");
+  });
+
+  it("keeps the carbon-surface panel by default and tints it only for a tone", () => {
+    const { unmount } = render(<PropsHarness sheetProps={{}} />);
+    expect(screen.getByRole("dialog").className).toContain("bg-carbon-surface");
+    expect(screen.getByRole("dialog").className).not.toContain("statusFail");
+    unmount();
+
+    // PRIM-03's fail-tone confirm sheet surface.
+    const fail = render(<PropsHarness sheetProps={{ tone: "fail" }} />);
+    let panel = screen.getByRole("dialog");
+    expect(panel.className).toContain("bg-statusFailBg");
+    expect(panel.className).toContain("border-statusFailBorder");
+    fail.unmount();
+
+    // The warn tone mirrors ConfirmDialog's non-destructive branch.
+    const warn = render(<PropsHarness sheetProps={{ tone: "warn" }} />);
+    panel = screen.getByRole("dialog");
+    expect(panel.className).toContain("bg-statusWarnBg");
+    expect(panel.className).toContain("border-statusWarnBorder");
+    warn.unmount();
+  });
+
+  it("renders an optional footer after the scroll body, chrome-styled and safe-area padded", () => {
+    // Default: no footer element at all — the panel is header + body only.
+    const { unmount } = render(<PropsHarness sheetProps={{}} />);
+    const { panel } = headerAndBody();
+    expect(panel.childElementCount).toBe(2);
+    unmount();
+
+    render(<PropsHarness sheetProps={{ footer: <p>footer actions</p> }} />);
+    const { body } = headerAndBody();
+    const footer = screen.getByText("footer actions").parentElement as HTMLElement;
+    // Chrome language: sidebar surface + top hairline (bottom bar / sticky
+    // bar tokens), safe-area bottom padding (the footer is the LAST surface
+    // on screen), inset-clamped sides like the rest of the panel.
+    expect(footer.className).toContain("bg-carbon-sidebar");
+    expect(footer.className).toContain("border-t");
+    expect(footer.className).toContain("pb-[var(--safe-area-bottom)]");
+    expect(footer.className).toContain("pl-[max(1rem,var(--safe-area-left))]");
+    // And it comes AFTER the scroll body — the "never scrolls away" ordering.
+    expect(footer.previousElementSibling).toBe(body);
   });
 });
