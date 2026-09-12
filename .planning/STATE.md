@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 06
 current_phase_name: Maquette Screens
 status: executing
-stopped_at: Completed 06-04-PLAN.md
-last_updated: "2026-09-12T13:27:29.419Z"
+stopped_at: Completed 06-05-PLAN.md
+last_updated: "2026-09-12T16:11:37.823Z"
 last_activity: 2026-09-12
 last_activity_desc: Phase 06 execution started
-state_head: 7fef02697e106e07186e7564921fb6f8d17795ac
+state_head: 19f05132fd15eb452666956fb3bae5f2a11ac6ce
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 13
-  completed_plans: 10
+  completed_plans: 11
   percent: 25
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-11)
 ## Current Position
 
 Phase: 06 (Maquette Screens) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 Total Plans in Phase: 7
 Status: Ready to execute
 Last activity: 2026-09-12 — Phase 06 execution started
@@ -92,6 +92,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 06 P02 | 60min | 3 tasks | 7 files |
 | Phase 06 P03 | 1h44m | 3 tasks | 7 files |
 | Phase 06 P04 | 1h15m | 3 tasks | 10 files |
+| Phase 06 P05 | 2h38m | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -129,6 +130,9 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 06]: 06-04: SCRN-05 renders the Frozen-API substitutes only (humanBytes/formatDuration/mono-slice tiles + buildLogLines); per-file triad is a recorded v2 data candidate
 - [Phase 06]: 06-04: PRIM-04 is a consumer-side gate (useVisibilityGate + isPageVisible) around the frozen progress singleton — hidden unmounts/unsubscribes and stops poll chains; visible refetches listRuns FIRST (baseline-id reconcile)
 - [Phase 06]: 06-04: backupWatch gates the hook poll chain only (busy-ref guard against the visibility-restart edge); fireAndWaitRun bulk loop deliberately ungated; sheet-host e2e deferred to 06-05 with component-level DOM coverage in its place
+- [Phase 06]: Save bar is a publish contract: editor owns the queue and passes a stable setState + flushRef; the bar derives everything and its Save press only flushes the desktop-identical queue (zero new save mechanism)
+- [Phase 06]: FLOW-03 seam lives in the hook: useBackupWatch optional onRun (ref-mirrored) reports the baseline-id-correlated run every poll; BackupButton/FileSetBackupButton onRunCorrelated passthrough; consumers host RunDetailSheet component-locally with a dismissal latch; desktop omits and is unchanged
+- [Phase 06]: Desktop >=48rem identity is asserted in e2e: desktop-1280 scenario proves no stacked view, no Save-bar count line, no w-full.bg-accent trigger on /containers or /files; full dom suite green
 
 ### Pending Todos
 
@@ -151,8 +155,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-12T13:27:29.267Z
-Stopped at: Completed 06-04-PLAN.md
+Last session: 2026-09-12T16:11:37.661Z
+Stopped at: Completed 06-05-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
