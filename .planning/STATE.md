@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Mobile Interface
-current_phase: 6
+current_phase: 06
 current_phase_name: Maquette Screens
 status: executing
-stopped_at: Phase 6 UI-SPEC approved
-last_updated: "2026-09-12T07:53:21.984Z"
+stopped_at: Completed 06-01-PLAN.md (touch SelectionTree interaction mode)
+last_updated: "2026-09-12T09:35:47.534Z"
 last_activity: 2026-09-12
-last_activity_desc: Phase 6 planning complete — 7 plans ready
-state_head: 42fd4b97875be4b44034e516f4556c217fc7e131
+last_activity_desc: Phase 06 execution started
+state_head: 2c77b29a9c281cb6803e97d6c6a768662ee3cb90
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 13
-  completed_plans: 6
+  completed_plans: 7
   percent: 25
 ---
 
@@ -25,18 +25,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-11)
 
 **Core value:** Every container, VM, and config on the host can be backed up consistently and restored completely — a dead server is rebuilt from the restic repo alone.
-**Current focus:** Phase 5 — Mobile Shell & Navigation Foundation
+**Current focus:** Phase 06 — Maquette Screens
 
 ## Current Position
 
-Phase: 6 (Maquette Screens) — READY TO EXECUTE
-Plan: Not started
+Phase: 06 (Maquette Screens) — EXECUTING
+Plan: 2 of 7
 Total Plans in Phase: 7
 Status: Ready to execute
-Last activity: 2026-09-12 — Phase 5 complete, transitioned to Phase 6
-Last Activity Description: Phase 6 planning complete — 7 plans ready
+Last activity: 2026-09-12 — Phase 06 execution started
+Last Activity Description: Phase 06 execution started
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███░░░░░░░] 25%
 
 ## Performance Metrics
 
@@ -88,6 +88,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P04 | 13min | 3 tasks | 5 files |
 | Phase 05 P05 | 102 min | 3 tasks | 6 files |
 | Phase 05 P06 | 39 min | 3 tasks | 5 files |
+| Phase 06 P01 | 85min | 3 tasks | 48 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,9 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 5]: 05-06: bar exactness asserted against fresh-DB registry derivation (4 slots: Dashboard, Containers, Settings + More) not the plan's literal 5 - files_enabled defaults false; exactness is the substance (Rule 1)
 - [Phase 5]: 05-06: localized e2e boots cut the display-prefs reconciliation via route.abort - server-look (#191) otherwise clobbers the locale seed and parallel workers clobber each other (Rule 1)
 - [Phase 5]: 05-06: local Playwright runs use a manually started webServer (Windows teardown hang); CI keeps its own boot via reuseExistingServer: !CI (Rule 3)
+- [Phase 06]: touch interaction is a render/handler-only prop (interactionMode) on the ONE SelectionTree - APG state model shared verbatim; pointer axis is a SECOND media axis ((pointer: coarse) hook), DESKTOP_QUERY stays the only width literal (D-11)
+- [Phase 06]: touch checkbox is readOnly + pointer-events-none (one live toggle surface); touch chevron carries bv-convention-exception vs one-icon-badge-size (mandated 44px tap target)
+- [Phase 06]: e2e container domain staged at Playwright route layer (harness has no Docker; fresh DB can never hold a container) - Go JSON shapes field-for-field + advanced seed + Saved-toast pacing
 
 ### Pending Todos
 
@@ -135,9 +139,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-12T05:23:36.192Z
-Stopped at: Phase 6 UI-SPEC approved
-Resume file: .planning/phases/06-maquette-screens/06-UI-SPEC.md
+Last session: 2026-09-12T09:35:35.589Z
+Stopped at: Completed 06-01-PLAN.md (touch SelectionTree interaction mode)
+Resume file: None
 
 ## Operator Next Steps
 

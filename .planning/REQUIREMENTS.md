@@ -30,7 +30,7 @@
 
 - [ ] **SCRN-01**: Home: instance identity header, Next run card, recent runs with four-status badges, repository health (incl. offsite-copy age in offsite blue), one primary thumb-zone action "New backup" with consequence-aware confirm and deep-link to the live run; glanceable in one screenful
 - [ ] **SCRN-02**: Containers: summary line + one card per container (mount count, selection summary, four-status badge) → container detail; entry into the selection tree from there
-- [ ] **SCRN-03**: Touch selection tree: an interaction-layer variant of the ONE `SelectionTree` (never a fork) — full-row ≥ 44px targets, chevron/check hit-area separation, EXCLUDED rows muted, per-root CACHEDIR.TAG toggle with plain-language line, pinned live "handed to restic · n of m ticked" count, Save pinned in a bottom action bar; wired to the existing serialized save queue; semantics byte-identical (APG `aria-checked`/roving tabindex/Space-through-`onToggle` preserved); empty-deselect rule surfaced in copy
+- [x] **SCRN-03**: Touch selection tree: an interaction-layer variant of the ONE `SelectionTree` (never a fork) — full-row ≥ 44px targets, chevron/check hit-area separation, EXCLUDED rows muted, per-root CACHEDIR.TAG toggle with plain-language line, pinned live "handed to restic · n of m ticked" count, Save pinned in a bottom action bar; wired to the existing serialized save queue; semantics byte-identical (APG `aria-checked`/roving tabindex/Space-through-`onToggle` preserved); empty-deselect rule surfaced in copy
 - [ ] **SCRN-04**: File sets: coverage cards ("n of m folders ticked"), status, last-run line; empty-selection rule in copy ("Use Delete set to remove it entirely"); the same touch tree inside
 - [ ] **SCRN-05**: Run detail / Recovery: "Backup complete" + timestamp + duration + monospace snapshot id; stats triad (new/changed/unchanged, tabular numerals); activity log with mono timestamps naming exclusion reasons (unticked / CACHEDIR.TAG); verify integrity; browse snapshot files (touch rows); restore entry point
 - [ ] **SCRN-06**: Guided restore mobile flow: full-screen step flow — preflight summary → confirmation naming overwrite consequences → optional dry-run/verify → live progress with log → completion; restore controls secondary-styled, away from the thumb's default path; guard chain unchanged server-side
@@ -122,7 +122,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VERIFY-01 | Phase 5 | Complete |
 | SCRN-01 | Phase 6 | Pending |
 | SCRN-02 | Phase 6 | Pending |
-| SCRN-03 | Phase 6 | Pending |
+| SCRN-03 | Phase 6 | Complete |
 | SCRN-04 | Phase 6 | Pending |
 | SCRN-05 | Phase 6 | Pending |
 | PRIM-02 | Phase 6 | Pending |
