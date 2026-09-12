@@ -146,6 +146,12 @@ test("hidden page stops the run poll; return refetches first and reconciles the 
   );
 
   await page.goto("/containers");
+  // Phase 6 plan 05 restacked the phone surface: the row's BackupButton now
+  // lives inside the card's stacked detail (the maquette-screens.spec.ts
+  // entry flow — tap the card, the Back row confirms the stack), so open the
+  // detail before firing. The watch chain under test is indifferent to where
+  // its trigger mounts; nothing below changes.
+  await page.getByRole("button", { name: /^plex/ }).tap();
   const backup = page.getByRole("button", { name: "Back up now" });
   await expect(backup).toBeVisible();
 

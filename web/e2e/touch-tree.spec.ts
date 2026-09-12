@@ -120,13 +120,21 @@ async function stageContainerDomain(page: Page): Promise<void> {
 
 /** Boot the /containers page in advanced mode and open the folders editor.
  *  Advanced mode is seeded as a boot-time localStorage write (the SAME key
- *  the Advanced toggle owns, "bombvault.advanced" = "1"): the folders chip is
- *  advanced+installed-only, and the display-prefs abort above means the
- *  server can never adopt or overwrite this look mid-run. */
+ *  the Advanced toggle owns, "bombvault.advanced" = "1"): the detail's
+ *  folders editor is advanced+installed-only, and the display-prefs abort
+ *  above means the server can never adopt or overwrite this look mid-run.
+ *
+ *  Phase 6 plan 05 restacked the phone surface (the restructure this file's
+ *  role-addressed tree already survived): there is no list-level "Backup
+ *  folders" chip anymore — the editor renders INSIDE the card's stacked
+ *  detail. So the entry is the maquette-screens.spec.ts flow: tap the plex
+ *  card, the Back row confirms the detail stacked. The geometry under test
+ *  below is the SAME touch tree; only the door moved. */
 async function openFoldersEditor(page: Page): Promise<void> {
   await page.addInitScript(() => localStorage.setItem("bombvault.advanced", "1"));
   await page.goto("/containers");
-  await page.getByRole("button", { name: "Backup folders" }).tap();
+  await page.getByRole("button", { name: /^plex/ }).tap();
+  await expect(page.getByRole("button", { name: "plex, Back" })).toBeVisible();
 }
 
 /** The ONE tree under test, addressed by ROLE (survives the 06-05 page
