@@ -19,6 +19,7 @@ The design bible's core surfaces are fully operational on a phone — glanceable
 - **D-02:** Touch hit semantics: tap anywhere on the row toggles the check; the chevron is a dedicated ≥44×44px zone (right-aligned) for expand/collapse — the two gestures never share a hit area. `touch-action: manipulation` on rows to kill double-tap-zoom. The jsdom/vitest tree behavior tests keep running unchanged (state model untouched); the e2e harness gains touch-mode assertions (hit-area geometry via bounding boxes).
 - **D-03:** Save is pinned in a bottom action bar that is a sticky element INSIDE the scroller's normal flow (never `position:fixed` — same discipline as the bottom bar), safe-area padded via the Phase 5 custom properties, carrying the live "handed to restic · n of m ticked" count and the per-root CACHEDIR.TAG toggle line. The save itself goes through the existing serialized save queue — the exact desktop-identical path SCRN-03 mandates. Empty-deselect rule is surfaced in the sheet copy (existing rule, mobile wording).
 - [--auto] Selected: interaction-mode prop on the ONE component (recommended default over fork/wrapper).
+- **D-11 (user-locked 2026-09-12, resolves researcher OQ-3):** The `interactionMode` driver is `(pointer: coarse)` via a new `useIsCoarsePointer` hook beside `useIsDesktop` in `web/src/lib/useMediaQuery.ts`. The width-only 48rem `DESKTOP_QUERY` remains the single CHROME authority (user decision 2026-09-11); input capability is a separate, independent axis. Landscape phones (≥48rem, coarse pointer) get the desktop chrome BUT the touch tree (tap = check per D-02 — SCRN-03 holds in every orientation). Hybrid touch+mouse devices (fine primary pointer) stay on the pointer tree. `hover:` affordances stay `@media (hover: hover)`-gated. — **Reversibility:** reversible — one additive hook + prop wiring; the desktop pointer tree is the unchanged default.
 
 ### Navigation without new routes (router.tsx frozen)
 - **D-04:** Container detail (SCRN-02) is a LOCALLY STACKED VIEW inside the existing `/containers` page — list ↔ detail as component-local state with an explicit back affordance, NOT a BottomSheet and NOT a new route. Rationale: the selection tree needs full height plus a persistent Save bar; a sheet chrome (scrim, drag-to-dismiss semantics) fights that. The container list stays mounted (cheap to preserve scroll position on back).
@@ -55,7 +56,7 @@ The design bible's core surfaces are fully operational on a phone — glanceable
 ### Codebase tokens & contracts
 - `web/src/index.css` — semantic tokens (`carbon-*`, `accent*`, `statusOk/Fail/Warn/Neutral`, safe-area custom properties); never raw design-bible hex.
 - `web/src/lib/pageShell.ts` — PAGE_SHELL contract for page roots (lint-enforced).
-- `web/src/lib/useMediaQuery.ts` — the ONE breakpoint authority (`(min-width: 48rem)`), `useIsDesktop`; presentation-switch point for D-07.
+- `web/src/lib/useMediaQuery.ts` — the ONE breakpoint authority (`(min-width: 48rem)`), `useIsDesktop`; presentation-switch point for D-07. Also home of `useIsCoarsePointer` (`(pointer: coarse)`) — the interaction-mode driver (D-11).
 
 </canonical_refs>
 
