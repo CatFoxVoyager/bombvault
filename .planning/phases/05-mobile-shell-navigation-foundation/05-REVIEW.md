@@ -1,8 +1,8 @@
 ---
 phase: 05-mobile-shell-navigation-foundation
-reviewed: 2026-09-11T00:00:00Z
+reviewed: 2026-09-12T02:46:55Z
 depth: standard
-files_reviewed: 31
+files_reviewed: 32
 files_reviewed_list:
   - .github/workflows/lint.yml
   - .gitignore
@@ -12,6 +12,7 @@ files_reviewed_list:
   - web/e2e/health.spec.ts
   - web/e2e/mobile-shell.spec.ts
   - web/e2e/narrow-viewport.spec.ts
+  - web/e2e/wipe-e2e-data.mjs
   - web/index.html
   - web/package-lock.json
   - web/package.json
@@ -38,133 +39,158 @@ files_reviewed_list:
 findings:
   critical: 0
   warning: 2
-  info: 7
-  total: 9
+  info: 8
+  total: 10
 status: issues_found
 ---
 
-# Phase 5: Code Review Report
+# Phase 5: Code Review Report (iteration 2 — fix re-review)
 
-**Reviewed:** 2026-09-11
+**Reviewed:** 2026-09-12
 **Depth:** standard
-**Files Reviewed:** 31
+**Files Reviewed:** 32
 **Status:** issues_found
 
 ## Summary
 
-Phase 5 ships the mobile shell foundation: a Playwright e2e harness running four projects against the compiled Go binary, the ONE chrome switch in Layout (width-only 48rem — locked decision, not re-litigated here), BottomNav/MoreSheet/BottomSheet, the navModel registry, safe-area/FOUC/viewport guard suites, and a CI playwright job.
+Re-review of the phase after commits 344d7492 (WR-01) and 2de0fe41 (WR-02). Both iteration-1 warnings are substantively fixed; the mechanisms were verified against the installed dependency sources rather than the code's own comments. Two new warnings remain, both in the fix commits' own additions: one site of the WR-02 comment corrections was missed (mobile-shell.spec.ts still describes the DATA_DIR as persistent), and the new tap-on-active e2e test's scroll setup is a no-op on the mobile branch (flex-basis overrides the inline height it sets), so the "deterministically scrollable" guarantee it claims does not exist. The seven iteration-1 info findings were re-verified and all still stand; one new minor info was added.
 
-The work is unusually well-defended: cross-file claims were verified rather than trusted, and most of them held. The navModel registry matches the frozen route table (`web/src/app/router.tsx`) route-for-route and order-for-order; every `labelKey` exists in the en table and the de/fr stress-case labels the narrow-viewport spec relies on (`"nav.more": "Mehr"/"Plus"`, `"nav.recovery": "Wiederherstellung"/"Récupération"`) exist in their tables; the theme-color meta pair (#161616/#f4f4f4) matches `--carbon-bg`'s two theme blocks in index.css; `bg-accentSoft`/`text-accentText` resolve to real Tailwind theme-mapped tokens; the lockfile pins `@playwright/test` 1.63.0 exact with consistent `playwright`/`playwright-core` integrity hashes; the FOUC byte-guard, one-breakpoint-literal guard, and safe-area env-pair guards all match the current sources; `IconEllipsis`'s viewBox math checks out against `gen_glyphs.py`'s `cropped_box`; the committed `web/dist/index.html` was rebuilt. No secrets, no injection surface, no debug artifacts. The BottomSheet primitive is a faithful, documented lift of the useConfirm mechanism with the inert-scrim deviation measured rather than guessed.
+### Verification of iteration-1 fixes
 
-Two warnings survived: the tap-on-active contract is asserted in prose but not implemented (navigation is never suppressed), and the e2e harness's "fresh DB per run" guarantee is untrue in two documented-elsewhere ways. The info tier is mostly latent gaps in mechanisms this phase declares to be THE one (keyboard mechanism vs portals, Escape stacking, the emptiness rule that can never fire).
+**WR-01 (tap-on-active must suppress navigation) — VERIFIED FIXED.**
+
+- Both handlers now call `e.preventDefault()` when the tapped destination is already current: `web/src/components/mobile/BottomNav.tsx:84-89` and `web/src/components/mobile/MoreSheet.tsx:87-102`.
+- Verified against the INSTALLED react-router 7.18.1, not the comment's claim: `web/node_modules/react-router/dist/development/chunk-7XGYIT3M.js:434-439` is exactly `function handleClick(event) { if (onClick) onClick(event); if (!event.defaultPrevented) { internalOnClick(event); } }` — the user onClick runs first and `defaultPrevented` gates `internalOnClick`, so the push (and with it the duplicate history entry) is suppressed. The BottomNav comment quotes the installed source accurately.
+- The scroll behavior survives: `preventDefault` stops the navigation, not the handler body, and `scrollMainToTop()` still runs. The anchor's own browser default is covered by the same `preventDefault()` (in the non-active case react-router's `internalOnClick` calls `preventDefault` itself, so the bare anchor never navigates in either branch). Keyboard activation (Enter → `click`) passes through the identical path. MoreSheet's `onClose()` stays unconditional, so the sheet closes in both cases — correct.
+- The contract is now executable: `web/e2e/mobile-shell.spec.ts:190-205` asserts `history.length` unchanged across the tap. The relative before/after comparison is sound (a same-path push adds exactly one entry; no absolute-depth engine dependency), and the scroll poll alone could not have detected a navigation, so the assertion adds real coverage.
+- All four prose sites now match the implementation (Layout.tsx:50-53, BottomNav.tsx:29-35 + 74-83, MoreSheet.tsx:20-23 + 88-96, mobile-shell.spec.ts:181-183).
+
+**WR-02 (harness freshness/reuse guarantees) — VERIFIED FIXED in mechanism; one comment site missed (see WR-03).**
+
+- `reuseExistingServer: false` (`web/playwright.config.ts:74`): verified against installed Playwright (`web/node_modules/playwright/lib/runner/index.js:859-865`) — a URL that already answers now throws `"... is already used ..."` instead of silently adopting a foreign server.
+- The wipe-then-boot pipeline is sound, verified end to end:
+  - Ordering is real: the webServer command (`playwright.config.ts:52-53`) composes `node wipe-e2e-data.mjs && <binary>` and runs before Playwright's globalSetup task, as the comments claim — a globalSetup wipe would indeed land after boot.
+  - Path agreement holds: the config's `DATA_DIR: "./.playwright-data"` resolves against the webServer's `cwd: repoRoot` (both the wipe via the shell and the binary inherit it), and the script derives the same absolute directory from `import.meta.url` regardless of cwd (`wipe-e2e-data.mjs:32`). `.playwright-data/` is gitignored (`.gitignore:46`), as the config comment claims.
+  - Failure modes are loud at every link: wipe failure → `console.error` + `process.exit(1)` (`wipe-e2e-data.mjs:34-44`, with the taskkill hint); `&&` short-circuits so no binary boots; a dead command surfaces as Playwright's `"Process from config.webServer was not able to start. Exit code: 1"` (runner/index.js:897); an occupied port is the "already used" throw above. No reuse path exists that could skip the wipe.
+  - `shell: true` and env merging claims verified in the installed runner (index.js:879, 872-876: `{...DEFAULT_ENVIRONMENT_VARIABLES, ...process.env, ...webServer.env}`) — the binary inherits a full environment plus exactly the four overrides, so nothing exotic is lost by supplying `env`.
+  - The absolute-`process.execPath` splicing is justified and correct (`JSON.stringify` quoting is safe under both cmd.exe and sh).
+  - Empirically executed on this Windows machine: the wipe deleted the stale dir (the leftover manual-server.log is gone), a fresh SQLite DB appeared, and the binary booted listening on 127.0.0.1:3000 with the harness env — the pipeline works.
+- `health.spec.ts` comments are now truthful (one boot per run shared by four projects; reuse never; pre-command wipe before boot). `web/dist/index.html` is known-stale by instruction; nothing in the current sources makes the scheduled rebuild produce anything wrong.
+
+The two findings below are what remains. Everything else reviewed — navModel registry vs the frozen route table, i18n keys in all three locales (`nav.more` "Mehr"/"Plus" in `web/src/lib/locales/fr.ts:15`), the FOUC byte guard against `web/index.html:16-31`, safe-area env pairs (index.css:228-231), theme-color pair vs `--carbon-bg`, `IconEllipsis` viewBox vs `gen_glyphs.py:414-418`, CI's playwright job (binary built at repo root, chromium+webkit, web build before go build) — still checks out.
+
+## Critical Issues
+
+None.
 
 ## Warnings
 
-### WR-01: Tap-on-active does not suppress navigation — the documented contract is asserted by comments but not implemented
+### WR-03: One of the three "persistent DATA_DIR" comment sites was not corrected — mobile-shell.spec.ts still describes the pre-fix world
 
-**File:** `web/src/components/mobile/BottomNav.tsx:74-76` (also `:95`, `:126-129`; same pattern in `web/src/components/mobile/MoreSheet.tsx:87-94`)
+**File:** `web/e2e/mobile-shell.spec.ts:31-40`
 
-**Issue:** The contract is stated four times — Layout.tsx:50-53 ("scrolls the main scroller back to the top **instead of navigating**"), BottomNav.tsx:71-73 ("scroll to top **instead of re-navigating**"), MoreSheet.tsx:88-91, and the e2e spec (`web/e2e/mobile-shell.spec.ts:181-183`: "the Layout-owned scroll-to-top must fire **instead of a re-navigation**"). The implementation never prevents the navigation:
+**Issue:** The WR-02 fix corrected the freshness comments in `playwright.config.ts` and `health.spec.ts`, but `mobile-shell.spec.ts`'s `bootWithoutServerLook` block still says: "A stored bv-lang (**a de/fr backstop run leaves one behind on the persistent DATA_DIR**) would silently rewrite every localized label under these assertions". After 2de0fe41 the DATA_DIR is wiped before every boot — a prior run can no longer leave anything behind, so the parenthetical's mechanism is now false. This is exactly the class of untruthful comment WR-02 existed to remove, one file over. Do NOT extend the correction to `narrow-viewport.spec.ts:53-61`: its rationale is about parallel workers sharing ONE server WITHIN a run, which the wipe does not change and which is still true.
+
+**Fix:** Rewrite the parenthetical to the remaining true reason, e.g.:
 
 ```ts
-const tapDestination = (to: string) => {
-  if (location.pathname === to) scrollMainToTop();
-};
+// The look's truth lives on the SERVER (displayPrefs.ts, #191): at boot the
+// page adopts the harness DB's stored display prefs, bv-lang included. All
+// four projects share that one server, so any page that ever PUTs a locale
+// would rewrite every localized label for the workers that boot after it
+// ("More" -> "Mehr"). Aborting the reconciliation keeps every worker on the
+// harness default regardless of what its siblings do; nothing is PUT back.
 ```
 
-`onTap` is invoked from NavLink's `onClick` (BottomNav.tsx:126-129), which fires before NavLink's own handler navigates. React Router (classic BrowserRouter, per house constraint) `navigate()`s to the same path via `history.push` — there is no same-location dedup — so every tap on the already-active slot **also** pushes a duplicate history entry.
+### WR-04: The tap-on-active e2e's scroll setup is a no-op — `style.height = "200px"` cannot shrink a `flex-1` scroller, so the "deterministically scrollable" guarantee is false
 
-**Failure scenario:** On a phone, a user tapping the active Dashboard/Containers slot to scroll up (the primary "scroll to top" gesture this phase introduces) stacks duplicate `/dashboard` entries. The first Android back-gesture press then appears to do nothing (same page re-mounts nothing, key is pathname-stable), and the second press leaves the app — the classic broken-back-button read. The e2e test cannot catch this: it polls `scrollTop === 0`, which passes whether or not the navigation happened.
+**File:** `web/e2e/mobile-shell.spec.ts:179-189`
 
-**Fix:** Receive the click event and skip the navigation when tap-on-active:
+**Issue:** The setup comment claims "Make the scroller deterministically scrollable: the dashboard's content height varies, the mechanism under test does not", then sets `el.style.height = "200px"` on `#bv-main`. On both mobile projects (the only ones that run this test) the shell root is `flex ... flex-col` (Layout.tsx:334) and `#bv-main` is a `flex-1` flex item — `flex: 1 1 0%`. When flex-basis is a definite length (0% of a definite `h-dvh` container), the used main size comes from the flex algorithm; the inline `height` is consulted only as the basis fallback for `flex-basis: auto` (and the scroll container's automatic minimum size is 0, so nothing reintroduces it). The element is therefore NOT shrunk to 200px; it stays viewport-minus-bar. `el.scrollTop = 300` then clamps to 0 unless the dashboard's natural content happens to overflow, and the subsequent `expect.poll(...).toBeGreaterThan(0)` passes only on that natural overflow. The determinism the comment promises does not exist: a future dashboard that fits the viewport (or a tall viewport) fails this test with a confusing timeout even though the suppress-then-scroll mechanism under test is fine. (Static CSS-semantics verdict: two attempts to execute this spec to completion in the review environment hung in the Playwright runner layer — the author-validated `health.spec.ts` hangs identically there — so "currently passes on natural overflow" is inferred from Dashboard's content volume, not measured. CI is the gate that will prove it.)
 
-```tsx
-// BottomNav BarSlot
-<NavLink
-  to={destination.to}
-  onClick={(e) => {
-    if (location.pathname === destination.to) {
-      e.preventDefault();
-      scrollMainToTop();
-    }
-  }}
-  ...
+**Fix:** Grow the content instead of shrinking the scroller — that works under any flex sizing and is what actually makes the scroll deterministic:
+
+```ts
+await page.locator("#bv-main").evaluate((el) => {
+  // Grow the PAGE, not the scroller: #bv-main is a flex-1 item of the
+  // flex-col shell, so an inline height on it is ignored (flex-basis 0%
+  // owns the main axis). A tall first child guarantees scroll overflow.
+  const first = el.firstElementChild as HTMLElement | null;
+  if (first) first.style.minHeight = `${el.clientHeight + 500}px`;
+  el.scrollTop = 300;
+});
 ```
 
-Same shape for MoreSheet's row `onClick` (keep the unconditional `onClose()` for the navigate case). If the contract is intentionally narrowed to "scroll AND navigate", correct all four prose claims and add a history-depth assertion to the e2e test so the stated contract is executable either way.
-
-### WR-02: The e2e harness's freshness/reuse guarantees don't hold — specs hard-code fresh-DB state on top of a persistent, reusable server
-
-**File:** `web/playwright.config.ts:48` (`reuseExistingServer: !process.env.CI`), `:54-56` ("Fresh empty-state DB per run"); `web/e2e/health.spec.ts:3-5`
-
-**Issue:** Three claims baked into the harness comments and spec assumptions diverge from Playwright's actual semantics:
-
-1. `health.spec.ts:4` says "Each of the four projects starts the compiled Go binary from scratch (fresh gitignored DATA_DIR)". Playwright starts **one** webServer per run, shared by all four projects — the binary boots once, not per project.
-2. `playwright.config.ts:54-55` says "Fresh empty-state DB per run". `.playwright-data/` is never cleaned (gitignored, no globalSetup/teardown), so the DB is fresh only on the first run after a manual delete. The narrow-viewport spec itself documents the leakage (`web/e2e/narrow-viewport.spec.ts:34-36`: "a de/fr backstop run leaves one behind **on the persistent DATA_DIR**"). Today the specs are saved by their own discipline (every one aborts `**/api/display-prefs*` before boot); the first future spec that PUTs prefs or toggles a setting silently poisons every later run.
-3. `reuseExistingServer: !process.env.CI` means that on any dev machine with something already listening on `127.0.0.1:3000` — most concretely a running dev BombVault with real settings, enabled domains, or a password — Playwright silently reuses it: `APP_KEY`/`DATA_DIR`/`HTTP_ONLY` are **not applied**, and the fresh-DB assumptions the specs assert (bar-exactness = 4 slots, sheet = Recovery-only, sign-out absent, auth gate off) are evaluated against foreign state. The failures are loud but mystifying ("expected 4 slots, got 5"), and the run exercises assertions against a real instance instead of the throwaway one the config header describes.
-
-**Fix:** Set `reuseExistingServer: false` (or gate it behind an explicit `BV_E2E_REUSE=1`-style opt-in), add a `globalSetup`/`globalTeardown` (or webServer pre-command) that wipes `.playwright-data/` so "fresh DB" is true again, and correct the two comments (one boot per run; DB fresh per run only because the harness now guarantees it).
+and optionally assert the precondition honestly (`expect(await page.locator("#bv-main").evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true)`) so a future setup regression fails with a reason instead of a poll timeout.
 
 ## Info
 
-### IN-01: The bar's EMPTINESS rule is dead code — `moreDestinations` can never be empty
+### IN-01: The bar's EMPTINESS rule is dead code — `moreDestinations` can never be empty (residual)
 
-**File:** `web/src/components/mobile/BottomNav.tsx:20-23` (doc), `:69` (impl)
+**File:** `web/src/components/mobile/BottomNav.tsx:20-23` (doc), `:72` (impl)
 
-**Issue:** The header documents "the More trigger renders only while the sheet it opens would have content — at least one enabled non-bar destination, **or** a sign-out row", implemented as `moreDestinations(settings).length > 0 || authEnabled`. But Recovery is never gated (`navModel.ts:101`, `bar: false, enabled: true`), so `moreDestinations` always returns at least one entry — pinned by `navModel.test.ts:182-184` ("no caller can ever receive an empty navigation"). The `|| authEnabled` arm is unreachable-in-effect and the documented degradation path can never fire.
+**Issue:** Unchanged from iteration 1. `moreDestinations` always returns at least Recovery (navModel.ts:101, `bar: false, enabled: true`; pinned by navModel.test.ts:183), so `|| authEnabled` is unreachable-in-effect and the documented degradation path can never fire.
 
-**Fix:** Either simplify to `moreDestinations(settings).length > 0`, or note at both sites that the emptiness rule is currently vacuous and what would make it real (e.g., Recovery becoming gated).
+**Fix:** Either simplify to `moreDestinations(settings).length > 0`, or note at both sites that the emptiness rule is currently vacuous and what would make it real.
 
-### IN-02: navModel's lib→components import contradicts the documented layer rule
+### IN-02: navModel's lib→components import contradicts the documented layer rule (residual)
 
 **File:** `web/src/lib/navModel.ts:47-58` (import), `:35-42` (defense)
 
-**Issue:** `.claude/CLAUDE.md` (SPA Layers) states the layering as "pages/ → components/ → lib/; **nothing imports upward from lib**". `navModel.ts` — a lib module — imports ten glyph components from `../components/navGlyphs`. The file's own header argues the exception well (single source of label AND icon data; three cited in-repo precedents), but the house doc now describes an architecture the code no longer follows, which is exactly how layering rules rot.
+**Issue:** Unchanged. The in-file exception argument is good, but `.claude/CLAUDE.md` (SPA Layers) still says "nothing imports upward from lib", so the house doc describes an architecture the code no longer follows.
 
-**Fix:** Update the CLAUDE.md layer note to record the sanctioned exception (registry-as-data may import pure glyph components; nothing else crosses upward), or keep lib pure by having the registry carry glyph IDs resolved to components at render time in each consumer.
+**Fix:** Record the sanctioned exception in the CLAUDE.md layer note (registry-as-data may import pure glyph components), or keep lib pure by resolving glyph IDs to components at render time.
 
-### IN-03: The ONE keyboard mechanism is blind to portal-rendered inputs
+### IN-03: The ONE keyboard mechanism is blind to portal-rendered inputs (residual)
 
-**File:** `web/src/app/Layout.tsx:93-96, 137-138`; `web/src/components/mobile/BottomSheet.tsx:170, 236-237`
+**File:** `web/src/app/Layout.tsx:137-138`; `web/src/components/mobile/BottomSheet.tsx:236`
 
-**Issue:** The keyboard mechanism attaches `focusin`/`focusout` to `shellRef` and is declared the ONE listener set ("a per-component listener would multiply", asserted by `mobileShellSource.test.ts`). But BottomSheet portals to `document.body` — DOM-wise outside `shellRef` — as do ConfirmDialog and WhatsNewDialog. React-tree membership does not carry DOM events: a text field inside any sheet or dialog will never set `focusedField`, so the scroll-into-view guarantee silently does not cover it. Latent today (MoreSheet has no inputs), but BottomSheet is PRIM-01 — the primitive future input-bearing sheets will build on — so the first one will discover this in production, not in review.
+**Issue:** Unchanged. The `focusin`/`focusout` listeners are native listeners on the `shellRef` div; BottomSheet portals to `document.body`, and native focus events follow the DOM tree, not the React tree — a text field inside any sheet or dialog never sets `focusedField`. Latent until the first input-bearing sheet builds on PRIM-01.
 
-**Fix:** Attach the focus listeners at document level (keep the `isDesktop`/`authGate` bail-outs and the single-listener guarantee), or document the boundary in BottomSheet's header so the first input-bearing sheet knows the mechanism does not reach it.
+**Fix:** Attach the focus listeners at document level (keeping the `isDesktop`/`authGate` bail-outs), or document the boundary in BottomSheet's header.
 
-### IN-04: Document-level Escape closes every open dialog at once
+### IN-04: Document-level Escape closes every open dialog at once (residual)
 
-**File:** `web/src/components/mobile/BottomSheet.tsx:118-125, 147-148`; `web/src/app/Layout.tsx:358-360`
+**File:** `web/src/components/mobile/BottomSheet.tsx:118-125, 147-148`
 
-**Issue:** BottomSheet's Escape handler is document-level with no stacking discipline (the verbatim useConfirm lift, which the header cites as the point). WhatsNewDialog renders outside the chrome switch and a ConfirmDialog can sit above the sheet; with any two of them open, one Escape closes both, because each listener calls `preventDefault` and `onClose` independently. Each dialog is individually correct; the composition is not coordinated. Risk grows with every new BottomSheet consumer.
+**Issue:** Unchanged. No stacking discipline on the document-level Escape handler (verbatim useConfirm lift); WhatsNewDialog plus an open sheet each close on one Escape.
 
-**Fix:** A module-level open-dialog stack (push on open, pop on close; only the top responds to Escape/Tab-trap), or at minimum an accepted-limitation note in BottomSheet's header so the stacking gap is a recorded decision rather than an accident.
+**Fix:** A module-level open-dialog stack (only the top responds to Escape), or an accepted-limitation note in BottomSheet's header.
 
-### IN-05: The keyboard mechanism's rAF is not cancelled on cleanup
+### IN-05: The keyboard mechanism's rAF is not cancelled on cleanup (residual)
 
 **File:** `web/src/app/Layout.tsx:133-135` (schedule), `:140-144` (cleanup)
 
-**Issue:** `onViewportResize` schedules `requestAnimationFrame(() => focusedField?.scrollIntoView(...))`, but the cleanup removes only the three listeners. A visualViewport resize landing in the same tick as teardown (branch switch across 48rem, unmount) still scrolls one frame later, after the mechanism has officially torn down. Harmless today — `scrollIntoView` on a detached node no-ops — but the file's own source guard (`mobileShellSource.test.ts:387-397`) promises "tears down every listener it adds", and the rAF is part of the mechanism.
+**Issue:** Unchanged. The cleanup removes the three listeners but not the pending `requestAnimationFrame`; the source guard's "tears down every listener it adds" promise (mobileShellSource.test.ts:387-397) is satisfied, but the rAF is part of the same mechanism. Harmless today (scrollIntoView on a detached node no-ops).
 
-**Fix:** Track the id (`let raf = 0; ... raf = requestAnimationFrame(...)`) and `cancelAnimationFrame(raf)` in the cleanup.
+**Fix:** Track the id and `cancelAnimationFrame(raf)` in the cleanup.
 
-### IN-06: `signOut` duplicated verbatim between Sidebar and MoreSheet
+### IN-06: `signOut` duplicated verbatim between Sidebar and MoreSheet (residual)
 
 **File:** `web/src/components/mobile/MoreSheet.tsx:72-76`; `web/src/components/Sidebar.tsx:345-349`
 
-**Issue:** The best-effort-logout-then-reload body (including the `globalThis as unknown as {...}` reload dance) is copied between the two chrome surfaces. Unlike the codebase's sanctioned cross-seam regex duplication, both copies live in the same layer, so the usual seam justification doesn't apply; if the mechanism ever changes (e.g., adopting the epoch-rotating "sign out everywhere" variant or adding post-logout cleanup), the two will drift and mobile/desktop sign-out will behave differently.
+**Issue:** Unchanged. Same layer, same body (best-effort logout then the `globalThis` reload dance); the two will drift if the mechanism ever changes.
 
-**Fix:** Extract `signOutAndReload(): Promise<void>` next to `logout` (lib), and have both call sites use it. The comments can keep their history.
+**Fix:** Extract `signOutAndReload(): Promise<void>` next to `logout` in lib and call it from both chrome surfaces.
 
-### IN-07: Local e2e runs expose an auth-disabled instance on 0.0.0.0
+### IN-07: Local e2e runs expose an auth-disabled instance on 0.0.0.0 (residual)
 
-**File:** `web/playwright.config.ts:41-61` (harness env); evidence: `internal/api/server.go:36` (`bindHost = "0.0.0.0"`)
+**File:** `web/playwright.config.ts:60-89` (harness env); evidence: `internal/api/server.go:36` (`bindHost = "0.0.0.0"`)
 
-**Issue:** The binary binds all interfaces unconditionally, so a local `npx playwright test` serves a full BombVault API with auth disabled on the developer's LAN for the duration of the run (CI is unaffected; the fresh DATA_DIR contains no targets or credentials, so blast radius is small, and the product's own trust model is LAN-trust). Worth one honest line in the harness header that already discusses auth so nobody rediscovers it by port scan.
+**Issue:** Unchanged. The harness header discusses auth at length but never records that a local `npx playwright test` briefly serves a full auth-less API on all interfaces. The fresh DATA_DIR bounds the blast radius; the omission is the finding.
 
-**Fix:** Note it in `playwright.config.ts`'s auth paragraph ("local runs briefly expose an authless instance on 0.0.0.0 — don't run the suite on untrusted networks"), or pass an interface-binding env var through `webServer.env` if the server ever grows one.
+**Fix:** One honest line in the config's auth paragraph ("local runs briefly expose an authless instance on 0.0.0.0 — don't run the suite on untrusted networks").
+
+### IN-08: Tap-on-active suppression keys on exact pathname equality; NavLink's active state is segment-prefix — they disagree on a trailing-slash location
+
+**File:** `web/src/components/mobile/BottomNav.tsx:84-89` (also `web/src/components/mobile/MoreSheet.tsx:97-100`)
+
+**Issue:** The suppression check is `location.pathname === to`, but NavLink's `isActive` (installed react-router, `chunk-7XGYIT3M.js:491`) is equality OR prefix-with-`/` boundary. With today's flat route table the two diverge only when the location carries a trailing slash (a hand-typed `/dashboard/`): the slot renders active (accent backdrop, aria-current) while the tap re-navigates — a one-shot duplicate history entry, i.e. a single-dose version of the WR-01 failure. No in-app path produces a trailing slash today, so this is near-unreachable; recorded so the choice is deliberate rather than accidental.
+
+**Fix:** Either align the check with NavLink's match semantics (`location.pathname === to || location.pathname.startsWith(to + "/")` — safe only while the route table stays flat) or add a one-line comment noting the exact-match choice and the trailing-slash divergence.
 
 ---
 
-_Reviewed: 2026-09-11T00:00:00Z_
+_Reviewed: 2026-09-12T02:46:55Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
