@@ -59,3 +59,31 @@ jobs:
           sudo install -m 0755 restic /usr/local/bin/restic
           restic version
       - run: go test ./...
+  # The playwright job is the VERIFY-01 regression gate armed in phase 5
+  # (mobile shell + navigation foundation): the full e2e suite in web/e2e/
+  # runs the parameterized desktop-untouched loop (10 routes x 2 desktop
+  # projects), the mobile-shell contract, and the de/fr narrow-viewport
+  # backstop on 4 projects (desktop-1280, desktop-768, mobile-iphone/WebKit,
+  # mobile-android/Chromium). Any desktop-layout or mobile-shell assertion
+  # failure fails CI from here on. The web build runs BEFORE the Go build on
+  # purpose — the binary embeds web/dist, so a stale build embeds a stale
+  # SPA (the house rule from CLAUDE.md). The job intentionally lands AFTER
+  # the specs exist: a zero-spec Playwright run fails its no-tests-found
+  # guard, so the gate arms exactly when it has something to enforce.
+  playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults: { run: { working-directory: web } }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with: { go-version: '1.26' }
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with: { node-version: '24' }
+      - run: npm ci
+      - run: npm run build
+      - name: build the server under test at the repo root (the webServer command's binary)
+        working-directory: ${{ github.workspace }}
+        run: go build -o bombvault ./cmd/bombvault
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npx playwright test
