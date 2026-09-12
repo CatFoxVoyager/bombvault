@@ -1542,6 +1542,12 @@ const sk: Partial<Translations> = {
   // Reconcile Unraid update status
   "settings.reconcileUnraidStatus": "Obnoviť stav aktualizácie Unraid po aktualizácii kontajnera",
   "settings.reconcileUnraidStatusHint": "Vyčistiť banner aktualizácie Unraid po tom, čo BombVault aktualizuje kontajner v kroku aktualizácie po zálohe.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Nová záloha",
+  "home.newBackupConfirm": "Spustiť teraz zálohu všetkých povolených oblastí? Kontajnery sa zastavia a znova spustia. Obnova zachová iba to, čo uloží ďalší priebeh.",
+
 };
 
 export default sk;

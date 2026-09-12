@@ -1523,6 +1523,12 @@ const zh: Partial<Translations> = {
   "vmBackupOrder.title": "虚拟机备份顺序",
   "vmBackupOrder.hint": "设置计划运行备份虚拟机的顺序。不在列表中的虚拟机随后按名称运行。",
   "vmBackupOrder.empty": "暂无计划的虚拟机可排序。",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "新建备份",
+  "home.newBackupConfirm": "立即开始备份所有已启用的域？容器将停止并重新启动。恢复只保留下一次运行所保存的内容。",
+
 };
 
 export default zh;

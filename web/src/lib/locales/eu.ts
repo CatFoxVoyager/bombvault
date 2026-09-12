@@ -1542,6 +1542,12 @@ const eu: Partial<Translations> = {
   // Reconcile Unraid update status
   "settings.reconcileUnraidStatus": "Freskatu Unraid-en eguneraketa-egoera edukiontzi bat eguneratu ondoren",
   "settings.reconcileUnraidStatusHint": "Garbitu Unraid-en eguneraketa-bandera BombVaultek babeskopiaren ondorengo eguneraketa-urratsean edukiontzi bat eguneratu ondoren.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Babeskopia berria",
+  "home.newBackupConfirm": "Aktibatutako domeinu guztien babeskopia hastu orain? Edukiontiak gelditu eta berrabiarazi egiten dira. Leheneratzeak hurrengo exekuzioak gordetzen duena soilik gordetzen du.",
+
 };
 
 export default eu;

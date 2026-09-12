@@ -1542,6 +1542,12 @@ const hi: Partial<Translations> = {
   // Reconcile Unraid update status
   "settings.reconcileUnraidStatus": "किसी कंटेनर को अपडेट करने के बाद Unraid की अपडेट स्थिति ताज़ा करें",
   "settings.reconcileUnraidStatusHint": "बैकअप के बाद के अपडेट चरण में BombVault द्वारा किसी कंटेनर को अपडेट करने के बाद Unraid का अपडेट बैनर साफ़ करें।",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "नया बैकअप",
+  "home.newBackupConfirm": "क्या अभी सभी सक्रिय डोमेन का बैकअप शुरू करें? कंटेनर रोके जाते हैं और फिर से शुरू किए जाते हैं. रीस्टोर केवल वही रखता है जो अगला रन सेव करता है.",
+
 };
 
 export default hi;

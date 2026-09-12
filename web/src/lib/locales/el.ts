@@ -1531,6 +1531,12 @@ const el: Partial<Translations> = {
   "vmBackupOrder.title": "Σειρά αντιγράφων VM",
   "vmBackupOrder.hint": "Ορίστε τη σειρά με την οποία η προγραμματισμένη εκτέλεση δημιουργεί αντίγραφα των VM. Τα VM εκτός λίστας εκτελούνται μετά, κατά όνομα.",
   "vmBackupOrder.empty": "Δεν υπάρχουν ακόμη προγραμματισμένα VM για ταξινόμηση.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Νέο αντίγραφο ασφαλείας",
+  "home.newBackupConfirm": "Να ξεκινήσει τώρα αντίγραφο ασφαλείας για όλους τους ενεργούς τομείς; Τα containers σταματούν και επανεκκινούνται. Η επαναφορά κρατά μόνο όσα θα αποθηκεύσει η επόμενη εκτέλεση.",
+
 };
 
 export default el;

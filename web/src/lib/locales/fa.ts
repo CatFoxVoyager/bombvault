@@ -1542,6 +1542,12 @@ const fa: Partial<Translations> = {
   // Reconcile Unraid update status
   "settings.reconcileUnraidStatus": "پس از به‌روزرسانی یک کانتینر، وضعیت به‌روزرسانی Unraid را تازه کن",
   "settings.reconcileUnraidStatusHint": "پس از اینکه BombVault در مرحله به‌روزرسانی پس از پشتیبان‌گیری یک کانتینر را به‌روزرسانی کرد، بنر به‌روزرسانی Unraid را پاک کن.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "پشتیبان‌گیری جدید",
+  "home.newBackupConfirm": "شروع پشتیبان‌گیری از همه بخش‌های فعال اکنون؟ کانتینرها متوقف و دوباره راه‌اندازی می‌شوند. بازیابی فقط چیزی را نگه می‌دارد که اجرای بعدی ذخیره می‌کند.",
+
 };
 
 export default fa;

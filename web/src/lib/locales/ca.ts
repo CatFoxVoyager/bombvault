@@ -1542,6 +1542,12 @@ const ca: Partial<Translations> = {
   // Reconcile Unraid update status
   "settings.reconcileUnraidStatus": "Actualitza l'estat d'actualitzacions d'Unraid després d'actualitzar un contenidor",
   "settings.reconcileUnraidStatusHint": "Neteja el bàner d'actualització d'Unraid després que BombVault actualitzi un contenidor al pas d'actualització posterior a la còpia.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Còpia de seguretat nova",
+  "home.newBackupConfirm": "Vols iniciar una còpia de seguretat de tots els dominis activats ara? Els contenidors s'aturen i es reinicien. La restauració només conserva el que desi la propera execució.",
+
 };
 
 export default ca;

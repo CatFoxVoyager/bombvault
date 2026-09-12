@@ -1531,6 +1531,12 @@ const sv: Partial<Translations> = {
   "vmBackupOrder.title": "Ordning för VM-säkerhetskopiering",
   "vmBackupOrder.hint": "Ange ordningen som den schemalagda VM-körningen säkerhetskopierar VM:er i. VM:er utanför listan körs efteråt, i namnordning.",
   "vmBackupOrder.empty": "Inga schemalagda VM:er att sortera ännu.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Ny säkerhetskopia",
+  "home.newBackupConfirm": "Starta en säkerhetskopia av alla aktiverade domäner nu? Containrar stoppas och startas om. Återställningen behåller bara det som nästa körning sparar.",
+
 };
 
 export default sv;

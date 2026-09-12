@@ -1526,6 +1526,12 @@ const ru: Partial<Translations> = {
   "vmBackupOrder.title": "Порядок резервного копирования ВМ",
   "vmBackupOrder.hint": "Задайте порядок, в котором запланированный запуск создаёт резервные копии ВМ. ВМ вне списка выполняются после, по имени.",
   "vmBackupOrder.empty": "Пока нет запланированных ВМ для упорядочивания.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Новая резервная копия",
+  "home.newBackupConfirm": "Запустить резервное копирование всех включённых областей сейчас? Контейнеры останавливаются и запускаются заново. Восстановление сохранит только то, что запишет следующий запуск.",
+
 };
 
 export default ru;

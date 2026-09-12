@@ -1523,6 +1523,12 @@ const ko: Partial<Translations> = {
   "vmBackupOrder.title": "VM 백업 순서",
   "vmBackupOrder.hint": "예약 실행이 VM을 백업하는 순서를 설정합니다. 목록에 없는 VM은 이후에 이름 순으로 실행됩니다.",
   "vmBackupOrder.empty": "정렬할 예약된 VM이 아직 없습니다.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "새 백업",
+  "home.newBackupConfirm": "지금 활성화된 모든 도메인의 백업을 시작할까요? 컨테이너가 중지되었다가 다시 시작됩니다. 복원에는 다음 실행이 저장한 것만 남습니다.",
+
 };
 
 export default ko;

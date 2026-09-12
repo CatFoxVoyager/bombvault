@@ -1542,6 +1542,12 @@ const lv: Partial<Translations> = {
   // Reconcile Unraid update status
   "settings.reconcileUnraidStatus": "Atsvaidzināt Unraid atjaunināšanas statusu pēc konteinera atjaunināšanas",
   "settings.reconcileUnraidStatusHint": "Notīrīt Unraid atjaunināšanas paziņojuma joslu pēc tam, kad BombVault atjaunina konteineru pēc-rezerves-kopijas atjaunināšanas solī.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Jauns dublējums",
+  "home.newBackupConfirm": "Sākt tagad visu iespējoto jomu dublējumu? Konteineri tiek apturēti un pārstartēti. Atjaunošana saglabā tikai to, ko saglabās nākamā izpilde.",
+
 };
 
 export default lv;

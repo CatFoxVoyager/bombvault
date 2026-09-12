@@ -1531,6 +1531,12 @@ const fi: Partial<Translations> = {
   "vmBackupOrder.title": "VM-varmuuskopioiden järjestys",
   "vmBackupOrder.hint": "Määritä järjestys, jossa ajastettu ajo varmuuskopioi VM:t. Listan ulkopuoliset VM:t ajetaan sen jälkeen nimijärjestyksessä.",
   "vmBackupOrder.empty": "Ei vielä ajastettuja VM:iä järjestettäväksi.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Uusi varmuuskopio",
+  "home.newBackupConfirm": "Aloita varmuuskopio kaikista käytössä olevista alueista nyt? Kontit pysäytetään ja käynnistetään uudelleen. Palautus säilyttää vain sen, mitä seuraava ajo tallentaa.",
+
 };
 
 export default fi;

@@ -1526,6 +1526,12 @@ const sr: Partial<Translations> = {
   // Reconcile Unraid update status (#116)
   "settings.reconcileUnraidStatus": "После ажурирања контејнера освежи Unraid-ово стање ажурирања",
   "settings.reconcileUnraidStatusHint": "Очисти Unraid-ов банер ажурирања пошто BombVault ажурира контејнер у кораку ажурирања после резервне копије.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Нова резервна копија",
+  "home.newBackupConfirm": "Започнути сада резервну копију свих укључених области? Контејнери се заустављају и поново покрећу. Обнова чува само оно што ће следећи покретач сачувати.",
+
 };
 
 export default sr;

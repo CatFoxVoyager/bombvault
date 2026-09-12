@@ -1542,6 +1542,12 @@ const id: Partial<Translations> = {
   // Reconcile Unraid update status
   "settings.reconcileUnraidStatus": "Segarkan status pembaruan Unraid setelah memperbarui container",
   "settings.reconcileUnraidStatusHint": "Hapus banner pembaruan Unraid setelah BombVault memperbarui container di langkah pembaruan setelah pencadangan.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Pencadangan baru",
+  "home.newBackupConfirm": "Mulai pencadangan untuk semua domain yang diaktifkan sekarang? Kontainer dihentikan dan dimulai ulang. Pemulihan hanya menyimpan apa yang disimpan oleh proses berikutnya.",
+
 };
 
 export default id;

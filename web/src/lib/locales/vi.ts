@@ -1523,6 +1523,12 @@ const vi: Partial<Translations> = {
   "vmBackupOrder.title": "Thứ tự sao lưu VM",
   "vmBackupOrder.hint": "Đặt thứ tự mà lần chạy theo lịch sao lưu các VM. Các VM ngoài danh sách chạy sau, theo tên.",
   "vmBackupOrder.empty": "Chưa có VM theo lịch để sắp xếp.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Sao lưu mới",
+  "home.newBackupConfirm": "Bắt đầu sao lưu tất cả miền đang bật ngay bây giờ? Container sẽ dừng và khởi động lại. Phục hồi chỉ giữ lại những gì lần chạy tiếp theo lưu.",
+
 };
 
 export default vi;

@@ -1526,6 +1526,12 @@ const sl: Partial<Translations> = {
   // Reconcile Unraid update status (#116)
   "settings.reconcileUnraidStatus": "Po posodobitvi vsebnika osveži Unraidovo stanje posodobitev",
   "settings.reconcileUnraidStatusHint": "Po tem, ko BombVault v koraku posodobitve po varnostni kopiji posodobi vsebnik, počisti Unraidov pasico posodobitve.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Nova varnostna kopija",
+  "home.newBackupConfirm": "Želite zdaj začeti varnostno kopijo vseh omogočenih področij? Vsebniki se ustavijo in znova zaženejo. Obnovitev ohrani samo tisto, kar shrani naslednji zagon.",
+
 };
 
 export default sl;

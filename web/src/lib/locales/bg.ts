@@ -1542,6 +1542,12 @@ const bg: Partial<Translations> = {
   // Reconcile Unraid update status
   "settings.reconcileUnraidStatus": "Опресни статуса на обновленията на Unraid след обновяване на контейнер",
   "settings.reconcileUnraidStatusHint": "Изчисти банера за обновление на Unraid, след като BombVault обнови контейнер в стъпката за обновление след архивиране.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Ново резервно копие",
+  "home.newBackupConfirm": "Да започна ли резервно копие на всички активирани области сега? Контейнерите се спират и рестартират. Възстановяването запазва само това, което следващото изпълнение запази.",
+
 };
 
 export default bg;

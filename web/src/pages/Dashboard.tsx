@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { hueVars, rainbowAt } from "../lib/appearance";
-import { listRuns, getSpike, listContainers, listVMs, getSettings, getStatus, getHistory, getStats, downloadRecoveryKit, ackRecoveryKit, runDrill, getScheduleNext } from "../lib/api";
+import { listRuns, getSpike, listContainers, listVMs, getSettings, getStatus, getHistory, getStats, downloadRecoveryKit, ackRecoveryKit, runDrill, getScheduleNext, backupEverythingNow } from "../lib/api";
 import type { Run, SpikeCheck, Container, Settings, DomainStatus, HistoryDay, DayStat, RepoStat, StorageForecast, ScheduleNext } from "../lib/api";
 import { ErrorDetailPanel } from "../components/ErrorDetailPanel";
 import { useT } from "../lib/i18n";
@@ -20,6 +20,10 @@ import { useIsDesktop } from "../lib/useMediaQuery";
 import { useAdvanced } from "../lib/advanced";
 import { OffsiteIndicator } from "../components/OffsiteIndicator";
 import { RunDetailSheet } from "../components/mobile/RunDetailSheet";
+import { StickyActionBar } from "../components/mobile/StickyActionBar";
+import { useBackupWatch } from "../lib/backupWatch";
+import { useConfirm } from "../lib/useConfirm";
+import { useToast } from "../lib/toast";
 import { formatCadence } from "../components/CadenceBuilder";
 import { relativeTime, formatTs, formatDuration } from "../lib/reltime";
 import { isFreshInstall } from "../lib/freshInstall";
@@ -2372,6 +2376,70 @@ export function Dashboard() {
     setSheetOpen(true);
   };
 
+  // Thumb-zone trigger watch (06-06 Task 2, D-08: BackupButton's semantics
+  // verbatim). The everything pass is async on the server, so the press only
+  // STARTS it ({ok:true,started:true} is never read for the outcome) and the
+  // watch resolves from the recorded run — baseline ids seeded from listRuns
+  // BEFORE firing (never a client clock), then polled until the pass's run
+  // turns terminal. `progressKey: ""` is the honest key: the everything PARENT
+  // run publishes no SSE entry of its own (its per-domain children do — see
+  // RunDetailSheet's progressKeyFor), so the watch resolves via the run-poll
+  // belt exactly like a target whose key never appears.
+  //
+  // FLOW-03: the moment the pass's run is correlated (and on every later poll,
+  // with the refreshed record) it deep-links into the run-sheet host above —
+  // landing the user INSIDE the live run they just started. The dismissal
+  // latch guards the open decision, not the record refresh: a sheet the user
+  // closed must not re-open from a later poll; an open one must track the run
+  // to its true terminal state.
+  const { state: everythingState, fire: fireEverything, isPending: everythingPending } = useBackupWatch({
+    progressKey: "",
+    start: backupEverythingNow,
+    matchRun: (r) => r.domain === "everything",
+    onRun: (run) => {
+      setSheetRun(run);
+      if (!sheetDismissed.current) setSheetOpen(true);
+    },
+  });
+
+  // Terminal outcomes toast per BackupButton's contract ("failed action toasts
+  // AND shakes its button"); success mirrors its snapshot-id form, falling back
+  // to plain Done when the parent run carries no snapshot (the everything pass
+  // aggregates its domains, so the parent snapshot is often empty — the
+  // container-specific configOnly fallback does not apply here). cancelled and
+  // skipped stay silent like BackupButton's cancelled arm: the deep-linked
+  // sheet is already showing the run's own record.
+  const { push } = useToast();
+  const [shake, setShake] = useState(0);
+  const seenPhase = useRef(everythingState.phase);
+  useEffect(() => {
+    if (everythingState.phase === seenPhase.current) return;
+    seenPhase.current = everythingState.phase;
+    if (everythingState.phase === "success") {
+      push(
+        everythingState.snapshotId ? `${t("common.done")} · ${everythingState.snapshotId.slice(0, 8)}` : t("common.done"),
+        "success"
+      );
+    } else if (everythingState.phase === "error") {
+      push(everythingState.message, "fail");
+      setShake((n) => n + 1);
+    }
+  }, [everythingState, push, t]);
+
+  // T-06-02: the consequence sheet stands between the press and the POST —
+  // the 06-02 useConfirm presents it below the breakpoint automatically (the
+  // fail-toned ConfirmSheet, destructive control on top, safe cancel in the
+  // thumb-default slot). The confirm button reuses home.newBackup so its
+  // press names the outcome; cancel is the shared safe default.
+  const { confirm, confirmDialog } = useConfirm();
+  const confirmThenFireEverything = useCallback(async () => {
+    const ok = await confirm(t("home.newBackupConfirm"), {
+      confirmLabel: t("home.newBackup"),
+      cancelLabel: t("common.cancel"),
+    });
+    if (ok) await fireEverything();
+  }, [confirm, fireEverything, t]);
+
   // Single /api/status fetch shared by the Protection + Ransomware cards (no
   // duplicate round-trip — both cards read the same extended domain status).
   const [statusDomains, setStatusDomains] = useState<DomainStatus[]>([]);
@@ -2984,6 +3052,32 @@ export function Dashboard() {
           }}
         />
       )}
+
+      {/* Thumb-zone trigger (06-06 Task 2, D-06): the 06-05 StickyActionBar as
+          the LAST DIRECT CHILD of the page column — sticky resolves against
+          main#bv-main, so nothing may wrap it — holding the surface's ONE
+          solid-accent control. The same double gate as the mobile blocks above
+          (JSX !isDesktop + the md:hidden class) keeps >=48rem byte-identical.
+          Never a FAB, never position:fixed. While the pass runs the button
+          shows its busy spinner and is disabled; a failed start also shakes
+          (the glim-shake key remount, Containers' Save-bar pattern). */}
+      {!isDesktop && (
+        <StickyActionBar className="md:hidden">
+          <Button
+            key={shake}
+            label={t("home.newBackup")}
+            labelKey="home.newBackup"
+            glyph={<IconBackupNow />}
+            tone="accent"
+            keepLabel
+            disabled={everythingPending}
+            busy={everythingPending}
+            onClick={() => void confirmThenFireEverything()}
+            className={`w-full min-h-[2.75rem] justify-center${shake ? " glim-shake" : ""}`}
+          />
+        </StickyActionBar>
+      )}
+      {confirmDialog}
     </div>
   );
 }

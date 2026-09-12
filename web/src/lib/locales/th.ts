@@ -1534,6 +1534,12 @@ const th: Partial<Translations> = {
   "vmBackupOrder.title": "ลำดับการสำรองข้อมูล VM",
   "vmBackupOrder.hint": "กำหนดลำดับที่การทำงานตามกำหนดการสำรองข้อมูล VM รายการที่ไม่อยู่ในลิสต์จะทำงานหลังจากนั้นตามชื่อ",
   "vmBackupOrder.empty": "ยังไม่มี VM ตามกำหนดการให้จัดลำดับ",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "สำรองข้อมูลใหม่",
+  "home.newBackupConfirm": "เริ่มสำรองข้อมูลทุกโดเมนที่เปิดใช้งานตอนนี้หรือไม่? คอนเทนเนอร์จะหยุดและเริ่มใหม่ การกู้คืนจะเก็บเฉพาะสิ่งที่รอบถัดไปบันทึก",
+
 };
 
 export default th;

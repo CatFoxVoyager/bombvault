@@ -1542,6 +1542,12 @@ const lt: Partial<Translations> = {
   // Reconcile Unraid update status
   "settings.reconcileUnraidStatus": "Atnaujinti Unraid atnaujinimo būseną po konteinerio atnaujinimo",
   "settings.reconcileUnraidStatusHint": "Išvalykite Unraid atnaujinimo juostą po to, kai BombVault atnaujina konteinerį po-atsarginės-kopijos atnaujinimo žingsnyje.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Nauja atsarginė kopija",
+  "home.newBackupConfirm": "Pradėti dabar visų įjungtų sričių atsarginę kopiją? Konteineriai sustabdomi ir paleidžiami iš naujo. Atkūrimas išsaugo tik tai, ką įrašys kitas vykdymas.",
+
 };
 
 export default lt;

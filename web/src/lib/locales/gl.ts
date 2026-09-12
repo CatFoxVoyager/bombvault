@@ -1542,6 +1542,12 @@ const gl: Partial<Translations> = {
   // Reconcile Unraid update status
   "settings.reconcileUnraidStatus": "Actualizar o estado de actualización de Unraid despois de actualizar un contedor",
   "settings.reconcileUnraidStatusHint": "Limpa o báner de actualización de Unraid despois de que BombVault actualice un contedor no paso de actualización posterior á copia.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Nova copia de seguranza",
+  "home.newBackupConfirm": "Iniciar agora unha copia de seguranza de todos os dominios activados? Os contedores detense e reinícianse. A restauración só conserva o que garde a seguinte execución.",
+
 };
 
 export default gl;

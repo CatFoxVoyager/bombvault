@@ -1531,6 +1531,12 @@ const da: Partial<Translations> = {
   "vmBackupOrder.title": "VM-sikkerhedskopieringsrækkefølge",
   "vmBackupOrder.hint": "Angiv rækkefølgen, som den planlagte VM-kørsel sikkerhedskopierer VM'er i. VM'er uden for listen køres bagefter, i navnerækkefølge.",
   "vmBackupOrder.empty": "Ingen planlagte VM'er at sortere endnu.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Ny backup",
+  "home.newBackupConfirm": "Vil du starte en backup af alle aktiverede domæner nu? Containere stoppes og genstartes. En gendannelse beholder kun det, den næste køring gemmer.",
+
 };
 
 export default da;

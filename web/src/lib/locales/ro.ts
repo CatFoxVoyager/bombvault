@@ -1534,6 +1534,12 @@ const ro: Partial<Translations> = {
   "vmBackupOrder.title": "Ordinea backupului VM",
   "vmBackupOrder.hint": "Stabilește ordinea în care rularea programată face backup VM-urilor. VM-urile din afara listei rulează după aceea, în ordinea numelui.",
   "vmBackupOrder.empty": "Încă nu există VM-uri programate de ordonat.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Copie de siguranță nouă",
+  "home.newBackupConfirm": "Începi acum o copie de siguranță a tuturor domeniilor activate? Containerele sunt oprite și repornite. Restaurarea păstrează doar ce va salva următoarea rulare.",
+
 };
 
 export default ro;

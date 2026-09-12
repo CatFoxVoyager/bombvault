@@ -1542,6 +1542,12 @@ const hr: Partial<Translations> = {
   // Reconcile Unraid update status
   "settings.reconcileUnraidStatus": "Osvježi status ažuriranja Unraida nakon ažuriranja kontejnera",
   "settings.reconcileUnraidStatusHint": "Ukloni Unraidov transparent ažuriranja nakon što BombVault ažurira kontejner u koraku ažuriranja nakon sigurnosne kopije.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Nova sigurnosna kopija",
+  "home.newBackupConfirm": "Započeti sada sigurnosnu kopiju svih omogućenih domena? Kontejneri se zaustavljaju i ponovno pokreću. Obnova čuva samo ono što sljedeći zapis sprema.",
+
 };
 
 export default hr;

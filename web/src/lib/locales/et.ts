@@ -1542,6 +1542,12 @@ const et: Partial<Translations> = {
   // Reconcile Unraid update status
   "settings.reconcileUnraidStatus": "Värskenda Unraidi uuenduse olekut pärast konteineri uuendamist",
   "settings.reconcileUnraidStatusHint": "Puhasta Unraidi uuenduse bänner pärast seda, kui BombVault uuendab konteinerit varundusjärgses uuendussammus.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Uus varukoopia",
+  "home.newBackupConfirm": "Käivitada kohe varukoopia kõigist lubatud valdkondadest? Konteinerid peatatakse ja taaskäivitatakse. Taastamine säilitab ainult selle, mida salvestab järgmine käik.",
+
 };
 
 export default et;

@@ -121,6 +121,16 @@ export const en = {
   "dashboard.blockStats": "Statistics",
   "dashboard.blockBackups": "Backups & history",
 
+  // Phase 6 (SCRN-01/FLOW-03, 06-06): the phone Home's thumb-zone trigger.
+  // The confirm copy NAMES the consequences before any POST (T-06-02):
+  // the everything pass stops and restarts containers, and restore only
+  // keeps what the next run saves — so the sheet is the guard, not a
+  // speed bump. The confirm button reuses home.newBackup (outcome-naming:
+  // its press starts exactly what the trigger promised); cancel is the
+  // shared common.cancel.
+  "home.newBackup": "New backup",
+  "home.newBackupConfirm": "Start a backup of every enabled domain now? Containers are stopped and restarted. Restore keeps only what the next run saves.",
+
   // Spike
   "spike.title": "Host Integration",
   "spike.overall": "Overall:",
@@ -1979,6 +1989,15 @@ export const de: Translations = {
   "dashboard.blockSummary": "Überblick",
   "dashboard.blockStats": "Statistik",
   "dashboard.blockBackups": "Backups & Verlauf",
+
+  // Phase 6 (SCRN-01/FLOW-03, 06-06): der Daumenzone-Trigger des mobilen
+  // Home. Der Bestätigungstext BENENNT die Folgen vor jedem POST (T-06-02):
+  // der Gesamt-Backup-Durchlauf stoppt Container und startet sie neu, und
+  // eine Wiederherstellung behält nur, was der nächste Lauf sichert.
+  // Der Bestätigen-Knopf übernimmt home.newBackup (Ergebnis-benennend),
+  // Abbrechen das gemeinsame common.cancel.
+  "home.newBackup": "Neues Backup",
+  "home.newBackupConfirm": "Jetzt ein Backup aller aktivierten Bereiche starten? Container werden gestoppt und neu gestartet. Eine Wiederherstellung behält nur, was der nächste Lauf sichert.",
 
   "spike.title": "Host-Integration",
   "spike.overall": "Gesamt:",

@@ -1534,6 +1534,12 @@ const hu: Partial<Translations> = {
   "vmBackupOrder.title": "VM-mentési sorrend",
   "vmBackupOrder.hint": "Állítsd be a sorrendet, amelyben az ütemezett futás menti a VM-eket. A listán kívüli VM-ek utána futnak, név szerint.",
   "vmBackupOrder.empty": "Még nincs ütemezett VM a rendezéshez.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Új biztonsági mentés",
+  "home.newBackupConfirm": "Elindítod most az összes engedélyezett terület biztonsági mentését? A konténerek leállnak és újraindulnak. A helyreállítás csak azt őrzi meg, amit a következő futás ment.",
+
 };
 
 export default hu;

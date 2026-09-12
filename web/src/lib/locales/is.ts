@@ -1542,6 +1542,12 @@ const is: Partial<Translations> = {
   // Reconcile Unraid update status
   "settings.reconcileUnraidStatus": "Endurnýja uppfærslustöðu Unraid eftir að gámur er uppfærður",
   "settings.reconcileUnraidStatusHint": "Hreinsa uppfærslueiningu Unraid eftir að BombVault uppfærir gám í uppfærsluskrefinu eftir afritun.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Nýtt öryggisafrit",
+  "home.newBackupConfirm": "Hefja öryggisafrit af öllum virkum svæðum núna? Gámar eru stöðvaðir og endurræstir. Endurheimtur geymist aðeins það sem næsta keyrsla vistar.",
+
 };
 
 export default is;

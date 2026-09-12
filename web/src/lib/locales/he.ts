@@ -1531,6 +1531,12 @@ const he: Partial<Translations> = {
   "vmBackupOrder.title": "סדר גיבוי מכונות וירטואליות",
   "vmBackupOrder.hint": "קבע את הסדר שבו הריצה המתוזמנת מגבה את המכונות הווירטואליות. מכונות שאינן ברשימה ירוצו אחר כך, לפי שם.",
   "vmBackupOrder.empty": "אין עדיין מכונות וירטואליות מתוזמנות לסידור.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "גיבוי חדש",
+  "home.newBackupConfirm": "להתחיל גיבוי של כל התחומים המופעלים עכשיו? הקונטיינרים נעצרים ומופעלים מחדש. השחזור שומר רק את מה שהריצה הבאה תשמור.",
+
 };
 
 export default he;

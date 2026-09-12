@@ -1531,6 +1531,12 @@ const fr: Partial<Translations> = {
   "vmBackupOrder.title": "Ordre de sauvegarde des VM",
   "vmBackupOrder.hint": "Définissez l'ordre dans lequel l'exécution planifiée sauvegarde les VM. Les VM hors liste passent après, par ordre de nom.",
   "vmBackupOrder.empty": "Aucune VM planifiée à ordonner pour l'instant.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Nouvelle sauvegarde",
+  "home.newBackupConfirm": "Lancer une sauvegarde de tous les domaines activés maintenant ? Les conteneurs sont arrêtés puis redémarrés. La restauration ne conserve que ce que la prochaine exécution sauvegardera.",
+
 };
 
 export default fr;

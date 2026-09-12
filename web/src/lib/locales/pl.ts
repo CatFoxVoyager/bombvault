@@ -1526,6 +1526,12 @@ const pl: Partial<Translations> = {
   "vmBackupOrder.title": "Kolejność kopii VM",
   "vmBackupOrder.hint": "Ustaw kolejność, w jakiej zaplanowane zadanie tworzy kopie VM. VM spoza listy działają później, według nazwy.",
   "vmBackupOrder.empty": "Brak zaplanowanych VM do uporządkowania.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Nowa kopia zapasowa",
+  "home.newBackupConfirm": "Rozpocząć teraz kopię zapasową wszystkich włączonych obszarów? Kontenery są zatrzymywane i ponownie uruchamiane. Przywracanie zachowa tylko to, co zapisze następne uruchomienie.",
+
 };
 
 export default pl;

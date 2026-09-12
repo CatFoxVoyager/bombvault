@@ -1542,6 +1542,12 @@ const ms: Partial<Translations> = {
   // Reconcile Unraid update status
   "settings.reconcileUnraidStatus": "Segarkan status kemas kini Unraid selepas mengemas kini bekas",
   "settings.reconcileUnraidStatusHint": "Kosongkan sepanduk kemas kini Unraid selepas BombVault mengemas kini bekas dalam langkah kemas kini selepas-sandaran.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Sandaran baharu",
+  "home.newBackupConfirm": "Mulakan sandaran untuk semua domain yang diaktifkan sekarang? Bekas dihentikan dan dimulakan semula. Pemulihan hanya menyimpan apa yang disimpan oleh jalan seterusnya.",
+
 };
 
 export default ms;

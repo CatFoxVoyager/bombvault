@@ -1528,6 +1528,12 @@ const nl: Partial<Translations> = {
   "vmBackupOrder.title": "VM-back-upvolgorde",
   "vmBackupOrder.hint": "Stel de volgorde in waarin de geplande VM-run VM's back-upt. VM's buiten de lijst draaien daarna, op naam.",
   "vmBackupOrder.empty": "Nog geen geplande VM's om te ordenen.",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "Nieuwe back-up",
+  "home.newBackupConfirm": "Nu een back-up van alle ingeschakelde domeinen starten? Containers worden gestopt en opnieuw gestart. Herstel bewaart alleen wat de volgende run opslaat.",
+
 };
 
 export default nl;

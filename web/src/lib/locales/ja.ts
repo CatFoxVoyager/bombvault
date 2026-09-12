@@ -1523,6 +1523,12 @@ const ja: Partial<Translations> = {
   "vmBackupOrder.title": "VM バックアップ順",
   "vmBackupOrder.hint": "スケジュール実行が VM をバックアップする順序を設定します。一覧にない VM はその後、名前順で実行されます。",
   "vmBackupOrder.empty": "並べ替える予定の VM はまだありません。",
+  // Phase 6 (06-06): the phone Home's thumb-zone trigger. The confirm copy
+  // names the consequences before any POST; see the English block in
+  // src/lib/i18n.ts (T-06-02).
+  "home.newBackup": "新規バックアップ",
+  "home.newBackupConfirm": "有効なすべてのドメインのバックアップを今すぐ開始しますか？コンテナーは停止して再起動されます。復元で残るのは、次回の実行が保存したものだけです。",
+
 };
 
 export default ja;
