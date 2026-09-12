@@ -31,10 +31,21 @@
     </script>
     <link rel="icon" type="image/png" href="/logo.png" />
     <link rel="apple-touch-icon" href="/logo.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+    <!-- viewport-fit=cover (SHELL-04) extends the layout viewport into the
+         device's unsafe edges so env(safe-area-inset-*) — surfaced as the
+         --safe-area-* custom properties in src/index.css — actually resolves.
+         interactive-widget=resizes-content (SHELL-06) makes the Android
+         keyboard resize the layout viewport instead of overlaying it, which
+         is the behavior the Layout-level keyboard mechanism builds on. -->
+    <!-- Static first-paint theme-color fallback (#161616 = dark --carbon-bg).
+         src/lib/theme.ts's paint() mirrors the live theme into this tag on
+         EVERY theme application (#f4f4f4 light) — this static value is only
+         what shows before JS runs. The two values must change together. -->
+    <meta name="theme-color" content="#161616" />
     <title>BombVault</title>
-    <script type="module" crossorigin src="/assets/index-4UAPJi5o.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-BRvZi5WI.css">
+    <script type="module" crossorigin src="/assets/index-O3RM77tN.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-2-cW0T-O.css">
   </head>
   <body>
     <div id="root"></div>
