@@ -34,6 +34,23 @@ const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 // "../bombvault"-style relative path would climb OUT of the repo. Absolute
 // makes the resolution unambiguous regardless of shell semantics.
 const binary = join(repoRoot, process.platform === "win32" ? "bombvault.exe" : "bombvault");
+// The webServer command is a wipe-then-boot pipeline, and the wipe has to run
+// HERE rather than in globalSetup: Playwright starts the webServer BEFORE
+// globalSetup (the server is a plugin in the global-setup task list), so a
+// globalSetup-based wipe would land after the binary has already booted and
+// opened its SQLite file. The pre-command is the only hook that runs before
+// the process exists — which is what makes the "fresh empty-state DB per
+// run" guarantee below true rather than aspirational. `&&` keeps it strict:
+// a failed wipe (a stale bombvault.exe still holding the DB — the known
+// Windows teardown hang) aborts the run instead of booting a poisoned DB.
+// Runs through the shell on every platform (Playwright launches `command`
+// with shell: true). The node interpreter is spliced in ABSOLUTELY
+// (process.execPath — the exact binary running Playwright, JSON-quoted)
+// rather than relied on from PATH: spawned shells on Windows can lack `node`
+// on PATH (the same reason this repo never relies on npm/npx shims in
+// spawned shells — observed live: "'node' n'est pas reconnu").
+const node = JSON.stringify(process.execPath);
+const command = `${node} web/e2e/wipe-e2e-data.mjs && "${binary}"`;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -41,18 +58,30 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:3000",
   },
   webServer: {
-    command: binary,
+    command,
     cwd: repoRoot,
     url: "http://127.0.0.1:3000/api/health",
     timeout: 120_000,
-    reuseExistingServer: !process.env.CI,
+    // NEVER reuse whatever already listens on 127.0.0.1:3000: a running dev
+    // BombVault (real settings, enabled domains, a password) would silently
+    // take the run's place — APP_KEY/DATA_DIR/HTTP_ONLY below would NOT be
+    // applied, and every fresh-DB assertion (auth off, bar = 4 slots, sheet
+    // = Recovery-only, sign-out absent) would be evaluated against foreign
+    // state. A loud "URL is already used" failure beats a green run against
+    // the wrong server: kill the holder and re-run. (Reuse would ALSO skip
+    // `command` entirely, silently dropping the fresh-DB wipe — one more
+    // reason reuse and this harness do not mix.)
+    reuseExistingServer: false,
     env: {
       // Dev-only throwaway constant: 64 lowercase zeros satisfy config.go's
       // [0-9a-f]{64} APP_KEY check. NEVER a real secret; the data dir it
       // unlocks is gitignored scratch.
       APP_KEY: "0".repeat(64),
-      // Fresh empty-state DB per run (gitignored). Writability is the ONLY
-      // fail-fast boot check (cmd/bombvault/main.go ensureDataDirWritable).
+      // Fresh empty-state DB per RUN — not per project: Playwright starts
+      // ONE webServer per run and all four projects share it. The dir is
+      // wiped by the pre-command before every boot (see `command`);
+      // writability is the ONLY fail-fast boot check
+      // (cmd/bombvault/main.go ensureDataDirWritable).
       DATA_DIR: "./.playwright-data",
       // Plain HTTP instead of any TLS-bypass flag (T-05-04).
       HTTP_ONLY: "true",
