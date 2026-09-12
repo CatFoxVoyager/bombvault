@@ -34,6 +34,9 @@ import { I18nProvider } from "../lib/i18n";
 import type { BrowseResponse, MountInfo } from "../lib/api";
 
 let browseCalls: string[] = [];
+// Paths the mocked server refuses to read — drives the error-notice branch
+// (the retry Button's >=44px touch sizing) without a second mock shape.
+const rejectPaths = new Set<string>();
 
 vi.mock("../lib/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../lib/api")>();
@@ -41,6 +44,7 @@ vi.mock("../lib/api", async (importOriginal) => {
     ...actual,
     browse: (path: string) => {
       browseCalls.push(path);
+      if (rejectPaths.has(path)) return Promise.reject(new Error("refused by test"));
       const reply: BrowseResponse = {
         ok: true,
         status: "ok",
@@ -57,16 +61,32 @@ const { SelectionTree } = await import("./SelectionTree");
 
 const HOST_ROOT = "/mnt";
 const MOUNT = "/mnt/user/appdata/plex";
+// A second mount so the roving-tabindex test has a NON-tab-target row to tap
+// (with one mount, the tap target and the tabindex home are the same row).
+const MOUNT_B = "/mnt/user/appdata/jellyfin";
 
 const MOUNTS: MountInfo[] = [
   { source: MOUNT, dest: "/config", selected: true, isAppdata: false, reachable: true },
 ];
 
+const TWO_MOUNTS: MountInfo[] = [
+  ...MOUNTS,
+  { source: MOUNT_B, dest: "/data", selected: true, isAppdata: false, reachable: true },
+];
+
 /** Stateful tree: `includes` mirrors what the taps mutate, exactly the way
  *  FoldersEditor's mirror does, so aria-checked round-trips are observable
  *  through the REAL classifyNode path. */
-function TouchHarness({ taps }: { taps: string[] }) {
-  const [includes, setIncludes] = useState<Set<string>>(() => new Set([MOUNT]));
+function TouchHarness({
+  taps,
+  mounts = MOUNTS,
+  initial = [MOUNT],
+}: {
+  taps: string[];
+  mounts?: MountInfo[];
+  initial?: string[];
+}) {
+  const [includes, setIncludes] = useState<Set<string>>(() => new Set(initial));
   const toggle = (hostPath: string) => {
     taps.push(hostPath);
     setIncludes((prev) => {
@@ -78,7 +98,7 @@ function TouchHarness({ taps }: { taps: string[] }) {
   };
   return (
     <SelectionTree
-      mounts={MOUNTS}
+      mounts={mounts}
       customPaths={[]}
       includes={includes}
       exclusions={new Set()}
@@ -122,6 +142,7 @@ beforeEach(() => {
   localStorage.clear();
   localStorage.setItem("bv-lang", "en");
   browseCalls = [];
+  rejectPaths.clear();
   // focusNode scrollIntoViews on every tap; jsdom does not implement it.
   Element.prototype.scrollIntoView = vi.fn();
 });
@@ -278,5 +299,116 @@ describe("SelectionTree pointer default is untouched (D-01)", () => {
       fireEvent.click(box);
     });
     expect(taps).toEqual([MOUNT]);
+  });
+});
+
+describe("SelectionTree touch mode: roving-on-tap (Pitfall 2)", () => {
+  it("tapping a non-tab-target row moves the roving tabindex to it, and Space then acts on it", async () => {
+    const taps: string[] = [];
+    render(
+      <I18nProvider>
+        <TouchHarness taps={taps} mounts={TWO_MOUNTS} initial={[MOUNT, MOUNT_B]} />
+      </I18nProvider>,
+    );
+
+    const rowA = screen.getByRole("treeitem", { name: /appdata\/plex/ });
+    const rowB = screen.getByRole("treeitem", { name: /appdata\/jellyfin/ });
+    // Home state: the FIRST root holds the roving tabindex…
+    expect(rowA.getAttribute("tabindex")).toBe("0");
+    expect(rowB.getAttribute("tabindex")).toBe("-1");
+
+    // …a tap on B moves it there — focusNode (setFocusPath + scrollIntoView +
+    // focus), the exact primitive the arrow keys use, never a re-implementation.
+    await act(async () => {
+      fireEvent.click(rowB);
+    });
+    expect(rowB.getAttribute("tabindex")).toBe("0");
+    expect(rowA.getAttribute("tabindex")).toBe("-1");
+    expect(rowB.className).not.toContain("pointer-events-none");
+    expect(taps).toEqual([MOUNT_B]);
+
+    // …and the keyboard now agrees with the finger: Space acts on B through
+    // the UNTOUCHED APG handler (no edits to the key map for this to work —
+    // that is the whole roving-tabindex point).
+    await act(async () => {
+      fireEvent.keyDown(rowB, { key: " " });
+    });
+    expect(taps).toEqual([MOUNT_B, MOUNT_B]);
+    // B round-tripped (checked again) while A was never touched by the key.
+    expect(screen.getByRole("treeitem", { name: /appdata\/jellyfin/ }).getAttribute("aria-checked")).toBe("true");
+  });
+});
+
+describe("SelectionTree touch mode: full-row >=44px targets (D-02)", () => {
+  it("touch rows carry min-h-[2.75rem], touch-manipulation and select-none at the 14px register", () => {
+    const taps: string[] = [];
+    renderTouch(taps);
+
+    const row = screen.getByRole("treeitem", { name: /appdata\/plex/ });
+    expect(row.className).toContain("min-h-[2.75rem]");
+    expect(row.className).toContain("touch-manipulation");
+    expect(row.className).toContain("select-none");
+    expect(row.className).toContain("text-sm");
+    // 44px REPLACES the depth min-heights on touch — never stacks with them.
+    expect(row.className).not.toContain("min-h-8");
+    expect(row.className).not.toContain("min-h-7");
+  });
+
+  it("pointer rows keep the depth min-heights and the 12px register", async () => {
+    const taps: string[] = [];
+    render(
+      <I18nProvider>
+        <PointerHarness taps={taps} />
+      </I18nProvider>,
+    );
+
+    const root = screen.getByRole("treeitem", { name: /appdata\/plex/ });
+    expect(root.className).toContain("min-h-8");
+    expect(root.className).toContain("text-xs");
+    expect(root.className).not.toContain("min-h-[2.75rem]");
+    expect(root.className).not.toContain("touch-manipulation");
+    expect(root.className).not.toContain("select-none");
+
+    // Depth-n register: expand the root (desktop row click) and the child
+    // row carries min-h-7 — the desktop ladder is intact.
+    await act(async () => {
+      fireEvent.click(root);
+    });
+    const child = await screen.findByRole("treeitem", { name: "library" });
+    expect(child.className).toContain("min-h-7");
+    expect(child.className).not.toContain("min-h-[2.75rem]");
+  });
+});
+
+describe("SelectionTree touch mode: the retry notice control is a >=44px tap target", () => {
+  it("retry Button grows to min-h-[2.75rem] in touch; pointer keeps the engine-sized control", async () => {
+    rejectPaths.add("user/appdata/plex");
+
+    const taps: string[] = [];
+    renderTouch(taps);
+    // Expand through the chevron; the browse refuses, so the error notice
+    // row renders with its retry control. Notice copy stays verbatim.
+    await act(async () => {
+      fireEvent.click(
+        within(screen.getByRole("treeitem", { name: /appdata\/plex/ })).getByRole("button", { name: "Expand" }),
+      );
+    });
+    const retry = await screen.findByRole("button", { name: "Try again" });
+    expect(retry.className).toContain("min-h-[2.75rem]");
+    expect(screen.getByText("Could not read directory")).toBeTruthy();
+
+    // Pointer control: the SAME failure renders the SAME notice with the
+    // control at its engine size — the touch bump is interaction-mode-only.
+    cleanup();
+    render(
+      <I18nProvider>
+        <PointerHarness taps={[]} />
+      </I18nProvider>,
+    );
+    await act(async () => {
+      fireEvent.click(screen.getByRole("treeitem", { name: /appdata\/plex/ }));
+    });
+    const retryPointer = await screen.findByRole("button", { name: "Try again" });
+    expect(retryPointer.className).not.toContain("min-h-[2.75rem]");
   });
 });

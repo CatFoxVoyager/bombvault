@@ -509,7 +509,10 @@ export function SelectionTree({
                 // select-none because a long-press text selection is not a
                 // gesture this row offers. The depth-based desktop min-heights
                 // stay pointer-only: 44px replaces them, it is never smaller.
-                `flex items-start gap-2 text-xs min-w-0 min-h-[2.75rem] touch-manipulation select-none ${tone}${shaken ? " glim-shake" : ""}`
+                // Labels ride the 14px body register here (UI-SPEC SCRN-03
+                // typography: touch holds 14px where desktop renders 12px);
+                // the preview/meta lines keep their own explicit text-xs.
+                `flex items-start gap-2 text-sm min-w-0 min-h-[2.75rem] touch-manipulation select-none ${tone}${shaken ? " glim-shake" : ""}`
               : `flex items-start gap-2 text-xs min-w-0 ${spec.depth === 0 ? "min-h-8" : "min-h-7"} ${tone}${shaken ? " glim-shake" : ""}`
           }
           style={indent}
@@ -730,6 +733,13 @@ export function SelectionTree({
                     label={t("folders.retry")}
                     labelKey="folders.retry"
                     onClick={() => fetchListing(spec.path)}
+                    // The retry is the one INTERACTIVE notice control, and on
+                    // touch it is a tap target like any other: >=44px tall
+                    // (D-02) without changing the notice's copy or shape —
+                    // the label and the surrounding text-xs register stay
+                    // verbatim; only the hit target grows, pointer mode keeps
+                    // the engine-sized control.
+                    className={touch ? "min-h-[2.75rem]" : ""}
                   />
                 </div>
               </div>
