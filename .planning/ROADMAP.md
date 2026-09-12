@@ -72,7 +72,31 @@ Plans:
   3. The user opens a finished run and reads completion time, duration, monospace snapshot id, the new/changed/unchanged triad, and an activity log naming exclusion reasons (unticked / CACHEDIR.TAG); verify-integrity and browse-snapshot-files work as touch rows, with the restore entry point reachable
   4. Hover-dependent affordances (info bubbles, filter and color pickers) work by tap below the breakpoint while desktop hover behavior is untouched; destructive confirmations present as fail-tone bottom sheets with consequence-naming buttons and no default-focused destructive control; live progress pauses when the page is hidden and reconciles a run that finished in the background on return
 
-**Plans**: TBD
+**Plans**: 7 plans
+
+Plans:
+**Wave 1** *(parallel — no shared files)*
+
+- [ ] 06-01-PLAN.md — Touch selection tree seam: useIsCoarsePointer + interactionMode, full-row ≥44px targets, chevron/check separation, roving-on-tap in FoldersEditor (SCRN-03)
+- [ ] 06-02-PLAN.md — PRIM-03: ConfirmSheet fail-tone presentation + BottomSheet fullHeight/footer extensions + Layout scroller rhythm (PRIM-03)
+- [ ] 06-03-PLAN.md — PRIM-02: TapPopover anchored primitive + InfoBubble/FilterPopover/ColorPickerPopover tap migrations (PRIM-02)
+
+**Wave 2** *(after 06-02)*
+
+- [ ] 06-04-PLAN.md — SCRN-05: runDisplay helper extraction, RunDetailSheet with honest stat tiles + activity log, useVisibilityGate live-progress reconcile (SCRN-05, PRIM-04)
+
+**Wave 3** *(after 06-01/06-02/06-04)*
+
+- [ ] 06-05-PLAN.md — SCRN-02/03/04: stacked container detail + StickyActionBar + full-height touch tree, file sets coverage cards + emptyRule, FLOW-03 trigger rows (SCRN-02, SCRN-03, SCRN-04, FLOW-03)
+
+**Wave 4** *(after 06-02/06-04)*
+
+- [ ] 06-06-PLAN.md — SCRN-01: glanceable mobile Dashboard blocks + thumb-zone New-backup trigger with confirm deep-link into the run sheet (SCRN-01, FLOW-03)
+
+**Wave 5** *(phase gate — after all)*
+
+- [ ] 06-07-PLAN.md — Phase close: labeled mobile nav landmark, max-md leakage e2e pass, full suites green + web/dist committed
+
 **UI hint**: yes
 
 ### Phase 7: Remaining Destinations & Operational Parity
