@@ -561,6 +561,8 @@ const el: Partial<Translations> = {
   "common.confirm": "Επιβεβαίωση",
   "common.cancel": "Άκυρο",
   "common.close": "Κλείσιμο",
+  "common.expand": "Ανάπτυξη",
+  "common.collapse": "Σύμπτυξη",
 
   // Failure fallbacks
   "common.actionFailed": "Η ενέργεια απέτυχε",

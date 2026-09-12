@@ -13,6 +13,10 @@
 //
 // Node environment, no DOM: this reads source text, it does not render
 // (app/routedPages.test.ts's doctrine and style).
+//
+// Since phase 6 (D-11) the file also owns the pointer-capability axis — the
+// second describe below pins that literal and re-asserts the one-width-
+// literal rule the touch work depends on.
 // ---------------------------------------------------------------------------
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -70,5 +74,43 @@ describe("DESKTOP_QUERY stays the one breakpoint literal", () => {
         "independent definitions of desktop is how the JS chrome and the CSS md: variants " +
         "drift apart and flicker against each other."
     ).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// POINTER_COARSE_QUERY — the pointer-capability axis (phase 6, D-11).
+//
+// The same fragile-literal discipline as the width guard above, applied to
+// the second query this file owns: the exact string is pinned, the hook and
+// constant must stay exported, and — the invariant the touch mode's
+// correctness hangs on (research Pitfall 6) — the file keeps exactly ONE
+// width literal. A `(pointer: coarse)`-keyed interaction mode drifting into a
+// width-keyed one would hand landscape phones (>=48rem, still coarse-pointer)
+// the desktop tree; a second width literal here would fork the chrome axis.
+// ---------------------------------------------------------------------------
+const COARSE_LITERAL = /pointer:\s*coarse/;
+
+describe("POINTER_COARSE_QUERY stays the one pointer-capability literal", () => {
+  it("pins the exact (pointer: coarse) query in the hook", () => {
+    expect(
+      source,
+      'useMediaQuery.ts no longer contains "(pointer: coarse)". That literal IS the app\'s ' +
+        "definition of touch input (D-11) — SelectionTree's interactionMode derives from it, " +
+        "never from the width breakpoint. If the query genuinely changes, change it here and " +
+        "re-check the landscape-phone case (>=48rem wide, still coarse pointer) consciously."
+    ).toMatch(COARSE_LITERAL);
+    expect(source).toContain("POINTER_COARSE_QUERY");
+    expect(source).toContain("useIsCoarsePointer");
+  });
+
+  it("keeps exactly ONE width literal in the hook (DESKTOP_QUERY — the chrome axis stays width-only)", () => {
+    const widthLiterals = source.match(/min-width:/g) ?? [];
+    expect(
+      widthLiterals,
+      "useMediaQuery.ts now carries more than one width query. DESKTOP_QUERY is the app's " +
+        "single width authority (the chrome switch and Tailwind's md: variants both hang off " +
+        "it); the pointer axis must stay width-free or the D-11 separation — chrome by width, " +
+        "interaction by pointer capability — silently collapses."
+    ).toHaveLength(1);
   });
 });

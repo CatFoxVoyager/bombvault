@@ -931,6 +931,8 @@ const bg: Partial<Translations> = {
   "common.restoring": "Възстановяване…",
   "common.done": "Готово",
   "common.close": "Затвори",
+  "common.expand": "Разгъване",
+  "common.collapse": "Свиване",
   "common.loadingBackups": "Зареждане на архивиранията…",
   "common.saving": "Запазване…",
   "common.restoreRunning": "Изпълнява се възстановяване…",

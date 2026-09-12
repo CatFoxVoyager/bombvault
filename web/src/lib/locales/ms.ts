@@ -931,6 +931,8 @@ const ms: Partial<Translations> = {
   "common.restoring": "Memulihkan…",
   "common.done": "Selesai",
   "common.close": "Tutup",
+  "common.expand": "Kembangkan",
+  "common.collapse": "Runtuhkan",
   "common.loadingBackups": "Memuatkan sandaran…",
   "common.saving": "Menyimpan…",
   "common.restoreRunning": "Pemulihan sedang berjalan…",

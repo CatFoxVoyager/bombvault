@@ -561,6 +561,8 @@ const he: Partial<Translations> = {
   "common.confirm": "אשר",
   "common.cancel": "ביטול",
   "common.close": "סגור",
+  "common.expand": "הרחב",
+  "common.collapse": "כווץ",
 
   // Failure fallbacks
   "common.actionFailed": "הפעולה נכשלה",

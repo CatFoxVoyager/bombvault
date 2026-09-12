@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { listContainers, deleteBackups, backupAll, restore, restoreStack, discover, setContainerHooks, getContainerMounts, setContainerTargets, setStopContainers, setContainerExcludes, previewContainerExcludes, suggestContainerExcludes, exportContainer, setIncludeAll, setUpdateAfterBackup, getBackupOrder, setBackupOrder, ApiError, type ContainerTargetsBody } from "../lib/api";
 import type { Container, ExcludeSuggestion, MountInfo, CustomPath, ContainerOrder, BrowseResponse } from "../lib/api";
 import { applyToggle, browseRelToHost, partitionCustomPaths, toFlatList } from "../lib/selectionTree";
+import { useIsCoarsePointer } from "../lib/useMediaQuery";
 import { SelectionTree } from "../components/SelectionTree";
 import { FolderBrowser } from "../components/FolderBrowser";
 import { humanBytes } from "../lib/forecast";
@@ -808,6 +809,14 @@ export function FoldersEditor({
   // the path whose last toggle was refused client-side for emptying the
   // selection; SelectionTree renders the inline warn line under that row.
   const [blockedPath, setBlockedPath] = useState<string | null>(null);
+  // Phase 6 (D-11): the tree's interaction mode derives from POINTER
+  // capability, never from viewport width — a landscape phone (>=48rem, the
+  // width-only chrome switch keeps the desktop Sidebar there) still has a
+  // coarse primary pointer and gets the touch tree (tap = check per D-02),
+  // while a hybrid touchpad laptop stays on the pointer tree. jsdom answers
+  // no coarse-pointer query, so the hook's false default keeps every existing
+  // editor harness on the pointer mode it was written against.
+  const coarsePointer = useIsCoarsePointer();
   // Editor-lifetime listings cache (Phase 2 research, Pitfall 3): survives
   // section close because this component stays mounted above its null
   // return, dies with the page — exactly the panel-lifetime scope the tree
@@ -1372,6 +1381,7 @@ export function FoldersEditor({
           busyPaths={new Set(Object.keys(rowBusy).filter((k) => rowBusy[k]))}
           shakeCounts={rowShake}
           blockedPath={blockedPath}
+          interactionMode={coarsePointer ? "touch" : "pointer"}
         />
       )}
       {/* D-02 (SELECT-03 second half): the narrowing note — event-driven,

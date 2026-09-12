@@ -931,6 +931,8 @@ const eu: Partial<Translations> = {
   "common.restoring": "Berrezartzen…",
   "common.done": "Eginda",
   "common.close": "Itxi",
+  "common.expand": "Zabaldu",
+  "common.collapse": "Tolestu",
   "common.loadingBackups": "Babeskopiak kargatzen…",
   "common.saving": "Gordetzen…",
   "common.restoreRunning": "Berrezarpen bat exekutatzen ari da…",
