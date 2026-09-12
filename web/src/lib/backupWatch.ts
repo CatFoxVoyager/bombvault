@@ -86,6 +86,17 @@ interface UseBackupWatchArgs {
   /** Called once on successful completion so the caller can refresh its list. */
   onDone?: () => void;
   /**
+   * Phase 6 (FLOW-03): called with the correlated run every time a poll finds
+   * it — the FIRST call is the "on correlation" moment the mobile surfaces
+   * deep-link the 06-04 RunDetailSheet into the LIVE run at; later calls
+   * carry the freshest record (status moves running → terminal) so a mounted
+   * sheet can render the true terminal state without its own polling. The
+   * open/close decision stays the consumer's (a dismissed sheet must not
+   * re-open — guard there, not here). Optional; every desktop caller omits
+   * it and the hook behaves exactly as before.
+   */
+  onRun?: (run: Run) => void;
+  /**
    * Set true by a paired cancel button when its cancel POST succeeds. The
    * no-run success fallback consults it so a cancelled restore that recorded NO
    * run (file/to-folder on a target-less container → progress entry just
@@ -100,7 +111,7 @@ interface UseBackupWatchArgs {
  * the current display state. Determines success vs failure from the recorded
  * run, never from the (now fire-and-forget) POST response.
  */
-export function useBackupWatch({ progressKey, start, matchRun, kind = "backup", onDone, cancelledRef }: UseBackupWatchArgs) {
+export function useBackupWatch({ progressKey, start, matchRun, kind = "backup", onDone, onRun, cancelledRef }: UseBackupWatchArgs) {
   const [state, setState] = useState<BackupWatchState>({ phase: "idle" });
   const { t } = useT();
   const progress = useProgress();
@@ -122,6 +133,7 @@ export function useBackupWatch({ progressKey, start, matchRun, kind = "backup", 
   const matchRef = useRef(matchRun);
   const kindRef = useRef(kind);
   const onDoneRef = useRef(onDone);
+  const onRunRef = useRef(onRun);
   // Mirror the (optional) cancelled flag ref the same way, so the poll closure
   // always reads the latest one without re-subscribing.
   const cancelledRefRef = useRef(cancelledRef);
@@ -136,6 +148,7 @@ export function useBackupWatch({ progressKey, start, matchRun, kind = "backup", 
   matchRef.current = matchRun;
   kindRef.current = kind;
   onDoneRef.current = onDone;
+  onRunRef.current = onRun;
   cancelledRefRef.current = cancelledRef;
 
   const finish = useCallback((next: BackupWatchState) => {
@@ -176,6 +189,10 @@ export function useBackupWatch({ progressKey, start, matchRun, kind = "backup", 
       // Runs come newest-first; the newest matching run absent at fire time is ours.
       const run = res.runs.find((r) => mine(r) && !base.has(r.id));
       if (!run) return "no-run";
+      // FLOW-03: the baseline-id match IS the correlation contract — report
+      // the run to the consumer at the moment it is identified (and on every
+      // later poll, with the refreshed record). See onRun's doc comment.
+      onRunRef.current?.(run);
       if (run.status === "success") {
         finish({ phase: "success", snapshotId: run.snapshotId || undefined });
         return "resolved";

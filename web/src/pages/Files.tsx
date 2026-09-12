@@ -27,10 +27,11 @@ import {
   getSettings,
   getFileSetPreset,
 } from "../lib/api";
-import type { BrowseResponse, FileSetView, Snapshot, FileEntry, FileSetPresetResponse } from "../lib/api";
+import type { BrowseResponse, FileSetView, Snapshot, FileEntry, FileSetPresetResponse, Run } from "../lib/api";
 import { applyToggle, browseRelToHost, splitFlatSet, toFlatList } from "../lib/selectionTree";
 import { SelectionTree } from "../components/SelectionTree";
 import { StickyActionBar } from "../components/mobile/StickyActionBar";
+import { RunDetailSheet } from "../components/mobile/RunDetailSheet";
 import { useIsCoarsePointer, useIsDesktop } from "../lib/useMediaQuery";
 import { SourceToggle, type RepoSource } from "../components/SourceToggle";
 import { PAGE_SHELL_RESPONSIVE } from "../lib/pageShell";
@@ -196,6 +197,7 @@ function FileSetBackupButton({
   t,
   onBackedUp,
   running,
+  onRunCorrelated,
 }: {
   set: FileSetView;
   t: T;
@@ -203,12 +205,17 @@ function FileSetBackupButton({
   /** "Something is running" signal (anyActive): busy-guards this backup while
    *  another op runs, but never for its OWN in-flight backup (isPending). */
   running?: { active: boolean; phase?: string };
+  /** Phase 6 (FLOW-03): the correlated run from useBackupWatch's baseline-id
+   *  match — the mobile list deep-links the 06-04 RunDetailSheet into the
+   *  live run at that moment. Optional; desktop list rows omit it. */
+  onRunCorrelated?: (run: Run) => void;
 }) {
   const { state, fire, isPending } = useBackupWatch({
     progressKey: `files:${set.name}`,
     start: () => backupFileSet(set.id),
     matchRun: (r) => r.domain === "files" && r.target === set.name,
     onDone: onBackedUp,
+    onRun: onRunCorrelated,
   });
   const blockedByOther = !!running?.active && !isPending;
   // A path-less discovered set has nothing to back up until a folder is set
@@ -1473,6 +1480,7 @@ export function FileSetRow({
   editorDefaultOpen = false,
   onSaveState,
   flushRef,
+  onRunCorrelated,
 }: {
   set: FileSetView;
   hostMountRoot: string;
@@ -1491,6 +1499,9 @@ export function FileSetRow({
   editorDefaultOpen?: boolean;
   onSaveState?: (s: SaveBarState) => void;
   flushRef?: RefObject<(() => void) | null>;
+  /** Phase 6 (FLOW-03): pass-through to FileSetBackupButton — the mobile list
+   *  deep-links the run sheet on correlation. Optional; desktop omits it. */
+  onRunCorrelated?: (run: Run) => void;
 }) {
   const progressMap = useProgress();
   const progress = progressMap[`files:${set.name}`];
@@ -1668,7 +1679,13 @@ export function FileSetRow({
           </div>
         </div>
         <div className="ms-auto flex flex-col items-end">
-          <FileSetBackupButton set={set} t={t} onBackedUp={onRefresh} running={running} />
+          <FileSetBackupButton
+            set={set}
+            t={t}
+            onBackedUp={onRefresh}
+            running={running}
+            onRunCorrelated={onRunCorrelated}
+          />
         </div>
       </div>
 
@@ -1869,6 +1886,15 @@ export function Files() {
   const [expandedSetId, setExpandedSetId] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<SaveBarState>({ ticked: 0, inFlight: false, shakeNonce: 0 });
   const saveFlushRef = useRef<(() => void) | null>(null);
+  // FLOW-03: the run sheet, hosted component-locally by this surface (the
+  // D-05 contract) — the expanded row's FileSetBackupButton reports the
+  // correlated run and the sheet opens over the list. Same dismissal rule as
+  // the container detail: later polls refresh the record, never re-open a
+  // closed sheet (the terminal outcome still surfaces through the trigger's
+  // own inline result lines).
+  const [sheetRun, setSheetRun] = useState<Run | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const sheetDismissed = useRef(false);
   // Resolved from the CURRENT list, never cached: a loadSets() refetch (save,
   // discover, dialog save) replaces the views, and a stale id would pin the
   // bar to a dead row.
@@ -2215,6 +2241,10 @@ export function Files() {
                     editorDefaultOpen
                     onSaveState={setSaveState}
                     flushRef={saveFlushRef}
+                    onRunCorrelated={(run) => {
+                      setSheetRun(run);
+                      if (!sheetDismissed.current) setSheetOpen(true);
+                    }}
                   />
                 )}
               </div>
@@ -2263,6 +2293,20 @@ export function Files() {
             className={`w-full min-h-[2.75rem] justify-center${saveState.shakeNonce ? " glim-shake" : ""}`}
           />
         </StickyActionBar>
+      )}
+
+      {/* FLOW-03: the 06-04 run sheet over the list — opens on the
+          useBackupWatch baseline-id correlation from the expanded row's
+          backup trigger. */}
+      {sheetRun && (
+        <RunDetailSheet
+          run={sheetRun}
+          open={sheetOpen}
+          onClose={() => {
+            sheetDismissed.current = true;
+            setSheetOpen(false);
+          }}
+        />
       )}
 
       {/* Add / edit dialog */}

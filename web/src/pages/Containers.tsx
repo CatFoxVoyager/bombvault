@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { listContainers, deleteBackups, backupAll, restore, restoreStack, discover, setContainerHooks, getContainerMounts, setContainerTargets, setStopContainers, setContainerExcludes, previewContainerExcludes, suggestContainerExcludes, exportContainer, setIncludeAll, setUpdateAfterBackup, getBackupOrder, setBackupOrder, ApiError, type ContainerTargetsBody, type ContainerMountsResponse } from "../lib/api";
-import type { Container, ExcludeSuggestion, MountInfo, CustomPath, ContainerOrder, BrowseResponse } from "../lib/api";
+import type { Container, ExcludeSuggestion, MountInfo, CustomPath, ContainerOrder, BrowseResponse, Run } from "../lib/api";
 import { applyToggle, browseRelToHost, partitionCustomPaths, toFlatList } from "../lib/selectionTree";
 import { useIsCoarsePointer, useIsDesktop } from "../lib/useMediaQuery";
 import { SelectionTree } from "../components/SelectionTree";
 import { StickyActionBar } from "../components/mobile/StickyActionBar";
+import { RunDetailSheet } from "../components/mobile/RunDetailSheet";
 import { FolderBrowser } from "../components/FolderBrowser";
 import { humanBytes } from "../lib/forecast";
 import { FilterPopover } from "../components/FilterPopover";
@@ -1706,6 +1707,19 @@ function MobileContainerDetail({
       alive = false;
     };
   }, [container.name, nonce]);
+  // ---- FLOW-03: backup trigger + run deep-link -----------------------------
+  // The trigger IS the desktop row's BackupButton component (zero new trigger
+  // path; the #197 stop-ack confirm inherits the 06-02 ConfirmSheet below the
+  // breakpoint through useConfirm's own media switch). On correlation the
+  // 06-04 RunDetailSheet opens over the detail with the LIVE run (component-
+  // local hosting, the D-05 contract — no route). onRun fires on every poll,
+  // so sheetRun always holds the freshest record (running → terminal renders
+  // truthfully); a sheet the user closed is NEVER re-opened by later polls
+  // of the same watch — the terminal outcome still toasts from BackupButton.
+  const running = anyActive(useProgress());
+  const [sheetRun, setSheetRun] = useState<Run | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const sheetDismissed = useRef(false);
   return (
     <div className="flex flex-col gap-4 glim-content-fade">
       {/* Back row (SCRN-02): chevron + VISIBLE label, never icon-only. The
@@ -1732,6 +1746,20 @@ function MobileContainerDetail({
           </p>
         )}
       </div>
+      {/* FLOW-03 trigger: the desktop row's own BackupButton (semantics AND
+          confirm inherited verbatim), presented in the detail's flow. Gated
+          on installed, mirroring the desktop row's actions block. */}
+      {container.installed && (
+        <BackupButton
+          name={container.name}
+          t={t}
+          running={running}
+          onRunCorrelated={(run) => {
+            setSheetRun(run);
+            if (!sheetDismissed.current) setSheetOpen(true);
+          }}
+        />
+      )}
       {/* The SAME editor the desktop row expands — one tree, one queue, zero
           forks. Keyed by container identity (T-06-06a): switching targets can
           never inherit the previous container's mirror, browse cache or save
@@ -1750,6 +1778,19 @@ function MobileContainerDetail({
           flushRef={flushRef}
         />
       </Advanced>
+      {/* The 06-04 run sheet, hosted component-locally (D-05): opens on the
+          useBackupWatch baseline-id correlation, closes through BottomSheet's
+          three paths, and never re-opens itself after dismissal. */}
+      {sheetRun && (
+        <RunDetailSheet
+          run={sheetRun}
+          open={sheetOpen}
+          onClose={() => {
+            sheetDismissed.current = true;
+            setSheetOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }
