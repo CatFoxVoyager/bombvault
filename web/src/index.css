@@ -66,9 +66,13 @@
      "in progress" accent — and sat in the same scrolling log as the "info"
      lines' --status-warn amber, which is only ~11 RGB / 1.05:1 away from the
      default accent gold (see --status-warn-text's KNOWN LIMITATION below).
-     Scope is fixed and must stay fixed: ONE consumer (ActivityLog's
-     colorFor("offsite")), text only, no Bg/Border/Solid siblings, and
-     "running" stays on --accent-text.
+     Scope is fixed and stays narrow: the consumers are named here, text
+     only, no Bg/Border/Solid siblings, and "running" stays on --accent-text.
+     (1) ActivityLog's colorFor("offsite"). (2) Phase 6 SCRN-01's mobile
+     repo-health offsite-copy-age chip (Dashboard.tsx) — the phase contract
+     explicitly renders the copy age in this domain blue, in the
+     OffsiteIndicator line language; adding it here keeps this register the
+     one place a future consumer must answer to.
      PAIRED HARD-CODED COPY: internal/api/widget.html is a standalone,
      dark-only file that cannot read these tokens, so its `.offsite` rule
      hard-codes the dark hex below. The two must change together — that

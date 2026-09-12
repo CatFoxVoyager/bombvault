@@ -11,16 +11,22 @@ import { isOwnReason, runReason } from "../lib/runReason";
 // so the mobile RunDetailSheet renders the exact same vocabulary — verbatim
 // move, no behavior change.
 import { runKindLabel, runTargetText, statusLabel, statusTone } from "../lib/runDisplay";
-import { PAGE_SHELL } from "../lib/pageShell";
+// Phase 6 (SCRN-01): the responsive page rhythm — gap-6 below the 48rem
+// breakpoint, the PAGE_SHELL gap-10 at and above (identical on desktop by
+// construction). Dashboard joins Containers/Files as a stated exception in
+// eslint.config.js.
+import { PAGE_SHELL_RESPONSIVE } from "../lib/pageShell";
+import { useIsDesktop } from "../lib/useMediaQuery";
 import { useAdvanced } from "../lib/advanced";
 import { OffsiteIndicator } from "../components/OffsiteIndicator";
+import { RunDetailSheet } from "../components/mobile/RunDetailSheet";
 import { formatCadence } from "../components/CadenceBuilder";
 import { relativeTime, formatTs, formatDuration } from "../lib/reltime";
 import { isFreshInstall } from "../lib/freshInstall";
 import { useDashboardLayout, CustomizableBlock, type BlockDragHandlers } from "../lib/dashboardLayout";
 import { ActivityLog } from "../components/ActivityLog";
 import { Badge } from "../components/Badge";
-import { IconPencil } from "../components/Sidebar";
+import { IconPencil, IconBackupNow } from "../components/Sidebar";
 import { IconTipButton } from "../components/IconTipButton";
 import { Selector } from "../components/Selector";
 // humanBytes (binary 1024 units, one decimal) moved to lib/forecast so the
@@ -1867,6 +1873,106 @@ function SummaryCell({
   );
 }
 
+// ---------------------------------------------------------------------------
+// Shared summary derivations — extracted (phase 06, SCRN-01) so the mobile
+// Home blocks read the SAME source of truth as the desktop summary tier:
+// this file's own stated principle for /api/schedule/next ("the two read the
+// same source and must not be able to disagree with each other on screen")
+// now applies to the mobile Next-run card and repo-health card too. Pure
+// functions over props/state that already exist; no fetch of their own.
+// ---------------------------------------------------------------------------
+
+/** Worst RPO status across enabled, non-off domains: any overdue/never is red,
+ *  else any warn is amber, else any ok is green, else all off = neutral. The
+ *  summary tier's "Overall health" cell and the mobile repo-health card's
+ *  four-status line are the two consumers. */
+function worstRpoStatus(domains: DomainStatus[]): "overdue" | "warn" | "ok" | "off" {
+  const active = domains.filter((d) => d.enabled && d.status !== "off");
+  return active.some((d) => d.status === "overdue" || d.status === "never")
+    ? "overdue"
+    : active.some((d) => d.status === "warn")
+      ? "warn"
+      : active.some((d) => d.status === "ok")
+        ? "ok"
+        : "off";
+}
+
+/** The reader-facing label for worstRpoStatus — the same four keys the
+ *  summary tier's health cell has always mapped, now shared. */
+function worstRpoLabel(t: ReturnType<typeof useT>["t"], health: "overdue" | "warn" | "ok" | "off"): string {
+  return health === "overdue"
+    ? t("dashboard.rpoOverdue")
+    : health === "warn"
+      ? t("dashboard.rpoWarn")
+      : health === "ok"
+        ? t("dashboard.rpoOk")
+        : t("dashboard.rpoOff");
+}
+
+/**
+ * When the next backup actually fires, from the scheduler ([545], issue #187).
+ * ------------------------------------------------------------------------
+ * The note that used to sit in SummaryTier said "there is no next-run
+ * timestamp on the backend and no client-side cron calculator", and it had
+ * outlived its truth: GET /api/schedule/next has existed for a while, the
+ * activity log a few hundred pixels below already reads it, and so does the
+ * Unraid widget. The desktop cell was the last consumer still deriving the
+ * answer itself, by ranking cadence STRINGS on an approximate period.
+ *
+ * The approximation could not be made right, only less wrong. It ranks
+ * "weekly Sun 04:00" as seven days out whatever today is, and it cannot walk
+ * an `everyN` entry through its due gate, so an `everyN 7` pass that last ran
+ * three days ago is four days out to the scheduler and seven to this tile.
+ * Two issues came out of that (#177, #186), both patched by teaching the
+ * weaker mechanism about the case rather than retiring it. This retires it.
+ *
+ * The result names a MOMENT rather than a schedule, which is jdp's call at
+ * the review: "Täglich um 05:00" describes a rule, and the question a
+ * dashboard is asked is when the next one runs. Filtered to job "backup" —
+ * the list also carries offsite/drill/tamper/digest/watchdog fires, and this
+ * is labelled "Next backup".
+ *
+ * The gate main learned in #177/#186, carried over: the scheduler registers
+ * the "Backup Everything" pass even when all five domains are switched off,
+ * because its entry has no off field of its own. A pass over zero enabled
+ * domains backs nothing up (internal/api/everything.go logs exactly that and
+ * writes no snapshot), so without this condition the result names a moment at
+ * which nothing gets backed up.
+ */
+function nextBackupFireAt(
+  scheduleNext: ScheduleNext[],
+  domains: DomainStatus[]
+): { at: ScheduleNext | null; ms: number } {
+  const anyDomainOn = domains.some((d) => d.enabled);
+  const at =
+    scheduleNext.find((n) => n.job === "backup" && (n.domain !== "everything" || anyDomainOn)) ??
+    null;
+  return { at, ms: at ? new Date(at.next).getTime() : NaN };
+}
+
+/** Reader-facing label for a ScheduleNext domain — the same vocabulary the
+ *  protection rows and the activity log use, so the mobile Next-run card
+ *  cannot invent a second name for a domain the rest of the app already
+ *  names. */
+function scheduleDomainLabel(t: ReturnType<typeof useT>["t"], domain: string): string {
+  switch (domain) {
+    case "containers":
+      return t("dashboard.domainContainers");
+    case "vms":
+      return t("dashboard.domainVMs");
+    case "flash":
+      return t("dashboard.domainFlash");
+    case "files":
+      return t("dashboard.domainFiles");
+    case "config":
+      return t("dashboard.domainConfig");
+    case "everything":
+      return t("activityLog.domainEverything");
+    default:
+      return domain;
+  }
+}
+
 function SummaryTier({
   t,
   domains,
@@ -1906,62 +2012,19 @@ function SummaryTier({
    *  and the Unraid widget uses (issue #187, [545]). */
   scheduleNext: ScheduleNext[];
 }) {
-  // Cell 1 — worst RPO status across enabled, non-off domains: any overdue/never
-  // is red, else any warn is amber, else any ok is green, else all off = neutral.
-  // The representative status reuses chipForRpo + the existing rpo* labels below.
-  const active = domains.filter((d) => d.enabled && d.status !== "off");
-  const health: "overdue" | "warn" | "ok" | "off" = active.some(
-    (d) => d.status === "overdue" || d.status === "never"
-  )
-    ? "overdue"
-    : active.some((d) => d.status === "warn")
-      ? "warn"
-      : active.some((d) => d.status === "ok")
-        ? "ok"
-        : "off";
-  const healthLabel =
-    health === "overdue"
-      ? t("dashboard.rpoOverdue")
-      : health === "warn"
-        ? t("dashboard.rpoWarn")
-        : health === "ok"
-          ? t("dashboard.rpoOk")
-          : t("dashboard.rpoOff");
+  // Cell 1 — worst RPO status across enabled, non-off domains (the shared
+  // worstRpoStatus/worstRpoLabel derivation above; identical mapping to the
+  // pre-extraction inline version). The representative status reuses chipForRpo
+  // + the existing rpo* labels.
+  const health = worstRpoStatus(domains);
+  const healthLabel = worstRpoLabel(t, health);
 
   // Cell 2 — when the next backup actually fires, from the scheduler ([545],
-  // issue #187).
-  // ------------------------------------------------------------------------
-  // The note that used to sit here said "there is no next-run timestamp on the
-  // backend and no client-side cron calculator", and it had outlived its truth:
-  // GET /api/schedule/next has existed for a while, the activity log a few
-  // hundred pixels below already reads it, and so does the Unraid widget. This
-  // cell was the last consumer still deriving the answer itself, by ranking
-  // cadence STRINGS on an approximate period.
-  //
-  // The approximation could not be made right, only less wrong. It ranks
-  // "weekly Sun 04:00" as seven days out whatever today is, and it cannot walk
-  // an `everyN` entry through its due gate, so an `everyN 7` pass that last ran
-  // three days ago is four days out to the scheduler and seven to this tile.
-  // Two issues came out of that (#177, #186), both patched by teaching the
-  // weaker mechanism about the case rather than retiring it. This retires it.
-  //
-  // The cell now names a MOMENT rather than a schedule, which is jdp's call at
-  // the review: "Täglich um 05:00" describes a rule, and the question a
-  // dashboard is asked is when the next one runs. Filtered to job "backup" —
-  // the list also carries offsite/drill/tamper/digest/watchdog fires, and this
-  // cell is labelled "Next backup".
-  //
-  // The gate main learned in #177/#186, carried over: the scheduler registers
-  // the "Backup Everything" pass even when all five domains are switched off,
-  // because its entry has no off field of its own. A pass over zero enabled
-  // domains backs nothing up (internal/api/everything.go logs exactly that and
-  // writes no snapshot), so without this condition the cell names a moment at
-  // which nothing gets backed up.
-  const anyDomainOn = domains.some((d) => d.enabled);
-  const nextBackupAt = scheduleNext.find(
-    (n) => n.job === "backup" && (n.domain !== "everything" || anyDomainOn)
-  );
-  const nextBackupMs = nextBackupAt ? new Date(nextBackupAt.next).getTime() : NaN;
+  // issue #187). The derivation (and its #177/#186 history) lives in the
+  // shared nextBackupFireAt helper above — the mobile Next-run card reads the
+  // same function, so the two surfaces cannot disagree. (The cell itself only
+  // needs the moment, not the entry.)
+  const { ms: nextBackupMs } = nextBackupFireAt(scheduleNext, domains);
   const nextCadence = Number.isFinite(nextBackupMs)
     ? t("dashboard.summaryNextIn").replace(
         "{countdown}",
@@ -2018,12 +2081,296 @@ function SummaryTier({
 }
 
 // ---------------------------------------------------------------------------
+// Mobile Home blocks (phase 06, SCRN-01) — the glanceable phone surface.
+//
+// Below the 48rem breakpoint the desktop customizable block grid is replaced
+// by THESE four blocks in a fixed order: identity (the page header above),
+// next run, recent runs, repository health (plus the thumb-zone trigger that
+// 06-06 Task 2 adds as the page column's last child). The maquette language
+// (design/mobile @0b64c7df, Home screen) sets the density contract: cards
+// p-4, gap-4 between blocks, gap-2 inside a card, 12px uppercase section
+// labels. Every consumer here reads state the page has ALREADY fetched (runs,
+// scheduleNext, statusDomains) or the same endpoint a desktop card already
+// reads — zero new endpoints (api.ts frozen).
+//
+// Mount discipline is the Containers.tsx precedent: the blocks are JSX-gated
+// on `!isDesktop` (jsdom matchMedia answers desktop, so these are e2e-only
+// surfaces) and the desktop grid carries `max-md:hidden` in return. At the
+// 48rem boundary both switches agree, so exactly one surface ever renders.
+// ---------------------------------------------------------------------------
+
+function MobileSectionLabel({ t, labelKey }: { t: ReturnType<typeof useT>["t"]; labelKey: TranslationKey }) {
+  // The maquette's `.sect` — a 12px uppercase letter-spaced label sitting
+  // between the cards (not a desktop-style overlapping Badge heading; the
+  // phone cards are flat, compact boxes).
+  return (
+    <h2 className="px-0.5 text-xs font-semibold uppercase tracking-[0.09em] text-carbon-textMuted">
+      {t(labelKey)}
+    </h2>
+  );
+}
+
+function MobileNextRunCard({
+  t,
+  scheduleNext,
+  domains,
+  loading,
+}: {
+  t: ReturnType<typeof useT>["t"];
+  scheduleNext: ScheduleNext[];
+  domains: DomainStatus[];
+  loading: boolean;
+}) {
+  // The SAME derivation the summary tier's "Next backup" cell uses — one
+  // source of truth (nextBackupFireAt above), two surfaces that cannot
+  // disagree. Accent here is sanctioned: the next-run card tints are on the
+  // phase's reserved-accent list (accentSoft backdrop + accentText chip).
+  const { at, ms } = nextBackupFireAt(scheduleNext, domains);
+  const countdown = Number.isFinite(ms)
+    ? t("dashboard.summaryNextIn").replace(
+        "{countdown}",
+        formatDuration(Math.max(0, Math.round((ms - Date.now()) / 1000)))
+      )
+    : "";
+  return (
+    <section className="flex flex-col gap-2">
+      <MobileSectionLabel t={t} labelKey="dashboard.summaryNextBackup" />
+      <div className="flex items-center gap-3 rounded-card bg-carbon-surface p-4">
+        {loading ? (
+          <p className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</p>
+        ) : at ? (
+          <>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-accentSoft text-accentText">
+              <IconBackupNow />
+            </span>
+            <span className="min-w-0 flex-1">
+              {/* Schedule name (14px ≈ text-sm / 600) + when · what meta (12px).
+                  "what" is the run kind the scheduler entry names — the card
+                  labels a backup fire, so run.kindBackup is the honest kind. */}
+              <span className="block truncate text-sm font-semibold text-carbon-text">
+                {scheduleDomainLabel(t, at.domain)}
+              </span>
+              <span className="mt-0.5 block truncate text-xs text-carbon-textMuted">
+                {t("run.kindBackup")} · {formatTs(Math.round(ms / 1000))}
+              </span>
+            </span>
+            {countdown && (
+              <span className="shrink-0 rounded-pill bg-accentSoft px-2.5 py-1 text-xs font-semibold text-accentText">
+                {countdown}
+              </span>
+            )}
+          </>
+        ) : (
+          <p className="text-sm text-carbon-textMuted">{t("dashboard.rpoOff")}</p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function MobileRecentRunsCard({
+  t,
+  runs,
+  onOpenRun,
+}: {
+  t: ReturnType<typeof useT>["t"];
+  runs: Run[];
+  onOpenRun: (run: Run) => void;
+}) {
+  // The four most recent runs, newest first (listRuns returns newest-first).
+  // Each row is a >=44px touch target (min-h-[2.75rem]) whose tap opens the
+  // 06-04 RunDetailSheet for THAT run, hosted by the page component-locally —
+  // no route (router.tsx frozen). Four-status badges always carry their text
+  // label (never color alone, WCAG 1.4.1); failed/skipped runs keep the
+  // desktop RunsCard's scrubbed-reason treatment (runReason + the dir
+  // contract) so the phone never shows a red line the user cannot read.
+  const recent = runs.slice(0, 4);
+  return (
+    <section className="flex flex-col gap-2">
+      <MobileSectionLabel t={t} labelKey="dashboard.recentRuns" />
+      <div className="rounded-card bg-carbon-surface p-2">
+        {recent.length === 0 ? (
+          <p className="px-2 py-2 text-sm text-carbon-textMuted">{t("dashboard.noRuns")}</p>
+        ) : (
+          <div className="divide-y divide-carbon-border">
+            {recent.map((run) => (
+              <button
+                key={run.id}
+                type="button"
+                onClick={() => onOpenRun(run)}
+                aria-label={`${statusLabel(run.status, t)} · ${runKindLabel(t, run.kind)} ${runTargetText(t, run)}`}
+                className="flex min-h-[2.75rem] w-full items-center gap-3 px-2 py-2 text-start"
+              >
+                <span className="shrink-0">
+                  <Badge tone={statusTone(run.status)}>{statusLabel(run.status, t)}</Badge>
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold text-carbon-text">
+                    {runKindLabel(t, run.kind)} · {runTargetText(t, run)}
+                  </span>
+                  <span className="mt-0.5 block truncate text-xs text-carbon-textMuted">
+                    {relativeTime(t, run.startedAt)}
+                    {run.bytes > 0 ? ` · ${humanBytes(run.bytes)}` : ""}
+                  </span>
+                  {run.status === "failed" && run.error && (
+                    <span
+                      dir={isOwnReason(run.error) ? undefined : "ltr"}
+                      className="mt-0.5 block text-xs text-statusFail wrap-break-word text-start"
+                    >
+                      {runReason(run.error, t)}
+                    </span>
+                  )}
+                  {run.status === "skipped" && run.error && (
+                    <span
+                      dir={isOwnReason(run.error) ? undefined : "ltr"}
+                      className="mt-0.5 block text-xs text-carbon-textMuted wrap-break-word text-start"
+                    >
+                      {runReason(run.error, t)}
+                    </span>
+                  )}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function MobileRepoHealthCard({
+  t,
+  domains,
+}: {
+  t: ReturnType<typeof useT>["t"];
+  domains: DomainStatus[];
+}) {
+  // Repo totals from the SAME endpoint the desktop Storage card reads
+  // (/api/stats/{domain}/local, 90-day window — same shape: rawSize,
+  // restoreSize, snapshots). This component mounts only on phones (it is the
+  // !isDesktop complement of the desktop grid), so its four calls never run
+  // alongside the Storage card's own — no duplicated round-trip on either
+  // surface, and no new endpoint anywhere.
+  const [totals, setTotals] = useState<{
+    rawSize: number;
+    restoreSize: number;
+    snapshots: number;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    const repoDomains: StorageDomain[] = ["containers", "vms", "flash", "files"];
+    Promise.all(repoDomains.map((d) => getStats(d, "local", 90)))
+      .then((results) => {
+        if (!active) return;
+        let rawSize = 0;
+        let restoreSize = 0;
+        let snapshots = 0;
+        let any = false;
+        for (const res of results) {
+          const latest = res.ok ? res.latest : null;
+          if (latest) {
+            any = true;
+            rawSize += latest.rawSize;
+            restoreSize += latest.restoreSize;
+            snapshots += latest.snapshots;
+          }
+        }
+        setTotals(any ? { rawSize, restoreSize, snapshots } : null);
+      })
+      .catch(() => {
+        /* non-fatal — the card falls back to the shared no-data copy */
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Four-status language for repo state: the same worst-RPO derivation the
+  // summary tier's health cell uses (SCRN-01 "four-status language for repo
+  // state" — Badge + text label, never color alone).
+  const health = worstRpoStatus(domains);
+  // Off-site copy age: the most recent replication across the configured
+  // domains. Offsite blue is the offsite DOMAIN identity, rendered in the
+  // OffsiteIndicator line language (↗ + relative age, text-statusOffsite —
+  // the token is text-only by design), never a fifth status hue. With a repo
+  // configured but nothing replicated yet, the replication row's own
+  // "not replicated yet" says so; with none configured, the protection
+  // card's existing "No off-site copy".
+  const configured = domains.filter((d) => d.offsiteConfigured);
+  const newestReplication = configured.reduce<DomainStatus | null>(
+    (newest, d) =>
+      d.lastReplicationAt > 0 && (newest === null || d.lastReplicationAt > newest.lastReplicationAt)
+        ? d
+        : newest,
+    null
+  );
+  const dedup =
+    totals && totals.rawSize > 0 && totals.restoreSize > 0
+      ? `${(totals.restoreSize / totals.rawSize).toFixed(1)}x`
+      : "—";
+  return (
+    <section className="flex flex-col gap-2">
+      <MobileSectionLabel t={t} labelKey="dashboard.storageTitle" />
+      <div className="flex flex-col gap-2 rounded-card bg-carbon-surface p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge tone={statusTone(chipForRpo(health))}>{statusLabel(chipForRpo(health), t)}</Badge>
+          <span className="truncate text-sm text-carbon-text">{worstRpoLabel(t, health)}</span>
+        </div>
+        <p className="text-xs text-carbon-textMuted">
+          {loading
+            ? t("dashboard.checking")
+            : totals
+              ? `${humanBytes(totals.rawSize)} · ${t("dashboard.dedup")} ${dedup} · ${totals.snapshots} ${t("dashboard.snapshotsLabel")}`
+              : t("dashboard.noStats")}
+        </p>
+        <p className="text-xs">
+          {newestReplication ? (
+            <span className="font-semibold text-statusOffsite">
+              ↗ {relativeTime(t, newestReplication.lastReplicationAt)}
+            </span>
+          ) : configured.length > 0 ? (
+            <span className="text-carbon-textMuted">{t("ransomware.replicationNever")}</span>
+          ) : (
+            <span className="text-carbon-textMuted">{t("dashboard.noOffsite")}</span>
+          )}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Dashboard page
 // ---------------------------------------------------------------------------
 
 export function Dashboard() {
   const { t } = useT();
   const { advanced } = useAdvanced();
+  // Phase 6 (SCRN-01): the phone surface switch. Below the 48rem breakpoint
+  // the page renders the four glanceable Home blocks INSTEAD of the desktop
+  // customizable grid (which is max-md:hidden in return) — the Containers.tsx
+  // gating precedent. jsdom matchMedia answers desktop, so the mobile blocks
+  // stay e2e-only and every existing dom test sees the desktop page.
+  const isDesktop = useIsDesktop();
+
+  // Component-local run-sheet host (D-05, the Containers.tsx contract): the
+  // recent-run rows open the 06-04 RunDetailSheet for their own record here —
+  // no route (router.tsx frozen). The dismissal latch exists for the 06-06
+  // Task 2 backup watch: once the user closes a sheet, later onRun polls
+  // refresh sheetRun but never re-open it; an explicit row tap always re-arms.
+  const [sheetRun, setSheetRun] = useState<Run | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const sheetDismissed = useRef(false);
+  const openRun = (run: Run) => {
+    sheetDismissed.current = false;
+    setSheetRun(run);
+    setSheetOpen(true);
+  };
 
   // Single /api/status fetch shared by the Protection + Ransomware cards (no
   // duplicate round-trip — both cards read the same extended domain status).
@@ -2344,7 +2691,10 @@ export function Dashboard() {
     //   The nested gap-6 group below stays: heading + banner are a tight pair
     // that deliberately sits closer than the 40px Card rhythm, the same
     // two-level shape Settings.tsx uses for its heading + tab strip.
-    <div className={PAGE_SHELL}>
+    // SCRN-01: the responsive rhythm (gap-6 below 48rem, the PAGE_SHELL
+    // gap-10 at and above — identical on desktop by construction). See
+    // lib/pageShell.ts's PAGE_SHELL_RESPONSIVE and the eslint exceptions data.
+    <div className={PAGE_SHELL_RESPONSIVE}>
       <div className="flex flex-col gap-6">
       {/* Page heading — fixed (contextual, not customizable). The pencil in the
           top-right corner toggles the customize/edit mode.
@@ -2360,10 +2710,36 @@ export function Dashboard() {
           SIZE FOR SQUARE ICON BADGES" block. */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-carbon-text">
+          {/* SCRN-01 identity header, mobile half: the app wordmark (the same
+              theme-switching mark pair the desktop sidebar renders) leads the
+              phone page; md+ never sees this row. "BombVault" is the brand
+              proper noun, not a translation unit — the same standing choice as
+              the logo marks' own alt text in Sidebar.tsx. */}
+          <div className="mb-2 flex items-center gap-2 md:hidden">
+            <img
+              src="/logo.svg"
+              alt=""
+              draggable={false}
+              className="h-6 w-6 object-contain block dark:hidden"
+            />
+            <img
+              src="/logo-light.svg"
+              alt=""
+              draggable={false}
+              className="h-6 w-6 object-contain hidden dark:block"
+            />
+            <span className="text-lg font-semibold tracking-tight text-carbon-text">
+              BombVault
+            </span>
+          </div>
+          <h1 className="text-2xl max-md:text-xl font-semibold text-carbon-text">
             {t("dashboard.title")}
           </h1>
-          <p className="mt-1 text-sm text-carbon-textSub">
+          {/* The 12px meta line under the 20px heading (SCRN-01): the subtitle
+              steps down to text-xs below the breakpoint. The live instance
+              facts beneath it (per-domain off-site replication indicators)
+              are shared with desktop and untouched. */}
+          <p className="mt-1 text-sm max-md:text-xs text-carbon-textSub">
             {t("dashboard.subtitle")}
           </p>
           <div className="mt-2 flex flex-col gap-1">
@@ -2400,7 +2776,11 @@ export function Dashboard() {
           onClick={() => setEditing((v) => !v)}
           tip={editing ? t("dashboard.customizeDone") : t("dashboard.customize")}
           ariaPressed={editing}
-          className={`shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-control motion-safe:transition-colors ${
+          /* SCRN-01: the pencil toggles the customizable desktop grid's edit
+             mode; on phones that grid is replaced by the fixed Home block
+             order, so the control has nothing to edit and stays desktop-only.
+             md+ renders it exactly as before. */
+          className={`max-md:hidden shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-control motion-safe:transition-colors ${
             editing
               ? "bg-accent text-accentContrast"
               : "bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text"
@@ -2454,7 +2834,7 @@ export function Dashboard() {
       {/* Customize controls — the pencil in the heading toggles edit mode; while
           editing, the Reset button + hint appear here. */}
       {editing && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 max-md:hidden">
           <Button
             label={t("dashboard.resetLayout")}
           labelKey="dashboard.resetLayout"
@@ -2467,10 +2847,24 @@ export function Dashboard() {
       )}
       </div>
 
+      {/* SCRN-01 mobile Home blocks — the four glanceable surfaces in the
+          contracted order (identity header is the page header above). JSX-gated
+          on !isDesktop; see the Mobile* component banner above for the mount
+          discipline and the maquette density contract. The thumb-zone trigger
+          (06-06 Task 2) joins as this column's last child. */}
+      {!isDesktop && (
+        <div className="flex flex-col gap-4">
+          <MobileNextRunCard t={t} scheduleNext={scheduleNext} domains={statusDomains} loading={statusLoading} />
+          <MobileRecentRunsCard t={t} runs={runs} onOpenRun={openRun} />
+          <MobileRepoHealthCard t={t} domains={statusDomains} />
+        </div>
+      )}
+
       {/* Ordered, visible blocks in a responsive grid: full-width cards span
           both columns, half-width cards flow two-per-row (request B). Below
-          the md breakpoint everything stacks in a single column regardless of
-          width. The col-span lives on this wrapper div (not on
+          the md breakpoint the grid is hidden entirely (max-md:hidden, see
+          above) — the phone reads the SCRN-01 Home blocks instead. The
+          col-span lives on this wrapper div (not on
           CustomizableBlock's own root) so it applies in BOTH edit mode (where
           CustomizableBlock renders its control-bar div) and view mode (where
           it renders only `<>{children}</>`). In edit mode each block carries a
@@ -2502,7 +2896,12 @@ export function Dashboard() {
           SummaryTier's own `healthHueIndex` doc for the exact live numbers)
           and fixed by resolving all three of its indices to plain numbers
           right here, the same way every other block already does. */}
-      <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
+      {/* max-md:hidden (SCRN-01): below the breakpoint the desktop customizable
+          grid is REPLACED by the mobile Home blocks above — the phone surface
+          is the four glanceable blocks plus the thumb-zone trigger, and the
+          reorderable two-column grid has no phone rendering. At md+ this class
+          is inert, so the desktop grid is byte-identical to before. */}
+      <div className="grid grid-cols-1 gap-10 md:grid-cols-2 max-md:hidden">
         {(() => {
           let hueSeq = 0;
           const nextHue = () => hueSeq++;
@@ -2541,9 +2940,10 @@ export function Dashboard() {
         })()}
       </div>
 
-      {/* Hidden-cards tray — only while editing and something is hidden. */}
+      {/* Hidden-cards tray — only while editing and something is hidden.
+          Desktop-only like the grid it serves (max-md:hidden, SCRN-01). */}
       {editing && hiddenBlocks.length > 0 && (
-        <div className="relative flex flex-col gap-3 rounded-card border border-dashed border-carbon-border p-4">
+        <div className="relative flex max-md:hidden flex-col gap-3 rounded-card border border-dashed border-carbon-border p-4">
           <h2 className="flex items-center">
             <Badge tone="heading" size="heading" wrap>{t("dashboard.hiddenCards")}</Badge>
           </h2>
@@ -2566,6 +2966,23 @@ export function Dashboard() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* The 06-04 run detail sheet, hosted component-locally (D-05 — the
+          Containers.tsx contract): opened by a recent-run row tap (Task 1)
+          and by the backup watch's onRun correlation (Task 2's thumb-zone
+          trigger deep-links into the live run here). A closed sheet stays
+          closed against later watch polls (the latch); an explicit row tap
+          re-arms it. */}
+      {sheetRun && (
+        <RunDetailSheet
+          run={sheetRun}
+          open={sheetOpen}
+          onClose={() => {
+            sheetDismissed.current = true;
+            setSheetOpen(false);
+          }}
+        />
       )}
     </div>
   );

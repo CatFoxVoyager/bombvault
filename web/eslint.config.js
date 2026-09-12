@@ -133,6 +133,10 @@ export default [
             // src/lib/pageShell.ts.
             "Containers.tsx": "PAGE_SHELL_RESPONSIVE",
             "Files.tsx": "PAGE_SHELL_RESPONSIVE",
+            // Phase 6 (SCRN-01): the Dashboard joins them - the phone Home is
+            // the four glanceable blocks plus the thumb-zone trigger, and the
+            // page rhythm steps down to gap-6 below the breakpoint.
+            "Dashboard.tsx": "PAGE_SHELL_RESPONSIVE",
             // Not a routed page at all: Layout.tsx returns it BEFORE the
             // sidebar/<main> shell when auth is blocked, so it never sits
             // under <Outlet />. Its `w-full max-w-sm` is a centred
