@@ -22,7 +22,7 @@
 **Milestone Goal:** The BombVault SPA becomes fully operational on mobile — a dedicated responsive layout following the locked design bible (`design/mobile/README.md` + maquettes @0b64c7df), with the desktop layout untouched above the 48rem breakpoint and full operational parity below it. Presentation-only: zero new npm dependencies, zero backend changes; `router.tsx`, `web/src/lib/api.ts`, and `internal/**` stay frozen.
 
 - [x] **Phase 5: Mobile Shell & Navigation Foundation** - One quarantined breakpoint decision swaps the Sidebar for the bottom bar + More sheet with safe-area, viewport-height, and keyboard correctness; desktop renders unchanged; the Playwright harness gates responsive regressions from day one (completed 2026-09-12)
-- [ ] **Phase 6: Maquette Screens** - Home (glanceable, thumb-zone backup trigger), Containers (touch selection tree), File sets (same tree), and Run detail — with tap-popovers, fail-tone sheet confirmations, and visibility-aware live progress working on touch
+- [x] **Phase 6: Maquette Screens** - Home (glanceable, thumb-zone backup trigger), Containers (touch selection tree), File sets (same tree), and Run detail — with tap-popovers, fail-tone sheet confirmations, and visibility-aware live progress working on touch (completed 2026-09-12)
 - [ ] **Phase 7: Remaining Destinations & Operational Parity** - VMs, Flash, Config, Receiver, Fleet, and Settings in the mobile card language; schedule/notification/replication editing as full-screen sheets; sticky search + load-more lists; M3/HIG platform-adaptive chrome
 - [ ] **Phase 8: Guided Restore & Real-Device Verification** - The guided restore flow end-to-end on mobile, closed out by the milestone exit criterion: real-device pass, i18n narrow-viewport sweeps, touch-target/hover audit, and both themes verified
 
@@ -141,6 +141,6 @@ Plans:
 | 3. Selection Trust & Controls | v1.0 | 3/3 | Complete | 2026-09-11 |
 | 4. File Sets Parity | v1.0 | 4/4 | Complete | 2026-09-11 |
 | 5. Mobile Shell & Navigation Foundation | v1.1 | 6/6 | Complete    | 2026-09-12 |
-| 6. Maquette Screens | v1.1 | 7/7 | In Progress|  |
+| 6. Maquette Screens | v1.1 | 7/7 | Complete    | 2026-09-12 |
 | 7. Remaining Destinations & Operational Parity | v1.1 | 0/TBD | Not started | - |
 | 8. Guided Restore & Real-Device Verification | v1.1 | 0/TBD | Not started | - |
