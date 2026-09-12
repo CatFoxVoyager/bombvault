@@ -1532,6 +1532,10 @@ const pl: Partial<Translations> = {
   "home.newBackup": "Nowa kopia zapasowa",
   "home.newBackupConfirm": "Rozpocząć teraz kopię zapasową wszystkich włączonych obszarów? Kontenery są zatrzymywane i ponownie uruchamiane. Przywracanie zachowa tylko to, co zapisze następne uruchomienie.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Nawigacja mobilna",
+
 };
 
 export default pl;

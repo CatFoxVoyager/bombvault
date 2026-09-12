@@ -1532,6 +1532,10 @@ const sr: Partial<Translations> = {
   "home.newBackup": "Нова резервна копија",
   "home.newBackupConfirm": "Започнути сада резервну копију свих укључених области? Контејнери се заустављају и поново покрећу. Обнова чува само оно што ће следећи покретач сачувати.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Мобилна навигација",
+
 };
 
 export default sr;

@@ -1548,6 +1548,10 @@ const hr: Partial<Translations> = {
   "home.newBackup": "Nova sigurnosna kopija",
   "home.newBackupConfirm": "Započeti sada sigurnosnu kopiju svih omogućenih domena? Kontejneri se zaustavljaju i ponovno pokreću. Obnova čuva samo ono što sljedeći zapis sprema.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Mobilna navigacija",
+
 };
 
 export default hr;

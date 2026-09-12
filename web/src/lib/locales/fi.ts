@@ -1537,6 +1537,10 @@ const fi: Partial<Translations> = {
   "home.newBackup": "Uusi varmuuskopio",
   "home.newBackupConfirm": "Aloita varmuuskopio kaikista käytössä olevista alueista nyt? Kontit pysäytetään ja käynnistetään uudelleen. Palautus säilyttää vain sen, mitä seuraava ajo tallentaa.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Mobiilinavigointi",
+
 };
 
 export default fi;

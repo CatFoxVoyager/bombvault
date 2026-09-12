@@ -1548,6 +1548,10 @@ const et: Partial<Translations> = {
   "home.newBackup": "Uus varukoopia",
   "home.newBackupConfirm": "Käivitada kohe varukoopia kõigist lubatud valdkondadest? Konteinerid peatatakse ja taaskäivitatakse. Taastamine säilitab ainult selle, mida salvestab järgmine käik.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Mobiilne navigeerimine",
+
 };
 
 export default et;

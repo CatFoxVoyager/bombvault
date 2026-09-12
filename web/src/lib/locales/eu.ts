@@ -1548,6 +1548,10 @@ const eu: Partial<Translations> = {
   "home.newBackup": "Babeskopia berria",
   "home.newBackupConfirm": "Aktibatutako domeinu guztien babeskopia hastu orain? Edukiontiak gelditu eta berrabiarazi egiten dira. Leheneratzeak hurrengo exekuzioak gordetzen duena soilik gordetzen du.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Mugikorreko nabigazioa",
+
 };
 
 export default eu;

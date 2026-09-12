@@ -1537,6 +1537,10 @@ const tr: Partial<Translations> = {
   "home.newBackup": "Yeni yedek",
   "home.newBackupConfirm": "Şimdi etkinleştirilmiş tüm alanların yedeğini başlat? Kapsayıcılar durdurulup yeniden başlatılır. Geri yükleme yalnızca bir sonraki çalıştırmanın kaydettiklerini tutar.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Mobil navigasyon",
+
 };
 
 export default tr;

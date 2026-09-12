@@ -1540,6 +1540,10 @@ const th: Partial<Translations> = {
   "home.newBackup": "สำรองข้อมูลใหม่",
   "home.newBackupConfirm": "เริ่มสำรองข้อมูลทุกโดเมนที่เปิดใช้งานตอนนี้หรือไม่? คอนเทนเนอร์จะหยุดและเริ่มใหม่ การกู้คืนจะเก็บเฉพาะสิ่งที่รอบถัดไปบันทึก",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "การนำทางบนมือถือ",
+
 };
 
 export default th;

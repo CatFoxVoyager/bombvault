@@ -1532,6 +1532,10 @@ const uk: Partial<Translations> = {
   "home.newBackup": "Нова резервна копія",
   "home.newBackupConfirm": "Запустити резервне копіювання всіх увімкнених областей зараз? Контейнери зупиняються та запускаються заново. Відновлення збереже лише те, що запише наступний запуск.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Мобільна навігація",
+
 };
 
 export default uk;

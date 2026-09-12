@@ -1537,6 +1537,10 @@ const no: Partial<Translations> = {
   "home.newBackup": "Ny sikkerhetskopi",
   "home.newBackupConfirm": "Start en sikkerhetskopi av alle aktiverte domener nå? Containere stoppes og startes på nytt. Gjenoppretting beholder bare det den neste kjøringen lagrer.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Mobil navigasjon",
+
 };
 
 export default no;

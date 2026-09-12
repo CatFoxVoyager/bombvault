@@ -1548,6 +1548,10 @@ const gl: Partial<Translations> = {
   "home.newBackup": "Nova copia de seguranza",
   "home.newBackupConfirm": "Iniciar agora unha copia de seguranza de todos os dominios activados? Os contedores detense e reinícianse. A restauración só conserva o que garde a seguinte execución.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Navegación móbil",
+
 };
 
 export default gl;

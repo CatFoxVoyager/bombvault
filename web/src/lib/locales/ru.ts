@@ -1532,6 +1532,10 @@ const ru: Partial<Translations> = {
   "home.newBackup": "Новая резервная копия",
   "home.newBackupConfirm": "Запустить резервное копирование всех включённых областей сейчас? Контейнеры останавливаются и запускаются заново. Восстановление сохранит только то, что запишет следующий запуск.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Мобильная навигация",
+
 };
 
 export default ru;

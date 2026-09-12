@@ -1537,6 +1537,10 @@ const el: Partial<Translations> = {
   "home.newBackup": "Νέο αντίγραφο ασφαλείας",
   "home.newBackupConfirm": "Να ξεκινήσει τώρα αντίγραφο ασφαλείας για όλους τους ενεργούς τομείς; Τα containers σταματούν και επανεκκινούνται. Η επαναφορά κρατά μόνο όσα θα αποθηκεύσει η επόμενη εκτέλεση.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Πλοήγηση κινητού",
+
 };
 
 export default el;

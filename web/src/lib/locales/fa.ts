@@ -1548,6 +1548,10 @@ const fa: Partial<Translations> = {
   "home.newBackup": "پشتیبان‌گیری جدید",
   "home.newBackupConfirm": "شروع پشتیبان‌گیری از همه بخش‌های فعال اکنون؟ کانتینرها متوقف و دوباره راه‌اندازی می‌شوند. بازیابی فقط چیزی را نگه می‌دارد که اجرای بعدی ذخیره می‌کند.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "ناوبری موبایل",
+
 };
 
 export default fa;

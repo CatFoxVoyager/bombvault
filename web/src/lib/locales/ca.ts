@@ -1548,6 +1548,10 @@ const ca: Partial<Translations> = {
   "home.newBackup": "Còpia de seguretat nova",
   "home.newBackupConfirm": "Vols iniciar una còpia de seguretat de tots els dominis activats ara? Els contenidors s'aturen i es reinicien. La restauració només conserva el que desi la propera execució.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Navegació mòbil",
+
 };
 
 export default ca;

@@ -452,4 +452,13 @@ describe("SHELL-02/03 — the chrome testids live in the mobile component source
         "cannot run."
     ).toBe(true);
   });
+
+  it("names the nav landmark for assistive technology (05-UI-REVIEW finding 2)", () => {
+    expect(
+      bottomNav.includes('aria-label={t("nav.mobileNavigation")}'),
+      "BottomNav.tsx's <nav> lost its accessible name. Exactly one of the two nav " +
+        "landmarks mounts at a time, but a landmark still needs a name for screen " +
+        "readers — the 05-UI-REVIEW finding 2 fix is one attribute; keep it."
+    ).toBe(true);
+  });
 });

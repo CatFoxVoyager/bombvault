@@ -1537,6 +1537,10 @@ const fr: Partial<Translations> = {
   "home.newBackup": "Nouvelle sauvegarde",
   "home.newBackupConfirm": "Lancer une sauvegarde de tous les domaines activés maintenant ? Les conteneurs sont arrêtés puis redémarrés. La restauration ne conserve que ce que la prochaine exécution sauvegardera.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Navigation mobile",
+
 };
 
 export default fr;

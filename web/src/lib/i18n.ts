@@ -71,6 +71,11 @@ export const en = {
   // one key (SHELL-02), so the words must read as a section title, not just a
   // button label.
   "nav.more": "More",
+  // The bottom bar's landmark name (05-UI-REVIEW finding 2, phase 6 plan 07):
+  // the bar is the mobile counterpart of the desktop Sidebar's nav, and a
+  // <nav> landmark needs an accessible name even though exactly one of the
+  // two mounts at a time.
+  "nav.mobileNavigation": "Mobile navigation",
   "about.title": "About BombVault",
   "about.body":
     "A one-knight crusade: free, open-source tools that did not exist in this shape. No accounts, no telemetry, and nothing readable ever leaves your own walls. Forged on evenings and weekends with a lot of heart, because waiting was not an option.",
@@ -1943,6 +1948,8 @@ export const de: Translations = {
   "nav.fleet": "Flotte",
   "nav.settings": "Einstellungen",
   "nav.more": "Mehr",
+  // Landmark-Name der unteren Leiste (05-UI-REVIEW Befund 2, Phase 6 Plan 07).
+  "nav.mobileNavigation": "Mobile Navigation",
   "about.title": "Über BombVault",
   "about.body":
     "Ein einzelner Ritter, ein Feldzug: freie, quelloffene Werkzeuge, die es so nicht gab. Keine Konten, keine Telemetrie, und nichts Lesbares verlässt deine eigenen Mauern. An Abenden und Wochenenden mit viel Herzblut geschmiedet, weil Warten keine Option war.",

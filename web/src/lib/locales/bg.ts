@@ -1548,6 +1548,10 @@ const bg: Partial<Translations> = {
   "home.newBackup": "Ново резервно копие",
   "home.newBackupConfirm": "Да започна ли резервно копие на всички активирани области сега? Контейнерите се спират и рестартират. Възстановяването запазва само това, което следващото изпълнение запази.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Мобилна навигация",
+
 };
 
 export default bg;

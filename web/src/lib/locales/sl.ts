@@ -1532,6 +1532,10 @@ const sl: Partial<Translations> = {
   "home.newBackup": "Nova varnostna kopija",
   "home.newBackupConfirm": "Želite zdaj začeti varnostno kopijo vseh omogočenih področij? Vsebniki se ustavijo in znova zaženejo. Obnovitev ohrani samo tisto, kar shrani naslednji zagon.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Mobilna navigacija",
+
 };
 
 export default sl;

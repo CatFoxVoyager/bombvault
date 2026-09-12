@@ -1548,6 +1548,10 @@ const lt: Partial<Translations> = {
   "home.newBackup": "Nauja atsarginė kopija",
   "home.newBackupConfirm": "Pradėti dabar visų įjungtų sričių atsarginę kopiją? Konteineriai sustabdomi ir paleidžiami iš naujo. Atkūrimas išsaugo tik tai, ką įrašys kitas vykdymas.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Mobilioji navigacija",
+
 };
 
 export default lt;

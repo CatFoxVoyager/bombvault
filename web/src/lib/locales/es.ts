@@ -1535,6 +1535,10 @@ const es: Partial<Translations> = {
   "home.newBackup": "Nueva copia de seguridad",
   "home.newBackupConfirm": "¿Iniciar una copia de seguridad de todos los dominios activados ahora? Los contenedores se detienen y se reinician. La restauración solo conserva lo que guarde la próxima ejecución.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Navegación móvil",
+
 };
 
 export default es;

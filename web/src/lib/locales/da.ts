@@ -1537,6 +1537,10 @@ const da: Partial<Translations> = {
   "home.newBackup": "Ny backup",
   "home.newBackupConfirm": "Vil du starte en backup af alle aktiverede domæner nu? Containere stoppes og genstartes. En gendannelse beholder kun det, den næste køring gemmer.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Mobil navigation",
+
 };
 
 export default da;

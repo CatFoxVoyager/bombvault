@@ -1537,6 +1537,10 @@ const it: Partial<Translations> = {
   "home.newBackup": "Nuovo backup",
   "home.newBackupConfirm": "Avviare ora un backup di tutti i domini attivati? I container vengono fermati e riavviati. Il ripristino conserva solo ciò che salverà la prossima esecuzione.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Navigazione mobile",
+
 };
 
 export default it;

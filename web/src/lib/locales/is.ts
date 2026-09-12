@@ -1548,6 +1548,10 @@ const is: Partial<Translations> = {
   "home.newBackup": "Nýtt öryggisafrit",
   "home.newBackupConfirm": "Hefja öryggisafrit af öllum virkum svæðum núna? Gámar eru stöðvaðir og endurræstir. Endurheimtur geymist aðeins það sem næsta keyrsla vistar.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Farsímaflakk",
+
 };
 
 export default is;

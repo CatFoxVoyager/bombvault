@@ -1534,6 +1534,10 @@ const nl: Partial<Translations> = {
   "home.newBackup": "Nieuwe back-up",
   "home.newBackupConfirm": "Nu een back-up van alle ingeschakelde domeinen starten? Containers worden gestopt en opnieuw gestart. Herstel bewaart alleen wat de volgende run opslaat.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Mobiele navigatie",
+
 };
 
 export default nl;

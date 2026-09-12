@@ -1537,6 +1537,10 @@ const he: Partial<Translations> = {
   "home.newBackup": "גיבוי חדש",
   "home.newBackupConfirm": "להתחיל גיבוי של כל התחומים המופעלים עכשיו? הקונטיינרים נעצרים ומופעלים מחדש. השחזור שומר רק את מה שהריצה הבאה תשמור.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "ניווט בנייד",
+
 };
 
 export default he;

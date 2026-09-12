@@ -1529,6 +1529,10 @@ const ja: Partial<Translations> = {
   "home.newBackup": "新規バックアップ",
   "home.newBackupConfirm": "有効なすべてのドメインのバックアップを今すぐ開始しますか？コンテナーは停止して再起動されます。復元で残るのは、次回の実行が保存したものだけです。",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "モバイルナビゲーション",
+
 };
 
 export default ja;

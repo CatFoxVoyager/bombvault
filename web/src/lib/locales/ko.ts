@@ -1529,6 +1529,10 @@ const ko: Partial<Translations> = {
   "home.newBackup": "새 백업",
   "home.newBackupConfirm": "지금 활성화된 모든 도메인의 백업을 시작할까요? 컨테이너가 중지되었다가 다시 시작됩니다. 복원에는 다음 실행이 저장한 것만 남습니다.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "모바일 내비게이션",
+
 };
 
 export default ko;

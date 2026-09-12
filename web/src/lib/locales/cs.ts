@@ -1535,6 +1535,10 @@ const cs: Partial<Translations> = {
   "home.newBackup": "Nová záloha",
   "home.newBackupConfirm": "Spustit nyní zálohu všech povolených oblastí? Kontejnery jsou zastaveny a znovu spuštěny. Obnova zachová jen to, co uloží další běh.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Mobilní navigace",
+
 };
 
 export default cs;

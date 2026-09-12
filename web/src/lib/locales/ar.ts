@@ -1540,6 +1540,10 @@ const ar: Partial<Translations> = {
   "home.newBackup": "نسخة احتياطية جديدة",
   "home.newBackupConfirm": "هل تريد بدء نسخة احتياطية لكل نطاق ممكّن الآن؟ يتم إيقاف الحاويات وإعادة تشغيلها. تحتفظ الاستعادة فقط بما يحفظه التشغيل التالي.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "التنقل عبر الجوال",
+
 };
 
 export default ar;

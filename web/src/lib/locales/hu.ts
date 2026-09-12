@@ -1540,6 +1540,10 @@ const hu: Partial<Translations> = {
   "home.newBackup": "Új biztonsági mentés",
   "home.newBackupConfirm": "Elindítod most az összes engedélyezett terület biztonsági mentését? A konténerek leállnak és újraindulnak. A helyreállítás csak azt őrzi meg, amit a következő futás ment.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Mobil navigáció",
+
 };
 
 export default hu;

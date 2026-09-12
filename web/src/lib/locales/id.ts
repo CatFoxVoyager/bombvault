@@ -1548,6 +1548,10 @@ const id: Partial<Translations> = {
   "home.newBackup": "Pencadangan baru",
   "home.newBackupConfirm": "Mulai pencadangan untuk semua domain yang diaktifkan sekarang? Kontainer dihentikan dan dimulai ulang. Pemulihan hanya menyimpan apa yang disimpan oleh proses berikutnya.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Navigasi seluler",
+
 };
 
 export default id;

@@ -1548,6 +1548,10 @@ const lv: Partial<Translations> = {
   "home.newBackup": "Jauns dublējums",
   "home.newBackupConfirm": "Sākt tagad visu iespējoto jomu dublējumu? Konteineri tiek apturēti un pārstartēti. Atjaunošana saglabā tikai to, ko saglabās nākamā izpilde.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Mobilā navigācija",
+
 };
 
 export default lv;

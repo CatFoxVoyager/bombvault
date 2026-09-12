@@ -1548,6 +1548,10 @@ const hi: Partial<Translations> = {
   "home.newBackup": "नया बैकअप",
   "home.newBackupConfirm": "क्या अभी सभी सक्रिय डोमेन का बैकअप शुरू करें? कंटेनर रोके जाते हैं और फिर से शुरू किए जाते हैं. रीस्टोर केवल वही रखता है जो अगला रन सेव करता है.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "मोबाइल नेविगेशन",
+
 };
 
 export default hi;

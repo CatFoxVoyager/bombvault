@@ -1529,6 +1529,10 @@ const zh: Partial<Translations> = {
   "home.newBackup": "新建备份",
   "home.newBackupConfirm": "立即开始备份所有已启用的域？容器将停止并重新启动。恢复只保留下一次运行所保存的内容。",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "移动端导航",
+
 };
 
 export default zh;

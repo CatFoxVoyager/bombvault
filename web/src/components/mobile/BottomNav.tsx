@@ -91,6 +91,11 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
   return (
     <nav
       data-testid="bottom-nav"
+      // Landmark name (05-UI-REVIEW finding 2, phase 6 plan 07): the bar is
+      // the mobile counterpart of the desktop Sidebar's <nav>, and a landmark
+      // needs an accessible name even though exactly one of the two mounts at
+      // a time. Pinned by a source assert in app/mobileShellSource.test.ts.
+      aria-label={t("nav.mobileNavigation")}
       // Normal flow (see header): shrink-0 keeps the bar at its own height
       // while `main` flexes; the hairline rides the bar's TOP edge (border
       // token, never a shadow on an edge that must read as a surface

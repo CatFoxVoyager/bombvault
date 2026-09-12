@@ -1529,6 +1529,10 @@ const vi: Partial<Translations> = {
   "home.newBackup": "Sao lưu mới",
   "home.newBackupConfirm": "Bắt đầu sao lưu tất cả miền đang bật ngay bây giờ? Container sẽ dừng và khởi động lại. Phục hồi chỉ giữ lại những gì lần chạy tiếp theo lưu.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Điều hướng trên di động",
+
 };
 
 export default vi;

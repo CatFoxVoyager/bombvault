@@ -1548,6 +1548,10 @@ const ms: Partial<Translations> = {
   "home.newBackup": "Sandaran baharu",
   "home.newBackupConfirm": "Mulakan sandaran untuk semua domain yang diaktifkan sekarang? Bekas dihentikan dan dimulakan semula. Pemulihan hanya menyimpan apa yang disimpan oleh jalan seterusnya.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Navigasi mudah alih",
+
 };
 
 export default ms;

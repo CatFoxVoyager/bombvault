@@ -1537,6 +1537,10 @@ const sv: Partial<Translations> = {
   "home.newBackup": "Ny säkerhetskopia",
   "home.newBackupConfirm": "Starta en säkerhetskopia av alla aktiverade domäner nu? Containrar stoppas och startas om. Återställningen behåller bara det som nästa körning sparar.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Mobil navigering",
+
 };
 
 export default sv;

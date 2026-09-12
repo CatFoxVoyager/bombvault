@@ -1540,6 +1540,10 @@ const ro: Partial<Translations> = {
   "home.newBackup": "Copie de siguranță nouă",
   "home.newBackupConfirm": "Începi acum o copie de siguranță a tuturor domeniilor activate? Containerele sunt oprite și repornite. Restaurarea păstrează doar ce va salva următoarea rulare.",
 
+  // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
+  // finding 2); see the English block in src/lib/i18n.ts.
+  "nav.mobileNavigation": "Navigare mobilă",
+
 };
 
 export default ro;
