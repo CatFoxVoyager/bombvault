@@ -24,7 +24,7 @@
 - [x] **PRIM-01**: Hand-rolled bottom-sheet primitive (no UI kit): focus-trapped, scroll-contained (`overscroll-behavior`), safe-area padded, thumb-reachable; reused by confirmations, pickers, and editors
 - [x] **PRIM-02**: Tap-popover primitive below the breakpoint for hover-dependent affordances (InfoBubble, FilterPopover, ColorPickerPopover): tap-anchored, clearly dismissible; desktop hover behavior untouched
 - [x] **PRIM-03**: Destructive confirmations render as bottom sheets with fail-tone styling, consequence-naming copy, and outcome-naming buttons; no default-focused destructive control; rides the existing `useConfirm` semantics (one confirm implementation, new presentation)
-- [ ] **PRIM-04**: Visibility-aware refresh: live progress (SSE) pauses when the page is hidden and refetches/reconnects on visible; a run finishing while backgrounded is reconciled on return, never silently stale
+- [x] **PRIM-04**: Visibility-aware refresh: live progress (SSE) pauses when the page is hidden and refetches/reconnects on visible; a run finishing while backgrounded is reconciled on return, never silently stale
 
 ### Maquette Screens
 
@@ -32,7 +32,7 @@
 - [ ] **SCRN-02**: Containers: summary line + one card per container (mount count, selection summary, four-status badge) → container detail; entry into the selection tree from there
 - [x] **SCRN-03**: Touch selection tree: an interaction-layer variant of the ONE `SelectionTree` (never a fork) — full-row ≥ 44px targets, chevron/check hit-area separation, EXCLUDED rows muted, per-root CACHEDIR.TAG toggle with plain-language line, pinned live "handed to restic · n of m ticked" count, Save pinned in a bottom action bar; wired to the existing serialized save queue; semantics byte-identical (APG `aria-checked`/roving tabindex/Space-through-`onToggle` preserved); empty-deselect rule surfaced in copy
 - [ ] **SCRN-04**: File sets: coverage cards ("n of m folders ticked"), status, last-run line; empty-selection rule in copy ("Use Delete set to remove it entirely"); the same touch tree inside
-- [ ] **SCRN-05**: Run detail / Recovery: "Backup complete" + timestamp + duration + monospace snapshot id; stats triad (new/changed/unchanged, tabular numerals); activity log with mono timestamps naming exclusion reasons (unticked / CACHEDIR.TAG); verify integrity; browse snapshot files (touch rows); restore entry point
+- [x] **SCRN-05**: Run detail / Recovery: "Backup complete" + timestamp + duration + monospace snapshot id; stats triad (new/changed/unchanged, tabular numerals); activity log with mono timestamps naming exclusion reasons (unticked / CACHEDIR.TAG); verify integrity; browse snapshot files (touch rows); restore entry point
 - [ ] **SCRN-06**: Guided restore mobile flow: full-screen step flow — preflight summary → confirmation naming overwrite consequences → optional dry-run/verify → live progress with log → completion; restore controls secondary-styled, away from the thumb's default path; guard chain unchanged server-side
 
 ### Operational Flows
@@ -124,10 +124,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCRN-02 | Phase 6 | Pending |
 | SCRN-03 | Phase 6 | Complete |
 | SCRN-04 | Phase 6 | Pending |
-| SCRN-05 | Phase 6 | Pending |
+| SCRN-05 | Phase 6 | Complete |
 | PRIM-02 | Phase 6 | Complete |
 | PRIM-03 | Phase 6 | Complete |
-| PRIM-04 | Phase 6 | Pending |
+| PRIM-04 | Phase 6 | Complete |
 | FLOW-03 | Phase 6 | Pending |
 | MORE-01 | Phase 7 | Pending |
 | MORE-02 | Phase 7 | Pending |

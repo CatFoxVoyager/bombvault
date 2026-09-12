@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 06
 current_phase_name: Maquette Screens
 status: executing
-stopped_at: Completed 06-03-PLAN.md
-last_updated: "2026-09-12T12:09:54.701Z"
+stopped_at: Completed 06-04-PLAN.md
+last_updated: "2026-09-12T13:27:29.419Z"
 last_activity: 2026-09-12
 last_activity_desc: Phase 06 execution started
-state_head: 768f87bdb315c6d14a4905a6e23c165c529a478f
+state_head: 7fef02697e106e07186e7564921fb6f8d17795ac
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 13
-  completed_plans: 9
+  completed_plans: 10
   percent: 25
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-11)
 ## Current Position
 
 Phase: 06 (Maquette Screens) — EXECUTING
-Plan: 4 of 7
+Plan: 5 of 7
 Total Plans in Phase: 7
 Status: Ready to execute
 Last activity: 2026-09-12 — Phase 06 execution started
@@ -91,6 +91,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 06 P01 | 85min | 3 tasks | 48 files |
 | Phase 06 P02 | 60min | 3 tasks | 7 files |
 | Phase 06 P03 | 1h44m | 3 tasks | 7 files |
+| Phase 06 P04 | 1h15m | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,9 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 06]: InfoBubble tap path is OPEN-ONLY (Android fires focus before click; a click-toggle would re-hide what focus just opened); re-tap deliberately not a close
 - [Phase 06]: ColorPickerPopover rides TapPopover controlled; its outside-mousedown dismissal is desktop-only (document mousedown mid-tap would unmount the backdrop between mousedown and click - T-06-03)
 - [Phase 06]: Mobile picker width lives on a wrapper div: .glim-picker width:100% is unlayered author CSS that beats Tailwind v4 layered utilities on the same element
+- [Phase 06]: 06-04: SCRN-05 renders the Frozen-API substitutes only (humanBytes/formatDuration/mono-slice tiles + buildLogLines); per-file triad is a recorded v2 data candidate
+- [Phase 06]: 06-04: PRIM-04 is a consumer-side gate (useVisibilityGate + isPageVisible) around the frozen progress singleton — hidden unmounts/unsubscribes and stops poll chains; visible refetches listRuns FIRST (baseline-id reconcile)
+- [Phase 06]: 06-04: backupWatch gates the hook poll chain only (busy-ref guard against the visibility-restart edge); fireAndWaitRun bulk loop deliberately ungated; sheet-host e2e deferred to 06-05 with component-level DOM coverage in its place
 
 ### Pending Todos
 
@@ -147,8 +151,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-12T12:09:43.569Z
-Stopped at: Completed 06-03-PLAN.md
+Last session: 2026-09-12T13:27:29.267Z
+Stopped at: Completed 06-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
