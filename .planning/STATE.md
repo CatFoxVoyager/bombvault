@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 06
 current_phase_name: Maquette Screens
 status: executing
-stopped_at: Completed 06-01-PLAN.md (touch SelectionTree interaction mode)
-last_updated: "2026-09-12T09:35:47.534Z"
+stopped_at: Completed 06-02-PLAN.md (ConfirmSheet + responsive shell)
+last_updated: "2026-09-12T10:18:41.826Z"
 last_activity: 2026-09-12
 last_activity_desc: Phase 06 execution started
-state_head: 2c77b29a9c281cb6803e97d6c6a768662ee3cb90
+state_head: f2c5ccc9c144769e9f97e5711d96b5ae09ca0e7c
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 13
-  completed_plans: 7
+  completed_plans: 8
   percent: 25
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-11)
 ## Current Position
 
 Phase: 06 (Maquette Screens) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Total Plans in Phase: 7
 Status: Ready to execute
 Last activity: 2026-09-12 — Phase 06 execution started
@@ -89,6 +89,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 05 P05 | 102 min | 3 tasks | 6 files |
 | Phase 05 P06 | 39 min | 3 tasks | 5 files |
 | Phase 06 P01 | 85min | 3 tasks | 48 files |
+| Phase 06 P02 | 60min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,8 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 06]: touch interaction is a render/handler-only prop (interactionMode) on the ONE SelectionTree - APG state model shared verbatim; pointer axis is a SECOND media axis ((pointer: coarse) hook), DESKTOP_QUERY stays the only width literal (D-11)
 - [Phase 06]: touch checkbox is readOnly + pointer-events-none (one live toggle surface); touch chevron carries bv-convention-exception vs one-icon-badge-size (mandated 44px tap target)
 - [Phase 06]: e2e container domain staged at Playwright route layer (harness has no Docker; fresh DB can never hold a container) - Go JSON shapes field-for-field + advanced seed + Saved-toast pacing
+- [Phase 06]: D-07 landed: useConfirm's portal branches on useIsDesktop - ConfirmDialog desktop byte-identical, ConfirmSheet (fail/warn-toned BottomSheet, destructive top / safe cancel thumb-default, no autoFocus) below 48rem; zero per-call-site changes
+- [Phase 06]: BottomSheet grew closed tone union + fullHeight + footer (all additive, absent = Phase 5 sheet); 05-UI-REVIEW findings 1+6 absorbed once at the primitive (inset-clamped physical sides, 44px close with exception marker)
 
 ### Pending Todos
 
@@ -139,8 +142,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-12T09:35:35.589Z
-Stopped at: Completed 06-01-PLAN.md (touch SelectionTree interaction mode)
+Last session: 2026-09-12T10:18:41.675Z
+Stopped at: Completed 06-02-PLAN.md (ConfirmSheet + responsive shell)
 Resume file: None
 
 ## Operator Next Steps
