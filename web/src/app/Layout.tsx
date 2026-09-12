@@ -292,12 +292,21 @@ export function Layout() {
   // a page cannot tell, and a resize across the breakpoint re-attaches to the
   // same id either way.
   const scroller = (
-    <main id="bv-main" className="flex-1 flex flex-col overflow-y-auto p-6 min-w-0">
+    <main id="bv-main" className="flex-1 flex flex-col overflow-y-auto p-4 md:p-6 min-w-0">
+      {/* Padding shrinks to p-4 BELOW the md breakpoint only (plan 06-02
+          Task 3): the desktop 24px gutter is half a 360px phone's width
+          wasted on air around the same Cards, so narrow viewports get 16px
+          and every viewport at/above Tailwind's md (48rem — the ONE
+          breakpoint, useMediaQuery's DESKTOP_QUERY) keeps the exact p-6 the
+          desktop shell has always rendered. Byte-identical desktop is the
+          D-07/06-02 hard guarantee; this is the mobile-only half of that
+          swap. */}
       {/* `flex flex-col` added here (sticky-footer page-shell fix, jdp live
           review — "die Versionsnummer soll unterhalb der untersten Card
           stehen, nicht die Cards durchfahren lassen"): `main` is the actual
           scrollable viewport (overflow-y-auto, sized to exactly the shell
-          height minus its own p-6 padding via the flex-stretch above) — a
+          height minus its own padding — p-4 below md, p-6 at/above — via the
+          flex-stretch above) — a
           page that wants its own footer to sit flush with the BOTTOM of this
           box when its content is short, while still scrolling normally
           underneath it when content is tall, needs `main`'s direct child to
