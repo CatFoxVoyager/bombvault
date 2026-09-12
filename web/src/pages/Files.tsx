@@ -1895,6 +1895,11 @@ export function Files() {
   const [sheetRun, setSheetRun] = useState<Run | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const sheetDismissed = useRef(false);
+  // The run id the watch last correlated: polls refresh the SAME run, so only
+  // a DIFFERENT id is a new fire — the latch's re-arm signal. Without it, one
+  // dismissal would silence every later file-set backup press, and the user
+  // would wait out the whole run for nothing but the terminal toast.
+  const lastCorrelatedRun = useRef<string | null>(null);
   // Resolved from the CURRENT list, never cached: a loadSets() refetch (save,
   // discover, dialog save) replaces the views, and a stale id would pin the
   // bar to a dead row.
@@ -2242,6 +2247,10 @@ export function Files() {
                     onSaveState={setSaveState}
                     flushRef={saveFlushRef}
                     onRunCorrelated={(run) => {
+                      if (lastCorrelatedRun.current !== run.id) {
+                        lastCorrelatedRun.current = run.id;
+                        sheetDismissed.current = false; // new fire re-arms the deep-link
+                      }
                       setSheetRun(run);
                       if (!sheetDismissed.current) setSheetOpen(true);
                     }}

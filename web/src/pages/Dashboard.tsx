@@ -2366,10 +2366,17 @@ export function Dashboard() {
   // recent-run rows open the 06-04 RunDetailSheet for their own record here —
   // no route (router.tsx frozen). The dismissal latch exists for the 06-06
   // Task 2 backup watch: once the user closes a sheet, later onRun polls
-  // refresh sheetRun but never re-open it; an explicit row tap always re-arms.
+  // refresh sheetRun but never re-open it; an explicit row tap or a NEW fire
+  // always re-arms.
   const [sheetRun, setSheetRun] = useState<Run | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const sheetDismissed = useRef(false);
+  // The run id the watch last correlated: polls refresh the SAME run, so only
+  // a DIFFERENT id is a new fire — the latch's re-arm signal. Without it, one
+  // dismissal would silence every later "New backup" press (the latch would
+  // never re-arm outside openRun), and the user would wait out the whole run
+  // for nothing but the terminal toast.
+  const lastCorrelatedRun = useRef<string | null>(null);
   const openRun = (run: Run) => {
     sheetDismissed.current = false;
     setSheetRun(run);
@@ -2397,6 +2404,10 @@ export function Dashboard() {
     start: backupEverythingNow,
     matchRun: (r) => r.domain === "everything",
     onRun: (run) => {
+      if (lastCorrelatedRun.current !== run.id) {
+        lastCorrelatedRun.current = run.id;
+        sheetDismissed.current = false; // new fire re-arms the deep-link
+      }
       setSheetRun(run);
       if (!sheetDismissed.current) setSheetOpen(true);
     },

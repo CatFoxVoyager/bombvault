@@ -1720,6 +1720,11 @@ function MobileContainerDetail({
   const [sheetRun, setSheetRun] = useState<Run | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const sheetDismissed = useRef(false);
+  // The run id the watch last correlated: polls refresh the SAME run, so only
+  // a DIFFERENT id is a new fire — the latch's re-arm signal. Without it, one
+  // dismissal would silence every later "Back up now" press, and the user
+  // would wait out the whole run for nothing but the terminal toast.
+  const lastCorrelatedRun = useRef<string | null>(null);
   return (
     <div className="flex flex-col gap-4 glim-content-fade">
       {/* Back row (SCRN-02): chevron + VISIBLE label, never icon-only. The
@@ -1755,6 +1760,10 @@ function MobileContainerDetail({
           t={t}
           running={running}
           onRunCorrelated={(run) => {
+            if (lastCorrelatedRun.current !== run.id) {
+              lastCorrelatedRun.current = run.id;
+              sheetDismissed.current = false; // new fire re-arms the deep-link
+            }
             setSheetRun(run);
             if (!sheetDismissed.current) setSheetOpen(true);
           }}
