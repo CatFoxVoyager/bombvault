@@ -4,17 +4,17 @@ milestone: v1.1
 milestone_name: Mobile Interface
 current_phase: 5
 current_phase_name: Mobile Shell & Navigation Foundation
-status: executing
-stopped_at: Completed 05-05-PLAN.md
-last_updated: "2026-09-11T23:47:10.620Z"
+status: verifying
+stopped_at: Completed 05-06-PLAN.md (phase 05 final plan)
+last_updated: "2026-09-12T01:23:20.606Z"
 last_activity: 2026-09-11
 last_activity_desc: Phase 5 execution started
-state_head: 27b2bb809843060ea16e27065b62e177f028f8be
+state_head: f5993083fb49e6bc23b771092238f60cbea14759
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
   percent: 0
 ---
 
@@ -32,7 +32,7 @@ See: .planning/PROJECT.md (updated 2026-09-11)
 Phase: 5 (Mobile Shell & Navigation Foundation) — EXECUTING
 Plan: 6 of 6
 Total Plans in Phase: 6
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-11 — Phase 5 execution started
 Last Activity Description: Phase 5 execution started
 
@@ -86,6 +86,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05 P03 | 35min | 3 tasks | 45 files |
 | Phase 05 P04 | 13min | 3 tasks | 5 files |
 | Phase 05 P05 | 102 min | 3 tasks | 6 files |
+| Phase 05 P06 | 39 min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,9 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 05]: landscape >=768px RESOLVED by user decision (2026-09-11): the width-only DESKTOP_QUERY stays the single breakpoint authority — landscape phones at >=48rem CSS width intentionally get the desktop chrome (Sidebar rail), no height-aware query, no custom Tailwind variant; the 740x360 rotated e2e remains the landscape coverage; phase 8 real-device validation re-tests landscape UX and may reopen this as a gap plan — UI-SPEC "no landscape side rail in BOTH orientations" holds below the 48rem width switch
 - [Phase 5]: Landscape e2e asserted at 740x360 (sub-breakpoint); the width-only 48rem DESKTOP_QUERY gives landscape phones >=768px the desktop rail - UI-SPEC 'no landscape side rail' needs a height-aware query decision (05-05 deviation 4)
 - [Phase 5]: BottomNav derives slots internally from settings+authEnabled via the ONE registry; scrollMainToTop lives in Layout and is passed down to bar and sheet rows (05-05)
+- [Phase 5]: 05-06: bar exactness asserted against fresh-DB registry derivation (4 slots: Dashboard, Containers, Settings + More) not the plan's literal 5 - files_enabled defaults false; exactness is the substance (Rule 1)
+- [Phase 5]: 05-06: localized e2e boots cut the display-prefs reconciliation via route.abort - server-look (#191) otherwise clobbers the locale seed and parallel workers clobber each other (Rule 1)
+- [Phase 5]: 05-06: local Playwright runs use a manually started webServer (Windows teardown hang); CI keeps its own boot via reuseExistingServer: !CI (Rule 3)
 
 ### Pending Todos
 
@@ -130,8 +134,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-11T23:46:53.075Z
-Stopped at: Completed 05-05-PLAN.md
+Last session: 2026-09-12T01:23:11.766Z
+Stopped at: Completed 05-06-PLAN.md (phase 05 final plan)
 Resume file: None
 
 ## Operator Next Steps

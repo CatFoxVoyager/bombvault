@@ -12,8 +12,8 @@
 ### Mobile Shell
 
 - [x] **SHELL-01**: responsive mobile shell — bottom nav + More sheet, safe areas, desktop intact
-- [ ] **SHELL-02**: Bottom bar with the 4 destinations (Home, Containers, Files, Settings): non-scrolling, accent-tinted active item, tap-on-active returns to top of view, touch targets ≥ 44px, in normal flow (flex sibling — never `position:fixed`)
-- [ ] **SHELL-03**: "More" sheet presenting the remaining destinations (Recovery, VMs, Flash, Config, Receiver, Fleet), derived with the bottom bar from ONE pure nav registry (`destinations(settings)`) feeding both Sidebar and MoreSheet so settings-gated tabs can never drift; sign-out reachable in mobile chrome
+- [x] **SHELL-02**: Bottom bar with the 4 destinations (Home, Containers, Files, Settings): non-scrolling, accent-tinted active item, tap-on-active returns to top of view, touch targets ≥ 44px, in normal flow (flex sibling — never `position:fixed`)
+- [x] **SHELL-03**: "More" sheet presenting the remaining destinations (Recovery, VMs, Flash, Config, Receiver, Fleet), derived with the bottom bar from ONE pure nav registry (`destinations(settings)`) feeding both Sidebar and MoreSheet so settings-gated tabs can never drift; sign-out reachable in mobile chrome
 - [x] **SHELL-04**: Safe-area correctness: `viewport-fit=cover` + `env(safe-area-inset-*)` centralized as CSS custom properties; bottom bar, pinned action bars, and headers pad by insets; desktop reports 0 and is unaffected
 - [x] **SHELL-05**: Viewport-height correctness: root sized with `dvh` (`svh` where chrome must stay visible), never `100vh`; Android keyboard handling via `interactive-widget=resizes-content` in the viewport meta (iOS handled explicitly, never assumed)
 - [x] **SHELL-06**: Viewport meta extension + `theme-color` (carbon background) in `web/index.html`, below the untouched FOUC script
@@ -56,7 +56,7 @@
 
 ### Verification & Parity
 
-- [ ] **VERIFY-01**: Playwright smoke harness from the first phase: desktop-untouched assertions (viewport ≥ 48rem renders today's layout) + mobile device descriptors; responsive regressions fail CI
+- [x] **VERIFY-01**: Playwright smoke harness from the first phase: desktop-untouched assertions (viewport ≥ 48rem renders today's layout) + mobile device descriptors; responsive regressions fail CI
 - [ ] **VERIFY-02**: Real-device pass as the milestone exit criterion: notched + SE-class iPhone Safari and Android Chrome, portrait + landscape, guided restore exercised on device
 - [ ] **VERIFY-03**: i18n: every mobile string through the `t()` pipeline with 42-locale parity; de/fr narrow-viewport passes (320–360px) on the chrome and key screens
 - [ ] **VERIFY-04**: Touch-target + hover audit: every interactive control ≥ 44px below the breakpoint; every hover-dependent affordance has a non-hover path (Tailwind v4 gates `hover:` behind `@media (hover: hover)`)
@@ -112,14 +112,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | SHELL-01 | Phase 5 | Complete |
-| SHELL-02 | Phase 5 | Pending |
-| SHELL-03 | Phase 5 | Pending |
+| SHELL-02 | Phase 5 | Complete |
+| SHELL-03 | Phase 5 | Complete |
 | SHELL-04 | Phase 5 | Complete |
 | SHELL-05 | Phase 5 | Complete |
 | SHELL-06 | Phase 5 | Complete |
 | SHELL-07 | Phase 5 | Complete |
 | PRIM-01 | Phase 5 | Complete |
-| VERIFY-01 | Phase 5 | Pending |
+| VERIFY-01 | Phase 5 | Complete |
 | SCRN-01 | Phase 6 | Pending |
 | SCRN-02 | Phase 6 | Pending |
 | SCRN-03 | Phase 6 | Pending |
