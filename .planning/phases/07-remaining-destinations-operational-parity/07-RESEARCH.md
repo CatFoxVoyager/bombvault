@@ -434,20 +434,23 @@ Plus inventory drill-down (`receiverInventory` → `ReceiverInventory { sources,
 | A4 | The 06-UI-REVIEW fixes (triad typography, spacing sweep, `home.newBackupConfirm`, chevron aria-label, Files header wrap) can be absorbed piecemeal into plans touching those files without a dedicated plan | Waves (per CONTEXT.md discretion) | Low — worst case a small follow-up task in plan 7 |
 | A5 | `ReceivedRepoCard`'s rendered contents match the type fields above (card JSX read at a summary level this session; type verified verbatim) | Receiver section | Low — planner verifies exact JSX when writing tasks |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Which surface gets the FAB vs the existing sticky primary-action block?**
    - What we know: D-12 says "FAB for the primary action — this is where the FAB lands", and sanctions recording why a sticky block stays on specific surfaces. Home already shipped the sticky "New backup" block (phase 6).
    - What's unclear: whether Home *migrates* to the FAB in this phase or keeps the sticky block with a recorded rationale.
    - Recommendation: FAB on destination pages' primary actions (VMs/Flash/Config trigger, Settings add-actions); Home keeps its shipped block with the recorded-why comment, revisited at phase 8 real-device pass. Planner's call per discretion.
+   - **RESOLVED (planning, 07-01):** the FAB hosts the primary trigger on the NEW destination surfaces (plans 07-03/07-05 consume it); Home KEEPS its phase 6 sticky block with the recorded-why comment; Config/Receiver/Fleet primary actions are sheet-opening rows, not FABs (UI-SPEC FAB surface resolution, mirrored in 07-01 Task 2's surface-resolution paragraph).
 2. **Platform preference exposure.**
    - What we know: shape/motion are user-set via Settings About-area controls; `data-platform` needs a resolver + persistence.
    - What's unclear: whether an explicit user-facing control ships now or the attribute is silently derived (default material, seeded by pointer).
    - Recommendation: derive + persist internally this phase (no new Settings UI required by D-12); an explicit control can ride a later polish pass. Flag at plan review.
+   - **RESOLVED (planning, 07-01):** default `material` + persisted `bv-platform` override, NO OS detection and NO Settings control this phase — the why-comment in platform.ts documents the rationale; the explicit control rides a later polish pass (UI-SPEC recorded platform-selection decision).
 3. **Settings stacked cards vs tab-card components.**
    - What we know: D-08 — stacked full-width cards below md, chip strip above. The `settings/` tab cards are already card-shaped and self-contained (NotifyCard fully; others embed in desktop sections).
    - What's unclear: how many desktop sections render acceptably as-is in the stacked column vs need mobile variants (the tab-card components mostly can be reused directly; the big Sections containers cannot).
    - Recommendation: tracer plan anchors on Settings; resolve per-tab during planning with the "follow desktop information hierarchy" discretion.
+   - **RESOLVED (planning, 07-05):** reuse the self-contained tab cards as-is (NotifyCard/ThemeCard/LanguageCard/AccentCard/AboutCard class); translate wrapper-style sections into MobileSectionLabel + stacked cards following the desktop information hierarchy; notify/offsite sections stay reachable through their inline forms until 07-07 re-hosts them as fullHeight sheets.
 
 ## Environment Availability
 
