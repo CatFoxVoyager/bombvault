@@ -704,6 +704,7 @@ const ca: Partial<Translations> = {
   "settings.motion.off": "Desactivat",
   "settings.motion.subtle": "Subtil",
   "settings.motion.full": "Complet",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "Mode arc de Sant Martí",
   "settings.rainbowHint": "Cada fila d'una llista rep un color propi d'un conjunt de vuit, en comptes que tot comparteixi un sol color d'accent, fa que les llistes llargues siguin més fàcils de distingir d'un cop d'ull.",
   "settings.rainbowReactive": "Mode reactiu",

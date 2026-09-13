@@ -249,6 +249,7 @@ const it: Partial<Translations> = {
   "settings.motion.off": "Disattivato",
   "settings.motion.subtle": "Sobrio",
   "settings.motion.full": "Completo",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "Modalità arcobaleno",
   "settings.rainbowHint": "Ogni riga di un elenco riceve un proprio colore da un set di otto, invece che condividere tutti lo stesso colore di accento, così gli elenchi lunghi si distinguono a colpo d'occhio.",
   "settings.rainbowReactive": "Modalità reattiva",

@@ -249,6 +249,7 @@ const da: Partial<Translations> = {
   "settings.motion.off": "Fra",
   "settings.motion.subtle": "Diskret",
   "settings.motion.full": "Fuld",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "Regnbuetilstand",
   "settings.rainbowHint": "Hver række på en liste får sin egen farve fra et sæt på otte, i stedet for at alt deler én accentfarve, hvilket gør lange lister nemmere at skelne på et øjeblik.",
   "settings.rainbowReactive": "Reaktiv tilstand",

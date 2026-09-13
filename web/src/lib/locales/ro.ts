@@ -246,6 +246,7 @@ const ro: Partial<Translations> = {
   "settings.motion.off": "Dezactivată",
   "settings.motion.subtle": "Discretă",
   "settings.motion.full": "Completă",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "Mod curcubeu",
   "settings.rainbowHint": "Fiecare rând dintr-o listă primește propria culoare dintr-un set de opt, în loc ca totul să împartă o singură culoare de accent. Face listele lungi mai ușor de distins dintr-o privire.",
   "settings.rainbowReactive": "Mod reactiv",

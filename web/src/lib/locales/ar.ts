@@ -249,6 +249,7 @@ const ar: Partial<Translations> = {
   "settings.motion.off": "إيقاف",
   "settings.motion.subtle": "خفيفة",
   "settings.motion.full": "كاملة",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "وضع قوس قزح",
   "settings.rainbowHint": "يحصل كل صف في القائمة على لونه الخاص من مجموعة مكوّنة من ثمانية ألوان، بدلاً من أن يشترك كل شيء في لون تمييز واحد، ما يجعل القوائم الطويلة أسهل تمييزًا للوهلة الأولى.",
   "settings.rainbowReactive": "الوضع التفاعلي",

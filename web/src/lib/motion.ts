@@ -29,9 +29,59 @@ import { save as saveDisplayPrefs } from "./displayPrefs";
 // design and the off/subtle/full resolution table for every keyframe.
 // ---------------------------------------------------------------------------
 
-export type MotionIntensity = "off" | "subtle" | "full";
+export type MotionIntensity = "off" | "subtle" | "full" | "storm";
 
+/**
+ * What the PICKER offers. "storm" is deliberately absent.
+ *
+ * The two questions this list used to answer at once are now separate, and an
+ * axis with a hidden level is exactly where conflating them shows: what a
+ * picker lists and what a stored value may legally be are not the same set.
+ * See isMotionIntensity below, which accepts "storm", and GSS 1.17.0's
+ * "A hidden fourth level" for the rule.
+ */
 export const MOTION_INTENSITIES: MotionIntensity[] = ["off", "subtle", "full"];
+
+/** Every level, including the one no picker lists. Validation reads this. */
+const ALL_INTENSITIES: MotionIntensity[] = [...MOTION_INTENSITIES, "storm"];
+
+/** How many clicks on the level already chosen open the one below the floor. */
+export const STORM_CLICKS = 5;
+
+/**
+ * The gesture that reveals the storm, GSS 1.17.0.
+ *
+ * SET THE MOTION TO "full", THEN CLICK THAT SAME OPTION FIVE MORE TIMES. It is
+ * the gesture of pressing a button that is already pressed because you wanted
+ * more of it, which is exactly who the level is for, and it is unreachable from
+ * any other level on purpose: clicking "off" five times means somebody is
+ * annoyed, not curious, and a secret that opens under annoyance is a bug report
+ * waiting to be filed.
+ *
+ * THE RULE, which is the part worth copying rather than the numbers: an easter
+ * egg that changes BEHAVIOUR must be switchable back off, and must not quietly
+ * become a permanent entry in a settings list. So the caller keeps `found` in
+ * the settings screen's own state and NEVER in storage: the option is offered
+ * while it is chosen, because a picker that hid the value it is showing would
+ * be lying, and otherwise only for as long as that screen stays open.
+ *
+ * Counting lives in the caller for the same reason. Returns the level to switch
+ * to, or undefined when this was not the fifth click.
+ */
+export function stormTap(
+  state: { taps: number },
+  clicked: string,
+  current: MotionIntensity,
+): MotionIntensity | undefined {
+  if (clicked !== "full" || current !== "full") {
+    state.taps = 0;
+    return undefined;
+  }
+  state.taps += 1;
+  if (state.taps < STORM_CLICKS) return undefined;
+  state.taps = 0;
+  return "storm";
+}
 
 const STORAGE_KEY = "bv-motion";
 
@@ -57,8 +107,12 @@ const STORAGE_KEY = "bv-motion";
  */
 const DEFAULT: MotionIntensity = "full";
 
+/* ALL_INTENSITIES, not MOTION_INTENSITIES. A stored "storm" is accepted even
+   though no picker offers it, or the gesture above would have produced a
+   setting that silently forgets itself on the next reload - and a hidden level
+   that cannot survive a page refresh is not a level, it is a flicker. */
 function isMotionIntensity(v: unknown): v is MotionIntensity {
-  return typeof v === "string" && (MOTION_INTENSITIES as string[]).includes(v);
+  return typeof v === "string" && (ALL_INTENSITIES as string[]).includes(v);
 }
 
 /** The stored preference, defaulting to "full" when unset or corrupt. */

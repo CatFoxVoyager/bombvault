@@ -244,6 +244,7 @@ const pl: Partial<Translations> = {
   "settings.motion.off": "Wyłączony",
   "settings.motion.subtle": "Subtelny",
   "settings.motion.full": "Pełny",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "Tryb tęczowy",
   "settings.rainbowHint": "Każdy wiersz na liście otrzymuje własny kolor z zestawu ośmiu, zamiast dzielić jeden wspólny kolor akcentu. Dzięki temu długie listy łatwiej odróżnić na pierwszy rzut oka.",
   "settings.rainbowReactive": "Tryb reaktywny",

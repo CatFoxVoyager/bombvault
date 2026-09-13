@@ -704,6 +704,7 @@ const ms: Partial<Translations> = {
   "settings.motion.off": "Mati",
   "settings.motion.subtle": "Halus",
   "settings.motion.full": "Penuh",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "Mod Pelangi",
   "settings.rainbowHint": "Setiap baris dalam senarai mendapat warnanya sendiri daripada set lapan warna, dan bukannya semua berkongsi satu warna aksen. Ini menjadikan senarai panjang lebih mudah dibezakan sepintas lalu.",
   "settings.rainbowReactive": "Mod reaktif",

@@ -249,6 +249,7 @@ const sv: Partial<Translations> = {
   "settings.motion.off": "Av",
   "settings.motion.subtle": "Subtil",
   "settings.motion.full": "Full",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "Regnbågsläge",
   "settings.rainbowHint": "Varje rad i en lista får sin egen färg från en uppsättning på åtta, i stället för att allt delar en enda accentfärg. Det gör långa listor lättare att skilja åt med en blick.",
   "settings.rainbowReactive": "Reaktivt läge",

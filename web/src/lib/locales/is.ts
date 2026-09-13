@@ -704,6 +704,7 @@ const is: Partial<Translations> = {
   "settings.motion.off": "Slökkt",
   "settings.motion.subtle": "Væg",
   "settings.motion.full": "Full",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "Regnbogahamur",
   "settings.rainbowHint": "Hver lína í lista fær eigin lit úr átta lita safni, í stað þess að allt deili einum áherslulit. Þetta gerir langa lista auðveldari að greina í einum svip.",
   "settings.rainbowReactive": "Viðbragðshamur",

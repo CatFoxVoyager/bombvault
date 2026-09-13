@@ -249,6 +249,7 @@ const fi: Partial<Translations> = {
   "settings.motion.off": "Pois",
   "settings.motion.subtle": "Hillitty",
   "settings.motion.full": "Täysi",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "Sateenkaaritila",
   "settings.rainbowHint": "Jokainen listan rivi saa oman värinsä kahdeksan värin joukosta sen sijaan, että kaikki jakaisivat saman korostusvärin. Pitkät listat erottuvat näin yhdellä silmäyksellä.",
   "settings.rainbowReactive": "Reaktiivinen tila",

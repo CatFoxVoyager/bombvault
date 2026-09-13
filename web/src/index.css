@@ -2528,6 +2528,65 @@ body {
   --motion-tab-dur: 220ms;
 }
 
+:root[data-motion="storm"] {
+  /* THE HIDDEN FOURTH, GSS 1.17.0.
+
+     Not in the picker. Set the motion to the top level, then click that same
+     option five more times - the gesture of pressing a button that is already
+     pressed because you wanted more of it, which is exactly who this level is
+     for. lib/motion.ts's stormTap() is the whole mechanism, and the rule it
+     carries is the part worth copying: an easter egg that changes BEHAVIOUR
+     must be switchable back off and must not quietly become a permanent entry
+     in a settings list.
+
+     Same twelve tokens as every other level, consumed by the same keyframes.
+     A level is a different NUMBER, never a different animation, so this block
+     is the entire cost - which is the whole argument for the token shape the
+     three levels above already use. Roughly double the travel of "full" and
+     about twice its duration, on a curve that overshoots further and takes
+     longer to settle.
+
+     It sits INSIDE the same (prefers-reduced-motion: no-preference) gate as
+     the other three rather than beside it, so a machine whose owner asked the
+     operating system for less motion never evaluates a data-motion selector at
+     all. That is the one way a hidden "more animation" switch could genuinely
+     do harm, and it is closed by where this block sits rather than by a
+     check. */
+  --motion-page-dist: 20px;
+  --motion-page-dur: 620ms;
+  --motion-page-ease: cubic-bezier(.22, 1.94, .45, 1);
+
+  --motion-toast-slide-scale: 1.9;
+  --motion-toast-dur: 420ms;
+  --motion-toast-ease: cubic-bezier(.22, 1.94, .45, 1);
+
+  --motion-fade-dur: 200ms;
+
+  --motion-shake-scale: 1.9;
+  --motion-shake-dur: 520ms;
+
+  --motion-shape-dur: 460ms;
+  --motion-shape-ease: cubic-bezier(.22, 1.94, .45, 1);
+
+  --motion-pulse-scale: 1.9;
+  --motion-pulse-dur: 700ms;
+
+  --motion-stagger-step: 55ms;
+  /* The cap earns its keep here more than anywhere else: at 55ms a step, a
+     fifty-row list would otherwise stagger for nearly three seconds. */
+  --motion-stagger-cap: 700ms;
+  --motion-stagger-dur: 420ms;
+
+  --motion-wipe-dur: 560ms;
+
+  --motion-check-dur: 620ms;
+
+  --motion-content-dur: 380ms;
+
+  --motion-tab-dist: 34px;
+  --motion-tab-dur: 380ms;
+}
+
 :root[data-motion="subtle"] {
   /* Shorter AND smaller — "still present," per design-language.md's own
      phrasing for this state, not a near-off compromise. */

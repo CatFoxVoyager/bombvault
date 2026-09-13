@@ -249,6 +249,7 @@ const fr: Partial<Translations> = {
   "settings.motion.off": "Désactivé",
   "settings.motion.subtle": "Léger",
   "settings.motion.full": "Complet",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "Mode arc-en-ciel",
   "settings.rainbowHint": "Chaque ligne d'une liste reçoit sa propre couleur parmi un jeu de huit, au lieu que tout partage une seule couleur d'accentuation : les longues listes se distinguent ainsi d'un coup d'œil.",
   "settings.rainbowReactive": "Mode réactif",

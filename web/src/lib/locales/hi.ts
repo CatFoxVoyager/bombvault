@@ -704,6 +704,7 @@ const hi: Partial<Translations> = {
   "settings.motion.off": "बंद",
   "settings.motion.subtle": "हल्का",
   "settings.motion.full": "पूरा",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "रेनबो मोड",
   "settings.rainbowHint": "सूची की हर पंक्ति को आठ रंगों के सेट से अपना रंग मिलता है, इसके बजाय कि सब कुछ एक ही एक्सेंट रंग साझा करे। इससे लंबी सूचियों को एक नज़र में पहचानना आसान हो जाता है।",
   "settings.rainbowReactive": "रिएक्टिव मोड",

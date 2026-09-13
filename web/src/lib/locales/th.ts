@@ -249,6 +249,7 @@ const th: Partial<Translations> = {
   "settings.motion.off": "ปิด",
   "settings.motion.subtle": "นุ่มนวล",
   "settings.motion.full": "เต็มรูปแบบ",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "โหมดสายรุ้ง",
   "settings.rainbowHint": "แต่ละแถวในรายการจะได้สีของตัวเองจากชุดแปดสี แทนที่จะใช้สีเน้นเดียวร่วมกันทั้งหมด ทำให้รายการยาว ๆ แยกความแตกต่างได้ง่ายเพียงมองแวบเดียว",
   "settings.rainbowReactive": "โหมดตอบสนอง",

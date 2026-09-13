@@ -704,6 +704,7 @@ const bg: Partial<Translations> = {
   "settings.motion.off": "Изключено",
   "settings.motion.subtle": "Леко",
   "settings.motion.full": "Пълно",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "Дъгов режим",
   "settings.rainbowHint": "Всеки ред в списък получава собствен цвят от набор от осем, вместо всичко да споделя един акцентен цвят — прави дългите списъци по-лесни за разграничаване с един поглед.",
   "settings.rainbowReactive": "Реактивен режим",

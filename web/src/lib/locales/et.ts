@@ -704,6 +704,7 @@ const et: Partial<Translations> = {
   "settings.motion.off": "Väljas",
   "settings.motion.subtle": "Vähene",
   "settings.motion.full": "Täielik",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "Vikerkaarerežiim",
   "settings.rainbowHint": "Iga loendi rida saab oma värvi kaheksast valikust, selle asemel et kõik jagaks üht aktsendivärvi. Nii on pikki loendeid ühe pilguga lihtsam eristada.",
   "settings.rainbowReactive": "Reaktiivne režiim",

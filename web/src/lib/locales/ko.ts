@@ -249,6 +249,7 @@ const ko: Partial<Translations> = {
   "settings.motion.off": "끄기",
   "settings.motion.subtle": "은은하게",
   "settings.motion.full": "전체",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "무지개 모드",
   "settings.rainbowHint": "목록의 각 행은 하나의 강조색을 공유하는 대신 여덟 가지 색상 중 자신만의 색을 받습니다. 긴 목록을 한눈에 구분하기 쉬워집니다.",
   "settings.rainbowReactive": "반응형 모드",

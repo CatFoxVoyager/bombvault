@@ -704,6 +704,7 @@ const eu: Partial<Translations> = {
   "settings.motion.off": "Itzalita",
   "settings.motion.subtle": "Leuna",
   "settings.motion.full": "Osoa",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "Ostadar modua",
   "settings.rainbowHint": "Zerrenda bateko errenkada bakoitzak zortzikako multzo bateko bere kolorea jasotzen du, guztiek azentu-kolore bakarra partekatu ordez. Horrek zerrenda luzeak begirada batean errazago bereizten laguntzen du.",
   "settings.rainbowReactive": "Modu erreaktiboa",

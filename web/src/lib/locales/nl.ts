@@ -244,6 +244,7 @@ const nl: Partial<Translations> = {
   "settings.motion.off": "Uit",
   "settings.motion.subtle": "Subtiel",
   "settings.motion.full": "Volledig",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "Regenboogmodus",
   "settings.rainbowHint": "Elke rij in een lijst krijgt zijn eigen kleur uit een set van acht, in plaats van dat alles dezelfde accentkleur deelt. Zo zijn lange lijsten in één oogopslag te onderscheiden.",
   "settings.rainbowReactive": "Reactieve modus",

@@ -249,6 +249,7 @@ const he: Partial<Translations> = {
   "settings.motion.off": "כבוי",
   "settings.motion.subtle": "עדין",
   "settings.motion.full": "מלא",
+  "settings.motion.storm": "Storm",
   "settings.rainbow": "מצב קשת",
   "settings.rainbowHint": "כל שורה ברשימה מקבלת צבע משלה מתוך מערך של שמונה צבעים, במקום שהכול ישתף צבע הדגשה אחד, כך רשימות ארוכות קלות יותר להבחנה במבט אחד.",
   "settings.rainbowReactive": "מצב תגובתי",

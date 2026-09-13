@@ -52,7 +52,7 @@ import { SpikePanel } from "../components/SpikePanel";
 import { ColorPickerSwatch } from "../components/ColorPickerPopover";
 import { RAINBOW, getRainbow, setRainbow, type RainbowState } from "../lib/appearance";
 import { SHAPES, getShape, setShape, type Shape } from "../lib/shape";
-import { MOTION_INTENSITIES, getMotionIntensity, setMotionIntensity, type MotionIntensity } from "../lib/motion";
+import { MOTION_INTENSITIES, getMotionIntensity, setMotionIntensity, stormTap, type MotionIntensity } from "../lib/motion";
 import { Selector } from "../components/Selector";
 import { IconAdd, IconBackupNow, IconDownload, IconTrash, IconCheckCircle, IconSync, IconGear, IconClose } from "../components/Sidebar";
 // The integrity row's own two verbs ([324]). They live in the ACTION set
@@ -1300,6 +1300,12 @@ export function SettingsPage() {
   // localStorage via motion.ts, the identical pattern shape state above
   // already uses.
   const [motion, setMotionLocal] = useState<MotionIntensity>(() => getMotionIntensity());
+  // GSS 1.17.0's hidden fourth level. Both of these are deliberately COMPONENT
+  // state: `stormFound` must not survive leaving this page (an egg that
+  // changes behaviour has to be switchable back off, never a permanent picker
+  // entry), and the click counter has nothing to remember past the gesture.
+  const [stormFound, setStormFound] = useState(false);
+  const stormClicks = useRef({ taps: 0 });
   // #178: the three label modes, mirrored into local state so the selectors
   // show the current choice; the controls themselves read through
   // useLabelMode, which the labelModeChanged() call below wakes.
@@ -4751,17 +4757,30 @@ export function SettingsPage() {
       <Card title={t("settings.motion")} hint={t("settings.motionHint")} hueIndex={nextHue()}>
         {/* No "don't stretch" wrapper div, same as the Theme/Shape Selectors
             right above — `variant="well"` hugs its own segments now. */}
+        {/* THE FOURTH SEGMENT IS NOT ALWAYS THERE, GSS 1.17.0's hidden level.
+            It is offered while it is CHOSEN - a picker that hid the value it
+            is currently showing would be lying about the interface - and
+            otherwise only for as long as this screen stays open, which is why
+            `stormFound` is component state and never storage. Pick something
+            else and leave, and it is gone until the gesture is made again. */}
         <Selector
-          items={MOTION_INTENSITIES.map((m) => ({
-            id: m,
-            label: t(`settings.motion.${m}` as TranslationKey),
-          }))}
+          items={[...MOTION_INTENSITIES, ...(stormFound || motion === "storm" ? (["storm"] as const) : [])].map(
+            (m) => ({
+              id: m,
+              label: t(`settings.motion.${m}` as TranslationKey),
+            }),
+          )}
           label={t("settings.motion")}
           select="one"
           active={motion}
           onChange={(id) => {
-            setMotionLocal(id as MotionIntensity);
-            setMotionIntensity(id as MotionIntensity);
+            // The gesture first, because it fires on the level ALREADY chosen
+            // and therefore on a click that changes nothing else.
+            const storm = stormTap(stormClicks.current, id, motion);
+            if (storm) setStormFound(true);
+            const next = (storm ?? id) as MotionIntensity;
+            setMotionLocal(next);
+            setMotionIntensity(next);
           }}
           size="lg"
           variant="well"
