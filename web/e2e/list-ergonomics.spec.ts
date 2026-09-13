@@ -1,10 +1,11 @@
 // ---------------------------------------------------------------------------
 // List ergonomics e2e — LISTS-01 retrofits onto the EXISTING long lists
 // (07-06; the VMs block's twin assertions live in destination-vms-flash.spec.ts
-// scenario 1). Ten scenarios over the two retrofitted destination lists — the
-// Containers mobile card list (the plan's tracer, Tasks 1) and the Files sets
-// list (Task 2), which additionally carries the 06-UI-REVIEW editor-header
-// wrap fix under German labels:
+// scenario 1). Fifteen scenarios over all three retrofitted surfaces — the
+// Containers mobile card list (the plan's tracer, Task 1), the Files sets
+// list (Task 2, which additionally carries the 06-UI-REVIEW editor-header
+// wrap fix under German labels), and the Dashboard activity log (Task 3,
+// the foundation's first LIVE feed):
 //
 //   a. the ListToolbar search drives the page's ONE shared filter state —
 //      narrowing, the honest no-match card when nothing survives, and the
@@ -24,20 +25,21 @@
 // destination-vms-flash.spec.ts deviation (Rule 3), reused: the e2e webServer
 // is the real bombvault binary over a wiped fresh DB, but the harness has no
 // Docker, so a fresh DB can never hold a container (and never holds file
-// sets either). The container, file-set, settings and schedule-next domains
-// are fulfilled at the Playwright route layer — the SPA, its fetches, the
-// binary and every route shape are real; only the staged payloads are fake,
-// mirroring the Go JSON shapes field-for-field (api.ts). The display-prefs
-// abort keeps the harness default English labels regardless of worker order
-// (the boot-look cut, 05-06) — the ONE deliberate exception is the German
-// describe below, whose carried-fix regression only bites on the de strings
-// (mutation-checked).
+// sets or backup history either). The container, file-set, dashboard and
+// settings domains are fulfilled at the Playwright route layer — the SPA,
+// its fetches, the binary and every route shape are real; only the staged
+// payloads are fake, mirroring the Go JSON shapes field-for-field (api.ts).
+// The display-prefs abort keeps the harness default English labels regardless
+// of worker order (the boot-look cut, 05-06) — the ONE deliberate exception
+// is the German describe below, whose carried-fix regression only bites on
+// the de strings (mutation-checked).
 //
 // Mobile projects only: LISTS-01's desktop invariant ("byte-identical above
 // 48rem") is proven in jsdom by the desktop dom suites, which see the SAME
-// markup the ≥48rem browser renders (max-md hidden, not JSX-gated). The
-// desktop dual-direction guard for the ActivityLog retrofit rides this spec
-// in Task 3.
+// markup the ≥48rem browser renders (max-md hidden, not JSX-gated); the
+// ActivityLog retrofit additionally carries its own desktop-1280/768
+// dual-direction guard below (the mobile block is JSX-gated, so a desktop
+// project must assert its ABSENCE from outside).
 // ---------------------------------------------------------------------------
 import { expect, test, type Page } from "@playwright/test";
 
@@ -544,4 +546,227 @@ test.describe("with German labels", () => {
     expect(toggleBox!.x).toBeGreaterThanOrEqual(0);
     expect(toggleBox!.x + toggleBox!.width).toBeLessThanOrEqual(viewportWidth);
   });
+});
+
+// -----------------------------------------------------------------------------
+// Dashboard activity log (07-06 Task 3) — the LISTS-01 retrofit reaching the
+// log via the Dashboard mobile block. The log is the foundation's first LIVE
+// consumer: its merged list re-merges on a 10s runs poll, SSE pushes and the
+// idle-countdown tick, which is exactly the refresh pattern the
+// preserveKey extension of useLoadMore exists for — the load-more scenario
+// below pages the window and then HOLDS it across at least one poll boundary.
+// -----------------------------------------------------------------------------
+
+const NOW = () => Math.floor(Date.now() / 1000);
+
+/** A full DomainStatus record (home-trigger.spec.ts's shape) — the Dashboard
+ *  repo-health card renders from it; the log scenarios only need the page to
+ *  mount cleanly. */
+function domainStatus(overrides: Record<string, unknown>) {
+  return {
+    domain: "containers",
+    enabled: true,
+    schedule: "every day",
+    coveredBy: "",
+    lastSuccess: NOW() - 3600,
+    periodSeconds: 86400,
+    status: "ok",
+    lastVerified: 0,
+    lastVerifiedOK: false,
+    verifiedDetail: "",
+    drillDetail: "",
+    offsiteConfigured: false,
+    offsiteImmutable: false,
+    lastTamperAt: 0,
+    lastTamperOK: false,
+    lastReplicationAt: 0,
+    lastReplicationOK: false,
+    lastDrDrillAt: 0,
+    lastDrDrillOK: false,
+    lastOffsiteSubsetAt: 0,
+    lastOffsiteSubsetOK: false,
+    offsiteDrillScheduled: false,
+    protection: "green",
+    tamperState: "",
+    replicationState: "",
+    drillState: "",
+    encryptionOn: true,
+    pruneStrategySet: true,
+    ...overrides,
+  };
+}
+
+function stagedDomains() {
+  return [
+    domainStatus({}),
+    domainStatus({ domain: "files", schedule: "every 3 days", periodSeconds: 3 * 86400 }),
+    domainStatus({ domain: "vms", enabled: false, schedule: "", status: "off", protection: "" }),
+    domainStatus({ domain: "flash", enabled: false, schedule: "", status: "off", protection: "" }),
+  ];
+}
+
+async function yOf(locator: ReturnType<Page["locator"]>): Promise<number> {
+  const box = await locator.boundingBox();
+  expect(box).not.toBeNull();
+  return box!.y;
+}
+
+/** A finished backup run (api.ts:341, field-for-field) — one merged log line
+ *  per run via lib/activityLog.ts's buildLogLines. Distinct ids: the merge
+ *  dedupes on id, and the load-more math assumes one line per run. */
+function logRun(i: number) {
+  const startedAt = NOW() - (i + 1) * 3600;
+  return {
+    id: String(i).padStart(2, "0").padEnd(32, "a"),
+    targetId: String(i).padStart(2, "0").padEnd(32, "b"),
+    kind: "backup",
+    status: "success",
+    startedAt,
+    finishedAt: startedAt + 60,
+    snapshotId: "f".repeat(32),
+    bytes: 1_000_000,
+    error: "",
+    acknowledged: false,
+    target: `svc-${String(i).padStart(2, "0")}`,
+    domain: "container",
+  };
+}
+
+/** Route-level staging of the Dashboard read models (home-trigger.spec.ts's
+ *  stageHome, minus the write path): status/schedule/runs/stats. The
+ *  schedule/next list is deliberately EMPTY — buildIdleLine then emits no
+ *  idle line over a non-empty history, so N staged runs are exactly N lines
+ *  and the load-more math stays clean. */
+async function stageDashboard(page: Page, runs: ReturnType<typeof logRun>[]) {
+  await page.route("**/api/display-prefs*", (route) => route.abort());
+  await page.route("**/api/status", (route) => route.fulfill({ json: { ok: true, domains: stagedDomains() } }));
+  await page.route("**/api/schedule/next", (route) => route.fulfill({ json: { ok: true, runs: [] } }));
+  await page.route("**/api/runs", (route) => route.fulfill({ json: { ok: true, runs } }));
+  await page.route("**/api/stats*", (route) =>
+    route.fulfill({
+      json: {
+        ok: true,
+        latest: { domain: "containers", source: "local", at: NOW(), rawSize: 1_050_000_000_000, restoreSize: 260_000_000_000, snapshots: 3 },
+      },
+    })
+  );
+}
+
+/** The log's card, VISIBLE only: on a phone TWO instances exist in the DOM —
+ *  the desktop grid's (max-md:hidden) and the mobile block's — so the hidden
+ *  twin must never satisfy a locator. */
+function logCard(page: Page) {
+  return page.locator("div.glim-notch-card").filter({ hasText: "Activity Log" }).filter({ visible: true });
+}
+
+/** The mobile presentation's flat rows: the divide-y list's direct children. */
+function logRows(page: Page) {
+  return logCard(page).locator("div.divide-y > div");
+}
+
+test("the activity log reaches mobile below repo health, with the sticky toolbar and flat rows", async ({
+  page,
+}, testInfo) => {
+  test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "LISTS-01 mobile presentation only");
+  await stageDashboard(page, [logRun(0), logRun(1), logRun(2)]);
+  await page.goto("/");
+
+  const card = logCard(page);
+  await expect(card).toBeVisible();
+
+  // Contracted order: below the repo-health (Storage) block.
+  const storageY = await yOf(page.getByRole("heading", { name: "Storage", exact: true }));
+  const logY = (await card.boundingBox())!.y;
+  expect(logY).toBeGreaterThan(storageY);
+
+  // The sticky-in-flow toolbar with the log's own placeholder; the day chip
+  // and selects re-present the desktop bar's exact shared filter state.
+  const search = card.getByPlaceholder("Filter… (e.g. plex, failed, off-site)").filter({ visible: true });
+  await expect(search).toBeVisible();
+  await expect(card.locator("select").filter({ visible: true })).toHaveCount(2);
+
+  // Flat rows for the three staged runs — and the desktop scrollbox is NOT
+  // the mobile presentation (it stays mounted for the D-01 gate, but hidden).
+  await expect(logRows(page)).toHaveCount(3);
+  await expect(card.locator("div.max-h-96").filter({ visible: true })).toHaveCount(0);
+});
+
+test("log toolbar filters narrow the merged list; zero match shows the honest empty card", async ({
+  page,
+}, testInfo) => {
+  test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "LISTS-01 mobile presentation only");
+  await stageDashboard(page, [
+    { ...logRun(0), domain: "container", target: "svc-00" },
+    { ...logRun(1), domain: "files", target: "svc-01" },
+    { ...logRun(2), domain: "vm", target: "svc-02" },
+  ]);
+  await page.goto("/");
+  await expect(logRows(page)).toHaveCount(3);
+
+  // The domain select is the desktop bar's control re-presented — same
+  // options, same shared state.
+  const domainSelect = logCard(page).locator("select").filter({ visible: true }).first();
+  await domainSelect.selectOption({ label: "Folders" });
+  await expect(logRows(page)).toHaveCount(1);
+
+  // Text search on top of the domain filter; zero match renders the EXISTING
+  // filter.noMatch copy as a card, never a blank card.
+  const search = logCard(page).getByPlaceholder("Filter… (e.g. plex, failed, off-site)").filter({ visible: true });
+  await search.fill("zzz-no-match");
+  await expect(logCard(page).getByText("No items match the current filters.").filter({ visible: true })).toBeVisible();
+  await expect(logRows(page)).toHaveCount(0);
+
+  // Clearing the search (domain filter still on) restores the window.
+  await search.fill("");
+  await expect(logRows(page)).toHaveCount(1);
+});
+
+test("log load-more window: 40 lines, one extension to 40, then the button is gone — and the page HOLDS across a poll", async ({
+  page,
+}, testInfo) => {
+  test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "LISTS-01 mobile presentation only");
+  await stageDashboard(page, Array.from({ length: 40 }, (_, i) => logRun(i)));
+  await page.goto("/");
+  await expect(logRows(page)).toHaveCount(20);
+
+  const loadMore = logCard(page).getByRole("button", { name: "Load more" });
+  await expect(loadMore).toBeVisible();
+  await loadMore.tap();
+  await expect(logRows(page)).toHaveCount(40);
+  await expect(loadMore).toHaveCount(0);
+
+  // The live-feed half of the contract: the 10s runs poll re-merges the list
+  // (a NEW array identity every time). The reader's paged window must HOLD
+  // across at least one poll boundary — useLoadMore's preserveKey, not a
+  // reset-to-20 that would yank rows out from under the reader.
+  await page.waitForTimeout(10_500);
+  await expect(logRows(page)).toHaveCount(40);
+});
+
+test("every log row clears the 44px touch floor", async ({ page }, testInfo) => {
+  test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "LISTS-01 mobile presentation only");
+  await stageDashboard(page, Array.from({ length: 22 }, (_, i) => logRun(i)));
+  await page.goto("/");
+  await expect(logRows(page)).toHaveCount(20);
+
+  const heights = await logRows(page).evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height));
+  expect(heights.length).toBeGreaterThan(0);
+  for (const h of heights) expect(h).toBeGreaterThanOrEqual(44);
+});
+
+test("desktop keeps the scrollbox log — no mobile rows, no sticky toolbar", async ({ page }, testInfo) => {
+  test.skip(MOBILE_PROJECTS.has(testInfo.project.name), "desktop-only byte-identity guard");
+  await stageDashboard(page, [logRun(0), logRun(1), logRun(2)]);
+  await page.goto("/");
+
+  // Exactly ONE log card on desktop (the mobile block is JSX-gated away).
+  const card = page.locator("div.glim-notch-card").filter({ hasText: "Activity Log" });
+  await expect(card).toHaveCount(1);
+
+  // The unchanged desktop presentation: the scrollbox, NO divide-y rows, NO
+  // sticky toolbar, NO load-more.
+  await expect(card.locator("div.max-h-96").filter({ visible: true })).toBeVisible();
+  await expect(card.locator("div.divide-y")).toHaveCount(0);
+  await expect(card.locator(".sticky")).toHaveCount(0);
+  await expect(card.getByRole("button", { name: "Load more" })).toHaveCount(0);
 });

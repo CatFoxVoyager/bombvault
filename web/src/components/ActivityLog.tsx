@@ -19,9 +19,13 @@ import { useT } from "../lib/i18n";
 import type { TranslationKey } from "../lib/i18n";
 import { buildLogLines, filterLogLines, formatLogDate } from "../lib/activityLog";
 import type { LogFilterDomain, LogFilterKind, LogStatus, ResolveName } from "../lib/activityLog";
+import { useIsDesktop } from "../lib/useMediaQuery";
+import { useLoadMore } from "../lib/useLoadMore";
 import { Badge } from "./Badge";
 import { formatClockTime } from "../lib/reltime";
 import { Button } from "./Button";
+import { ListToolbar } from "./mobile/ListToolbar";
+import { MobileSectionLabel } from "./mobile/MobileSectionLabel";
 
 const POLL_RUNS_MS = 10000;
 const POLL_SCHEDULE_MS = 30000;
@@ -120,6 +124,38 @@ export function glyphLabelKey(status: LogStatus): TranslationKey {
   }
 }
 
+// LISTS-01 (07-06): the two filter vocabularies as DATA, so the desktop
+// bar's selects and the mobile toolbar's re-presented selects render the ONE
+// option list — a second hand-written <option> copy would drift exactly the
+// way the shared-glyph-vocabulary rule (glyphFor above) forbids. Same values,
+// same order, same label keys as the pre-07-06 desktop bar, so desktop output
+// is unchanged (the plan's byte-identical-desktop invariant).
+const DOMAIN_OPTIONS: ReadonlyArray<{ value: LogFilterDomain; labelKey: TranslationKey }> = [
+  { value: "all", labelKey: "activityLog.filterAllDomains" },
+  { value: "containers", labelKey: "activityLog.domainContainers" },
+  { value: "vms", labelKey: "activityLog.domainVMs" },
+  { value: "flash", labelKey: "activityLog.domainFlash" },
+  { value: "config", labelKey: "activityLog.domainConfig" },
+  { value: "files", labelKey: "activityLog.domainFiles" },
+  { value: "everything", labelKey: "activityLog.domainEverything" },
+];
+
+const TYPE_OPTIONS: ReadonlyArray<{ value: LogFilterKind; labelKey: TranslationKey }> = [
+  { value: "all", labelKey: "activityLog.filterAllTypes" },
+  { value: "backup", labelKey: "activityLog.typeBackup" },
+  { value: "restore", labelKey: "activityLog.typeRestore" },
+  { value: "prune", labelKey: "activityLog.typePrune" },
+  { value: "verify", labelKey: "activityLog.typeVerify" },
+  { value: "offsite", labelKey: "activityLog.typeOffsite" },
+  // Persisted kinds since the everything-in-the-log wave. Drill/tamper
+  // reuse the existing job-label keys; the off-site DR check ("drdrill")
+  // is its own kind and reuses Run History's kind label.
+  { value: "drill", labelKey: "activityLog.jobDrill" },
+  { value: "drdrill", labelKey: "run.kindDRDrill" },
+  { value: "tamper", labelKey: "activityLog.jobTamper" },
+  { value: "export", labelKey: "activityLog.typeExport" },
+];
+
 export function ActivityLog({
   dayFilter = null,
   onClearDayFilter,
@@ -147,6 +183,9 @@ export function ActivityLog({
   const [scheduleNext, setScheduleNext] = useState<ScheduleNext[]>([]);
   const [now, setNow] = useState<number>(() => Date.now());
   const progressMap = useProgress();
+  // D-01 gate (07-06 LISTS-01): jsdom's matchMedia stub answers "desktop", so
+  // the existing component suites only ever see the desktop JSX below.
+  const isDesktop = useIsDesktop();
 
   const [filterText, setFilterText] = useState("");
   const [filterDomain, setFilterDomain] = useState<LogFilterDomain>("all");
@@ -254,6 +293,21 @@ export function ActivityLog({
     [lines, filterDomain, filterType, filterText, dayFilter]
   );
 
+  // LISTS-01 (07-06): the MOBILE presentation's constant-threshold window
+  // (initial 20, +20 per tap) over the same filtered list the desktop
+  // scrollbox renders whole. This is the log's LIVE-FEED wrinkle
+  // (lib/useLoadMore.ts's preserveKey extension, added for exactly this
+  // consumer): `filteredLines` re-merges on every runs poll (10s), every SSE
+  // push and every idle-countdown tick — strict reset-on-identity would
+  // collapse the reader's page back to 20 rows every few seconds. The
+  // preserve key is ONLY the filter state, so a data refresh keeps the
+  // reader's page while a filter edit rewinds exactly like every other
+  // LISTS-01 list. The desktop scroller deliberately keeps mapping
+  // filteredLines: desktop is byte-identical (the plan's invariant), and an
+  // unconstrained scrollbox is the desktop log's whole point.
+  const windowKey = `${filterText} ${filterDomain} ${filterType} ${dayFilter ?? ""}`;
+  const { visible: visibleLines, showMore, hasMore } = useLoadMore(filteredLines, 20, windowKey);
+
   // Auto-follow tail: while pinned to the bottom, stay pinned as new lines
   // arrive. The moment the user scrolls up (handleScroll below), stop —
   // "jump to latest" returns to the tail.
@@ -317,11 +371,18 @@ export function ActivityLog({
           and the heatmap day-filter chip further down (bg-accent) stayed
           flat regardless of rainbow. Same hueIndex prop the heading Badge
           already uses. */}
-      <h2 className="flex items-center">
+      {/* D-01 double gate (07-06 LISTS-01): the desktop heading and filter
+          bar stay in the JSX under max-md:hidden (CSS-hidden on mobile; jsdom
+          still sees the exact desktop DOM, keeping every existing suite and
+          the byte-identical-desktop invariant intact), while the mobile
+          presentation is JSX-gated on !isDesktop — the same gate pattern the
+          Containers/Files retrofits use. */}
+      <h2 className="flex items-center max-md:hidden">
         <Badge tone="heading" size="heading" wrap hueIndex={hueIndex}>{t("activityLog.title")}</Badge>
       </h2>
+      {!isDesktop && <MobileSectionLabel t={t} labelKey="activityLog.title" />}
       {/* Filter bar — narrows the ONE list below; never a second zone. */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 max-md:hidden">
         <input
           type="text"
           value={filterText}
@@ -335,32 +396,18 @@ export function ActivityLog({
           onChange={(e) => setFilterDomain(e.target.value as LogFilterDomain)}
           className="rounded-control bg-carbon-surface2 px-2 py-1 text-xs text-carbon-text glim-field-focus"
         >
-          <option value="all">{t("activityLog.filterAllDomains")}</option>
-          <option value="containers">{t("activityLog.domainContainers")}</option>
-          <option value="vms">{t("activityLog.domainVMs")}</option>
-          <option value="flash">{t("activityLog.domainFlash")}</option>
-          <option value="config">{t("activityLog.domainConfig")}</option>
-          <option value="files">{t("activityLog.domainFiles")}</option>
-          <option value="everything">{t("activityLog.domainEverything")}</option>
+          {DOMAIN_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
+          ))}
         </select>
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value as LogFilterKind)}
           className="rounded-control bg-carbon-surface2 px-2 py-1 text-xs text-carbon-text glim-field-focus"
         >
-          <option value="all">{t("activityLog.filterAllTypes")}</option>
-          <option value="backup">{t("activityLog.typeBackup")}</option>
-          <option value="restore">{t("activityLog.typeRestore")}</option>
-          <option value="prune">{t("activityLog.typePrune")}</option>
-          <option value="verify">{t("activityLog.typeVerify")}</option>
-          <option value="offsite">{t("activityLog.typeOffsite")}</option>
-          {/* Persisted kinds since the everything-in-the-log wave. Drill/tamper
-              reuse the existing job-label keys; the off-site DR check ("drdrill")
-              is its own kind and reuses Run History's kind label. */}
-          <option value="drill">{t("activityLog.jobDrill")}</option>
-          <option value="drdrill">{t("run.kindDRDrill")}</option>
-          <option value="tamper">{t("activityLog.jobTamper")}</option>
-          <option value="export">{t("activityLog.typeExport")}</option>
+          {TYPE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
+          ))}
         </select>
         {/* Heatmap day-filter chip — a filled pill (accent, no border, same
             language as the heatmap's active domain toggle) showing which day
@@ -382,8 +429,62 @@ export function ActivityLog({
         )}
       </div>
 
-      {/* The log itself — a single scrollable, monospace, newest-at-bottom list. */}
-      <div className="relative">
+      {/* MOBILE toolbar (07-06 LISTS-01): the same ONE filter state,
+          re-presented. The toolbar rides its card (sticky-in-flow): the
+          ListToolbar doctrine prefers a direct page-column child for
+          full-page stick, but this block is one dashboard SECTION among
+          others — a bar pinned past its own card would filter a list that
+          has already scrolled away, which reads as broken. The selects are
+          the desktop bar's exact controls re-presented at the 44px touch
+          floor from the shared option constants above (one vocabulary, no
+          drift, no second aria-label scheme to fall out of sync — desktop
+          carries none either); the day chip joins them because it drives the
+          same shared filter state and must stay clearable wherever the
+          toolbar is reachable. */}
+      {!isDesktop && (
+        <ListToolbar search={filterText} onSearch={setFilterText} placeholder="activityLog.filterPlaceholder">
+          <select
+            value={filterDomain}
+            onChange={(e) => setFilterDomain(e.target.value as LogFilterDomain)}
+            className="h-11 shrink-0 rounded-control bg-carbon-surface2 px-2 text-sm text-carbon-text glim-field-focus"
+          >
+            {DOMAIN_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
+            ))}
+          </select>
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value as LogFilterKind)}
+            className="h-11 shrink-0 rounded-control bg-carbon-surface2 px-2 text-sm text-carbon-text glim-field-focus"
+          >
+            {TYPE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
+            ))}
+          </select>
+          {dayFilter && (
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-pill bg-accent text-accentContrast ps-2.5 pe-1 py-0.5 text-xs font-medium">
+              {resolveName("activityLog.dayFilterChip", {
+                date: new Date(dayFilter + "T00:00:00").toLocaleDateString(),
+              })}
+              <Button
+                label={t("activityLog.clearDayFilter")}
+                labelKey="activityLog.clearDayFilter"
+                variant="chip"
+                onClick={onClearDayFilter}
+              />
+            </span>
+          )}
+        </ListToolbar>
+      )}
+
+      {/* The log itself — a single scrollable, monospace, newest-at-bottom
+          list. Desktop-only above 48rem (max-md:hidden): on mobile the same
+          merged list is re-presented below as a flat flow (LISTS-01). The
+          hidden scrollbox stays MOUNTED rather than unmounted so this
+          component keeps rendering one DOM shape per breakpoint (the D-01
+          gate) and auto-follow's ref writes land on a display:none box —
+          cheap no-ops, no null-deref branch to maintain. */}
+      <div className="relative max-md:hidden">
         <div
           ref={scrollRef}
           onScroll={handleScroll}
@@ -411,6 +512,52 @@ export function ActivityLog({
           />
         )}
       </div>
+
+      {/* MOBILE log (07-06 LISTS-01): the merged list re-presented as a flat,
+          full-width flow — divide-y rows at the 44px touch floor, reusing the
+          ONE timestamp/glyph/colour vocabulary (formatLogDate/formatClockTime/
+          glyphFor/colorFor — the same exports RunDetailSheet consumes; a
+          second copy would be exactly the forked-vocabulary drift those
+          export comments forbid). Load-more is the same constant-threshold
+          affordance as every LISTS-01 list: gated on hasMore alone, never
+          auto-loading (lib/useLoadMore.ts's construction-level ban). When the
+          filters match nothing: the EXISTING filter.noMatch copy as an
+          explicit card — zero-match honesty, never a blank card. */}
+      {!isDesktop && (
+        filteredLines.length === 0 ? (
+          <div className="rounded-card bg-carbon-surface2 p-4">
+            <p className="text-sm text-carbon-textMuted">{t("filter.noMatch")}</p>
+          </div>
+        ) : (
+          <>
+            <div className="divide-y divide-carbon-border">
+              {visibleLines.map((l) => (
+                <div key={l.id} className="flex min-h-[2.75rem] items-center gap-2 py-2">
+                  <span className="shrink-0 tabular-nums text-xs text-carbon-textMuted">
+                    {formatLogDate(l.atMs)} {formatClockTime(l.atMs / 1000, true)}
+                  </span>
+                  <span
+                    className={`w-4 shrink-0 text-center ${colorFor(l.status)}`}
+                    aria-label={t(glyphLabelKey(l.status))}
+                  >
+                    {glyphFor(l.status)}
+                  </span>
+                  <span className={`min-w-0 flex-1 wrap-break-word text-sm ${colorFor(l.status)}`}>{l.text}</span>
+                </div>
+              ))}
+            </div>
+            {hasMore && (
+              <button
+                type="button"
+                onClick={showMore}
+                className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+              >
+                {t("common.loadMore")}
+              </button>
+            )}
+          </>
+        )
+      )}
     </div>
   );
 }

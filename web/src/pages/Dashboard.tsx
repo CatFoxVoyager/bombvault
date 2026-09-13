@@ -2928,6 +2928,18 @@ export function Dashboard() {
           <MobileNextRunCard t={t} scheduleNext={scheduleNext} domains={statusDomains} loading={statusLoading} />
           <MobileRecentRunsCard t={t} runs={runs} onOpenRun={openRun} />
           <MobileRepoHealthCard t={t} domains={statusDomains} />
+          {/* LISTS-01 (07-06): the activity log reaches mobile here — the
+              component is self-contained (own card chrome + heading, per its
+              header comment) and internally double-gated (D-01), so the mount
+              is one line. NO hueIndex: this hue counter is the DESKTOP grid's
+              rainbow sequence — the desktop ActivityLog block below already
+              drew its slot from it; a second draw here would advance the
+              counter and silently shift every later block's rainbow position.
+              The mobile heading rides the flat MobileSectionLabel default
+              instead (same as every other block in this column).
+              dayFilter stays shared: a heatmap tap narrows BOTH presentations
+              because they render the same state. */}
+          <ActivityLog dayFilter={logDayFilter} onClearDayFilter={() => setLogDayFilter(null)} />
         </div>
       )}
 

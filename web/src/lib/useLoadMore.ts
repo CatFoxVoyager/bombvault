@@ -28,6 +28,19 @@ import { useCallback, useState } from "react";
 // hook resets when the `items` array IDENTITY changes, and consumers pass the
 // FILTERED array — so slice and filter can never disagree (the consumer
 // derives `visible` from the same array it filtered).
+//
+// LIVE-FEED PRESERVE KEY (07-06 Task 3): the dashboard activity log is the
+// first consumer whose array identity changes WITHOUT a filter change — its
+// merged list re-merges on every runs poll (10s), every SSE progress push and
+// every idle-countdown tick. Strict reset-on-identity there collapses the
+// reader's page back to 20 rows every few seconds — precisely the "where was
+// that row" instability D-11 exists to prevent. Such consumers pass an opaque
+// `preserveKey` describing ONLY their filter state: while the key is
+// unchanged, a new identity is a data REFRESH — the window is kept, new rows
+// extend the list at the bottom, and the slice clamps naturally if the list
+// shrinks; a key change rewinds exactly like the default contract. Static
+// lists (Containers, Files) pass no key and keep the strict identity
+// behavior — byte-for-byte the wave-1 semantics.
 // ---------------------------------------------------------------------------
 
 /**
@@ -41,17 +54,24 @@ export function loadMoreWindow(total: number, visible: number, threshold: number
 
 export function useLoadMore<T>(
   items: T[],
-  threshold = 20
+  threshold = 20,
+  preserveKey?: string
 ): { visible: T[]; showMore: () => void; hasMore: boolean; reset: () => void } {
   const [count, setCount] = useState(threshold);
   // Render-time state adjust (React's documented "adjusting state when props
   // change" pattern): a new `items` IDENTITY is a new filter result, so the
   // slice resets to the initial window in the SAME render — no stale-slice
   // frame an effect would paint first, and no effect dep array to drift.
+  // With a preserveKey in play, a same-key identity change is a live-feed
+  // REFRESH instead: `seen` advances (so the next genuinely-new array is
+  // still detected) but the window count survives it.
   const [seen, setSeen] = useState(items);
-  if (seen !== items) {
+  const [seenKey, setSeenKey] = useState(preserveKey);
+  if (seen !== items || seenKey !== preserveKey) {
+    const refresh = preserveKey !== undefined && seenKey === preserveKey;
     setSeen(items);
-    setCount(threshold);
+    setSeenKey(preserveKey);
+    if (!refresh) setCount(threshold);
   }
 
   const visible = items.slice(0, count);

@@ -125,4 +125,55 @@ describe("useLoadMore (hook)", () => {
     // 20 -> 40 -> 45 (clamped): the step never grows.
     expect(result.current.visible).toHaveLength(45);
   });
+
+  // --- live-feed preserveKey (07-06 Task 3, the activity log's contract) ----
+
+  it("live feed: same preserveKey keeps the window across a data refresh", () => {
+    let items = makeItems(45);
+    const { result, rerender } = renderHook(() => useLoadMore(items, 20, "filters:f"));
+    act(() => result.current.showMore());
+    expect(result.current.visible).toHaveLength(40);
+    // A poll/tick re-merge: NEW array identity, SAME filter key — a refresh,
+    // not a filter result. The reader's page survives it.
+    items = makeItems(45);
+    rerender();
+    expect(result.current.visible).toHaveLength(40);
+    expect(result.current.hasMore).toBe(true);
+  });
+
+  it("live feed: a preserveKey change rewinds like a filter change", () => {
+    let items = makeItems(45);
+    let key = "filters:a";
+    const { result, rerender } = renderHook(() => useLoadMore(items, 20, key));
+    act(() => result.current.showMore());
+    expect(result.current.visible).toHaveLength(40);
+    key = "filters:b";
+    items = makeItems(45);
+    rerender();
+    expect(result.current.visible).toHaveLength(20);
+    expect(result.current.hasMore).toBe(true);
+  });
+
+  it("live feed: a refresh that shrinks the list clamps the visible slice", () => {
+    let items = makeItems(45);
+    const { result, rerender } = renderHook(() => useLoadMore(items, 20, "filters:f"));
+    act(() => result.current.showMore());
+    act(() => result.current.showMore()); // 45 (clamped at total)
+    expect(result.current.visible).toHaveLength(45);
+    items = makeItems(30); // prune removed 15 rows server-side
+    rerender();
+    expect(result.current.visible).toHaveLength(30);
+    expect(result.current.hasMore).toBe(false);
+  });
+
+  it("live feed: a refresh keeps the window and new rows stay one press away", () => {
+    let items = makeItems(25);
+    const { result, rerender } = renderHook(() => useLoadMore(items, 20, "filters:f"));
+    expect(result.current.visible).toHaveLength(20);
+    items = makeItems(25); // five new rows arrived (newest-at-bottom feed)
+    rerender();
+    expect(result.current.visible).toHaveLength(20);
+    act(() => result.current.showMore());
+    expect(result.current.visible).toHaveLength(25);
+  });
 });
