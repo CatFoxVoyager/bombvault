@@ -37,13 +37,13 @@
 
 ### Operational Flows
 
-- [ ] **FLOW-01**: Schedule editing parity: TimePicker / CadenceBuilder open as full-screen sheets with large targets; the human-readable effective-schedule preview stays visible on the invoking card
+- [x] **FLOW-01**: Schedule editing parity: TimePicker / CadenceBuilder open as full-screen sheets with large targets; the human-readable effective-schedule preview stays visible on the invoking card
 - [ ] **FLOW-02**: Notification + off-site replication configuration parity: editable on mobile via the sheet-editor pattern (no desktop-only settings)
 - [x] **FLOW-03**: Trigger backup from any domain surface: same `BackupButton` semantics (async-start, deep-link to run, consequence-aware confirm when containers stop/restart), mobile presentation
 
 ### Remaining Destinations
 
-- [ ] **MORE-01**: VMs, Flash, Config, Receiver, Fleet in the mobile card language: block-level item cards with status + last run + offsite state, trigger + schedule entry points; Config surfaces the existing restore guard chain readably; Fleet peer cards (reachable, last contact, protection summary)
+- [x] **MORE-01**: VMs, Flash, Config, Receiver, Fleet in the mobile card language: block-level item cards with status + last run + offsite state, trigger + schedule entry points; Config surfaces the existing restore guard chain readably; Fleet peer cards (reachable, last contact, protection summary)
 - [ ] **MORE-02**: Settings: stacked setting cards; editors as full-screen sheets; dark mode / language / accent work as today; the 7-tab Selector strip gets a defined mobile treatment
 
 ### List Ergonomics
@@ -52,7 +52,7 @@
 
 ### Platform-Adaptive Chrome
 
-- [ ] **PLAT-01**: Android Material 3 expression (navpill bar treatment, FAB primary action, tonal chips) and iOS HIG expression (large title, circular checks) from the same codebase, per the design bible's platform mapping — same IA, translated chrome only
+- [x] **PLAT-01**: Android Material 3 expression (navpill bar treatment, FAB primary action, tonal chips) and iOS HIG expression (large title, circular checks) from the same codebase, per the design bible's platform mapping — same IA, translated chrome only
 
 ### Verification & Parity
 
@@ -129,12 +129,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PRIM-03 | Phase 6 | Complete |
 | PRIM-04 | Phase 6 | Complete |
 | FLOW-03 | Phase 6 | Complete |
-| MORE-01 | Phase 7 | Pending |
+| MORE-01 | Phase 7 | Complete |
 | MORE-02 | Phase 7 | Pending |
-| FLOW-01 | Phase 7 | Pending |
+| FLOW-01 | Phase 7 | Complete |
 | FLOW-02 | Phase 7 | Pending |
 | LISTS-01 | Phase 7 | Complete |
-| PLAT-01 | Phase 7 | Pending |
+| PLAT-01 | Phase 7 | Complete |
 | SCRN-06 | Phase 8 | Pending |
 | VERIFY-02 | Phase 8 | Pending |
 | VERIFY-03 | Phase 8 | Pending |

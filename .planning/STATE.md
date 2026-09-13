@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 7
 current_phase_name: Remaining Destinations & Operational Parity
 status: executing
-stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-09-13T10:51:38.009Z"
+stopped_at: Completed 07-03-PLAN.md
+last_updated: "2026-09-13T13:00:13.927Z"
 last_activity: 2026-09-13
 last_activity_desc: Phase 7 execution started
-state_head: d6917a4ed9511f74d4e7899a9bffb29e352d069a
+state_head: 7dd7dfb72233c3c3e2fba7d98bc9f804a9481a4d
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 21
-  completed_plans: 14
+  completed_plans: 16
   percent: 50
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-13)
 ## Current Position
 
 Phase: 7 (Remaining Destinations & Operational Parity) — EXECUTING
-Plan: 3 of 8
+Plan: 4 of 8
 Total Plans in Phase: 8
 Status: Ready to execute
 Last activity: 2026-09-13 — Phase 7 execution started
@@ -98,6 +98,7 @@ Progress: [█████░░░░░] 50% (2/4 phases complete)
 | Phase 06 P07 | 45m | 3 tasks | 46 files |
 | Phase 07 P01 | ~2h | 2 tasks | 8 files |
 | Phase 07 P02 | 36min | 3 tasks | 47 files |
+| Phase 7 P03 | 1h 51m | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -151,6 +152,10 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 7]: 07-02: ListToolbar placeholder is typed TranslationKey (MobileSectionLabel labelKey pattern) - the toolbar owns no i18n keys, only resolves the one it is given
 - [Phase 7]: 07-02: useLoadMore resets on items identity change via render-time state adjust (React documented pattern); consumers pass the filtered array so identity IS the filter signal
 - [Phase 7]: 07-02: phase 7 i18n keys pre-seeded in ONE commit (single-writer, phase 6 pattern); i18n.preseed.test.ts pins the exact en copy and satisfies the orphan gate until plans 07-03..07-07 consume the keys
+- [Phase 7]: Mobile destination blocks (VMs/Flash) are per-page components behind the D-01 double gate; desktop JSX stays byte-identical under max-md:hidden
+- [Phase 7]: VM schedule sheet restricts CadenceBuilder to exact-cadence modes and PATCHes the raw libvirtName (#166)
+- [Phase 7]: Flash Fab and hero trigger are one action - the Fab fires the shared useBackupWatch watcher via fireRef
+- [Phase 7]: Destination e2e stages VM/flash/settings/runs domains at the route layer (Go-JSON field-for-field); fresh harness DB can never hold a VM
 
 ### Pending Todos
 
@@ -177,8 +182,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-13T10:51:37.740Z
-Stopped at: Completed 07-02-PLAN.md
+Last session: 2026-09-13T13:00:13.668Z
+Stopped at: Completed 07-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
