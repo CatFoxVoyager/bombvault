@@ -38,7 +38,17 @@
 //      deleteOffsiteTarget,
 //   9. test connection rides testOffsiteTarget and reports through the
 //      existing toast surface.
-//   (Task 3 adds the FLOW-01 sweep + desktop dual-direction scenarios.)
+//
+// Task 3 closes the plan with the two parity directions:
+//
+//   10. the FLOW-01 sweep — every schedule-bearing section previews the
+//       staged settings fixture through the shared derivations (ScheduleRow's
+//       resolved badge): a staged ACTIVE cadence resolves, a staged "off"
+//       reads "Not scheduled", across the Schedules / Integrity /
+//       Notifications tabs,
+//   11. desktop dual-direction — at desktop widths the same sections render
+//       their INLINE forms and the DOM carries ZERO fullHeight editor sheets
+//       (the sheets are phone-only, not additive).
 //
 // Harness honesty — what is staged and why (the destination-settings Rule 3
 // deviation, reused): the e2e webServer is the real bombvault binary over a
@@ -70,7 +80,7 @@ test.use({ locale: "en-US" });
 // GET /api/settings — mirrors the Settings interface field-for-field, the
 // same fixture destination-settings.spec.ts stages for its own surfaces;
 // the /settings page reads it whole on boot.
-function settingsBody() {
+function settingsBody(overrides: Record<string, unknown> = {}) {
   return {
     ok: true,
     hostMountRoot: "/mnt/user",
@@ -160,6 +170,10 @@ function settingsBody() {
       restartHealthTimeoutSec: 120,
       reconcileUnraidUpdateStatus: true,
       perItemSchedules: true,
+      // Task 3's sweep passes cadence overrides (an ACTIVE containers cadence
+      // + the digest toggle) so the schedule previews have something to
+      // preview; every other caller stages the all-"off" default unchanged.
+      ...overrides,
     },
   };
 }
@@ -206,10 +220,13 @@ function notifyBody() {
 /** Route-level staging of the /settings boot reads + the notify domain.
  *  Every notify POST body is captured into the returned array (the body
  *  assertions read it) and answered by `respond` — the default resolves the
- *  save OK; the failing-save scenario overrides per body. */
+ *  save OK; the failing-save scenario overrides per body. The Task 3 sweep
+ *  reuses this helper purely for the boot reads and passes cadence
+ *  `settingsOverrides` (its notify capture stays unused). */
 async function stageNotifyDomain(
   page: Page,
   respond: (body: Record<string, unknown>) => { ok: boolean; error?: string } = () => ({ ok: true }),
+  settingsOverrides: Record<string, unknown> = {},
 ): Promise<Array<Record<string, unknown>>> {
   const posts: Array<Record<string, unknown>> = [];
   await page.route("**/api/display-prefs*", (route) =>
@@ -221,7 +238,7 @@ async function stageNotifyDomain(
   );
   await page.route("**/api/settings", (route) =>
     route.request().method() === "GET"
-      ? route.fulfill({ json: settingsBody() })
+      ? route.fulfill({ json: settingsBody(settingsOverrides) })
       : route.fulfill({ json: { ok: true } }),
   );
   await page.route("**/api/notify", (route) => {
@@ -750,4 +767,84 @@ test("mobile /settings: a target's test connection rides testOffsiteTarget and r
   // The staged probe answers reachable + initialised; the verdict is the
   // SAME toast the desktop row's Test badge pushes (offsite.testOk).
   await expect(page.getByText("reachable + initialised")).toBeVisible();
+});
+
+// --- Task 3: the FLOW-01 sweep + the desktop dual-direction ------------------
+
+// FLOW-01 sweep: walk the schedule-bearing sections and assert every preview
+// is a rendering of a value the SERVER holds — the staged settings fixture
+// read through the shared derivations (ScheduleRow's resolved badge, the
+// effective-schedule lines), in BOTH directions: a staged ACTIVE cadence
+// renders its resolved label, a staged "off" renders "Not scheduled", and
+// nothing on the page derives a fire time on the client (there is no client
+// clock math to catch — that absence is what FLOW-01's code sweep recorded).
+test("mobile /settings: every schedule-bearing section previews the staged fixture (and 'Not scheduled' where the fixture has no entry)", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    !MOBILE_PROJECTS.has(testInfo.project.name),
+    "mobile-only: the phone presentation is the surface this sweep walks",
+  );
+  // containersSchedule ACTIVE (the "present" direction) + the digest toggle
+  // on so its stored cadence is live (ScheduleRow's `enabled` gate); the
+  // drills and tamper-test cadences stay at their base-fixture weekly values,
+  // every other domain cadence stays "off" (the "absent" direction).
+  await stageNotifyDomain(page, undefined, {
+    containersSchedule: "daily 03:00",
+    digestEnabled: true,
+  });
+  await page.goto("/settings");
+
+  const chips = page.getByRole("navigation", { name: "Settings sections" });
+
+  // Schedules tab: the containers Card previews the staged daily cadence
+  // through ScheduleRow; the untouched domains all preview "Not scheduled"
+  // (several rows qualify — first() is the honest assertion here).
+  await chips.getByRole("button", { name: "Schedules", exact: true }).tap();
+  await expect(page.getByText("Daily at 03:00")).toBeVisible();
+  await expect(page.getByText("Not scheduled").first()).toBeVisible();
+
+  // Integrity tab: the drill + tamper-test badges resolve the SAME fixture's
+  // weekly cadences through the SAME shared badge grammar.
+  await chips.getByRole("button", { name: "Integrity", exact: true }).tap();
+  await expect(page.getByText("Weekly (Sun) at 04:30")).toBeVisible();
+  await expect(page.getByText("Weekly (Sun) at 05:30")).toBeVisible();
+
+  // Notifications tab: the digest Card's badge honours the staged toggle —
+  // enabled here, so the stored weekly cadence resolves instead of greying.
+  await chips.getByRole("button", { name: "Notifications", exact: true }).tap();
+  await expect(page.getByText("Weekly (Mon) at 08:00")).toBeVisible();
+});
+
+// Desktop dual-direction (the other half of the D-01/D-05 gate): at desktop
+// widths the SAME sections render their INLINE forms — the notify form's
+// Cards and the offsite target rows sit directly on the page — and the DOM
+// carries ZERO fullHeight editor sheets. Every scenario above proves the
+// sheets open on the phone; this proves they are phone-only, not additive.
+test("desktop /settings: the notify form and the offsite target rows render inline and no fullHeight editor sheet exists", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    MOBILE_PROJECTS.has(testInfo.project.name),
+    "desktop-only: proves the sheets never mount at desktop widths",
+  );
+  // Advanced on so the notify form's channels Card is mounted and assertable
+  // (the same boot state openNotificationsTab stages for the mobile sheet).
+  await page.addInitScript(() => localStorage.setItem("bombvault.advanced", "1"));
+  await stageNotifyDomain(page);
+  await stageOffsiteDomain(page);
+
+  // Notifications tab via the URL hash (the tab state restores from it on
+  // boot — the same hash the strips write on switch): the notify form
+  // renders INLINE, outside any dialog.
+  await page.goto("/settings#notifications");
+  await expect(page.getByText("Notification channels")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Send test" })).toBeVisible();
+  await expect(editorSheet(page)).toHaveCount(0);
+
+  // Off-site tab: the desktop section renders the staged target's row inline
+  // — still zero fullHeight sheets anywhere in the DOM.
+  await page.goto("/settings#offsite");
+  await expect(page.getByText("Offsite copy B2")).toBeVisible();
+  await expect(editorSheet(page)).toHaveCount(0);
 });
