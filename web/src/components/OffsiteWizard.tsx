@@ -1029,7 +1029,17 @@ export function OffsiteWizard({
             standard in the app (see tamperShake's own doc comment, and
             IntegrityCard's runTamperFor in Settings.tsx, the exact site whose
             comment names this failure case as the standard's target). */}
+        {/* The test is ABSENT while the immutable switch above is off
+            (GlimStone 1.10.0), rather than sitting there greyed: a control
+            disabled because of a decision taken four rows up offers something
+            nobody can take. The `busy` half stays, because that is this button
+            reporting on its own run.
+
+            The else-branch below is the third case and was already built that
+            way: on a backend that cannot be tested at all, there is no control
+            and a sentence says why. */}
         {urlBackend === "rest" ? (
+          immutable ? (
           <div className="flex items-center gap-3 flex-wrap">
             <Badge
               key={tamperShake}
@@ -1038,7 +1048,7 @@ export function OffsiteWizard({
               size="small"
               hueIndex={hueIndex}
               onClick={() => void runTamper()}
-              disabled={tamperState === "busy" || !immutable}
+              disabled={tamperState === "busy"}
               className={tamperShake ? "glim-shake" : undefined}
             >
               {tamperState === "busy" ? t("offsite.tamperTesting") : t("offsite.tamperTestNow")}
@@ -1050,6 +1060,7 @@ export function OffsiteWizard({
               </span>
             )}
           </div>
+          ) : null
         ) : (
           <span className="text-xs text-carbon-textMuted">{t("offsite.tamperUnverifiable")}</span>
         )}

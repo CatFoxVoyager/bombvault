@@ -57,18 +57,26 @@ export function RestoreChecksSection({
         shakeNonce={shake?.drillsEnabled}
         pulseNonce={pulse?.drillsEnabled}
       />
-      {/* Sub-toggle: only meaningful while scheduled drills are on. ToggleRow
-          itself dims its switch AND its caption/description together — no
-          wrapping container opacity needed here. */}
-      <ToggleRow
-        label={t("settings.offsiteDrills")}
-        hint={t("settings.offsiteDrillsHelp")}
-        checked={settings.offsiteDrillsEnabled}
-        disabled={!settings.drillsEnabled || busy?.offsiteDrillsEnabled}
-        onChange={(v) => update({ offsiteDrillsEnabled: v })}
-        shakeNonce={shake?.offsiteDrillsEnabled}
-        pulseNonce={pulse?.offsiteDrillsEnabled}
-      />
+      {/* A sub-switch is ABSENT while its parent is off, never dimmed
+          (GlimStone 1.10.0). It used to be dimmed, and the comment here said
+          ToggleRow dims its switch and its caption together - which it does,
+          and which was the wrong answer: a switch greyed because something
+          ELSE is off offers a decision nobody can make.
+
+          The `busy` half of the old gate stays, and that is the distinction
+          the rule turns on: busy is this row reporting on its own save, not on
+          a decision taken somewhere else. */}
+      {settings.drillsEnabled && (
+        <ToggleRow
+          label={t("settings.offsiteDrills")}
+          hint={t("settings.offsiteDrillsHelp")}
+          checked={settings.offsiteDrillsEnabled}
+          disabled={busy?.offsiteDrillsEnabled}
+          onChange={(v) => update({ offsiteDrillsEnabled: v })}
+          shakeNonce={shake?.offsiteDrillsEnabled}
+          pulseNonce={pulse?.offsiteDrillsEnabled}
+        />
+      )}
       {/* Resolved-schedule badge — NEW this round. This Card was one of the
           three cadence editors with nothing above it, so CadenceBuilder's own
           inline preview paragraph was the only place its resolved schedule
@@ -80,18 +88,23 @@ export function RestoreChecksSection({
       <ScheduleRow schedule={settings.drillsSchedule} enabled={settings.drillsEnabled} />
       {/* `hueIndex` passed straight through to the TimePicker inside (Task 3
           fix) — the SAME position as this Card's own heading notch above. */}
-      <div className="rounded-card bg-carbon-surface2 p-4">
-        {/* No `modes` restriction (#166): the drill pass stamps
-            schedule_job_runs when it runs and the scheduler gates on that, so
-            "every N days" is genuinely enforced here and the API accepts it. */}
-        <CadenceBuilder
-          label={t("settings.schedule")}
-          value={settings.drillsSchedule}
-          disabled={!settings.drillsEnabled}
-          onChange={(v) => update({ drillsSchedule: v })}
-          hueIndex={hueIndex}
-        />
-      </div>
+      {/* The editor goes with the switch, for the same reason (GlimStone
+          1.10.0). Nothing is lost by removing it: the ScheduleRow above shows
+          the resolved schedule either way, so somebody who switches the drills
+          off still sees what would run. */}
+      {settings.drillsEnabled && (
+        <div className="rounded-card bg-carbon-surface2 p-4">
+          {/* No `modes` restriction (#166): the drill pass stamps
+              schedule_job_runs when it runs and the scheduler gates on that, so
+              "every N days" is genuinely enforced here and the API accepts it. */}
+          <CadenceBuilder
+            label={t("settings.schedule")}
+            value={settings.drillsSchedule}
+            onChange={(v) => update({ drillsSchedule: v })}
+            hueIndex={hueIndex}
+          />
+        </div>
+      )}
       <label className="flex flex-col gap-1 max-w-40">
         <span className="text-xs text-carbon-textSub">{t("verify.subsetPct")}</span>
         <NumberField

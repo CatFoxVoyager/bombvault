@@ -197,18 +197,23 @@ export function PathModeSwitch({
               weight (ROW_BADGE_SIZE) rather than this row's bigger `field`
               inputs, since this button has a visible sibling text label, not
               a bare glyph. */}
-          <Badge
-            as="button"
-            tone="active"
-            size="medium"
-            hueIndex={hueIndex}
-            onClick={() => setDialogOpen((o) => !o)}
-            disabled={!isRemotePath(value)}
-            className="self-start"
-          >
-            {dialogOpen ? t("offsite.wizard.close") : t("settings.primaryRemote.title")}
-          </Badge>
-          {!isRemotePath(value) && (
+          {/* Absent rather than dimmed while the path beside it is local
+              (GlimStone 1.10.0). The two halves were already complementary -
+              the button greyed and the sentence appeared - so this is the same
+              pair with the greyed half removed. What is left is the third case
+              of the rule: no control, and a sentence saying why. */}
+          {isRemotePath(value) ? (
+            <Badge
+              as="button"
+              tone="active"
+              size="medium"
+              hueIndex={hueIndex}
+              onClick={() => setDialogOpen((o) => !o)}
+              className="self-start"
+            >
+              {dialogOpen ? t("offsite.wizard.close") : t("settings.primaryRemote.title")}
+            </Badge>
+          ) : (
             <p className="text-xs text-carbon-textMuted">{t("settings.primaryRemote.hint")}</p>
           )}
           {dialogOpen && isRemotePath(value) && (

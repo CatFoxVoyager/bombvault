@@ -410,7 +410,10 @@ function VMsSection({
     // See ContainersSection's own comment above — `title` restored, same
     // Task 3 `hueIndex` threaded into CadenceBuilder below.
     <Card title={t("jobs.vmsSection")} hint={t("jobs.vmIncludeHint")} hueIndex={hueIndex}>
-      <ScheduleRow schedule={schedule} />
+      {/* The editor below stays visible and dimmed while the Containers
+          schedule owns this domain, because the cadence it shows still runs -
+          so the row says who owns it (see ScheduleRow's own `hint` doc). */}
+      <ScheduleRow schedule={schedule} hint={syncSchedules ? t("jobs.syncSchedulesHint") : undefined} />
       <div className="rounded-card bg-carbon-surface2 p-4">
         <CadenceBuilder
           label={t("jobs.vmsSection")}
@@ -479,7 +482,8 @@ function FlashSection({
     // than explaining a list). Same Task 3 `hueIndex` threaded into
     // CadenceBuilder below.
     <Card title={t("jobs.flashSection")} hint={tLtr(t, "jobs.flashScheduleHint")} hueIndex={hueIndex}>
-      <ScheduleRow schedule={schedule} />
+      {/* Same synced-owner bubble as VMsSection above. */}
+      <ScheduleRow schedule={schedule} hint={syncSchedules ? t("jobs.syncSchedulesHint") : undefined} />
       <div className="rounded-card bg-carbon-surface2 p-4">
         <CadenceBuilder
           label={t("jobs.flashSection")}
@@ -588,7 +592,8 @@ function FilesSection({
     // See ContainersSection's own comment above — `title` restored, same
     // Task 3 `hueIndex` threaded into CadenceBuilder below.
     <Card title={t("jobs.filesSection")} hint={t("jobs.filesIncludeHint")} hueIndex={hueIndex}>
-      <ScheduleRow schedule={schedule} />
+      {/* Same synced-owner bubble as VMsSection above. */}
+      <ScheduleRow schedule={schedule} hint={syncSchedules ? t("jobs.syncSchedulesHint") : undefined} />
       <div className="rounded-card bg-carbon-surface2 p-4">
         <CadenceBuilder
           label={t("jobs.filesSection")}
@@ -4288,11 +4293,16 @@ export function SettingsPage() {
                 the same reason — the on/off is a separate toggle here, not
                 the cadence string's own "off" mode. */}
             <ScheduleRow schedule={settings.digestSchedule} enabled={settings.digestEnabled} />
+            {/* The editor goes with the toggle above, exactly as in
+                RestoreChecksSection (GlimStone 1.10.0): an editor greyed
+                because a switch ELSEWHERE is off offers an edit nobody can
+                make. The badge above stays either way, so switching the
+                report off still shows what would have run. */}
+            {settings.digestEnabled && (
             <div className="rounded-card bg-carbon-surface2 p-4">
               <CadenceBuilder
                 label={t("settings.schedule")}
                 value={settings.digestSchedule}
-                disabled={!settings.digestEnabled}
                 onChange={(v) => {
                   setSettings((prev) => (prev ? { ...prev, digestSchedule: v } : prev));
                   debouncedSave("digestSchedule", () =>
@@ -4302,6 +4312,7 @@ export function SettingsPage() {
                 hueIndex={hueIdx}
               />
             </div>
+            )}
           </Card>
         );
       })()}
@@ -4912,17 +4923,27 @@ export function SettingsPage() {
             hueIndex={0}
           />
 
-          {/* Dimmed via each control's OWN `disabled` — ToggleRow dims its
-              switch AND its caption together (rule 15, and the exact fix
-              this branch's own ToggleRow carries from Phase 1 Task 4 — see
-              its own header comment above). "Switched off, not hidden":
-              these stay visible and reachable even while off, so nobody has
-              to guess what the mode does. */}
+          {/* Everything below hangs off the rainbow being ON, so while it is
+              off none of it is here at all (GlimStone 1.10.0). It used to be
+              dimmed, under the reasoning "switched off, not hidden": leave it
+              visible so nobody has to guess what the mode does. The language
+              answers that directly - a palette editor under a rainbow that is
+              not running is eight swatches nobody can open beside a reset
+              nobody can press, and the switch above already says what the mode
+              is. The "not hidden" rule protects the switch for the MODE, not
+              its sub-controls.
+
+              The accent row two cards up is deliberately NOT this case and
+              keeps its dimming: its value still paints every control the
+              rainbow does not reach, so it is a setting that is partly
+              overridden rather than one with nothing behind it. GlimStone
+              1.16.0 states the test - does the control still do anything. */}
+          {rainbow.on && (
+          <>
           <ToggleRow
             label={t("settings.rainbowReactive")}
             hint={t("settings.rainbowReactiveHint")}
             checked={rainbow.reactive}
-            disabled={!rainbow.on}
             onChange={(v) => updateRainbow({ reactive: v })}
             hueIndex={1}
           />
@@ -4930,7 +4951,6 @@ export function SettingsPage() {
             label={t("settings.rainbowRotate")}
             hint={t("settings.rainbowRotateHint")}
             checked={rainbow.rotate}
-            disabled={!rainbow.on}
             onChange={(v) =>
               // Turning rotation on draws a fresh offset immediately, so
               // the switch does something visible instead of silently
@@ -4984,7 +5004,6 @@ export function SettingsPage() {
                 key={i}
                 hex={hex}
                 index={i}
-                disabled={!rainbow.on}
                 t={t}
                 onChange={(v) => {
                   const next = rainbow.palette.slice();
@@ -5091,13 +5110,15 @@ export function SettingsPage() {
               tone="neutral"
               tip={t("settings.rainbowPaletteReset")}
               onClick={() => updateRainbow({ palette: RAINBOW })}
-              disabled={!rainbow.on || paletteIsDefault}
+              disabled={paletteIsDefault}
               className="border-2 border-carbon-border"
             >
               <IconResetArrow />
             </Badge>
             </div>
           </div>
+          </>
+          )}
         </div>
       </Card>
       );
