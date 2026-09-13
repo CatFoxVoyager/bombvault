@@ -3895,7 +3895,8 @@ func (h *Handler) authGate(next http.Handler) http.Handler {
 		if err != nil {
 			log.Printf("api: authGate: GetSettings: %v", err)
 			switch r.URL.Path {
-			case "/api/auth", "/api/login", "/api/health", "/metrics", "/widget", "/api/widget/data", "/api/fleet/status", "/api/fleet/mesh-offer":
+			case "/api/auth", "/api/login", "/api/health", "/metrics", "/widget", "/api/widget/data", "/api/fleet/status", "/api/fleet/mesh-offer",
+				"/api/auth/passkeys", "/api/auth/passkey/login/begin", "/api/auth/passkey/login/finish":
 				next.ServeHTTP(w, r)
 			default:
 				writeJSON(w, http.StatusServiceUnavailable, map[string]any{
@@ -3919,7 +3920,13 @@ func (h *Handler) authGate(next http.Handler) http.Handler {
 		// and the self-gating mesh-offer inbox (same reasoning, and the same
 		// fleet token — see the doc comment above).
 		switch r.URL.Path {
-		case "/api/auth", "/api/login", "/api/health", "/metrics", "/widget", "/api/widget/data", "/api/fleet/status", "/api/fleet/mesh-offer":
+		case "/api/auth", "/api/login", "/api/health", "/metrics", "/widget", "/api/widget/data", "/api/fleet/status", "/api/fleet/mesh-offer",
+			// The passkey status and the two login halves, beside /api/login for
+			// the same reason: they are how somebody who is not signed in signs in.
+			// The status answers an unauthenticated caller with counts and whether
+			// this address can carry a passkey at all, never with a credential; the
+			// list of registered keys is gated inside the handler on a session.
+			"/api/auth/passkeys", "/api/auth/passkey/login/begin", "/api/auth/passkey/login/finish":
 			next.ServeHTTP(w, r)
 			return
 		}

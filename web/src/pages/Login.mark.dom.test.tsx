@@ -16,7 +16,12 @@
 import { render, cleanup } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../lib/api", () => ({ login: vi.fn() }));
+vi.mock("../lib/api", () => ({
+  login: vi.fn(),
+  loginWithPasskey: vi.fn(),
+  passkeyStatus: vi.fn(),
+  passkeysAvailableInBrowser: () => false,
+}));
 
 import { LoginPage } from "./Login";
 

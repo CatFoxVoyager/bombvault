@@ -3,6 +3,7 @@ import { ApiError, backupEverythingNow, downloadRecoveryKit, getAuth, getSetting
 import { useOffsiteTargets, type OffsiteDomain } from "../lib/useOffsiteTargets";
 import { FolderBrowser } from "../components/FolderBrowser";
 import { AccentCard, IconResetArrow } from "./settings/AccentCard";
+import { PasskeyCard } from "./settings/PasskeyCard";
 import { TwoFactorCard } from "./settings/TwoFactorCard";
 import { LanguageCard } from "./settings/LanguageCard";
 import { ThemeCard } from "./settings/ThemeCard";
@@ -4570,6 +4571,14 @@ export function SettingsPage() {
           hueIndex={nextHue()}
         />
       )}
+
+      {/* ------------------------------------------------------------------ */}
+      {/* SYSTEM — passkeys. Its own Card beside the second factor because it  */}
+      {/* is a different decision: the factor makes the password stronger,     */}
+      {/* a passkey replaces typing it. And unlike the factor it is not always */}
+      {/* available, so the card's first job is explaining when it is not.     */}
+      {/* ------------------------------------------------------------------ */}
+      {tab === "system" && <PasskeyCard passwordSet={authEnabled} hueIndex={nextHue()} />}
 
       {/* ------------------------------------------------------------------ */}
       {/* GENERAL — Language (GlimStone follow-up pass, live-review point 9). */}

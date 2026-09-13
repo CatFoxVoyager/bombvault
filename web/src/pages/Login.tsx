@@ -1,5 +1,10 @@
-import { useState } from "react";
-import { login } from "../lib/api";
+import { useEffect, useState } from "react";
+import {
+  login,
+  loginWithPasskey,
+  passkeyStatus,
+  passkeysAvailableInBrowser,
+} from "../lib/api";
 import { useT } from "../lib/i18n";
 import { RevealInput } from "../components/RevealInput";
 import { Button } from "../components/Button";
@@ -58,6 +63,45 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       setError(t("auth.loginError"));
     } finally {
       setBusy(false);
+    }
+  }
+
+  // Whether to offer the passkey button at all. Three things have to be true:
+  // the browser can do WebAuthn, this ADDRESS can carry a passkey (a bare IP
+  // cannot, see internal/api/passkeys.go), and a key is actually registered for
+  // it. Anything less and the button would open a prompt that cannot succeed,
+  // which is worse than no button: it teaches people that passkeys are broken.
+  const [passkeyOffer, setPasskeyOffer] = useState(false);
+  const [passkeyBusy, setPasskeyBusy] = useState(false);
+  useEffect(() => {
+    if (!passkeysAvailableInBrowser()) return;
+    let live = true;
+    void passkeyStatus()
+      .then((s) => {
+        if (live) setPasskeyOffer(s.ok && s.supported === true && (s.here ?? 0) > 0);
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  async function signInWithPasskey() {
+    setPasskeyBusy(true);
+    setError(null);
+    try {
+      const res = await loginWithPasskey();
+      if (res.ok) {
+        onLogin();
+        return;
+      }
+      setError(res.error ?? t("auth.passkeySignInFailed"));
+    } catch (err) {
+      // A cancelled prompt lands here too. Its own message says more than any
+      // sentence written in advance could.
+      setError(err instanceof Error ? err.message : t("auth.passkeySignInFailed"));
+    } finally {
+      setPasskeyBusy(false);
     }
   }
 
@@ -158,6 +202,23 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             busy={busy}
             title={busy ? t("auth.signingIn") : undefined}
           />
+
+          {/* The passkey, UNDER the password and not instead of it. The password
+              is the way in that always works; the passkey is the convenient one,
+              and only on an address that can carry it. Hidden entirely when it
+              cannot rather than shown disabled: a disabled control on a login
+              screen reads as "you are locked out". */}
+          {passkeyOffer && !needCode && (
+            <Button
+              label={t("auth.signInWithPasskey")}
+              labelKey="auth.signInWithPasskey"
+              tone="neutral"
+              type="button"
+              onClick={() => void signInWithPasskey()}
+              disabled={busy || passkeyBusy}
+              busy={passkeyBusy}
+            />
+          )}
         </form>
       </div>
     </div>

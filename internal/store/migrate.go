@@ -47,6 +47,24 @@ func columnPresent(table, column string) func(*sql.Tx) (bool, error) {
 	}
 }
 
+// tablePresent reports whether a table exists. The CREATE TABLE bodies already
+// carry IF NOT EXISTS, so this guard is not what keeps them safe to re-run; it
+// is what lets such a migration be RECORDED as satisfied on a database that got
+// the table under a different number, which is the same service columnPresent
+// does for the ADD COLUMN bodies.
+func tablePresent(table string) func(*sql.Tx) (bool, error) {
+	return func(tx *sql.Tx) (bool, error) {
+		var n int
+		err := tx.QueryRow(
+			`SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = ?`, table,
+		).Scan(&n)
+		if err != nil {
+			return false, fmt.Errorf("probe table %s: %w", table, err)
+		}
+		return n > 0, nil
+	}
+}
+
 // ADDING A MIGRATION — and the one rule that got broken here:
 //
 // Take the next unused number, append at the end, never edit a body that has
@@ -1302,6 +1320,37 @@ ALTER TABLE settings ADD COLUMN totp_recovery TEXT    NOT NULL DEFAULT '';`,
 		version: 99, name: "file_sets_schedule_cadence",
 		alreadySatisfied: columnPresent("file_sets", "schedule_cadence"),
 		sql:              "ALTER TABLE file_sets ADD COLUMN schedule_cadence TEXT NOT NULL DEFAULT '';",
+	},
+	{
+		// Passkeys (WebAuthn). One row per registered credential; see the Passkey
+		// type for what each column is and why the relying-party id is one of
+		// them.
+		//
+		// credential_id is UNIQUE because it is the handle a login answer arrives
+		// under: two rows for one authenticator would make "which key signed
+		// this" ambiguous, and the clone detection would then compare the counter
+		// against whichever row the lookup happened to find.
+		//
+		// No foreign key to anything: a passkey belongs to the instance, not to a
+		// user record, because this application has exactly one operator.
+		version: 100, name: "passkeys",
+		alreadySatisfied: tablePresent("passkeys"),
+		sql: `
+CREATE TABLE IF NOT EXISTS passkeys (
+	id            TEXT PRIMARY KEY,
+	name          TEXT    NOT NULL DEFAULT '',
+	credential_id BLOB    NOT NULL,
+	public_key    BLOB    NOT NULL,
+	aaguid        BLOB    NOT NULL DEFAULT x'',
+	sign_count    INTEGER NOT NULL DEFAULT 0,
+	transports    TEXT    NOT NULL DEFAULT '',
+	rp_id         TEXT    NOT NULL DEFAULT '',
+	backed_up     INTEGER NOT NULL DEFAULT 0,
+	created_at    INTEGER NOT NULL DEFAULT 0,
+	last_used_at  INTEGER NOT NULL DEFAULT 0
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_passkeys_credential ON passkeys(credential_id);
+CREATE INDEX IF NOT EXISTS idx_passkeys_rp ON passkeys(rp_id);`,
 	},
 }
 

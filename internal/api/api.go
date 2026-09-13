@@ -56,6 +56,12 @@ type Handler struct {
 	// counter this replaces. See loginClientKey's doc comment (handlers.go)
 	// for the full reasoning and why trusting a forwarded-for header to fix
 	// that isn't safe here.
+	// In-flight WebAuthn ceremonies (see internal/api/passkeys.go). A challenge
+	// is worthless once answered or expired, so it lives here rather than in the
+	// database; the cost is that a restart cancels a half-finished registration.
+	passkeyMu         sync.Mutex
+	passkeyCeremonies map[string]passkeyCeremony
+
 	loginMu    sync.Mutex
 	loginFails map[string][]time.Time
 	// loginSweepCalls counts loginThrottled calls since the last full sweep of
@@ -128,6 +134,23 @@ func (h *Handler) Router() http.Handler {
 	mux.HandleFunc("POST /api/auth/totp/setup", h.handleTOTPSetup)
 	mux.HandleFunc("POST /api/auth/totp/confirm", h.handleTOTPConfirm)
 	mux.HandleFunc("POST /api/auth/totp/disable", h.handleTOTPDisable)
+	// Passkeys. The STATUS and the two LOGIN halves are allow-listed in authGate
+	// beside /api/login, for the same reason: they are how somebody who is not
+	// signed in signs in, and the login screen has to know whether to offer the
+	// button before it can. They tell an unauthenticated caller only that this
+	// instance has passkeys and whether this address can carry one; the list of
+	// registered keys is gated inside the handler on a valid session.
+	//
+	// Registering, renaming and removing sit BEHIND the gate like the second
+	// factor: adding a way into the instance is something only somebody already
+	// inside does.
+	mux.HandleFunc("GET /api/auth/passkeys", h.handlePasskeyStatus)
+	mux.HandleFunc("POST /api/auth/passkey/login/begin", h.handlePasskeyLoginBegin)
+	mux.HandleFunc("POST /api/auth/passkey/login/finish", h.handlePasskeyLoginFinish)
+	mux.HandleFunc("POST /api/auth/passkey/register/begin", h.handlePasskeyRegisterBegin)
+	mux.HandleFunc("POST /api/auth/passkey/register/finish", h.handlePasskeyRegisterFinish)
+	mux.HandleFunc("PATCH /api/auth/passkeys/{id}", h.handleRenamePasskey)
+	mux.HandleFunc("DELETE /api/auth/passkeys/{id}", h.handleDeletePasskey)
 
 	// Opt-in Prometheus scrape endpoint. NOT under /api so it never collides with
 	// the JSON routes; it bypasses the session authGate (allow-listed there) and

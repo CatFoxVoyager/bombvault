@@ -3028,3 +3028,199 @@ export function disableTOTP(code: string): Promise<OkEnvelope> {
     body: JSON.stringify({ code }),
   });
 }
+
+// ---------------------------------------------------------------------------
+// Passkeys (WebAuthn)
+//
+// WHAT THE BROWSER NEEDS AND THE WIRE CANNOT CARRY. navigator.credentials wants
+// ArrayBuffers for the challenge, the user handle and every credential id; JSON
+// has no such type, so the server sends base64url and these helpers convert at
+// the boundary in both directions. Getting that encoding wrong is the classic
+// way a WebAuthn integration fails with an unhelpful "NotAllowedError", so the
+// conversion lives in one place rather than at each call site.
+//
+// WHY THE FEATURE CAN BE UNAVAILABLE. A passkey is bound to a DOMAIN, and the
+// browser refuses the whole exchange on an origin that is a bare IP address or
+// whose certificate it does not trust. BombVault's default installation is
+// exactly that, so passkeyStatus answers `supported: false` with the reason,
+// and the interface says it rather than offering a button that cannot work.
+// ---------------------------------------------------------------------------
+
+/** One registered credential, as the list shows it. */
+export interface PasskeyView {
+  id: string;
+  name: string;
+  /** The address this key is bound to. A key registered through a proxy does
+   *  not exist over the IP, which is why the list names it. */
+  rpId: string;
+  /** Whether this key can answer on the address currently open. */
+  usableHere: boolean;
+  /** The authenticator says the key is synced to a cloud keychain. One that is
+   *  not dies with the device. */
+  backedUp: boolean;
+  createdAt: number;
+  lastUsedAt: number;
+  transports: string;
+}
+
+export interface PasskeyStatusResponse extends OkEnvelope {
+  /** Whether THIS address can carry a passkey at all. */
+  supported?: boolean;
+  /** Why not, when it cannot. A whole sentence, ready to show. */
+  reason?: string;
+  /** The relying-party id derived from the address, "" when there is none. */
+  rpId?: string;
+  /** How many keys are registered in total, and how many on this address. */
+  total?: number;
+  here?: number;
+  /** Only present for a signed-in caller (or when no login is set up). */
+  passkeys?: PasskeyView[];
+}
+
+/** GET /api/auth/passkeys - public, like GET /api/auth: the login screen has to
+ *  know whether to offer the button before anybody is signed in. */
+export function passkeyStatus(): Promise<PasskeyStatusResponse> {
+  return fetchJSON("/api/auth/passkeys");
+}
+
+interface CeremonyResponse extends OkEnvelope {
+  ceremonyId?: string;
+  options?: Record<string, unknown>;
+}
+
+// base64url, the encoding WebAuthn uses everywhere: "+/" become "-_" and the
+// padding is dropped. atob/btoa speak standard base64 only, hence the swap.
+function b64urlToBytes(s: string): Uint8Array {
+  const pad = s.length % 4 === 0 ? "" : "=".repeat(4 - (s.length % 4));
+  const bin = atob(s.replace(/-/g, "+").replace(/_/g, "/") + pad);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+function bytesToB64url(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+/** Whether this browser can do WebAuthn at all. An old browser, or any page the
+ *  browser does not consider a secure context, has no PublicKeyCredential. */
+export function passkeysAvailableInBrowser(): boolean {
+  return typeof window !== "undefined" && "PublicKeyCredential" in window;
+}
+
+// The server sends the options object exactly as the standard defines it, with
+// the binary fields base64url-encoded. These two walk the known fields rather
+// than the whole object: an unknown extension the server adds later should ride
+// through untouched instead of being mangled by a blanket conversion.
+function decodeCreationOptions(o: Record<string, unknown>): PublicKeyCredentialCreationOptions {
+  const out = { ...o } as Record<string, unknown>;
+  out.challenge = b64urlToBytes(o.challenge as string);
+  const user = o.user as { id: string; name: string; displayName: string };
+  out.user = { ...user, id: b64urlToBytes(user.id) };
+  const exclude = o.excludeCredentials as { id: string }[] | undefined;
+  if (exclude) {
+    out.excludeCredentials = exclude.map((c) => ({ ...c, id: b64urlToBytes(c.id) }));
+  }
+  return out as unknown as PublicKeyCredentialCreationOptions;
+}
+
+function decodeRequestOptions(o: Record<string, unknown>): PublicKeyCredentialRequestOptions {
+  const out = { ...o } as Record<string, unknown>;
+  out.challenge = b64urlToBytes(o.challenge as string);
+  const allow = o.allowCredentials as { id: string }[] | undefined;
+  if (allow) {
+    out.allowCredentials = allow.map((c) => ({ ...c, id: b64urlToBytes(c.id) }));
+  }
+  return out as unknown as PublicKeyCredentialRequestOptions;
+}
+
+/** Register a new passkey: begin, prompt the authenticator, finish.
+ *
+ *  One function rather than three exported halves, because the steps are one
+ *  operation from the operator's side and splitting them only invites a caller
+ *  to do the middle one differently. */
+export async function registerPasskey(name: string): Promise<OkEnvelope & { passkey?: PasskeyView }> {
+  const begin: CeremonyResponse = await fetchJSON("/api/auth/passkey/register/begin", {
+    method: "POST",
+    body: "{}",
+  });
+  if (!begin.ok || !begin.options || !begin.ceremonyId) return begin;
+
+  const cred = (await navigator.credentials.create({
+    publicKey: decodeCreationOptions(begin.options),
+  })) as PublicKeyCredential | null;
+  if (!cred) return { ok: false, error: "no passkey was created" };
+
+  const att = cred.response as AuthenticatorAttestationResponse;
+  return fetchJSON("/api/auth/passkey/register/finish", {
+    method: "POST",
+    body: JSON.stringify({
+      ceremonyId: begin.ceremonyId,
+      name,
+      credential: {
+        id: cred.id,
+        rawId: bytesToB64url(cred.rawId),
+        type: cred.type,
+        // The transports the authenticator reports are stored and handed back at
+        // login so the browser raises the right prompt (a phone over Bluetooth
+        // rather than a USB key).
+        transports: att.getTransports ? att.getTransports() : [],
+        response: {
+          clientDataJSON: bytesToB64url(att.clientDataJSON),
+          attestationObject: bytesToB64url(att.attestationObject),
+        },
+      },
+    }),
+  });
+}
+
+/** Sign in with a passkey. Sets the session cookie on success, exactly as the
+ *  password login does. */
+export async function loginWithPasskey(): Promise<OkEnvelope> {
+  const begin: CeremonyResponse = await fetchJSON("/api/auth/passkey/login/begin", {
+    method: "POST",
+    body: "{}",
+  });
+  if (!begin.ok || !begin.options || !begin.ceremonyId) return begin;
+
+  const cred = (await navigator.credentials.get({
+    publicKey: decodeRequestOptions(begin.options),
+  })) as PublicKeyCredential | null;
+  if (!cred) return { ok: false, error: "no passkey was used" };
+
+  const asr = cred.response as AuthenticatorAssertionResponse;
+  return fetchJSON("/api/auth/passkey/login/finish", {
+    method: "POST",
+    body: JSON.stringify({
+      ceremonyId: begin.ceremonyId,
+      credential: {
+        id: cred.id,
+        rawId: bytesToB64url(cred.rawId),
+        type: cred.type,
+        response: {
+          clientDataJSON: bytesToB64url(asr.clientDataJSON),
+          authenticatorData: bytesToB64url(asr.authenticatorData),
+          signature: bytesToB64url(asr.signature),
+          userHandle: asr.userHandle ? bytesToB64url(asr.userHandle) : null,
+        },
+      },
+    }),
+  });
+}
+
+/** PATCH /api/auth/passkeys/{id} - rename one. */
+export function renamePasskey(id: string, name: string): Promise<OkEnvelope> {
+  return fetchJSON(`/api/auth/passkeys/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ name }),
+  });
+}
+
+/** DELETE /api/auth/passkeys/{id} - remove one. The password always remains, so
+ *  removing every passkey never locks anybody out. */
+export function deletePasskey(id: string): Promise<OkEnvelope> {
+  return fetchJSON(`/api/auth/passkeys/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
