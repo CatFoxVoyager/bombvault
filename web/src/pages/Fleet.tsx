@@ -28,6 +28,7 @@ import {
   declineMeshOffer,
   proposeMeshOffer,
 } from "../lib/api";
+import { IconDisclosure } from "../components/IconDisclosure";
 import type { FleetPeer, FleetPeerInput, DomainStatus, MeshOffer, DeploySnippetData } from "../lib/api";
 import { credSetsChanged } from "../lib/useCloudCredSets";
 import { offsiteTargetsChanged } from "../lib/useOffsiteTargets";
@@ -649,11 +650,7 @@ function FleetPeerCard({
             labelKey="fleet.details"
             tone="neutral"
             onClick={() => toggleDetails()}
-            glyph={
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={`transition-transform ${open ? "rotate-90" : "rtl:rotate-180"}`}>
-                <path fill="currentColor" d="M4 1.3 8.5 6 4 10.7Z" />
-              </svg>
-            }
+            glyph={<IconDisclosure open={open} />}
           />
           <Button
             label={t("fleet.edit")}

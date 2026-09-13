@@ -18,6 +18,7 @@ import { Button } from "./Button";
 import { SelectField } from "./SelectField";
 import { InfoBubble } from "./InfoBubble";
 import { IconRestore, IconTrash } from "./Sidebar";
+import { IconDisclosure } from "./IconDisclosure";
 
 type T = ReturnType<typeof useT>["t"];
 
@@ -502,11 +503,7 @@ function CompareSnapshots({
         labelKey="snapshot.compare"
         tone="neutral"
         onClick={() => setOpen((p) => !p)}
-        glyph={
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={`transition-transform ${open ? "rotate-90" : "rtl:rotate-180"}`}>
-            <path fill="currentColor" d="M4 1.3 8.5 6 4 10.7Z" />
-          </svg>
-        }
+        glyph={<IconDisclosure open={open} />}
       />
       {open && (
         <div className="mt-2 rounded-card bg-carbon-surface2 p-2 flex flex-col gap-2">

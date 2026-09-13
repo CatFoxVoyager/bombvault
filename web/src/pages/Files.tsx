@@ -65,6 +65,7 @@ import { ToggleRow } from "./settings/shared";
 import { CheckDraw } from "../components/CheckDraw";
 import { useToast } from "../lib/toast";
 import { IconRestore } from "../components/Sidebar";
+import { IconDisclosure } from "../components/IconDisclosure";
 
 type T = ReturnType<typeof useT>["t"];
 
@@ -842,6 +843,7 @@ function FileSetRestorePanel({
           labelKey="snapshots.title"
           tone="neutral"
           onClick={() => setOpen((prev) => !prev)}
+          glyph={<IconDisclosure open={open} />}
         />
         {trailing}
       </div>

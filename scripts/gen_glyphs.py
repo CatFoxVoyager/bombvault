@@ -48,6 +48,28 @@ ACTION = [
     # an unmatched key deliberately returns undefined rather than a stand-in.
     ("IconCoffee", "food-drink/coffee-takeaway-cup.svg", "Buy the author a coffee"),
     ("IconMail", "mail/mail-send-email-message.svg", "Write to us"),
+    # The five the reach guard found missing ([5127], jdp chose "draw them"
+    # over reusing marks that already mean something else). Sign-in and
+    # sign-out are a PAIR and have to read as one: the same door, the arrow
+    # turned around. Reusing IconForward and IconBack was the tempting
+    # shortcut and is wrong here, because in this app those two already mean
+    # wizard navigation, and a button that means "leave the application"
+    # wearing the same mark as "previous step" is worse than no mark.
+    ("IconSignIn", "interface-essential/login-1.svg", "Sign in"),
+    ("IconSignOut", "interface-essential/logout-1.svg", "Sign out"),
+    # The second factor's on and off. A shield rather than a power button,
+    # because the thing being switched is a PROTECTION and not a machine, and
+    # the app already spends the power mark on shutting a VM down. Check and
+    # cross on the same shield keep the pair recognisable as one control's two
+    # states - and the cross here is inside the shield, so it cannot be read as
+    # the app's Cancel mark, which is a bare cross.
+    ("IconShieldOn", "interface-essential/shield-check.svg", "A protection is on"),
+    ("IconShieldOff", "interface-essential/shield-cross.svg", "A protection is off"),
+    # Comparing two snapshots: two offset panes, the one drawing in this set
+    # that says "two of the same thing, held against each other". The magnifier
+    # was the alternative and it already means scan/discover/browse, which is
+    # looking for something rather than looking at a difference.
+    ("IconCompare", "interface-essential/layers-2.svg", "Compare two things"),
 ]
 
 # The navigation and domain set Sidebar.tsx used to draw by hand. Same source

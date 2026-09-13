@@ -44,6 +44,7 @@ import { Button } from "../components/Button";
 
 import { Toggle } from "../components/Toggle";
 import { ToggleRow } from "./settings/shared";
+import { IconDisclosure } from "../components/IconDisclosure";
 type T = ReturnType<typeof useT>["t"];
 
 // The sending APP_KEY shape guard mirrors the backend foreignKeyRe (64 lowercase
@@ -332,6 +333,7 @@ function ReceivedRepoCard({
             labelKey="receiver.details"
             tone="neutral"
             onClick={() => setOpen((v) => !v)}
+            glyph={<IconDisclosure open={open} />}
           />
           <Button
             label={t("receiver.edit")}

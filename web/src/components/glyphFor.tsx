@@ -20,6 +20,7 @@ import {
   IconCancel,
   IconClearSelection,
   IconCoffee,
+  IconCompare,
   IconEye,
   IconForward,
   IconInfo,
@@ -32,6 +33,10 @@ import {
   IconSave,
   IconSearch,
   IconSelectAll,
+  IconShieldOff,
+  IconShieldOn,
+  IconSignIn,
+  IconSignOut,
   IconStop,
   IconUnlock,
   IconUpload,
@@ -58,8 +63,12 @@ type Rule = [RegExp, () => ReactNode];
 const RULES: Rule[] = [
   // Backups and restores, the app's own verbs, before anything generic.
   [/backupNow|backupAll|backupSelected|runNow|backupOrder\.save/i, () => <IconBackupNow />],
-  [/restore/i, () => <IconRestore />],
-  [/replicate|sync|refreshStatus/i, () => <IconSync />],
+  // "restor" rather than "restore", so the participle comes along: a button
+  // that says "Restoring..." while a run is in flight is the same verb, and it
+  // was the one losing its mark at exactly the moment somebody is watching.
+  // Recreating a container from a snapshot is that verb too, under another name.
+  [/restor|recreate|rebuild/i, () => <IconRestore />],
+  [/replicate|sync|refreshStatus|pollNow/i, () => <IconSync />],
 
   // Destructive and corrective actions.
   [/\.(delete|remove)|removeExclusion|assistRemove|forget/i, () => <IconTrash />],
@@ -67,13 +76,16 @@ const RULES: Rule[] = [
   [/unlock/i, () => <IconUnlock />],
 
   // Creation and editing.
-  [/\.add|addSet|addPreset|addTarget|addTag|credSets\.add|registryAdd/i, () => <IconAdd />],
+  [/\.add|addSet|addPreset|addTarget|addTag|credSets\.add|registryAdd|passkeyAdd|passkeyCreate/i, () => <IconAdd />],
   [/edit|rename|editSet/i, () => <IconPencil />],
   [/save|apply|confirm(?!Password)/i, () => <IconSave />],
 
   // Selection.
-  [/clearSelection|clearDayFilter|clearOrder|reset/i, () => <IconClearSelection />],
-  [/selectAll|selectEvery/i, () => <IconSelectAll />],
+  // "Exclude all" and "Include all" are the selection pair under another name,
+  // and they sit side by side on the Containers and VMs pages: one of them
+  // wearing a mark while the other printed a word was the visible half of this.
+  [/clearSelection|clearDayFilter|clearOrder|reset|excludeAll|assistExclude/i, () => <IconClearSelection />],
+  [/selectAll|selectEvery|includeAll/i, () => <IconSelectAll />],
 
   // Navigation and dialogs.
   [/cancel|skip|decline/i, () => <IconCancel />],
@@ -91,17 +103,30 @@ const RULES: Rule[] = [
   [/connect|pair|link|reconnect/i, () => <IconLink />],
 
   // Probing and inspection.
-  [/test|verify|check|drill/i, () => <IconCheckCircle />],
+  // The tamper test sits in the same row as verify and drill and does the same
+  // kind of thing: it proves a claim. "accept" and "resolveAll" are the other
+  // shape of the same mark, somebody agreeing to what is on screen.
+  [/test|verify|check|drill|appendOnly|tamper|accept|approve|resolveAll|\.stored$/i, () => <IconCheckCircle />],
   [/scan|discover|browse|search/i, () => <IconSearch />],
   [/show|reveal|preview|view/i, () => <IconEye />],
   [/hint|info|explain|examples/i, () => <IconInfo />],
 
   // Transfer.
   [/download|export/i, () => <IconDownload />],
-  [/upload|send|offer|push/i, () => <IconUpload />],
+  [/upload|send|offer|push|proposeButton/i, () => <IconUpload />],
   [/copy/i, () => <IconCopy />],
 
   // Secrets.
+  // Getting in and out, and the protection that guards it. These sit ABOVE the
+  // credentials rule because a key is the app's mark for a SECRET, and signing
+  // in is not a secret - it is a door. They sit above the power rule for the
+  // same reason in the other direction: the power mark belongs to a machine
+  // being shut down, not to a protection being switched off.
+  [/signIn|logIn\b/i, () => <IconSignIn />],
+  [/logout|signOut/i, () => <IconSignOut />],
+  [/twoFactorEnable|totpEnable/i, () => <IconShieldOn />],
+  [/twoFactorDisable|totpDisable/i, () => <IconShieldOff />],
+  [/compare|diff\b/i, () => <IconCompare />],
   [/credential|password|secret|token|key\b/i, () => <IconKey />],
 
   // Lifecycle.
@@ -147,7 +172,7 @@ const RULES: Rule[] = [
   // Places and configuration, last because they are the vaguest.
   [/folder|path|directory/i, () => <IconFolder />],
   [/settings|config|setup|wizard|options/i, () => <IconGear />],
-  [/refresh|reload/i, () => <IconRefresh />],
+  [/refresh|reload|retry|tryAgain/i, () => <IconRefresh />],
 ];
 
 /**
