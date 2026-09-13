@@ -196,9 +196,35 @@ test("card tap stacks the detail; Back returns with the list scroll intact", asy
   // tap() auto-scrolls the target into view BEFORE the click lands, and the
   // open handler captures the position AT the click — so the position the
   // detail must restore is the SETTLED one, read after that auto-scroll. Make
-  // it deterministic: scroll the card into view ourselves, read the settled
-  // value, and tap (no further auto-scroll can then occur).
-  await card.scrollIntoViewIfNeeded();
+  // it deterministic: center the card in the scroller OURSELVES and assert it
+  // is fully on screen, then tap (no auto-scroll can then occur).
+  //
+  // Why centering and not scrollIntoViewIfNeeded: since 07-06 the mobile list
+  // carries a summary line + sticky toolbar ABOVE the cards, so the minimal
+  // scrollIntoViewIfNeeded can leave the card's center just above the fold —
+  // tap() then re-centers the scroller between the capture below and the
+  // click, and the handler (correctly) captures the POST-auto-scroll value,
+  // which no longer matches `captured` and the Back-restore assertion fails.
+  // Centering guarantees the tap point is on screen BEFORE the capture.
+  const mainBox = await page.locator("#bv-main").boundingBox();
+  const cardBox = await card.boundingBox();
+  expect(mainBox, "the scroller must be laid out to center within it").not.toBeNull();
+  expect(cardBox, "the card must be laid out to center it").not.toBeNull();
+  const targetScroll = await page.locator("#bv-main").evaluate((el, box) => {
+    // Card center in CONTENT coordinates, then place it at the scroller's
+    // vertical middle. Clamped into the scrollable range for honesty — the
+    // stretched first child below guarantees the range is wide enough.
+    const contentCenter = box.y - el.getBoundingClientRect().top + el.scrollTop + box.height / 2;
+    const max = el.scrollHeight - el.clientHeight;
+    return Math.max(0, Math.min(max, Math.round(contentCenter - el.clientHeight / 2)));
+  }, { y: cardBox!.y, height: cardBox!.height });
+  await page.locator("#bv-main").evaluate((el, top) => { el.scrollTop = top; }, targetScroll);
+  await expect.poll(() => page.locator("#bv-main").evaluate((el) => el.scrollTop)).toBe(targetScroll);
+  // The determinism proof: the card is now FULLY inside the scroller, so
+  // tap()'s actionability pass has nothing to scroll.
+  const settledBox = await card.boundingBox();
+  expect(settledBox!.y).toBeGreaterThanOrEqual(mainBox!.y);
+  expect(settledBox!.y + settledBox!.height).toBeLessThanOrEqual(mainBox!.y + mainBox!.height);
   const captured = await page.locator("#bv-main").evaluate((el) => el.scrollTop);
 
   // Open: the list hides (never unmounts — that IS the scroll-preservation
