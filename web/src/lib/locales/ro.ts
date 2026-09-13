@@ -1538,11 +1538,24 @@ const ro: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Copie de siguranță nouă",
-  "home.newBackupConfirm": "Începi acum o copie de siguranță a tuturor domeniilor activate? Containerele sunt oprite și repornite. Restaurarea păstrează doar ce va salva următoarea rulare.",
+  "home.newBackupConfirm": "Începi acum o copie de siguranță a tuturor domeniilor activate? Containerele sunt oprite și repornite pe rând, în timp ce rulează copia lor de siguranță. Restaurarea păstrează doar ce va salva următoarea rulare.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Navigare mobilă",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Încarcă mai multe",
+  "common.search": "Caută",
+  "settings.tabsNavigation": "Secțiunile setărilor",
+  "config.restoreChain.title": "Ce se întâmplă la restaurarea configurației",
+  "config.restoreChain.step1": "Alegerea ta curentă de setări este salvată întâi.",
+  "config.restoreChain.step2": "Cea mai recentă instantanee a configurației este restaurată din depozit.",
+  "config.restoreChain.step3": "Dacă APP_KEY nu se potrivește cu instantaneeul, ești întrebat înainte să se întâmple orice altceva.",
+  "config.restoreChain.step4": "Configurația restaurată este verificată față de sistemul live.",
+  "config.restoreChain.step5": "Aplicațiile și serviciile activate sunt repornite și pagina se reîncarcă. Cu repornirea automată dezactivată, le repornești tu însuți.",
 
 };
 

@@ -1530,11 +1530,24 @@ const pl: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Nowa kopia zapasowa",
-  "home.newBackupConfirm": "Rozpocząć teraz kopię zapasową wszystkich włączonych obszarów? Kontenery są zatrzymywane i ponownie uruchamiane. Przywracanie zachowa tylko to, co zapisze następne uruchomienie.",
+  "home.newBackupConfirm": "Rozpocząć teraz kopię zapasową wszystkich włączonych obszarów? Kontenery są zatrzymywane i ponownie uruchamiane pojedynczo, podczas gdy ich kopia zapasowa działa. Przywracanie zachowa tylko to, co zapisze następne uruchomienie.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Nawigacja mobilna",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Wczytaj więcej",
+  "common.search": "Szukaj",
+  "settings.tabsNavigation": "Sekcje ustawień",
+  "config.restoreChain.title": "Co się dzieje przy przywracaniu konfiguracji",
+  "config.restoreChain.step1": "Twój obecny wybór ustawień jest najpierw zapisywany.",
+  "config.restoreChain.step2": "Najnowsza migawka konfiguracji jest przywracana z repozytorium.",
+  "config.restoreChain.step3": "Jeśli APP_KEY nie pasuje do migawki, zostaniesz zapytany, zanim stanie się cokolwiek innego.",
+  "config.restoreChain.step4": "Przywrócona konfiguracja jest sprawdzana względem działającego systemu.",
+  "config.restoreChain.step5": "Włączone aplikacje i usługi są ponownie uruchamiane, a strona jest przeładowywana. Przy wyłączonym automatycznym restarcie uruchamiasz je ponownie samodzielnie.",
 
 };
 

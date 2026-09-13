@@ -1527,11 +1527,24 @@ const ko: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "새 백업",
-  "home.newBackupConfirm": "지금 활성화된 모든 도메인의 백업을 시작할까요? 컨테이너가 중지되었다가 다시 시작됩니다. 복원에는 다음 실행이 저장한 것만 남습니다.",
+  "home.newBackupConfirm": "지금 활성화된 모든 도메인의 백업을 시작할까요? 컨테이너는 백업이 실행되는 동안 하나씩 중지되었다가 다시 시작됩니다. 복원에는 다음 실행이 저장한 것만 남습니다.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "모바일 내비게이션",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "더 불러오기",
+  "common.search": "검색",
+  "settings.tabsNavigation": "설정 섹션",
+  "config.restoreChain.title": "설정을 복원하면 어떻게 되나요",
+  "config.restoreChain.step1": "현재 설정 선택이 먼저 저장됩니다.",
+  "config.restoreChain.step2": "최신 설정 스냅샷이 저장소에서 복원됩니다.",
+  "config.restoreChain.step3": "APP_KEY가 스냅샷과 일치하지 않으면 다른 일이 일어나기 전에 확인을 요청합니다.",
+  "config.restoreChain.step4": "복원된 설정은 실행 중인 시스템과 대조하여 검사됩니다.",
+  "config.restoreChain.step5": "활성화된 앱과 서비스가 다시 시작되고 페이지가 다시 로드됩니다. 자동 재시작이 꺼져 있으면 직접 다시 시작합니다.",
 
 };
 

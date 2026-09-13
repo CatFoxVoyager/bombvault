@@ -1535,11 +1535,24 @@ const he: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "גיבוי חדש",
-  "home.newBackupConfirm": "להתחיל גיבוי של כל התחומים המופעלים עכשיו? הקונטיינרים נעצרים ומופעלים מחדש. השחזור שומר רק את מה שהריצה הבאה תשמור.",
+  "home.newBackupConfirm": "להתחיל גיבוי של כל התחומים המופעלים עכשיו? הקונטיינרים נעצרים ומופעלים מחדש אחד בכל פעם בזמן שהגיבוי שלהם רץ. השחזור שומר רק את מה שהריצה הבאה תשמור.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "ניווט בנייד",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "טען עוד",
+  "common.search": "חיפוש",
+  "settings.tabsNavigation": "מקטעי הגדרות",
+  "config.restoreChain.title": "מה קורה בעת שחזור התצורה",
+  "config.restoreChain.step1": "הבחירה הנוכחית שלך בהגדרות נשמרת תחילה.",
+  "config.restoreChain.step2": "תמונת המצב העדכנית ביותר של התצורה משוחזרת מהמאגר.",
+  "config.restoreChain.step3": "אם ה-APP_KEY אינו תואם לתמונת המצב, תישאל לפני שמשהו אחר קורה.",
+  "config.restoreChain.step4": "התצורה המשוחזרת נבדקת מול המערכת החיה.",
+  "config.restoreChain.step5": "אפליקציות ושירותים מופעלים מופעלים מחדש והדף נטען מחדש. כשההפעלה מחדש האוטומטית כבויה, אתה מפעיל אותם מחדש בעצמך.",
 
 };
 

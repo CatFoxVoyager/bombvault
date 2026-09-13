@@ -1546,11 +1546,24 @@ const gl: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Nova copia de seguranza",
-  "home.newBackupConfirm": "Iniciar agora unha copia de seguranza de todos os dominios activados? Os contedores detense e reinícianse. A restauración só conserva o que garde a seguinte execución.",
+  "home.newBackupConfirm": "Iniciar agora unha copia de seguranza de todos os dominios activados? Os contedores detense e reinícianse de un en un mentres se executa a súa copia. A restauración só conserva o que garde a seguinte execución.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Navegación móbil",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Cargar máis",
+  "common.search": "Buscar",
+  "settings.tabsNavigation": "Seccións de configuración",
+  "config.restoreChain.title": "Que ocorre ao restaurar a configuración",
+  "config.restoreChain.step1": "Primeiro gárdase a túa elección de configuración actual.",
+  "config.restoreChain.step2": "A instantánea máis recente da configuración restáurase desde o repositorio.",
+  "config.restoreChain.step3": "Se a APP_KEY non coincide coa instantánea, pregúntaselle antes de que ocorra calquera outra cousa.",
+  "config.restoreChain.step4": "A configuración restaurada compróbase contra o sistema en vivo.",
+  "config.restoreChain.step5": "As aplicacións e servizos activados reinícianse e a páxina vólvese cargar. Co reinicio automático desactivado, reinícias ti mesmo.",
 
 };
 

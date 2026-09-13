@@ -1530,11 +1530,24 @@ const sr: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Нова резервна копија",
-  "home.newBackupConfirm": "Започнути сада резервну копију свих укључених области? Контејнери се заустављају и поново покрећу. Обнова чува само оно што ће следећи покретач сачувати.",
+  "home.newBackupConfirm": "Започнути сада резервну копију свих укључених области? Контејнери се заустављају и поново покрећу један по један док траје њихова резервна копија. Обнова чува само оно што ће следећи покретач сачувати.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Мобилна навигација",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Учитај још",
+  "common.search": "Претражи",
+  "settings.tabsNavigation": "Одељци подешавања",
+  "config.restoreChain.title": "Шта се дешава при враћању подешавања",
+  "config.restoreChain.step1": "Ваш тренутни избор подешавања се прво чува.",
+  "config.restoreChain.step2": "Најновији снимак подешавања враћа се из складишта.",
+  "config.restoreChain.step3": "Ако се APP_KEY не поклапа са снимком, бићете питани пре него што се било шта друго деси.",
+  "config.restoreChain.step4": "Враћена подешавања се проверавају према живом систему.",
+  "config.restoreChain.step5": "Омогућене апликације и услуге се поново покрећу и страница се поново учитава. Када је аутоматско поновно покретање искључено, сами их поново покрећете.",
 
 };
 

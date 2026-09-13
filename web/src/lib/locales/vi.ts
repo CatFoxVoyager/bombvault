@@ -1527,11 +1527,24 @@ const vi: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Sao lưu mới",
-  "home.newBackupConfirm": "Bắt đầu sao lưu tất cả miền đang bật ngay bây giờ? Container sẽ dừng và khởi động lại. Phục hồi chỉ giữ lại những gì lần chạy tiếp theo lưu.",
+  "home.newBackupConfirm": "Bắt đầu sao lưu tất cả miền đang bật ngay bây giờ? Container sẽ dừng và khởi động lại từng cái trong khi sao lưu của chúng đang chạy. Phục hồi chỉ giữ lại những gì lần chạy tiếp theo lưu.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Điều hướng trên di động",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Tải thêm",
+  "common.search": "Tìm kiếm",
+  "settings.tabsNavigation": "Các mục cài đặt",
+  "config.restoreChain.title": "Điều gì xảy ra khi khôi phục cấu hình",
+  "config.restoreChain.step1": "Lựa chọn cài đặt hiện tại của bạn được lưu trước.",
+  "config.restoreChain.step2": "Bản chụp cấu hình mới nhất được khôi phục từ kho lưu trữ.",
+  "config.restoreChain.step3": "Nếu APP_KEY không khớp với bản chụp, bạn sẽ được hỏi trước khi có bất kỳ điều gì khác xảy ra.",
+  "config.restoreChain.step4": "Cấu hình đã khôi phục được kiểm tra đối chiếu với hệ thống đang chạy.",
+  "config.restoreChain.step5": "Các ứng dụng và dịch vụ đang bật được khởi động lại và trang được tải lại. Khi tự động khởi động lại đang tắt, bạn tự khởi động lại chúng.",
 
 };
 

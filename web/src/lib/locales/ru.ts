@@ -1530,11 +1530,24 @@ const ru: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Новая резервная копия",
-  "home.newBackupConfirm": "Запустить резервное копирование всех включённых областей сейчас? Контейнеры останавливаются и запускаются заново. Восстановление сохранит только то, что запишет следующий запуск.",
+  "home.newBackupConfirm": "Запустить резервное копирование всех включённых областей сейчас? Контейнеры останавливаются и запускаются заново по одному, пока идёт их резервное копирование. Восстановление сохранит только то, что запишет следующий запуск.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Мобильная навигация",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Загрузить ещё",
+  "common.search": "Поиск",
+  "settings.tabsNavigation": "Разделы настроек",
+  "config.restoreChain.title": "Что происходит при восстановлении конфигурации",
+  "config.restoreChain.step1": "Сначала сохраняется ваш текущий выбор настроек.",
+  "config.restoreChain.step2": "Последний снимок конфигурации восстанавливается из репозитория.",
+  "config.restoreChain.step3": "Если APP_KEY не совпадает со снимком, у вас спросят, прежде чем что-то ещё произойдёт.",
+  "config.restoreChain.step4": "Восстановленная конфигурация проверяется на соответствие работающей системе.",
+  "config.restoreChain.step5": "Включённые приложения и службы перезапускаются, и страница перезагружается. При выключенном автоперезапуске вы перезапускаете их сами.",
 
 };
 

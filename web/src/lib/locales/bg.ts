@@ -1546,11 +1546,24 @@ const bg: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Ново резервно копие",
-  "home.newBackupConfirm": "Да започна ли резервно копие на всички активирани области сега? Контейнерите се спират и рестартират. Възстановяването запазва само това, което следващото изпълнение запази.",
+  "home.newBackupConfirm": "Да започна ли резервно копие на всички активирани области сега? Контейнерите се спират и рестартират един по един, докато върви тяхното резервно копие. Възстановяването запазва само това, което следващото изпълнение запази.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Мобилна навигация",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Зареди още",
+  "common.search": "Търсене",
+  "settings.tabsNavigation": "Раздели на настройките",
+  "config.restoreChain.title": "Какво се случва при възстановяване на настройките",
+  "config.restoreChain.step1": "Текущият ви избор на настройки се запазва първо.",
+  "config.restoreChain.step2": "Най-новият снапшот на настройките се възстановява от хранилището.",
+  "config.restoreChain.step3": "Ако APP_KEY не съвпада със снапшота, ще бъдете попитани, преди да се случи нещо друго.",
+  "config.restoreChain.step4": "Възстановената конфигурация се проверява срещу работещата система.",
+  "config.restoreChain.step5": "Включените приложения и услуги се рестартират и страницата се презарежда. При изключен автоматичен рестарт ги рестартирате сами.",
 
 };
 

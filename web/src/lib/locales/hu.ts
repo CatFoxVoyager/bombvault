@@ -1538,11 +1538,24 @@ const hu: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Új biztonsági mentés",
-  "home.newBackupConfirm": "Elindítod most az összes engedélyezett terület biztonsági mentését? A konténerek leállnak és újraindulnak. A helyreállítás csak azt őrzi meg, amit a következő futás ment.",
+  "home.newBackupConfirm": "Elindítod most az összes engedélyezett terület biztonsági mentését? A konténerek a saját mentésük alatt egyenként leállnak és újraindulnak. A helyreállítás csak azt őrzi meg, amit a következő futás ment.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Mobil navigáció",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Továbbiak betöltése",
+  "common.search": "Keresés",
+  "settings.tabsNavigation": "Beállítás szakaszok",
+  "config.restoreChain.title": "Mi történik a beállítások visszaállításakor",
+  "config.restoreChain.step1": "A jelenlegi beállításválasztásod először mentésre kerül.",
+  "config.restoreChain.step2": "A legújabb konfigurációs pillanatkép visszaállításra kerül a tárolóból.",
+  "config.restoreChain.step3": "Ha a APP_KEY nem egyezik a pillanatképpel, a rendszer megkérdezi, mielőtt bármi más történne.",
+  "config.restoreChain.step4": "A visszaállított konfigurációt az élő rendszerrel ellenőrzik.",
+  "config.restoreChain.step5": "Az engedélyezett alkalmazások és szolgáltatások újraindulnak, és az oldal újratölt. Ha az automatikus újraindítás ki van kapcsolva, te indítod újra őket.",
 
 };
 

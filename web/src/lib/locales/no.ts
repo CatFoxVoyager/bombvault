@@ -1535,11 +1535,24 @@ const no: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Ny sikkerhetskopi",
-  "home.newBackupConfirm": "Start en sikkerhetskopi av alle aktiverte domener nå? Containere stoppes og startes på nytt. Gjenoppretting beholder bare det den neste kjøringen lagrer.",
+  "home.newBackupConfirm": "Start en sikkerhetskopi av alle aktiverte domener nå? Containere stoppes og startes på nytt én om gangen mens sikkerhetskopien deres kjører. Gjenoppretting beholder bare det den neste kjøringen lagrer.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Mobil navigasjon",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Last inn flere",
+  "common.search": "Søk",
+  "settings.tabsNavigation": "Innstillingsavsnitt",
+  "config.restoreChain.title": "Hva som skjer når konfigurasjonen gjenopprettes",
+  "config.restoreChain.step1": "Ditt nåværende valg av innstillinger lagres først.",
+  "config.restoreChain.step2": "Det nyeste konfigurasjons­snapshotet gjenopprettes fra repositoriet.",
+  "config.restoreChain.step3": "Hvis APP_KEY ikke samsvarer med snapshotet, blir du spurt før noe annet skjer.",
+  "config.restoreChain.step4": "Den gjenopprettede konfigurasjonen kontrolleres mot det kjørende systemet.",
+  "config.restoreChain.step5": "Aktiverte apper og tjenester startes på nytt og siden lastes på nytt. Med automatisk omstart avslått starter du dem selv på nytt.",
 
 };
 

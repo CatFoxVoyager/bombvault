@@ -134,7 +134,24 @@ export const en = {
   // its press starts exactly what the trigger promised); cancel is the
   // shared common.cancel.
   "home.newBackup": "New backup",
-  "home.newBackupConfirm": "Start a backup of every enabled domain now? Containers are stopped and restarted. Restore keeps only what the next run saves.",
+  "home.newBackupConfirm": "Start a backup of every enabled domain now? Containers are stopped and restarted one at a time while their backup runs. Restore keeps only what the next run saves.",
+
+  // Phase 7 (07-02): the phase's COMPLETE new-key pre-seed, landed in ONE
+  // plan-owned commit so the four parallel Wave-2 page plans stay key-neutral
+  // (the phase 6 single-writer pattern). LISTS-01's load-more + list-search
+  // labels, the Settings chip-strip landmark, and the D-03 restore guard
+  // chain (en copy verbatim from the UI-SPEC Copywriting Contract). The
+  // preseed pin test fences the exact copy; page plans 07-03..07-07 consume
+  // these keys and add none of their own.
+  "common.loadMore": "Load more",
+  "common.search": "Search",
+  "settings.tabsNavigation": "Settings sections",
+  "config.restoreChain.title": "What happens when the config is restored",
+  "config.restoreChain.step1": "Your current settings choice is saved first.",
+  "config.restoreChain.step2": "The latest config snapshot is restored from the repository.",
+  "config.restoreChain.step3": "If the APP_KEY does not match the snapshot, you are asked before anything else happens.",
+  "config.restoreChain.step4": "The restored configuration is checked against the live system.",
+  "config.restoreChain.step5": "Enabled apps and services are restarted and the page reloads. With auto-restart off, you restart them yourself.",
 
   // Spike
   "spike.title": "Host Integration",
@@ -2004,7 +2021,19 @@ export const de: Translations = {
   // Der Bestätigen-Knopf übernimmt home.newBackup (Ergebnis-benennend),
   // Abbrechen das gemeinsame common.cancel.
   "home.newBackup": "Neues Backup",
-  "home.newBackupConfirm": "Jetzt ein Backup aller aktivierten Bereiche starten? Container werden gestoppt und neu gestartet. Eine Wiederherstellung behält nur, was der nächste Lauf sichert.",
+  "home.newBackupConfirm": "Jetzt ein Backup aller aktivierten Bereiche starten? Container werden während ihrer Sicherung nacheinander gestoppt und neu gestartet. Eine Wiederherstellung behält nur, was der nächste Lauf sichert.",
+
+  // Phase 7 (07-02): die vollständigen neuen Schlüssel dieser Phase (siehe
+  // den englischen Block oben); deutsche Fassungen im Haus-Vokabular.
+  "common.loadMore": "Mehr laden",
+  "common.search": "Suchen",
+  "settings.tabsNavigation": "Einstellungsbereiche",
+  "config.restoreChain.title": "Was bei der Wiederherstellung der Konfiguration passiert",
+  "config.restoreChain.step1": "Deine aktuelle Einstellungswahl wird zuerst gespeichert.",
+  "config.restoreChain.step2": "Der neueste Konfigurations-Snapshot wird aus dem Repository wiederhergestellt.",
+  "config.restoreChain.step3": "Wenn der APP_KEY nicht zum Snapshot passt, wirst du gefragt, bevor irgendetwas anderes passiert.",
+  "config.restoreChain.step4": "Die wiederhergestellte Konfiguration wird gegen das laufende System geprüft.",
+  "config.restoreChain.step5": "Aktivierte Apps und Dienste werden neu gestartet und die Seite lädt neu. Bei ausgeschaltetem Auto-Neustart startest du sie selbst neu.",
 
   "spike.title": "Host-Integration",
   "spike.overall": "Gesamt:",

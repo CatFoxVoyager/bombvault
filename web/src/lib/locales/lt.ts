@@ -1546,11 +1546,24 @@ const lt: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Nauja atsarginė kopija",
-  "home.newBackupConfirm": "Pradėti dabar visų įjungtų sričių atsarginę kopiją? Konteineriai sustabdomi ir paleidžiami iš naujo. Atkūrimas išsaugo tik tai, ką įrašys kitas vykdymas.",
+  "home.newBackupConfirm": "Pradėti dabar visų įjungtų sričių atsarginę kopiją? Konteineriai sustabdomi ir paleidžiami iš naujo po vieną, kol vyksta jų atsarginė kopija. Atkūrimas išsaugo tik tai, ką įrašys kitas vykdymas.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Mobilioji navigacija",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Įkelti daugiau",
+  "common.search": "Ieškoti",
+  "settings.tabsNavigation": "Nustatymų skyriai",
+  "config.restoreChain.title": "Kas vyksta atkuriant konfigūraciją",
+  "config.restoreChain.step1": "Jūsų dabartinis nustatymų pasirinkimas išsaugomas pirmiausia.",
+  "config.restoreChain.step2": "Naujausia konfigūracijos momentinė kopija atkuriama iš saugyklos.",
+  "config.restoreChain.step3": "Jei APP_KEY neatitinka momentinės kopijos, prieš vykdant kitus veiksmus būsite paklausti.",
+  "config.restoreChain.step4": "Atkurta konfigūracija patikrinama pagal veikiančią sistemą.",
+  "config.restoreChain.step5": "Įjungtos programos ir paslaugos paleidžiamos iš naujo ir puslapis įkeliamas iš naujo. Kai automatinis paleidimas iš naujo išjungtas, paleidžiate juos patys.",
 
 };
 

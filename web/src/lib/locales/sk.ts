@@ -1546,11 +1546,24 @@ const sk: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Nová záloha",
-  "home.newBackupConfirm": "Spustiť teraz zálohu všetkých povolených oblastí? Kontajnery sa zastavia a znova spustia. Obnova zachová iba to, čo uloží ďalší priebeh.",
+  "home.newBackupConfirm": "Spustiť teraz zálohu všetkých povolených oblastí? Kontajnery sa po jednom zastavia a znova spustia, kým beží ich záloha. Obnova zachová iba to, čo uloží ďalší priebeh.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Mobilná navigácia",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Načítať ďalšie",
+  "common.search": "Hľadať",
+  "settings.tabsNavigation": "Sekcie nastavení",
+  "config.restoreChain.title": "Čo sa stane pri obnovení konfigurácie",
+  "config.restoreChain.step1": "Vaša aktuálna voľba nastavení sa najprv uloží.",
+  "config.restoreChain.step2": "Najnovší snímok konfigurácie sa obnoví z úložiska.",
+  "config.restoreChain.step3": "Ak APP_KEY nezodpovedá snímku, budete požiadaní skôr, než sa stane čokoľvek iné.",
+  "config.restoreChain.step4": "Obnovená konfigurácia sa skontroluje voči bežiacemu systému.",
+  "config.restoreChain.step5": "Zapnuté aplikácie a služby sa reštartujú a stránka sa znova načíta. S vypnutým automatickým reštartom ich reštartujete sami.",
 
 };
 

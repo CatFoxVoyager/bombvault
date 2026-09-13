@@ -1527,11 +1527,24 @@ const ja: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "新規バックアップ",
-  "home.newBackupConfirm": "有効なすべてのドメインのバックアップを今すぐ開始しますか？コンテナーは停止して再起動されます。復元で残るのは、次回の実行が保存したものだけです。",
+  "home.newBackupConfirm": "有効なすべてのドメインのバックアップを今すぐ開始しますか？コンテナーは、バックアップの実行中に1つずつ停止して再起動されます。復元で残るのは、次回の実行が保存したものだけです。",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "モバイルナビゲーション",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "さらに読み込む",
+  "common.search": "検索",
+  "settings.tabsNavigation": "設定セクション",
+  "config.restoreChain.title": "設定を復元するとどうなるか",
+  "config.restoreChain.step1": "現在の設定の選択は最初に保存されます。",
+  "config.restoreChain.step2": "最新の設定スナップショットがリポジトリから復元されます。",
+  "config.restoreChain.step3": "APP_KEYがスナップショットと一致しない場合、他の何かが起こる前に確認を求められます。",
+  "config.restoreChain.step4": "復元された設定は、稼働中のシステムに対して検証されます。",
+  "config.restoreChain.step5": "有効なアプリとサービスが再起動され、ページが再読み込みされます。自動再起動がオフの場合は、自分で再起動します。",
 
 };
 

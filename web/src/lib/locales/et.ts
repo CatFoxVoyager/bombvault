@@ -1546,11 +1546,24 @@ const et: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Uus varukoopia",
-  "home.newBackupConfirm": "Käivitada kohe varukoopia kõigist lubatud valdkondadest? Konteinerid peatatakse ja taaskäivitatakse. Taastamine säilitab ainult selle, mida salvestab järgmine käik.",
+  "home.newBackupConfirm": "Käivitada kohe varukoopia kõigist lubatud valdkondadest? Konteinerid peatatakse ja taaskäivitatakse ükshaaval, samal ajal kui nende varukoopia töötab. Taastamine säilitab ainult selle, mida salvestab järgmine käik.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Mobiilne navigeerimine",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Laadi veel",
+  "common.search": "Otsi",
+  "settings.tabsNavigation": "Seadete jaotised",
+  "config.restoreChain.title": "Mis juhtub, kui seadistus taastatakse",
+  "config.restoreChain.step1": "Sinu praegune seadete valik salvestatakse esmalt.",
+  "config.restoreChain.step2": "Viimane seadistuste hetktõmmis taastatakse hoidlast.",
+  "config.restoreChain.step3": "Kui APP_KEY ei vasta hetktõmmisele, küsitakse sinult enne, kui juhtub midagi muud.",
+  "config.restoreChain.step4": "Taastatud seadistust kontrollitakse töötava süsteemi vastu.",
+  "config.restoreChain.step5": "Lubatud rakendused ja teenused taaskäivitatakse ja leht laaditakse uuesti. Kui automaatne taaskäivitus on välja lülitatud, käivitad sa need ise uuesti.",
 
 };
 

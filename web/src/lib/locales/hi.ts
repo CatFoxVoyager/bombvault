@@ -1546,11 +1546,24 @@ const hi: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "नया बैकअप",
-  "home.newBackupConfirm": "क्या अभी सभी सक्रिय डोमेन का बैकअप शुरू करें? कंटेनर रोके जाते हैं और फिर से शुरू किए जाते हैं. रीस्टोर केवल वही रखता है जो अगला रन सेव करता है.",
+  "home.newBackupConfirm": "क्या अभी सभी सक्रिय डोमेन का बैकअप शुरू करें? कंटेनर एक-एक करके उनके बैकअप चलने के दौरान रोके जाते हैं और फिर से शुरू किए जाते हैं. रीस्टोर केवल वही रखता है जो अगला रन सेव करता है.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "मोबाइल नेविगेशन",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "और लोड करें",
+  "common.search": "खोजें",
+  "settings.tabsNavigation": "सेटिंग अनुभाग",
+  "config.restoreChain.title": "कॉन्फ़िगरेशन रीस्टोर होने पर क्या होता है",
+  "config.restoreChain.step1": "आपकी मौजूदा सेटिंग पसंद पहले सेव होती है.",
+  "config.restoreChain.step2": "कॉन्फ़िगरेशन का नवीनतम स्नैपशॉट रिपॉज़िटरी से रीस्टोर होता है.",
+  "config.restoreChain.step3": "अगर APP_KEY स्नैपशॉट से मेल नहीं खाता, तो कुछ और होने से पहले आपसे पूछा जाता है.",
+  "config.restoreChain.step4": "रीस्टोर की गई कॉन्फ़िगरेशन की जीवित सिस्टम से जाँच होती है.",
+  "config.restoreChain.step5": "सक्रिय ऐप्स और सेवाएँ फिर से शुरू होती हैं और पेज फिर से लोड होता है. ऑटो-रीस्टार्ट बंद होने पर, आप उन्हें स्वयं फिर से शुरू करते हैं.",
 
 };
 

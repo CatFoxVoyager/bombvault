@@ -1546,11 +1546,24 @@ const is: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Nýtt öryggisafrit",
-  "home.newBackupConfirm": "Hefja öryggisafrit af öllum virkum svæðum núna? Gámar eru stöðvaðir og endurræstir. Endurheimtur geymist aðeins það sem næsta keyrsla vistar.",
+  "home.newBackupConfirm": "Hefja öryggisafrit af öllum virkum svæðum núna? Gámar eru stöðvaðir og endurræstir einn í senn á meðan öryggisafrit þeirra stendur. Endurheimtur geymist aðeins það sem næsta keyrsla vistar.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Farsímaflakk",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Hlaða inn fleiri",
+  "common.search": "Leita",
+  "settings.tabsNavigation": "Stillingahlutar",
+  "config.restoreChain.title": "Hvað gerist þegar uppsetningin er endurheimt",
+  "config.restoreChain.step1": "Núverandi val þitt á stillingum er vistað fyrst.",
+  "config.restoreChain.step2": "Nýjasta skyndimynd uppsetningarinnar er endurheimt úr gagnasafninu.",
+  "config.restoreChain.step3": "Ef APP_KEY passar ekki við skyndimyndina verður þú spurður áður en nokkuð annað gerist.",
+  "config.restoreChain.step4": "Endurheimta uppsetningin er borin saman við kerfið í gangi.",
+  "config.restoreChain.step5": "Virk forrit og þjónustur eru endurræst og síðan hleðst aftur. Með slökkt á sjálfvirkri endurræsingu endurræsir þú þau sjálfur.",
 
 };
 

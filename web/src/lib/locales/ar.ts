@@ -1538,11 +1538,24 @@ const ar: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "نسخة احتياطية جديدة",
-  "home.newBackupConfirm": "هل تريد بدء نسخة احتياطية لكل نطاق ممكّن الآن؟ يتم إيقاف الحاويات وإعادة تشغيلها. تحتفظ الاستعادة فقط بما يحفظه التشغيل التالي.",
+  "home.newBackupConfirm": "هل تريد بدء نسخة احتياطية لكل نطاق ممكّن الآن؟ تُوقف الحاويات وتُعاد تشغيلتها واحدًا تلو الآخر أثناء تشغيل النسخ الاحتياطي لها. تحتفظ الاستعادة فقط بما يحفظه التشغيل التالي.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "التنقل عبر الجوال",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "تحميل المزيد",
+  "common.search": "بحث",
+  "settings.tabsNavigation": "أقسام الإعدادات",
+  "config.restoreChain.title": "ماذا يحدث عند استعادة الإعدادات",
+  "config.restoreChain.step1": "يتم حفظ اختيارك الحالي للإعدادات أولاً.",
+  "config.restoreChain.step2": "تُستعاد أحدث لقطة للإعدادات من المستودع.",
+  "config.restoreChain.step3": "إذا لم يتطابق APP_KEY مع اللقطة، سيُطلب منك ذلك قبل حدوث أي شيء آخر.",
+  "config.restoreChain.step4": "تُحقَّق الإعدادات المستعادة مقابل النظام الفعلي.",
+  "config.restoreChain.step5": "تُعاد تشغيل التطبيقات والخدمات الممكّنة وتُعاد تحميل الصفحة. مع إيقاف إعادة التشغيل التلقائي، تعيد تشغيلها بنفسك.",
 
 };
 

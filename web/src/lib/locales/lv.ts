@@ -1546,11 +1546,24 @@ const lv: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Jauns dublējums",
-  "home.newBackupConfirm": "Sākt tagad visu iespējoto jomu dublējumu? Konteineri tiek apturēti un pārstartēti. Atjaunošana saglabā tikai to, ko saglabās nākamā izpilde.",
+  "home.newBackupConfirm": "Sākt tagad visu iespējoto jomu dublējumu? Konteineri tiek apturēti un pārstartēti pa vienam, kamēr darbojas to dublējums. Atjaunošana saglabā tikai to, ko saglabās nākamā izpilde.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Mobilā navigācija",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Ielādēt vēl",
+  "common.search": "Meklēt",
+  "settings.tabsNavigation": "Iestatījumu sadaļas",
+  "config.restoreChain.title": "Kas notiek, atjaunojot konfigurāciju",
+  "config.restoreChain.step1": "Jūsu pašreizējā iestatījumu izvēle vispirms tiek saglabāta.",
+  "config.restoreChain.step2": "Jaunākais konfigurācijas momentuzņēmums tiek atjaunots no krātuves.",
+  "config.restoreChain.step3": "Ja APP_KEY neatbilst momentuzņēmumam, jums tiek jautāts, pirms notiek kas cits.",
+  "config.restoreChain.step4": "Atjaunotā konfigurācija tiek pārbaudīta pret dzīvo sistēmu.",
+  "config.restoreChain.step5": "Iespējotās lietotnes un pakalpojumi tiek pārstartēti, un lapa tiek pārlādēta. Ja automātiskā pārstartēšana ir izslēgta, jūs tos pārstartējat pats.",
 
 };
 

@@ -1546,11 +1546,24 @@ const id: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Pencadangan baru",
-  "home.newBackupConfirm": "Mulai pencadangan untuk semua domain yang diaktifkan sekarang? Kontainer dihentikan dan dimulai ulang. Pemulihan hanya menyimpan apa yang disimpan oleh proses berikutnya.",
+  "home.newBackupConfirm": "Mulai pencadangan untuk semua domain yang diaktifkan sekarang? Kontainer dihentikan dan dimulai ulang satu per satu selama pencadangannya berjalan. Pemulihan hanya menyimpan apa yang disimpan oleh proses berikutnya.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Navigasi seluler",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Muat lebih banyak",
+  "common.search": "Cari",
+  "settings.tabsNavigation": "Bagian pengaturan",
+  "config.restoreChain.title": "Apa yang terjadi saat konfigurasi dipulihkan",
+  "config.restoreChain.step1": "Pilihan pengaturan Anda saat ini disimpan lebih dulu.",
+  "config.restoreChain.step2": "Snapshot konfigurasi terbaru dipulihkan dari repositori.",
+  "config.restoreChain.step3": "Jika APP_KEY tidak cocok dengan snapshot, Anda akan ditanya sebelum hal lain terjadi.",
+  "config.restoreChain.step4": "Konfigurasi yang dipulihkan diperiksa terhadap sistem yang berjalan.",
+  "config.restoreChain.step5": "Aplikasi dan layanan yang diaktifkan dimulai ulang dan halaman dimuat ulang. Dengan mulai ulang otomatis mati, Anda memulai ulangnya sendiri.",
 
 };
 

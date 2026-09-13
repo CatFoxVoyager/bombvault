@@ -1535,11 +1535,24 @@ const tr: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Yeni yedek",
-  "home.newBackupConfirm": "Şimdi etkinleştirilmiş tüm alanların yedeğini başlat? Kapsayıcılar durdurulup yeniden başlatılır. Geri yükleme yalnızca bir sonraki çalıştırmanın kaydettiklerini tutar.",
+  "home.newBackupConfirm": "Şimdi etkinleştirilmiş tüm alanların yedeğini başlat? Kapsayıcılar, yedeklemeleri çalışırken tek tek durdurulup yeniden başlatılır. Geri yükleme yalnızca bir sonraki çalıştırmanın kaydettiklerini tutar.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Mobil navigasyon",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Daha fazla yükle",
+  "common.search": "Ara",
+  "settings.tabsNavigation": "Ayarlar bölümleri",
+  "config.restoreChain.title": "Yapılandırma geri yüklendiğinde ne olur",
+  "config.restoreChain.step1": "Geçerli ayar seçiminiz önce kaydedilir.",
+  "config.restoreChain.step2": "En son yapılandırma anlık görüntüsü depodan geri yüklenir.",
+  "config.restoreChain.step3": "APP_KEY anlık görüntüyle eşleşmezse, başka bir şey olmadan önce size sorulur.",
+  "config.restoreChain.step4": "Geri yüklenen yapılandırma, çalışan sistemle karşılaştırılarak denetlenir.",
+  "config.restoreChain.step5": "Etkin uygulamalar ve hizmetler yeniden başlatılır ve sayfa yeniden yüklenir. Otomatik yeniden başlatma kapalıyken, onları kendiniz yeniden başlatırsınız.",
 
 };
 

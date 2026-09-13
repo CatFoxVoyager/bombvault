@@ -1535,11 +1535,24 @@ const el: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Νέο αντίγραφο ασφαλείας",
-  "home.newBackupConfirm": "Να ξεκινήσει τώρα αντίγραφο ασφαλείας για όλους τους ενεργούς τομείς; Τα containers σταματούν και επανεκκινούνται. Η επαναφορά κρατά μόνο όσα θα αποθηκεύσει η επόμενη εκτέλεση.",
+  "home.newBackupConfirm": "Να ξεκινήσει τώρα αντίγραφο ασφαλείας για όλους τους ενεργούς τομείς; Τα containers σταματούν και επανεκκινούνται ένα τη φορά, όσο εκτελείται το αντίγραφό τους. Η επαναφορά κρατά μόνο όσα θα αποθηκεύσει η επόμενη εκτέλεση.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Πλοήγηση κινητού",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Φόρτωση περισσότερων",
+  "common.search": "Αναζήτηση",
+  "settings.tabsNavigation": "Ενότητες ρυθμίσεων",
+  "config.restoreChain.title": "Τι συμβαίνει κατά την επαναφορά της ρύθμισης",
+  "config.restoreChain.step1": "Η τρέχουσα επιλογή ρυθμίσεων αποθηκεύεται πρώτα.",
+  "config.restoreChain.step2": "Το πιο πρόσφατο στιγμιότυπο της ρύθμισης επαναφέρεται από το αποθετήριο.",
+  "config.restoreChain.step3": "Αν το APP_KEY δεν ταιριάζει με το στιγμιότυπο, σας ρωτούν πριν συμβεί οτιδήποτε άλλο.",
+  "config.restoreChain.step4": "Η επαναφερμένη ρύθμιση ελέγχεται έναντι του ζωντανού συστήματος.",
+  "config.restoreChain.step5": "Οι ενεργές εφαρμογές και υπηρεσίες επανεκκινούνται και η σελίδα επαναφορτώνεται. Με απενεργοποιημένη την αυτόματη επανεκκίνηση, τις επανεκκινείτε μόνοι σας.",
 
 };
 

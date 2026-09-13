@@ -1527,11 +1527,24 @@ const zh: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "新建备份",
-  "home.newBackupConfirm": "立即开始备份所有已启用的域？容器将停止并重新启动。恢复只保留下一次运行所保存的内容。",
+  "home.newBackupConfirm": "立即开始备份所有已启用的域？容器会在备份运行期间逐个停止并重新启动。恢复只保留下一次运行所保存的内容。",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "移动端导航",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "加载更多",
+  "common.search": "搜索",
+  "settings.tabsNavigation": "设置分区",
+  "config.restoreChain.title": "恢复配置时会发生什么",
+  "config.restoreChain.step1": "您当前的设置选择会先保存。",
+  "config.restoreChain.step2": "最新的配置快照会从仓库恢复。",
+  "config.restoreChain.step3": "如果 APP_KEY 与快照不匹配，在进行其他任何操作之前会先询问您。",
+  "config.restoreChain.step4": "恢复后的配置会与运行中的系统进行核对。",
+  "config.restoreChain.step5": "已启用的应用和服务会重新启动，页面会重新加载。如果自动重启已关闭，您需要自行重启它们。",
 
 };
 

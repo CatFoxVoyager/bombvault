@@ -1546,11 +1546,24 @@ const fa: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "پشتیبان‌گیری جدید",
-  "home.newBackupConfirm": "شروع پشتیبان‌گیری از همه بخش‌های فعال اکنون؟ کانتینرها متوقف و دوباره راه‌اندازی می‌شوند. بازیابی فقط چیزی را نگه می‌دارد که اجرای بعدی ذخیره می‌کند.",
+  "home.newBackupConfirm": "شروع پشتیبان‌گیری از همه بخش‌های فعال اکنون؟ کانتینرها یکی‌یکی هنگام اجرای پشتیبان‌گیری‌شان متوقف و دوباره راه‌اندازی می‌شوند. بازیابی فقط چیزی را نگه می‌دارد که اجرای بعدی ذخیره می‌کند.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "ناوبری موبایل",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "بارگیری بیشتر",
+  "common.search": "جست‌وجو",
+  "settings.tabsNavigation": "بخش‌های تنظیمات",
+  "config.restoreChain.title": "هنگام بازیابی پیکربندی چه اتفاقی می‌افتد",
+  "config.restoreChain.step1": "ابتدا انتخاب فعلی تنظیمات شما ذخیره می‌شود.",
+  "config.restoreChain.step2": "جدیدترین اسنپ‌شات پیکربندی از مخزن بازیابی می‌شود.",
+  "config.restoreChain.step3": "اگر APP_KEY با اسنپ‌شات مطابقت نداشته باشد، پیش از هر چیز دیگری از شما پرسیده می‌شود.",
+  "config.restoreChain.step4": "پیکربندی بازیابی‌شده با سیستم زنده بررسی می‌شود.",
+  "config.restoreChain.step5": "برنامه‌ها و سرویس‌های فعال دوباره راه‌اندازی می‌شوند و صفحه بارگذاری مجدد می‌شود. با خاموش بودن راه‌اندازی مجدد خودکار، خودتان آن‌ها را راه‌اندازی مجدد می‌کنید.",
 
 };
 

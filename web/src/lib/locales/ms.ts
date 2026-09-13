@@ -1546,11 +1546,24 @@ const ms: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Sandaran baharu",
-  "home.newBackupConfirm": "Mulakan sandaran untuk semua domain yang diaktifkan sekarang? Bekas dihentikan dan dimulakan semula. Pemulihan hanya menyimpan apa yang disimpan oleh jalan seterusnya.",
+  "home.newBackupConfirm": "Mulakan sandaran untuk semua domain yang diaktifkan sekarang? Bekas dihentikan dan dimulakan semula satu demi satu semasa sandarannya berjalan. Pemulihan hanya menyimpan apa yang disimpan oleh jalan seterusnya.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Navigasi mudah alih",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Muatkan lagi",
+  "common.search": "Cari",
+  "settings.tabsNavigation": "Bahagian tetapan",
+  "config.restoreChain.title": "Apa yang berlaku apabila konfigurasi dipulihkan",
+  "config.restoreChain.step1": "Pilihan tetapan semasa anda disimpan dahulu.",
+  "config.restoreChain.step2": "Snapshot konfigurasi terkini dipulihkan daripada repositori.",
+  "config.restoreChain.step3": "Jika APP_KEY tidak sepadan dengan snapshot, anda akan ditanya sebelum apa-apa yang lain berlaku.",
+  "config.restoreChain.step4": "Konfigurasi yang dipulihkan disemak terhadap sistem yang berjalan.",
+  "config.restoreChain.step5": "Aplikasi dan perkhidmatan yang diaktifkan dimulakan semula dan halaman dimuat semula. Dengan mula semula automatik dimatikan, anda memulakan semula sendiri.",
 
 };
 

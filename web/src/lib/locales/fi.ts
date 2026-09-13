@@ -1535,11 +1535,24 @@ const fi: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Uusi varmuuskopio",
-  "home.newBackupConfirm": "Aloita varmuuskopio kaikista käytössä olevista alueista nyt? Kontit pysäytetään ja käynnistetään uudelleen. Palautus säilyttää vain sen, mitä seuraava ajo tallentaa.",
+  "home.newBackupConfirm": "Aloita varmuuskopio kaikista käytössä olevista alueista nyt? Kontit pysäytetään ja käynnistetään uudelleen yksi kerrallaan niiden varmuuskopion aikana. Palautus säilyttää vain sen, mitä seuraava ajo tallentaa.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Mobiilinavigointi",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Lataa lisää",
+  "common.search": "Hae",
+  "settings.tabsNavigation": "Asetusosiot",
+  "config.restoreChain.title": "Mitä tapahtuu, kun asetukset palautetaan",
+  "config.restoreChain.step1": "Nykyinen asetusvalintasi tallennetaan ensin.",
+  "config.restoreChain.step2": "Uusin asetusten tilannevedos palautetaan säilöstä.",
+  "config.restoreChain.step3": "Jos APP_KEY ei vastaa tilannevedosta, sinulta kysytään ennen kuin mitään muuta tapahtuu.",
+  "config.restoreChain.step4": "Palautetut asetukset tarkistetaan käynnissä olevaa järjestelmää vasten.",
+  "config.restoreChain.step5": "Käytössä olevat sovellukset ja palvelut käynnistetään uudelleen ja sivu latautuu uudelleen. Jos automaattinen uudelleenkäynnistys on pois päältä, käynnistät ne itse uudelleen.",
 
 };
 

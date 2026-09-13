@@ -1530,11 +1530,24 @@ const uk: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Нова резервна копія",
-  "home.newBackupConfirm": "Запустити резервне копіювання всіх увімкнених областей зараз? Контейнери зупиняються та запускаються заново. Відновлення збереже лише те, що запише наступний запуск.",
+  "home.newBackupConfirm": "Запустити резервне копіювання всіх увімкнених областей зараз? Контейнери зупиняються та запускаються заново по одному, поки триває їхнє резервне копіювання. Відновлення збереже лише те, що запише наступний запуск.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Мобільна навігація",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Завантажити ще",
+  "common.search": "Пошук",
+  "settings.tabsNavigation": "Розділи налаштувань",
+  "config.restoreChain.title": "Що відбувається під час відновлення конфігурації",
+  "config.restoreChain.step1": "Спочатку зберігається ваш поточний вибір налаштувань.",
+  "config.restoreChain.step2": "Найновіший знімок конфігурації відновлюється зі сховища.",
+  "config.restoreChain.step3": "Якщо APP_KEY не збігається зі знімком, у вас запитають, перш ніж станеться щось інше.",
+  "config.restoreChain.step4": "Відновлену конфігурацію перевіряють на відповідність чинній системі.",
+  "config.restoreChain.step5": "Увімкнені застосунки та служби перезапускаються, і сторінка перезавантажується. Якщо автоматичний перезапуск вимкнено, ви перезапускаєте їх самі.",
 
 };
 

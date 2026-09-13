@@ -1535,11 +1535,24 @@ const it: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Nuovo backup",
-  "home.newBackupConfirm": "Avviare ora un backup di tutti i domini attivati? I container vengono fermati e riavviati. Il ripristino conserva solo ciò che salverà la prossima esecuzione.",
+  "home.newBackupConfirm": "Avviare ora un backup di tutti i domini attivati? I container vengono fermati e riavviati uno alla volta, mentre il loro backup è in esecuzione. Il ripristino conserva solo ciò che salverà la prossima esecuzione.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Navigazione mobile",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Carica altri",
+  "common.search": "Cerca",
+  "settings.tabsNavigation": "Sezioni delle impostazioni",
+  "config.restoreChain.title": "Cosa accade quando viene ripristinata la configurazione",
+  "config.restoreChain.step1": "La tua scelta attuale delle impostazioni viene salvata per prima.",
+  "config.restoreChain.step2": "Lo snapshot più recente della configurazione viene ripristinato dal repository.",
+  "config.restoreChain.step3": "Se la APP_KEY non corrisponde allo snapshot, ti viene chiesto prima che succeda qualsiasi altra cosa.",
+  "config.restoreChain.step4": "La configurazione ripristinata viene verificata rispetto al sistema in esecuzione.",
+  "config.restoreChain.step5": "Le app e i servizi abilitati vengono riavviati e la pagina si ricarica. Con il riavvio automatico disattivato, li riavvii tu stesso.",
 
 };
 

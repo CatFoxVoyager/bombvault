@@ -1532,11 +1532,24 @@ const nl: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Nieuwe back-up",
-  "home.newBackupConfirm": "Nu een back-up van alle ingeschakelde domeinen starten? Containers worden gestopt en opnieuw gestart. Herstel bewaart alleen wat de volgende run opslaat.",
+  "home.newBackupConfirm": "Nu een back-up van alle ingeschakelde domeinen starten? Containers worden één voor één gestopt en opnieuw gestart terwijl hun back-up loopt. Herstel bewaart alleen wat de volgende run opslaat.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Mobiele navigatie",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Meer laden",
+  "common.search": "Zoeken",
+  "settings.tabsNavigation": "Instellingsonderdelen",
+  "config.restoreChain.title": "Wat er gebeurt wanneer de configuratie wordt hersteld",
+  "config.restoreChain.step1": "Je huidige instellingenkeuze wordt eerst opgeslagen.",
+  "config.restoreChain.step2": "De meest recente configuratiesnapshot wordt vanuit de repository hersteld.",
+  "config.restoreChain.step3": "Als de APP_KEY niet bij de snapshot past, word je gevraagd voordat er iets anders gebeurt.",
+  "config.restoreChain.step4": "De herstelde configuratie wordt gecontroleerd tegen het live systeem.",
+  "config.restoreChain.step5": "Ingeschakelde apps en diensten worden herstart en de pagina herlaadt. Met auto-herstart uit herstart je ze zelf.",
 
 };
 

@@ -1535,11 +1535,24 @@ const da: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Ny backup",
-  "home.newBackupConfirm": "Vil du starte en backup af alle aktiverede domæner nu? Containere stoppes og genstartes. En gendannelse beholder kun det, den næste køring gemmer.",
+  "home.newBackupConfirm": "Vil du starte en backup af alle aktiverede domæner nu? Containere stoppes og genstartes én ad gangen, mens deres backup kører. En gendannelse beholder kun det, den næste køring gemmer.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Mobil navigation",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Indlæs flere",
+  "common.search": "Søg",
+  "settings.tabsNavigation": "Indstillingsafsnit",
+  "config.restoreChain.title": "Hvad der sker, når konfigurationen gendannes",
+  "config.restoreChain.step1": "Dit nuværende valg af indstillinger gemmes først.",
+  "config.restoreChain.step2": "Det seneste konfigurations-øjebliksbillede gendannes fra repositoryet.",
+  "config.restoreChain.step3": "Hvis APP_KEY ikke matcher øjebliksbilledet, bliver du spurgt, før der sker noget andet.",
+  "config.restoreChain.step4": "Den gendannede konfiguration kontrolleres mod det kørende system.",
+  "config.restoreChain.step5": "Aktiverede apps og tjenester genstartes, og siden genindlæses. Med automatisk genstart slået fra genstarter du dem selv.",
 
 };
 

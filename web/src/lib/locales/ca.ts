@@ -1546,11 +1546,24 @@ const ca: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Còpia de seguretat nova",
-  "home.newBackupConfirm": "Vols iniciar una còpia de seguretat de tots els dominis activats ara? Els contenidors s'aturen i es reinicien. La restauració només conserva el que desi la propera execució.",
+  "home.newBackupConfirm": "Vols iniciar una còpia de seguretat de tots els dominis activats ara? Els contenidors s'aturen i es reinicien d'un en un mentre s'executa la seva còpia. La restauració només conserva el que desi la propera execució.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Navegació mòbil",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Carrega'n més",
+  "common.search": "Cerca",
+  "settings.tabsNavigation": "Seccions de configuració",
+  "config.restoreChain.title": "Què passa en restaurar la configuració",
+  "config.restoreChain.step1": "Primer es desa la teva elecció de configuració actual.",
+  "config.restoreChain.step2": "La instantània més recent de la configuració es restaura des del repositori.",
+  "config.restoreChain.step3": "Si la APP_KEY no coincideix amb la instantània, se't preguntarà abans que passi res més.",
+  "config.restoreChain.step4": "La configuració restaurada es comprova contra el sistema en marxa.",
+  "config.restoreChain.step5": "Les aplicacions i els serveis activats es reinicien i la pàgina es torna a carregar. Amb el reinici automàtic desactivat, els reinicies tu mateix.",
 
 };
 

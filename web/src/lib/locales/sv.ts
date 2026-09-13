@@ -1535,11 +1535,24 @@ const sv: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Ny säkerhetskopia",
-  "home.newBackupConfirm": "Starta en säkerhetskopia av alla aktiverade domäner nu? Containrar stoppas och startas om. Återställningen behåller bara det som nästa körning sparar.",
+  "home.newBackupConfirm": "Starta en säkerhetskopia av alla aktiverade domäner nu? Containrar stoppas och startas om en i taget medan deras säkerhetskopia körs. Återställningen behåller bara det som nästa körning sparar.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Mobil navigering",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Ladda in fler",
+  "common.search": "Sök",
+  "settings.tabsNavigation": "Inställningsavsnitt",
+  "config.restoreChain.title": "Vad som händer när konfigurationen återställs",
+  "config.restoreChain.step1": "Ditt nuvarande val av inställningar sparas först.",
+  "config.restoreChain.step2": "Den senaste konfigurations-ögonblicksbilden återställs från repositoriet.",
+  "config.restoreChain.step3": "Om APP_KEY inte matchar ögonblicksbilden blir du tillfrågad innan något annat händer.",
+  "config.restoreChain.step4": "Den återställda konfigurationen kontrolleras mot det körande systemet.",
+  "config.restoreChain.step5": "Aktiverade appar och tjänster startas om och sidan laddas om. Med automatisk omstart avstängd startar du om dem själv.",
 
 };
 

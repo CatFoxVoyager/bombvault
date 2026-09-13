@@ -1530,11 +1530,24 @@ const sl: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Nova varnostna kopija",
-  "home.newBackupConfirm": "Želite zdaj začeti varnostno kopijo vseh omogočenih področij? Vsebniki se ustavijo in znova zaženejo. Obnovitev ohrani samo tisto, kar shrani naslednji zagon.",
+  "home.newBackupConfirm": "Želite zdaj začeti varnostno kopijo vseh omogočenih področij? Vsebniki se med delom njihove varnostne kopije enega za drugim ustavijo in znova zaženejo. Obnovitev ohrani samo tisto, kar shrani naslednji zagon.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Mobilna navigacija",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Naloži več",
+  "common.search": "Išči",
+  "settings.tabsNavigation": "Razdelki nastavitev",
+  "config.restoreChain.title": "Kaj se zgodi pri obnovi nastavitev",
+  "config.restoreChain.step1": "Vaša trenutna izbira nastavitev se najprej shrani.",
+  "config.restoreChain.step2": "Najnovejši posnetek nastavitev se obnovi iz shrambe.",
+  "config.restoreChain.step3": "Če se APP_KEY ne ujema s posnetkom, boste vprašani, preden se zgodi kaj drugega.",
+  "config.restoreChain.step4": "Obnovljene nastavitve se preverijo glede na delujoči sistem.",
+  "config.restoreChain.step5": "Omogočene aplikacije in storitve se znova zaženejo in stran se ponovno naloži. Z izklopljenim samodejnim ponovnim zagonom jih zaženete znova sami.",
 
 };
 

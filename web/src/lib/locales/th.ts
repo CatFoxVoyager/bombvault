@@ -1538,11 +1538,24 @@ const th: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "สำรองข้อมูลใหม่",
-  "home.newBackupConfirm": "เริ่มสำรองข้อมูลทุกโดเมนที่เปิดใช้งานตอนนี้หรือไม่? คอนเทนเนอร์จะหยุดและเริ่มใหม่ การกู้คืนจะเก็บเฉพาะสิ่งที่รอบถัดไปบันทึก",
+  "home.newBackupConfirm": "เริ่มสำรองข้อมูลทุกโดเมนที่เปิดใช้งานตอนนี้หรือไม่? คอนเทนเนอร์จะหยุดและเริ่มใหม่ทีละตัวระหว่างการสำรองข้อมูลของตน การกู้คืนจะเก็บเฉพาะสิ่งที่รอบถัดไปบันทึก",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "การนำทางบนมือถือ",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "โหลดเพิ่มเติม",
+  "common.search": "ค้นหา",
+  "settings.tabsNavigation": "ส่วนของการตั้งค่า",
+  "config.restoreChain.title": "จะเกิดอะไรขึ้นเมื่อมีการกู้คืนการตั้งค่า",
+  "config.restoreChain.step1": "ตัวเลือกการตั้งค่าปัจจุบันของคุณจะถูกบันทึกก่อน",
+  "config.restoreChain.step2": "สแนปช็อตการตั้งค่าล่าสุดจะถูกกู้คืนจากที่เก็บข้อมูล",
+  "config.restoreChain.step3": "หาก APP_KEY ไม่ตรงกับสแนปช็อต ระบบจะถามคุณก่อนที่จะมีอะไรเกิดขึ้นอย่างอื่น",
+  "config.restoreChain.step4": "การตั้งค่าที่กู้คืนแล้วจะได้รับการตรวจสอบกับระบบที่กำลังทำงาน",
+  "config.restoreChain.step5": "แอปและบริการที่เปิดใช้งานจะเริ่มใหม่และหน้าเว็บจะโหลดใหม่ หากปิดการเริ่มใหม่อัตโนมัติ คุณต้องเริ่มใหม่เอง",
 
 };
 

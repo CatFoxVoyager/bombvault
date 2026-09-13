@@ -1546,11 +1546,24 @@ const eu: Partial<Translations> = {
   // names the consequences before any POST; see the English block in
   // src/lib/i18n.ts (T-06-02).
   "home.newBackup": "Babeskopia berria",
-  "home.newBackupConfirm": "Aktibatutako domeinu guztien babeskopia hastu orain? Edukiontiak gelditu eta berrabiarazi egiten dira. Leheneratzeak hurrengo exekuzioak gordetzen duena soilik gordetzen du.",
+  "home.newBackupConfirm": "Aktibatutako domeinu guztien babeskopia hastu orain? Edukiontiak banan-banan gelditu eta berrabiarazten dira beren babeskopia exekutatzen den bitartean. Leheneratzeak hurrengo exekuzioak gordetzen duena soilik gordetzen du.",
 
   // Phase 6 (06-07): the mobile bottom bar's nav landmark name (05-UI-REVIEW
   // finding 2); see the English block in src/lib/i18n.ts.
   "nav.mobileNavigation": "Mugikorreko nabigazioa",
+
+  // Phase 7 (07-02): the phase's pre-seeded keys, added in the same commit
+  // across all 42 tables (nav.mobileNavigation precedent); see the English
+  // block in src/lib/i18n.ts for the copy contract.
+  "common.loadMore": "Kargatu gehiago",
+  "common.search": "Bilatu",
+  "settings.tabsNavigation": "Ezarpenen atalak",
+  "config.restoreChain.title": "Zer gertatzen da konfigurazioa leheneratzen denean",
+  "config.restoreChain.step1": "Zure uneko ezarpen-aukeraketa lehenik gordetzen da.",
+  "config.restoreChain.step2": "Konfigurazioaren azken argazkia biltegitik leheneratzen da.",
+  "config.restoreChain.step3": "APP_KEYa argazkiarekin bat ez badator, galdatuko zaizu beste ezer gertatu aurretik.",
+  "config.restoreChain.step4": "Leheneratutako konfigurazioa sistema errealearen aurka egiaztatzen da.",
+  "config.restoreChain.step5": "Gaitutako aplikazioak eta zerbitzuak berrabiarazi egiten dira eta orria birkargatzen da. Berrabiarazte automatikoa desaktibatuta badago, zuk berrabiarazten dituzu.",
 
 };
 
