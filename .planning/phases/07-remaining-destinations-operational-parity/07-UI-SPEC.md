@@ -1,7 +1,8 @@
 ---
 phase: 7
 slug: remaining-destinations-operational-parity
-status: draft
+status: approved
+reviewed_at: 2026-09-13
 shadcn_initialized: false
 preset: none
 created: 2026-09-13
@@ -408,8 +409,12 @@ per-plan keys the locale sweep requires, each bound in all 42 tables in its land
 > E6 Settings chips + stacked cards, E7 fullHeight editor sheets, E8 list toolbar +
 > load-more, E9 platform chrome): 64 applicable considerations, all resolved — none
 > unresolved. Kind notes: E3's chain list is `static-content` inside a sheet; E7's forms are
-> the desktop forms re-hosted (their empty/loading/error rows are the desktop rows); E9 is
-> chrome with no data states of its own — loading/error apply only via its host surfaces.
+> the desktop forms re-hosted (their empty/loading/error rows are the desktop rows) — the
+> heuristic classifier left E7 unclassified (sheet+form composite); its state coverage rides
+> the re-hosted desktop form rows plus its host surfaces E1-E6; E9 is chrome with no data
+> states of its own — loading/error apply only via its host surfaces. Probe re-run
+> post-approval (2026-09-13): 58 applicable cases across the engine taxonomy; the two gaps
+> it found (E2 long-text, E6 partial) are folded into the rows below — no other delta.
 
 | Category | Element(s) | Verification | Resolution |
 |----------|------------|--------------|------------|
@@ -417,10 +422,10 @@ per-plan keys the locale sweep requires, each bound in all 42 tables in its land
 | loading | E1-E9 | explicit | Existing loading rows/spinners per domain (`vms.*` load states, `dashboard.checking` language, `flash.backingUp`); sheet forms reuse desktop field busy states; trigger rows show the existing BackupButton busy treatment while `useBackupWatch` correlates |
 | error | E1-E9 | explicit | Domain load-failed keys + ≥44px retry; backend error text verbatim; failed saves toast AND shake; receiver `reachable:false` and `lastPollError` render as status language on the card, not as a crash |
 | populated | E1-E6, E8 | explicit | Screen Contracts define the happy path; four-status badges carry text labels everywhere; Fleet protection uses the existing chip mapping |
-| partial | E1-E5, E7, E8 | explicit | Missing fields degrade to existing muted/meta treatments — never blank cells: peer `lastPollAt` 0 → "never", `lastPollOk` null → never-polled neutral badge, receiver `lastReceived` "" → muted line, secret fields blank + "Set" badge |
+| partial | E1-E6, E7, E8 | explicit | Missing fields degrade to existing muted/meta treatments — never blank cells: peer `lastPollAt` 0 → "never", `lastPollOk` null → never-polled neutral badge, receiver `lastReceived` "" → muted line, secret fields blank + "Set" badge |
 | overflow | E1-E6, E8, E9 | explicit | Lists scroll in the page scroller with in-flow toolbars; sheets scroll in-panel (fullHeight editors) or content-size (viewers); chip strips scroll horizontally; Settings chip strip never wraps; de/fr 320-360px sweeps assert no horizontal scroll and no clipped controls (the Files-header fix is the named regression) |
 | zero-one-many | E1-E6, E8 | explicit | Card lists render 0..n identically; `common.loadMore` is invariant (no plural fork); one peer / one repo renders the same card anatomy |
-| long-text | E3-E9 | explicit | Mono paths/URLs `break-all` + `title` (house pattern); peer URLs and VM names truncate with title, never layout-break; guard-chain step text wraps; de labels at 320px stay single-line in bars/chips (sweep-asserted) |
+| long-text | E2-E9 | explicit | Mono paths/URLs `break-all` + `title` (house pattern); peer URLs and VM names truncate with title, never layout-break; guard-chain step text wraps; de labels at 320px stay single-line in bars/chips (sweep-asserted) |
 | unavailable-data | E1-E5 | explicit | Frozen-API honesty carries over: cards render only fields the wire carries (`FleetPeer`/`ReceivedRepoStatus` field sets verified in api.ts); no fabricated stats; schedule previews come from `/api/schedule/next` derivations only |
 | touch-target geometry | E1-E9 | backstop | Playwright bounding-box assertions: FAB 52px, rows ≥44px, chips ≥44px, sheet close ≥44px, load-more ≥44px |
 | desktop identity | all | backstop | `desktop-untouched.spec.ts` battery extended to the six routes; max-md leakage needles assert no mobile chrome at ≥48rem in both directions |
