@@ -232,8 +232,17 @@ export function Layout() {
         {/* The page's own padding, which the frame's gutter above does NOT
             replace: it used to sit on `main` and moved down one level so the
             scroll container is the padded box's parent, the way the sibling app
-            has it. Same 1.5rem the content has always had. */}
-        <div key={location.pathname} className="glim-page-enter flex-1 flex flex-col p-6">
+            has it. Same 1.5rem the content has always had.
+            NO padding at the BOTTOM, and that is the point: the rail ends flush
+            with the frame's own gutter, so 1.5rem of padding inside the scroll
+            container stopped the last card 24 measured pixels short of it. At
+            the end of a scroll the two columns have to end on one line, and a
+            gutter that only one of them has is what makes it read as unfinished.
+            The frame's p-4 still keeps both off the window edge. */}
+        <div key={location.pathname} className="glim-page-enter flex-1 flex flex-col p-6 pb-0">
+          {/* …which leaves the LAST element sitting on the container's edge.
+              That is what flush means, and it is only true at the very end of
+              the scroll: everywhere else the content simply continues. */}
           <Outlet />
         </div>
       </main>

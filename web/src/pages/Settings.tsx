@@ -2284,6 +2284,12 @@ export function SettingsPage() {
       const res = await setAuthPassword(pwNew);
       if (res.ok) {
         setAuthEnabled(res.enabled ?? false);
+        // The same response carries the session, so the card can go straight to
+        // its signed-in state. Without this the second factor sat one reload
+        // away: the enable button was there, and the request behind it answered
+        // 401 because the login it had just switched on had issued nobody a
+        // session yet.
+        setAuthAuthed(res.authed ?? false);
         setPwSaveState("idle");
         push(pwNew === "" ? t("auth.passwordCleared") : t("auth.passwordSaved"), "success");
         setPwNew("");

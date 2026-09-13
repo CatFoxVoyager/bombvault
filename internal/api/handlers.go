@@ -3650,6 +3650,7 @@ func (h *Handler) handleSetPassword(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	epoch := ""
 	if _, err := h.store.MutateSettings(func(s *store.Settings) error {
 		s.AuthPasswordHash = hash
 		if hash == "" {
@@ -3661,14 +3662,44 @@ func (h *Handler) handleSetPassword(w http.ResponseWriter, r *http.Request) {
 			s.TOTPSecret = ""
 			s.TOTPRecovery = ""
 		}
+		epoch = s.SessionEpoch
 		return nil
 	}); err != nil {
 		writeJSON(w, http.StatusOK, failEnvelope(err))
 		return
 	}
 
+	// Setting a password SIGNS THE OPERATOR IN. Without this the instance locks
+	// itself behind the operator in the same breath: the request that turns the
+	// login on is the last one this browser is allowed to make, because authGate
+	// now demands a session cookie nobody has issued yet. Every control that
+	// writes anything then answers 401 until the page is reloaded and the
+	// password typed a second time - which is how the second factor became
+	// unreachable right after it became relevant, the one moment somebody is
+	// most likely to want it.
+	//
+	// It grants nothing that was not already granted: this route is only
+	// reachable without a session while the login is OFF, so whoever calls it
+	// already had unauthenticated access to the whole API. Once the login is on,
+	// authGate holds the route like any other, and a password CHANGE is made by
+	// a session that already exists.
+	//
+	// The token signs the NEW hash, so it has to be minted after the write.
+	// Clearing the password sends the cookie away instead: the session it
+	// authenticated no longer means anything, and leaving it in the browser
+	// leaves a token signed against a hash that is gone.
+	if hash == "" {
+		http.SetCookie(w, h.newSessionCookie("", -1))
+	} else {
+		tok := secret.NewSessionToken(h.cfg.AppKey, hash, epoch, sessionTTL)
+		http.SetCookie(w, h.newSessionCookie(tok, int(sessionTTL.Seconds())))
+	}
+
 	writeJSON(w, http.StatusOK, okEnvelope(map[string]any{
 		"enabled": hash != "",
+		// The caller is signed in as of this answer, so the Security card can
+		// show the sign-out controls without a round trip or a reload.
+		"authed": hash != "",
 	}))
 }
 

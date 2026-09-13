@@ -600,3 +600,96 @@ func legacyHashForTest(appKey, password string) string {
 	mac.Write([]byte("bombvault:auth:" + password))
 	return hex.EncodeToString(mac.Sum(nil))
 }
+
+// ---------------------------------------------------------------------------
+// Setting a password signs the operator in
+// ---------------------------------------------------------------------------
+
+// TestSetPasswordIssuesASession pins the answer to a defect jdp hit in the
+// browser: after setting a password, the second factor could not be switched on
+// until the page was reloaded.
+//
+// The chain was: this route is reachable without a session only while the login
+// is OFF; the moment it stores a hash, authGate demands a session cookie; and
+// nobody had issued one. So the Security card showed the enable button, and the
+// request behind it answered 401. The page had to be reloaded and the password
+// typed a second time before anything worked.
+//
+// It grants nothing new: whoever reaches this route unauthenticated already had
+// unauthenticated access to the whole API.
+func TestSetPasswordIssuesASession(t *testing.T) {
+	h, repo, _ := newAuthGateHandler(t)
+	pw := strings.Repeat("x", secret.MinPasswordLen)
+
+	r := httptest.NewRequest(http.MethodPost, "/api/auth/password", strings.NewReader(`{"password":"`+pw+`"}`))
+	r.Header.Set("Content-Type", "application/json")
+	r.RemoteAddr = "10.0.0.1:1"
+	w := httptest.NewRecorder()
+	h.handleSetPassword(w, r)
+
+	var body map[string]any
+	if err := json.Unmarshal(w.Body.Bytes(), &body); err != nil {
+		t.Fatalf("response is not JSON: %v (%s)", err, w.Body.String())
+	}
+	if body["ok"] != true || body["authed"] != true {
+		t.Fatalf("setting a password must report the caller signed in, got %v", body)
+	}
+
+	var tok string
+	for _, c := range w.Result().Cookies() {
+		if c.Name == sessionCookieName {
+			tok = c.Value
+		}
+	}
+	if tok == "" {
+		t.Fatal("no session cookie was issued.\n" +
+			"The request that switches the login ON is the last one this browser may make without\n" +
+			"one, so every control answers 401 until the page is reloaded and the password typed\n" +
+			"again - the second factor above all, which is exactly what somebody sets up next.")
+	}
+
+	// …and it has to be valid against what was just stored. A token minted
+	// before the write would be signed against the old (empty) hash.
+	s, err := repo.GetSettings()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !secret.ValidSessionToken(h.cfg.AppKey, s.AuthPasswordHash, s.SessionEpoch, tok) {
+		t.Error("the issued session does not validate against the password that was just stored")
+	}
+}
+
+// TestClearingThePasswordSendsTheSessionAway is the other direction. A token
+// signed against a hash that no longer exists means nothing, and leaving it in
+// the browser leaves a cookie that looks like a session and is not one.
+func TestClearingThePasswordSendsTheSessionAway(t *testing.T) {
+	h, repo, _ := newAuthGateHandler(t)
+	enableAuth(t, h, repo)
+
+	r := httptest.NewRequest(http.MethodPost, "/api/auth/password", strings.NewReader(`{"password":""}`))
+	r.Header.Set("Content-Type", "application/json")
+	r.RemoteAddr = "10.0.0.1:1"
+	w := httptest.NewRecorder()
+	h.handleSetPassword(w, r)
+
+	var body map[string]any
+	if err := json.Unmarshal(w.Body.Bytes(), &body); err != nil {
+		t.Fatalf("response is not JSON: %v (%s)", err, w.Body.String())
+	}
+	if body["enabled"] != false || body["authed"] != false {
+		t.Fatalf("clearing the password must report the login off and nobody signed in, got %v", body)
+	}
+	found := false
+	for _, c := range w.Result().Cookies() {
+		if c.Name != sessionCookieName {
+			continue
+		}
+		found = true
+		if c.MaxAge >= 0 || c.Value != "" {
+			t.Errorf("the session cookie must be expired, got value %q maxAge %d", c.Value, c.MaxAge)
+		}
+	}
+	if !found {
+		t.Error("clearing the password left the browser's session cookie in place")
+	}
+}

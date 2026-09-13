@@ -528,6 +528,11 @@ export interface TOTPConfirmResponse extends OkEnvelope {
 export interface SetPasswordResponse extends OkEnvelope {
   /** Whether auth is now enabled after the change. */
   enabled?: boolean;
+  /** Whether THIS browser is signed in as of this answer. Setting a password
+   *  issues the session cookie in the same response, so the page does not have
+   *  to be reloaded and the password typed again before anything else works -
+   *  the second factor above all, which is unreachable without a session. */
+  authed?: boolean;
 }
 
 // ---------------------------------------------------------------------------
