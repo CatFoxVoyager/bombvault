@@ -112,7 +112,7 @@ Plans:
   4. Settings works on the phone — stacked setting cards, full-screen sheet editors, dark mode / language / accent as today, a defined treatment for the 7-tab Selector strip — and long lists (runs, containers, sets, logs) offer sticky search + filter chips with load-more pagination and ≥44px rows
   5. On Android the app presents the Material 3 expression (navpill bar, FAB primary action, tonal chips) and on iOS the HIG expression (large title, circular checks) — same information architecture, translated chrome only
 
-**Plans**: 5/8 plans executed
+**Plans**: 6/8 plans executed
 
 Plans:
 **Wave 1**
@@ -125,7 +125,7 @@ Plans:
 - [x] 07-03-PLAN.md — VMs + Flash mobile blocks: cards, trigger deep-link, CadenceBuilder sheets, load-more
 - [x] 07-04-PLAN.md — Config + Receiver + Fleet mobile blocks: guard-chain restore sheet, inventory/scorecard viewers, write-only editors
 - [x] 07-05-PLAN.md — Settings mobile block: tonal chip strip + stacked cards on the shared tab state
-- [ ] 07-06-PLAN.md — List ergonomics retrofit: Containers, Files sets, ActivityLog on mobile
+- [x] 07-06-PLAN.md — List ergonomics retrofit: Containers, Files sets, ActivityLog on mobile
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -164,5 +164,5 @@ Plans:
 | 4. File Sets Parity | v1.0 | 4/4 | Complete | 2026-09-11 |
 | 5. Mobile Shell & Navigation Foundation | v1.1 | 6/6 | Complete    | 2026-09-12 |
 | 6. Maquette Screens | v1.1 | 7/7 | Complete    | 2026-09-12 |
-| 7. Remaining Destinations & Operational Parity | v1.1 | 5/8 | In Progress|  |
+| 7. Remaining Destinations & Operational Parity | v1.1 | 6/8 | In Progress|  |
 | 8. Guided Restore & Real-Device Verification | v1.1 | 0/TBD | Not started | - |

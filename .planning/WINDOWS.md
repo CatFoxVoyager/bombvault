@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 8
+open_count: 9
 waived_count: 0
 fixed_count: 0
-total_count: 8
-last_updated: 2026-09-13T10:51:50.999Z
+total_count: 9
+last_updated: 2026-09-13T19:51:44.535Z
 ---
 
 # Broken Windows Ledger
@@ -23,6 +23,7 @@ last_updated: 2026-09-13T10:51:50.999Z
 | 6 | 06 | deviation | web/src/components/InfoBubble.tsx |  | Rule 1 auto-fix: destructure left JSX tail referencing removed tooltip object (ReferenceError); fixed by adding bubble to destructure (e24eda30) | open |  | 2026-09-12T12:10:09.881Z |  |
 | 7 | 06 | deviation | web/e2e/tap-popovers.spec.ts |  | Rule 1 auto-fix: e2e asserted translated label 'Filter' but actual string is 'Filters'; assertions corrected (768f87bd) | open |  | 2026-09-12T12:10:10.137Z |  |
 | 8 | 07 | deviation | web/src/lib/i18n.preseed.test.ts |  | 07-02 deviation: pin test file added outside the plan files_modified list so i18n.orphans.test.ts passes for the nine pre-seeded keys until page plans 07-03..07-07 reference them | open |  | 2026-09-13T10:51:50.999Z |  |
+| 9 | 07 | unmet-truth | web/e2e/platform-chrome.spec.ts | 158 | Pre-existing (fails at 713bc6b3, not caused by 07-06): mobile cupertino/material consumer tests expect a visible checkbox on /vms but the 07-03 VMs retrofit gates the multi-select checkbox out of the mobile surface; 2 mobile-android failures, deferred per deferred-items.md | open |  | 2026-09-13T19:51:44.535Z |  |
 
 ````json
 [
@@ -120,6 +121,18 @@ last_updated: 2026-09-13T10:51:50.999Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-13T10:51:50.999Z",
+    "resolved_at": null
+  },
+  {
+    "id": 9,
+    "kind": "unmet-truth",
+    "phase": "07",
+    "file": "web/e2e/platform-chrome.spec.ts",
+    "line": 158,
+    "description": "Pre-existing (fails at 713bc6b3, not caused by 07-06): mobile cupertino/material consumer tests expect a visible checkbox on /vms but the 07-03 VMs retrofit gates the multi-select checkbox out of the mobile surface; 2 mobile-android failures, deferred per deferred-items.md",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-13T19:51:44.535Z",
     "resolved_at": null
   }
 ]

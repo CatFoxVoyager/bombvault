@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 7
 current_phase_name: Remaining Destinations & Operational Parity
 status: executing
-stopped_at: Completed 07-05-PLAN.md
-last_updated: "2026-09-13T16:26:49.417Z"
+stopped_at: Completed 07-06-PLAN.md (list retrofits; 2 pre-existing platform-chrome failures deferred)
+last_updated: "2026-09-13T19:52:05.242Z"
 last_activity: 2026-09-13
 last_activity_desc: Phase 7 execution started
-state_head: 770443288e206b8492efac10c103ed8f7171f342
+state_head: 950855df233e9a6f86699c512e5c1fff1787d470
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 21
-  completed_plans: 18
+  completed_plans: 19
   percent: 50
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-13)
 ## Current Position
 
 Phase: 7 (Remaining Destinations & Operational Parity) — EXECUTING
-Plan: 6 of 8
+Plan: 7 of 8
 Total Plans in Phase: 8
 Status: Ready to execute
 Last activity: 2026-09-13 — Phase 7 execution started
@@ -101,6 +101,7 @@ Progress: [█████░░░░░] 50% (2/4 phases complete)
 | Phase 7 P03 | 1h 51m | 3 tasks | 6 files |
 | Phase 07 P04 | 1h 39m | 3 tasks | 6 files |
 | Phase 07 P05 | 1h 29m | 3 tasks | 5 files |
+| Phase 07 P06 | 3h22m | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -167,6 +168,9 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 7]: 07-05: Toggle 44px mobile hit area via max-md ::after 12px bleed (visual frozen, desktop untouched); FAB audit negative - every add-action already in-card, a Fab would duplicate a visible action
 - [Phase 7]: 07-05 e2e: /api/settings staged field-for-field + display-prefs METHOD-BRANCHED (GET abort boot-look cut, PUT ok); role queries need includeHidden for the mounted-hidden D-01 half; card-heading visibility asserts the badge span (h2 is a zero-height box under the absolute notch Badge)
 - [Phase 7]: 07-05 VERIFY-04 disposition: e2e touch-target backstop enforces NEW mobile primitives only (chips min-h-11, Toggle bleed); app-wide desktop-era control scale (Button 32px, Selector 37.6px) is a phase 8 real-device validation item
+- [Phase 7]: useLoadMore gained an optional preserveKey: live feeds (activity log re-merging per poll/SSE/tick) keep their reader window across same-key refreshes; absent key keeps strict wave-1 identity semantics
+- [Phase 7]: Mobile Containers filters are the in-flow ListToolbar on the desktop-owned state — the mobile FilterPopover affordance is retired (e2e tap-popovers retargeted to the Accent preset swatch, the only fresh-DB-live mobile TapPopover surface)
+- [Phase 7]: Files sets list binds a NEW set-name search state via common.search (desktop sets list had no search state to bind); Files header keeps min-width:auto on its ms-auto column — the page-pan culprit was the row's shrink-0, now removed
 
 ### Pending Todos
 
@@ -193,8 +197,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-13T16:26:49.154Z
-Stopped at: Completed 07-05-PLAN.md
+Last session: 2026-09-13T19:51:57.270Z
+Stopped at: Completed 07-06-PLAN.md (list retrofits; 2 pre-existing platform-chrome failures deferred)
 Resume file: None
 
 ## Operator Next Steps
