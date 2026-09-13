@@ -64,8 +64,10 @@ import { Selector } from "../../components/Selector";
 import { getNotify, setNotify, testNotify, type NotifyConfig } from "../../lib/api";
 import { tLtr } from "../../lib/ltrFragments";
 import { useAdvanced } from "../../lib/advanced";
+import { BottomSheet } from "../../components/mobile/BottomSheet";
 import { useEffect, useRef, useState } from "react";
 import { useReveal } from "../../lib/useReveal";
+import { useIsDesktop } from "../../lib/useMediaQuery";
 import { useT } from "../../lib/i18n";
 import { useToast } from "../../lib/toast";
 
@@ -327,9 +329,61 @@ export function NotifyCard({
   // rounded-card bg-carbon-surface2 panels below, so nothing else needs it.
   const labelCls = "flex flex-col gap-1 text-xs text-carbon-textSub";
 
-  return (
+  // D-01 double gate (07-07 Task 1 — the ActivityLog.tsx pattern from 07-06,
+  // applied to this tab's editor): the desktop three-Card form stays in the
+  // JSX under `max-md:hidden` (CSS-hidden on mobile; jsdom still sees the
+  // exact desktop DOM, which is what keeps every existing Settings dom suite
+  // passing unchanged), while the phone presentation is JSX-gated on
+  // `!isDesktop` — a >=44px entry row opening a fullHeight editor sheet
+  // (D-05), the same fullHeight editor contract Receiver's MobileRepoEditor
+  // and Vms' schedule sheets already ship.
+  //
+  // ONE form, TWO presentations — never a fork. `renderCards` below is the
+  // single copy of the three-Card form JSX, rendered once into the desktop
+  // wrapper and once into the sheet body. Both mounted copies read the SAME
+  // cfg/secretSet/fieldShake state and route every edit through the SAME
+  // set()/setImmediate()/persistNotify chain (one setNotify write path), so
+  // the hidden desktop copy and the open sheet cannot drift — the same "one
+  // state, two presentations" doctrine the 07-05 chip strip established for
+  // the tab state. Autosave means there is no draft state to protect, so the
+  // sheet needs no StickyActionBar apply/cancel pair ("where draft state
+  // exists" — none does here; a failed save already toasts AND shakes the
+  // exact field through the revert+shake mechanism above).
+  //
+  // The sheet copy passes Card's own sanctioned `nested` prop (the Recovery
+  // step-3 precedent: CloudCard/RcloneCard reused verbatim inside a
+  // bg-carbon-surface parent): the sheet panel is bg-carbon-surface — the
+  // LITERAL same token as Card's own surface — so an unnested Card would
+  // paint its parent's colour over its parent and read as 20px of
+  // unexplained indentation. `nested` drops only the duplicated surface and
+  // horizontal padding; hue wiring, heading notches and every field are
+  // untouched. The desktop copy passes nothing (absent = false = the exact
+  // pre-gate DOM).
+  //
+  // The sheet title reuses the section's OWN key (notify.title) per the
+  // phase's copywriting contract ("a sheet title is never newly authored");
+  // the settings Card's own heading repeating it inside the sheet is the
+  // established shape — Vms' override sheet carries the identical
+  // schedule.overrideTitle both on the sheet header and on the
+  // CadenceBuilder legend it hosts.
+  const isDesktop = useIsDesktop();
+  const [sheetOpen, setSheetOpen] = useState(false);
+  // The entry row's live summary: the stored "notify on" policy in the SAME
+  // words the Selector inside uses, so the row never claims a mode the form
+  // does not hold. Nothing is claimed before the load resolves (an unopened
+  // row cannot know yet) and a failed load names itself, honestly — the same
+  // "the card refuses to save until it succeeds" honesty the inline Card's
+  // own loadErr span carries.
+  const onSummary =
+    cfg.on === "failure"
+      ? t("notify.onFailure")
+      : cfg.on === "always"
+        ? t("notify.onAlways")
+        : t("notify.onNever");
+
+  const renderCards = (nested: boolean) => (
     <>
-    <Card title={t("notify.title")} hint={t("notify.hint")} hueIndex={hueIndex}>
+    <Card title={t("notify.title")} hint={t("notify.hint")} hueIndex={hueIndex} nested={nested}>
       {/* A failed read used to be invisible. It has to be on screen, because
           the card refuses to save until it succeeds. */}
       {loadErr && <span className="text-xs text-statusFail">{t("settings.notLoadedNoSave")}</span>}
@@ -509,7 +563,7 @@ export function NotifyCard({
     </Card>
 
     {advanced && (
-      <Card title={t("notify.channelsTitle")} hint={t("notify.channelsHint")} hueIndex={channelsHueIndex}>
+      <Card title={t("notify.channelsTitle")} hint={t("notify.channelsHint")} hueIndex={channelsHueIndex} nested={nested}>
       {/* Webhook (generic JSON / Discord / Slack / Gotify / ntfy). Gets a real
           enable/disable toggle (jdp, live-review: "Matrix, Apprise, Webhook-
           URL sollen alle ein Toggle bekommen wie E-Mail") — same shape as
@@ -732,7 +786,7 @@ export function NotifyCard({
           Neither section's own JSX changed beyond the wrapping Card — global
         URL + per-domain overrides render exactly as before. */}
     {advanced && (
-      <Card title={t("notify.healthchecksTitle")} hueIndex={healthchecksHueIndex}>
+      <Card title={t("notify.healthchecksTitle")} hueIndex={healthchecksHueIndex} nested={nested}>
       {/* Healthchecks global ping URL.
             notify.healthchecksLifecycle moved from a permanent <p> into an
           InfoBubble attached to this label (jdp, live-review, explicit and
@@ -814,6 +868,54 @@ export function NotifyCard({
         ))}
       </div>
       </Card>
+    )}
+    </>
+  );
+
+  return (
+    <>
+    {/* Desktop half of the gate: the three Cards exactly as before this
+        component went dual-presentation, wrapped only so the fragment's
+        internal rhythm survives — the panels flow's own `gap-10` used to
+        separate the three sibling Cards, so the wrapper carries that same
+        gap. `max-md:hidden` is the CSS half of the D-01 gate: mounted but
+        never painted below md. */}
+    <div className="flex flex-col gap-10 max-md:hidden">{renderCards(false)}</div>
+
+    {/* Mobile half: the entry row + the fullHeight editor sheet hosting the
+        SAME form JSX (renderCards(true) — nested per the comment above).
+        Rendered only below the breakpoint (the JS half of the gate; useMediaQuery's
+        DESKTOP_QUERY and Tailwind's md variant are pinned together by
+        useMediaQuery.test.ts, so the two halves flip at exactly one width). */}
+    {!isDesktop && (
+      <>
+      <button
+        type="button"
+        onClick={() => setSheetOpen(true)}
+        className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-3 py-2 text-start text-sm font-medium text-carbon-text"
+      >
+        <span className="truncate">{t("notify.title")}</span>
+        {loadErr ? (
+          <span className="shrink-0 text-xs text-statusFail">{t("settings.notLoadedNoSave")}</span>
+        ) : loaded ? (
+          <span className="shrink-0 text-xs text-carbon-textMuted">{onSummary}</span>
+        ) : null}
+      </button>
+      <BottomSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        title={t("notify.title")}
+        fullHeight
+      >
+        {/* Same body shape as every editor sheet (MobileRepoEditor): content
+            in a min-h-full flex column with the sheet's own top padding; no
+            StickyActionBar — this form is fully autosave, there is no draft
+            to apply or cancel. */}
+        <div className="flex min-h-full flex-col gap-4 pt-4">
+          {renderCards(true)}
+        </div>
+      </BottomSheet>
+      </>
     )}
     </>
   );
