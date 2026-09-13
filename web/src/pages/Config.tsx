@@ -1,14 +1,19 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { Link } from "react-router-dom";
 import { hueVars, rainbowAt } from "../lib/appearance";
 import {
   backupConfigNow,
   listConfigSnapshots,
   deleteSnapshot,
+  getScheduleNext,
   getSettings,
   putSettings,
+  restoreConfig,
+  waitForAppBack,
 } from "../lib/api";
-import type { Snapshot, Settings } from "../lib/api";
+import type { ScheduleNext, Snapshot, Settings } from "../lib/api";
 import { useT } from "../lib/i18n";
+import { useIsDesktop } from "../lib/useMediaQuery";
 import { PAGE_SHELL } from "../lib/pageShell";
 import { ProgressBar } from "../components/ProgressBar";
 import { useProgress, anyActive, busyPhraseKey } from "../lib/progress";
@@ -22,6 +27,13 @@ import { Button } from "../components/Button";
 import { InfoBubble } from "../components/InfoBubble";
 import { IconBackupNow, IconTrash } from "../components/Sidebar";
 import { tLtr } from "../lib/ltrFragments";
+import { relativeTime } from "../lib/reltime";
+import { CadenceBuilder } from "../components/CadenceBuilder";
+import { ScheduleBadge, cadenceLabel, scheduleStatus } from "../components/ScheduleBadge";
+import { BottomSheet } from "../components/mobile/BottomSheet";
+import { Fab } from "../components/mobile/Fab";
+import { MobileSectionLabel } from "../components/mobile/MobileSectionLabel";
+import { StickyActionBar } from "../components/mobile/StickyActionBar";
 
 type T = ReturnType<typeof useT>["t"];
 
@@ -65,18 +77,30 @@ function ConfigBackupButton({
   onBackedUp,
   externallyBusy = false,
   busyPhase,
+  fireRef,
 }: {
   t: T;
   onBackedUp: () => void;
   /** True when a backup/restore is running elsewhere (any domain). */
   externallyBusy?: boolean;
   busyPhase?: string;
+  /** Optional ref the caller fires to trigger the SAME fire() — the mobile
+   *  Fab hosts the same action (07-03's FlashBackupButton precedent: "FAB
+   *  under material hosts the same action"), so ONE watcher owns the toasts
+   *  and the busy state no matter which trigger the user pressed. Desktop
+   *  callers omit it and are unchanged. */
+  fireRef?: { current: (() => void) | null };
 }) {
   const { state, fire, isPending } = useBackupWatch({
     progressKey: "config",
     start: () => backupConfigNow(),
     matchRun: (r) => r.domain === "config",
     onDone: onBackedUp,
+  });
+  // Keep the caller's ref pointed at the live fire() (same effect shape as
+  // FlashBackupButton's).
+  useEffect(() => {
+    if (fireRef) fireRef.current = fire;
   });
   // A backup/restore/replication elsewhere blocks a new config backup.
   const blockedByOther = externallyBusy && !isPending;
@@ -424,6 +448,15 @@ function ConfigSnapshotRow({
 
 export function Config() {
   const { t } = useT();
+  // D-01 double gate (the Containers/VMs/Flash mount-discipline precedent):
+  // the desktop JSX below is always rendered and carries `max-md:hidden`, so
+  // the desktop presentation stays byte-identical; the mobile card block
+  // mounts only under `!isDesktop`. jsdom's matchMedia stub answers "desktop",
+  // so Config.autosave.dom.test.tsx keeps testing the desktop page and the
+  // mobile block is an e2e-only surface. The block owns every mobile-only
+  // fetch (the settings gate, /api/schedule/next) inside itself, so the
+  // desktop makes no new requests.
+  const isDesktop = useIsDesktop();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [source, setSource] = useState<RepoSource>("local");
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
@@ -480,9 +513,15 @@ export function Config() {
         <p className="mt-1 text-sm text-carbon-textSub">{t("config.subtitle")}</p>
       </div>
 
-      {/* Settings card */}
+      {/* Settings card — desktop only (the mobile block hosts its own toggle
+          on the same write chain). The wrapper div rather than a className
+          prop: ConfigSettingsCard predates the mobile language and takes no
+          layout props; the wrapper keeps the desktop DOM one structural div
+          wider and nothing else. */}
       {settings && (
-        <ConfigSettingsCard t={t} settings={settings} setSettings={(u) => setSettings((prev) => (prev ? u(prev) : prev))} hueIndex={0} />
+        <div className="max-md:hidden">
+          <ConfigSettingsCard t={t} settings={settings} setSettings={(u) => setSettings((prev) => (prev ? u(prev) : prev))} hueIndex={0} />
+        </div>
       )}
 
       {/* Backup card. GlimStone follow-up pass ("half-overlap card notch"):
@@ -526,7 +565,7 @@ export function Config() {
           bg-accent button below stayed flat regardless of rainbow. Same
           hueIndex={1} the Badge already uses; the inner overflow-hidden box
           inherits it too via ordinary CSS custom-property cascade. */}
-      <div className="relative glim-notch-card glim-hue" style={hueVars(rainbowAt(1)) as CSSProperties}>
+      <div className="relative glim-notch-card glim-hue max-md:hidden" style={hueVars(rainbowAt(1)) as CSSProperties}>
         <h2 className="flex items-center">
           <Badge tone="heading" size="heading" wrap hueIndex={1} insetStart={5}>
             {t("config.backupTitle")}
@@ -565,7 +604,7 @@ export function Config() {
           own delete button inherits it via the ordinary custom-property
           cascade, no per-row change needed. */}
       <div
-        className="relative glim-notch-card glim-hue bg-carbon-surface rounded-card p-5 flex flex-col gap-4"
+        className="relative glim-notch-card glim-hue bg-carbon-surface rounded-card p-5 flex flex-col gap-4 max-md:hidden"
         style={hueVars(rainbowAt(2)) as CSSProperties}
       >
         {/* jdp live-review ("Infotexte in i Infobubbles"): this used to be a
@@ -626,6 +665,591 @@ export function Config() {
           </div>
         )}
       </div>
+
+      {/* D-01 second gate: the mobile card block. Mounted ONLY under !isDesktop
+          (not just hidden) so the desktop makes no new requests and its DOM and
+          network traffic stay identical — the block owns every mobile-only
+          fetch (the settings gate, /api/schedule/next) inside itself. The
+          SNAPSHOT data is shared with the desktop cards' own load() — one
+          fetch, two presentations. */}
+      {!isDesktop && (
+        <MobileConfigBlock
+          snapshots={snapshots}
+          loading={loading}
+          error={error}
+          onRetry={() => void load()}
+          running={running}
+          progress={progress}
+          onRefresh={() => void load()}
+        />
+      )}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Mobile Config block (07-04, MORE-01b) — the Self-Backup page's card
+// presentation below the 48rem breakpoint (D-01's second gate; the
+// mount-discipline comment on Config() above is the other half).
+//
+// WHY A SEPARATE COMPONENT (the VMs/Flash block reasoning, verbatim in
+// spirit): the block owns every mobile-only fetch — the destinations gate
+// (getSettings → settings.configEnabled) and the D-06 next-fire read
+// (getScheduleNext filtered to the config domain) — and because the desktop
+// never mounts this component, the desktop makes no new requests and its DOM
+// and network traffic stay identical.
+//
+// OFFSITE INDICATOR: the plan scopes it to "exactly where the desktop surface
+// speaks offsite" — and the desktop Self-Backup page never does (its off-site
+// card has lived in Settings › Off-site since #176, per config.offsiteMoved).
+// So unlike the Flash hero, this status card renders no OffsiteIndicator —
+// there is no desktop counterpart position to mirror.
+//
+// WRITES: the toggle and the schedule sheet serialize on ONE local
+// queueSettingsWrite promise chain, re-fetch the latest settings at SEND time
+// and merge ONLY the field the surface owns (T-07-13 — the desktop
+// ConfigSettingsCard.persist / Settings.tsx save shape; Flash's MobileZipSheet
+// kept the same shape local for the identical reason). Success dispatches
+// "bv:settings-changed" so the mobile chrome (bottom bar / More sheet) drops
+// or restores the Config tab immediately — Layout listens for exactly this
+// event; the desktop page has no self-gating chrome and has never dispatched
+// it, so that dispatch is mobile-only code.
+// ---------------------------------------------------------------------------
+function MobileConfigBlock({
+  snapshots,
+  loading,
+  error,
+  onRetry,
+  running,
+  progress,
+  onRefresh,
+}: {
+  /** The page's own snapshot list — one fetch, two presentations. */
+  snapshots: Snapshot[];
+  loading: boolean;
+  error: string | null;
+  onRetry: () => void;
+  running: { active: boolean; phase?: string };
+  progress?: { percent: number; active: boolean };
+  onRefresh: () => void;
+}) {
+  const { t } = useT();
+  const { push } = useToast();
+
+  // GATE-OFF HONESTY (the VMs/Flash contract): an unknown gate state reads as
+  // "on" — a failed settings fetch renders the real surface (whose own error
+  // paths are honest) rather than ever claiming the domain is disabled when
+  // we simply don't know.
+  const [gate, setGate] = useState<"unknown" | "on" | "off">("unknown");
+  // The toggle + schedule entry read their values from this same fetch — no
+  // second settings read. Optimistic flips revert on a failed write.
+  const [enabled, setEnabled] = useState(true);
+  const [configSchedule, setConfigSchedule] = useState("off");
+  const [enabledBusy, setEnabledBusy] = useState(false);
+  // GlimStone standing rule (jdp, live review, emphatic, system-wide): a
+  // failed action toasts AND shakes its control.
+  const [enabledShake, setEnabledShake] = useState(0);
+  const settingsWrites = useRef<Promise<unknown>>(Promise.resolve());
+
+  // Serialize every write on ONE chain that never rejects (Settings.tsx's
+  // queueSettingsWrite shape, kept local — same call Flash.tsx's
+  // MobileZipSheet made for the same reason).
+  function queueSettingsWrite<T>(run: () => Promise<T>): Promise<T> {
+    const next = settingsWrites.current.then(run);
+    settingsWrites.current = next.then(() => undefined, () => undefined);
+    return next;
+  }
+
+  useEffect(() => {
+    let alive = true;
+    getSettings()
+      .then((r) => {
+        if (!alive) return;
+        if (r.ok) {
+          setGate(r.settings.configEnabled === false ? "off" : "on");
+          setEnabled(r.settings.configEnabled);
+          setConfigSchedule(r.settings.configSchedule || "off");
+        } else {
+          setGate("on");
+        }
+      })
+      .catch(() => {
+        if (alive) setGate("on");
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  async function persistEnabled(next: boolean) {
+    const prev = enabled;
+    setEnabled(next); // optimistic flip
+    setEnabledBusy(true);
+    try {
+      await queueSettingsWrite(async () => {
+        // Re-fetch at send time, merge ONLY the changed field (T-07-13) —
+        // the desktop card's own persist shape, unchanged.
+        const latest = await getSettings();
+        if (!latest.ok) throw new Error(latest.error ?? t("config.loadSettingsFailed"));
+        const res = await putSettings({ ...latest.settings, configEnabled: next });
+        if (!res.ok) throw new Error(res.error ?? t("common.saveFailed"));
+      });
+      push(t("settings.saved"), "success");
+      // Nav sync (mobile-only): configEnabled gates the Config tab in the
+      // bottom bar / More sheet, so the chrome must re-read settings now.
+      window.dispatchEvent(new Event("bv:settings-changed"));
+    } catch (err) {
+      setEnabled(prev); // revert
+      setEnabledShake((n) => n + 1); // toast AND shake (GlimStone standing rule)
+      push(err instanceof Error ? err.message : t("common.saveFailed"), "fail");
+    } finally {
+      setEnabledBusy(false);
+    }
+  }
+
+  // D-06/FLOW-01: the config-domain next fire, SERVER-derived — no client
+  // cadence math. scheduleTick bumps after the schedule sheet saves (the next
+  // fire may have moved).
+  const [scheduleNext, setScheduleNext] = useState<ScheduleNext | null>(null);
+  const [scheduleTick, setScheduleTick] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    getScheduleNext()
+      .then((rows) => {
+        if (alive) setScheduleNext(rows.find((r) => r.domain === "config") ?? null);
+      })
+      .catch(() => {
+        if (alive) setScheduleNext(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [scheduleTick]);
+
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  // The mobile Fab fires the SAME watcher as the status card's trigger
+  // (FlashBackupButton's fireRef precedent) — one action, one toast path.
+  const fireRef = useRef<(() => void) | null>(null);
+
+  // The newest snapshot drives the status Badge and the last-run line. Max
+  // over parsed times — never an order assumption about the list payload.
+  const newest =
+    snapshots.length > 0
+      ? snapshots.reduce((a, b) => (new Date(b.time).getTime() > new Date(a.time).getTime() ? b : a))
+      : null;
+  const newestUnix = newest ? new Date(newest.time).getTime() / 1000 : null;
+  const progressLive = !!progress?.active;
+  const scheduleActive = scheduleStatus(configSchedule) !== "off";
+  // While the page fetch is in flight the card must not claim "Never" — the
+  // desktop snapshots card shows the same "checking" copy for exactly this
+  // reason (honesty until the data lands).
+  const lastRunLine = loading
+    ? t("dashboard.checking")
+    : newest
+      ? new Date(newest.time).toLocaleString()
+      : t("containers.never");
+  const statusBadge = progressLive
+    ? { tone: "warn" as const, label: t("config.backingUp") }
+    : newestUnix !== null
+      ? { tone: "ok" as const, label: relativeTime(t, newestUnix) }
+      : { tone: "neutral" as const, label: loading ? t("dashboard.checking") : t("containers.never") };
+
+  return (
+    <div className="flex flex-col gap-3 glim-content-fade">
+      {/* Page-level load failure: this >=44px tonal row is the mobile recovery
+          affordance; the desktop cards' own error paragraph stays hidden with
+          them below md. folders.retry ("Try again") is the sanctioned existing
+          label — the phase's pre-seed added no retry key (07-02). */}
+      {error && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+        >
+          {t("folders.retry")}
+        </button>
+      )}
+
+      {gate === "off" ? (
+        // The destinations gate, mobile face (the VMs/Flash contract): the
+        // block says plainly that self-backup is off and links to the
+        // settings row that turns it on.
+        <div>
+          <MobileSectionLabel t={t} labelKey="settings.configEnabled" />
+          <div className="mt-2 flex flex-col gap-2 rounded-card border border-carbon-border bg-carbon-surface p-4">
+            <p className="text-sm text-carbon-textSub">{t("settings.configEnabledHint")}</p>
+            <Link
+              to="/settings"
+              className="flex min-h-[2.75rem] items-center rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+            >
+              {t("nav.settings")}
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Status card (hue 0) — the card language over the SAME data the
+              desktop backup card reads: status Badge (live backup wins, else
+              the newest snapshot's relative age, else "Never"), last-run
+              line, the page's ONE accent reservation (the existing
+              ConfigBackupButton trigger, which the Fab also fires through
+              fireRef), and the live ProgressBar. */}
+          <div
+            className="glim-hue glim-content-fade relative flex flex-col gap-3 overflow-hidden rounded-card bg-carbon-surface p-4"
+            style={hueVars(rainbowAt(0)) as CSSProperties}
+          >
+            <div className="flex items-center gap-3">
+              <span
+                aria-hidden
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-carbon-surface2 text-carbon-textSub"
+              >
+                <IconBackupNow />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-carbon-text">{t("config.backupTitle")}</p>
+                <p className="truncate text-xs text-carbon-textMuted">
+                  {`${t("containers.lastBackup")}: ${lastRunLine}`}
+                </p>
+              </div>
+              <Badge tone={statusBadge.tone}>{statusBadge.label}</Badge>
+            </div>
+            <div className="flex justify-end">
+              <ConfigBackupButton t={t} onBackedUp={onRefresh} externallyBusy={running.active} busyPhase={running.phase} fireRef={fireRef} />
+            </div>
+            {progress && <ProgressBar percent={progress.percent} active={progress.active} />}
+          </div>
+
+          {/* The configEnabled autosave toggle (the desktop settings card's
+              own row, on the same write chain). */}
+          <div className="rounded-card bg-carbon-surface p-4">
+            <ToggleRow
+              label={t("config.enabled")}
+              checked={enabled}
+              onChange={(v) => void persistEnabled(v)}
+              disabled={enabledBusy}
+              shakeNonce={enabledShake}
+            />
+          </div>
+
+          {/* Schedule entry row → the fullHeight CadenceBuilder sheet. Tonal,
+              never accent — the status card's trigger owns this surface's one
+              accent reservation. Right side: the SERVER-derived next-fire
+              chip (D-06, accent-soft) when the schedule is active and the
+              server reports a fire, else the ScheduleBadge state label. */}
+          <button
+            type="button"
+            onClick={() => setScheduleOpen(true)}
+            aria-expanded={scheduleOpen}
+            className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-3 py-2 text-start text-sm font-medium text-carbon-text"
+          >
+            <span className="truncate">{t("settings.schedulesSelfBackup")}</span>
+            <span className="flex shrink-0 items-center gap-2">
+              {scheduleActive && scheduleNext ? (
+                <span className="rounded-pill bg-accentSoft px-2.5 py-1 text-xs font-semibold text-accentText">
+                  {new Date(scheduleNext.next).toLocaleString()}
+                </span>
+              ) : null}
+              <ScheduleBadge
+                status={scheduleStatus(configSchedule)}
+                label={scheduleActive ? cadenceLabel(configSchedule, t) : t("jobs.notScheduled")}
+              />
+            </span>
+          </button>
+
+          {/* Restore entry: a tonal row (restore entries NEVER render accent
+              — the plan's explicit prohibition) opening the guard-chain
+              restore sheet. */}
+          <button
+            type="button"
+            onClick={() => setRestoreOpen(true)}
+            aria-expanded={restoreOpen}
+            className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-3 py-2 text-start text-sm font-medium text-carbon-text"
+          >
+            <span className="truncate">{t("recovery.stepConfig")}</span>
+          </button>
+        </>
+      )}
+
+      {/* PLAT-01 / D-12: the surface's ONE accent reservation hosts its ONE
+          primary action — the self-backup, the same watcher the status card's
+          trigger uses (fireRef). Renders null under cupertino (the Fab's
+          documented platform contract). */}
+      {!error && gate !== "off" && (
+        <div className="flex justify-end pt-1">
+          <Fab
+            label={t("config.backupNow")}
+            icon={<IconBackupNow />}
+            onClick={() => {
+              if (!running.active) fireRef.current?.();
+            }}
+          />
+        </div>
+      )}
+
+      {/* The schedule sheet (D-05/D-06 fullHeight) and the guard-chain
+          restore sheet (D-04 content-sized) — component-local, hosted here. */}
+      <MobileScheduleSheet
+        open={scheduleOpen}
+        schedule={configSchedule}
+        onClose={() => setScheduleOpen(false)}
+        onSaved={(next) => {
+          setConfigSchedule(next);
+          setScheduleTick((n) => n + 1);
+        }}
+      />
+      <MobileRestoreSheet open={restoreOpen} onClose={() => setRestoreOpen(false)} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// MobileScheduleSheet — the self-backup schedule below the breakpoint: the
+// SAME CadenceBuilder the desktop Settings › Schedules card renders (default
+// modes — a domain schedule accepts everyN; the #166 exact-cadence restriction
+// is a per-item override rule), with an explicit apply in the StickyActionBar
+// riding the ONE settings write chain (see MobileConfigBlock's header).
+// ---------------------------------------------------------------------------
+function MobileScheduleSheet({
+  open,
+  schedule,
+  onClose,
+  onSaved,
+}: {
+  open: boolean;
+  /** The stored cadence string — the draft is seeded from it on open. */
+  schedule: string;
+  onClose: () => void;
+  /** A save landed: the entry row's badge + the next-fire chip refresh. */
+  onSaved: (next: string) => void;
+}) {
+  const { t } = useT();
+  const { push } = useToast();
+  const [draft, setDraft] = useState(schedule);
+  const [seededFor, setSeededFor] = useState<boolean | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [shake, setShake] = useState(0);
+  const settingsWrites = useRef<Promise<unknown>>(Promise.resolve());
+
+  function queueSettingsWrite<T>(run: () => Promise<T>): Promise<T> {
+    const next = settingsWrites.current.then(run);
+    settingsWrites.current = next.then(() => undefined, () => undefined);
+    return next;
+  }
+
+  // Seed the draft from the stored value on every open (CadenceBuilder
+  // re-parses when `value` changes externally, so re-seeding per open is
+  // what keeps the builder honest if another surface saved meanwhile).
+  useEffect(() => {
+    if (open && seededFor !== open) {
+      setSeededFor(open);
+      setDraft(schedule);
+    }
+    if (!open && seededFor !== null) setSeededFor(null);
+  }, [open, seededFor, schedule]);
+
+  async function applySchedule() {
+    setSaving(true);
+    try {
+      const toStore = draft.trim() === "" ? "off" : draft.trim();
+      await queueSettingsWrite(async () => {
+        // Re-fetch at send time, merge ONLY configSchedule (T-07-13) —
+        // a full-object PUT of a captured snapshot could re-assert a stale
+        // value for any field owned by another surface (the exact clobber
+        // the desktop schedule move to Settings was made to end).
+        const latest = await getSettings();
+        if (!latest.ok) throw new Error(latest.error ?? t("config.loadSettingsFailed"));
+        const res = await putSettings({ ...latest.settings, configSchedule: toStore });
+        if (!res.ok) throw new Error(res.error ?? t("common.saveFailed"));
+      });
+      push(t("settings.saved"), "success");
+      onClose();
+      onSaved(toStore);
+      // Chrome sync (mobile-only) — see MobileConfigBlock's header.
+      window.dispatchEvent(new Event("bv:settings-changed"));
+    } catch (err) {
+      setShake((n) => n + 1); // toast AND shake (GlimStone standing rule)
+      push(err instanceof Error ? err.message : t("common.saveFailed"), "fail");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <BottomSheet open={open} onClose={onClose} title={t("settings.schedulesSelfBackup")} fullHeight>
+      <div className="flex min-h-full flex-col">
+        <div className="pt-4">
+          <CadenceBuilder
+            label={t("settings.schedulesSelfBackup")}
+            value={draft}
+            onChange={setDraft}
+          />
+        </div>
+        <div className="min-h-4 flex-1" />
+        <StickyActionBar>
+          <Button
+            label={t("common.cancel")}
+            labelKey="common.cancel"
+            tone="neutral"
+            onClick={onClose}
+            disabled={saving}
+            className="w-full"
+          />
+          <Button
+            key={shake}
+            label={t("common.done")}
+            labelKey="common.done"
+            tone="accent"
+            onClick={() => void applySchedule()}
+            busy={saving}
+            disabled={saving}
+            className={`w-full ${shake ? "glim-shake" : ""}`}
+          />
+        </StickyActionBar>
+      </div>
+    </BottomSheet>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// MobileRestoreSheet — the config restore's mobile face (T-07-12): the D-03
+// guard chain rendered READ-ONLY, in order, ABOVE an outcome-naming confirm —
+// the chain is never collapsed behind a single confirm. The confirm reuses
+// the EXISTING desktop copy (`recovery.configRestore`), and the call it fires
+// is the SAME one Recovery.tsx's trigger fires (restoreConfig("latest")) —
+// the sheet narrates the frozen chain; it never re-implements restore logic.
+// Content-sized (no fullHeight): D-04's viewer rule.
+// ---------------------------------------------------------------------------
+type RestorePhase = "idle" | "saving" | "restarting" | "manual" | "reload" | "error";
+
+function MobileRestoreSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useT();
+  const { push } = useToast();
+  const [phase, setPhase] = useState<RestorePhase>("idle");
+  const [message, setMessage] = useState<string | null>(null);
+  const [shake, setShake] = useState(0);
+
+  // Recovery.tsx's own classifier (module-local there, same one-line shape):
+  // an APP_KEY mismatch gets the mapped remedy instead of the raw error.
+  function isKeyMismatch(err: string | undefined): boolean {
+    return !!err && /APP_KEY/i.test(err);
+  }
+
+  async function runRestore() {
+    setPhase("saving");
+    setMessage(null);
+    try {
+      const res = await restoreConfig("latest");
+      if (!res.ok || !res.staged) {
+        // An APP_KEY mismatch surfaces as Recovery's mapped remedy; anything
+        // else is the backend's own scrubbed message verbatim.
+        const msg = res.ok
+          ? res.error ?? t("settings.error")
+          : isKeyMismatch(res.error)
+            ? t("recovery.appKeyRemedy")
+            : res.error ?? t("settings.error");
+        setMessage(msg);
+        setPhase("error");
+        setShake((n) => n + 1);
+        push(msg, "fail");
+        return;
+      }
+      if (res.autoRestart) {
+        // BombVault restarts itself to apply the staged restore; poll until
+        // it answers again, then reload (Recovery's own flow, waitForAppBack
+        // shared verbatim from api.ts).
+        setPhase("restarting");
+        const back = await waitForAppBack();
+        if (back) {
+          window.location.reload();
+        } else {
+          setPhase("reload");
+        }
+      } else {
+        // Docker socket unreachable: the restore is staged, the user must
+        // restart the container themselves.
+        setPhase("manual");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : t("settings.error");
+      setMessage(msg);
+      setPhase("error");
+      setShake((n) => n + 1);
+      push(msg, "fail");
+    }
+  }
+
+  const busy = phase === "saving" || phase === "restarting";
+
+  return (
+    <BottomSheet open={open} onClose={onClose} title={t("recovery.stepConfig")}>
+      <div className="flex flex-col gap-3 pt-4">
+        <p className="text-sm font-semibold text-carbon-text">{t("config.restoreChain.title")}</p>
+        {/* The D-03 chain: a real numbered <ol>, 12px step text, rendered
+            BEFORE the confirm control below (DOM order = reading order — the
+            e2e asserts the five <li> precede the confirm). */}
+        <ol className="list-decimal space-y-2 ps-5 text-xs leading-relaxed text-carbon-textSub">
+          <li>{t("config.restoreChain.step1")}</li>
+          <li>{t("config.restoreChain.step2")}</li>
+          <li>{t("config.restoreChain.step3")}</li>
+          <li>{t("config.restoreChain.step4")}</li>
+          <li>{t("config.restoreChain.step5")}</li>
+        </ol>
+
+        {/* Post-confirm states — Recovery's own keys and shapes, mobile-sized. */}
+        {phase === "restarting" && (
+          <div className="flex flex-col gap-1">
+            <p className="text-sm text-accentText">{t("recovery.configRestarting")}</p>
+            <Badge as="button" onClick={() => window.location.reload()} tone="neutral" size="small" className="self-start">
+              {t("recovery.configReload")}
+            </Badge>
+          </div>
+        )}
+        {phase === "manual" && (
+          <div className="rounded-card bg-statusWarnBg px-3 py-2.5 text-xs text-statusWarn leading-relaxed">
+            {t("recovery.configManualRestart")}
+          </div>
+        )}
+        {phase === "reload" && (
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-xs text-statusWarn">{t("recovery.configReloadWhenBack")}</span>
+            <Button
+              label={t("recovery.configReload")}
+              labelKey="recovery.configReload"
+              tone="neutral"
+              onClick={() => window.location.reload()}
+            />
+          </div>
+        )}
+        {phase === "error" && message && (
+          <div className="rounded-card bg-statusFailBgSoft px-3 py-2.5 text-xs text-statusFail leading-relaxed wrap-break-word">
+            {message}
+          </div>
+        )}
+      </div>
+
+      <div className="min-h-4" />
+      <StickyActionBar>
+        <Button
+          label={t("common.cancel")}
+          labelKey="common.cancel"
+          tone="neutral"
+          onClick={onClose}
+          disabled={busy}
+          className="w-full"
+        />
+        <Button
+          key={shake}
+          label={t("recovery.configRestore")}
+          labelKey="recovery.configRestore"
+          tone="accent"
+          onClick={() => void runRestore()}
+          disabled={busy}
+          busy={busy}
+          title={busy ? t("recovery.configRestoring") : undefined}
+          className={`w-full ${shake ? "glim-shake" : ""}`}
+        />
+      </StickyActionBar>
+    </BottomSheet>
   );
 }
