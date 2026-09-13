@@ -20,6 +20,9 @@ import { useIsDesktop } from "../lib/useMediaQuery";
 import { useAdvanced } from "../lib/advanced";
 import { OffsiteIndicator } from "../components/OffsiteIndicator";
 import { RunDetailSheet } from "../components/mobile/RunDetailSheet";
+// MobileSectionLabel promoted to components/mobile in 07-02 — single source
+// for the six page mobile blocks; Dashboard imports it back verbatim.
+import { MobileSectionLabel } from "../components/mobile/MobileSectionLabel";
 import { StickyActionBar } from "../components/mobile/StickyActionBar";
 import { useBackupWatch } from "../lib/backupWatch";
 import { useConfirm } from "../lib/useConfirm";
@@ -2103,17 +2106,6 @@ function SummaryTier({
 // 48rem boundary both switches agree, so exactly one surface ever renders.
 // ---------------------------------------------------------------------------
 
-function MobileSectionLabel({ t, labelKey }: { t: ReturnType<typeof useT>["t"]; labelKey: TranslationKey }) {
-  // The maquette's `.sect` — a 12px uppercase letter-spaced label sitting
-  // between the cards (not a desktop-style overlapping Badge heading; the
-  // phone cards are flat, compact boxes).
-  return (
-    <h2 className="px-0.5 text-xs font-semibold uppercase tracking-[0.09em] text-carbon-textMuted">
-      {t(labelKey)}
-    </h2>
-  );
-}
-
 function MobileNextRunCard({
   t,
   scheduleNext,
@@ -2139,7 +2131,7 @@ function MobileNextRunCard({
   return (
     <section className="flex flex-col gap-2">
       <MobileSectionLabel t={t} labelKey="dashboard.summaryNextBackup" />
-      <div className="flex items-center gap-3 rounded-card bg-carbon-surface p-4">
+      <div className="flex items-center gap-2 rounded-card bg-carbon-surface p-4">
         {loading ? (
           <p className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</p>
         ) : at ? (
@@ -2203,7 +2195,7 @@ function MobileRecentRunsCard({
                 type="button"
                 onClick={() => onOpenRun(run)}
                 aria-label={`${statusLabel(run.status, t)} · ${runKindLabel(t, run.kind)} ${runTargetText(t, run)}`}
-                className="flex min-h-[2.75rem] w-full items-center gap-3 px-2 py-2 text-start"
+                className="flex min-h-[2.75rem] w-full items-center gap-2 px-2 py-2 text-start"
               >
                 <span className="shrink-0">
                   <Badge tone={statusTone(run.status)}>{statusLabel(run.status, t)}</Badge>
