@@ -45,6 +45,7 @@
   --color-statusWarn: var(--status-warn-text);
   --color-statusWarnBg: var(--status-warn-bg);
   --color-statusWarnBgStrong: var(--status-warn-bg-strong);
+  --color-statusWarnBgSoft: var(--status-warn-bg-soft);
   --color-statusWarnBorder: var(--status-warn-border);
   --color-statusWarnBorderStrong: var(--status-warn-border-strong);
   --color-statusWarnSolid: var(--status-warn-solid);
@@ -862,6 +863,12 @@
   --status-warn-text:         #f1c21b;  /* yellow-30 */
   --status-warn-bg:           #2a2a1c;
   --status-warn-bg-strong:    #3a2f1c;  /* emphasised warn chip (Files) */
+  /* The quiet end, for a paragraph that explains rather than warns: the
+     passkey card's refusal is a whole sentence of body text, and the full
+     warn wash behind prose reads as an alert. GlimStone 1.15.0 carries this
+     as --status-warn-bg-soft after the passkey card asked for the utility
+     before the value existed anywhere - the box had a radius and no fill. */
+  --status-warn-bg-soft:      #23231a;
   --status-warn-border:       #4a4a2a;
   --status-warn-border-strong:#5a4a2a;
   --status-warn-solid:        #f1c21b;
@@ -1209,6 +1216,7 @@
   --status-warn-text:         #8e6a00;  /* yellow-60 — dark enough for light bgs */
   --status-warn-bg:           #fcf4d6;  /* yellow-10 */
   --status-warn-bg-strong:    #fcf4d6;
+  --status-warn-bg-soft:      #fdf9ec;
   --status-warn-border:       #fddc69;  /* yellow-20 */
   --status-warn-border-strong:#fddc69;
   --status-warn-solid:        #b28600;  /* yellow-50 — #f1c21b is <3:1 on light */

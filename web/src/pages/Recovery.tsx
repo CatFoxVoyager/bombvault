@@ -990,7 +990,7 @@ function ForeignRestoreCard({
             none. These are never pre-filled from this instance's own off-site
             credentials and never persisted — see the state declaration. */}
         {isRemoteLocation && (
-          <div className="flex flex-col gap-3 rounded-control border border-carbon-line/60 p-3">
+          <div className="flex flex-col gap-3 rounded-control border border-carbon-border/60 p-3">
             <p className="text-xs text-carbon-textSub">{t("recovery.foreignCredsIntro")}</p>
 
             <div className="grid gap-3 sm:grid-cols-2">
