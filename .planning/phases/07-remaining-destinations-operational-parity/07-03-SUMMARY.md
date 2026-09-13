@@ -101,3 +101,7 @@ None.
 - The 07-04..07-08 destination blocks should copy MobileVMsBlock's shape (gate -> toolbar -> cards -> deep-link -> load-more -> Fab -> component-local RunDetailSheet) rather than inventing structure; MobileFlashBlock is the variant when the surface has a hero instead of a list.
 - The e2e staging helpers (stageVmsDomain / stageFlashDomain / settingsBody) are the template for the remaining destinations' specs; `test.use({ locale: "en-US" })` + Node-side `toLocaleString("en-US")` is the pattern for pinning any localized-text assertion.
 - Shared-label surfaces MUST use `.filter({ visible: true })` in mobile e2e - the desktop DOM stays in the page (hidden) under D-01.
+
+## Self-Check: PASSED
+
+All five task/metadata commits verified in history (828c9f20, 163706cc, 5e4c6b0b, 7dd7dfb7, 0a2edb5e); all six created/modified files verified on disk; tracked tree clean.
