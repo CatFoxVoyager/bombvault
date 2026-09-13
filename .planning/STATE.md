@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 7
 current_phase_name: Remaining Destinations & Operational Parity
 status: executing
-stopped_at: Completed 07-06-PLAN.md (list retrofits; 2 pre-existing platform-chrome failures deferred)
-last_updated: "2026-09-13T19:52:05.242Z"
+stopped_at: Completed 07-07-PLAN.md
+last_updated: "2026-09-13T22:43:39.465Z"
 last_activity: 2026-09-13
 last_activity_desc: Phase 7 execution started
-state_head: 950855df233e9a6f86699c512e5c1fff1787d470
+state_head: 2146872f331ca1d6416a38c38849dbe09cb7f79c
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 21
-  completed_plans: 19
+  completed_plans: 20
   percent: 50
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-13)
 ## Current Position
 
 Phase: 7 (Remaining Destinations & Operational Parity) — EXECUTING
-Plan: 7 of 8
+Plan: 8 of 8
 Total Plans in Phase: 8
 Status: Ready to execute
 Last activity: 2026-09-13 — Phase 7 execution started
@@ -102,6 +102,7 @@ Progress: [█████░░░░░] 50% (2/4 phases complete)
 | Phase 07 P04 | 1h 39m | 3 tasks | 6 files |
 | Phase 07 P05 | 1h 29m | 3 tasks | 5 files |
 | Phase 07 P06 | 3h22m | 3 tasks | 10 files |
+| Phase 07 P07 | 2h43m | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -171,6 +172,10 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 7]: useLoadMore gained an optional preserveKey: live feeds (activity log re-merging per poll/SSE/tick) keep their reader window across same-key refreshes; absent key keeps strict wave-1 identity semantics
 - [Phase 7]: Mobile Containers filters are the in-flow ListToolbar on the desktop-owned state — the mobile FilterPopover affordance is retired (e2e tap-popovers retargeted to the Accent preset swatch, the only fresh-DB-live mobile TapPopover surface)
 - [Phase 7]: Files sets list binds a NEW set-name search state via common.search (desktop sets list had no search state to bind); Files header keeps min-width:auto on its ms-auto column — the page-pan culprit was the row's shrink-0, now removed
+- [Phase 7]: Sheet state reuse: BottomSheet open={draft !== null}, no parallel sheet-open state (one state, two presentations)
+- [Phase 7]: OffsiteTarget has no secret fields, so the write-only contract is e2e-asserted structurally (zero password inputs across reopen cycles) instead of blank+Set-badge
+- [Phase 7]: Wizard sheet mount-gated in Settings.tsx (wizardOpen && !isDesktop); desktop ternary byte-identical behind wizardOpen && isDesktop
+- [Phase 7]: FLOW-01 sweep verdict: no client schedule derivation and no second helper in Settings surfaces; previews ride getScheduleNext/EffectiveScheduleLine/ScheduleRow
 
 ### Pending Todos
 
@@ -197,8 +202,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-13T19:51:57.270Z
-Stopped at: Completed 07-06-PLAN.md (list retrofits; 2 pre-existing platform-chrome failures deferred)
+Last session: 2026-09-13T22:43:39.176Z
+Stopped at: Completed 07-07-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

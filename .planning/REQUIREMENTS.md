@@ -38,7 +38,7 @@
 ### Operational Flows
 
 - [x] **FLOW-01**: Schedule editing parity: TimePicker / CadenceBuilder open as full-screen sheets with large targets; the human-readable effective-schedule preview stays visible on the invoking card
-- [ ] **FLOW-02**: Notification + off-site replication configuration parity: editable on mobile via the sheet-editor pattern (no desktop-only settings)
+- [x] **FLOW-02**: Notification + off-site replication configuration parity: editable on mobile via the sheet-editor pattern (no desktop-only settings)
 - [x] **FLOW-03**: Trigger backup from any domain surface: same `BackupButton` semantics (async-start, deep-link to run, consequence-aware confirm when containers stop/restart), mobile presentation
 
 ### Remaining Destinations
@@ -132,7 +132,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MORE-01 | Phase 7 | Complete |
 | MORE-02 | Phase 7 | Complete |
 | FLOW-01 | Phase 7 | Complete |
-| FLOW-02 | Phase 7 | Pending |
+| FLOW-02 | Phase 7 | Complete |
 | LISTS-01 | Phase 7 | Complete |
 | PLAT-01 | Phase 7 | Complete |
 | SCRN-06 | Phase 8 | Pending |

@@ -112,7 +112,7 @@ Plans:
   4. Settings works on the phone — stacked setting cards, full-screen sheet editors, dark mode / language / accent as today, a defined treatment for the 7-tab Selector strip — and long lists (runs, containers, sets, logs) offer sticky search + filter chips with load-more pagination and ≥44px rows
   5. On Android the app presents the Material 3 expression (navpill bar, FAB primary action, tonal chips) and on iOS the HIG expression (large title, circular checks) — same information architecture, translated chrome only
 
-**Plans**: 6/8 plans executed
+**Plans**: 7/8 plans executed
 
 Plans:
 **Wave 1**
@@ -129,7 +129,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 07-07-PLAN.md — Operational editors: notify + offsite CRUD/wizard fullHeight sheets, FLOW-01/02 completion sweep
+- [x] 07-07-PLAN.md — Operational editors: notify + offsite CRUD/wizard fullHeight sheets, FLOW-01/02 completion sweep
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -164,5 +164,5 @@ Plans:
 | 4. File Sets Parity | v1.0 | 4/4 | Complete | 2026-09-11 |
 | 5. Mobile Shell & Navigation Foundation | v1.1 | 6/6 | Complete    | 2026-09-12 |
 | 6. Maquette Screens | v1.1 | 7/7 | Complete    | 2026-09-12 |
-| 7. Remaining Destinations & Operational Parity | v1.1 | 6/8 | In Progress|  |
+| 7. Remaining Destinations & Operational Parity | v1.1 | 7/8 | In Progress|  |
 | 8. Guided Restore & Real-Device Verification | v1.1 | 0/TBD | Not started | - |
