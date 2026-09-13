@@ -30,9 +30,10 @@
 //
 // Node environment, no DOM: this reads source text, it does not render.
 // ---------------------------------------------------------------------------
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { readFileSync, readdirSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+
 import { describe, expect, it } from "vitest";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -460,5 +461,76 @@ describe("SHELL-02/03 — the chrome testids live in the mobile component source
         "landmarks mounts at a time, but a landmark still needs a name for screen " +
         "readers — the 05-UI-REVIEW finding 2 fix is one attribute; keep it."
     ).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PLAT-01 (phase 7, D-12) — the platform axis's closed mechanism. The same
+// negative-assertion discipline as the banned-viewport literals above, over a
+// full src/ walk instead of a file list: BOTH UA identifiers are banned
+// everywhere (a web page cannot honestly distinguish Android from iOS, so
+// platform is the closed material|cupertino union + persisted preference —
+// lib/platform.ts's recorded decision), and the data-platform attribute has
+// ONE writer. The needles below appear in THIS FILE on purpose; that is their
+// only sanctioned appearance in src/.
+// ---------------------------------------------------------------------------
+describe("PLAT-01 — the platform axis stays closed and UA-free", () => {
+  // The walk this describe guards with. .ts/.tsx/.css only — src/ carries no
+  // other author text, and this suite is node-env (no DOM), reading source.
+  // readdirSync(recursive) yields paths RELATIVE to SRC; never route them
+  // through path.relative (it would re-resolve them against the process CWD).
+  const SOURCES: { path: string; text: string }[] = [];
+  for (const entry of readdirSync(SRC, { recursive: true })) {
+    const path = entry.toString().replaceAll("\\", "/");
+    if (!/\.(ts|tsx|css)$/.test(path)) continue;
+    SOURCES.push({ path, text: readFileSync(join(SRC, entry), "utf8") });
+  }
+  // The guard's own file is excluded from the needle scan: it contains the
+  // banned literals as negative assertions, exactly like the 100vh ban above.
+  const SELF = relative(SRC, fileURLToPath(import.meta.url)).replaceAll("\\", "/");
+  const SCANNED = SOURCES.filter(({ path }) => path !== SELF);
+
+  it("finds src files at all, including the platform layer (self-guard)", () => {
+    expect(
+      SOURCES.length,
+      "the src/ walk found no source files — the PLAT-01 guards below would pass " +
+        "vacuously against nothing. If the source layout moved, repoint SRC deliberately."
+    ).toBeGreaterThan(50);
+    expect(
+      SOURCES.map(({ path }) => path),
+      "lib/platform.ts is not among the walked files — the UA-free and " +
+        "single-writer asserts below are running against a tree without the " +
+        "layer they guard."
+    ).toContain(join("lib", "platform.ts").replaceAll("\\", "/"));
+  });
+
+  it.each([
+    "navigator.userAgent",
+    "userAgentData",
+  ] as const)("keeps %s out of every src file", (needle) => {
+    const hits = SCANNED.filter(({ text }) => text.includes(needle)).map(({ path }) => path);
+    expect(
+      hits,
+      `${needle} appeared in src/ (${hits.join(", ")}). Platform is the closed ` +
+        "material|cupertino union plus a persisted preference (PLAT-01/D-12): a web " +
+        "page cannot honestly distinguish Android from iOS, so user-agent sniffing " +
+        "is banned app-wide and the phase 8 real-device pass is the venue to " +
+        "revisit the default. If the identifier must be discussed, do it in " +
+        "prose (this file's wording) — never as the code form the guard scans for."
+    ).toEqual([]);
+  });
+
+  it("writes data-platform from exactly one site: lib/platform.ts's applyPlatform", () => {
+    // SCANNED, not SOURCES: the needle string below lives in this file as the
+    // negative assertion itself, same sanctioned-appearance rule as above.
+    const writers = SCANNED.filter(({ text }) => text.includes('setAttribute("data-platform"')).map(({ path }) => path);
+    expect(
+      writers,
+      "data-platform is written from more than one site (or from none). " +
+        "applyPlatform() in lib/platform.ts is the ONE application choke point " +
+        "(the applyShape discipline): the stored value is coerced against the " +
+        "closed union there before it can reach the DOM (T-07-01) — a second " +
+        "writer would bypass that coercion."
+    ).toEqual([join("lib", "platform.ts").replaceAll("\\", "/")]);
   });
 });

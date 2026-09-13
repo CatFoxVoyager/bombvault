@@ -11,6 +11,7 @@ import { applyStoredRainbow } from "./lib/appearance";
 import { applyStoredShape, armShapeTransitions } from "./lib/shape";
 import { applyStoredMotionIntensity } from "./lib/motion";
 import { applyStoredLabelModes } from "./lib/controls";
+import { applyStoredPlatform } from "./lib/platform";
 import { ADOPTED_EVENT, sync as syncDisplayPrefs } from "./lib/displayPrefs";
 
 // Apply persisted preferences before first paint (flash prevention).
@@ -21,6 +22,7 @@ applyStoredRainbow();
 applyStoredShape();
 applyStoredMotionIntensity();
 applyStoredLabelModes();
+applyStoredPlatform();
 
 // Every axis above reads localStorage exactly once, which is all a page needs
 // while nothing changes underneath it. When the server hands this browser a
@@ -34,6 +36,7 @@ window.addEventListener(ADOPTED_EVENT, () => {
   applyStoredShape();
   applyStoredMotionIntensity();
   applyStoredLabelModes();
+  applyStoredPlatform();
 });
 
 // Then reconcile with the server, which is where the look actually lives

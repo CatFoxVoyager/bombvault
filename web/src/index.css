@@ -612,6 +612,99 @@
   --radius-pill:    0;
 }
 
+/* The [data-platform] axis (PLAT-01, phase 7 D-12) — M3/HIG chrome
+   translation, sitting beside the [data-shape] block above for the same
+   reason that one sits below the bare :root: same (0,2,0) specificity shape,
+   custom properties ONLY. lib/platform.ts's applyPlatform() stamps the
+   attribute on <html> (closed material|cupertino union, the stored value
+   coerced — never trusted raw), and every consumer below reads a --mob-*
+   property, so the attribute reshapes chrome and never recolors it (no new
+   colors — the accent stays on the reservation list). Values + design-bible
+   citation in ONE block per value, the [data-shape] precedent, and BOTH
+   values defined for every var so each resolves on a consumer under either
+   attribute. */
+:root[data-platform="material"] {
+  /* design/mobile/android.html .fab (maquette @0b64c7df): 52px height,
+     18px radius, accent fill (accent reservation 9). The cupertino copy is
+     defined-but-unconsumed by contract — the Fab renders null under
+     cupertino (the one sanctioned structural usePlatform() switch) — kept
+     so the both-attributes contract holds for every var in the set. */
+  --mob-fab-radius: 18px;
+  /* The existing heading token expression (--text-heading). Deliberately
+     INERT under material: no material consumer rule exists for the title
+     pair (see the consumer block below for the why — a material rule would
+     silently restyle the pages that render larger headings today). */
+  --mob-title-size: 1.25rem;
+  --mob-title-weight: 600;
+  /* The native default — today's square-ish check, a visual no-op. */
+  --mob-check-radius: 0px;
+  /* Chips are pills in BOTH languages. */
+  --mob-chip-radius: 999px;
+}
+
+:root[data-platform="cupertino"] {
+  /* ios.html .navbar h1 (maquette @0b64c7df): 32px/700, letter-spacing
+     -0.5px — the HIG large title. This is the ONE sanctioned 700 in the
+     app; it lives only here and in the consumer rule below, never in page
+     JSX (UI-SPEC Typography: the exception is narrower than the rule). */
+  --mob-title-size: 2rem;
+  --mob-title-weight: 700;
+  /* The circular HIG check — SHAPE ONLY (accent reservation 3: the
+     checkbox's checked color is untouched). */
+  --mob-check-radius: 999px;
+  /* Chips are pills in both languages. */
+  --mob-chip-radius: 999px;
+  --mob-fab-radius: 18px;
+}
+
+/* The --mob-* consumers. The consumption contract: these properties are read
+   ONLY below md — by the two rules here (cupertino page titles; native
+   checkbox radius under both attribute values) and by the Settings chip
+   strip's rounded-(--mob-chip-radius) (plan 07-05's strip markup). Desktop
+   styles keep their literal tokens, which is exactly what keeps >=48rem
+   byte-identical with the attribute present (T-07-02). The media condition is
+   mirrored VERBATIM from the repo's own compiled max-md variant output (the
+   `@media not all and (width>=48rem)` Tailwind v4 emits), so these rules flip
+   at the same 1px the max-md:* utilities do. */
+@media not all and (width>=48rem) {
+  /* TITLE — the HIG large title, cupertino only. The routed page's own
+     heading element reads the platform tokens (+ the bible row's -0.5px
+     tracking); NO page JSX changes — pages render the SAME header <h1> and
+     the platform layer translates it (UI-SPEC Platform Chrome Contract).
+     Scoped to the page-title class every routed page's heading carries
+     (text-2xl): the /glyphs contact sheet's h1 (text-lg) and the pre-shell
+     Login h1 never match, and Recovery's deliberately smaller text-lg title
+     stays untouched. Unlayered author CSS, so it outranks the layered
+     text-* utilities. Deliberately NO material twin: material keeps every
+     page's existing heading expression — a material rule forcing the token
+     would silently restyle the pages that render larger headings today
+     (Dashboard's max-md:text-xl is exactly such a case; UI-SPEC Typography:
+     page headings unchanged under material). */
+  :root[data-platform="cupertino"] main#bv-main h1.text-2xl {
+    font-size: var(--mob-title-size);
+    font-weight: var(--mob-title-weight);
+    letter-spacing: -0.5px;
+  }
+
+  /* CHECK — under BOTH attribute values: material's 0px is today's native
+     rendering (a visual no-op), cupertino's 999px is the circular HIG check
+     (accent reservation 3 — shape only, color untouched). The desktop-half
+     tree inputs are display:none below md, so nothing visual changes at any
+     width; below md the rule resolves on the mobile-visible native
+     checkboxes (the /vms select-all and per-row selects — every settings row
+     is a ToggleRow, so /settings has no native checkboxes left).
+     ENGINE LIMIT, measured in this repo's harness (07-01): Chromium
+     normalizes author border-radius on appearance:auto checkboxes away —
+     computed style reports 0px and the paint is pixel-identical — so the
+     radius is observable only where the engine honors it (Firefox; any
+     future appearance-none custom check this rule already covers). The
+     platform-chrome e2e therefore verifies the rule's presence+scoping and
+     the var resolving at a live checkbox, not the normalized pixel. */
+  input[type="checkbox"] {
+    border-radius: var(--mob-check-radius);
+  }
+}
+
 /*
   The default border color has changed to `currentcolor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still
