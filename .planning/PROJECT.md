@@ -43,13 +43,13 @@ Every container, VM, and config on the host can be backed up consistently and re
 - ✓ Container panel volatile-subfolder deselection: unfold a mount, uncheck transcoding/caches/logs without dropping the rest — maximal-root includes with stored exclusions enforced on the backup argv (Phase 1 engine, one-deep serialized save queue client-side) — Phase 2
 - ✓ Selection trust & controls: per-root "{n} paths" preview agreeing with the restic positionals + narrowing note on shrink (SELECT-03), per-root reviewable exclusions list (INTEG-03), defined empty-deselect semantics (client guard + fail-tone confirmed Reset as the one sanctioned exit, INTEG-04), per-root CACHEDIR.TAG toggle mapping to restic `--exclude-caches` (RESTIC-01) — Phase 3
 - ✓ File Sets parity: the same `SelectionTree` component powers file-set coverage — NULL `selectedPaths` seeds a synthetic root include with zero writes, PATCH is a three-state pointer (64-cap, segment-aligned containment, empty-selection refusal), path edits clear the selection atomically (clear-wins), and in-place restore maps the compiled selection against snapshot Paths with a pre-teardown abort (D-08) — Phase 4
+- ✓ MOBILE-01: responsive mobile shell — bottom nav + More sheet, safe areas, desktop intact (Playwright real-binary harness, 4 projects incl. WebKit) — Phase 5
+- ✓ MOBILE-02: maquette screens (Home glanceable + thumb-zone trigger, Containers + touch tree, File sets + touch tree, Run detail with frozen-API substitutes) — Phase 6 (SCRN-05 per-file stats triade is a recorded v2 data candidate)
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
-- [ ] MOBILE-01: responsive mobile shell — bottom nav + More sheet, safe areas, desktop intact
-- [ ] MOBILE-02: maquette screens (Home, Containers + tree, File sets + tree, Run detail/Recovery)
 - [ ] MOBILE-03: remaining destinations (VMs, Flash, Config, Receiver, Fleet, Settings) in the mobile language
 - [ ] MOBILE-04: full operational parity — trigger, tree editing, guided restore, schedules, notifications, replication
 

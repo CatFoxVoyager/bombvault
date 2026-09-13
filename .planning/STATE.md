@@ -6,10 +6,10 @@ current_phase: 7
 current_phase_name: Remaining Destinations & Operational Parity
 status: planning
 stopped_at: Phase 06 complete, ready to plan Phase 7
-last_updated: "2026-09-12T19:53:28.606Z"
-last_activity: 2026-09-12
+last_updated: "2026-09-13T05:17:20.000Z"
+last_activity: 2026-09-13
 last_activity_desc: Phase 06 complete, transitioned to Phase 7
-state_head: 918af0c15b83ea6cfe0843530017bb390e4de248
+state_head: e5ee4ab8a34330c83cef275ef2b009957bc5e7b7
 progress:
   total_phases: 4
   completed_phases: 2
@@ -22,10 +22,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-11)
+See: .planning/PROJECT.md (updated 2026-09-13)
 
 **Core value:** Every container, VM, and config on the host can be backed up consistently and restored completely — a dead server is rebuilt from the restic repo alone.
-**Current focus:** Phase 06 — Maquette Screens
+**Current focus:** Phase 07 — Remaining Destinations & Operational Parity
 
 ## Current Position
 
@@ -33,10 +33,10 @@ Phase: 7 — Remaining Destinations & Operational Parity
 Plan: Not started
 Total Plans in Phase: 7
 Status: Ready to plan
-Last activity: 2026-09-12 — Phase 06 complete, transitioned to Phase 7
-Last Activity Description: Phase 06 complete, transitioned to Phase 7
+Last activity: 2026-09-13 — Phase 06 complete (code review fix cycle closed, all gates green), transitioned to Phase 7
+Last Activity Description: Phase 06 complete (code review fix cycle closed, all gates green), transitioned to Phase 7
 
-Progress: [███░░░░░░░] 25%
+Progress: [█████░░░░░] 50% (2/4 phases complete)
 
 ## Performance Metrics
 
@@ -150,7 +150,11 @@ None yet.
 
 ### Blockers/Concerns
 
-Research flags for planning (`.planning/research/SUMMARY.md`): Phase 5 Playwright harness setup (config, device descriptors, CI wiring into `lint.yml`) has no in-repo precedent; Phase 6 touch SelectionTree variant is the milestone's hardest work (pointer semantics, roving-tabindex-on-tap, hit areas) — targeted research recommended at plan time. Design bible reference: `design/mobile/README.md` + maquettes @0b64c7df (branch `mobile-design-concepts`).
+- Windows Playwright e2e runs wedge intermittently in two modes: webServer teardown hang (bombvault.exe survives, kill manually) and orphaned playwright worker processes accumulating between runs (`Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where CommandLine -match 'playwright'` cleanup). Never buffer Playwright output through `| tail` — it hides progress and makes wedge diagnosis impossible.
+- Code review 06 documented 2 Info findings fix-skipped as out of scope (recorded in 06-REVIEW-FIX.md): stale "26 locales" comments in runDisplay.ts:132,212 (IN-01); flushRef never nulled at unmount in Containers.tsx/Files.tsx (IN-02, harmless by inspection).
+- Suggested follow-ups surfaced by the phase 6 cycle: `/gsd-secure-phase 6` (verify:post hook active, no SECURITY.md exists), `/gsd-map-codebase` (structural drift since the 2026-09-09 refresh — mobile shell, sheets, stacked views are unmapped).
+- SCRN-05 per-file stats triade remains a recorded v2 data candidate (frozen-API substitutes shipped in its place).
+- Design bible reference: `design/mobile/README.md` + maquettes @0b64c7df (branch `mobile-design-concepts`).
 
 ## Deferred Items
 
@@ -165,10 +169,10 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-12T19:10:53.745Z
-Stopped at: Phase 06 complete, ready to plan Phase 7
+Last session: 2026-09-13T05:17:20.000Z
+Stopped at: Phase 06 complete (code review fix cycle closed, all gates green), ready to plan Phase 7
 Resume file: None
 
 ## Operator Next Steps
 
-- Review `.planning/ROADMAP.md`, then start Phase 5 with /gsd-plan-phase 5
+- Review `.planning/ROADMAP.md`, then start Phase 7 with /gsd-plan-phase 7
