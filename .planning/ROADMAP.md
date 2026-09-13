@@ -118,7 +118,7 @@ Plans:
 **Wave 1**
 
 - [x] 07-01-PLAN.md — Platform chrome layer: data-platform attribute, custom-property variants, Fab
-- [ ] 07-02-PLAN.md — Shared mobile-block foundations + the phase's i18n pre-seed (MobileSectionLabel, useLoadMore, ListToolbar)
+- [x] 07-02-PLAN.md — Shared mobile-block foundations + the phase's i18n pre-seed (MobileSectionLabel, useLoadMore, ListToolbar)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

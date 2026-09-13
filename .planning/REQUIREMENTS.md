@@ -48,7 +48,7 @@
 
 ### List Ergonomics
 
-- [ ] **LISTS-01**: Sticky search + filter chips above long lists (runs, containers, sets, logs) with load-more pagination (never infinite scroll); list rows ≥ 44px
+- [x] **LISTS-01**: Sticky search + filter chips above long lists (runs, containers, sets, logs) with load-more pagination (never infinite scroll); list rows ≥ 44px
 
 ### Platform-Adaptive Chrome
 
@@ -133,7 +133,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MORE-02 | Phase 7 | Pending |
 | FLOW-01 | Phase 7 | Pending |
 | FLOW-02 | Phase 7 | Pending |
-| LISTS-01 | Phase 7 | Pending |
+| LISTS-01 | Phase 7 | Complete |
 | PLAT-01 | Phase 7 | Pending |
 | SCRN-06 | Phase 8 | Pending |
 | VERIFY-02 | Phase 8 | Pending |
