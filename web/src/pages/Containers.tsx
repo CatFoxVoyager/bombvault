@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { listContainers, deleteBackups, backupAll, restore, restoreStack, discover, setContainerHooks, getContainerMounts, setContainerTargets, setStopContainers, setContainerExcludes, previewContainerExcludes, suggestContainerExcludes, exportContainer, setIncludeAll, setUpdateAfterBackup, getBackupOrder, setBackupOrder, ApiError, type ContainerTargetsBody, type ContainerMountsResponse } from "../lib/api";
 import type { Container, ExcludeSuggestion, MountInfo, CustomPath, ContainerOrder, BrowseResponse, Run } from "../lib/api";
 import { applyToggle, browseRelToHost, partitionCustomPaths, toFlatList } from "../lib/selectionTree";
@@ -6,6 +6,8 @@ import { useIsCoarsePointer, useIsDesktop } from "../lib/useMediaQuery";
 import { SelectionTree } from "../components/SelectionTree";
 import { StickyActionBar } from "../components/mobile/StickyActionBar";
 import { RunDetailSheet } from "../components/mobile/RunDetailSheet";
+import { ListToolbar } from "../components/mobile/ListToolbar";
+import { useLoadMore } from "../lib/useLoadMore";
 import { FolderBrowser } from "../components/FolderBrowser";
 import { humanBytes } from "../lib/forecast";
 import { FilterPopover } from "../components/FilterPopover";
@@ -3701,8 +3703,15 @@ export function Containers() {
 
   // Compose search (#40) + schedule/backup chips (#41) into one predicate applied
   // BEFORE sort + live/orphans split, so they combine with the installed toggle.
+  //
+  // useMemo'd (07-06, the VMs.tsx 07-03 shape): the mobile block's useLoadMore
+  // resets its window when the items array IDENTITY changes, so every array in
+  // the chain must be stable across renders that don't change the filter result
+  // (lib/useLoadMore.ts's consumer contract). The desktop derivation below reads
+  // the SAME memos — one predicate, two presentations; the two lists can never
+  // disagree.
   const query = search.trim().toLowerCase();
-  const filtered = containers.filter((c) => {
+  const filtered = useMemo(() => containers.filter((c) => {
     if (query && !(c.name.toLowerCase().includes(query) || c.image.toLowerCase().includes(query)))
       return false;
     if (scheduleFilter === "scheduled" && !c.includeInSchedule) return false;
@@ -3710,7 +3719,7 @@ export function Containers() {
     if (backupFilter === "backedUp" && c.lastBackup == null) return false;
     if (backupFilter === "neverBackedUp" && c.lastBackup != null) return false;
     return true;
-  });
+  }), [containers, query, scheduleFilter, backupFilter]);
 
   // Any contained filter off its default narrows the list. The chips persist to
   // localStorage, so a restored non-"all" value would silently shrink the list
@@ -3721,9 +3730,9 @@ export function Containers() {
     scheduleFilter !== "all" ||
     backupFilter !== "all";
 
-  const sorted = sortContainers(filtered, sortKey);
-  const live = sorted.filter((c) => c.installed);
-  const orphans = sorted.filter((c) => !c.installed);
+  const sorted = useMemo(() => sortContainers(filtered, sortKey), [filtered, sortKey]);
+  const live = useMemo(() => sorted.filter((c) => c.installed), [sorted]);
+  const orphans = useMemo(() => sorted.filter((c) => !c.installed), [sorted]);
 
   // The FULL installed-container set, unaffected by the search/schedule/
   // backup/installed filters above — StopContainersEditor's own multi-select
@@ -3747,6 +3756,27 @@ export function Containers() {
   const liveVisible = filterKey !== "notInstalled" && live.length > 0;
   const orphansVisible = filterKey !== "installed" && orphans.length > 0;
   const noMatch = containers.length > 0 && !liveVisible && !orphansVisible;
+
+  // LISTS-01 (07-06): the mobile card list paginates the RENDERED card array —
+  // the filtered+sorted rows in server order, with the installed toggle's
+  // section gate already applied. That gate is why this is its own array rather
+  // than `sorted`: windowing all of `sorted` under filterKey="installed" would
+  // let the window fill with not-installed rows that never render, and hasMore
+  // would then offer a "Load more" that shows nothing new — a dishonest button.
+  // Slicing what renders keeps hasMore honest by construction. Identity (not
+  // deep equality) is useLoadMore's reset signal, so the memo keeps the window
+  // stable across unrelated renders and resets it exactly when a filter —
+  // search, schedule/backup chips, or the installed toggle — changes the list.
+  const mobileCards = useMemo(
+    () => [
+      ...(filterKey !== "notInstalled" ? live : []),
+      ...(filterKey !== "installed" ? orphans : []),
+    ],
+    [live, orphans, filterKey]
+  );
+  const { visible: visibleCards, showMore, hasMore } = useLoadMore(mobileCards);
+  const visibleLive = useMemo(() => visibleCards.filter((c) => c.installed), [visibleCards]);
+  const visibleOrphans = useMemo(() => visibleCards.filter((c) => !c.installed), [visibleCards]);
 
   function toggleSelect(name: string) {
     setSelected((prev) => {
@@ -4059,9 +4089,14 @@ export function Containers() {
 
       {/* Controls: search + filter (installed / schedule / backup) + sort.
           Directly above the list it filters — see the backup-order card's own
-          comment above for why the two feature cards moved above this row. */}
+          comment above for why the two feature cards moved above this row.
+          Desktop only (07-06, LISTS-01): below the breakpoint the mobile card
+          list's ListToolbar carries the SAME state (search/filterKey/schedule/
+          backup/sort) on the shared primitives — the VMs.tsx 07-03 shape. One
+          state, two presentations; `max-md:hidden`, not a JSX gate, keeps this
+          markup (and the jsdom DOM the desktop suites assert) byte-identical. */}
       {!loading && !listChromeHidden && containers.length > 0 && (
-        <div className="flex items-center gap-x-6 gap-y-2 flex-wrap">
+        <div className="flex items-center gap-x-6 gap-y-2 flex-wrap max-md:hidden">
           <FilterPopover label={t("filter.button")} active={filtersActive}>
             <input
               type="text"
@@ -4194,12 +4229,19 @@ export function Containers() {
         </div>
       )}
 
-      {/* Phase 6 (SCRN-02): the mobile card list — summary line, one card per
-          installed container, then the not-installed section. Mobile only
-          (`!isDesktop` keeps it out of the desktop DOM entirely); hidden —
+      {/* Phase 6 (SCRN-02): the mobile card list — summary line, toolbar, one
+          card per installed container, then the not-installed section. Mobile
+          only (`!isDesktop` keeps it out of the desktop DOM entirely); hidden —
           NOT unmounted — while the stacked detail is open, which is what
-          makes Back's scroll restoration possible (D-04). */}
-      {!isDesktop && !loading && !error && !listChromeHidden && (live.length > 0 || orphans.length > 0) && (
+          makes Back's scroll restoration possible (D-04).
+          07-06 (LISTS-01): the ListToolbar binds the page's OWN search/filter/
+          sort state — the exact state the desktop FilterPopover above reads, so
+          there is one predicate with two presentations and no parallel mobile
+          filter state to drift (T-07-20). Cards paginate through the ONE
+          useLoadMore primitive over `mobileCards` (the section-gated rendered
+          array, see its own comment); the not-installed section's cards append
+          under the same visible window. */}
+      {!isDesktop && !loading && !error && !listChromeHidden && (live.length > 0 || orphans.length > 0 || noMatch) && (
         <div className="flex flex-col gap-3 glim-content-fade">
           {live.length > 0 && (
             <p className="text-xs text-carbon-textMuted">
@@ -4212,11 +4254,39 @@ export function Containers() {
               }`}
             </p>
           )}
+          {/* Rendered whenever the list has settled (mirrors the desktop
+              controls row's own `!loading` condition) — including when the
+              active filters currently match nothing, so a cleared search stays
+              clearable (an unreachable toolbar would strand the empty state). */}
+          <ListToolbar search={search} onSearch={setSearch} placeholder="containers.searchPlaceholder">
+            <FilterControl value={filterKey} onChange={handleFilterChange} t={t} />
+            <ChipFilter<ScheduleFilterKey>
+              label={t("filter.schedule")}
+              value={scheduleFilter}
+              onChange={handleScheduleFilterChange}
+              options={[
+                { key: "all", label: t("filter.all") },
+                { key: "scheduled", label: t("filter.scheduled") },
+                { key: "notScheduled", label: t("filter.notScheduled") },
+              ]}
+            />
+            <ChipFilter<BackupFilterKey>
+              label={t("filter.backup")}
+              value={backupFilter}
+              onChange={handleBackupFilterChange}
+              options={[
+                { key: "all", label: t("filter.all") },
+                { key: "backedUp", label: t("filter.backedUp") },
+                { key: "neverBackedUp", label: t("filter.neverBackedUp") },
+              ]}
+            />
+            <SortControl value={sortKey} onChange={handleSortChange} t={t} />
+          </ListToolbar>
           {filterKey !== "notInstalled" &&
-            live.map((c, i) => (
+            visibleLive.map((c, i) => (
               <MobileContainerCard key={c.name} container={c} t={t} index={i} nonce={cardNonce} onOpen={() => openCard(c)} />
             ))}
-          {filterKey !== "installed" && orphans.length > 0 && (
+          {filterKey !== "installed" && visibleOrphans.length > 0 && (
             <div className="flex flex-col gap-3 pt-2">
               <div>
                 <h2 className="relative flex items-center">
@@ -4230,9 +4300,33 @@ export function Containers() {
                 <p className="mt-1 text-xs text-carbon-textMuted">{t("containers.notInstalledHint")}</p>
                 <p className="mt-1 text-xs text-carbon-textMuted">{t("containers.notInstalledSkipped")}</p>
               </div>
-              {orphans.map((c, i) => (
+              {visibleOrphans.map((c, i) => (
                 <MobileContainerCard key={c.name} container={c} t={t} index={live.length + i} nonce={cardNonce} onOpen={() => openCard(c)} />
               ))}
+            </div>
+          )}
+          {/* LISTS-01: the one load-more affordance, gated on hasMore — no
+              rows beyond the window, no button (hasMore is the ONLY signal
+              this may gate on); never auto-loads (no observer, no scroll
+              listener — lib/useLoadMore.ts's construction-level ban). */}
+          {hasMore && (
+            <button
+              type="button"
+              onClick={showMore}
+              className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+            >
+              {t("common.loadMore")}
+            </button>
+          )}
+          {/* Zero-match honesty (LISTS-01): an explicit empty state, never a
+              blank column below the toolbar. The EXISTING filter.noMatch copy
+              — the same sentence the desktop hint above renders — as a card,
+              the mobile empty-state language. The desktop `<p>` hides below
+              the breakpoint in return (max-md:hidden), so exactly one
+              presentation renders at any width. */}
+          {noMatch && (
+            <div className="rounded-card bg-carbon-surface p-4">
+              <p className="text-sm text-carbon-textMuted">{t("filter.noMatch")}</p>
             </div>
           )}
         </div>
@@ -4297,8 +4391,12 @@ export function Containers() {
       )}
 
       {/* No container matches the active search / schedule / backup / installed filters. */}
+      {/* 07-06 (LISTS-01): max-md:hidden — below the breakpoint the mobile
+          block's no-match CARD carries this same copy (one presentation per
+          width); max-md (not a JSX gate) keeps the jsdom DOM the desktop
+          suites assert byte-identical. */}
       {!loading && !error && !listChromeHidden && noMatch && (
-        <p className="text-sm text-carbon-textMuted">{t("filter.noMatch")}</p>
+        <p className="max-md:hidden text-sm text-carbon-textMuted">{t("filter.noMatch")}</p>
       )}
       {/* Phase 6 (D-03, SCRN-03): the container detail's sticky Save bar — the
           page column's LAST visible child, so its sticky positioning resolves
