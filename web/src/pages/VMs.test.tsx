@@ -16,8 +16,9 @@
 // ---------------------------------------------------------------------------
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
-import { VMRow } from "./VMs";
-import type { VM } from "../lib/api";
+import { MemoryRouter } from "react-router-dom";
+import { VMRow, VMs } from "./VMs";
+import type { VM, Settings } from "../lib/api";
 
 // useProgress() (lib/progress.ts) opens a real EventSource on mount; jsdom
 // does not implement it. A minimal stub is all the hook touches
@@ -40,11 +41,22 @@ vi.mock("../lib/api", async () => {
     // on a real network call.
     listRuns: vi.fn(async () => ({ ok: true, runs: [] })),
     backupVMNow: vi.fn(async () => ({ ok: true, started: true })),
+    // Page-level fetches (the 07-03 tests below render the full <VMs> page).
+    // The mobile block's own fetches (getSettings/getScheduleNext) never run
+    // under jsdom's desktop matchMedia — the stubs only have to exist.
+    listVMs: vi.fn(async () => ({ ok: true, vms: [] })),
+    getSettings: vi.fn(async () => ({
+      ok: true,
+      settings: {} as Settings,
+      hostMountRoot: "",
+      platform: "generic",
+    })),
+    getScheduleNext: vi.fn(async () => []),
   };
 });
 
 // Imported AFTER vi.mock so this binding is the mocked function.
-import { backupVMNow } from "../lib/api";
+import { backupVMNow, listVMs } from "../lib/api";
 
 const noop = () => {
   /* no-op */
@@ -161,5 +173,62 @@ describe("VMRow matches the container card's structure", () => {
     // precisely so the alternative never has to be inferred.
     expect(graceful.getAttribute("aria-selected")).toBe("true");
     expect(live.getAttribute("aria-selected")).toBe("false");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 07-03 (MORE-01a / D-01): the page's double gate, tested on the desktop half.
+// jsdom's matchMedia stub answers "desktop", so the full <VMs> page renders
+// the DESKTOP presentation and the mobile card block (MobileVMsBlock) is never
+// mounted — exactly the identity the D-01 gate promises: the desktop DOM gains
+// nothing from the mobile block, its filter state, or its fetches. The
+// max-md:hidden wrappers must exist (the gate's other half: the desktop JSX is
+// always rendered and only visually hidden below md), and the mobile-only
+// surfaces must be absent even with more VMs than a mobile window would show —
+// the desktop list is NOT windowed. The mobile presentation itself is
+// exercised by the staged Playwright harness
+// (e2e/destination-vms-flash.spec.ts); see the mount-discipline comment on VMs().
+// ---------------------------------------------------------------------------
+describe("VMs page D-01 double gate (desktop identity in jsdom)", () => {
+  // More VMs than the mobile block's 20-row window — enough to prove the
+  // desktop list renders unwrapped while the mobile load-more stays absent.
+  const manyVMs: VM[] = Array.from({ length: 25 }, (_, i) => ({
+    name: `vm-${String(i).padStart(2, "0")}`,
+    libvirtName: `id-${String(i).padStart(2, "0")}`,
+    state: "running",
+    method: "graceful",
+    includeInSchedule: false,
+    lastBackup: null,
+    lastBackupStarted: null,
+  }));
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(listVMs).mockResolvedValue({ ok: true, vms: manyVMs });
+  });
+
+  it("renders the desktop page with the max-md:hidden gate present and the mobile block absent", async () => {
+    render(
+      <MemoryRouter>
+        <VMs />
+      </MemoryRouter>
+    );
+
+    // The desktop content arrives (listVMs resolved).
+    await waitFor(() => expect(screen.getByText("vm-00")).toBeTruthy());
+
+    // D-01 first half: the desktop JSX carries the below-md hide class.
+    expect(document.body.querySelector('[class*="max-md:hidden"]')).not.toBeNull();
+
+    // D-01 second half: the mobile block never mounts in jsdom — none of its
+    // unique surfaces exist. The summary counts line, the per-card schedule
+    // entry and the load-more button are mobile-only; the desktop list is not
+    // windowed, so all 25 rows are present and "Load more" cannot appear.
+    expect(screen.queryByText("nav.vms")).toBeNull();
+    expect(screen.queryByRole("button", { name: "schedule.overrideTitle" })).toBeNull();
+    expect(screen.queryByText("common.loadMore")).toBeNull();
+    for (const vm of manyVMs) {
+      expect(screen.getByText(vm.name)).toBeTruthy();
+    }
   });
 });
