@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 7
 current_phase_name: Remaining Destinations & Operational Parity
 status: executing
-stopped_at: Completed 07-03-PLAN.md
-last_updated: "2026-09-13T13:00:13.927Z"
+stopped_at: Completed 07-04-PLAN.md
+last_updated: "2026-09-13T14:48:19.941Z"
 last_activity: 2026-09-13
 last_activity_desc: Phase 7 execution started
-state_head: 7dd7dfb72233c3c3e2fba7d98bc9f804a9481a4d
+state_head: 0ac52a8374c81043f71dada1c852c6f03246a3f4
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 21
-  completed_plans: 16
+  completed_plans: 17
   percent: 50
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-13)
 ## Current Position
 
 Phase: 7 (Remaining Destinations & Operational Parity) — EXECUTING
-Plan: 4 of 8
+Plan: 5 of 8
 Total Plans in Phase: 8
 Status: Ready to execute
 Last activity: 2026-09-13 — Phase 7 execution started
@@ -99,6 +99,7 @@ Progress: [█████░░░░░] 50% (2/4 phases complete)
 | Phase 07 P01 | ~2h | 2 tasks | 8 files |
 | Phase 07 P02 | 36min | 3 tasks | 47 files |
 | Phase 7 P03 | 1h 51m | 3 tasks | 6 files |
+| Phase 07 P04 | 1h 39m | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -156,6 +157,9 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 7]: VM schedule sheet restricts CadenceBuilder to exact-cadence modes and PATCHes the raw libvirtName (#166)
 - [Phase 7]: Flash Fab and hero trigger are one action - the Fab fires the shared useBackupWatch watcher via fireRef
 - [Phase 7]: Destination e2e stages VM/flash/settings/runs domains at the route layer (Go-JSON field-for-field); fresh harness DB can never hold a VM
+- [Phase 7]: 07-04: desktop Add triggers hide on wrapper divs - glim-btn unlayered CSS beats layered max-md:hidden on the same element (06-03 picker lesson, re-learned live)
+- [Phase 7]: 07-04: write-only secrets machine-asserted as empty value + blank-keeps PUT body; frozen ReceivedRepoInput/FleetPeerInput have no removal flag and no Set key exists - has* keep-placeholder is the stored-key signal
+- [Phase 7]: 07-04: Fleet protection chips CALL the desktop PeerScorecard (one mapping, two presentations); detail sheets content-sized / editors fullHeight across Config+Receiver+Fleet; mobile deletes ride useConfirm warn
 
 ### Pending Todos
 
@@ -182,8 +186,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-13T13:00:13.668Z
-Stopped at: Completed 07-03-PLAN.md
+Last session: 2026-09-13T14:48:05.440Z
+Stopped at: Completed 07-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
