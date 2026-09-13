@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 7
 current_phase_name: Remaining Destinations & Operational Parity
 status: executing
-stopped_at: Completed 07-04-PLAN.md
-last_updated: "2026-09-13T14:48:19.941Z"
+stopped_at: Completed 07-05-PLAN.md
+last_updated: "2026-09-13T16:26:49.417Z"
 last_activity: 2026-09-13
 last_activity_desc: Phase 7 execution started
-state_head: 0ac52a8374c81043f71dada1c852c6f03246a3f4
+state_head: 770443288e206b8492efac10c103ed8f7171f342
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 21
-  completed_plans: 17
+  completed_plans: 18
   percent: 50
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-13)
 ## Current Position
 
 Phase: 7 (Remaining Destinations & Operational Parity) — EXECUTING
-Plan: 5 of 8
+Plan: 6 of 8
 Total Plans in Phase: 8
 Status: Ready to execute
 Last activity: 2026-09-13 — Phase 7 execution started
@@ -100,6 +100,7 @@ Progress: [█████░░░░░] 50% (2/4 phases complete)
 | Phase 07 P02 | 36min | 3 tasks | 47 files |
 | Phase 7 P03 | 1h 51m | 3 tasks | 6 files |
 | Phase 07 P04 | 1h 39m | 3 tasks | 6 files |
+| Phase 07 P05 | 1h 29m | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -160,6 +161,12 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 7]: 07-04: desktop Add triggers hide on wrapper divs - glim-btn unlayered CSS beats layered max-md:hidden on the same element (06-03 picker lesson, re-learned live)
 - [Phase 7]: 07-04: write-only secrets machine-asserted as empty value + blank-keeps PUT body; frozen ReceivedRepoInput/FleetPeerInput have no removal flag and no Set key exists - has* keep-placeholder is the stored-key signal
 - [Phase 7]: 07-04: Fleet protection chips CALL the desktop PeerScorecard (one mapping, two presentations); detail sheets content-sized / editors fullHeight across Config+Receiver+Fleet; mobile deletes ride useConfirm warn
+- [Phase 7]: 07-05: one tab state, two presentations - switchTab + tabItems hoisted once, shared by desktop Selector (tablist/tab) and mobile chips (nav + aria-current); stacked cards below md ARE the desktop panels, only navigation forks (T-07-16)
+- [Phase 7]: 07-05: PAGE_SHELL_TABBED responsive gap lives IN the constant (gap-6 md:gap-10) - page-uses-page-shell only recognises the bare identifier at the call site; md:gap-10 IS gap-10 so desktop identical by construction
+- [Phase 7]: 07-05: chip strip mounts behind !isDesktop while desktop strip stays mounted under max-md:hidden; panels maxWidth isDesktop- AND truthy-gated so a hidden 0px measurement can never crush the Cards
+- [Phase 7]: 07-05: Toggle 44px mobile hit area via max-md ::after 12px bleed (visual frozen, desktop untouched); FAB audit negative - every add-action already in-card, a Fab would duplicate a visible action
+- [Phase 7]: 07-05 e2e: /api/settings staged field-for-field + display-prefs METHOD-BRANCHED (GET abort boot-look cut, PUT ok); role queries need includeHidden for the mounted-hidden D-01 half; card-heading visibility asserts the badge span (h2 is a zero-height box under the absolute notch Badge)
+- [Phase 7]: 07-05 VERIFY-04 disposition: e2e touch-target backstop enforces NEW mobile primitives only (chips min-h-11, Toggle bleed); app-wide desktop-era control scale (Button 32px, Selector 37.6px) is a phase 8 real-device validation item
 
 ### Pending Todos
 
@@ -186,8 +193,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-13T14:48:05.440Z
-Stopped at: Completed 07-04-PLAN.md
+Last session: 2026-09-13T16:26:49.154Z
+Stopped at: Completed 07-05-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

@@ -44,7 +44,7 @@
 ### Remaining Destinations
 
 - [x] **MORE-01**: VMs, Flash, Config, Receiver, Fleet in the mobile card language: block-level item cards with status + last run + offsite state, trigger + schedule entry points; Config surfaces the existing restore guard chain readably; Fleet peer cards (reachable, last contact, protection summary)
-- [ ] **MORE-02**: Settings: stacked setting cards; editors as full-screen sheets; dark mode / language / accent work as today; the 7-tab Selector strip gets a defined mobile treatment
+- [x] **MORE-02**: Settings: stacked setting cards; editors as full-screen sheets; dark mode / language / accent work as today; the 7-tab Selector strip gets a defined mobile treatment
 
 ### List Ergonomics
 
@@ -130,7 +130,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PRIM-04 | Phase 6 | Complete |
 | FLOW-03 | Phase 6 | Complete |
 | MORE-01 | Phase 7 | Complete |
-| MORE-02 | Phase 7 | Pending |
+| MORE-02 | Phase 7 | Complete |
 | FLOW-01 | Phase 7 | Complete |
 | FLOW-02 | Phase 7 | Pending |
 | LISTS-01 | Phase 7 | Complete |
