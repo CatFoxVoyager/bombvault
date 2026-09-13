@@ -248,7 +248,7 @@ const es: Partial<Translations> = {
   "settings.labels.mode.reactive": "Reactivo",
   "settings.motion.off": "Desactivado",
   "settings.motion.subtle": "Sutil",
-  "settings.motion.full": "Completo",
+  "settings.motion.wild": "Salvaje",
   "settings.rainbow": "Modo arcoíris",
   "settings.rainbowHint": "Cada fila de una lista recibe su propio color de un conjunto de ocho, en lugar de que todo comparta un solo color de acento. Así las listas largas se distinguen de un vistazo.",
   "settings.rainbowReactive": "Modo reactivo",

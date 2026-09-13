@@ -703,7 +703,7 @@ const fa: Partial<Translations> = {
   "settings.labels.mode.reactive": "واکنشی",
   "settings.motion.off": "خاموش",
   "settings.motion.subtle": "ملایم",
-  "settings.motion.full": "کامل",
+  "settings.motion.wild": "وحشی",
   "settings.rainbow": "حالت رنگین‌کمان",
   "settings.rainbowHint": "هر ردیف در یک فهرست، رنگ خودش را از میان هشت رنگ می‌گیرد، به‌جای اینکه همه یک رنگ تأکیدی مشترک داشته باشند. این کار تشخیص فهرست‌های طولانی را در یک نگاه راحت‌تر می‌کند.",
   "settings.rainbowReactive": "حالت واکنشی",

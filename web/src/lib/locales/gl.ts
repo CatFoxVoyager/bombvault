@@ -703,7 +703,7 @@ const gl: Partial<Translations> = {
   "settings.labels.mode.reactive": "Reactivo",
   "settings.motion.off": "Desactivado",
   "settings.motion.subtle": "Sutil",
-  "settings.motion.full": "Completo",
+  "settings.motion.wild": "Salvaxe",
   "settings.rainbow": "Modo arco da vella",
   "settings.rainbowHint": "Cada fila dunha lista recibe a súa propia cor dun conxunto de oito, en vez de que todo comparta unha soa cor de acento: isto fai que as listas longas sexan máis fáciles de distinguir dunha ollada.",
   "settings.rainbowReactive": "Modo reactivo",

@@ -248,7 +248,7 @@ const cs: Partial<Translations> = {
   "settings.labels.mode.reactive": "Reaktivní",
   "settings.motion.off": "Vypnuto",
   "settings.motion.subtle": "Jemné",
-  "settings.motion.full": "Plné",
+  "settings.motion.wild": "Divoké",
   "settings.rainbow": "Duhový režim",
   "settings.rainbowHint": "Každý řádek v seznamu dostane vlastní barvu z osmi barevné palety místo toho, aby vše sdílelo jeden akcent. Dlouhé seznamy se tak na první pohled snáze rozliší.",
   "settings.rainbowReactive": "Reaktivní režim",

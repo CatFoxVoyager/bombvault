@@ -248,7 +248,7 @@ const fi: Partial<Translations> = {
   "settings.labels.mode.reactive": "Reagoiva",
   "settings.motion.off": "Pois",
   "settings.motion.subtle": "Hillitty",
-  "settings.motion.full": "Täysi",
+  "settings.motion.wild": "Villi",
   "settings.rainbow": "Sateenkaaritila",
   "settings.rainbowHint": "Jokainen listan rivi saa oman värinsä kahdeksan värin joukosta sen sijaan, että kaikki jakaisivat saman korostusvärin. Pitkät listat erottuvat näin yhdellä silmäyksellä.",
   "settings.rainbowReactive": "Reaktiivinen tila",

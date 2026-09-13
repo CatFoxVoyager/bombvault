@@ -542,7 +542,7 @@
      width does the bouncing and nothing else has to move), while the text
      itself slides in from the left and unsquashes — it starts slightly
      compressed and scales back to 1 as it lands. */
-  :root[data-motion="full"] .glim-label-reactive {
+  :root[data-motion="wild"] .glim-label-reactive {
     transition:
       max-width 320ms cubic-bezier(0.34, 1.56, 0.64, 1),
       opacity 180ms ease-out,
@@ -568,10 +568,10 @@
      the file made them move together. They are adjacent and cross-referenced
      now, which is the cheapest guard available short of merging them — and they
      cannot merge, because one is inside the reduced-motion gate and one is not. */
-  :root[data-motion="full"] .glim-reactive.glim-active .glim-label-reactive,
-  :root[data-motion="full"] .glim-reactive:hover .glim-label-reactive,
-  :root[data-motion="full"] .glim-reactive:focus-visible .glim-label-reactive,
-  :root[data-motion="full"] .glim-reactive:focus-within .glim-label-reactive {
+  :root[data-motion="wild"] .glim-reactive.glim-active .glim-label-reactive,
+  :root[data-motion="wild"] .glim-reactive:hover .glim-label-reactive,
+  :root[data-motion="wild"] .glim-reactive:focus-visible .glim-label-reactive,
+  :root[data-motion="wild"] .glim-reactive:focus-within .glim-label-reactive {
     transform: translateX(0) scaleX(1);
   }
 }
@@ -2481,9 +2481,26 @@ body {
    axis. A future pass adding new keyframes should read these vars too,
    not reinvent a second scheme. */
 :root {
-  --motion-page-dist: 8px;               /* .glim-page-enter's translateY distance */
+  /* THE DISTANCE AND THE CURVE, per stage, and they are the half that was
+     missing (GlimStone 1.10.0). Every DURATION was a token here and every
+     TRAVEL was a literal, so the top stage and "subtle" ran the same short
+     slide at two speeds - a difference somebody has to be told about rather
+     than one they can see. A setting whose top end is only "the same thing,
+     slower to finish" earns a quiet name; one that travels further and
+     overshoots earns a livelier one. The animation changed first and the name
+     followed it, in that order, because the fix for a label promising more
+     than it delivers is either a quieter label or a livelier animation, and
+     only one of the two makes the product better.
+
+     The rule the language already states survives intact: the same keyframes
+     at all three stages, never a forked animation. What changes is the number
+     the keyframe reads and the curve it reads it through. */
+  --motion-page-dist: 18px;              /* .glim-page-enter's translateY distance */
+  --motion-page-scale: .96;
   --motion-page-dur: 320ms;
-  --motion-page-ease: cubic-bezier(.2, .6, .2, 1);
+  /* A curve that overshoots and settles. The control point past 1 is what
+     makes it spring rather than ease. */
+  --motion-page-ease: cubic-bezier(.34, 1.56, .64, 1);
 
   --motion-toast-slide-scale: 1;          /* multiplies --glim-toast-slide/-rtl below */
   --motion-toast-dur: 220ms;
@@ -2549,8 +2566,12 @@ body {
 :root[data-motion="subtle"] {
   /* Shorter AND smaller — "still present," per design-language.md's own
      phrasing for this state, not a near-off compromise. */
-  --motion-page-dist: 4px;
+  /* Smaller travel, no scale, and a curve that only eases. Somebody who asked
+     for less movement asked for less movement, not for a faster bounce. */
+  --motion-page-dist: 6px;
+  --motion-page-scale: 1;
   --motion-page-dur: 180ms;
+  --motion-page-ease: cubic-bezier(.2, .6, .2, 1);
 
   --motion-toast-slide-scale: .5;
   --motion-toast-dur: 140ms;
@@ -2610,8 +2631,9 @@ body {
      glim-egg-fade-pulse for data-motion="off", the exact keyframe the
      (reduce) block already uses for the same reason. */
   --motion-page-dist: 0px;
+  --motion-page-scale: 1;
   --motion-page-dur: 200ms;
-  --motion-page-ease: ease;
+  --motion-page-ease: linear;
 
   --motion-toast-slide-scale: 0;
   --motion-toast-dur: 160ms;
@@ -2734,11 +2756,15 @@ body {
 }
 
 /* Route/page enter (Item 7c). `translateY(var(--motion-page-dist))`, not a
-   hard-coded 8px — the motion-engine token above (GlimStone motion-engine
-   section, further up this file) parameterizes the distance per
-   off/subtle/full without needing a second keyframe. */
+   hard-coded number - the motion-engine tokens above parameterize the travel,
+   the scale and the curve per stage without needing a second keyframe. The
+   scale is what makes the top stage read as a page arriving rather than
+   sliding: at 1 it is the same motion the quiet stage already had. */
 @keyframes glim-page-in {
-  from { opacity: 0; transform: translateY(var(--motion-page-dist, 8px)); }
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-page-dist, 8px)) scale(var(--motion-page-scale, 1));
+  }
   /* End at `none`, not translateY(0): animation-fill-mode:both keeps the final
      keyframe, and any transform other than none makes .glim-page-enter a
      containing block for position:fixed descendants — which anchored in-page
@@ -2778,8 +2804,8 @@ body {
    Unconditional +12px meant an RTL toast slid in from further LEFT than
    its LEFT-anchored resting place — i.e. from the page's interior toward
    the edge, not from off-canvas toward the edge like every other toast. */
-:root { --glim-toast-slide: 12px; }
-[dir="rtl"] { --glim-toast-slide: -12px; }
+:root { --glim-toast-slide: 24px; }
+[dir="rtl"] { --glim-toast-slide: -24px; }
 /* `calc(... * var(--motion-toast-slide-scale))`, not the bare
    --glim-toast-slide above — the motion-engine token (further up this
    file) scales the slide distance per off/subtle/full (0 / .5 / 1) on top

@@ -26,17 +26,17 @@ import { save as saveDisplayPrefs } from "./displayPrefs";
 // an OS-level reduced-motion user is unaffected by whatever this attribute
 // says — that media query, not this file, is what enforces "OS wins." See
 // index.css's own "Motion intensity" section header for the full cascade
-// design and the off/subtle/full resolution table for every keyframe.
+// design and the off/subtle/wild resolution table for every keyframe.
 // ---------------------------------------------------------------------------
 
-export type MotionIntensity = "off" | "subtle" | "full";
+export type MotionIntensity = "off" | "subtle" | "wild";
 
-export const MOTION_INTENSITIES: MotionIntensity[] = ["off", "subtle", "full"];
+export const MOTION_INTENSITIES: MotionIntensity[] = ["off", "subtle", "wild"];
 
 const STORAGE_KEY = "bv-motion";
 
 /**
- * DEFAULT is "full", not shape.ts's kind of arbitrary-but-fixed pick and not
+ * DEFAULT is "wild", not shape.ts's kind of arbitrary-but-fixed pick and not
  * theme.ts's "system" either — deliberately chosen, not just copied:
  *   - "system" (mirroring theme.ts) would be redundant here specifically,
  *     not wrong in general: prefers-reduced-motion is ALREADY read
@@ -45,37 +45,58 @@ const STORAGE_KEY = "bv-motion";
  *     just re-derive a signal the app already honours everywhere, for a
  *     control whose entire reason to exist is letting a user without OS-
  *     level reduced-motion still dial intensity as a STYLE preference.
- *   - "full" over "off"/"subtle" because this axis is additive polish a
+ *   - the top stage over "off"/"subtle" because this axis is additive polish a
  *     user dials DOWN, not a compatibility fallback a user has to opt INTO
  *     — the same reasoning rainbow mode's own default (RAINBOW_OFF, an
  *     opt-in) does NOT apply here: rainbow changes what a list looks like
  *     (a real visual identity choice with no obviously-correct default),
  *     while motion intensity only ever makes existing, already-shipped
- *     animations quicker/smaller/absent — "full" is simply what this app
+ *     animations quicker/smaller/absent — the top stage is simply what this app
  *     already looked like before this axis existed, so booting there means
  *     nobody's experience changes just because the toggle now exists.
  */
-const DEFAULT: MotionIntensity = "full";
+const DEFAULT: MotionIntensity = "wild";
 
 function isMotionIntensity(v: unknown): v is MotionIntensity {
   return typeof v === "string" && (MOTION_INTENSITIES as string[]).includes(v);
 }
 
-/** The stored preference, defaulting to "full" when unset or corrupt. */
+/**
+ * The value a browser stored before GlimStone 1.10.0 renamed the top stage.
+ *
+ * It matters even though the new default IS the top stage: a stored "full"
+ * would otherwise stop validating, fall through to DEFAULT, and be rewritten
+ * the next time anything saves - so the user's own explicit choice would be
+ * replaced by a default that happens to look the same. It also matters for the
+ * one case where they differ: a browser that stored "full" while the default
+ * was later changed would silently move.
+ */
+const RENAMED: Record<string, MotionIntensity> = { full: "wild" };
+
+/** The stored preference, defaulting to the top stage when unset or corrupt. */
 export function getMotionIntensity(): MotionIntensity {
   const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored !== null && stored in RENAMED) {
+    const migrated = RENAMED[stored];
+    localStorage.setItem(STORAGE_KEY, migrated);
+    return migrated;
+  }
   return isMotionIntensity(stored) ? stored : DEFAULT;
 }
 
 /**
  * applyMotionIntensity sets the attribute index.css's motion tokens key off,
- * validating against MOTION_INTENSITIES and falling back to "full" for
+ * validating against MOTION_INTENSITIES and falling back to the top stage for
  * anything else — matches shape.ts's own applyShape() exactly, so a caller
  * can hand this an unvalidated value (straight out of localStorage, say)
  * without checking it first.
  */
 export function applyMotionIntensity(intensity: MotionIntensity | string | undefined): void {
-  const m = isMotionIntensity(intensity) ? intensity : DEFAULT;
+  // The rename again, and it has to be here too: this function is documented
+  // as taking an unvalidated value straight out of localStorage, so it is the
+  // one place an old "full" can arrive without passing through the getter.
+  const named = typeof intensity === "string" && intensity in RENAMED ? RENAMED[intensity] : intensity;
+  const m = isMotionIntensity(named) ? named : DEFAULT;
   document.documentElement.setAttribute("data-motion", m);
 }
 

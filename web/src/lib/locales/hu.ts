@@ -248,7 +248,7 @@ const hu: Partial<Translations> = {
   "settings.labels.mode.reactive": "Reaktív",
   "settings.motion.off": "Kikapcsolva",
   "settings.motion.subtle": "Visszafogott",
-  "settings.motion.full": "Teljes",
+  "settings.motion.wild": "Vad",
   "settings.rainbow": "Szivárvány mód",
   "settings.rainbowHint": "A lista minden sora saját színt kap egy nyolcból álló készletből, ahelyett hogy minden egy kiemelőszínt osztana meg, így a hosszú listák egy pillantással megkülönböztethetők.",
   "settings.rainbowReactive": "Reaktív mód",

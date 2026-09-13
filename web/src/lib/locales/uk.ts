@@ -246,7 +246,7 @@ const uk: Partial<Translations> = {
   "settings.labels.mode.reactive": "Реактивний",
   "settings.motion.off": "Вимкнено",
   "settings.motion.subtle": "М'яко",
-  "settings.motion.full": "Повністю",
+  "settings.motion.wild": "Буйно",
   "settings.rainbow": "Режим веселки",
   "settings.rainbowHint": "Кожен рядок у списку отримує власний колір з набору восьми, замість того щоб усе використовувало один акцентний колір — це робить довгі списки легшими для розрізнення з першого погляду.",
   "settings.rainbowReactive": "Реактивний режим",

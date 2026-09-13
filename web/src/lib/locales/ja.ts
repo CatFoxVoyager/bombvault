@@ -248,7 +248,7 @@ const ja: Partial<Translations> = {
   "settings.labels.mode.reactive": "反応型",
   "settings.motion.off": "オフ",
   "settings.motion.subtle": "控えめ",
-  "settings.motion.full": "フル",
+  "settings.motion.wild": "ワイルド",
   "settings.rainbow": "レインボーモード",
   "settings.rainbowHint": "リストの各行は、単一のアクセントカラーを共有する代わりに、8色のセットから自分専用の色を得ます。これにより長いリストが一目で区別しやすくなります。",
   "settings.rainbowReactive": "リアクティブモード",
