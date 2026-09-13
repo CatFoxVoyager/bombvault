@@ -107,8 +107,20 @@ export const PAGE_SHELL_RESPONSIVE = "flex flex-col gap-6 md:gap-10 max-w-6xl";
 /**
  * Settings only — the ONE stated exception to PAGE_SHELL's width.
  *
- * Same 40px rhythm, but no `max-w-6xl`, plus the `flex-1` its sticky
- * AboutFooter needs to fill `main`'s column (see the footer's own comment).
+ * Same 40px rhythm at >=48rem, but no `max-w-6xl`, plus the `flex-1` its
+ * sticky AboutFooter needs to fill `main`'s column (see the footer's own
+ * comment).
+ *
+ * Phase 7 (MORE-02) — the gap joined PAGE_SHELL_RESPONSIVE's responsive shape
+ * (`gap-6 md:gap-10`): identical to the old flat `gap-10` at >=48rem by
+ * construction (md:gap-10 IS gap-10), so the desktop tabbed layout is
+ * unchanged; below the breakpoint the strip-to-first-card rhythm steps down
+ * to 24px like every other phone-width page instead of keeping the desktop
+ * 40px. The override lives IN the constant rather than as a `max-md:gap-*`
+ * suffix at the call site because page-uses-page-shell recognises the page
+ * root only as the bare `{PAGE_SHELL_TABBED}` identifier — composing at the
+ * call site would read to the rule as an unshelled page. Settings is this
+ * constant's only consumer, so the retune cannot leak anywhere else.
  *
  * Why the width cap has to be absent here, measured live rather than assumed:
  * Settings' 7-tab Selector strip is `size="lg"` + `equalWidth`, so its width is
@@ -129,4 +141,4 @@ export const PAGE_SHELL_RESPONSIVE = "flex flex-col gap-6 md:gap-10 max-w-6xl";
  * which is a change to a deliberate prior decision and is jdp's call, not a
  * silent squeeze here.
  */
-export const PAGE_SHELL_TABBED = "flex flex-col gap-10 flex-1";
+export const PAGE_SHELL_TABBED = "flex flex-col gap-6 md:gap-10 flex-1";

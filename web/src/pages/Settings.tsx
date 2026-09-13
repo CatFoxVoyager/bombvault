@@ -46,6 +46,7 @@ import { useToast } from "../lib/toast";
 import { REPO_LOCAL_HINT_LTR_FRAGMENTS, tLtr, withLtrFragments } from "../lib/ltrFragments";
 import { randomId } from "../lib/uuid";
 import { useAdvanced } from "../lib/advanced";
+import { useIsDesktop } from "../lib/useMediaQuery";
 import { SpikePanel } from "../components/SpikePanel";
 import { ColorPickerSwatch } from "../components/ColorPickerPopover";
 import { RAINBOW, getRainbow, setRainbow, type RainbowState } from "../lib/appearance";
@@ -1108,6 +1109,14 @@ export function SettingsPage() {
   const { advanced } = useAdvanced();
   const { push, quiet, setQuiet } = useToast();
 
+  // Presentation gate (D-01): the desktop Selector strip and the mobile chip
+  // strip (MORE-02) are two views of the ONE tab state below. Called
+  // unconditionally at the top on purpose — this component has early returns
+  // further down (loadError, the !settings loading placeholder), and a hook
+  // below those would violate the rules of hooks. jsdom's matchMedia setup
+  // stub answers "desktop", so every existing dom test keeps seeing exactly
+  // the desktop presentation (the mobile strip never mounts there).
+  const isDesktop = useIsDesktop();
   const [tab, setTab] = useState<TabKey>("general");
   // Settings tab slide (GlimStone motion-engine animation 7) — 1 = the tab
   // strip's onChange below just moved to a LATER tab (slide in from the
@@ -1125,6 +1134,52 @@ export function SettingsPage() {
   useEffect(() => {
     tabRef.current = tab;
   }, [tab]);
+  // ONE tab-switch handler for BOTH strip presentations (MORE-02 truth 2 /
+  // T-07-16: one state, two presentations — never a fork). The desktop
+  // Selector and the mobile chip strip below both route through this, so the
+  // direction computation, the state write, and the hash sync cannot drift
+  // between the two views. `key` is typed wide because Selector's onChange
+  // contract hands back `string`; the mobile chips call it with their own
+  // (compile-checked TabKey) entries.
+  const switchTab = (key: string) => {
+    // Settings tab slide (GlimStone motion-engine animation 7) — computed
+    // HERE, in the same synchronous event handler that also calls setTab()
+    // below, because this is the one place that still has BOTH the old tab
+    // (the `tab` closure variable, not yet updated) and the new one (`key`)
+    // at once. React batches this setTabDir alongside the setTab() call into
+    // the same commit, so the tab-content wrapper's very first render with
+    // the new `tab` already carries the correct --tab-dir (see that wrapper's
+    // own comment further down for why keying it on `tab` is what makes the
+    // slide replay on every click). Comment moved verbatim from the
+    // Selector's inline onChange when this handler was hoisted for the
+    // mobile strip.
+    const from = TAB_ORDER.indexOf(tab);
+    const to = TAB_ORDER.indexOf(key as TabKey);
+    if (from !== -1 && to !== -1) setTabDir(to > from ? 1 : -1);
+    setTab(key as TabKey);
+    // Keep the URL hash in sync so reload/bookmark restores the tab
+    // (replaceState avoids polluting history and won't re-fire applyHash).
+    try {
+      window.history.replaceState(null, "", `#${key}`);
+    } catch {
+      /* history unavailable — tab state still switches */
+    }
+  };
+  // One shared entries array for BOTH presentations — same labels, same
+  // glyphs, same TAB_ORDER sequence — so the desktop strip and the mobile
+  // chips cannot disagree about what the tab set even is. Moved verbatim out
+  // of the Selector's JSX when the mobile strip needed the same list; the
+  // `as const` keeps every id a literal in the TabKey union, so a tab
+  // renames compile-error here instead of silently leaving one view behind.
+  const tabItems = ([
+    ["general", t("settings.tab.general")],
+    ["storage", t("settings.tab.storage")],
+    ["schedules", t("settings.tab.schedules")],
+    ["offsite", t("settings.tab.offsite")],
+    ["notifications", t("settings.tab.notifications")],
+    ["integrity", t("settings.tab.integrity")],
+    ["system", t("settings.tab.system")],
+  ] as const).map(([key, label]) => ({ id: key, label, icon: TAB_ICON[key], title: label }));
   // Tab-strip width tracking (GlimStone follow-up pass, live-review round —
   // "the equal-width tab fix should match content, not stretch to fill" —
   // see Selector.tsx's own `equalWidth`/`stretch` header for the corrected
@@ -2534,43 +2589,22 @@ export function SettingsPage() {
       {/* alongside `self-start` for correctness if this wrapper is ever moved */}
       {/* under a non-flex (normal block-flow) parent instead, where the       */}
       {/* inline-level box model would matter again. */}
-      <div ref={setTabStripEl} className="inline-flex self-start max-w-full">
+      {/* D-01 desktop half — this strip stays MOUNTED below md, hidden with
+          `max-md:hidden` (a plain div, so the layered utility wins — the
+          .glim-btn wrapper-div lesson doesn't apply here). Desktop renders
+          the exact same JSX it always has; mobile gets the chip strip after
+          this wrapper instead. One consequence is load-bearing: hidden
+          (display:none) boxes measure 0, so `tabStripWidth` reads 0 below
+          md — which is why the panels wrapper's maxWidth below is gated on
+          `isDesktop` (and on a truthy width), or a 0px cap would crush the
+          Cards flat on the phone. */}
+      <div ref={setTabStripEl} className="inline-flex self-start max-w-full max-md:hidden">
       <Selector
-        items={([
-          ["general", t("settings.tab.general")],
-          ["storage", t("settings.tab.storage")],
-          ["schedules", t("settings.tab.schedules")],
-          ["offsite", t("settings.tab.offsite")],
-          ["notifications", t("settings.tab.notifications")],
-          ["integrity", t("settings.tab.integrity")],
-          ["system", t("settings.tab.system")],
-        ] as const).map(([key, label]) => ({ id: key, label, icon: TAB_ICON[key], title: label }))}
+        items={tabItems}
         label={t("settings.title")}
         select="one"
         active={tab}
-        onChange={(key) => {
-          // Settings tab slide (GlimStone motion-engine animation 7) —
-          // computed HERE, in the same synchronous event handler that also
-          // calls setTab() below, because this is the one place that still
-          // has BOTH the old tab (the `tab` closure variable, not yet
-          // updated) and the new one (`key`) at once. React batches this
-          // setTabDir alongside the setTab() call into the same commit, so
-          // the tab-content wrapper's very first render with the new `tab`
-          // already carries the correct --tab-dir (see that wrapper's own
-          // comment further down for why keying it on `tab` is what makes
-          // the slide replay on every click).
-          const from = TAB_ORDER.indexOf(tab);
-          const to = TAB_ORDER.indexOf(key as TabKey);
-          if (from !== -1 && to !== -1) setTabDir(to > from ? 1 : -1);
-          setTab(key as TabKey);
-          // Keep the URL hash in sync so reload/bookmark restores the tab
-          // (replaceState avoids polluting history and won't re-fire applyHash).
-          try {
-            window.history.replaceState(null, "", `#${key}`);
-          } catch {
-            /* history unavailable — tab state still switches */
-          }
-        }}
+        onChange={switchTab}
         size="lg"
         equalWidth
         /* #178, [200]: the strip joins the size system, with jdp's stated
@@ -2588,6 +2622,65 @@ export function SettingsPage() {
         segmentWidth="var(--nav-row-w)"
       />
       </div>
+
+      {/* ---- Mobile chip strip (MORE-02) — the D-01 `!isDesktop` half of the
+          tab set: one tonal chip per TAB_ORDER entry, bound to the SAME
+          `tab` state through the SAME `switchTab` handler the desktop
+          Selector uses (T-07-16: one state, two presentations — there is no
+          second tab state, and the `tabItems` list above is the single
+          source both views render). Mount-gated rather than hidden on
+          purpose: unlike the desktop strip, this view does not exist in any
+          dom test's DOM (jsdom answers desktop), so Task 3's Playwright spec
+          is what proves it — same discipline as every phase 7 mobile block.
+            Shape contract (07-UI-SPEC MORE-02 + accent reservation 10): the
+          ACTIVE chip alone carries accent (`bg-accentSoft text-accentText`);
+          inactive chips are `bg-carbon-surface2 text-carbon-textMuted` — no
+          accent, no status colour, on anything unselected. Every chip is a
+          `min-h-11` (44px) tap target with 16px side padding, `text-caption`
+          (the 11px type token), and its corner radius read from the
+          PLATFORM token `--mob-chip-radius` (index.css defines the pill for
+          both data-platform attribute values) — never a literal radius,
+          never `rounded-full` (which would pin the corners outside both
+          engines; see the exception marker on the chip button).
+            Scroll, never wrap: `overflow-x-auto` + `shrink-0` +
+          `whitespace-nowrap` — seven de labels cannot fit a phone column,
+          and wrapping would turn the strip into two rows of chips (the
+          exact desktop regression #178 fixed, mobile edition). In-flow, not
+          sticky and never position:fixed: the phase 5 no-fixed contract
+          stands, and a pinned bar would need its own background and z-layer
+          to keep long tab content from showing through it — the desktop
+          strip scrolls away too, so parity here is simply the same
+          in-flow behaviour. */}
+      {!isDesktop && (
+        <nav
+          aria-label={t("settings.tabsNavigation")}
+          className="-mx-1 flex gap-2 overflow-x-auto px-1 py-1"
+        >
+          {tabItems.map(({ id, label }) => (
+            // bv-convention-exception: control-reads-engine-tokens --
+            // the chip's corner radius belongs to the PLATFORM axis on
+            // purpose: --mob-chip-radius is the [data-platform] token
+            // (index.css, both attribute values defined), the same
+            // platform-owns-chrome-geometry contract as Fab's
+            // --mob-fab-radius (PLAT-01) — not a shape-engine --radius-*
+            // value.
+            <button
+              key={id}
+              type="button"
+              aria-current={tab === id ? "true" : undefined}
+              title={label}
+              onClick={() => switchTab(id)}
+              className={`flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-(--mob-chip-radius) px-4 text-caption ${
+                tab === id
+                  ? "bg-accentSoft text-accentText"
+                  : "bg-carbon-surface2 text-carbon-textMuted"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+      )}
       </div>
 
       {/* Tab panels. GlimStone follow-up pass, live-review round ("Settings
@@ -2661,10 +2754,26 @@ export function SettingsPage() {
           exactly as before, growing `main` past the viewport and letting it
           scroll normally, with AboutFooter still following right after it
           rather than sitting fixed over top of it. */}
+      {/* MORE-02 mobile adjustments to this SHARED wrapper — the stacked
+          cards below md ARE these same panels (no second copy of the tab
+          content exists, so the two presentations cannot drift):
+            `max-md:gap-4` — the phone Card rhythm is 16px (the mobile card
+          language's stack gap); the desktop 40px stays untouched at >=md.
+            The maxWidth gate — below md the desktop strip is display:none,
+          and hidden boxes measure 0, so an ungated `tabStripWidth` would cap
+          every Card to 0px wide on the phone. Gating on `isDesktop` returns
+          the wrapper to its natural full width exactly when the strip it
+          mirrors is hidden. `||` (not `??`) is deliberate: a measured 0
+          during the mobile->desktop crossing must fall through to UNCAPPED
+          for a frame, not paint the Cards crushed at 0px until the
+          ResizeObserver's next reading lands. */}
       <div
         key={tab}
-        className="flex flex-col gap-10 glim-tab-slide flex-1"
-        style={{ maxWidth: tabStripWidth ?? undefined, "--tab-dir": tabDir } as CSSProperties}
+        className="flex flex-col gap-10 max-md:gap-4 glim-tab-slide flex-1"
+        style={{
+          maxWidth: isDesktop ? (tabStripWidth || undefined) : undefined,
+          "--tab-dir": tabDir,
+        } as CSSProperties}
       >
 
       {/* ------------------------------------------------------------------ */}
