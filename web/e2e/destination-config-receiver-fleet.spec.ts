@@ -433,3 +433,245 @@ test("mobile /config: gate-off shows the honest outline card and nothing else", 
   await settingsLink.tap();
   await expect(page).toHaveURL(/\/settings$/);
 });
+
+// --- Receiver (Task 2) -------------------------------------------------------
+//
+// Write-only note (T-07-11): the plan's "Set badge" and "Clear sends the
+// removal flag" phrasing meets the frozen API where it actually lives —
+// ReceivedRepoInput has NO removal flag (api.ts: "On PUT an empty appKey
+// keeps the stored key"; removing the entry removes its key), and the phase's
+// i18n single-writer discipline (07-02 pre-seed, only nine keys) means no
+// "Set" string key exists to badge with. The desktop's stored-key signal IS
+// the "saved (leave blank to keep)" placeholder from hasAppKey, so the
+// machine-asserted write-only contract here is: the input's value attribute
+// is EMPTY while a key is stored (never echoed), and the blank save's PUT
+// body carries appKey: "" — no secret bytes render or travel. That assertion
+// is strictly stronger than a badge screenshot: it proves the payload.
+
+function receiverRepoFixture(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
+    name: "tower off-site",
+    repo: "rest:http://192.168.1.50:8000/tower-containers",
+    deadManHours: 26,
+    checkCadence: "daily 04:00",
+    readDataPercent: 0,
+    lastCheckAt: 0,
+    lastCheckOk: null,
+    lastCheckError: "",
+    lastCheckReadData: false,
+    enabled: true,
+    createdAt: 1789200000,
+    sortOrder: 0,
+    hasAppKey: true,
+    lastReceived: "",
+    snapshotCount: 0,
+    reachable: true,
+    ...overrides,
+  };
+}
+
+function receiverInventoryFixture(nowMs: number) {
+  return {
+    sources: [
+      {
+        host: "tower",
+        item: "plex",
+        snapshotCount: 37,
+        lastReceived: new Date(nowMs - 5 * 60_000).toISOString(),
+        totalSize: 1073741824,
+      },
+    ],
+    snapshotCount: 42,
+    lastReceived: new Date(nowMs - 2 * 60_000).toISOString(),
+    totalSize: 5368709120, // humanBytes → "5.0 GB"
+  };
+}
+
+/** Route-level staging of the receiver domain (Go JSON shapes, api.ts). The
+ *  settings route is included because the mobile block owns the destinations
+ *  gate fetch; display-prefs aborts for the boot-look cut (05-06). */
+async function stageReceiverDomain(
+  page: Page,
+  opts: {
+    settings?: Record<string, unknown>;
+    repos?: ReturnType<typeof receiverRepoFixture>[];
+    inventory?: Record<string, unknown>;
+  } = {},
+) {
+  await page.route("**/api/display-prefs*", (route) => route.abort());
+  await page.route("**/api/settings", (route) =>
+    route.fulfill({ json: settingsBody(opts.settings) }),
+  );
+  await page.route("**/api/receiver/repos", (route) => {
+    if (route.request().method() === "POST") {
+      route.fulfill({ json: { ok: true, repo: null } });
+      return;
+    }
+    route.fulfill({ json: { ok: true, repos: opts.repos ?? [] } });
+  });
+  await page.route("**/api/receiver/repos/*", (route) => {
+    // Single-repo writes: PUT (update, blank appKey keeps) and DELETE.
+    route.fulfill({ json: { ok: true } });
+  });
+  await page.route("**/api/receiver/repos/*/inventory", (route) =>
+    route.fulfill({
+      json: { ok: true, inventory: opts.inventory ?? receiverInventoryFixture(Date.now()) },
+    }),
+  );
+  await page.route("**/api/receiver/repos/*/check", (route) =>
+    route.fulfill({
+      json: {
+        ok: true,
+        result: { ok: true, error: "", ranReadData: false, at: Math.floor(Date.now() / 1000) },
+      },
+    }),
+  );
+}
+
+test("mobile /receiver: repo cards render the reachability language as text badges", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    !MOBILE_PROJECTS.has(testInfo.project.name),
+    "mobile-only: the Receiver card block is MORE-01b's surface",
+  );
+  const nowMs = Date.now();
+  await stageReceiverDomain(page, {
+    repos: [
+      receiverRepoFixture({
+        lastReceived: new Date(nowMs - 2 * 60_000).toISOString(),
+        snapshotCount: 42,
+      }),
+      receiverRepoFixture({
+        id: "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6a1",
+        name: "backup box",
+        enabled: false,
+        reachable: false,
+      }),
+    ],
+  });
+  await page.goto("/receiver");
+
+  // Card fields: name, reachability as TEXT status badges (the desktop
+  // language, never offsite-blue tokens — T-07-14), relative lastReceived,
+  // snapshot count.
+  await expect(page.getByRole("button", { name: /tower off-site/ }).filter({ visible: true })).toBeVisible();
+  const reachable = page.getByText("Reachable", { exact: true });
+  await expect(reachable).toBeVisible();
+  // NO offsite token anywhere on the reachability badge's own classes.
+  const reachableCls = (await reachable.getAttribute("class")) ?? "";
+  expect(reachableCls).not.toContain("offsite");
+  await expect(page.getByText("Last received: 2 minutes ago")).toBeVisible();
+  await expect(page.getByText("42 snapshots")).toBeVisible();
+
+  // The disabled repo: the desktop's own badge order — "Monitoring off"
+  // replaces the reachability badge entirely (four-status language: off is
+  // a state, not a failure).
+  await expect(page.getByText("Monitoring off", { exact: true })).toBeVisible();
+  await expect(page.getByText("Unreachable", { exact: true })).toHaveCount(0);
+});
+
+test("mobile /receiver: the detail sheet renders the inventory drill-down content-sized", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    !MOBILE_PROJECTS.has(testInfo.project.name),
+    "mobile-only: the D-04 viewer contract (content-sized, never fullHeight)",
+  );
+  const nowMs = Date.now();
+  await stageReceiverDomain(page, {
+    repos: [
+      receiverRepoFixture({
+        lastReceived: new Date(nowMs - 2 * 60_000).toISOString(),
+        snapshotCount: 42,
+      }),
+    ],
+  });
+  await page.goto("/receiver");
+
+  await page.getByRole("button", { name: /tower off-site/ }).tap();
+  const sheet = page.getByRole("dialog", { name: "Details" });
+  await expect(sheet).toBeVisible();
+
+  // CONTENT-SIZED (D-04): the panel is the max-height sheet, never the
+  // fullHeight h-dvh editor shell.
+  const sheetCls = (await sheet.getAttribute("class")) ?? "";
+  expect(sheetCls).toContain("max-h-");
+  expect(sheetCls).not.toContain("h-dvh");
+
+  // The inventory drill-down: per-source rows + repo-wide totals (staged
+  // receiverInventory fixture; 1 GiB → "1.0 GB", 5 GiB → "5.0 GB").
+  await expect(sheet.getByText("Inventory by source")).toBeVisible();
+  await expect(sheet.getByText("plex").filter({ visible: true })).toBeVisible();
+  await expect(sheet.getByText("37 snapshots")).toBeVisible();
+  await expect(sheet.getByText("1.0 GB")).toBeVisible();
+  await expect(sheet.getByText("Total")).toBeVisible();
+  await expect(sheet.getByText("5.0 GB")).toBeVisible();
+
+  // The manual check rows (checkNow + the deep-check readData toggle) and
+  // the edit/remove rows, all on the sheet.
+  await expect(sheet.getByRole("button", { name: "Check now" })).toBeVisible();
+  await expect(sheet.getByText("Deep check (read data)")).toBeVisible();
+  await expect(sheet.getByRole("button", { name: "Edit", exact: true })).toBeVisible();
+  await expect(sheet.getByRole("button", { name: "Remove", exact: true })).toBeVisible();
+
+  // Check now fires the same read-only check call; the staged verdict is OK
+  // → the desktop's own success toast.
+  const checked = page.waitForRequest(
+    (r) => r.method() === "POST" && /\/api\/receiver\/repos\/[^/]+\/check$/.test(r.url()),
+  );
+  await sheet.getByRole("button", { name: "Check now" }).tap();
+  await checked;
+  await expect(page.getByText("Check OK").filter({ visible: true }).first()).toBeVisible();
+});
+
+test("mobile /receiver: the APP_KEY editor is write-only — blank input, blank-keeps on save", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    !MOBILE_PROJECTS.has(testInfo.project.name),
+    "mobile-only: the T-07-11 write-only contract, machine-asserted on the wire",
+  );
+  await stageReceiverDomain(page, {
+    repos: [receiverRepoFixture({ hasAppKey: true })],
+  });
+  await page.goto("/receiver");
+
+  // CREATE: the editor is a fullHeight sheet (D-05) and the APP_KEY field
+  // mounts BLANK — never a prefilled or echoed value.
+  await page.getByRole("button", { name: "Add received repo" }).tap();
+  const createSheet = page.getByRole("dialog", { name: "Add received repo" });
+  await expect(createSheet).toBeVisible();
+  const createCls = (await createSheet.getAttribute("class")) ?? "";
+  expect(createCls).toContain("h-dvh");
+  const createKey = createSheet.getByPlaceholder("0123456789abcdef…");
+  await expect(createKey).toBeVisible();
+  expect(await createKey.inputValue()).toBe("");
+  await createSheet.getByRole("button", { name: "Cancel" }).tap();
+
+  // EDIT a repo with a stored key: blank input + the desktop's own
+  // keep-placeholder from hasAppKey (the stored-key signal — see the
+  // write-only note above), still never echoed.
+  await page.getByRole("button", { name: /tower off-site/ }).tap();
+  const sheet = page.getByRole("dialog", { name: "Details" });
+  await sheet.getByRole("button", { name: "Edit", exact: true }).tap();
+  const editSheet = page.getByRole("dialog", { name: "Edit received repo" });
+  await expect(editSheet).toBeVisible();
+  const editKey = editSheet.getByPlaceholder("saved (leave blank to keep)");
+  await expect(editKey).toBeVisible();
+  expect(await editKey.inputValue()).toBe("");
+
+  // Save with a blank key: the PUT body carries appKey: "" — the server
+  // keeps the stored key and NO secret value travels the wire (the
+  // machine-asserted blank-keeps contract; the frozen ReceivedRepoInput has
+  // no removal flag, so "clear" does not exist as a wire concept here).
+  const put = page.waitForRequest(
+    (r) => r.method() === "PUT" && /\/api\/receiver\/repos\/[^/]+$/.test(r.url()),
+  );
+  await editSheet.getByRole("button", { name: "Save" }).tap();
+  const body = (await put).postDataJSON() as Record<string, unknown>;
+  expect(body.appKey).toBe("");
+  expect(body.name).toBe("tower off-site");
+  expect(body.enabled).toBe(true);
+});
