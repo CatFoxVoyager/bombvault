@@ -621,9 +621,12 @@ export function SelectionTree({
             // and expand gestures NEVER share a hit area, which is the exact
             // hazard the desktop arrangement (row click expands, checkbox
             // toggles) would carry onto a touch tree. stopPropagation keeps
-            // the tap from also toggling through the row handler; the label
-            // is the action alone (common.expand/collapse, phase 6 wave-1
-            // keys) because the treeitem already names the path. A tabbable
+            // the tap from also toggling through the row handler. The
+            // accessible name composes the row's host path with the
+            // expand/collapse action words ("{path} Expand"/"{path}
+            // Collapse") — the carried 06-UI-REVIEW fix 3b: the action alone
+            // ("Expand") names no row, and a screen-reader user cycling the
+            // row's controls hears WHICH path the zone expands. A tabbable
             // control inside the row outside the roving set — same precedent
             // as the retry Button and the exclusions disclosure: the keydown
             // target guard hands it its own Space/Enter semantics.
@@ -635,7 +638,7 @@ export function SelectionTree({
             // finger target the whole mode exists to provide.
             <button
               type="button"
-              aria-label={t(expanded ? "common.collapse" : "common.expand")}
+              aria-label={`${spec.path} ${t(expanded ? "common.collapse" : "common.expand")}`}
               onClick={(e) => {
                 e.stopPropagation();
                 toggleExpansion(spec.path);

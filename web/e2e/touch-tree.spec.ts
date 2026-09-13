@@ -164,7 +164,9 @@ test("touch rows are full-size targets and the chevron zone is disjoint from the
 
   // (2) The chevron is a real >=44x44 button. Its EXISTENCE is already the
   // touch-mode tell — the desktop tree renders an aria-hidden 10px glyph.
-  const chevron = row.getByRole("button", { name: "Expand" });
+  // Name suffix-matched: the carried 06-UI-REVIEW fix 3b prefixes the row's
+  // host path to the action word, so the name is "{path} Expand".
+  const chevron = row.getByRole("button", { name: /Expand$/ });
   await expect(chevron).toBeVisible();
   const chevronBox = await chevron.boundingBox();
   expect(chevronBox, "the chevron must be laid out to measure it").not.toBeNull();
@@ -216,11 +218,11 @@ test("tap toggles the check both ways; the chevron expands without ever toggling
 
   // (5) The chevron EXPANDS without touching the check: the dedicated
   // expand zone runs the lazy browse, the child appears…
-  await row.getByRole("button", { name: "Expand" }).tap();
+  await row.getByRole("button", { name: /Expand$/ }).tap();
   await expect(row).toHaveAttribute("aria-expanded", "true");
   await expect(tree.getByRole("treeitem", { name: "library" })).toBeVisible();
   // …the label followed the state…
-  await expect(row.getByRole("button", { name: "Collapse" })).toBeVisible();
+  await expect(row.getByRole("button", { name: /Collapse$/ })).toBeVisible();
   // …and the check never moved during expansion.
   await expect(row).toHaveAttribute("aria-checked", "true");
 });

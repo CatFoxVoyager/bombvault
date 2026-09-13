@@ -223,8 +223,10 @@ describe("SelectionTree touch mode: the chevron zone (D-02)", () => {
     const row = screen.getByRole("treeitem", { name: /appdata\/plex/ });
     // (4) The chevron EXISTS as a real control with an accessible name —
     // the desktop glyph is aria-hidden decoration; the touch button is
-    // announced ("Expand", the wave-1 common.expand key).
-    const chevron = within(row).getByRole("button", { name: "Expand" });
+    // announced. The carried 06-UI-REVIEW fix 3b: the name composes the
+    // row's HOST PATH with the action word ("{path} Expand", the wave-1
+    // common.expand key) — the action alone names no row.
+    const chevron = within(row).getByRole("button", { name: `${MOUNT} Expand` });
     expect(row.getAttribute("aria-expanded")).toBe("false");
 
     await act(async () => {
@@ -237,10 +239,10 @@ describe("SelectionTree touch mode: the chevron zone (D-02)", () => {
     // …and the check did NOT move: the two gestures never share a pipeline.
     expect(taps).toEqual([]);
     expect(screen.getByRole("treeitem", { name: /appdata\/plex/ }).getAttribute("aria-checked")).toBe("true");
-    // The name follows the state ("Collapse" once open) — same key pair the
-    // chevron is labelled from.
+    // The name follows the state ("{path} Collapse" once open) — same key
+    // pair the chevron is labelled from.
     expect(
-      within(screen.getByRole("treeitem", { name: /appdata\/plex/ })).getByRole("button", { name: "Collapse" }),
+      within(screen.getByRole("treeitem", { name: /appdata\/plex/ })).getByRole("button", { name: `${MOUNT} Collapse` }),
     ).toBeTruthy();
   });
 });
@@ -390,7 +392,9 @@ describe("SelectionTree touch mode: the retry notice control is a >=44px tap tar
     // row renders with its retry control. Notice copy stays verbatim.
     await act(async () => {
       fireEvent.click(
-        within(screen.getByRole("treeitem", { name: /appdata\/plex/ })).getByRole("button", { name: "Expand" }),
+        within(screen.getByRole("treeitem", { name: /appdata\/plex/ })).getByRole("button", {
+          name: `${MOUNT} Expand`,
+        }),
       );
     });
     const retry = await screen.findByRole("button", { name: "Try again" });

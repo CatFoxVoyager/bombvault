@@ -140,6 +140,15 @@ describe("RunDetailSheet (SCRN-05)", () => {
     expect(screen.getByText("1h 0m").className).toContain("tabular-nums");
     expect(screen.getByText("0f1e2d3c").className).toContain("tabular-nums");
     expect(screen.getByText("0f1e2d3c").className).toContain("font-mono");
+    // The carried 06-UI-REVIEW top fix 1: stat VALUES take the heading role
+    // at weight 600 (text-heading font-semibold — the Fab label's
+    // typography), never the old text-sm font-medium pair. Pinned as class
+    // tokens, the documented jsdom exception (no computed geometry here).
+    for (const value of ["4.7 GB", "1h 0m", "0f1e2d3c"]) {
+      expect(screen.getByText(value).className).toContain("text-heading");
+      expect(screen.getByText(value).className).toContain("font-semibold");
+      expect(screen.getByText(value).className).not.toContain("font-medium");
+    }
     // The activity log reuses the ActivityLog mono pattern verbatim. Queried
     // on document.body — the sheet portals there (BottomSheet primitive), so
     // the render container itself stays empty.

@@ -282,7 +282,7 @@ function SheetActionRow({
       disabled={disabled}
       aria-expanded={expanded}
       aria-controls={controlsId}
-      className={`flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-control text-sm font-medium text-carbon-text hover:bg-carbon-hover motion-safe:active:scale-[.97] disabled:opacity-60 ${
+      className={`flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-control text-sm text-carbon-text hover:bg-carbon-hover motion-safe:active:scale-[.97] disabled:opacity-60 ${
         tone === "neutral" ? "bg-carbon-surface3" : "bg-carbon-surface2"
       }`}
     >
@@ -491,25 +491,29 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
           </p>
         )}
 
-        {/* Stat triad — tabular numerals so values don't shimmer while a
-            rerender moves digits; the snapshot tile is mono with the full id
-            as its title (BackupButton toast precedent). */}
+        {/* Stat triad — the carried 06-UI-REVIEW top fix 1: stat VALUES take
+            the heading role at weight 600 (text-heading font-semibold, the
+            Fab label's typography) with tabular numerals so values don't
+            shimmer while a rerender moves digits; the snapshot tile is mono
+            with the full id as its title (BackupButton toast precedent).
+            Weight law: 400/600 only — the phase-7 source-assert sweep (the
+            mobileShellSource guard) bans the 500 weight in this file. */}
         <div className="grid grid-cols-3 gap-2">
           <div className="flex min-w-0 flex-col gap-1 rounded-card bg-carbon-background px-2 py-2">
             <span className="text-xs text-carbon-textMuted">{t("run.statVolume")}</span>
-            <span className="truncate text-sm font-medium tabular-nums">{humanBytes(run.bytes)}</span>
+            <span className="truncate text-heading font-semibold tabular-nums">{humanBytes(run.bytes)}</span>
           </div>
           <div className="flex min-w-0 flex-col gap-1 rounded-card bg-carbon-background px-2 py-2">
             <span className="text-xs text-carbon-textMuted">{t("dashboard.duration")}</span>
             <span
-              className={`truncate text-sm font-medium tabular-nums ${durationMissing ? "text-carbon-textMuted" : ""}`}
+              className={`truncate text-heading font-semibold tabular-nums ${durationMissing ? "text-carbon-textMuted" : ""}`}
             >
               {durationText}
             </span>
           </div>
           <div className="flex min-w-0 flex-col gap-1 rounded-card bg-carbon-background px-2 py-2">
             <span className="text-xs text-carbon-textMuted">{t("run.statSnapshot")}</span>
-            <span className="truncate font-mono text-sm font-medium tabular-nums" title={run.snapshotId}>
+            <span className="truncate font-mono text-heading font-semibold tabular-nums" title={run.snapshotId}>
               {run.snapshotId.slice(0, 8)}
             </span>
           </div>
