@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 7
 current_phase_name: Remaining Destinations & Operational Parity
 status: executing
-stopped_at: Phase 7 UI-SPEC approved
-last_updated: "2026-09-13T08:36:44.049Z"
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-09-13T10:07:57.009Z"
 last_activity: 2026-09-13
-last_activity_desc: Phase 7 planning complete — 8 plans ready
-state_head: 35b7e6ecbff2c4dc280cfd1f41ce2a77cf42516b
+last_activity_desc: Phase 7 execution started
+state_head: 7377f0d3aac88281215c1c485a6460025ec1a571
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 21
-  completed_plans: 13
+  completed_plans: 14
   percent: 50
 ---
 
@@ -25,16 +25,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-13)
 
 **Core value:** Every container, VM, and config on the host can be backed up consistently and restored completely — a dead server is rebuilt from the restic repo alone.
-**Current focus:** Phase 07 — Remaining Destinations & Operational Parity
+**Current focus:** Phase 7 — Remaining Destinations & Operational Parity
 
 ## Current Position
 
-Phase: 7 (Remaining Destinations & Operational Parity) — READY TO EXECUTE
-Plan: Not started
+Phase: 7 (Remaining Destinations & Operational Parity) — EXECUTING
+Plan: 2 of 8
 Total Plans in Phase: 8
 Status: Ready to execute
-Last activity: 2026-09-13 — Phase 06 complete (code review fix cycle closed, all gates green), transitioned to Phase 7
-Last Activity Description: Phase 7 planning complete — 8 plans ready
+Last activity: 2026-09-13 — Phase 7 execution started
+Last Activity Description: Phase 7 execution started
 
 Progress: [█████░░░░░] 50% (2/4 phases complete)
 
@@ -96,6 +96,7 @@ Progress: [█████░░░░░] 50% (2/4 phases complete)
 | Phase 06 P05 | 2h38m | 3 tasks | 14 files |
 | Phase 06 P06 | 1h58m | 3 tasks | 48 files |
 | Phase 06 P07 | 45m | 3 tasks | 46 files |
+| Phase 07 P01 | ~2h | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -143,6 +144,9 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 06]: Leakage guards assert absence by role/text first; the one class-signature check (StickyActionBar chrome combo) was verified unique in src/
 - [Phase 06]: Stale mobile e2e entry points (touch-tree, run-detail-visibility) rerouted to the 06-05 stacked-detail flow rather than weakening assertions - found by the first full four-project gate run
 - [Phase 06]: nav.mobileNavigation translated per language across all 40 locale modules via one-shot codemod; parity+orphans tests fence the 42-table sweep
+- [Phase 7]: PLAT-01: usePlatform() reads the applied data-platform attribute (not storage); cross-tab storage events route through applyStoredPlatform() — one coercion, one writer
+- [Phase 7]: PLAT-01 e2e: check consumer verified via scoped-rule presence + --mob-check-radius resolved at a live checkbox — Chromium normalizes author border-radius on appearance:auto checkboxes
+- [Phase 7]: PLAT-01 e2e: check-consumer surface is /vms with staged /api/vms — /settings renders no native checkboxes (plan premise stale, all rows ToggleRow)
 
 ### Pending Todos
 
@@ -169,9 +173,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-13T06:43:22.717Z
-Stopped at: Phase 7 UI-SPEC approved
-Resume file: .planning/phases/07-remaining-destinations-operational-parity/07-UI-SPEC.md
+Last session: 2026-09-13T10:07:56.683Z
+Stopped at: Completed 07-01-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
