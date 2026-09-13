@@ -6,6 +6,11 @@
 export interface OkEnvelope {
   ok: boolean;
   error?: string;
+  /** Machine-readable refusal kind on coded failures (handlers.go
+   *  codedFailEnvelope), e.g. "empty-selection" when the tree selector's
+   *  PATCH is refused because it would empty the selection. Absent on
+   *  success and on plain uncoded failures. */
+  code?: string;
 }
 
 /** A container row from GET /api/containers */
@@ -45,6 +50,11 @@ export interface Container {
    *  the containers domain schedule for this container. "" means it follows the
    *  domain schedule. Only takes effect when the perItemSchedules setting is on. */
   scheduleCadence?: string;
+  /** Optional per-item repository override (#204): the ID of a named repository
+   *  from Settings, "" for the domain's own. A location is written down once in
+   *  Settings and picked here, so the same bucket path is never typed into ten
+   *  items and can be corrected in one place. */
+  repo?: string;
 }
 
 export interface ListContainersResponse {
@@ -312,6 +322,11 @@ export interface ImportSettingsSummary {
   exportedAt: string;
   appVersion: string;
   offsiteTargets: number;
+  /** How many named repositories (#204) the file carries. Applying it replaces
+   *  the ones this instance has - EXCEPT a repository still in use here and
+   *  absent from the file, which is kept, and a location that would move an
+   *  in-use repository, which is declined. The server logs both. */
+  namedRepos: number;
   credentials: {
     present: boolean;
     cloud: boolean;
@@ -481,6 +496,14 @@ export interface BrowseResponse {
   path?: string;
   dirs?: BrowseDirEntry[];
   error?: string;
+  /** Error KIND, not a message (handlers.go classifyReadDirError): "ok" on
+   *  success; "restricted" (fs.ErrPermission), "missing" (ErrNotExist) or
+   *  "error" (opaque bucket — an os.Root escape rejection deliberately lands
+   *  here so an escape attempt never announces itself on the wire). */
+  status?: "ok" | "restricted" | "missing" | "error";
+  /** True when the listing hit the server-side cap (maxBrowseEntries = 500):
+   *  the first lexical page was returned, the rest exist but are not shown. */
+  truncated?: boolean;
 }
 
 /** Response from GET /api/auth */
@@ -705,7 +728,7 @@ export function cancelRestore(key: string): Promise<{ ok: boolean; cancelled: bo
 
 /**
  * POST /api/backup/cancel {key} — stop a backup that is running, by its progress
- * key ("files:<id>" / "container:<name>" / "vm:<name>" / "flash" / "config").
+ * key ("files:<name>" / "container:<name>" / "vm:<name>" / "flash" / "config").
  * A key that is not running answers {ok:true,cancelled:false} and changes
  * nothing, so a stale button cannot produce an error.
  *
@@ -852,6 +875,26 @@ export function tagSnapshot(
 }
 
 /** PATCH /api/containers/{name} — set pre/post-backup hook commands. */
+/** PATCH /api/containers/{name} with just `repo` (#204): point this container at
+ *  a named repository, or "" to put it back on the Containers domain repository.
+ *  Refused once the container has backups - they stay in the repository they
+ *  were written to and nothing re-homes them. */
+export function setContainerRepo(name: string, repo: string): Promise<OkEnvelope> {
+  return fetchJSON(`/api/containers/${encodeURIComponent(name)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ repo }),
+  });
+}
+
+/** PATCH /api/vms/{name} with just `repo` (#204); same contract as the container
+ *  twin above. */
+export function setVMRepo(name: string, repo: string): Promise<OkEnvelope> {
+  return fetchJSON(`/api/vms/${encodeURIComponent(name)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ repo }),
+  });
+}
+
 export function setContainerHooks(
   name: string,
   preHook: string,
@@ -881,6 +924,15 @@ export interface CustomPath {
 export interface ContainerMountsResponse extends OkEnvelope {
   mounts?: MountInfo[];
   custom?: CustomPath[];
+  /** Stored exclusion branches ("!" entries of selected_paths, prefix
+   *  stripped) in HOST path form — served since Phase 1 so the tree can
+   *  reconstruct its (includes, exclusions) mirror without loading children. */
+  excluded?: string[];
+  /** Per-root CACHEDIR.TAG toggles (RESTIC-01, plan 03-01) in HOST path form.
+   *  The Go handler ALWAYS serves an object, never null (empty = nothing
+   *  skipped); optional in the type only because the field postdates older
+   *  fixtures, so callers default it to {}. */
+  excludeCaches?: Record<string, boolean>;
   hostMountRoot?: string;
   hostSourceRoot?: string;
 }
@@ -890,11 +942,32 @@ export function getContainerMounts(name: string): Promise<ContainerMountsRespons
   return fetchJSON(`/api/containers/${encodeURIComponent(name)}/mounts`);
 }
 
-/** PATCH /api/containers/{name} — set the explicit backup-folder selection (host paths). */
-export function setBackupPaths(name: string, backupPaths: string[]): Promise<OkEnvelope> {
+/** The composed PATCH body the FoldersEditor queue serializes (plan 03 Task 2,
+ *  T-03-07): one request carrying ONLY the classes the drain owes.
+ *  `backupPaths` replaces the stored selection wholesale; when present with a
+ *  non-empty list, `selectionSource` tags the writer ("tree" = the selection
+ *  tree) — the server gates its empty-selection refusal on that literal and
+ *  keeps legacy sources byte-compatible, and the reset deliberately sends
+ *  backupPaths WITHOUT a source (the one sanctioned pass to auto-detection)
+ *  together with `excludeCaches: {}` (review WR-04: the reset clears the
+ *  per-root CACHEDIR map too, so a toggle keyed by a root the reset removes
+ *  cannot survive as an orphaned --exclude-caches with no switch to turn it
+ *  off). `excludeCaches` replaces the whole per-root CACHEDIR.TAG map; the
+ *  server treats a nil map as untouched, so omitting the class leaves it
+ *  alone. */
+export interface ContainerTargetsBody {
+  backupPaths?: string[];
+  selectionSource?: string;
+  excludeCaches?: Record<string, boolean>;
+}
+
+/** PATCH /api/containers/{name} — the editor's ONE save entry point: paths
+ *  saves, the reset, and CACHEDIR flips all serialize through here so no two
+ *  container PATCHes from the panel are ever concurrent. */
+export function setContainerTargets(name: string, body: ContainerTargetsBody): Promise<OkEnvelope> {
   return fetchJSON(`/api/containers/${encodeURIComponent(name)}`, {
     method: "PATCH",
-    body: JSON.stringify({ backupPaths }),
+    body: JSON.stringify(body),
   });
 }
 
@@ -1153,18 +1226,43 @@ export function suggestContainerExcludes(
 }
 
 /**
+ * The answer shape all three domain discovers share.
+ *
+ * `skipped` names the repositories the pass could NOT search: a named repository
+ * (#204) that is switched off, whose location does not resolve, or that was a
+ * working repository and is now unreachable. Without it "3 found" and "0 found"
+ * look the same whether everything was read or half the domain was never opened,
+ * which is precisely the answer somebody rebuilding a lost /config must not get.
+ * The server has emitted it since the named-repository work; declaring it here is
+ * what lets the UI say so.
+ *
+ * `skippedNeedsAction` is the other half, and the two are deliberately separate:
+ * `skipped` is what to SAY, this is what to FLAG. A repository switched off on
+ * purpose is a first-class state, so it belongs in the sentence and must not
+ * hold a readability pill amber forever - which is exactly what one list did,
+ * because nothing downstream could tell a deliberate exclusion from a share that
+ * failed to mount.
+ */
+export type DiscoverEnvelope = OkEnvelope & {
+  discovered?: number;
+  repo?: string;
+  skipped?: string[];
+  skippedNeedsAction?: boolean;
+};
+
+/**
  * Rebuild the target list from the backup storage (disaster recovery after a fresh
  * install). `probe` makes it READ-ONLY: it opens + decrypts the repo to prove it is
  * readable with the current APP_KEY and returns the same count, but writes no
  * targets — used by the Recovery readiness check so merely testing readability
  * never resurrects orphan entries (#44). The default rebuilds the targets.
  */
-export function discover(probe = false): Promise<OkEnvelope & { discovered?: number; repo?: string }> {
+export function discover(probe = false): Promise<DiscoverEnvelope> {
   return fetchJSON(`/api/discover${probe ? "?probe=true" : ""}`, { method: "POST" });
 }
 
 /** Rebuild the VM target list from backup storage. `probe` = read-only readiness check (see discover, #44). */
-export function discoverVMs(probe = false): Promise<OkEnvelope & { discovered?: number; repo?: string }> {
+export function discoverVMs(probe = false): Promise<DiscoverEnvelope> {
   return fetchJSON(`/api/vms/discover${probe ? "?probe=true" : ""}`, { method: "POST" });
 }
 
@@ -1180,14 +1278,28 @@ export function discoverVMs(probe = false): Promise<OkEnvelope & { discovered?: 
  * fails, its (scrubbed) message is surfaced as `error` — the caller shows the
  * real failure instead of a misleading "nothing to recover".
  */
-export async function discoverAll(): Promise<{ containers: number; vms: number; files: number; error?: string }> {
+export async function discoverAll(): Promise<{
+  containers: number;
+  vms: number;
+  files: number;
+  error?: string;
+  skipped: string[];
+  skippedNeedsAction: boolean;
+}> {
   const [c, v, f] = await Promise.all([discover(), discoverVMs(), discoverFiles()]);
   const failed = [c, v, f].find((r) => !r.ok);
+  // De-duplicated: the same named repository is searched by all three domains, so
+  // one unmounted share would otherwise be named three times in one sentence.
+  const skipped = [...new Set([c, v, f].flatMap((r) => r.skipped ?? []))];
   return {
     containers: c.discovered ?? 0,
     vms: v.discovered ?? 0,
     files: f.discovered ?? 0,
     ...(failed ? { error: failed.error ?? "discover failed" } : {}),
+    skipped,
+    // ANY domain that hit something actionable. The sentence lists all three
+    // domains' skips together, so the flag has to be the union too.
+    skippedNeedsAction: [c, v, f].some((r) => r.skippedNeedsAction === true),
   };
 }
 
@@ -1603,11 +1715,21 @@ export function getDrills(
   );
 }
 
-/** POST /api/unlock/{domain} — clear stale repository locks (restic unlock). */
+/**
+ * POST /api/unlock/{domain} — clear stale repository locks (restic unlock).
+ *
+ * `skipped` names the repositories that got something less than the full clear,
+ * and it comes back on the success path too. A repository shared with another
+ * domain can only have its STALE locks removed - forcing there would yank the
+ * lock out from under that domain's running backup - so the button can honestly
+ * succeed and still have left a live lock in place. That is the one case this
+ * button exists for, so it has to be said out loud rather than inferred from a
+ * green tick.
+ */
 export function unlockDomain(
   domain: "containers" | "vms" | "flash" | "files",
   source?: string
-): Promise<OkEnvelope> {
+): Promise<OkEnvelope & { skipped?: string[] }> {
   return fetchJSON(`/api/unlock/${domain}${srcParam(source)}`, { method: "POST" });
 }
 
@@ -1828,7 +1950,63 @@ export interface OffsiteTarget {
   sortOrder: number;
 }
 
-/**
+/** A named repository (#204): a location written down once in Settings and then
+ *  PICKED by individual containers, VMs and folder sets, instead of typed into
+ *  each of them.
+ *
+ *  `repo` is the location AS STORED, never resolved - a resolved path can carry
+ *  host detail the browser has no business knowing, and the picker only needs to
+ *  identify the place. `inUse` is how many items point here; the interface uses
+ *  it to explain why a repository cannot be deleted BEFORE the attempt. */
+export interface NamedRepo {
+  id: string;
+  name: string;
+  repo: string;
+  credsRef: string;
+  storageClass: string;
+  limitUpload: number;
+  limitDownload: number;
+  /** Append-only: nothing on this box may delete from it, so prune and snapshot
+   *  delete refuse rather than repack it. */
+  immutable: boolean;
+  enabled: boolean;
+  inUse: number;
+}
+
+/** GET /api/repos — every named repository, in picker order. */
+export function listRepos(): Promise<OkEnvelope & { repos?: NamedRepo[] }> {
+  return fetchJSON("/api/repos");
+}
+
+/** POST /api/repos — create one (the id is minted server-side). */
+export function createRepo(
+  body: Partial<Omit<NamedRepo, "id" | "inUse">>
+): Promise<OkEnvelope & { repo?: NamedRepo }> {
+  return fetchJSON("/api/repos", { method: "POST", body: JSON.stringify(body) });
+}
+
+/** PATCH /api/repos/{id} — change one. Only the fields sent are applied.
+ *
+ *  The LOCATION of a repository that is in use is refused: the backups already
+ *  written stay where they are, so the next one would succeed into an empty
+ *  repository, which looks exactly like a working backup. Name, limits and the
+ *  on/off switch stay editable, because none of those move any data. */
+export function updateRepo(
+  id: string,
+  body: Partial<Omit<NamedRepo, "id" | "inUse">>
+): Promise<OkEnvelope & { repo?: NamedRepo }> {
+  return fetchJSON(`/api/repos/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+/** DELETE /api/repos/{id} — refused while anything still points here. */
+export function deleteRepo(id: string): Promise<OkEnvelope> {
+  return fetchJSON(`/api/repos/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+/*
  * GET /api/offsite/targets?domain=<d> — the off-site targets for one domain in a
  * stable order (sortOrder, then createdAt). Omit `domain` to list every target.
  * An unknown domain answers HTTP 400.
@@ -2001,9 +2179,15 @@ export function getStats(
  * Lists the immediate subdirectories of <HostMountRoot>/<path>.
  * Pass an empty string (or omit) to list the mount root itself.
  */
-export function browse(path: string = ""): Promise<BrowseResponse> {
-  const qs = path ? `?path=${encodeURIComponent(path)}` : "";
-  return fetchJSON(`/api/browse${qs}`);
+export function browse(path: string = "", hidden: boolean = false): Promise<BrowseResponse> {
+  const params = new URLSearchParams();
+  if (path) params.set("path", path);
+  // The server's additive opt-in (BROWSE-04): only the literal "1" turns hidden
+  // entries on, and the parameter is left off entirely otherwise so the request
+  // shape for every existing caller is unchanged.
+  if (hidden) params.set("hidden", "1");
+  const qs = params.toString();
+  return fetchJSON(`/api/browse${qs ? `?${qs}` : ""}`);
 }
 
 /** Response from POST /api/browse/mkdir. */
@@ -2054,6 +2238,9 @@ export interface VM {
    *  the VMs domain schedule for this VM. "" means it follows the domain schedule.
    *  Only takes effect when the perItemSchedules setting is on. */
   scheduleCadence?: string;
+  /** Optional per-item repository override (#204): the ID of a named
+   *  repository from Settings, "" for the VMs domain repository. */
+  repo?: string;
 }
 
 export interface ListVMsResponse {
@@ -2256,12 +2443,28 @@ export interface FileSetView {
   /** This set's per-item schedule override (#199); "" follows the Folders
    *  domain schedule. Only acted on while perItemSchedules is on. */
   scheduleCadence?: string;
+  /** This set's OWN repository (#204); "" means it follows the Folders domain
+   *  repository. Either a relative subpath under the host mount root or a raw
+   *  restic remote ("b2:...", "s3:...", "sftp:...", "rest:...", "rclone:..."). */
+  repo?: string;
+  /** Where this set's backups actually land, already resolved on the server:
+   *  the override if there is one, otherwise the domain path. Read-only - the
+   *  interface never computes this itself, so a card can never disagree with
+   *  the backup about where a set goes. */
+  repoEffective?: string;
   /** What actually happens to this set, resolved on the server from the same
    *  four settings the scheduler reads (#199). The interface only formats it,
    *  so the sentence it shows cannot disagree with the job that runs. */
   effectiveSchedule?: EffectiveSchedule;
   /** Whether the resolved source path currently exists on disk. */
   pathExists: boolean;
+  /** The set's tree selection (Phase 4, D-03): the same flat encoding as the
+   *  containers' backupPaths (bare entries are included roots, "!"-prefixed
+   *  are deselected branches), in mount-root absolute space. Absent = the set
+   *  was never touched by the tree (the NULL legacy switch: the backup still
+   *  compiles to the single whole-folder positional), deliberately
+   *  distinguishable from a written selection. */
+  selectedPaths?: string[];
 }
 
 /** The resolved outcome for one folder set (schedule.EffectiveFileSetSchedule).
@@ -2311,12 +2514,18 @@ export function getFileSetPreset(): Promise<FileSetPresetResponse> {
   return fetchJSON("/api/files/sets/preset");
 }
 
-/** POST /api/files/sets — create a file set (path required; validated server-side). */
+/** POST /api/files/sets — create a file set (path required; validated
+ *  server-side). repo picks the named repository (#204) the set writes to. */
 export function createFileSet(set: {
   name: string;
   path: string;
   excludes: string[];
   enabled?: boolean;
+  /** The named repository (#204) the set writes to, "" for the domain's own.
+   *  The create dialog shows the picker, so the choice has to travel with the
+   *  create - it used to be dropped here and the set landed on the domain
+   *  repository with nothing on screen saying so. */
+  repo?: string;
 }): Promise<OkEnvelope & { id?: string }> {
   return fetchJSON("/api/files/sets", {
     method: "POST",
@@ -2335,6 +2544,19 @@ export function patchFileSet(
     /** #199. Sent alone by the cadence editor, so an edit there cannot disturb
      *  the rest of the set. An empty string clears the override. */
     scheduleCadence?: string;
+    /** The tree selection, sent as the FULL list by the tree editor (a save
+     *  overwrites the column). Omit the key entirely for an ordinary edit —
+     *  absent = untouched, never a clear. An empty list is refused by the
+     *  server with code "empty-selection" (a set cannot mean "back up
+     *  nothing"; remove the set instead), and the stored selection is kept. */
+    selectedPaths?: string[];
+    /** This set's own repository (#204). Sent alone by the repository editor.
+     *  An empty string clears the override and puts the set back on the Folders
+     *  domain repository. The server refuses a change once the set HAS backups:
+     *  its snapshots live in the repo it used, nothing re-homes them, and a
+     *  later backup to a new repo would succeed while the history sat in a
+     *  repository nothing points at any more. */
+    repo?: string;
   }
 ): Promise<OkEnvelope> {
   return fetchJSON(`/api/files/sets/${encodeURIComponent(id)}`, {
@@ -2439,7 +2661,7 @@ export function restoreFileSetFiles(
 /** Rebuild the file-set list from the fileset: tags in backup storage. `probe` =
  *  read-only readiness check (see discover, #44). Discovered sets arrive DISABLED
  *  with an empty path (tags alone don't carry it) — set a folder before backing up. */
-export function discoverFiles(probe = false): Promise<OkEnvelope & { discovered?: number; repo?: string }> {
+export function discoverFiles(probe = false): Promise<DiscoverEnvelope> {
   return fetchJSON(`/api/files/discover${probe ? "?probe=true" : ""}`, { method: "POST" });
 }
 

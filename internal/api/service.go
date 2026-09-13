@@ -8,6 +8,7 @@ package api
 
 import (
 	"context"
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -1010,6 +1011,161 @@ func (s *Service) filesRepoPath(settings store.Settings) (string, error) {
 	return s.resolveRepo(settings.FilesPath)
 }
 
+// fileSetRepoPath resolves the restic repo for ONE file set (#204): its own
+// repository if it has one, otherwise the Folders domain repository.
+//
+// WHAT THIS IS FOR: "I would like to back up a VM or folder directly to a B2 or
+// NAS share, bypassing the primary backup location. This is useful for large,
+// static folders where only an offsite copy is needed." A domain path could
+// already be a restic remote, but that moved EVERY folder set at once; this
+// moves one.
+//
+// The override goes through the same resolveRepo as the domain path, so the
+// same string shapes work and the same containment rules apply: a relative
+// subpath is resolved under the host mount root, a raw remote ("b2:…", "s3:…",
+// "sftp:…", "rest:…", "rclone:…") is handed to restic verbatim.
+//
+// WHAT STILL FOLLOWS THE DOMAIN, and it is worth being plain about it, because
+// it is the part a user will meet: PruneDomain and CheckDomain operate on the
+// DOMAIN repository. A set living in its own repository is backed up there and
+// restored from there, and its retention runs with it (applyRetention already
+// takes the repo it was handed, which is this one) - but a whole-domain prune or
+// integrity check does not reach into it. That gap is disclosed in the UI rather
+// than hidden, and closing it means teaching those two to iterate repositories,
+// which is its own change.
+func (s *Service) fileSetRepoPath(settings store.Settings, set store.FileSet) (string, error) {
+	return s.itemRepoPath(set.Repo, func() (string, error) { return s.filesRepoPath(settings) })
+}
+
+// itemRepoPath is the one place a per-item repository override (#204) turns into
+// a location, shared by containers, VMs and folder sets.
+//
+// The stored value is a NAMED REPOSITORY'S ID, not a location. Locations are
+// written down once in Settings and picked per item, which is the difference
+// between configuring ten containers and typing the same bucket path ten times,
+// and it also means a location can be corrected in ONE place afterwards instead
+// of in every item that copied it.
+//
+// An id that no longer resolves is an ERROR, never a quiet fall back to the
+// domain repository. Falling back would send the next backup somewhere else and
+// look exactly like a working backup until somebody went looking for a snapshot
+// that is in the other repo - the same reasoning that keeps the setters separate
+// from the ordinary edit forms.
+func (s *Service) itemRepoPath(repoID string, domainFallback func() (string, error)) (string, error) {
+	id := strings.TrimSpace(repoID)
+	if id == "" {
+		return domainFallback()
+	}
+	named, err := s.store.GetNamedRepo(id)
+	if err != nil {
+		return "", fmt.Errorf("this item points at a repository that no longer exists; pick one again in Settings or clear the field")
+	}
+	if !named.Enabled {
+		return "", fmt.Errorf("the repository %q is switched off, so nothing can be backed up to it", named.Name)
+	}
+	return s.resolveRepo(named.Repo)
+}
+
+// containerRepoPath resolves a container's per-item repository override (#204),
+// falling back to the Containers domain repository.
+func (s *Service) containerRepoPath(settings store.Settings, tg store.Target) (string, error) {
+	return s.itemRepoPath(tg.Repo, func() (string, error) { return s.containersRepoPath(settings) })
+}
+
+// validateItemRepoID refuses a per-item repository choice (#204) at the HTTP
+// boundary instead of at the next backup, where it would surface as a restic
+// error inside a run record nobody is watching. Empty is always valid: it means
+// "use the domain repository".
+//
+// It checks the same two things itemRepoPath checks at use time - the repository
+// exists and is switched on - so a choice that passes here is a choice that will
+// still work when the backup runs, unless somebody deletes the repository in
+// between, which is what DeleteNamedRepoIfUnused prevents - counting and
+// deleting in one transaction, so there is no window between the two.
+func (s *Service) validateItemRepoID(id string) error {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return nil
+	}
+	named, err := s.store.GetNamedRepo(id)
+	if err != nil {
+		return errors.New("no such repository; pick one from the list in Settings")
+	}
+	if !named.Enabled {
+		return fmt.Errorf("the repository %q is switched off", named.Name)
+	}
+	if _, err := s.resolveRepo(named.Repo); err != nil {
+		return fmt.Errorf("the repository %q does not resolve to a usable location: %w", named.Name, err)
+	}
+	return nil
+}
+
+// containerRepoForName is repoFor for one container: the same signature the call
+// sites already have (a name and a source), so a per-item repository reaches them
+// without each one growing a store read of its own.
+//
+// An off-site source still resolves to the DOMAIN's off-site target, mirroring
+// fileSetRepoFor: an off-site copy is configured per domain, and where an item
+// keeps its PRIMARY says nothing about where its replica should live.
+//
+// A container with NO STORED ROW yet has no override either, so it takes the
+// domain repository - that is the first-backup case, not an error. Only that
+// case: every other store error is returned.
+//
+// The difference is the whole point, and it was wrong here first. Treating any
+// error as "no row" meant a locked database or a read that failed for any other
+// reason quietly sent the backup to the DOMAIN repository while the item's real
+// snapshots sat in its own - a green run, a success record, and a history split
+// across two places with nothing on screen to say so. itemRepoPath's own doc
+// calls that the one thing that must never happen, and this function sits in
+// front of it, so the rule has to hold here too.
+func (s *Service) containerRepoForName(settings store.Settings, name, source string) (string, error) {
+	if isOffsiteSource(source) {
+		return s.repoFor(settings, "containers", source)
+	}
+	tg, err := s.store.GetTargetByContainer(name)
+	if errors.Is(err, sql.ErrNoRows) {
+		return s.containersRepoPath(settings)
+	}
+	if err != nil {
+		return "", fmt.Errorf("read this container's repository: %w", err)
+	}
+	return s.containerRepoPath(settings, tg)
+}
+
+// vmRepoForName is containerRepoForName's twin for the VMs domain, including the
+// no-row-is-not-an-error rule.
+func (s *Service) vmRepoForName(settings store.Settings, name, source string) (string, error) {
+	if isOffsiteSource(source) {
+		return s.repoFor(settings, "vms", source)
+	}
+	vm, err := s.store.GetVMTargetByName(name)
+	if errors.Is(err, sql.ErrNoRows) {
+		return s.vmsRepoPath(settings)
+	}
+	if err != nil {
+		return "", fmt.Errorf("read this VM's repository: %w", err)
+	}
+	return s.vmRepoPath(settings, vm)
+}
+
+// vmRepoPath resolves a VM's per-item repository override (#204), falling back
+// to the VMs domain repository.
+func (s *Service) vmRepoPath(settings store.Settings, vm store.VMTarget) (string, error) {
+	return s.itemRepoPath(vm.Repo, func() (string, error) { return s.vmsRepoPath(settings) })
+}
+
+// fileSetRepoFor is fileSetRepoPath with a source, mirroring repoFor: an
+// off-site source still resolves to the DOMAIN's off-site target, because an
+// off-site copy is configured per domain and a per-set override says nothing
+// about where its replica lives. Only the primary is per set.
+func (s *Service) fileSetRepoFor(settings store.Settings, set store.FileSet, source string) (string, error) {
+	if isOffsiteSource(source) {
+		return s.repoFor(settings, "files", source)
+	}
+	return s.fileSetRepoPath(settings, set)
+}
+
 // flashZipExportDir resolves the operator-configured output folder for the
 // scheduled flash zip export. Unlike flashRepoPath (which, via resolveRepo, may
 // hand a remote-backend string like "s3:…" straight to restic), this is always a
@@ -1195,6 +1351,21 @@ func (s *Service) resolveExcludeLine(line string, in model.Inspect) (pattern, st
 	if bestDest != "" {
 		host := path.Clean(bestSrc + strings.TrimPrefix(clean, bestDest))
 		if cp, ok := s.toContainerPath(host); ok {
+			// Escape the MOUNT-DERIVED head, leave the user's tail as the glob
+			// they meant it to be. This line is half typed and half machine: the
+			// user wrote "/config/Cache", and everything in front of it comes
+			// from the container's bind source, a folder name nobody wrote as a
+			// pattern. A mount at ".../Plex [Media]" therefore produced an
+			// --exclude that could not match its own folder, so the branch the
+			// editor previews as excluded was backed up on every run - and an
+			// unmatched bracket in a mount name failed the whole backup.
+			//
+			// Escaping the WHOLE resolved line would be wrong: it would take the
+			// glob away from the half the user owns, where "*" and "?" are the
+			// point.
+			if cpHead, headOK := s.toContainerPath(path.Clean(bestSrc)); headOK {
+				return escapeGlobLiteral(cpHead) + strings.TrimPrefix(clean, bestDest), "translated"
+			}
 			return cp, "translated"
 		}
 	}
@@ -1371,17 +1542,25 @@ func (s *Service) retentionPolicyForSource(settings store.Settings, source strin
 // repo is a remote PRIMARY flagged append-only in its saved safety settings
 // (issue #152, primaryIsImmutable) — when it is, retention is skipped
 // entirely, exactly like copyToOffsiteTarget skips its off-site retention pass
-// for an immutable off-site destination: an immutable primary has no separate
+// for an immutable off-site destination: an immutable repository has no separate
 // off-site copy standing behind it, so this box's own credentials must not be
-// able to prune its sole backup. A local primary, or a remote one with no
-// saved safety settings (or saved but not flagged immutable), is unaffected.
+// able to prune its sole backup.
+//
+// "Immutable" is asked of the REPOSITORY, not of the domain. A named repository
+// (#204) carries its own flag and may be a plain folder on a share, so this
+// applies to a local path as readily as to a cloud bucket. Anything with no
+// append-only flag anywhere is unaffected.
 func (s *Service) applyRetention(ctx context.Context, repo string, settings store.Settings, mode restic.Mode, tag, domain string) {
 	p := s.retentionPolicy(settings)
 	if !p.Any() {
 		return
 	}
 	if s.primaryIsImmutable(domain, repo) {
-		log.Printf("api: %s: retention skipped — primary repo is remote and flagged append-only", domain) //nolint:gosec // G706: domain is a fixed literal
+		// NAMED, so the operator can tell which repository was spared while the
+		// rest of the domain pruned normally. It used to say "primary repo is
+		// remote", which is two words wrong for a named repository on a local
+		// share - the shape the toggle's own hint advertises - and named nothing.
+		log.Printf("api: %s: retention skipped — %s is flagged append-only", domain, shortRepoName(repo)) //nolint:gosec // G706: domain is a fixed literal and the name is shortened
 		return
 	}
 	prune := !bulkReplicateSuppressed(ctx) // bulk run: one batched prune after the loop
@@ -1693,10 +1872,34 @@ func offsiteImmutableFor(domain string, s store.Settings) bool {
 	return false
 }
 
-// errOffsiteAppendOnly refuses a destructive operation against an off-site repo
-// flagged immutable: the whole point of append-only is that credentials on this
-// box cannot delete history, so BombVault does not even try.
-var errOffsiteAppendOnly = errors.New("repo is append-only; prune far-side or use a maintenance window")
+// The refusals for a destructive operation against a repository flagged
+// append-only: the whole point of the flag is that credentials on this box
+// cannot delete history, so BombVault does not even try.
+//
+// FOUR sentences, because there are three different toggles and one way of not
+// knowing, and each toggle lives on a different card. One sentence named the
+// Repositories card for all of them, so an operator refused over an off-site
+// destination or a remote primary went to a card whose list did not contain
+// their repository at all. The wording names the way OUT, and deliberately does
+// not say "far side": since a named repository (#204) answers for itself the
+// flag now reaches a plain folder on a share, where there is no far side and no
+// maintenance window to wait for.
+//
+// NO SLASH in any of them: every error leaving the API goes through scrubError,
+// whose absolute-path regex redacts any slash-led token.
+var (
+	// A named repository (#204). Its toggle is on the Repositories card.
+	errOffsiteAppendOnly = errors.New("this repository is append-only, so nothing here may delete from it. Turn Append-only off for it under Settings, Repositories, delete what you meant to delete, and switch it back on")
+	// An off-site destination. Its toggle is on the off-site destinations card.
+	errAppendOnlyOffsiteTarget = errors.New("this off-site destination is append-only, so nothing here may delete from it. Turn Append-only off for it under Settings, Off-site, delete what you meant to delete, and switch it back on")
+	// A domain's own remote primary. Its toggle is in the Remote safety dialog
+	// beside that domain's backup path.
+	errAppendOnlyPrimaryRemote = errors.New("this repository is append-only, so nothing here may delete from it. Turn Append-only off in the Remote safety settings beside this domain's backup path, delete what you meant to delete, and switch it back on")
+	// Nobody's toggle: the store could not be read. primaryIsImmutable answers
+	// YES on that, on purpose, and sending the operator to a card to switch off a
+	// flag that may not exist anywhere wastes a diagnosis on a transient failure.
+	errAppendOnlyUnknown = errors.New("whether this repository is append-only could not be read, so nothing here may delete from it. That is the safe answer rather than a flag anybody set. Try again in a moment, and check the BombVault log if it keeps happening")
+)
 
 // DomainStatusEntry is the per-domain RPO (protection) status: whether a
 // domain's backups are current relative to its schedule. It drives the
@@ -2366,7 +2569,7 @@ func (s *Service) CollectStats(ctx context.Context, domain, source string) error
 	if localRepoMissing(repo) {
 		return nil
 	}
-	mode := s.ModeFor(settings)
+	mode := s.repoModeFor(settings, domain, source, repo)
 	snaps, err := s.engine.Snapshots(ctx, repo, mode)
 	if err != nil {
 		return err
@@ -2580,10 +2783,24 @@ func (s *Service) CollectStatsOnStartup() {
 // A package var (not a const) so tests can shrink it.
 var offsiteProgressHeartbeat = 5 * time.Second
 
-func (s *Service) copyToOffsite(ctx context.Context, domain string, settings store.Settings, _ restic.Mode, localRepo string) (err error) {
+func (s *Service) copyToOffsite(ctx context.Context, domain string, settings store.Settings, _ restic.Mode, localRepos []domainRepoRef, skipped []repoSkip) (err error) {
 	targets := s.offsiteReplicationTargets(domain, settings)
 	if len(targets) == 0 {
 		return errors.New("no off-site repo configured for this domain")
+	}
+	if len(localRepos) == 0 {
+		// With the skip list, when there is one. offsiteReplicationSources builds a
+		// real reason for this exact case - an unresolvable domain path, a
+		// repository that went away - and its own comment names the generic
+		// sentence below as the thing it exists to replace. Dropping it here left
+		// that sentence in place, which names nothing anybody can act on.
+		// nothingCoveredError, not skippedError: there are no sources at all here,
+		// so "this replication covered only part of this domain" is false in the
+		// direction that matters - it covered none of it.
+		if sErr := nothingCoveredError(skipped); sErr != nil {
+			return sErr
+		}
+		return errors.New("no repository to replicate")
 	}
 	// Additive kind="offsite" row in the SHARED runs table (StartRun/FinishRun on
 	// the reserved domain target id, like prune/verify) so the replication shows
@@ -2701,12 +2918,28 @@ func (s *Service) copyToOffsite(ctx context.Context, domain string, settings sto
 	multiTarget := len(targets) > 1
 	var errs []error
 	for _, t := range targets {
-		if cerr := s.copyToOffsiteTarget(ctx, domain, settings, t, localRepo, multiTarget, startedAt, lastCopy); cerr != nil {
+		// The skip list travels WITH the sources. It names repositories this domain
+		// uses that no source in localRepos could speak for this pass, and the
+		// retention decision at the far end needs that as much as the error does:
+		// aging a destination under the off-site keep-policy while one of the
+		// repositories feeding it was never opened prunes the copy of exactly the
+		// items whose other copy is the unreachable one. Reporting it only at the
+		// end (skippedError, below) reaches the run row long after every target's
+		// retention has already run.
+		if cerr := s.copyToOffsiteTarget(ctx, domain, settings, t, localRepos, skipped, multiTarget, startedAt, lastCopy); cerr != nil {
 			log.Printf("api: offsite %s: copy to a destination failed (continuing): %v", domain, cerr) //nolint:gosec // G706: domain is a fixed literal
 			errs = append(errs, cerr)
 		}
 	}
+	if sErr := skippedError("this replication", skipped); sErr != nil {
+		errs = append(errs, sErr)
+	}
 	if len(errs) > 0 {
+		// Joined BEFORE the deferred bookkeeping reads it. The skip list used to be
+		// returned by the caller one level up, after this function had already
+		// stamped its run row "success" - so the activity log said the replication
+		// was fine while the same pass told the operator it had covered only part
+		// of the domain.
 		err = errors.Join(errs...)
 		return err
 	}
@@ -2727,7 +2960,14 @@ func (s *Service) copyToOffsite(ctx context.Context, domain string, settings sto
 // a nil lastCopy (as a direct unit test of this function may pass) simply
 // means no heartbeat is watching, which offsiteLastCopy's nil-safe methods
 // handle without a special case here.
-func (s *Service) copyToOffsiteTarget(ctx context.Context, domain string, settings store.Settings, target store.OffsiteTarget, localRepo string, multiTarget bool, startedAt int64, lastCopy *offsiteLastCopy) (err error) {
+//
+// skipped is the caller's list of repositories this domain uses that never made
+// it into localRepos at all. It is not this function's to report - the caller
+// folds it into the returned error once for the whole pass - but the retention
+// decision below has to see it, because a source that was dropped before the
+// loop leaves no copyErr behind and would otherwise be indistinguishable from a
+// destination that is fully in sync.
+func (s *Service) copyToOffsiteTarget(ctx context.Context, domain string, settings store.Settings, target store.OffsiteTarget, localRepos []domainRepoRef, skipped []repoSkip, multiTarget bool, startedAt int64, lastCopy *offsiteLastCopy) (err error) {
 	// Persist this destination's replication attempt to the off-site run history
 	// (begin now, close on the way out via defer with outcome + scrubbed error).
 	// The offsite_runs row itself stays duration + outcome only (no percentage
@@ -2791,12 +3031,38 @@ func (s *Service) copyToOffsiteTarget(ctx context.Context, domain string, settin
 	// the existing stale-lock self-heal and "repo not initialized yet = no
 	// snapshots" handling every other snapshot listing in this file already gets.
 	pendingTotal := 0
-	if srcSnaps, sErr := s.listSnapshots(ctx, localRepo, mode); sErr != nil {
-		log.Printf("api: offsite %s: could not estimate pending snapshot count (continuing without it): %v", domain, sErr) //nolint:gosec // G706: domain is a fixed literal
-	} else if dstSnaps, dErr := s.listSnapshots(ctx, dest, mode); dErr != nil {
+	if dstSnaps, dErr := s.listSnapshots(ctx, dest, mode); dErr != nil {
 		log.Printf("api: offsite %s: could not estimate pending snapshot count (continuing without it): %v", domain, dErr) //nolint:gosec // G706: domain is a fixed literal
 	} else {
-		pendingTotal = len(restic.PendingCopyIDs(srcSnaps, dstSnaps))
+		// Summed over every source repository (#204), so "snapshot k of N" counts
+		// the whole pass rather than restarting per source.
+		//
+		// NARROWED the same way the loop below narrows, or the denominator counts
+		// snapshots the copy will never carry. A shared named repository holds
+		// another domain's snapshots too, and the copy leaves those where they
+		// are; counting them made the bar stop short of its own total for the
+		// whole run and the remaining-time reading wrong with it.
+		prefix := domainTagPrefix(domain)
+		for _, src := range localRepos {
+			srcSnaps, sErr := s.listSnapshots(ctx, src.Loc, mode)
+			if sErr != nil {
+				log.Printf("api: offsite %s: could not estimate pending snapshot count (continuing without it): %v", domain, sErr) //nolint:gosec // G706: domain is a fixed literal
+				continue
+			}
+			if !src.Own && prefix != "" {
+				mine := make([]restic.Snapshot, 0, len(srcSnaps))
+				for _, sn := range srcSnaps {
+					for _, tag := range sn.Tags {
+						if strings.HasPrefix(tag, prefix) {
+							mine = append(mine, sn)
+							break
+						}
+					}
+				}
+				srcSnaps = mine
+			}
+			pendingTotal += len(restic.PendingCopyIDs(srcSnaps, dstSnaps))
+		}
 	}
 	// Cap the transfer rate so off-site replication doesn't saturate the WAN
 	// (zero limits = unlimited, the default). progBeginCopySink installs the
@@ -2805,8 +3071,132 @@ func (s *Service) copyToOffsiteTarget(ctx context.Context, domain string, settin
 	// "offsite:"+domain key/StartedAt copyToOffsite's begin/heartbeat/terminal
 	// events use, so it's one continuous indicator across a multiTarget loop.
 	copyCtx := s.progBeginCopySink(ctx, domain, startedAt, pendingTotal, lastCopy)
-	if err = s.engine.Copy(copyCtx, dest, localRepo, nil, targetOffsiteLimits(target), mode); err != nil {
-		return err
+	// One copy per SOURCE repository (#204): the domain's own, plus each local
+	// named repository its items point at. restic copy is additive - it writes
+	// the snapshots the destination does not have yet and touches nothing else -
+	// so replicating several sources into one destination is a union, never a
+	// sync that could remove anything.
+	//
+	// EVERY source is attempted even after one fails, and the failures are
+	// joined. Returning on the first meant one transiently unreachable source - an
+	// unmounted share, a repository that was never created - silently suppressed
+	// the copy of every source behind it, and the error named neither. The
+	// retention prune and the growth sample below still run, because whatever DID
+	// arrive is real and has to be maintained.
+	var copyErrs []error
+	// Counted, not inferred from the error count. It reports what actually landed,
+	// which the error slice cannot: a source that CONTINUES without an error -
+	// because it is the destination itself, or because the destination already
+	// holds everything it has - leaves no entry there and copied no bytes either.
+	//
+	// The retention gate below turns on the ERROR, not on this count, because a
+	// pass that moved nothing because everything was already in sync is the
+	// strongest evidence the far side is current. The count is what decides
+	// whether the pass has anything to report at all.
+	copied := 0
+	// …but "in sync" and "nothing here could speak for this domain" are also two
+	// different things, and copied==0 with copyErr==nil is both of them. accounted
+	// counts the sources that actually ANSWERED for this domain: one that copied,
+	// and one whose snapshots the destination already holds. A named source that
+	// narrows to nothing of this domain's is neither - it holds none of what the
+	// destination holds, so it says nothing about whether the destination is
+	// current - and an empty source list answers for nothing at all.
+	//
+	// Without this, an all-named domain whose only contributing source went away
+	// reached the retention with no error and no copy, and a tag-scoped forget
+	// plus prune ran over a destination that is by then the only copy left.
+	accounted := 0
+	// …and one shape switches the maintenance off entirely, however well the other
+	// sources did. A destination that is also a source is not a replica of itself:
+	// aging it under the off-site keep-policy deletes snapshots that have no
+	// second copy anywhere. Counting copies alone does not catch this - the OTHER
+	// source copies fine, so "something landed" is true while the thing being
+	// pruned is a primary.
+	destIsASource := false
+	for _, src := range localRepos {
+		// A source that IS the destination is refused outright, before anything
+		// below runs. It happens when a named repository was created on the very
+		// location this domain replicates TO: the copy would do nothing and stamp
+		// a success, the dashboard would show a primary plus an off-site copy for
+		// data that exists exactly once, and the retention block below would then
+		// run a tag-scoped forget plus prune over that only copy under the
+		// off-site keep-policy. validateNamedRepo refuses the combination when the
+		// repository is created; this catches the one created before that refusal
+		// existed, and any order of edits that slips past it.
+		if sameRepoLocation(src.Loc, dest) {
+			log.Printf("api: offsite %s: %s is this destination itself; not copying a repository onto itself, and not aging it either", domain, shortRepoName(src.Loc)) //nolint:gosec // G706: domain is a fixed literal, the name is shortened
+			copyErrs = append(copyErrs, fmt.Errorf("%s is this off-site destination itself, so it has no second copy", shortRepoName(src.Loc)))
+			destIsASource = true
+			continue
+		}
+		// The domain's OWN repository is copied WHOLE: everything in it belongs to
+		// this domain, and leaving snapshotIDs nil keeps restic's own dedup the
+		// sole authority on what really moves.
+		//
+		// A NAMED repository can be shared - nothing scopes one to a single
+		// domain, and the same picker offers it to containers, VMs and folder sets
+		// alike. Copying it whole would carry the OTHER domain's snapshots into
+		// this domain's off-site destination: duplicated egress and storage on
+		// every pass, and then applyRetentionPerIdentity below would age those
+		// foreign snapshots under THIS domain's keep-policy. So a named source is
+		// narrowed to the snapshots carrying this domain's own tag prefix.
+		//
+		// Asked of the REFERENCE, never of its position. This decision used to be
+		// `i > 0`, and both callers reshape the slice: the post-backup hook passes
+		// the single repository an item happens to use, and the never-created
+		// filter can lift a named repository to the head. Either made a named
+		// repository look like the domain's own and copied it whole.
+		ids := []string(nil)
+		if !src.Own && domainTagPrefix(domain) != "" {
+			mine, nErr := s.snapshotIDsForDomain(ctx, src.Loc, mode, domain)
+			if nErr != nil {
+				log.Printf("api: offsite %s: could not narrow %s to this domain, skipping it this pass: %v", domain, shortRepoName(src.Loc), scrubError(nErr)) //nolint:gosec // G706: domain is a fixed literal, the name is shortened and the error scrubbed here
+				copyErrs = append(copyErrs, fmt.Errorf("reading %s: %w", shortRepoName(src.Loc), nErr))
+				continue
+			}
+			if len(mine) == 0 {
+				continue // nothing of this domain's in there yet
+			}
+			// …and only the ones the destination does not have. Handing restic every
+			// historical id of this domain puts the whole history on argv on every
+			// pass - it grows without bound and hits the command-line limit on a
+			// long-lived repository - while restic would have skipped them anyway.
+			ids = s.pendingOf(ctx, dest, mode, mine)
+			if len(ids) == 0 {
+				accounted++
+				continue // the destination already holds all of them
+			}
+		}
+		if cErr := s.engine.Copy(copyCtx, dest, src.Loc, ids, targetOffsiteLimits(target), mode); cErr != nil {
+			log.Printf("api: offsite %s: copying %s failed (continuing with the other sources): %v", domain, shortRepoName(src.Loc), scrubError(cErr)) //nolint:gosec // G706: domain is a fixed literal, the name is shortened and the error scrubbed here
+			copyErrs = append(copyErrs, fmt.Errorf("copying %s: %w", shortRepoName(src.Loc), cErr))
+			continue
+		}
+		copied++
+		accounted++
+	}
+	// The failures are carried PAST the maintenance below rather than returned
+	// here. Whatever did arrive at the destination is real: it has to be aged by
+	// the retention policy, sampled into the size series and measured against the
+	// growth budget, or one unreachable source would silently switch all three off
+	// for the whole destination on every run. The joined error is returned at the
+	// end, so the run row and the notification still say the pass was incomplete.
+	copyErr := errors.Join(copyErrs...)
+	// Nothing arrived at all: the maintenance below is about what DID arrive, so
+	// running a forget and a prune over the destination after a completely failed
+	// pass ages a replica no fresh snapshot reached.
+	if copied == 0 {
+		if copyErr != nil {
+			err = copyErr
+			return err
+		}
+		// No error and nothing copied means nothing was pending anywhere. The
+		// destination is still a real replica that has to be sampled, so fall
+		// through - and the retention below decides for itself, on whether the
+		// pass was error-free AND whether any source answered for this domain at
+		// all. Those are not the same question, and `copied` alone cannot tell
+		// them apart.
+		log.Printf("api: offsite %s: nothing was pending, nothing copied", domain) //nolint:gosec // G706: domain is a fixed literal
 	}
 	// Apply the off-site retention policy (separate from local) after a successful
 	// copy — only when one is set, so an off-site repo defaults to keep-everything
@@ -2814,9 +3204,54 @@ func (s *Service) copyToOffsiteTarget(ctx context.Context, domain string, settin
 	// must not fail the replication that already succeeded. An IMMUTABLE
 	// (append-only) off-site repo is never pruned from here: the far side would
 	// refuse the delete anyway, and retention is enforced far-side by design.
-	if target.Immutable {
+	switch {
+	case destIsASource:
+		// The destination holds a repository this domain BACKS UP TO. Whatever the
+		// other sources managed, a forget plus prune here deletes snapshots whose
+		// only copy is the thing being pruned. Refused, and said out loud, because
+		// the run is otherwise reported as a partial success.
+		log.Printf("api: offsite %s: not applying retention - this destination is itself one of the sources, so its snapshots have no second copy", domain) //nolint:gosec // G706: domain is a fixed literal
+	case copyErr != nil:
+		// ANY source that failed stops the retention, not only a pass where every
+		// source failed. The destination is then missing exactly what the failed
+		// source was carrying, and aging it under the keep-policy deletes history
+		// against a replica nobody refreshed.
+		//
+		// The test is "the pass completed without error", not "something moved".
+		// Those are different in both directions, and each direction was wrong
+		// once: gating on movement meant an already-in-sync pass - which is the
+		// STRONGEST evidence the far side is current - never applied the policy at
+		// all on an all-named domain; gating on "every source failed" let one
+		// failure out of two read as a partial success and age the destination.
+		log.Printf("api: offsite %s: not applying retention - a source could not be copied this pass", domain) //nolint:gosec // G706: domain is a fixed literal
+	case len(unreachableSkips(skipped)) > 0:
+		// A source that never reached the loop. offsiteReplicationSources drops a
+		// repository that was established and is now unreachable into the skip list
+		// rather than into localRepos, so it produces no copyErr and the case above
+		// cannot see it - yet the destination is missing exactly what that source
+		// was carrying, which is the same situation the case above refuses on.
+		//
+		// UNREACHABLE, not "actionable". The question here is whether the
+		// destination might be the last copy of something, and only a repository
+		// this box could not open raises it. A repository the operator switched off
+		// is a failure for an operation asked to cover the whole domain and is not
+		// unreachable at all - it sits there with its data - so refusing on it
+		// stopped the off-site retention of that domain for good, on installs
+		// where the post-backup hook is the only replication there is.
+		log.Printf("api: offsite %s: not applying retention - %s could not be reached this pass", domain, strings.Join(skipNames(unreachableSkips(skipped)), ", ")) //nolint:gosec // G706: domain is a fixed literal and the names are the rows' own
+	case accounted == 0:
+		// Nothing answered for this domain. Every source either holds none of it or
+		// was dropped, so there is no evidence at all that what the destination
+		// holds still exists anywhere else - and a tag-scoped forget plus prune
+		// would be run against what may be the last copy.
+		log.Printf("api: offsite %s: not applying retention - no source could account for this domain's snapshots this pass", domain) //nolint:gosec // G706: domain is a fixed literal
+	case target.Immutable:
 		log.Printf("api: offsite %s: retention is enforced far-side (append-only)", domain) //nolint:gosec // G706: domain is a fixed literal
-	} else if op := targetOffsiteRetentionPolicy(target); op.Any() {
+	default:
+		op := targetOffsiteRetentionPolicy(target)
+		if !op.Any() {
+			break
+		}
 		// Per-identity: one tag-scoped, ungrouped forget per item, one prune —
 		// identity-stable like the local retention (issue #91).
 		if perr := s.applyRetentionPerIdentity(ctx, dest, op, mode); perr != nil {
@@ -2847,6 +3282,10 @@ func (s *Service) copyToOffsiteTarget(ctx context.Context, domain string, settin
 			s.CollectStatsAsync(domain, "offsite")
 		}
 		s.checkOffsiteBudget(ctx, domain, settings)
+		if copyErr != nil {
+			err = copyErr
+			return err
+		}
 		ok = true
 		return nil
 	}
@@ -2859,6 +3298,10 @@ func (s *Service) copyToOffsiteTarget(ctx context.Context, domain string, settin
 		s.CollectStatsAsync(domain, statSource)
 	}
 	s.checkOffsiteBudgetForTarget(ctx, domain, target)
+	if copyErr != nil {
+		err = copyErr
+		return err
+	}
 	ok = true
 	return nil
 }
@@ -2915,6 +3358,18 @@ func (s *Service) checkPrimaryRemoteBudget(ctx context.Context, domain, repo str
 	if !restic.IsRemoteRepo(repo) {
 		return
 	}
+	// …and it has to BE the primary. Every call site passes the repository the
+	// item it just backed up uses, which since #204 can be a named repository -
+	// and everything below is about the domain's own: the budget comes from the
+	// primary-remote row, the alarm names the primary and the latch is keyed
+	// "primary:"+domain. Measuring a named repository and charging it to that
+	// budget produced an alarm about a repository that is not the primary, and
+	// with several items on different named repositories the latch flapped
+	// between their sizes.
+	own, oErr := s.repoFor(settings, domain, "local")
+	if oErr != nil || !sameRepoLocation(own, repo) {
+		return
+	}
 	t, ok := s.primaryRemoteTarget(domain)
 	if !ok || !t.Enabled || t.GrowthBudgetGB <= 0 {
 		return
@@ -2932,7 +3387,10 @@ func (s *Service) checkPrimaryRemoteBudget(ctx context.Context, domain, repo str
 	// every snapshot tree) was the expensive one. The discarded row mattered too:
 	// N rows a night landed in the series the Storage card plots as one point per
 	// day, and they closed the 20-hour throttle on the real sample (issue #189).
-	settingsMode := s.ModeFor(settings)
+	// The PRIMARY repository, so it is described by primaryModeFor: a named row
+	// at that location carries its own credentials, storage class and caps, and
+	// a size probe opened with the shared set answers about the wrong account.
+	settingsMode := s.primaryModeFor(settings, domain, repo)
 	raw, serr := s.engine.Stats(ctx, repo, "raw-data", settingsMode)
 	if serr != nil {
 		log.Printf("api: primary-remote %s: budget size measurement failed (backup is safe): %v", domain, serr) //nolint:gosec // G706: domain is a fixed literal
@@ -3133,6 +3591,18 @@ func (s *Service) ReplicateOffsiteAfterBulk(ctx context.Context, domain string) 
 // schedule — a blank schedule couples replication to each backup; a set schedule
 // hands it to the scheduler instead. Best-effort: the local backup has already
 // succeeded, so an off-site failure is logged, never propagated.
+//
+// localRepo is the repository the backup just WROTE, which since named
+// repositories (#204) need not be the domain's own - and copying exactly that
+// one is the point: this hook exists to get the fresh snapshot off the box, and
+// the fresh snapshot is only in there. The manual and scheduled paths cover the
+// whole domain (offsiteReplicationSources); together the two stop contradicting
+// each other, which they did while this hook replicated an item's named
+// repository and the scheduled pass replicated only the domain's.
+//
+// A REMOTE named repository is skipped for the same reason it is skipped there:
+// it is already off site, and one restic process cannot hold two clouds'
+// credentials at once.
 func (s *Service) replicateOffsite(ctx context.Context, domain string, settings store.Settings, mode restic.Mode, localRepo string) {
 	if bulkReplicateSuppressed(ctx) {
 		return // scheduled multi-item run: replicated once after the whole loop (#95)
@@ -3143,7 +3613,43 @@ func (s *Service) replicateOffsite(ctx context.Context, domain string, settings 
 	if s.offsiteReplicatesOnOwnSchedule(domain, settings) {
 		return // replicated on its own schedule, not after every backup
 	}
-	if err := s.copyToOffsite(ctx, domain, settings, mode, localRepo); err != nil {
+	// The reference, not the bare string. This hook is handed whatever repository
+	// the item it just backed up uses, so it is the one caller most likely to be
+	// holding a NAMED repository - and the copy has to know that to narrow it to
+	// this domain's snapshots. Deciding it by position meant this path never
+	// narrowed at all: a one-element slice is always "index 0".
+	ref := s.refFor(settings, domain, localRepo)
+	if alreadyOffSite(ref) {
+		log.Printf("api: offsite %s: this item's repository is remote and is already off site; not copied again", domain) //nolint:gosec // G706: domain is a fixed literal
+		return
+	}
+	// The skip list of the WHOLE domain, even though this hook copies exactly one
+	// repository. It is not this hook's report - it never surfaces one, it only
+	// logs - it is what the destination's retention needs.
+	//
+	// The retention at the far end is tag-scoped PER IDENTITY over whatever the
+	// destination holds, so a pass that opened one source ages the off-site copies
+	// of every item in the domain. That is harmless while the other sources are
+	// merely not-copied-this-pass: they still exist, so the destination is not the
+	// last copy of anything. It is not harmless when one of them is gone - then the
+	// only copies of that item's history are being trimmed under the off-site
+	// keep-policy with nothing left to restore them from. The whole-domain pass was
+	// taught that in the eighth round and this hook, its sibling, was not; on an
+	// install with no separate off-site schedule this hook IS the replication, so
+	// leaving it out left the defect reachable by pressing "Back up now".
+	//
+	// Suppressing the retention here outright would be the other mistake: those
+	// installs would then never age the destination at all.
+	//
+	// Narrowed to the UNREACHABLE ones, and that narrowing is not only about the
+	// retention. This list would otherwise also become the pass's error, and a
+	// pass that deliberately copies one repository has no business reporting that
+	// it did not cover the other ones - it never set out to. Handing over the
+	// whole list stamped the domain's off-site run row red after every single
+	// backup of an install with one switched-off repository.
+	_, allSkips := s.offsiteReplicationSources(settings, domain)
+	skipped := unreachableSkips(allSkips)
+	if err := s.copyToOffsite(ctx, domain, settings, mode, []domainRepoRef{ref}, skipped); err != nil {
 		// domain is a fixed literal; the error is already path-scrubbed by restic.
 		log.Printf("api: offsite %s: copy failed (local backup is safe): %v", domain, err)
 	}
@@ -3153,16 +3659,25 @@ func (s *Service) replicateOffsite(ctx context.Context, domain string, settings 
 // demand — the "Replicate now" button and the scheduled off-site job. Unlike the
 // post-backup hook it surfaces the error (so the UI can report it) and takes the
 // domain lock to serialise with backups.
+//
+// It copies EVERY repository the domain's items write to (#204), not just the
+// domain's own: an item pointed at a local named repository is part of this
+// domain, and a "Replicate now" that quietly left it out of the off-site copy
+// would report success over a gap. See offsiteReplicationSources for which
+// repositories qualify and why a remote named one does not.
 func (s *Service) ReplicateOffsite(ctx context.Context, domain string) error {
-	settings, localRepo, err := s.domainRepoSource(domain, "local")
+	settings, err := s.store.GetSettings()
 	if err != nil {
-		return err
+		return fmt.Errorf("read settings: %w", err)
 	}
 	if s.offsiteRepoFor(domain, settings) == "" {
 		return errors.New("no off-site repo configured for this domain")
 	}
 	defer s.lockDomainFor(domain, "replicate")()
-	return s.copyToOffsite(ctx, domain, settings, s.ModeFor(settings), localRepo)
+	// The skip list goes IN, so the run row this opens records it too rather than
+	// being stamped a success the caller then contradicts.
+	sources, skipped := s.offsiteReplicationSources(settings, domain)
+	return s.copyToOffsite(ctx, domain, settings, s.ModeFor(settings), sources, skipped)
 }
 
 // StartReplicateOffsite kicks off an on-demand off-site replication in the
@@ -3196,12 +3711,14 @@ func (s *Service) StartReplicateOffsite(domain string) error {
 		// against a copy that hangs forever on a dead link.
 		ctx, cancel := context.WithTimeout(context.Background(), 24*time.Hour)
 		defer cancel()
-		settings, localRepo, err := s.domainRepoSource(domain, "local")
+		settings, err := s.store.GetSettings()
 		if err != nil {
 			log.Printf("api: offsite %s: replicate start: %v", domain, err) //nolint:gosec // G706: domain is a fixed literal
 			return
 		}
-		if err := s.copyToOffsite(ctx, domain, settings, s.ModeFor(settings), localRepo); err != nil {
+		sources, skipped := s.offsiteReplicationSources(settings, domain)
+		err = s.copyToOffsite(ctx, domain, settings, s.ModeFor(settings), sources, skipped)
+		if err != nil {
 			log.Printf("api: offsite %s: manual replication failed: %v", domain, err) //nolint:gosec // G706: domain is a fixed literal
 			s.notifyReplicationFailed(ctx, domain, truncateRunErr(err))
 		}
@@ -3478,18 +3995,56 @@ func (s *Service) clearRepoEstablished(repo string) {
 	}
 }
 
-// repoEstablished reports whether a LOCAL repo destination was previously
-// established. False for remote repos and on any store error (never blocks).
-func (s *Service) repoEstablished(repo string) bool {
+// repoEstablishment is the three-way answer to "was this LOCAL repository ever
+// established?". The third value exists because the THREE callers that decide
+// whether to REPORT a missing repository - reposThatExist,
+// offsiteReplicationSources and discoverNamesAcrossRepos - need to tell "it was
+// never created, so nothing is missing" apart from "the store could not say",
+// and a bool cannot
+// carry that: repoEstablished's false-on-error is the right default for
+// EnsureRepo, where false means "go ahead and init", and the wrong one here,
+// where it means "stay silent about a repository that may hold every backup".
+type repoEstablishment int
+
+const (
+	repoNeverEstablished repoEstablishment = iota
+	repoWasEstablished
+	repoEstablishmentUnknown
+)
+
+// repoEstablishmentOf answers the question with its uncertainty intact. Remote
+// repositories have no local backing store to vanish, so they are never tracked
+// and answer "never".
+func (s *Service) repoEstablishmentOf(repo string) repoEstablishment {
 	if restic.IsRemoteRepo(repo) {
-		return false
+		return repoNeverEstablished
 	}
 	ok, err := s.store.IsRepoEstablished(repo)
 	if err != nil {
-		log.Printf("api: is repo established: %v", err)
-		return false
+		// ONE retry before giving up. The failure this guards against is a local
+		// SQLite read losing a race with a concurrent write, which the next
+		// attempt almost always wins - and the cost of not retrying is a nightly
+		// verify, prune, unlock and drill all reporting failure over a repository
+		// that holds nothing and never did, because "could not tell" is reported
+		// rather than swallowed. Reporting is the right default; making the
+		// operator chase a share that is fine is not.
+		if ok, err = s.store.IsRepoEstablished(repo); err != nil {
+			log.Printf("api: is repo established (twice): %v", err)
+			return repoEstablishmentUnknown
+		}
 	}
-	return ok
+	if ok {
+		return repoWasEstablished
+	}
+	return repoNeverEstablished
+}
+
+// repoEstablished reports whether a LOCAL repo destination was previously
+// established. False for remote repos and on any store error (never blocks) —
+// the permissive default EnsureRepo wants. A caller deciding whether to report
+// a missing repository wants repoEstablishmentOf instead.
+func (s *Service) repoEstablished(repo string) bool {
+	return s.repoEstablishmentOf(repo) == repoWasEstablished
 }
 
 // oppositeMode returns mode with its encryption flag flipped, preserving backend
@@ -3731,13 +4286,15 @@ type CustomPath struct {
 
 // ContainerMounts returns the container's bind mounts annotated for the folder
 // selector, plus any selected custom paths (in host form) that do not match a
-// current mount, each flagged with whether it still exists. The selection is the
-// stored explicit choice, or the automatic appdata default when none is
-// configured.
-func (s *Service) ContainerMounts(ctx context.Context, name string) ([]MountInfo, []CustomPath, error) {
+// current mount, each flagged with whether it still exists, plus the stored
+// exclusions in host form, plus the stored per-root CACHEDIR.TAG toggles
+// (RESTIC-01; host-form keys, nil when never set — the handler normalizes to {}
+// on the wire). The selection is the stored explicit choice, or the automatic
+// appdata default when none is configured.
+func (s *Service) ContainerMounts(ctx context.Context, name string) ([]MountInfo, []CustomPath, []string, map[string]bool, error) {
 	in, err := s.docker.Inspect(ctx, name)
 	if err != nil {
-		return nil, nil, fmt.Errorf("inspect container: %w", err)
+		return nil, nil, nil, nil, fmt.Errorf("inspect container: %w", err)
 	}
 
 	auto := s.resolveAppdataPaths(name, in)
@@ -3746,7 +4303,25 @@ func (s *Service) ContainerMounts(ctx context.Context, name string) ([]MountInfo
 	if len(effective) == 0 {
 		effective = auto
 	}
-	selSet := sliceSet(effective)
+	// Split the entry classes BEFORE anything consumes the list (01-RESEARCH.md
+	// R4, Pitfall 3): includes drive Selected, the auto fallback above and the
+	// custom loop below; a raw "!-prefixed entry fed to any of them would
+	// render as a phantom custom path with Exists:false — toHostPath passes the
+	// prefixed container path through unchanged, so the UI would show a stale
+	// /host/... entry that backs up nothing. The split decodes via
+	// SplitExclusion so the prefix semantics stay owned by selection.go (D-02).
+	// The auto-detection fallback above deliberately stays keyed on the RAW
+	// list: an exclusions-only selection is the explicit-none state (L4), not
+	// a missing selection, so it must never fall back to auto.
+	var includes, exclCPs []string
+	for _, e := range effective {
+		if bare, excluded := SplitExclusion(e); excluded {
+			exclCPs = append(exclCPs, bare)
+		} else {
+			includes = append(includes, bare)
+		}
+	}
+	selSet := sliceSet(includes)
 	autoSet := sliceSet(auto)
 
 	matched := map[string]bool{}
@@ -3768,22 +4343,50 @@ func (s *Service) ContainerMounts(ctx context.Context, name string) ([]MountInfo
 	// Custom = selected paths with no matching current mount, shown in host form.
 	// Flag each with whether it still exists under the host mount so the UI can
 	// distinguish a real selected folder from a stale/phantom one (issue #115).
+	// Includes only — exclusions are deliberate state, not stale entries, and
+	// belong in the excluded return below.
 	var custom []CustomPath
-	for _, cp := range effective {
+	for _, cp := range includes {
 		if !matched[cp] {
 			_, statErr := os.Stat(cp) //nolint:gosec // G703: cp is a stored container path already validated under the mount root on save, not raw user input
 			custom = append(custom, CustomPath{Path: s.toHostPath(cp), Exists: statErr == nil})
 		}
 	}
-	return mounts, custom, nil
+
+	// Exclusions are first-class reviewable state (the read side of INTEG-04):
+	// surface them separately, in host form — the form the caller submitted —
+	// so the UI can show what was deliberately deselected after the fact.
+	excluded := make([]string, 0, len(exclCPs))
+	for _, cp := range exclCPs {
+		excluded = append(excluded, s.toHostPath(cp))
+	}
+	return mounts, custom, excluded, tg.ExcludeCaches, nil
 }
+
+// errEmptySelection refuses a tree-sourced save that would deselect everything:
+// an explicit empty selection silently re-enables automatic appdata detection,
+// which is exactly the surprise the tree's deselect-all must never produce over
+// a previously non-empty selection (threat T-01-13). Message-carrying and
+// errors.Is-able so the PATCH boundary routes it to the coded
+// {code:"empty-selection"} envelope instead of the plain failure one.
+var errEmptySelection = errors.New("an explicit empty selection would re-enable automatic appdata detection")
 
 // SetBackupPaths stores the user's explicit backup-folder selection for a
 // container. The input paths are HOST paths (what the UI shows); each is
 // translated to its container path and must be reachable under the host mount,
-// otherwise the whole update is rejected. An empty list clears the selection so
-// backups fall back to automatic appdata detection.
-func (s *Service) SetBackupPaths(_ context.Context, name string, hostPaths []string) error {
+// otherwise the whole update is rejected. An entry prefixed with "!" (the tree
+// selector's excluded branch — semantics owned by internal/api/selection.go)
+// is translated and contained on its BARE path, then stored prefixed. An empty
+// list clears the selection so backups fall back to automatic appdata
+// detection — except when selectionSource is the literal "tree" and a
+// non-empty selection is stored to protect: that is a deselect-everything, and
+// it is refused with errEmptySelection (the coded envelope is the handler's
+// job). selectionSource is a transient intent signal, never persisted; any
+// value other than "tree" — including "" from legacy clients — is treated
+// exactly as absent, so old clients keep today's clears-to-auto behavior
+// byte-for-byte (CONTEXT INTEG-04 Q1; RESEARCH Open Question 2 — strictly
+// source-gated, no payload sniffing).
+func (s *Service) SetBackupPaths(_ context.Context, name string, hostPaths []string, selectionSource string) error {
 	var cps []string
 	seen := map[string]bool{}
 	for _, hp := range hostPaths {
@@ -3791,19 +4394,55 @@ func (s *Service) SetBackupPaths(_ context.Context, name string, hostPaths []str
 		if hp == "" {
 			continue
 		}
+		// The exclusion prefix is parsed BEFORE translation: toContainerPath
+		// does a strict TrimPrefix against the host source root, so a raw
+		// "!/mnt/..." fails it and the WHOLE save would be rejected. Split,
+		// translate the bare path, re-attach (01-RESEARCH.md Pitfall 1;
+		// 01-CONTEXT.md encoding Q1).
+		bare, excluded := SplitExclusion(hp)
+		if bare == "" && excluded {
+			return fmt.Errorf("empty excluded path %q", hp)
+		}
 		// toContainerPath path.Cleans the input first (resolving any ".."), then
 		// requires the host-source-root prefix, so its result is guaranteed to sit
-		// under the mount root — no separate containment check needed.
-		cp, ok := s.toContainerPath(hp)
+		// under the mount root — no separate containment check needed. Both
+		// classes get the identical check on their bare path, so no unvalidated
+		// string ever reaches the store (threat T-01-01).
+		cp, ok := s.toContainerPath(bare)
 		if !ok {
 			return fmt.Errorf("path %q is not under the host mount and can't be backed up", hp)
+		}
+		if excluded {
+			cp = ExclusionPrefix + cp
 		}
 		if !seen[cp] {
 			cps = append(cps, cp)
 			seen[cp] = true
 		}
 	}
-	return s.store.SetBackupPaths(name, cps)
+	// Normalize before persisting: per-class maximal-root pruning + canonical
+	// order, so equal selections store byte-identical sets regardless of the
+	// order the client sent (01-CONTEXT.md encoding Q3/Q4). This is NOT stale-path
+	// repair — dropping entries whose folder vanished stays the engine's job at
+	// run time (onlyExistingPaths); normalization only removes REDUNDANT entries
+	// and canonically orders what the user actually chose.
+	normalized := NormalizeSelection(cps)
+	// Empty-selection guard (D-09/D-10), strictly source-gated — no heuristic
+	// sniffing of tree-shaped payloads. All three conditions must hold:
+	//   - the save came from the tree source (only the literal "tree"; legacy
+	//     and unknown sources keep today's clears byte-for-byte),
+	//   - the normalized result is EMPTY (an exclusions-only result is
+	//     non-empty and IS the explicitly-deselected state, D-03 — it passes),
+	//   - a non-empty selection is stored to protect (a fresh container has
+	//     nothing to lose, so the save is a no-op, not a destructive deselect).
+	// The refusal returns BEFORE any store write, so the prior selection is
+	// preserved untouched.
+	if selectionSource == "tree" && len(normalized) == 0 {
+		if prior, gErr := s.store.GetTargetByContainer(name); gErr == nil && len(prior.SelectedPaths) > 0 {
+			return errEmptySelection
+		}
+	}
+	return s.store.SetBackupPaths(name, normalized)
 }
 
 // sliceSet builds a set from a string slice.
@@ -3838,10 +4477,18 @@ func onlyExistingPaths(paths []string) []string {
 // as "this container has no folders" turns a temporarily unreachable share into
 // a confident empty answer (#175 at root granularity). An empty list here means
 // genuinely nothing is configured, which is the only case that IS "nothing".
+//
+// The explicit-vs-auto test stays on the RAW stored list, but the RETURN is the
+// includes half only (SplitExclusion, internal/api/selection.go): keeping the
+// test raw is what makes an exclusions-only selection count as explicit rather
+// than auto-detect, while the includes-only return keeps deselected branches
+// out of everything downstream (effectiveBackupPaths' positionals,
+// SuggestExcludes' roots). Exclusions never become positionals and never
+// derive --exclude flags — locked positions L1/L14.
 func (s *Service) configuredBackupPaths(name string, in model.Inspect) []string {
 	chosen := s.resolveAppdataPaths(name, in)
 	if existing, gErr := s.store.GetTargetByContainer(name); gErr == nil && len(existing.SelectedPaths) > 0 {
-		chosen = existing.SelectedPaths
+		chosen = includesOnly(existing.SelectedPaths)
 	}
 	return chosen
 }
@@ -3851,7 +4498,34 @@ func (s *Service) configuredBackupPaths(name string, in model.Inspect) []string 
 // detection, filtered to those that exist on disk (a stateless container ends up
 // with an empty list).
 func (s *Service) effectiveBackupPaths(name string, in model.Inspect) []string {
-	return onlyExistingPaths(s.configuredBackupPaths(name, in))
+	paths, _ := s.effectiveBackupPathsWithSelection(name, in)
+	return paths
+}
+
+// effectiveBackupPathsWithSelection returns the same paths AND the stored
+// selection they were derived from, out of ONE read of the target row.
+//
+// A backup needs both: the includes become the restic positionals, the
+// exclusion branches become the --exclude tail. Reading them separately let a
+// PATCH landing between the two reads pair OLD positionals with NEW exclusions,
+// and that pairing is not merely stale, it is a shape the user never chose - a
+// derived --exclude biting a positional from the previous selection. The
+// snapshot then records a path whose content was filtered out of it, the run is
+// recorded success, retention counts it as a full backup, and a later restore
+// resolves that path to an empty directory and reports success. Nothing
+// serialises the writer: the PATCH route takes no domain lock and is not gated
+// on a running backup.
+//
+// One read cannot tear. It can still be overtaken by a save that lands just
+// before it, which is ordinary staleness: the whole selection is then the new
+// one, the next run uses it, and no snapshot is internally inconsistent.
+func (s *Service) effectiveBackupPathsWithSelection(name string, in model.Inspect) (paths, selection []string) {
+	chosen := s.resolveAppdataPaths(name, in)
+	if existing, gErr := s.store.GetTargetByContainer(name); gErr == nil && len(existing.SelectedPaths) > 0 {
+		selection = existing.SelectedPaths
+		chosen = includesOnly(selection)
+	}
+	return onlyExistingPaths(chosen), selection
 }
 
 // emptyBackupIsUnreachable decides what an empty effective path list MEANS, and
@@ -3875,7 +4549,11 @@ func (s *Service) effectiveBackupPaths(name string, in model.Inspect) []string {
 // never made (both are an empty SelectedPaths, meaning "use automatic
 // detection"), and the configured list cannot either, because the appdata
 // fallback in resolveAppdataPaths is itself stat-gated and so disappears along
-// with the folder.
+// with the folder. Since the "!"-prefixed flat encoding (internal/api/
+// selection.go) there is a fourth shape with the same empty effective list: a
+// selection whose every entry is an exclusion — explicit-none, deliberate,
+// never a fault, even though the deselected folder is still on disk (threat
+// T-01-03).
 func (s *Service) emptyBackupIsUnreachable(name string, effective []string) bool {
 	return len(effective) == 0 && s.storedDataIsGone(name)
 }
@@ -3885,18 +4563,32 @@ func (s *Service) emptyBackupIsUnreachable(name string, effective []string) bool
 // claims ("not reachable"), so it is what the guard measures.
 //
 // A container with no stored target, or one whose last run captured nothing, is
-// a first or a genuinely stateless backup and is never refused.
+// a first or a genuinely stateless backup and is never refused. Neither is an
+// exclusions-only selection: its raw list is non-empty but holds no includes,
+// so measuring it would stat nothing and report the deliberate deselect as a
+// vanished share — "gone" must mean the DATA is gone, not that the user said
+// no (T-01-03).
 func (s *Service) storedDataIsGone(name string) bool {
 	existing, err := s.store.GetTargetByContainer(name)
 	if err != nil {
 		return false // no prior target — a first backup of a new/stateless container
 	}
+	// Explicit-none: a non-empty stored list with zero includes is a deselect,
+	// not a disappearance. Checked before any stat, so the classification comes
+	// from the selection's SHAPE (the user said no) rather than from the disk.
+	if len(existing.SelectedPaths) > 0 && len(includesOnly(existing.SelectedPaths)) == 0 {
+		return false
+	}
 	// SelectedPaths first: while a selection stands it is what a backup uses, so
-	// it is the list whose disappearance means the share went away. Once the user
-	// clears it, what the last run captured (AppdataPaths) is the only record of
-	// where the data was, and it still tells us whether that data is still there.
-	stored := existing.SelectedPaths
-	if len(stored) == 0 {
+	// it is the list whose disappearance means the share went away — stat the
+	// INCLUDES half only, like every other reader of the stored list. The
+	// "!"-prefixed entries are classes, not paths; statting them as literals
+	// would measure nothing (they resolve against cwd and virtually never exist,
+	// so they could only ever vote "gone"). Once the user clears it, what the
+	// last run captured (AppdataPaths) is the only record of where the data was,
+	// and it still tells us whether that data is still there.
+	stored := includesOnly(existing.SelectedPaths)
+	if len(existing.SelectedPaths) == 0 {
 		stored = existing.AppdataPaths
 	}
 	return len(stored) > 0 && len(onlyExistingPaths(stored)) == 0
@@ -4015,7 +4707,7 @@ func (s *Service) Backup(ctx context.Context, name string) (_ backup.Summary, re
 	if err != nil {
 		return backup.Summary{}, fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.containersRepoPath(settings)
+	repo, err := s.containerRepoForName(settings, name, "local")
 	if err != nil {
 		return backup.Summary{}, err
 	}
@@ -4048,7 +4740,11 @@ func (s *Service) Backup(ctx context.Context, name string) (_ backup.Summary, re
 	// automatic appdata detection, filtered to those that exist. A stateless
 	// container ends up with an empty list → a definition-only backup (its
 	// template/inspect is still captured so it can be recreated on restore).
-	effective := s.effectiveBackupPaths(name, in)
+	// Both halves of the selection out of ONE read: the includes below become
+	// the positionals, and selection feeds the --exclude tail further down. Two
+	// reads let a save landing between them pair old positionals with new
+	// exclusions - see effectiveBackupPathsWithSelection.
+	effective, selection := s.effectiveBackupPathsWithSelection(name, in)
 
 	// Guard against a SILENT no-op: if a PREVIOUS backup captured data (or the user
 	// selected folders) but every path now resolves away — e.g. the appdata share
@@ -4079,6 +4775,17 @@ func (s *Service) Backup(ctx context.Context, name string) (_ backup.Summary, re
 	if err != nil {
 		return backup.Summary{}, fmt.Errorf("upsert target: %w", err)
 	}
+
+	// Compile the per-root CACHEDIR.TAG toggles into the item-level union the
+	// argv flag needs (RESTIC-01, D-06). tg comes from UpsertTarget's
+	// authoritative re-read — the ON CONFLICT clause never touches
+	// exclude_caches — so this is a FRESH read of the stored map on every
+	// backup: a toggle saved between two backups affects exactly the later one.
+	// Literal A1 reading (Phase 3 research): the union runs over the STORED map,
+	// independent of whether that root is currently included in the selection —
+	// restic's --exclude-caches is positional-source-wide, so per-root gating on
+	// selection inclusion would be a lie either way.
+	mode.ExcludeCaches = anyRootExcludeCaches(tg.ExcludeCaches)
 
 	// Give each dependency its own run-state so the backup never starts a
 	// container the user had already stopped (#33): inspect each by name and
@@ -4139,11 +4846,21 @@ func (s *Service) Backup(ctx context.Context, name string) (_ backup.Summary, re
 		HealthWait:             settings.RestartHealthWait,
 		HealthTimeout:          time.Duration(settings.RestartHealthTimeoutSec) * time.Second,
 		WhileDependentsStopped: whileDepsStopped,
-		Excludes:               s.resolveExcludePatterns(tg.Excludes, in),
-		Docker:                 s.docker,
-		Restic:                 &resticAdapter{engine: s.engine, mode: mode},
-		Templates:              templatesAdapter{},
-		Runs:                   runsAdapter{st: s.store, ctx: ctx, svc: s, cancelKey: "container:" + name},
+		// User-owned exclude patterns stay first; the selection-derived tail
+		// enforces the stored exclusion branches strictly below an included
+		// root on the argv (review finding WR-01, gap closure per the
+		// 2026-09-09 user decision) — the snapshot content must match what the
+		// stored selection advertises. It comes from the SAME read as the
+		// positionals above, never from UpsertTarget's later re-read: those
+		// two reads could disagree, and a --exclude from one selection biting a
+		// positional from another is a snapshot nobody asked for. Patterns
+		// travel as typed builder arguments into BackupArgs (excludes before
+		// --, positionals after) — never through a shell.
+		Excludes:  append(s.resolveExcludePatterns(tg.Excludes, in), excludedBranches(selection)...),
+		Docker:    s.docker,
+		Restic:    &resticAdapter{engine: s.engine, mode: mode},
+		Templates: templatesAdapter{},
+		Runs:      runsAdapter{st: s.store, ctx: ctx, svc: s, cancelKey: "container:" + name},
 	})
 	s.progEnd(pkey, "backup", err == nil, startedAt)
 	s.notifyBackup(ctx, "container", name, err == nil, sum, err)
@@ -4154,7 +4871,7 @@ func (s *Service) Backup(ctx context.Context, name string) (_ backup.Summary, re
 	// Mirror the definition (encrypted) onto the backup storage so a freshly
 	// installed BombVault can rebuild its state via Discover after losing
 	// /config. Best-effort: a write failure must never fail a good backup.
-	if wErr := s.writeDefToStorage(settings, name, defBytes); wErr != nil {
+	if wErr := s.writeDefToStorage(settings, name, repo, defBytes); wErr != nil {
 		log.Printf("api: backup: WARN could not persist definition for %q to storage: %v", name, wErr) //nolint:gosec // G706: name is %q-quoted
 	}
 	// #52: the optional post-backup image update already ran, if enabled, as the
@@ -4805,8 +5522,45 @@ func (s *Service) defsDir(settings store.Settings) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(repo, "def"), nil
+	return defsDirFor(repo), nil
 }
+
+// itemDefsDir picks where to look for a rediscovered item's definition mirror:
+// beside its own snapshots when it was found in a named repository (#204), the
+// domain's mirror otherwise. Empty when the named repository is remote or gone,
+// which leaves the caller on the domain's mirror.
+func (s *Service) itemDefsDir(repoID string, forVM bool) string {
+	if strings.TrimSpace(repoID) == "" {
+		return ""
+	}
+	named, err := s.store.GetNamedRepo(repoID)
+	if err != nil {
+		return ""
+	}
+	loc, rErr := s.resolveRepo(named.Repo)
+	if rErr != nil || restic.IsRemoteRepo(loc) {
+		return ""
+	}
+	if forVM {
+		return vmDefsDirFor(loc)
+	}
+	return defsDirFor(loc)
+}
+
+// defsDirFor is defsDir for ONE repository, so an item on a named repository
+// (#204) can have its definition mirrored beside its own snapshots.
+//
+// defsDir's whole argument is that a copy of the repository folder is
+// self-contained: the definitions travel with it. That was false for exactly
+// the items this feature created - their snapshots went to a named repository
+// while their definitions stayed in the domain's, so discovery found their
+// names there and had nothing to rebuild them from. A remote repository has no
+// folder to write into and keeps the domain's location, which is the honest
+// answer rather than a silent nothing.
+func defsDirFor(repo string) string { return filepath.Join(repo, "def") }
+
+// vmDefsDirFor is the same for VMs.
+func vmDefsDirFor(repo string) string { return filepath.Join(repo, "vm-def") }
 
 // legacyDefsDir is the pre-v5.4.1 container defs location (a sibling of the repo).
 // Still read as a fallback and migrated away by migrateLegacyDefs.
@@ -4969,19 +5723,50 @@ func migrateLegacyDefs(newDir, legacyDir string) {
 	_ = os.Remove(legacyDir) // succeeds only when the dir is now empty
 }
 
+// migrateLegacyDefsIfDomain runs the pre-v5.4.1 migration ONLY when the write
+// that triggered it went to the domain's own defs folder.
+//
+// The legacy folder holds the WHOLE domain's definitions. Migrating it into an
+// item's named repository (#204) because that one item happened to back up first
+// moves every other item's definition somewhere Discover does not look, and then
+// deletes the source folder. One backup of one item was enough to do it.
+//
+// A named function rather than an `if` at each call site, so the rule has one
+// home and a test can reach it.
+func migrateLegacyDefsIfDomain(dir, domainDir, legacyDir string) {
+	if dir != domainDir {
+		return
+	}
+	migrateLegacyDefs(dir, legacyDir)
+}
+
 // writeDefToStorage encrypts the definition with the APP_KEY-derived key and
 // writes it to <defsDir>/<name>.def (0644 — readable by the off-server sync tool
 // that copies the backup share; the contents are always encrypted). The env vars
 // inside the definition are sensitive, so the file is always encrypted regardless
 // of the restic encryption setting.
-func (s *Service) writeDefToStorage(settings store.Settings, name string, defJSON []byte) error {
+func (s *Service) writeDefToStorage(settings store.Settings, name, itemRepo string, defJSON []byte) error {
 	fn, err := defFileName(name)
 	if err != nil {
 		return err
 	}
-	dir, err := s.defsDir(settings)
+	// Beside the snapshots, whichever repository those went to. A remote one has
+	// no local folder, so the domain's mirror stays the fallback.
+	domainDir, err := s.defsDir(settings)
 	if err != nil {
 		return err
+	}
+	dir := domainDir
+	switch {
+	case itemRepo != "" && !restic.IsRemoteRepo(itemRepo):
+		dir = defsDirFor(itemRepo)
+	case restic.IsRemoteRepo(itemRepo):
+		// Said out loud, once per backup. A filesystem sidecar has nowhere to live
+		// beside a bucket, so this item's recreate definition exists only on THIS
+		// box. Somebody treating a cloud repository as their whole disaster-recovery
+		// story loses it with the box, and nothing used to mention that. The
+		// /config backup carries every definition and remains the real answer.
+		log.Printf("api: %q is on a remote repository, so its recreate definition is mirrored only on this box; the /config backup is what carries it off site", name) //nolint:gosec // G706: name is %q-quoted
 	}
 	if err := ensureDefsDir(dir); err != nil {
 		return fmt.Errorf("ensure defs dir: %w", err)
@@ -4995,8 +5780,14 @@ func (s *Service) writeDefToStorage(settings store.Settings, name string, defJSO
 	}
 	// Move any pre-v5.4.1 defs from the old sibling dir into the repo and remove
 	// the old dir once empty (best-effort; a good backup never fails over this).
+	//
+	// ONLY when this write went to the domain's own defs dir. The legacy folder
+	// holds the WHOLE domain's definitions, so migrating it into a named
+	// repository because one item happens to live there moves every other item's
+	// definition somewhere Discover does not look, and then deletes the source
+	// folder. One backup of one item was enough to do it.
 	if legacy, lErr := s.legacyDefsDir(settings); lErr == nil {
-		migrateLegacyDefs(dir, legacy)
+		migrateLegacyDefsIfDomain(dir, domainDir, legacy)
 	}
 	return nil
 }
@@ -5023,53 +5814,46 @@ func defFileName(name string) (string, error) {
 // same count, but writes NO targets. The Recovery tab's readability probe uses
 // this so merely checking "is my backup readable?" never resurrects orphan
 // entries; only the explicit "Discover backups" action rebuilds targets (#44).
-func (s *Service) Discover(ctx context.Context, dryRun bool) (int, error) {
+func (s *Service) Discover(ctx context.Context, dryRun bool) (int, []repoSkip, error) {
 	settings, err := s.store.GetSettings()
 	if err != nil {
-		return 0, fmt.Errorf("read settings: %w", err)
+		return 0, nil, fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.containersRepoPath(settings)
-	if err != nil {
-		return 0, err
-	}
-	mode := s.ModeFor(settings)
-	// No local repo yet → nothing to discover (not an error). Discover always
-	// targets the primary (local) repo, so the local config check is correct here;
-	// keeping it preserves the quiet "0 discovered" for a not-yet-created repo.
-	if _, statErr := os.Stat(filepath.Join(repo, "config")); errors.Is(statErr, fs.ErrNotExist) { //nolint:gosec // G703: repo is the operator-configured local domain path, validated under the mount root on save
-		return 0, nil
-	}
-	snaps, err := s.engine.Snapshots(ctx, repo, mode)
-	if err != nil {
-		return 0, err
-	}
-
-	// Collect the distinct container names from the container:<name> tags.
-	names := map[string]bool{}
-	for _, snap := range snaps {
-		for _, tag := range snap.Tags {
-			if rest, ok := strings.CutPrefix(tag, "container:"); ok && rest != "" {
-				names[rest] = true
-			}
-		}
-	}
+	// The distinct container names from the container:<name> tags, across every
+	// repository this domain writes to, each with the named repository (#204) it
+	// was found in. A not-yet-created repo yields nothing quietly, as before.
+	// readErr, not an early return. The pass now comes back WITH whatever the
+	// named repositories yielded before the domain repository failed to open,
+	// so an install whose domain repository is unreadable is still rebuilt as
+	// far as it can be. The error still reaches the caller at the end, which is
+	// what the Recovery wizard classifies on.
+	names, skipped, readErr := s.discoverNamesAcrossRepos(ctx, settings, "containers", "container:")
 
 	dir, err := s.defsDir(settings)
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 	legacyDir, err := s.legacyDefsDir(settings)
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 	discovered := 0
-	for name := range names {
+	for name, repoID := range names {
 		fn, fnErr := defFileName(name)
 		if fnErr != nil {
 			log.Printf("api: discover: skipping unsafe container name %q: %v", name, fnErr) //nolint:gosec // G706: %q-quoted
 			continue
 		}
-		enc, rErr := readStoredDef(dir, legacyDir, fn)
+		// The item's OWN mirror first: a container on a named repository has its
+		// definition beside its snapshots, and the domain's mirror never had it.
+		lookIn := dir
+		if own := s.itemDefsDir(repoID, false); own != "" {
+			lookIn = own
+		}
+		enc, rErr := readStoredDef(lookIn, legacyDir, fn)
+		if rErr != nil && lookIn != dir {
+			enc, rErr = readStoredDef(dir, legacyDir, fn) // older backups mirrored to the domain
+		}
 		if rErr != nil {
 			log.Printf("api: discover: no stored definition for %q — skipping (cannot recreate): %v", name, rErr) //nolint:gosec // G706: %q-quoted
 			continue
@@ -5085,6 +5869,61 @@ func (s *Service) Discover(ctx context.Context, dryRun bool) (int, error) {
 			continue
 		}
 		if !dryRun {
+			// Was this item already configured? Asked BEFORE the upsert, because
+			// the upsert is what would make the answer yes.
+			// "This pass created the row" OR "the row has no repository of its own".
+			// Gating on the first alone meant a placeholder row - one the tree editor,
+			// a schedule change or a previous discovery had already created - could
+			// never have its repository restored, which is precisely the item the
+			// restore is for. What must never happen is OVERWRITING a choice somebody
+			// made, and an empty column is not a choice.
+			existing, kErr := s.store.GetTargetByContainer(name)
+			isNewRow := errors.Is(kErr, sql.ErrNoRows)
+			maySetRepo := isNewRow || (kErr == nil && strings.TrimSpace(existing.Repo) == "")
+			// …and never from evidence this pass knows is incomplete. readErr means
+			// exactly one thing: the domain's OWN repository could not be listed. The
+			// named repositories are searched FIRST and the domain's own LAST, so
+			// `names` then holds named-repository evidence alone, and the
+			// newest-snapshot-wins rule the whole attribution rests on was decided
+			// without ever looking at the repository most items are actually in.
+			//
+			// The ROW is still rebuilt from such a pass - the item exists, its stored
+			// definition proves it, and an upsert is idempotent. The repository column
+			// is the part that must wait, because it LATCHES: a later Discover finds
+			// it non-empty and leaves it alone (that refusal exists to protect a
+			// choice somebody made), the PATCH route refuses to clear it for an item
+			// that has backups, and no route deletes it. So a wrong attribution
+			// written from half the evidence is permanent, the next scheduled backup
+			// follows it, and that repository's retention then ages the archive the
+			// item was re-homed onto - the exact mechanism the comment on
+			// discoverNamesAcrossRepos records as having cost a data-loss finding.
+			//
+			// An empty column is not a guess: it means the domain's own repository,
+			// which is where the primary history is and where the next Discover can
+			// still correct it from.
+			if maySetRepo && readErr != nil {
+				log.Printf("api: discover: the domain's own repository could not be read, so %q keeps the default repository until a pass that can see every repository", name) //nolint:gosec // G706: %q-quoted
+				maySetRepo = false
+			}
+			// …and the same has-backups refusal PATCH /api/containers/<name>
+			// enforces. A row that already exists with an empty repository column is
+			// pointed at the DOMAIN repository, and it may well have snapshots there;
+			// moving it to a named repository orphans that history and sends the next
+			// backup somewhere else, which is exactly the transition the HTTP path
+			// refuses. Asked only for a row that already existed: there is nothing to
+			// orphan for one this pass created, and the question costs a listing.
+			//
+			// The question it can actually answer is "has this item EVER been backed
+			// up", not "…in the repository it points at now": the runs table carries
+			// no repository column, so one surviving run row answers yes wherever it
+			// wrote. That over-refuses rather than under-refuses, which is the safe
+			// direction here - re-homing an item with history somewhere orphans it.
+			if maySetRepo && !isNewRow && repoID != "" {
+				if had, hErr := s.containerHasBackups(ctx, name); hErr != nil || had {
+					log.Printf("api: discover: %q has backups already; leaving its repository alone", name) //nolint:gosec // G706: %q-quoted
+					maySetRepo = false
+				}
+			}
 			if _, uErr := s.store.UpsertTarget(store.Target{
 				ContainerName: name,
 				AppdataPaths:  def.AppdataPaths,
@@ -5093,10 +5932,25 @@ func (s *Service) Discover(ctx context.Context, dryRun bool) (int, error) {
 				log.Printf("api: discover: could not upsert target %q: %v", name, uErr) //nolint:gosec // G706: %q-quoted
 				continue
 			}
+			// Put it back on the repository its snapshots are actually in (#204) -
+			// for a row this pass created, or an existing one whose repository
+			// column is empty AND which has no backups where it is pointed now.
+			// Discovery is a REBUILD, not a reassignment: an existing item's
+			// repository is the operator's own choice, and a silent move would
+			// orphan the snapshots it already has and send the next backup
+			// somewhere else looking like a success.
+			if repoID != "" && maySetRepo {
+				if rErr := s.store.SetTargetRepo(name, repoID); rErr != nil {
+					log.Printf("api: discover: could not restore the repository of %q: %v", name, rErr) //nolint:gosec // G706: %q-quoted
+				}
+			}
 		}
 		discovered++
 	}
-	return discovered, nil
+	// The count and the skip list first, the read failure last: a caller that
+	// branches on err still sees it, and one that shows a partial rebuild now
+	// has something to show.
+	return discovered, skipped, readErr
 }
 
 // vmDefsDir returns the directory INSIDE the vms repo (repo/vm-def) where the
@@ -5110,7 +5964,7 @@ func (s *Service) vmDefsDir(settings store.Settings) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(repo, "vm-def"), nil
+	return vmDefsDirFor(repo), nil
 }
 
 // legacyVMDefsDir is the pre-v5.4.1 VM defs location (a sibling of the vms repo).
@@ -5126,14 +5980,24 @@ func (s *Service) legacyVMDefsDir(settings store.Settings) (string, error) {
 // so a freshly installed BombVault can rebuild it via DiscoverVMs after losing
 // its database. The definition holds the domain XML + NVRAM, so it is always
 // encrypted regardless of the restic encryption setting.
-func (s *Service) writeVMDefToStorage(settings store.Settings, name string, defJSON []byte) error {
+func (s *Service) writeVMDefToStorage(settings store.Settings, name, itemRepo string, defJSON []byte) error {
 	fn, err := defFileName(name)
 	if err != nil {
 		return err
 	}
-	dir, err := s.vmDefsDir(settings)
+	// Beside the snapshots - see writeDefToStorage.
+	domainDir, err := s.vmDefsDir(settings)
 	if err != nil {
 		return err
+	}
+	dir := domainDir
+	switch {
+	case itemRepo != "" && !restic.IsRemoteRepo(itemRepo):
+		dir = vmDefsDirFor(itemRepo)
+	case restic.IsRemoteRepo(itemRepo):
+		// See writeDefToStorage: a bucket has no folder to put the sidecar in, and
+		// for a VM the definition is the domain XML and the NVRAM.
+		log.Printf("api: vm %q is on a remote repository, so its recreate definition is mirrored only on this box; the /config backup is what carries it off site", name) //nolint:gosec // G706: name is %q-quoted
 	}
 	if err := ensureDefsDir(dir); err != nil {
 		return fmt.Errorf("ensure vm defs dir: %w", err)
@@ -5145,8 +6009,10 @@ func (s *Service) writeVMDefToStorage(settings store.Settings, name string, defJ
 	if err := writeDef(dir, fn, enc); err != nil {
 		return fmt.Errorf("write vm definition: %w", err)
 	}
+	// Only from the domain's own dir - see writeDefToStorage for what the
+	// unconditional version did to a whole domain's definitions.
 	if legacy, lErr := s.legacyVMDefsDir(settings); lErr == nil {
-		migrateLegacyDefs(dir, legacy)
+		migrateLegacyDefsIfDomain(dir, domainDir, legacy)
 	}
 	return nil
 }
@@ -5160,47 +6026,44 @@ func (s *Service) writeVMDefToStorage(settings store.Settings, name string, defJ
 // Returns the number of VMs discovered. dryRun makes it READ-ONLY (open + decrypt
 // to prove readability + APP_KEY, return the count, but write no targets) — used
 // by the Recovery readability probe so it never resurrects orphan VM entries (#44).
-func (s *Service) DiscoverVMs(ctx context.Context, dryRun bool) (int, error) {
-	settings, repo, err := s.domainRepo("vms")
+func (s *Service) DiscoverVMs(ctx context.Context, dryRun bool) (int, []repoSkip, error) {
+	settings, err := s.store.GetSettings()
 	if err != nil {
-		return 0, err
+		return 0, nil, fmt.Errorf("read settings: %w", err)
 	}
-	// Discover targets the primary (local) repo; the local config check is correct
-	// here and preserves the quiet "0 discovered" for a not-yet-created repo.
-	if _, statErr := os.Stat(filepath.Join(repo, "config")); errors.Is(statErr, fs.ErrNotExist) { //nolint:gosec // G703: repo is the operator-configured local domain path, validated under the mount root on save
-		return 0, nil // no repo yet → nothing to discover
-	}
-	mode := s.ModeFor(settings)
-	snaps, err := s.listSnapshots(ctx, repo, mode)
-	if err != nil {
-		return 0, err
-	}
-
-	names := map[string]bool{}
-	for _, snap := range snaps {
-		for _, tag := range snap.Tags {
-			if rest, ok := strings.CutPrefix(tag, "vm:"); ok && rest != "" {
-				names[rest] = true
-			}
-		}
-	}
+	// Every repository this domain writes to (#204), with the one each name was
+	// found in; a not-yet-created repo yields nothing quietly, as before.
+	// readErr, not an early return. The pass now comes back WITH whatever the
+	// named repositories yielded before the domain repository failed to open,
+	// so an install whose domain repository is unreadable is still rebuilt as
+	// far as it can be. The error still reaches the caller at the end, which is
+	// what the Recovery wizard classifies on.
+	names, skipped, readErr := s.discoverNamesAcrossRepos(ctx, settings, "vms", "vm:")
 
 	dir, err := s.vmDefsDir(settings)
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 	legacyDir, err := s.legacyVMDefsDir(settings)
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 	discovered := 0
-	for name := range names {
+	for name, repoID := range names {
 		fn, fnErr := defFileName(name)
 		if fnErr != nil {
 			log.Printf("api: discover vms: skipping unsafe name %q: %v", name, fnErr) //nolint:gosec // G706: %q-quoted
 			continue
 		}
-		enc, rErr := readStoredDef(dir, legacyDir, fn)
+		// The item's OWN mirror first - see Discover.
+		lookIn := dir
+		if own := s.itemDefsDir(repoID, true); own != "" {
+			lookIn = own
+		}
+		enc, rErr := readStoredDef(lookIn, legacyDir, fn)
+		if rErr != nil && lookIn != dir {
+			enc, rErr = readStoredDef(dir, legacyDir, fn)
+		}
 		if rErr != nil {
 			log.Printf("api: discover vms: no stored definition for %q — skipping (cannot recreate): %v", name, rErr) //nolint:gosec // G706: %q-quoted
 			continue
@@ -5220,6 +6083,25 @@ func (s *Service) DiscoverVMs(ctx context.Context, dryRun bool) (int, error) {
 			method = "graceful"
 		}
 		if !dryRun {
+			// Same rule as Discover: a row without a repository of its own may have
+			// one restored; a row that carries a choice keeps it.
+			existing, kErr := s.store.GetVMTargetByName(name)
+			isNewRow := errors.Is(kErr, sql.ErrNoRows)
+			maySetRepo := isNewRow || (kErr == nil && strings.TrimSpace(existing.Repo) == "")
+			// Never attributed from an incomplete pass - see Discover for why the row
+			// may be rebuilt while the repository column has to wait.
+			if maySetRepo && readErr != nil {
+				log.Printf("api: discover vms: the domain's own repository could not be read, so %q keeps the default repository until a pass that can see every repository", name) //nolint:gosec // G706: %q-quoted
+				maySetRepo = false
+			}
+			// The has-backups refusal PATCH /api/vms/<name> enforces - see Discover,
+			// including why the question it answers is "ever" rather than "here".
+			if maySetRepo && !isNewRow && repoID != "" {
+				if had, hErr := s.vmHasBackups(ctx, name); hErr != nil || had {
+					log.Printf("api: discover vms: %q has backups already; leaving its repository alone", name) //nolint:gosec // G706: %q-quoted
+					maySetRepo = false
+				}
+			}
 			if _, uErr := s.store.UpsertVMTarget(store.VMTarget{
 				Name:       name,
 				Method:     method,
@@ -5228,10 +6110,21 @@ func (s *Service) DiscoverVMs(ctx context.Context, dryRun bool) (int, error) {
 				log.Printf("api: discover vms: could not upsert target %q: %v", name, uErr) //nolint:gosec // G706: %q-quoted
 				continue
 			}
+			// Back onto the repository its snapshots are in (#204), under the same
+			// rule as Discover: a row with no repository of its own and no backups
+			// where it is pointed now.
+			if repoID != "" && maySetRepo {
+				if rErr := s.store.SetVMRepo(name, repoID); rErr != nil {
+					log.Printf("api: discover vms: could not restore the repository of %q: %v", name, rErr) //nolint:gosec // G706: %q-quoted
+				}
+			}
 		}
 		discovered++
 	}
-	return discovered, nil
+	// The count and the skip list first, the read failure last: a caller that
+	// branches on err still sees it, and one that shows a partial rebuild now
+	// has something to show.
+	return discovered, skipped, readErr
 }
 
 // containerRestorePlan carries everything prepareRestore validated and resolved
@@ -5243,8 +6136,12 @@ type containerRestorePlan struct {
 	targetID     string
 	snapshotID   string
 	recreateOnly bool
-	appdataPaths []string            // restored per-path back to origin (nil = recreate-only)
+	appdataPaths []string            // restored per-path back to origin, in SNAPSHOT-path form (nil = recreate-only)
 	restoreDirs  []backup.RestoreDir // cross-pool remap: Subtree->Target; empty = in-place via appdataPaths
+	// skippedPaths carries stored paths that had no mapping in the chosen
+	// snapshot (RESTORE-01): they are skipped individually — scrubbed log +
+	// orchestrator run-record note — never a global abort.
+	skippedPaths []string
 	inspect      model.Inspect
 	templateXML  string
 }
@@ -5294,11 +6191,11 @@ func (s *Service) prepareRestore(ctx context.Context, name, snapshotID string, c
 	if err != nil {
 		return containerRestorePlan{}, fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.repoFor(settings, "containers", source)
+	repo, err := s.containerRepoForName(settings, name, source)
 	if err != nil {
 		return containerRestorePlan{}, err
 	}
-	return s.prepareRestoreIn(ctx, repoRef{repo: repo, mode: s.ModeFor(settings)}, name, snapshotID, confirm)
+	return s.prepareRestoreIn(ctx, repoRef{repo: repo, mode: s.repoModeFor(settings, "containers", source, repo)}, name, snapshotID, confirm)
 }
 
 // prepareRestoreIn performs ALL of a container restore's validation and
@@ -5378,9 +6275,10 @@ func (s *Service) prepareRestoreForTarget(ctx context.Context, ref repoRef, name
 	// Re-validate the stored appdata paths stay within the host mount root before
 	// restoring (defense-in-depth in case the DB was tampered with). Skipped for a
 	// recreate-only restore, which has no paths.
-	appdataForRestore := tg.AppdataPaths
+	var appdataForRestore []string
 	var restoreDirs []backup.RestoreDir
 	var bindRemap map[string]string
+	var planSkipped []string
 	if recreateOnly {
 		appdataForRestore = nil
 	} else {
@@ -5393,6 +6291,73 @@ func (s *Service) prepareRestoreForTarget(ctx context.Context, ref repoRef, name
 				return containerRestorePlan{}, errors.New("a stored backup path is outside the host mount, so refusing to restore")
 			}
 		}
+		// RESTORE-01: map the stored selection onto THIS snapshot's recorded Paths
+		// (longest-prefix) BEFORE anything destructive. The stored list is the
+		// selection as of the LATEST backup; the chosen snapshot may be an older
+		// one whose Paths hold a different shape. Replaying the stored list
+		// verbatim used to fail the restore mid-loop at the adapter — AFTER this
+		// function's caller had already stopped and removed the container. All
+		// failure resolution happens here, in the synchronous prepare phase: the
+		// orchestrator only ever receives a list it has checked.
+		chosen := chosenSnapshot(snaps, snapshotID)
+		mapped, skipped, narrowed := mapRestorePaths(tg.AppdataPaths, chosen.Paths)
+		// A pass-2 result is a stored path that only an ANCESTOR of it was
+		// recorded for. That proves it lies under a backed-up root; it does NOT
+		// prove it is in the snapshot. The branch may have been carved out by a
+		// --exclude when the backup ran, or the folder may not have existed yet.
+		// Either way the selector misses, and the miss would land after the
+		// container was stopped and removed, which is the one thing this whole
+		// mapping exists to prevent. So they are checked against the snapshot's
+		// real tree, here, before anything destructive - and a path that is not
+		// in it becomes an ordinary per-path skip, never a widening back to the
+		// ancestor (that was the data-loss shape).
+		if len(narrowed) > 0 {
+			present, lsErr := s.pathsPresentInSnapshot(ctx, ref.repo, snapshotID, ref.mode, narrowed)
+			if lsErr != nil {
+				return containerRestorePlan{}, fmt.Errorf("read snapshot contents: %w", lsErr)
+			}
+			kept := mapped[:0]
+			for _, q := range mapped {
+				if present[q] {
+					kept = append(kept, q)
+					continue
+				}
+				skipped = append(skipped, q)
+			}
+			mapped = kept
+		}
+		if len(tg.AppdataPaths) > 0 && len(mapped) == 0 {
+			return containerRestorePlan{}, errors.New("nothing to restore for this item from this snapshot")
+		}
+		if len(skipped) > 0 {
+			// Per-path skip (D-14): an orphan stored path is never fatal. The
+			// reason is scrubbed (paths → [path] FIRST, house order) and the
+			// skips flow to the run record via RestoreDeps.SkippedPaths below.
+			log.Printf("api: restore: %d stored path(s) absent from snapshot %s, skipping: %s", len(skipped), snapshotID, scrubSecrets(strings.Join(skipped, ", "))) //nolint:gosec // G706: paths scrubbed to [path] before the formatter sees them
+		}
+		// Same defense-in-depth as the stored list above, now over the mapped
+		// selectors. Pass 1 still takes them from the snapshot's recorded Paths
+		// (repo metadata), a different and lower-trust source than the DB row
+		// the loop above validated (phase 01 code review, WR-01). Within cleans
+		// both sides, so a raw uncleaned metadata string (or a ".."-bearing
+		// crafted one) is judged on its cleaned form.
+		//
+		// It used to be the last line of defence against pass 2 as well, which
+		// mapped a stored path to its recorded ANCESTOR and could therefore hand
+		// back the mount root itself - refused here, fail-closed, so the restore
+		// was refused outright rather than silently widened. Pass 2 now maps a
+		// stored path to ITSELF, so it can no longer produce a selector above the
+		// stored list and this loop never catches anything on that route. It
+		// stays for pass 1 and for the crafted-metadata case, which are what it
+		// was always about.
+		for _, q := range mapped {
+			if !paths.Within(s.cfg.HostMountRoot, q) {
+				log.Printf("api: restore: mapped path %q escapes mount root", q) //nolint:gosec // G706: %q-quoted
+				return containerRestorePlan{}, errors.New("a mapped restore path is outside the host mount, so refusing to restore")
+			}
+		}
+		appdataForRestore = mapped
+		planSkipped = skipped
 		// Cross-instance / cross-pool remap (destBase set: foreign restore, #123/#125).
 		// A foreign recipe carries the SOURCE host's absolute appdata paths; if this
 		// host lacks that pool the in-place write would land in an unmounted dir under
@@ -5472,6 +6437,7 @@ func (s *Service) prepareRestoreForTarget(ctx context.Context, ref repoRef, name
 		recreateOnly: recreateOnly,
 		appdataPaths: appdataForRestore,
 		restoreDirs:  restoreDirs,
+		skippedPaths: planSkipped,
 		inspect:      in,
 		templateXML:  xml,
 	}, nil
@@ -5515,8 +6481,9 @@ func (s *Service) executeRestore(ctx context.Context, name string, plan containe
 		ContainerName:     name,
 		RepoPath:          plan.repo,
 		SnapshotID:        plan.snapshotID,
-		AppdataPaths:      plan.appdataPaths, // restored per-path back to origin (nil = recreate-only)
+		AppdataPaths:      plan.appdataPaths, // restored per-path back to origin, snapshot-path form (nil = recreate-only)
 		RestoreDirs:       plan.restoreDirs,  // cross-pool remap (foreign restore); empty = in-place
+		SkippedPaths:      plan.skippedPaths, // RESTORE-01: unmapped stored paths → run-record note, never an abort
 		TemplateXML:       plan.templateXML,
 		FlashTemplatesDir: s.cfg.FlashTemplatesDir,
 		Inspect:           plan.inspect,
@@ -5674,31 +6641,921 @@ func (s *Service) LatestContainerBackupTimes(ctx context.Context) (map[string]in
 	if err != nil {
 		return nil, fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.repoFor(settings, "containers", "local")
+	// EVERY repository this domain's containers write to, not just the domain's
+	// own (#204). A container pointed at a named repository keeps its snapshots
+	// there, so reading only the domain repo would tell the dashboard it has
+	// never been backed up - the most alarming thing a backup tool can say, and
+	// wrong.
+	// The skip list is deliberately ignored here: this is the read-only overview
+	// the helper was written for, a repository it cannot open simply has no times
+	// to contribute, and the loop below already logs one it cannot read. Every
+	// caller that CHANGES something reports its skips; the two that do not are
+	// this one and repoSharedWithAnotherDomain, which asks a yes/no question and
+	// answers "shared" when it cannot tell.
+	repos, _, err := s.domainReposInUse(settings, "containers")
 	if err != nil {
 		return nil, err
 	}
-	if localRepoMissing(repo) {
-		return nil, nil
-	}
-	all, err := s.listSnapshots(ctx, repo, s.ModeFor(settings))
-	if err != nil {
-		return nil, err
-	}
-	out := make(map[string]int64, len(all))
-	for _, snap := range all {
-		ts, perr := time.Parse(time.RFC3339Nano, snap.Time)
-		if perr != nil {
+	out := make(map[string]int64)
+	for _, repo := range repos {
+		if localRepoMissing(repo.Loc) {
 			continue
 		}
-		unix := ts.Unix()
-		for _, tag := range snap.Tags {
-			if name, ok := strings.CutPrefix(tag, "container:"); ok && name != "" && unix > out[name] {
-				out[name] = unix
+		// Per repository, like every other reader. The shared mode was used here
+		// for all of them, so a container on a REMOTE named repository with its
+		// own credentials could not be listed at all - and the dashboard then said
+		// it had never been backed up, which is the most alarming sentence a backup
+		// tool has.
+		all, lErr := s.listSnapshots(ctx, repo.Loc, s.primaryModeFor(settings, "containers", repo.Loc))
+		if lErr != nil {
+			// One unreachable repository must not blank the whole column: the
+			// other containers' times are still true. The item whose repo this
+			// is shows as never backed up, which is the honest answer when its
+			// repository cannot be read.
+			log.Printf("api: last-backup times: repository unreadable, skipping: %v", lErr)
+			continue
+		}
+		for _, snap := range all {
+			ts, perr := time.Parse(time.RFC3339Nano, snap.Time)
+			if perr != nil {
+				continue
+			}
+			unix := ts.Unix()
+			for _, tag := range snap.Tags {
+				if name, ok := strings.CutPrefix(tag, "container:"); ok && name != "" && unix > out[name] {
+					out[name] = unix
+				}
 			}
 		}
 	}
 	return out, nil
+}
+
+// domainReposForOp is domainRepoSource for an operation that has to reach ALL of
+// a domain's data rather than one repository: check, unlock, prune, and finding
+// the repository a given snapshot lives in.
+//
+// Before named repositories (#204) those were the same thing, and every one of
+// these operations still resolved the domain's own repository alone. That turns
+// each of them into its own kind of lie: a green integrity check over a
+// repository the item's data is not in, an unlock that leaves the stuck lock
+// where it is, a prune that never reclaims the space the retention freed, and a
+// delete button that reports "no matching ID" for a snapshot the list beside it
+// is showing.
+//
+// An OFF-SITE source keeps answering with exactly one repository: an off-site
+// copy is configured per domain, and a per-item override says nothing about it.
+//
+// The third return value lists the repositories that belong to this domain and
+// could NOT be included. A caller must report them (skippedError); covering
+// three repositories out of four and calling it success is the failure this
+// helper's callers were built to end, not one to reproduce.
+func (s *Service) domainReposForOp(domain, source string) (store.Settings, []domainRepoRef, []repoSkip, error) {
+	settings, err := s.store.GetSettings()
+	if err != nil {
+		return store.Settings{}, nil, nil, fmt.Errorf("read settings: %w", err)
+	}
+	if isOffsiteSource(source) {
+		repo, rErr := s.repoFor(settings, domain, source)
+		if rErr != nil {
+			return settings, nil, nil, rErr
+		}
+		// An off-site destination is neither the domain's own repository nor a
+		// named one; the zero Own/Named is exactly right.
+		return settings, []domainRepoRef{{Loc: repo}}, nil, nil
+	}
+	repos, skipped, err := s.domainReposInUse(settings, domain)
+	if err != nil {
+		return settings, nil, nil, err
+	}
+	return settings, repos, skipped, nil
+}
+
+// domainReposInUse returns every repository a domain's items actually write to:
+// the domain's own, plus each distinct named repository (#204) one of its items
+// points at. Order is deterministic - the domain repo first, then the named ones
+// in the order Settings lists them - so a caller that stops at the first hit
+// prefers the domain repo.
+//
+// A named repository that is switched off or no longer resolves is SKIPPED here
+// rather than failing the call, but it is REPORTED: every skip comes back in the
+// second return value, and an operation that covers less of a domain than the
+// domain has must say so rather than report success over the remainder.
+//
+// That reporting is not decoration. This helper began as the backing for a
+// read-only overview, where a quiet skip was harmless and its doc comment said
+// so, pointing at itemRepoPath as the place a broken override gets noticed. Then
+// it acquired callers that never reach itemRepoPath - verify, prune, unlock, the
+// restorability drill, snapshot delete, discovery and off-site replication - and
+// the quiet skip turned into five different ways of printing a green tick about
+// a repository nobody opened. A switched-off repository is the ordinary case
+// here: the interface invites exactly that when a share dies.
+func (s *Service) domainReposInUse(settings store.Settings, domain string) ([]domainRepoRef, []repoSkip, error) {
+	own, err := s.repoFor(settings, domain, "local")
+	if err != nil {
+		return nil, nil, err
+	}
+	out := []domainRepoRef{ownRef(own)}
+	var skipped []repoSkip
+	ids := map[string]bool{}
+	// A store read that fails is itself a skip: the answer is no longer "the
+	// domain has one repository", it is "I could not find out", and those two
+	// must not look the same to the caller.
+	switch domain {
+	case "containers":
+		tgs, tErr := s.store.ListTargets()
+		if tErr != nil {
+			return out, []repoSkip{{Name: "this domain's items", Reason: "their list could not be read", Unreachable: true}}, nil //nolint:nilerr // reported as a skip instead
+		}
+		for _, t := range tgs {
+			if id := strings.TrimSpace(t.Repo); id != "" {
+				ids[id] = true
+			}
+		}
+	case "vms":
+		vms, vErr := s.store.ListVMTargets()
+		if vErr != nil {
+			return out, []repoSkip{{Name: "this domain's items", Reason: "their list could not be read", Unreachable: true}}, nil //nolint:nilerr // see above
+		}
+		for _, v := range vms {
+			if id := strings.TrimSpace(v.Repo); id != "" {
+				ids[id] = true
+			}
+		}
+	case "files":
+		sets, fErr := s.store.ListFileSets()
+		if fErr != nil {
+			return out, []repoSkip{{Name: "this domain's items", Reason: "their list could not be read", Unreachable: true}}, nil //nolint:nilerr // see above
+		}
+		for _, f := range sets {
+			if id := strings.TrimSpace(f.Repo); id != "" {
+				ids[id] = true
+			}
+		}
+	}
+	named, err := s.store.ListNamedRepos()
+	if err != nil {
+		return out, []repoSkip{{Name: "the named repositories", Reason: "their list could not be read", Unreachable: true}}, nil //nolint:nilerr // see above
+	}
+	for _, n := range named {
+		if !ids[n.ID] {
+			continue // nothing in this domain points at it
+		}
+		if !n.Enabled {
+			skipped = append(skipped, repoSkip{Name: scrubSafeName(n.Name), Reason: "switched off"})
+			continue
+		}
+		loc, rErr := s.resolveRepo(n.Repo)
+		if rErr != nil {
+			skipped = append(skipped, repoSkip{Name: scrubSafeName(n.Name), Reason: "its location does not resolve", Unreachable: true})
+			continue
+		}
+		if sameRepoLocation(loc, own) {
+			continue // the same place as the domain's own, already in the list
+		}
+		out = append(out, namedRef(loc, n))
+	}
+	return out, skipped, nil
+}
+
+// domainTagPrefix is the identity-tag prefix every snapshot of a domain carries
+// ("container:<name>", "vm:<name>", "fileset:<name>"). Empty for flash and
+// config, which have no per-item repositories and therefore cannot share one.
+func domainTagPrefix(domain string) string {
+	switch domain {
+	case "containers":
+		return "container:"
+	case "vms":
+		return "vm:"
+	case "files":
+		return "fileset:"
+	}
+	return ""
+}
+
+// pendingOf narrows a list of source snapshots to the ids the destination does
+// not already hold. Display and argv both care: restic skips a snapshot that is
+// already there, but only after it has been named on the command line.
+//
+// The comparison is restic.PendingCopyIDs, the one place in this repository that
+// knows the rule, and it has to be: a copy lands at the destination under a NEW
+// id and records the source id in Original. Comparing the destination's own ids
+// against the source's own ids therefore matches nothing, ever, so the narrowing
+// was inert and the whole history went on argv on every pass. Two answers to one
+// question inside one function, sixty lines apart, since the progress estimate
+// above already called PendingCopyIDs.
+func (s *Service) pendingOf(ctx context.Context, dest string, mode restic.Mode, src []restic.Snapshot) []string {
+	if len(src) == 0 {
+		return nil
+	}
+	dstSnaps, err := s.listSnapshots(ctx, dest, mode)
+	if err != nil {
+		// Cannot tell: hand over every id and let restic's own dedup decide what
+		// moves. Over-supplying is safe, under-supplying would silently skip.
+		out := make([]string, 0, len(src))
+		for _, sn := range src {
+			out = append(out, sn.ID)
+		}
+		return out
+	}
+	return restic.PendingCopyIDs(src, dstSnaps)
+}
+
+// snapshotIDsForDomain lists the snapshots in repo that belong to domain, by
+// their identity tag. Used to narrow a copy out of a repository that more than
+// one domain may write to; an empty prefix (flash, config) returns nil, which
+// means "no narrowing" to the caller.
+func (s *Service) snapshotIDsForDomain(ctx context.Context, repo string, mode restic.Mode, domain string) ([]restic.Snapshot, error) {
+	prefix := domainTagPrefix(domain)
+	if prefix == "" {
+		return nil, nil
+	}
+	snaps, err := s.listSnapshots(ctx, repo, mode)
+	if err != nil {
+		return nil, err
+	}
+	var out []restic.Snapshot
+	for _, sn := range snaps {
+		for _, tag := range sn.Tags {
+			if strings.HasPrefix(tag, prefix) {
+				out = append(out, sn)
+				break
+			}
+		}
+	}
+	return out, nil
+}
+
+// domainRepoRef is ONE repository of a domain together with WHAT it is.
+//
+// It exists because the code it replaces answered that question by slice
+// POSITION - "index 0 is the domain's own repository" - while callers reshaped
+// the slice. A filter that dropped a never-created repository from the head
+// therefore promoted a NAMED repository into the place that means "the domain's
+// own", and the off-site copy stopped narrowing to this domain's snapshots. One
+// fix broke another fix from the same commit, and neither line was wrong on its
+// own; the coupling was.
+//
+// Carrying the identity removes the possibility. Reshaping a list can no longer
+// change what an element means, so every "is this the domain's own" question is
+// answered by the element itself and not by where it sits.
+type domainRepoRef struct {
+	// Loc is the RESOLVED location, the string restic is handed.
+	Loc string
+	// Own marks the domain's own repository (Settings.<Domain>Path).
+	Own bool
+	// Named is the named repository's row (#204). Zero value when Own.
+	Named store.OffsiteTarget
+}
+
+// ownRef and namedRef are the two ways a reference is created, so nobody has to
+// remember which fields go together.
+func ownRef(loc string) domainRepoRef { return domainRepoRef{Loc: loc, Own: true} }
+func namedRef(loc string, row store.OffsiteTarget) domainRepoRef {
+	return domainRepoRef{Loc: loc, Named: row}
+}
+
+// refFor builds a reference for a location whose identity the caller does not
+// already know - the post-backup replication hook, which is handed whatever
+// repository the item it just backed up happens to use.
+func (s *Service) refFor(settings store.Settings, domain, loc string) domainRepoRef {
+	if named, ok := s.namedRepoForLocation(loc); ok {
+		return namedRef(loc, named)
+	}
+	if own, err := s.repoFor(settings, domain, "local"); err == nil && sameRepoLocation(own, loc) {
+		return ownRef(loc)
+	}
+	// Neither the domain's own nor a known named row: an off-site destination or
+	// a location resolved from a source string. Not Own, and no named row - which
+	// is exactly what the consumers need to know.
+	return domainRepoRef{Loc: loc}
+}
+
+// repoModeFor builds the restic mode for ONE repository, choosing the builder by
+// SOURCE. Every operation that has already resolved WHICH repository it is about
+// to open uses it: the maintenance ones (verify, unlock, prune, drill, snapshot
+// delete) and the readers (snapshot lists, file listings, diffs, restore plans)
+// alike.
+//
+// An OFF-SITE location is described by its own target row - its credential set,
+// its storage class, its caps - and offsiteModeForTarget is the builder that
+// reads it. primaryModeFor describes a domain's PRIMARY repository, so applying
+// it to an off-site copy authenticates somebody else's bucket with the primary's
+// keys and imposes the primary's bandwidth caps on a link they were never set
+// for.
+//
+// The readers were the other half of the same mistake, in the other direction:
+// they built the DOMAIN's mode after resolving an ITEM's named repository, so a
+// named row's credentials, storage class and bandwidth caps were applied by the
+// writer and by nothing that reads back. The archive was written and could not
+// be opened again from the interface.
+func (s *Service) repoModeFor(settings store.Settings, domain, source, repo string) restic.Mode {
+	if isOffsiteSource(source) {
+		if t, ok := s.offsiteTargetForSource(settings, domain, source); ok {
+			return s.offsiteModeForTarget(settings, t)
+		}
+		return s.ModeFor(settings)
+	}
+	return s.primaryModeFor(settings, domain, repo)
+}
+
+// repoSkip names one repository an operation could NOT cover, and why, so the
+// operation can say it covered less than the whole domain instead of reporting
+// success over what was left.
+type repoSkip struct {
+	Name   string
+	Reason string
+	// Note marks a skip the operator cannot act on: a deliberate, permanent
+	// consequence of how the instance is configured rather than something that
+	// went wrong. It is still REPORTED - skipNames carries it into the answer -
+	// but skippedError leaves it out, so it never becomes the operation's error.
+	//
+	// The distinction exists because the error is the failure channel: it stamps
+	// the run row red and fires a "FAILED" notification. A shared named
+	// repository that can only ever get the stale-lock clear is true, worth
+	// saying, and unchangeable, so delivering it that way condemned a supported
+	// configuration to report failure every night and taught the operator to
+	// ignore the one message that would have mattered.
+	Note bool
+	// Unreachable marks a skip where this box could not OPEN the repository at
+	// all, so nothing here can say whether its contents still exist.
+	//
+	// A third field rather than a second use of Note, because "should this fail
+	// the operation" and "could this repository's data be gone" are different
+	// questions and the answers come apart. A repository the operator switched
+	// off is a failure for an operation that was asked to cover the whole domain
+	// (its items are not being backed up), and it is NOT unreachable: it sits
+	// right there with its data intact.
+	//
+	// Exactly one consumer asks: the off-site retention gate, which must not age
+	// a destination that may be the last copy of something. Keying that gate on
+	// "did anything fail" instead condemned a domain with one switched-off
+	// repository to never have its off-site destination aged again, on an install
+	// where the post-backup hook is the only replication there is.
+	Unreachable bool
+}
+
+// skipNames renders a skip list for a JSON response: the repository's own name
+// and why it could not be covered, in one readable line each. Never a location -
+// a path would be redacted on the way out and means nothing to a reader anyway.
+func skipNames(skipped []repoSkip) []string {
+	if len(skipped) == 0 {
+		return nil
+	}
+	out := make([]string, 0, len(skipped))
+	for _, s := range skipped {
+		out = append(out, fmt.Sprintf("%s (%s)", s.Name, s.Reason))
+	}
+	return out
+}
+
+// actionableSkips drops the Notes and keeps the skips that say something went
+// wrong - the ones an operator can do something about, and the only ones that
+// may fail an operation, colour a pill or hold back a destructive maintenance
+// step. Every consumer of a skip list that decides rather than displays goes
+// through here, so "deliberate, permanent and correct" means the same thing in
+// all of them.
+func actionableSkips(skipped []repoSkip) []repoSkip {
+	out := make([]repoSkip, 0, len(skipped))
+	for _, s := range skipped {
+		if s.Note {
+			continue // reported, but not a failure - see repoSkip.Note
+		}
+		out = append(out, s)
+	}
+	return out
+}
+
+// unreachableSkips keeps the skips where this box could not OPEN the repository,
+// so nothing it saw can say whether that repository's contents still exist.
+//
+// The off-site retention gate is the one consumer, and it needs this question
+// rather than actionableSkips'. The two come apart on exactly the case that
+// matters: a repository the operator switched off IS a failure for an operation
+// asked to cover the whole domain, and is NOT unreachable - it is sitting there
+// with its data, so aging the off-site destination cannot leave its items
+// without a copy. Keying the gate on the wrong one of the two stopped a domain's
+// off-site retention for good over a deliberate, first-class setting.
+func unreachableSkips(skipped []repoSkip) []repoSkip {
+	out := make([]repoSkip, 0, len(skipped))
+	for _, s := range skipped {
+		if s.Unreachable {
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
+// skippedError turns a skip list into the error an operation returns AFTER doing
+// what it could. The work is not abandoned - checking three repositories out of
+// four is better than checking none - but the outcome is not a success either,
+// and a run record that says "success" about a domain half of whose data was
+// never opened is the exact failure this whole review round was about.
+//
+// `what` is a NOUN PHRASE naming the operation ("this prune", "this unlock"),
+// because it is the subject of the sentence below.
+func skippedError(what string, skipped []repoSkip) error {
+	real := actionableSkips(skipped)
+	if len(real) == 0 {
+		return nil
+	}
+	parts := make([]string, 0, len(real))
+	for _, s := range real {
+		parts = append(parts, fmt.Sprintf("%s (%s)", s.Name, s.Reason))
+	}
+	return fmt.Errorf("%s covered only part of this domain: %s", what, strings.Join(parts, ", "))
+}
+
+// nothingCoveredError is skippedError's counterpart for the case where the
+// operation covered NOTHING: a separate sentence rather than the same one with a
+// different subject, because "covered only part" is false there and the
+// all-missing branch used to reach it with a whole sentence as its subject
+// ("no backups to verify yet covered only part of this domain: …"). That is the
+// message a single-repository domain whose repository went away is most likely
+// to see, so it is the one worth getting right.
+func nothingCoveredError(skipped []repoSkip) error {
+	real := actionableSkips(skipped)
+	if len(real) == 0 {
+		return nil
+	}
+	parts := make([]string, 0, len(real))
+	for _, s := range real {
+		parts = append(parts, fmt.Sprintf("%s (%s)", s.Name, s.Reason))
+	}
+	return fmt.Errorf("nothing in this domain could be opened: %s", strings.Join(parts, ", "))
+}
+
+// discoverNamesAcrossRepos collects the item names a domain's snapshots carry
+// (from the tagPrefix tag, e.g. "container:") across EVERY repository the domain
+// writes to, and remembers WHICH repository each name was found in: the value is
+// the named repository's id (#204), or "" for the domain's own.
+//
+// Discover is the path back from a lost /config: it rebuilds items out of the
+// snapshots that still exist. Reading only the domain repository made an item
+// pointed at a named repository unrecoverable - its backups were sitting there
+// intact and nothing would ever look at them again. Carrying the id back is the
+// other half: a rediscovered item put back on the domain repository would write
+// its next backup somewhere else and show an empty history.
+//
+// A NAMED repository that cannot be listed is skipped rather than failing the
+// whole discovery. The domain's OWN listing failure is returned as an error,
+// and that asymmetry is deliberate: a wrong APP_KEY, an unmounted share or a
+// corrupt repository all surface there, and the Recovery wizard classifies on
+// exactly that error to decide between "nothing found" and "this box cannot
+// open its own repository". Folding it into the skip list made the wizard show
+// a yellow "not reachable" pill with no message on the one screen an operator
+// reaches on their worst day.
+//
+// The repository list is built here rather than taken from domainReposInUse,
+// and that is the whole point. domainReposInUse answers "which repositories do
+// this domain's items point at", derived from the item rows - the very rows
+// discovery exists to REBUILD. After the /config loss this function is for, the
+// item tables are empty, so that answer is "only the domain's own" and every
+// named repository drops out of the one pass that was supposed to find them.
+// The same hole opens without any loss: remove the last item using a repository
+// and it stops being searched, so the item can never be discovered back.
+//
+// So: every ENABLED named repository is searched, in use or not.
+//
+// Which repository a name is attributed to is decided by the NEWEST snapshot
+// carrying it, not by "a named repository wins". That rule cost a data-loss
+// finding: register a retired containers folder as a named repository so one
+// item can still read it, and every container whose old snapshots are in there
+// was re-homed onto it - whereupon its next backup's retention forgot and
+// pruned the archive under the domain keep-policy, while its real history in
+// the domain repository was orphaned. The newest snapshot is the only evidence
+// available here about where an item is CURRENTLY sent, and it is evidence
+// rather than a preference.
+//
+// The named repositories are searched BEFORE the domain's own for that reason:
+// aborting on the domain's own used to kill the whole pass, so the named
+// repositories this function exists to reach were never searched. Now they are
+// all searched first and only then does the domain's own error end the pass, so
+// the abort costs nothing it used to cost and the error still reaches the
+// caller who classifies on it.
+func (s *Service) discoverNamesAcrossRepos(ctx context.Context, settings store.Settings, domain, tagPrefix string) (map[string]string, []repoSkip, error) {
+	own, err := s.repoFor(settings, domain, "local")
+	if err != nil {
+		return nil, nil, err
+	}
+	// Every enabled named repository that resolves somewhere else FIRST, then the
+	// domain's own last: the domain's listing failure ends the pass, so putting it
+	// last means the named repositories have already been searched when it does.
+	var refs []domainRepoRef
+	var skipped []repoSkip
+	named, nErr := s.store.ListNamedRepos()
+	if nErr != nil {
+		skipped = append(skipped, repoSkip{Name: "the named repositories", Reason: "their list could not be read", Unreachable: true})
+		log.Printf("api: discover %s: could not list the named repositories (searching the domain repository only): %v", domain, nErr) //nolint:gosec // G706: domain is a fixed literal
+	}
+	for _, n := range named {
+		if !n.Enabled {
+			// A Note: switching a repository off is a first-class, deliberate state,
+			// not something that went wrong. It is still SAID - after a /config loss
+			// the operator has every reason to know which repositories were left out
+			// of the search - but it must not colour the readability pill or fail the
+			// pass, or retiring one share leaves Recovery permanently amber and
+			// swallows the confirmation toast behind it.
+			skipped = append(skipped, repoSkip{Name: scrubSafeName(n.Name), Reason: "switched off", Note: true})
+			continue
+		}
+		loc, rErr := s.resolveRepo(n.Repo)
+		if rErr != nil {
+			skipped = append(skipped, repoSkip{Name: scrubSafeName(n.Name), Reason: "its location does not resolve", Unreachable: true})
+			continue
+		}
+		if sameRepoLocation(loc, own) {
+			continue
+		}
+		refs = append(refs, namedRef(loc, n))
+	}
+	refs = append(refs, ownRef(own))
+	// best[name] is the newest snapshot seen for that name so far, and the
+	// repository id it was in.
+	type candidate struct {
+		id   string
+		when int64
+	}
+	best := map[string]candidate{}
+	// id → display name, so the duplicate-name line below can actually name both
+	// sides instead of only saying that two exist. "" is the domain's own.
+	refNames := map[string]string{}
+	for _, ref := range refs {
+		id := ""
+		if !ref.Own {
+			id = ref.Named.ID
+		}
+		refNames[id] = s.refName(ref)
+	}
+	for _, ref := range refs {
+		if localRepoMissing(ref.Loc) {
+			// Same three-way split the other two repository loops make: a location
+			// that was never a repository holds nothing and is dropped silently, one
+			// that WAS a working repository and is now unreachable is the single most
+			// important thing this pass can report, and "could not tell" goes to the
+			// reported side.
+			//
+			// For the domain's OWN repository the first two are not a skip but the END
+			// of the pass, exactly like the listing failure below. This branch fires
+			// BEFORE listSnapshots, so it used to leave the caller with err == nil - and
+			// the whole attribution gate in Discover keys on that error. "The listing
+			// errored" and "the repository was never opened" are two different facts,
+			// and only one of them produced the error; an unmounted share takes this
+			// path, not the one below, so the newest-wins comparison was decided
+			// without the repository most items are in and the result LATCHED.
+			est := s.repoEstablishmentOf(ref.Loc)
+			if ref.Own && (est == repoWasEstablished || est == repoEstablishmentUnknown) {
+				reason := "it was there before and is not reachable now"
+				if est == repoEstablishmentUnknown {
+					reason = "it is not reachable now, and whether it ever held backups could not be read"
+				}
+				log.Printf("api: discover %s: the domain's own repository is not there (%s)", domain, reason) //nolint:gosec // G706: domain is a fixed literal and the reason a fixed string
+				skipped = append(skipped, repoSkip{Name: s.refName(ref), Reason: reason, Unreachable: true})
+				out := make(map[string]string, len(best))
+				for name, c := range best {
+					out[name] = c.id
+				}
+				return out, skipped, errors.New("the " + domain + " repository is not reachable: " + reason)
+			}
+			switch est {
+			case repoWasEstablished:
+				skipped = append(skipped, repoSkip{Name: s.refName(ref), Reason: "it was there before and is not reachable now", Unreachable: true})
+			case repoEstablishmentUnknown:
+				skipped = append(skipped, repoSkip{Name: s.refName(ref), Reason: "it is not reachable now, and whether it ever held backups could not be read", Unreachable: true})
+			case repoNeverEstablished:
+				// Never created. For a NAMED repository that is silence, as before.
+				//
+				// For the domain's OWN it is a NOTE, and deliberately not an error. The
+				// install this feature exists for - every item on a named repository -
+				// never creates the domain repository at all, so ending the pass here
+				// would break exactly the configuration issue #204 added, and the sixth
+				// round already paid for that mistake once in offsiteReplicationSources.
+				//
+				// The honest limit, stated because the next editor will ask: after a
+				// /config loss the established marker is gone with the database, so a
+				// repository that really does exist on an unmounted share answers
+				// "never" here too. That one combination - configuration lost AND share
+				// unmounted AND a named repository holding older snapshots of the same
+				// item - is the residue this branch cannot separate. It is named rather
+				// than silent for that reason, so the wizard shows it before anybody
+				// trusts the result, and it is a Note rather than a skip because an
+				// all-named install would otherwise report a permanent fault.
+				if ref.Own {
+					skipped = append(skipped, repoSkip{
+						Name:   s.refName(ref),
+						Reason: "it has not been created yet; if its share is simply not mounted, mount it and search again before trusting this result",
+						Note:   true,
+					})
+				}
+			}
+			continue
+		}
+		mode := s.primaryModeFor(settings, domain, ref.Loc)
+		snaps, sErr := s.listSnapshots(ctx, ref.Loc, mode)
+		if sErr != nil {
+			// The domain's OWN failure ends the pass. This is the error the Recovery
+			// wizard classifies on - a wrong APP_KEY, an unmounted share, a corrupt
+			// repository - and turning it into a skip nobody reads replaced a red
+			// "the APP_KEY differs from when this repo was first created" panel with
+			// a silent "0 found".
+			//
+			// It ends the pass WITH what the pass already has. The named
+			// repositories are searched first and are already in `best` when this
+			// fires, and throwing them away turns "rebuilt three of five items, and
+			// here is why the rest are missing" into "rebuilt nothing". A caller
+			// that only wants the error still gets it; a caller that can use a
+			// partial rebuild now has the choice.
+			if ref.Own {
+				log.Printf("api: discover %s: could not read the domain's own repository: %v", domain, scrubError(sErr)) //nolint:gosec // G706: domain is a fixed literal and the error scrubbed
+				skipped = append(skipped, repoSkip{Name: s.refName(ref), Reason: scrubError(sErr), Unreachable: true})
+				out := make(map[string]string, len(best))
+				for name, c := range best {
+					out[name] = c.id
+				}
+				return out, skipped, sErr
+			}
+			skipped = append(skipped, repoSkip{Name: s.refName(ref), Reason: scrubError(sErr), Unreachable: true})
+			log.Printf("api: discover %s: could not read %s (continuing): %v", domain, s.refName(ref), scrubError(sErr)) //nolint:gosec // G706: domain is a fixed literal, the name is the row's own and the error scrubbed
+			continue
+		}
+		id := ""
+		if !ref.Own {
+			id = ref.Named.ID
+		}
+		for _, snap := range snaps {
+			when := int64(0)
+			if ts, pErr := time.Parse(time.RFC3339Nano, snap.Time); pErr == nil {
+				when = ts.Unix()
+			}
+			for _, tag := range snap.Tags {
+				rest, ok := strings.CutPrefix(tag, tagPrefix)
+				if !ok || rest == "" {
+					continue
+				}
+				prev, seen := best[rest]
+				if seen && prev.id != id && prev.when != 0 && when != 0 {
+					// Logged at the DECISION, naming both repositories: "it is in two
+					// places" without saying which two is not something anybody can act
+					// on. It still fires once per pair of differing snapshots rather
+					// than once per name, which is the honest bound - the decision is
+					// re-made whenever a newer snapshot turns up in the other place.
+					log.Printf("api: discover %s: %q has backups in both %s and %s; taking the one with the newest snapshot", domain, rest, refNames[prev.id], refNames[id]) //nolint:gosec // G706: domain is a fixed literal, the name is %q-quoted and the repository names are shortened
+				}
+				// Strictly newer WINS, and on a TIE the domain's own repository keeps
+				// the name. The tie is real: a repository duplicated by `restic copy`
+				// or a plain folder copy carries identical snapshot times, and the
+				// paths differ so sameRepoLocation does not catch it.
+				//
+				// The domain's own is the safe answer there, and it used to be the
+				// answer by accident - refs led with it, and the first ref seen kept
+				// a name on an equal timestamp. Searching the named repositories
+				// first (so the domain's own listing failure can end the pass without
+				// costing their results) silently flipped that default to whichever
+				// named repository happened to be listed first. Now it is stated.
+				ownWinsTie := seen && when == prev.when && ref.Own && prev.id != ""
+				if !seen || when > prev.when || ownWinsTie {
+					best[rest] = candidate{id: id, when: when}
+				}
+			}
+		}
+	}
+	out := make(map[string]string, len(best))
+	for name, c := range best {
+		out[name] = c.id
+	}
+	return out, skipped, nil
+}
+
+// offsiteReplicationSources returns the repositories a domain's off-site
+// replication copies FROM: the domain's own, whether it is local or remote,
+// plus every LOCAL named repository (#204) its items point at.
+//
+// A REMOTE NAMED repository is deliberately left out, for two reasons that
+// happen to agree:
+//
+//   - It is already off site. Pointing a VM straight at b2:bucket/cold is what
+//     issue #204 asked for; copying that bucket into a second cloud is a
+//     transfer bill nobody asked for.
+//   - restic copy often cannot express it. One process carries ONE set of
+//     backend credentials (restic.Mode.Env), used for the destination; only the
+//     repository password has a --from- counterpart. A named repository can
+//     carry its OWN credential set, so it may be a different account or
+//     provider, and then one of the two would be authenticated wrongly.
+//
+// The domain's OWN remote repository is a different case and stays in. The
+// difference is not that the credentials are guaranteed to match - they are not,
+// and the comment here used to claim they were "by construction", which is
+// false: primaryModeFor applies the primary-remote row's OWN CredsRef (#182) and
+// offsiteModeForTarget the destination row's, and those are independent store
+// fields. The difference is that this is the shape the feature is FOR, described
+// in docs/offsite-recovery.md: an s3 primary replicated into a second bucket of
+// the same account, which is the only way such an install gets a second copy at
+// all. When the two rows do name different credential sets the copy is attempted
+// and fails loudly with an authentication error, night after night, and nothing
+// is written or deleted - a loud failure on a misconfiguration, not a silent
+// exclusion of the only source there is.
+//
+// Excluding it emptied the source list for every domain with a remote primary
+// and no local named repository - flash and config by construction, since they
+// have no named repositories - so the nightly pass reported a failure without
+// attempting anything.
+//
+// A LOCAL repository is the easy case: a share on the box is exactly as exposed
+// as anything else on it, it needs the off-site copy just as much, and reading
+// it needs no credentials at all.
+//
+// A source that does not EXIST is dropped here rather than attempted. The
+// domain's own repository leads the list and, in the configuration this feature
+// exists for - every item on a named repository - it is never created at all:
+// each backup only ever EnsureRepo's the item's own resolved location. `restic
+// copy` has to open its source to enumerate snapshots, so leading with a
+// repository that is not there failed the whole pass and the named repositories
+// behind it were never attempted.
+func (s *Service) offsiteReplicationSources(settings store.Settings, domain string) ([]domainRepoRef, []repoSkip) {
+	repos, skipped, err := s.domainReposInUse(settings, domain)
+	if err != nil || len(repos) == 0 {
+		own, oErr := s.repoFor(settings, domain, "local")
+		if oErr != nil {
+			// The domain's path does not resolve. Reporting that as a skip keeps
+			// the actionable sentence ("invalid backup path: …") instead of the
+			// caller's generic "no repository to replicate", which named nothing
+			// anybody could act on.
+			return nil, append(skipped, repoSkip{Name: "the " + domain + " repository", Reason: scrubError(oErr), Unreachable: true})
+		}
+		repos = []domainRepoRef{ownRef(own)}
+	}
+	out := make([]domainRepoRef, 0, len(repos))
+	for _, r := range repos {
+		// A remote NAMED repository is left out. The domain's own is NOT, however
+		// remote it is, and the difference is not editorial.
+		//
+		// One restic process carries ONE set of backend credentials and copy
+		// spends them on the DESTINATION; only the password has a --from-
+		// counterpart. A NAMED repository can carry a credential set of its own
+		// (CredsRef), and it is offered to every domain, so excluding it costs
+		// nothing this domain was ever going to replicate anyway - it is already
+		// off site. A domain's OWN remote primary is the configuration
+		// docs/offsite-recovery.md describes, an s3 primary replicated to a second
+		// bucket of the same account, and it is the only second copy such an
+		// install can get; it can ALSO carry its own CredsRef, in which case the
+		// copy fails to authenticate and says so every night. Attempted and loud
+		// beats excluded and silent, which is what the alternative was.
+		//
+		// This was briefly widened to "any remote source", on the argument that
+		// the reason belongs to the location rather than to whose repository it
+		// is. The argument is wrong: the reason belongs to the CREDENTIALS, and
+		// those follow ownership. The widening left a domain with a remote primary
+		// and no local named repository with no sources at all, so every whole
+		// domain replication returned an error without attempting a copy, nightly,
+		// while the post-backup hook still copied the same repository - the two
+		// halves answering one question differently, which is precisely what they
+		// were made to share a helper to avoid.
+		if alreadyOffSite(r) {
+			// LOGGED, not skipped. A skip becomes the operation's error, and the
+			// error becomes a red run row and a "replication FAILED" notification.
+			// This exclusion is deliberate, permanent and correct: nothing the
+			// operator can do makes b2: stop being remote, so reporting it as an
+			// incomplete pass condemns a supported configuration to fail forever
+			// over a repository that was never meant to be copied.
+			log.Printf("api: offsite %s: named repository %s is remote and is already off site; not copied again", domain, scrubRepoLocation(r.Loc)) //nolint:gosec // G706: domain is a fixed literal, the location has any embedded credential redacted
+			continue
+		}
+		out = append(out, r)
+	}
+	// A repository that was NEVER CREATED holds nothing and is dropped silently.
+	// A repository that WAS created and is now gone is reported. Those are
+	// different facts and this used to treat them as one, which produced the
+	// worst kind of pair: in an all-named install the domain's own repository
+	// does not exist at all (each backup only ever creates the item's own
+	// location), so reporting it failed the nightly run forever; and an
+	// unmounted share holding real backups was dropped without a word, so the
+	// run reported success while those items had no off-site copy at all.
+	//
+	// markRepoEstablished/repoEstablished is the existing record of "this
+	// location was a working repository once" - the same distinction issue #55
+	// needed for the not-mounted guard.
+	present := make([]domainRepoRef, 0, len(out))
+	for _, r := range out {
+		if !localRepoMissing(r.Loc) {
+			present = append(present, r)
+			continue
+		}
+		// Unknown is reported, not swallowed: a transient store error here would
+		// otherwise stamp the run "off-site copy is current" for a repository that
+		// got no copy at all. Same rule as reposThatExist.
+		switch s.repoEstablishmentOf(r.Loc) {
+		case repoWasEstablished:
+			skipped = append(skipped, repoSkip{Name: s.refName(r), Reason: "it was there before and is not reachable now", Unreachable: true})
+		case repoEstablishmentUnknown:
+			skipped = append(skipped, repoSkip{Name: s.refName(r), Reason: "it is not reachable now, and whether it ever held backups could not be read", Unreachable: true})
+		case repoNeverEstablished:
+		}
+	}
+	// A domain with ONE repository that has not been created yet keeps it, so the
+	// caller still gets restic's own error rather than a silent no-op - what every
+	// caller expected before named repositories existed.
+	if len(present) == 0 {
+		return out, skipped
+	}
+	return present, skipped
+}
+
+// refAppendOnly reports whether this repository is flagged append-only, and
+// under WHICH toggle, asked of the REFERENCE.
+//
+// It answers the same question as primaryAppendOnly and must keep answering it
+// the same way: the reference already carries the named row, so this saves the
+// store read, and that is the only difference. When the two drifted apart - the
+// reference consulted the row, primaryIsImmutable short-circuited on any local
+// path - the toggle was honoured by exactly one of the six gates that read it,
+// and the other five repacked a repository the screen promised was protected.
+//
+// The flag rather than a bool, because the refusal has to name the card the
+// toggle actually lives on, and there are three different cards.
+func (s *Service) refAppendOnly(domain string, r domainRepoRef) appendOnlyFlag {
+	if !r.Own && r.Named.ID != "" {
+		if r.Named.Enabled && r.Named.Immutable {
+			return appendOnlyNamedRepo
+		}
+		return appendOnlyNone
+	}
+	return s.primaryAppendOnly(domain, r.Loc)
+}
+
+// repoSharedWithAnotherDomain reports whether this repository is also written to
+// by a domain other than the given one. Only a NAMED repository can be: a
+// domain's own belongs to it alone.
+func (s *Service) repoSharedWithAnotherDomain(settings store.Settings, domain string, r domainRepoRef) bool {
+	if r.Own || r.Named.ID == "" {
+		return false
+	}
+	for _, d := range []string{"containers", "vms", "files"} {
+		if d == domain {
+			continue
+		}
+		others, _, err := s.domainReposInUse(settings, d)
+		if err != nil {
+			// Unknown counts as shared: the question is whether it is SAFE to force
+			// a live lock away, and "I could not find out" is not a yes.
+			return true
+		}
+		for _, o := range others {
+			if !o.Own && o.Named.ID == r.Named.ID {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// alreadyOffSite reports whether a source is one the off-site copy deliberately
+// leaves out: a repository that is not the domain's own and is remote.
+//
+// ONE predicate, shared by the post-backup hook and the whole-domain pass, and
+// it is shared because they drifted. The hook additionally required a non-empty
+// Named.ID, which looks like the same question and is not: refFor's fallback
+// yields Own=false with no named row when namedRepoForLocation's store read
+// fails, so on a store failure the hook attempted a copy the whole-domain pass
+// had excluded. That copy is harmless - it opens the source with the
+// destination's credentials, fails, and reports the failure - but the two halves
+// answering one question differently is the thing they were given a shared
+// helper to prevent.
+//
+// The reason is the CREDENTIALS, not the location, and credentials follow
+// ownership: see offsiteReplicationSources for why a domain's OWN remote primary
+// stays in.
+func alreadyOffSite(r domainRepoRef) bool {
+	return !r.Own && restic.IsRemoteRepo(r.Loc)
+}
+
+// refName names a repository for a message: a named repository by its NAME, the
+// domain's own by a shortened location. A name is what the operator recognises,
+// and unlike a path it survives the error scrubber.
+func (s *Service) refName(r domainRepoRef) string {
+	if !r.Own && strings.TrimSpace(r.Named.Name) != "" {
+		return scrubSafeName(r.Named.Name)
+	}
+	return shortRepoName(r.Loc)
+}
+
+// scrubSafeName makes an operator's free-text repository name survive the error
+// scrubber. The name goes into skip lists, verify wrappers and run rows, all of
+// which leave through scrubError, whose absolute-path regex redacts any
+// slash-led token - so a repository called "NAS/cold" reached the screen as
+// "NAS[path]", matching nothing in the picker.
+//
+// Slashes become a middle dot rather than being dropped: the whole point of the
+// name is that the operator recognises it, and "NAS · cold" still reads as the
+// thing they typed. The same trap is why shortRepoName returns a single path
+// segment, and it was documented in this package twice before it was reproduced
+// here.
+func scrubSafeName(name string) string {
+	name = strings.TrimSpace(name)
+	if !strings.ContainsAny(name, `/\`) {
+		return name
+	}
+	r := strings.NewReplacer("/", " · ", `\`, " · ")
+	return strings.Join(strings.Fields(r.Replace(name)), " ")
 }
 
 func (s *Service) Snapshots(ctx context.Context, name, source string) ([]restic.Snapshot, error) {
@@ -5706,11 +7563,11 @@ func (s *Service) Snapshots(ctx context.Context, name, source string) ([]restic.
 	if err != nil {
 		return nil, fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.repoFor(settings, "containers", source)
+	repo, err := s.containerRepoForName(settings, name, source)
 	if err != nil {
 		return nil, err
 	}
-	return s.snapshotsForTag(ctx, repo, s.ModeFor(settings), "container:"+name)
+	return s.snapshotsForTag(ctx, repo, s.repoModeFor(settings, "containers", source, repo), "container:"+name)
 }
 
 // snapshotsForTag lists an EXPLICIT repo (no settings resolution) and returns
@@ -5772,11 +7629,11 @@ func (s *Service) ListSnapshotFiles(ctx context.Context, name, snapshotID, sourc
 	if err != nil {
 		return nil, fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.repoFor(settings, "containers", source)
+	repo, err := s.containerRepoForName(settings, name, source)
 	if err != nil {
 		return nil, err
 	}
-	return s.lsSelfHeal(ctx, repo, snapshotID, s.ModeFor(settings))
+	return s.lsSelfHeal(ctx, repo, snapshotID, s.repoModeFor(settings, "containers", source, repo))
 }
 
 // RestoreContainerFiles restores one or more files/dirs from a container
@@ -5887,13 +7744,13 @@ func (s *Service) prepareRestoreFiles(ctx context.Context, name, source, snapsho
 	if err != nil {
 		return filesRestorePlan{}, fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.repoFor(settings, "containers", source)
+	repo, err := s.containerRepoForName(settings, name, source)
 	if err != nil {
 		return filesRestorePlan{}, err
 	}
 	return filesRestorePlan{
 		repo:       repo,
-		mode:       s.ModeFor(settings),
+		mode:       s.repoModeFor(settings, "containers", source, repo),
 		snapshotID: snapshotID,
 		paths:      cleaned,
 		target:     target,
@@ -5913,7 +7770,12 @@ func (s *Service) runRestoreFiles(ctx context.Context, plan filesRestorePlan) er
 	unlock := s.lockDomainFor("containers", "restore")
 	defer unlock()
 	for i, c := range plan.paths {
-		if err := s.engine.RestoreInclude(ctx, plan.repo, plan.snapshotID, c, plan.target, plan.mode); err != nil {
+		// escapeGlobLiteral, because --include is a GLOB like --exclude and c is
+		// a path the user ticked in the file picker, not a pattern anyone wrote.
+		// Measured against the shipped restic: a raw "/Inception (2010)
+		// [1080p]" restored ZERO files and still exited 0, so the run was
+		// recorded a success with an empty target folder.
+		if err := s.engine.RestoreInclude(ctx, plan.repo, plan.snapshotID, escapeGlobLiteral(c), plan.target, plan.mode); err != nil {
 			if len(plan.paths) > 1 {
 				return fmt.Errorf("restored %d of %d files, then failed on %q: %w", i, len(plan.paths), c, err)
 			}
@@ -6207,7 +8069,7 @@ func (s *Service) prepareRestoreToPath(ctx context.Context, name, source, snapsh
 	if err != nil {
 		return toPathRestorePlan{}, fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.repoFor(settings, "containers", source)
+	repo, err := s.containerRepoForName(settings, name, source)
 	if err != nil {
 		return toPathRestorePlan{}, err
 	}
@@ -6218,7 +8080,7 @@ func (s *Service) prepareRestoreToPath(ctx context.Context, name, source, snapsh
 	}
 	return toPathRestorePlan{
 		repo:       repo,
-		mode:       s.ModeFor(settings),
+		mode:       s.repoModeFor(settings, "containers", source, repo),
 		snapshotID: snapshotID,
 		target:     target,
 	}, nil
@@ -6318,11 +8180,11 @@ func (s *Service) DiffSnapshots(ctx context.Context, name, source, snap1, snap2 
 	if err != nil {
 		return restic.DiffResult{}, fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.repoFor(settings, "containers", source)
+	repo, err := s.containerRepoForName(settings, name, source)
 	if err != nil {
 		return restic.DiffResult{}, err
 	}
-	return s.engine.Diff(ctx, repo, snap1, snap2, s.ModeFor(settings))
+	return s.engine.Diff(ctx, repo, snap1, snap2, s.repoModeFor(settings, "containers", source, repo))
 }
 
 // TagSnapshot adds tags to one of a container's snapshots (restic tag --add).
@@ -6363,11 +8225,11 @@ func (s *Service) TagSnapshot(ctx context.Context, name, source, snapID string, 
 	if err != nil {
 		return fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.repoFor(settings, "containers", source)
+	repo, err := s.containerRepoForName(settings, name, source)
 	if err != nil {
 		return err
 	}
-	mode := s.ModeFor(settings)
+	mode := s.repoModeFor(settings, "containers", source, repo)
 	// Serialize against a live backup/prune on this repo: restic tag takes an
 	// exclusive lock, so run it under the domain lock like the other maintenance
 	// ops, and report a clean busy instead of colliding on restic's repo lock.
@@ -6399,22 +8261,93 @@ func snapshotBelongs(snaps []restic.Snapshot, id string) bool {
 	return false
 }
 
-// snapshotSubtree returns the first backed-up path (Paths[0]) of the snapshot in
-// snaps matching id (exact or unambiguous prefix, like snapshotBelongs), or "" if
-// there is no match or the snapshot recorded no path. It is the subtree a to-folder
-// restore extracts (<id>:<subtree>) — read from the SNAPSHOT so it stays valid even
-// when HostMountRoot changed since the backup (a recompute from the set's path
-// would then miss).
-func snapshotSubtree(snaps []restic.Snapshot, id string) string {
+// chosenSnapshot returns the snapshot in snaps matching id (exact or
+// unambiguous prefix, like snapshotBelongs/snapshotSubtree), or nil when there
+// is no match. It is how the RESTORE-01 mapping gets at the chosen snapshot's
+// full recorded Paths — the mapping source of truth for which selectors are
+// valid in THIS snapshot (a recompute from the stored list would miss after the
+// selection changed).
+func chosenSnapshot(snaps []restic.Snapshot, id string) *restic.Snapshot {
+	for i := range snaps {
+		if snaps[i].ID == id || strings.HasPrefix(snaps[i].ID, id) {
+			return &snaps[i]
+		}
+	}
+	return nil
+}
+
+// snapshotRestoreRoot returns the single tree node that covers EVERY path the
+// snapshot in snaps (matched by id, exact or unambiguous prefix, like
+// snapshotBelongs) recorded: their deepest common ancestor. It is the subtree a
+// to-folder restore extracts (<id>:<subtree>) - read from the SNAPSHOT so it
+// stays valid even when HostMountRoot changed since the backup (a recompute
+// from the set's path would then miss). "" means there is no match, the
+// snapshot recorded no path, or the paths share no ancestor below "/" - all
+// three fall back to a whole-tree restore at the call site.
+//
+// This used to return Paths[0] and nothing else, which silently dropped every
+// other recorded root of a multi-root snapshot: the restore reported success
+// with half the data missing. Multi-root snapshots are the normal shape here
+// since the file-set backup started compiling one positional per selected root
+// (fileSetPositionals -> FileSetBackupDeps.SourcePaths).
+//
+// Restoring the common ancestor does NOT widen anything, and that is the whole
+// reason it is safe: a snapshot tree contains only what was backed up, so the
+// ancestor node holds exactly the recorded roots and nothing beside them.
+// Measured against real restic (0.17, in the shipped image): a snapshot
+// recording docs/keep-a and docs/keep-b, restored as <id>:docs, produced
+// keep-a and keep-b and left the never-backed-up sibling docs/nie-gesichert
+// absent. TestRestoreCommonAncestorOfRecordedRoots in internal/restic pins it.
+func snapshotRestoreRoot(snaps []restic.Snapshot, id string) string {
 	for _, sn := range snaps {
 		if sn.ID == id || strings.HasPrefix(sn.ID, id) {
-			if len(sn.Paths) > 0 {
-				return sn.Paths[0]
-			}
-			return ""
+			return commonAncestor(sn.Paths)
 		}
 	}
 	return ""
+}
+
+// commonAncestor returns the deepest path that is at or above every one of
+// paths, or "" when there is none below the filesystem root (an empty list, or
+// roots on different top-level branches). Segment-aligned, so /a never counts
+// as an ancestor of /ab - the same rule as isStrictDescendant and
+// internal/paths.Resolve.
+// It TRIMS the first path down rather than rebuilding one from segments: a
+// recorded path is a selector that has to reach restic unchanged, and a rebuild
+// normalises whatever the original looked like (the dev box's own snapshots
+// carry a drive letter and mixed separators, and a rebuild prefixed them with a
+// "/" that made every containment check miss).
+func commonAncestor(paths []string) string {
+	if len(paths) == 0 {
+		return ""
+	}
+	if len(paths) == 1 {
+		// The single-root case is every pre-existing snapshot shape: hand back
+		// exactly what was recorded, byte for byte.
+		return paths[0]
+	}
+	covers := func(a string) bool {
+		for _, p := range paths {
+			if q := path.Clean(p); q != a && !isStrictDescendant(q, a) {
+				return false
+			}
+		}
+		return true
+	}
+	cand := path.Clean(paths[0])
+	for {
+		if covers(cand) {
+			return cand
+		}
+		parent := path.Dir(cand)
+		// Reaching the filesystem root means the roots live on different
+		// branches: there is no single node to extract, so the caller falls back
+		// to a whole-tree restore rather than emitting a "<id>:/" selector.
+		if parent == cand || parent == "." || parent == "/" {
+			return ""
+		}
+		cand = parent
+	}
 }
 
 // vmRunTag returns the "vmrun:<runID>" correlation tag (v8.0.0 VM
@@ -6498,22 +8431,11 @@ func (s *Service) DeleteBackups(ctx context.Context, name string) error {
 	if err != nil {
 		return fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.containersRepoPath(settings)
+	repo, err := s.containerRepoForName(settings, name, "local")
 	if err != nil {
 		return err
 	}
-	// Issue #152: refused when this repo IS a remote primary flagged append-only
-	// in its saved safety settings (same gate as pruneDomain/DeleteSnapshot/
-	// DeleteBackupsVM) — this function has no source parameter, so it always
-	// targets the primary/local repo and only the primary half of the gate
-	// applies (there is no separate off-site source to check here). This path
-	// runs Forget with prune=true, so skipping it here would have let a
-	// compromised on-box credential irreversibly reclaim space on an immutable
-	// primary.
-	if s.primaryIsImmutable("containers", repo) {
-		return errOffsiteAppendOnly
-	}
-	mode := s.ModeFor(settings)
+	mode := s.repoModeFor(settings, "containers", "local", repo)
 
 	// Serialize against a live backup on this repo: a container Backup holds the
 	// domain lock for its whole run (potentially hours), so without this an
@@ -6521,12 +8443,37 @@ func (s *Service) DeleteBackups(ctx context.Context, name string) error {
 	// against the same repo files. Same guard DeleteBackupsVM/DeleteBackupsFileSet
 	// already use. (No requireExistingRepo here, unlike those two: this must still
 	// let a never-backed-up container's target row be cleaned up below.)
+	// The append-only question, asked BEFORE the domain lock and before anything
+	// at all is written. It cannot refuse outright - see below: a row with no
+	// backups must stay clearable, which is why the refusal itself sits after the
+	// listing - but everything on the way there used to run against a repository
+	// the interface promises nothing on this box may delete from. The domain lock
+	// (so a scheduled containers backup racing a call that can only be refused
+	// got errDomainBusy), and a stale unlock, which REMOVES lock files and on a
+	// local append-only folder actually succeeds. Lock files are not history, so
+	// nothing was ever destroyed; a protected repository being written to on a
+	// guaranteed-refused path is the defect.
+	protection := s.primaryAppendOnly("containers", repo)
+	if protection != appendOnlyNone {
+		// A read, and it answers the only question left: is there anything in here
+		// for the flag to protect?
+		snaps, sErr := s.Snapshots(ctx, name, "")
+		if sErr != nil {
+			return sErr
+		}
+		if len(snaps) > 0 {
+			return appendOnlyRefusal(protection)
+		}
+	}
+
 	unlock, ok := s.tryLockDomainFor("containers", "delete")
 	if !ok {
 		return errDomainBusy
 	}
 	defer unlock()
-	s.unlockStale(ctx, repo, mode)
+	if protection == appendOnlyNone {
+		s.unlockStale(ctx, repo, mode)
+	}
 
 	// Collect this container's snapshot IDs (tag-filtered) and forget them.
 	snaps, err := s.Snapshots(ctx, name, "")
@@ -6538,6 +8485,31 @@ func (s *Service) DeleteBackups(ctx context.Context, name string) error {
 		ids = append(ids, snap.ID)
 	}
 	if len(ids) > 0 {
+		// The append-only refusal, asked HERE rather than at the top because the
+		// flag protects SNAPSHOTS and this function does two things: it forgets
+		// them, and it removes the target row. With nothing to forget there is
+		// nothing to protect, and refusing anyway left a container with no
+		// backups at all stuck in the "not installed (backups only)" list, with
+		// no way out but switching the whole repository's protection off - which
+		// drops it for every other item sharing that repository.
+		//
+		// Containers are the only domain with no row-only removal route (VMs have
+		// handleForgetVM, file sets have their own DELETE), which is what makes
+		// this the difference between an inconvenience and a dead end.
+		//
+		// Asked AGAIN, not replayed. The check above runs outside the domain lock
+		// and answers "is there anything to protect"; this one runs inside it and
+		// answers "may this delete happen", and between the two an operator can
+		// have turned the protection ON - which is exactly the moment they most
+		// mean it. Reusing the earlier answer let that delete through, and a flag
+		// that is honoured only if it was already set when the button was pressed
+		// is not a protection.
+		//
+		// The reverse direction costs nothing: somebody who turns it OFF mid-flight
+		// gets their delete refused once and presses again.
+		if f := s.primaryAppendOnly("containers", repo); f != appendOnlyNone {
+			return appendOnlyRefusal(f)
+		}
 		if err := s.engine.Forget(ctx, repo, ids, true, mode); err != nil {
 			return fmt.Errorf("forget snapshots: %w", err)
 		}
@@ -6562,7 +8534,14 @@ func (s *Service) DeleteBackups(ctx context.Context, name string) error {
 // domain lock, and stale locks are cleared first (so it can't fail on a leftover
 // lock — the same reason PruneDomain needs it).
 func (s *Service) DeleteBackupsVM(ctx context.Context, name, source string) error {
-	settings, repo, err := s.domainRepoSource("vms", source)
+	settings, err := s.store.GetSettings()
+	if err != nil {
+		return fmt.Errorf("read settings: %w", err)
+	}
+	// The VM's OWN repository (#204), not the domain's: deleting a VM's backups
+	// has to reach the repository they were actually written to, or the call
+	// succeeds against the domain repo and leaves the real snapshots behind.
+	repo, err := s.vmRepoForName(settings, name, source)
 	if err != nil {
 		return err
 	}
@@ -6572,7 +8551,7 @@ func (s *Service) DeleteBackupsVM(ctx context.Context, name, source string) erro
 	// The gate is per-target: bare "offsite" checks the primary target's flag (==
 	// today), "offsite:<id>" checks that specific target's.
 	if isOffsiteSource(source) && s.offsiteSourceImmutable(settings, "vms", source) {
-		return errOffsiteAppendOnly
+		return errAppendOnlyOffsiteTarget
 	}
 	// Issue #152: the SAME refusal applies when the "local" source IS actually a
 	// remote primary flagged append-only in its saved safety settings (same gate
@@ -6582,8 +8561,8 @@ func (s *Service) DeleteBackupsVM(ctx context.Context, name, source string) erro
 	// skipping it here (unlike PruneDomain/DeleteSnapshot) would have let a
 	// compromised on-box credential irreversibly reclaim space on an immutable
 	// primary.
-	if !isOffsiteSource(source) && s.primaryIsImmutable("vms", repo) {
-		return errOffsiteAppendOnly
+	if f := s.primaryAppendOnly("vms", repo); !isOffsiteSource(source) && f != appendOnlyNone {
+		return appendOnlyRefusal(f)
 	}
 	if err := s.requireExistingRepo(repo, "no backups to delete yet"); err != nil {
 		return err
@@ -6593,7 +8572,7 @@ func (s *Service) DeleteBackupsVM(ctx context.Context, name, source string) erro
 		return errDomainBusy
 	}
 	defer unlock()
-	mode := s.ModeFor(settings)
+	mode := s.repoModeFor(settings, "vms", source, repo)
 	s.unlockStale(ctx, repo, mode)
 
 	// Collect this VM's snapshot IDs (tag-filtered vm:<name>) and forget+prune them
@@ -7066,6 +9045,9 @@ type VMView struct {
 	// means it follows the VMs domain schedule. Only takes effect when the
 	// perItemSchedules setting is on.
 	ScheduleCadence string `json:"scheduleCadence"`
+	// Repo is the VM's optional per-item repository override (#204): the ID of a
+	// named repository from Settings, "" for the VMs domain repository.
+	Repo string `json:"repo"`
 }
 
 // ListVMs returns all known VMs (from virsh) merged with the DB targets.
@@ -7118,6 +9100,7 @@ func (s *Service) ListVMs(ctx context.Context) ([]VMView, error) {
 			v.Method = t.Method
 			v.IncludeInSchedule = t.IncludeInSchedule
 			v.ScheduleCadence = t.ScheduleCadence
+			v.Repo = t.Repo
 			if run, _ := s.store.LastSuccessfulBackup(t.ID); run != nil {
 				v.LastBackup = run.FinishedAt
 				v.LastBackupStarted = &run.StartedAt
@@ -7130,7 +9113,7 @@ func (s *Service) ListVMs(ctx context.Context) ([]VMView, error) {
 		if live[t.Name] {
 			continue
 		}
-		v := VMView{Name: t.Name, LibvirtName: t.Name, State: "not-installed", Method: t.Method, IncludeInSchedule: t.IncludeInSchedule, ScheduleCadence: t.ScheduleCadence}
+		v := VMView{Name: t.Name, LibvirtName: t.Name, State: "not-installed", Method: t.Method, IncludeInSchedule: t.IncludeInSchedule, ScheduleCadence: t.ScheduleCadence, Repo: t.Repo}
 		if run, _ := s.store.LastSuccessfulBackup(t.ID); run != nil {
 			v.LastBackup = run.FinishedAt
 			v.LastBackupStarted = &run.StartedAt
@@ -7275,7 +9258,7 @@ func (s *Service) BackupVM(ctx context.Context, name string) (backup.Summary, er
 	if err != nil {
 		return backup.Summary{}, fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.vmsRepoPath(settings)
+	repo, err := s.vmRepoForName(settings, name, "local")
 	if err != nil {
 		return backup.Summary{}, err
 	}
@@ -7542,7 +9525,7 @@ func (s *Service) BackupVM(ctx context.Context, name string) (backup.Summary, er
 	// Mirror the definition (encrypted) onto the backup storage so a freshly
 	// installed BombVault can rebuild this VM via DiscoverVMs after a database
 	// loss — and so a VM deleted from the host stays restorable. Best-effort.
-	if wErr := s.writeVMDefToStorage(settings, name, defBytes); wErr != nil {
+	if wErr := s.writeVMDefToStorage(settings, name, repo, defBytes); wErr != nil {
 		log.Printf("api: backup vm: WARN could not persist definition for %q to storage: %v", name, wErr) //nolint:gosec // G706: name is %q-quoted
 	}
 	// Apply retention once per identity tag this backup actually produced: the
@@ -7623,11 +9606,11 @@ func (s *Service) prepareRestoreVM(ctx context.Context, name, snapshotID string,
 	if err != nil {
 		return vmRestorePlan{}, fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.repoFor(settings, "vms", source)
+	repo, err := s.vmRepoForName(settings, name, source)
 	if err != nil {
 		return vmRestorePlan{}, err
 	}
-	return s.prepareRestoreVMIn(ctx, repoRef{repo: repo, mode: s.ModeFor(settings)}, name, snapshotID, confirm)
+	return s.prepareRestoreVMIn(ctx, repoRef{repo: repo, mode: s.repoModeFor(settings, "vms", source, repo)}, name, snapshotID, confirm)
 }
 
 // prepareRestoreVMIn performs ALL of a VM restore's validation and resolution
@@ -8089,6 +10072,20 @@ func (s *Service) containerAppdataRemap(destBase string, appdataPaths []string) 
 		}
 		dirs = append(dirs, backup.RestoreDir{Subtree: src, Target: dest})
 		remap[s.toHostPath(src)] = s.toHostPath(dest)
+		// The container's BIND points at the mount, not at the folder inside it
+		// that the selection narrowed to, and rewriteBinds matches exactly. So
+		// map the root level too, or a narrowed selection leaves the bind
+		// pointing at the SOURCE host's path on this host: the restored data
+		// sits under the destination and the recreated container starts against
+		// something else entirely, with no warning (foreignBindWarnings stays
+		// quiet because /mnt/user/appdata is mounted on every Unraid).
+		//
+		// Never overwrite a more specific entry: a selection that IS the root
+		// already wrote the identical value, and setting it again would be a
+		// no-op anyway.
+		if rootKey := s.toHostPath(srcRoot); remap[rootKey] == "" {
+			remap[rootKey] = s.toHostPath(base + "/" + destRoot)
+		}
 	}
 	return dirs, remap
 }
@@ -8364,11 +10361,11 @@ func (s *Service) SnapshotsVM(ctx context.Context, name, source string) ([]resti
 	if err != nil {
 		return nil, fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.repoFor(settings, "vms", source)
+	repo, err := s.vmRepoForName(settings, name, source)
 	if err != nil {
 		return nil, err
 	}
-	return s.snapshotsForTag(ctx, repo, s.ModeFor(settings), "vm:"+name)
+	return s.snapshotsForTag(ctx, repo, s.repoModeFor(settings, "vms", source, repo), "vm:"+name)
 }
 
 // resticAdapter also satisfies the flash domain's backup surface.
@@ -8624,7 +10621,14 @@ func (s *Service) BackupFileSet(ctx context.Context, id string) (backup.Summary,
 		}
 		return backup.Summary{}, err
 	}
-	repo, err := s.filesRepoPath(settings)
+	// The set's OWN repository if it has one (#204), otherwise the domain's.
+	// Everything below takes `repo` as a parameter - EnsureRepo, the run record,
+	// applyRetention, makeRepoReadable, checkPrimaryRemoteBudget - so a per-set
+	// repository carries through the whole backup without a second decision
+	// point. replicateOffsite is the deliberate exception and stays per domain:
+	// an off-site copy is configured for the Folders domain, and a set's own
+	// primary says nothing about where its replica should live.
+	repo, err := s.fileSetRepoPath(settings, set)
 	if err != nil {
 		return backup.Summary{}, err
 	}
@@ -8641,14 +10645,49 @@ func (s *Service) BackupFileSet(ctx context.Context, id string) (backup.Summary,
 	s.notifyBackupStart(ctx, "files")
 	key := "files:" + set.Name
 	fctx, startedAt := s.progBegin(ctx, key, "backup")
+	// The single compile site for the files domain (D-05): the set was read
+	// fresh above (a selection saved between two backups affects exactly the
+	// later one, and a concurrent edit can never tear a mid-run argv), and
+	// fileSetPositionals re-anchors the stored entries against THIS run's
+	// resolved root, so a Path edit can never hand restic a positional outside
+	// the set's current scope (T-04-01). set.SelectedPaths == nil (the NULL
+	// column) compiles to []string{src} byte-identically — the legacy argv the
+	// untouched TestBackupFileSet pin holds. User-owned exclude patterns stay
+	// first; the selection-derived tail enforces the stored exclusion branches
+	// on the argv, mirroring the container compile line in the BackupDeps
+	// literal (excludedBranches(nil) is empty, so the unconditional append is
+	// legacy-safe). Patterns travel as typed builder arguments (excludes
+	// before --, positionals after) — never through a shell.
+	positionals := fileSetPositionals(set.SelectedPaths, src)
+	// The exclusion tail is derived against the SAME anchored view, never the
+	// raw stored list. The two halves used to be built through different
+	// lenses: positionals re-anchored against this run's resolved root, the
+	// exclusions read straight off storage. After a Path edit that disagreement
+	// bites - the includes fall out of scope, the positional falls back to src,
+	// and an exclusion that sits ABOVE the new root is then emitted as a strict
+	// descendant of the old one, so restic is asked to filter its own source
+	// root. selection.go calls that exact pair a deliberately unemitted shape
+	// and rests its safety on the tree UI being unable to construct it; the
+	// fallback constructs it around the UI. Pairing the positionals with the
+	// stored exclusions closes it: an exclusion equal to a positional is not a
+	// strict descendant, so it is not emitted.
+	var anchored []string
+	anchored = append(anchored, positionals...)
+	for _, e := range set.SelectedPaths {
+		if bare, excluded := SplitExclusion(e); excluded && bare != "" {
+			anchored = append(anchored, e)
+		}
+	}
 	sum, err := backup.BackupFileSetDir(fctx, backup.FileSetBackupDeps{
-		SourceDir: src,
-		Repo:      repo,
-		TargetID:  set.ID,
-		SetName:   set.Name,
-		Excludes:  set.Excludes,
-		Restic:    &resticAdapter{engine: s.engine, mode: mode},
-		Runs:      runsAdapter{st: s.store, ctx: ctx, svc: s, cancelKey: "files:" + set.Name},
+		SourceDir:   src,
+		SourcePaths: positionals,
+		Repo:        repo,
+		TargetID:    set.ID,
+		SetName:     set.Name,
+		Excludes: append(append([]string{}, set.Excludes...),
+			excludedBranches(anchored)...),
+		Restic: &resticAdapter{engine: s.engine, mode: mode},
+		Runs:   runsAdapter{st: s.store, ctx: ctx, svc: s, cancelKey: "files:" + set.Name},
 	})
 	s.progEnd(key, "backup", err == nil, startedAt)
 	s.notifyBackup(ctx, "files", set.Name, err == nil, sum, err)
@@ -8667,6 +10706,14 @@ func (s *Service) BackupFileSet(ctx context.Context, id string) (backup.Summary,
 // raw store error would leak SQL wording through the API surface).
 var errFileSetNotFound = errors.New("file set not found")
 
+// errFileSetEmptySelection is D-06's refusal shape for the file-set boundary;
+// the PATCH handler maps it (errors.Is) to the machine-routable
+// "empty-selection" envelope code, exactly as the containers' boundary does
+// for errEmptySelection. A file set cannot mean "back up nothing" — a set with
+// zero included folders is either a mistake or a set the user no longer wants,
+// so the message orients to removing the set rather than "select something".
+var errFileSetEmptySelection = errors.New("a file set needs at least one folder selected; use Remove set if you no longer want this set")
+
 // FileSetView is the per-set row returned by ListFileSetViews — the files
 // domain's counterpart of VMView. LastBackup is the unix time of the last
 // successful backup run (0 = never; runs-based, so listing never spawns a
@@ -8682,11 +10729,29 @@ type FileSetView struct {
 	Enabled    bool     `json:"enabled"`
 	LastBackup int64    `json:"lastBackup"`
 	PathExists bool     `json:"pathExists"`
+	// SelectedPaths is the set's tree selection (Phase 4, D-03) served back for
+	// the editor: the same flat encoding the containers' backupPaths uses
+	// (bare entries are included roots, "!"-prefixed are deselected branches),
+	// in mount-root absolute space. Omitempty keeps the NULL legacy switch
+	// ("never touched by the tree") distinguishable on the wire from a written
+	// selection — a never-edited set must not render a tree state it never had.
+	SelectedPaths []string `json:"selectedPaths,omitempty"`
 	// ScheduleCadence is the set's per-item schedule override (#199); empty means
 	// it follows the Folders domain schedule. Always sent, so the interface can
 	// show the cadence without a second request, and only acted on while the
 	// per-item-schedules toggle is on.
 	ScheduleCadence string `json:"scheduleCadence"`
+	// Repo is the set's OWN repository (#204); empty means it follows the
+	// Folders domain repository. Always sent, so the card can show where a set
+	// actually backs up without a second request - and so a set that HAS an
+	// override says so, rather than looking like every other set while its
+	// snapshots live somewhere else entirely.
+	Repo string `json:"repo"`
+	// RepoEffective is where this set's backups actually land, already resolved:
+	// the override if there is one, otherwise the domain path. Computed here so
+	// the sentence on the card comes from the same resolution the backup runs
+	// through, not from a second copy in the interface that can drift.
+	RepoEffective string `json:"repoEffective"`
 	// EffectiveSchedule is what actually happens to this set: which schedule
 	// backs it up, whether two of them do, or whether none does. Computed here
 	// rather than in the interface so the sentence on the Folders card comes from
@@ -8718,11 +10783,26 @@ func (s *Service) ListFileSetViews(_ context.Context) ([]FileSetView, error) {
 			Excludes:          set.Excludes,
 			Enabled:           set.Enabled,
 			ScheduleCadence:   set.ScheduleCadence,
+			Repo:              set.Repo,
 			EffectiveSchedule: schedule.EffectiveFileSetSchedule(set, settings),
+		}
+		// Resolved through the same helper the backup uses, so the card and the
+		// run can never disagree about where this set goes. An unresolvable
+		// override is shown as the raw stored value rather than swallowed: a
+		// location that cannot resolve is exactly what the user has to see.
+		if eff, rErr := s.fileSetRepoPath(settings, set); rErr == nil {
+			v.RepoEffective = eff
+		} else {
+			v.RepoEffective = set.Repo
 		}
 		if v.Excludes == nil {
 			v.Excludes = []string{}
 		}
+		// The stored form is served back verbatim — never re-normalized here:
+		// the compile (fileSetPositionals) is what re-runs the shared
+		// NormalizeSelection, and the view is a mirror of the column. nil stays
+		// nil so omitempty drops the key (the NULL legacy switch).
+		v.SelectedPaths = set.SelectedPaths
 		if run, _ := s.store.LastSuccessfulBackup(set.ID); run != nil && run.FinishedAt != nil {
 			v.LastBackup = *run.FinishedAt
 		}
@@ -8766,6 +10846,79 @@ func (s *Service) validateFileSet(fs store.FileSet) error {
 	return nil
 }
 
+// maxFileSetSelectedPaths caps one file-set selection: a tree save is a full
+// overwrite of the column, so the cap bounds both the JSON blob and the
+// normalize/compile work per save — the same ceiling SetExcludeCaches puts on
+// the per-root exclusion map, matched so no editor surface can differ.
+const maxFileSetSelectedPaths = 64
+
+// SetFileSetSelectedPaths validates and stores a file set's tree selection —
+// the file-set twin of SetBackupPaths (the containers' flat-set setter), and
+// the only writer the tree editor reaches through (the PATCH handler's
+// selectedPaths field lands here). Adapted, not copied, from SetBackupPaths:
+// the anchor is the set's OWN resolved root (its Path under the host mount),
+// not a mount translation, and entries live in mount-root absolute space (A2)
+// — they are never container-translated.
+//
+// Per-entry validation runs BEFORE any store write (atomic whole-save
+// rejection): a list whose 40th entry escapes the root must leave the prior
+// selection untouched, not half-apply. Each entry is trimmed, split into its
+// class (SplitExclusion — the "!" prefix is the excluded-branch carrier),
+// cleaned, and must EQUAL the set's resolved root or lie strictly below it
+// (isStrictDescendant — segment-aligned, so /data/doc can never pass for a
+// root /data/docs; the same containment primitive fileSetPositionals
+// re-anchors with at compile time, which stays layer 2 of RESEARCH Pitfall 2).
+// The raw entry text goes back into the error so the log identifies the
+// offender; the envelope scrubs it to [path] on the way out.
+//
+// The validated list is then normalized through the shared NormalizeSelection
+// (dedupe, per-class maximal-root prune, canonical order — never a second
+// pruning site), and only a list that still has at least one INCLUDE survives:
+// zero includes is refused with errFileSetEmptySelection (D-06) before any
+// write, so a refused deselect leaves the prior selection structurally
+// untouched — the read-side stale-root re-anchor in fileSetPositionals remains
+// the defense for anything already stored.
+func (s *Service) SetFileSetSelectedPaths(_ context.Context, id string, entries []string) error {
+	if len(entries) > maxFileSetSelectedPaths {
+		return fmt.Errorf("too many selected paths (%d, max %d)", len(entries), maxFileSetSelectedPaths)
+	}
+	set, err := s.store.GetFileSet(id)
+	if err != nil {
+		return errFileSetNotFound
+	}
+	root, err := paths.Resolve(s.cfg.HostMountRoot, set.Path)
+	if err != nil {
+		return fmt.Errorf("file set %q has no valid source path to select folders under", set.Name)
+	}
+	cleaned := make([]string, 0, len(entries))
+	for _, e := range entries {
+		e = strings.TrimSpace(e)
+		if e == "" {
+			return errors.New("empty selected path")
+		}
+		bare, excluded := SplitExclusion(e)
+		if bare == "" {
+			return fmt.Errorf("empty excluded path %q", e)
+		}
+		bare = path.Clean(bare)
+		if bare != root && !isStrictDescendant(bare, root) {
+			return fmt.Errorf("selected path %q is not under the set's source folder", e)
+		}
+		if excluded {
+			bare = ExclusionPrefix + bare
+		}
+		cleaned = append(cleaned, bare)
+	}
+	normalized := NormalizeSelection(cleaned)
+	if len(includesOnly(normalized)) == 0 {
+		return errFileSetEmptySelection
+	}
+	if err := s.store.SetFileSetSelectedPaths(id, normalized); err != nil {
+		return fmt.Errorf("store file set selection: %w", err)
+	}
+	return nil
+}
+
 // fileSetHasBackups reports whether the file set id already has at least one
 // recorded successful backup run — i.e. fileset:<Name>-tagged snapshots exist in
 // the repo. Cheap: a single indexed runs lookup, no restic call. Renaming such a
@@ -8797,6 +10950,54 @@ func (s *Service) fileSetHasBackups(ctx context.Context, id string) (bool, error
 	return len(snaps) > 0, nil
 }
 
+// containerHasBackups / vmHasBackups are fileSetHasBackups for the other two
+// domains (#204), and they exist because the review found their absence: the
+// has-backups refusal was described in applyItemRepo's own doc comment, in the
+// picker, and in the API client, and was implemented for the file set only.
+//
+// Why it has to exist at all: an item's snapshots stay in the repository they
+// were written to and nothing re-homes them. Re-pointing an item that already
+// has some splits its history across two places, and the interface then shows
+// only the new half - the old snapshots are still there, invisible, never
+// pruned, and unreachable except through restic by hand.
+//
+// The runs table alone is not enough, exactly as the file-set twin documents: an
+// item rebuilt by Discover after a /config loss has real snapshots in the repo
+// and a fresh id with no run rows. That is the very case where the answer must
+// be "yes, it has backups" - and it is also the case the interface's own
+// lastBackup lock misses, which is why the server has to be the one that
+// refuses.
+func (s *Service) containerHasBackups(ctx context.Context, name string) (bool, error) {
+	tg, err := s.store.GetTargetByContainer(name)
+	if err == nil {
+		if run, rErr := s.store.LastSuccessfulBackup(tg.ID); rErr == nil && run != nil {
+			return true, nil
+		}
+	}
+	snaps, err := s.Snapshots(ctx, name, "local")
+	if err != nil {
+		// Unreadable is not "empty": refusing conservatively is the safe way
+		// round, because the cost of being wrong the other way is a split
+		// history nobody can see.
+		return true, nil //nolint:nilerr // deliberate: unknown counts as "has backups"
+	}
+	return len(snaps) > 0, nil
+}
+
+func (s *Service) vmHasBackups(ctx context.Context, name string) (bool, error) {
+	vm, err := s.store.GetVMTargetByName(name)
+	if err == nil {
+		if run, rErr := s.store.LastSuccessfulBackup(vm.ID); rErr == nil && run != nil {
+			return true, nil
+		}
+	}
+	snaps, err := s.SnapshotsVM(ctx, name, "local")
+	if err != nil {
+		return true, nil //nolint:nilerr // see containerHasBackups
+	}
+	return len(snaps) > 0, nil
+}
+
 // SnapshotsFileSet lists restic snapshots for a single file set, filtered by
 // the "fileset:<Name>" tag its backups write — the files counterpart of
 // SnapshotsVM. id is the set's stable store id; source selects the local or
@@ -8810,11 +11011,11 @@ func (s *Service) SnapshotsFileSet(ctx context.Context, id, source string) ([]re
 	if err != nil {
 		return nil, fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.repoFor(settings, "files", source)
+	repo, err := s.fileSetRepoFor(settings, set, source)
 	if err != nil {
 		return nil, err
 	}
-	mode := s.ModeFor(settings)
+	mode := s.repoModeFor(settings, "files", source, repo)
 	// A listing before any backup has run is "no snapshots yet", not an error.
 	if localRepoMissing(repo) {
 		// #55 vs #120: only surface "not mounted" when the backing store is truly
@@ -8858,15 +11059,22 @@ func (s *Service) ListSnapshotFilesFileSet(ctx context.Context, id, snapshotID, 
 	if !snapshotBelongs(snaps, snapshotID) {
 		return nil, fmt.Errorf("snapshot %s does not belong to this file set", snapshotID)
 	}
+	// Loaded for its repository override (#204): a set with its own repo is
+	// listed FROM that repo, and reading the domain's would report "snapshot
+	// not found" for a snapshot that exists.
+	set, err := s.store.GetFileSet(id)
+	if err != nil {
+		return nil, errFileSetNotFound
+	}
 	settings, err := s.store.GetSettings()
 	if err != nil {
 		return nil, fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.repoFor(settings, "files", source)
+	repo, err := s.fileSetRepoFor(settings, set, source)
 	if err != nil {
 		return nil, err
 	}
-	return s.lsSelfHeal(ctx, repo, snapshotID, s.ModeFor(settings))
+	return s.lsSelfHeal(ctx, repo, snapshotID, s.repoModeFor(settings, "files", source, repo))
 }
 
 // fileSetRestorePlan carries everything prepareRestoreFileSet validated and
@@ -8880,7 +11088,7 @@ type fileSetRestorePlan struct {
 	setName    string // progress key suffix ("files:<name>")
 	inPlace    string // in-place: the set's resolved source path (engine.RestorePath); "" = to-folder
 	target     string // to-folder: the resolved alternate folder under the host mount ("" = in-place)
-	subtree    string // to-folder: the SNAPSHOT's own backed-up path (Paths[0]) — the <id>:<subtree> restore root ("" = path-less snapshot → whole-tree fallback)
+	subtree    string // to-folder: the SNAPSHOT's own tree node covering ALL its recorded paths - the <id>:<subtree> restore root ("" = path-less snapshot or roots with no shared ancestor -> whole-tree fallback)
 }
 
 // prepareRestoreFileSet performs ALL of a file-set restore's validation and
@@ -8944,23 +11152,61 @@ func (s *Service) prepareRestoreFileSet(ctx context.Context, id, snapshotID, sou
 	if !snapshotBelongs(snaps, snapshotID) {
 		return fileSetRestorePlan{}, fmt.Errorf("snapshot %s does not belong to this file set", snapshotID)
 	}
-	// Take the to-folder restore subtree from the SNAPSHOT itself (its first
-	// backed-up path), NOT a recompute of set.Path: HostMountRoot may have changed
-	// since the backup, and a recomputed <id>:<path> selector would then miss and
-	// fail. Empty (a path-less snapshot) falls back to a whole-tree restore in
-	// runRestoreFileSet; it is unused for an in-place restore.
-	plan.subtree = snapshotSubtree(snaps, snapshotID)
+	// Take the to-folder restore subtree from the SNAPSHOT itself, NOT a
+	// recompute of set.Path: HostMountRoot may have changed since the backup, and
+	// a recomputed <id>:<path> selector would then miss and fail. It is the node
+	// covering EVERY path the snapshot recorded - a set whose selection is two
+	// sub-folders records two roots, and taking only the first restored half the
+	// set while reporting success. Empty (a path-less snapshot) falls back to a
+	// whole-tree restore in runRestoreFileSet; it is unused for an in-place
+	// restore.
+	plan.subtree = snapshotRestoreRoot(snaps, snapshotID)
+
+	// D-08 (Phase 4 file-sets parity): an in-place restore writes back over the
+	// set's source folder, so before anything destructive the set's COMPILED
+	// selection — the same fileSetPositionals the backup ran, so guard and
+	// backup can never disagree about what the set selects — is mapped against
+	// the chosen snapshot's recorded Paths (RESTORE-01: selectors come from the
+	// snapshot, never replayed from storage). An empty intersection is refused
+	// here, synchronously, the exact failure mode the container route's
+	// mapRestorePaths guard prevents: a restore that would miss mid-loop AFTER
+	// the folder was torn down.
+	//
+	// Scoped to the in-place route on purpose (plan Open Question 1): a
+	// to-folder restore is non-destructive and its subtree comes from the
+	// SNAPSHOT, so a selection that no longer matches it must not abort
+	// (TestRestoreFileSetToFolder's cross-root snapshot keeps restoring).
+	// Snapshots with no recorded Paths (pre-RESTORE-01 shapes) have nothing to
+	// map against and keep restoring whole — the degenerate case the
+	// pre-existing in-place pin covers.
+	if plan.inPlace != "" {
+		if chosen := chosenSnapshot(snaps, snapshotID); chosen != nil && len(chosen.Paths) > 0 {
+			compiled := fileSetPositionals(set.SelectedPaths, plan.inPlace)
+			// skipped is deliberately unreported: this guard's only job is the
+			// empty-intersection abort (minimum D-08) — the restore itself
+			// hands restic the whole-snapshot path, so there are no per-path
+			// skips to surface on this route.
+			// The third return is unused here on purpose: this guard only
+			// answers "is the intersection empty", and the restore it guards
+			// hands restic the set's own root (plan.inPlace), never one of these
+			// mapped paths - so no unchecked selector can reach the engine.
+			mapped, _, _ := mapRestorePaths(compiled, chosen.Paths)
+			if len(mapped) == 0 {
+				return fileSetRestorePlan{}, errors.New("nothing to restore for this set from this snapshot")
+			}
+		}
+	}
 
 	settings, err := s.store.GetSettings()
 	if err != nil {
 		return fileSetRestorePlan{}, fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.repoFor(settings, "files", source)
+	repo, err := s.fileSetRepoFor(settings, set, source)
 	if err != nil {
 		return fileSetRestorePlan{}, err
 	}
 	plan.repo = repo
-	plan.mode = s.ModeFor(settings)
+	plan.mode = s.repoModeFor(settings, "files", source, repo)
 
 	// Create the alternate target dir ONLY after every validation passed. Use the
 	// readable (0o755) variant: the restore target lives on a user-visible / synced
@@ -9105,11 +11351,11 @@ func (s *Service) prepareRestoreFileSetFiles(ctx context.Context, id, source, sn
 	if err != nil {
 		return fileSetFilesRestorePlan{}, fmt.Errorf("read settings: %w", err)
 	}
-	repo, err := s.repoFor(settings, "files", source)
+	repo, err := s.fileSetRepoFor(settings, set, source)
 	if err != nil {
 		return fileSetFilesRestorePlan{}, err
 	}
-	return s.buildFileSetFilesPlan(snaps, snapshotID, set.ID, set.Name, repo, s.ModeFor(settings), filePaths, targetSubPath)
+	return s.buildFileSetFilesPlan(snaps, snapshotID, set.ID, set.Name, repo, s.repoModeFor(settings, "files", source, repo), filePaths, targetSubPath)
 }
 
 // buildFileSetFilesPlan builds a validated selective plan from ALREADY resolved
@@ -9145,10 +11391,12 @@ func (s *Service) buildFileSetFilesPlan(snaps []restic.Snapshot, snapshotID, set
 	if !snapshotBelongs(snaps, snapshotID) {
 		return fileSetFilesRestorePlan{}, fmt.Errorf("snapshot %s does not belong to this file set", snapshotID)
 	}
-	// The subtree comes from the SNAPSHOT itself (its first backed-up path), NOT a
+	// The subtree comes from the SNAPSHOT itself (the node covering all of its
+	// recorded paths - taking only the first made every file under a second
+	// recorded root fail this guard, with no other non-destructive route to it), NOT a
 	// recompute of set.Path — HostMountRoot may have changed since the backup. A
 	// "." or "/" clean means a path-less snapshot (degenerate discovered set).
-	subtree := path.Clean(snapshotSubtree(snaps, snapshotID))
+	subtree := path.Clean(snapshotRestoreRoot(snaps, snapshotID))
 	if subtree == "." || subtree == "/" {
 		subtree = ""
 	}
@@ -9232,7 +11480,8 @@ func (s *Service) runRestoreFileSetFiles(ctx context.Context, plan fileSetFilesR
 func (s *Service) restoreOneFileSetFile(ctx context.Context, plan fileSetFilesRestorePlan, sel string) error {
 	if plan.target == "" {
 		// In place: restore each selected path back to its own absolute location.
-		return s.engine.RestoreInclude(ctx, plan.repo, plan.snapshotID, sel, "/", plan.mode)
+		// Same glob rule as the to-folder branch above: sel is a picked path.
+		return s.engine.RestoreInclude(ctx, plan.repo, plan.snapshotID, escapeGlobLiteral(sel), "/", plan.mode)
 	}
 	// To a folder: root the restore at the selection's IMMEDIATE PARENT and include
 	// only its basename, so the picked file or folder lands directly as
@@ -9248,7 +11497,9 @@ func (s *Service) restoreOneFileSetFile(ctx context.Context, plan fileSetFilesRe
 		// Degenerate (no usable parent/name) — drop the selection's contents in.
 		return s.engine.RestoreSubtreeTo(ctx, plan.repo, plan.snapshotID, sel, plan.target, plan.mode)
 	}
-	return s.engine.RestoreSubtreeInclude(ctx, plan.repo, plan.snapshotID, parent, "/"+base, plan.target, plan.mode)
+	// The subtree root travels as a SELECTOR (not a pattern) and stays raw; the
+	// include is a glob and is escaped.
+	return s.engine.RestoreSubtreeInclude(ctx, plan.repo, plan.snapshotID, parent, escapeGlobLiteral("/"+base), plan.target, plan.mode)
 }
 
 // StartRestoreFileSetFiles launches a selective file-set restore in a background
@@ -9303,7 +11554,19 @@ func (s *Service) StartRestoreFileSetFiles(ctx context.Context, id, source, snap
 // other sets' snapshots. Serialised against files backups via the domain lock,
 // and stale locks are cleared first (so it can't fail on a leftover lock).
 func (s *Service) DeleteBackupsFileSet(ctx context.Context, id string) error {
-	settings, repo, err := s.domainRepo("files")
+	// Loaded first for its repository override (#204): this deletes the
+	// snapshots of ONE set, and they live wherever that set backs up. Reading
+	// the domain repository would report "no backups to delete yet" for a set
+	// whose snapshots sit in its own repo - a refusal that looks like success.
+	set, err := s.store.GetFileSet(id)
+	if err != nil {
+		return errFileSetNotFound
+	}
+	settings, err := s.store.GetSettings()
+	if err != nil {
+		return fmt.Errorf("read settings: %w", err)
+	}
+	repo, err := s.fileSetRepoPath(settings, set)
 	if err != nil {
 		return err
 	}
@@ -9315,8 +11578,8 @@ func (s *Service) DeleteBackupsFileSet(ctx context.Context, id string) error {
 	// runs Forget with prune=true, so skipping it here would have let a
 	// compromised on-box credential irreversibly reclaim space on an immutable
 	// primary.
-	if s.primaryIsImmutable("files", repo) {
-		return errOffsiteAppendOnly
+	if f := s.primaryAppendOnly("files", repo); f != appendOnlyNone {
+		return appendOnlyRefusal(f)
 	}
 	if err := s.requireExistingRepo(repo, "no backups to delete yet"); err != nil {
 		return err
@@ -9326,7 +11589,7 @@ func (s *Service) DeleteBackupsFileSet(ctx context.Context, id string) error {
 		return errDomainBusy
 	}
 	defer unlock()
-	mode := s.ModeFor(settings)
+	mode := s.repoModeFor(settings, "files", "local", repo)
 	s.unlockStale(ctx, repo, mode)
 
 	// Collect this set's snapshot IDs (tag-filtered fileset:<Name>) and
@@ -9360,38 +11623,33 @@ func (s *Service) DeleteBackupsFileSet(ctx context.Context, id string) error {
 // discovery works from the fileset:<Name> snapshot tags alone: every unknown
 // name is stored as a DISABLED, PATH-LESS set — the original source path is
 // unknowable from tags, so the UI flags "set path before backup" while
-// restore-to-folder already works. Existing sets are never touched (their
-// path/excludes/enabled state is user configuration). Returns the number of
+// restore-to-folder already works.
+//
+// An existing set keeps its path, excludes and enabled state: those are the
+// operator's own configuration. Its REPOSITORY column is the one exception, and
+// only while it is EMPTY, which carries no choice - it means "the domain's own".
+// Such a set with no backups where it is pointed now is put back on the
+// repository its snapshots were actually found in, the same repair Discover and
+// DiscoverVMs make and the file sets went without. Returns the number of
 // file sets found in the repo. dryRun makes it READ-ONLY (list + count, write
 // nothing) — used by the Recovery readability probe so it never resurrects
 // orphan entries (#44).
-func (s *Service) DiscoverFileSets(ctx context.Context, dryRun bool) (int, error) {
-	settings, repo, err := s.domainRepo("files")
+func (s *Service) DiscoverFileSets(ctx context.Context, dryRun bool) (int, []repoSkip, error) {
+	settings, err := s.store.GetSettings()
 	if err != nil {
-		return 0, err
+		return 0, nil, fmt.Errorf("read settings: %w", err)
 	}
-	// Discover targets the primary (local) repo; the local config check is correct
-	// here and preserves the quiet "0 discovered" for a not-yet-created repo.
-	if _, statErr := os.Stat(filepath.Join(repo, "config")); errors.Is(statErr, fs.ErrNotExist) { //nolint:gosec // G703: repo is the operator-configured local domain path, validated under the mount root on save
-		return 0, nil // no repo yet → nothing to discover
-	}
-	mode := s.ModeFor(settings)
-	snaps, err := s.listSnapshots(ctx, repo, mode)
-	if err != nil {
-		return 0, err
-	}
-
-	names := map[string]bool{}
-	for _, snap := range snaps {
-		for _, tag := range snap.Tags {
-			if rest, ok := strings.CutPrefix(tag, "fileset:"); ok && rest != "" {
-				names[rest] = true
-			}
-		}
-	}
+	// Every repository this domain writes to (#204), with the one each name was
+	// found in; a not-yet-created repo yields nothing quietly, as before.
+	// readErr, not an early return. The pass now comes back WITH whatever the
+	// named repositories yielded before the domain repository failed to open,
+	// so an install whose domain repository is unreadable is still rebuilt as
+	// far as it can be. The error still reaches the caller at the end, which is
+	// what the Recovery wizard classifies on.
+	names, skipped, readErr := s.discoverNamesAcrossRepos(ctx, settings, "files", "fileset:")
 
 	discovered := 0
-	for name := range names {
+	for name, repoID := range names {
 		// Defense-in-depth: only our own backups write fileset: tags, but a name
 		// that fails the boundary charset (it feeds tags + progress keys) is
 		// skipped rather than stored.
@@ -9403,17 +11661,55 @@ func (s *Service) DiscoverFileSets(ctx context.Context, dryRun bool) (int, error
 			discovered++ // probe: count what a real discover would surface, write nothing
 			continue
 		}
-		if _, gErr := s.store.GetFileSetByName(name); gErr == nil {
-			discovered++ // already configured — never clobber user configuration
+		// Never attributed from an incomplete pass - see Discover for why the set may
+		// be rebuilt while the repository column has to wait. Here the attribution
+		// rides along in the INSERT as well as in the repair, so the id is blanked
+		// once, above both.
+		if readErr != nil && repoID != "" {
+			log.Printf("api: discover files: the domain's own repository could not be read, so %q keeps the default repository until a pass that can see every repository", name) //nolint:gosec // G706: %q-quoted
+			repoID = ""
+		}
+		if existing, gErr := s.store.GetFileSetByName(name); gErr == nil {
+			// Already configured: never clobber the operator's own choice. But a row
+			// whose repository column is EMPTY carries no choice - it is pointed at
+			// the domain repository by default - and a path-less placeholder is
+			// exactly what the foreign-repo restore creates. Leaving it empty forever
+			// meant that once somebody gave it a path, it backed up to the domain
+			// repository while its whole history sat in the named one. Discover and
+			// DiscoverVMs gained this repair; the file sets never had it.
+			//
+			// Same refusal as the other two: only when the set has no backups at all.
+			// "At all", not "in the repository it points at now" - the runs table has
+			// no repository column, so that finer question cannot be asked. It
+			// over-refuses, which is the safe direction.
+			if repoID != "" && strings.TrimSpace(existing.Repo) == "" {
+				had, hErr := s.fileSetHasBackups(ctx, existing.ID)
+				switch {
+				case hErr != nil || had:
+					log.Printf("api: discover files: %q has backups already; leaving its repository alone", name) //nolint:gosec // G706: %q-quoted
+				default:
+					if rErr := s.store.SetFileSetRepo(existing.ID, repoID); rErr != nil {
+						log.Printf("api: discover files: could not restore the repository of %q: %v", name, rErr) //nolint:gosec // G706: %q-quoted
+					}
+				}
+			}
+			discovered++
 			continue
 		}
-		if _, cErr := s.store.CreateFileSet(store.FileSet{Name: name, Path: "", Enabled: false}); cErr != nil {
+		// The repository rides along in the INSERT, as the HTTP create does: an
+		// insert-then-setter pair leaves a window in which the set exists on the
+		// domain repository while the caller believes otherwise, and a failure of
+		// the second half left it there for good while the count said "found".
+		if _, cErr := s.store.CreateFileSet(store.FileSet{Name: name, Path: "", Enabled: false, Repo: repoID}); cErr != nil {
 			log.Printf("api: discover files: could not create set %q: %v", name, cErr) //nolint:gosec // G706: %q-quoted
 			continue
 		}
 		discovered++
 	}
-	return discovered, nil
+	// The count and the skip list first, the read failure last: a caller that
+	// branches on err still sees it, and one that shows a partial rebuild now
+	// has something to show.
+	return discovered, skipped, readErr
 }
 
 // resticAdapter also satisfies the config domain's backup surface.
@@ -9539,7 +11835,7 @@ func (s *Service) DownloadFlashZip(ctx context.Context, snapshotID, source strin
 	if err != nil {
 		return err
 	}
-	mode := s.ModeFor(settings)
+	mode := s.repoModeFor(settings, "flash", source, repo)
 	snaps, err := s.engine.Snapshots(ctx, repo, mode)
 	if err != nil {
 		return err
@@ -9610,7 +11906,7 @@ func (s *Service) SnapshotsFlash(ctx context.Context, source string) ([]restic.S
 	if err != nil {
 		return nil, err
 	}
-	mode := s.ModeFor(settings)
+	mode := s.repoModeFor(settings, "flash", source, repo)
 	if localRepoMissing(repo) {
 		// #55 vs #120: only surface "not mounted" when the backing store is truly
 		// absent. If the destination IS mounted, this is a fresh/phantom repo on a
@@ -9665,7 +11961,7 @@ func (s *Service) SnapshotsConfig(ctx context.Context, source string) ([]restic.
 	if err != nil {
 		return nil, err
 	}
-	mode := s.ModeFor(settings)
+	mode := s.repoModeFor(settings, "config", source, repo)
 	if localRepoMissing(repo) {
 		// #55 vs #120: only surface "not mounted" when the backing store is truly
 		// absent. If the destination IS mounted, this is a fresh/phantom repo on a
@@ -9693,7 +11989,7 @@ func (s *Service) RestoreConfig(ctx context.Context, snapshotID, source string) 
 	if err != nil {
 		return err
 	}
-	mode := s.ModeFor(settings)
+	mode := s.repoModeFor(settings, "config", source, repo)
 	snaps, err := s.engine.Snapshots(ctx, repo, mode)
 	if err != nil {
 		return err
@@ -10004,6 +12300,50 @@ func (s *Service) SetExcludes(_ context.Context, name string, excludes []string)
 	return s.store.SetExcludes(name, clean)
 }
 
+// maxExcludeCachesEntries caps the per-root CACHEDIR.TAG toggle map (RESTIC-01)
+// as defense-in-depth on top of decodeBody's 1 MiB cap and the map[string]bool
+// decode (which already fails non-boolean values): a mount list is bounded by
+// the container's real bind mounts, so anything near this size is abuse, not
+// intent (threat T-03-02).
+const maxExcludeCachesEntries = 64
+
+// SetExcludeCaches stores the per-root CACHEDIR.TAG toggles (RESTIC-01, D-07)
+// for a container's backup. The map is a whole-map replace keyed by HOST path
+// (what the UI shows); every key must translate under the host mount exactly
+// like a SetBackupPaths entry, otherwise the WHOLE save is rejected BEFORE any
+// store write (atomic — a bad key can never leave a partially-written map).
+// An empty (or nil) map clears every toggle. The keys are validated UI state
+// only: nothing but the boolean union of the values ever reaches restic.
+func (s *Service) SetExcludeCaches(_ context.Context, name string, m map[string]bool) error {
+	if len(m) > maxExcludeCachesEntries {
+		return fmt.Errorf("too many exclude-caches entries (%d, max %d)", len(m), maxExcludeCachesEntries)
+	}
+	for hp := range m {
+		// toContainerPath path.Cleans the key first (resolving any "..") and
+		// then requires the host-source-root prefix, so its ok result is
+		// guaranteed containment — the same discipline SetBackupPaths applies
+		// to every user path (threat T-03-01).
+		if _, ok := s.toContainerPath(hp); !ok {
+			return fmt.Errorf("path %q is not under the host mount and can't be backed up", hp)
+		}
+	}
+	return s.store.SetExcludeCaches(name, m)
+}
+
+// anyRootExcludeCaches reports whether any per-root CACHEDIR.TAG toggle is on:
+// the item-level union restic's positional-source-wide --exclude-caches flag
+// expresses (RESTIC-01, D-06). Deliberately independent of selection inclusion
+// (A1 in the Phase 3 research): the stored map is the user's remembered intent
+// per root, and restic cannot scope the flag per positional anyway.
+func anyRootExcludeCaches(m map[string]bool) bool {
+	for _, on := range m {
+		if on {
+			return true
+		}
+	}
+	return false
+}
+
 // PreviewExcludes resolves candidate exclude lines against the container's live
 // mounts and returns, per line, the resolved --exclude pattern and whether it
 // would exclude anything in this container's backup, so the UI can warn on a
@@ -10022,13 +12362,19 @@ func (s *Service) PreviewExcludes(ctx context.Context, name string, candidate []
 // when the repo has not been created yet. Bounded by a timeout so a huge repo
 // can't hang the request forever.
 func (s *Service) CheckDomain(ctx context.Context, domain, source string) (err error) {
-	settings, repo, err := s.domainRepoSource(domain, source)
+	// EVERY repository this domain's items write to (#204), not just its own.
+	// Verifying the domain repository while an item's data sits in a named one
+	// produces the worst possible answer: a green tick about a repository the
+	// data is not in.
+	settings, repos, skipped, err := s.domainReposForOp(domain, source)
 	if err != nil {
 		return err
 	}
-	if err := s.requireExistingRepo(repo, "no backups to verify yet"); err != nil {
+	repos, missing, err := s.reposThatExist(repos, "no backups to verify yet")
+	if err != nil {
 		return err
 	}
+	skipped = append(skipped, missing...)
 	// Hold the in-process domain lock for the whole verify so no other BombVault op
 	// (backup / prune / replicate) runs against this repo while we check it. If one
 	// already holds it, report a clean "busy" instead of colliding on restic's repo
@@ -10041,10 +12387,13 @@ func (s *Service) CheckDomain(ctx context.Context, domain, source string) (err e
 		return errDomainBusy
 	}
 	defer unlock()
-	ctx, cancel := context.WithTimeout(ctx, 15*time.Minute)
+	// The ceiling is PER REPOSITORY, multiplied up so the whole pass fits. It was
+	// sized for one repository and now covers a domain's list, so a two-repository
+	// domain would otherwise be cut off half way through the second one and report
+	// a timeout naming neither. The multiplication is bounded by the number of
+	// repositories a domain HAS, which is the number of rows an operator created.
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(len(repos))*15*time.Minute)
 	defer cancel()
-	mode := s.ModeFor(settings)
-
 	// Publish a "maintenance" progress pair (begin/terminal, indeterminate — restic
 	// check streams no percentage) and record a "verify" run, so a manual/scheduled
 	// verify shows up on the dashboard activity log/run history instead of running
@@ -10081,8 +12430,24 @@ func (s *Service) CheckDomain(ctx context.Context, domain, source string) (err e
 	// stale until it is ~30 min old; until then check fails "already locked" (it
 	// self-heals, or a manual Unlock clears it). A stable container hostname closes
 	// this — see the repo-lock-serialization plan.
-	s.unlockStale(ctx, repo, mode)
-	err = s.engine.Check(ctx, repo, mode)
+	//
+	// Each repository in turn, under the one domain lock. The first failure is
+	// the answer: a domain whose data is spread over a domain repository and one
+	// or more named ones is only verified when every one of them is. The mode is
+	// built PER REPOSITORY, because a named repository carries its own
+	// credentials, storage class and bandwidth caps.
+	for _, r := range repos {
+		rMode := s.repoModeFor(settings, domain, source, r.Loc)
+		s.unlockStale(ctx, r.Loc, rMode)
+		if err = s.engine.Check(ctx, r.Loc, rMode); err != nil {
+			err = fmt.Errorf("verifying %s: %w", s.refName(r), err)
+			return err
+		}
+	}
+	// Everything that WAS reachable verified clean. That is not a success while
+	// part of the domain was never opened, so the run records what was missed
+	// instead of a green tick over the remainder.
+	err = skippedError("this verify", skipped)
 	return err
 }
 
@@ -10127,9 +12492,19 @@ func (s *Service) RunRestoreDrill(ctx context.Context, domain, source, kind stri
 // {local,offsite}.
 //
 // It takes the per-domain busy-guard like Prune/Unlock: if a backup is running it
-// returns errDomainBusy and records nothing. A missing/empty repo returns a clear
-// "no backups to verify" error and records nothing (no misleading failure). Both
-// a passing and a failing drill ARE recorded; a failure also fires a notification.
+// returns errDomainBusy and records nothing.
+//
+// A repository that was NEVER CREATED returns a clear "no backups to verify"
+// error and records nothing: there is nothing to be red about. A repository that
+// WAS there and is GONE records a FAILED row, because the alternative is the
+// restorability badge keeping the green tick it earned last week over a share
+// that stopped mounting.
+//
+// Both a passing and a failing drill ARE recorded. The NOTIFICATION is confined
+// to the scheduled pass (wait), at all four sites: a manual press puts the
+// answer on the screen of whoever pressed it, and notifyDrillFailure has no
+// throttle, so four presses while somebody diagnoses an unmounted share sent
+// four mails at the one moment they were already looking straight at it.
 func (s *Service) runSubsetDrill(ctx context.Context, domain, source string, wait bool) (drill store.RestoreDrill, err error) {
 	switch domain {
 	case "containers", "vms", "flash", "config", "files":
@@ -10142,13 +12517,48 @@ func (s *Service) runSubsetDrill(ctx context.Context, domain, source string, wai
 		return store.RestoreDrill{}, fmt.Errorf("unknown source %q", source)
 	}
 
-	settings, repo, err := s.domainRepoSource(domain, source)
+	// EVERY repository this domain's items write to (#204). A drill reads REAL
+	// pack data back, which is the whole point of it; reading it out of the
+	// domain repository while an item's data sits in a named one verifies the
+	// wrong bytes and hands back a green badge for it.
+	settings, repos, skipped, err := s.domainReposForOp(domain, source)
 	if err != nil {
 		return store.RestoreDrill{}, err
 	}
-	if err := s.requireExistingRepo(repo, "no backups to verify yet"); err != nil {
+	repos, missing, err := s.reposThatExist(repos, "no backups to verify yet")
+	if err != nil {
+		// The all-missing case gets the same treatment as the read-nothing case
+		// below, and for the same reason: returning bare records no row, and the
+		// restorability badge then keeps the green tick it earned last week while
+		// the share it verified stopped mounting. The drilled==0 branch further
+		// down was written for exactly this and covered only the half where at
+		// least one repository survived the existence filter.
+		//
+		// "Never created yet" is not that case: reposThatExist reports it with an
+		// empty skip list, and a domain that has never been backed up has nothing
+		// to be red about.
+		if len(missing) > 0 {
+			rec := store.RestoreDrill{
+				Domain: domain, Source: source, Kind: "subset",
+				At: time.Now().Unix(), OK: false, Detail: truncateRunErr(err),
+			}
+			if aErr := s.store.AddRestoreDrill(rec); aErr != nil {
+				log.Printf("api: drill: record unreachable-domain result for %q: %v", domain, aErr) //nolint:gosec // G706: domain is %q-quoted
+			}
+			s.recordDomainRun(domain, "drill", false, rec.Detail)
+			// The NOTIFICATION only on the scheduled pass, like every other one in
+			// this function. A manual press already puts the answer on the screen of
+			// the person who pressed it, and notifyDrillFailure has no throttle: four
+			// presses while somebody diagnoses an unmounted share sent four mails, at
+			// the one moment they are already looking straight at the problem.
+			if wait {
+				s.notifyDrillFailure(ctx, domain, source, rec.Detail)
+			}
+			return rec, err
+		}
 		return store.RestoreDrill{}, err
 	}
+	skipped = append(skipped, missing...)
 
 	// Serialise with backups (and other maintenance) so a drill never reads a repo a
 	// backup is actively writing. A SCHEDULED drill (wait) BLOCKS for the domain so it
@@ -10199,26 +12609,90 @@ func (s *Service) runSubsetDrill(ctx context.Context, domain, source string, wai
 	_, startedAt := s.progBegin(ctx, dkey, "maintenance")
 	defer func() { s.progEnd(dkey, "maintenance", err == nil, startedAt) }()
 
-	mode := s.ModeFor(settings)
-	// An initialised-but-empty repo (no snapshots) has nothing to verify. Treat it
-	// like a missing repo: a clear error, no misleading failure recorded.
-	snaps, err := s.listSnapshots(ctx, repo, mode)
-	if err != nil {
-		return store.RestoreDrill{}, err
+	// Reading back a subset of real pack data can be slow on a large repo; bound
+	// the whole pass over the domain's repositories.
+	//
+	// ctx is REBOUND rather than a second name, the way CheckDomain, UnlockDomain
+	// and pruneDomain all do it, so the snapshot listing and the stale-lock clear
+	// inside the loop are under the ceiling too. They were not: a scheduled drill
+	// enters on context.Background() holding the domain lock, so one unreachable
+	// remote repository parked the listing forever and every backup, prune,
+	// verify and replication for that domain answered "busy" from then on, with
+	// the next night's drill naming a lock-holder nobody could see.
+	//
+	// outer is kept because the FAILURE NOTIFICATION must not travel on the
+	// drill's own deadline. The one failure a drill most needs to announce is the
+	// one where it ran out of time, and notifying on the expired context means
+	// exactly that alert is the one that never goes out.
+	outer := ctx
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(len(repos))*2*time.Hour)
+	defer cancel()
+	pct := drillSubsetPct(settings.DrillsSubsetPct)
+	var checkErr error
+	drilled := 0
+	for _, r := range repos {
+		rMode := s.repoModeFor(settings, domain, source, r.Loc)
+		// An initialised-but-empty repo (no snapshots) has nothing to verify. Treat
+		// it like a missing repo: skipped here, and a clear error below when NONE of
+		// them had anything - no misleading failure recorded either way.
+		snaps, sErr := s.listSnapshots(ctx, r.Loc, rMode)
+		if sErr != nil {
+			// One unreadable repository is a SKIP, not the end of the pass. It used
+			// to return, which recorded nothing at all and left the badge frozen on
+			// its previous verdict - so a repository that had gone away silenced the
+			// drill for every other repository of the domain as well. restic's own
+			// sentence is carried into the reason: "could not be listed" alone told
+			// nobody whether the share was gone or the password wrong.
+			skipped = append(skipped, repoSkip{Name: s.refName(r), Reason: scrubError(sErr), Unreachable: true})
+			continue
+		}
+		if len(snaps) == 0 {
+			continue
+		}
+		drilled++
+		// Clear any stale lock a previously interrupted off-site op (replication copy /
+		// integrity check) left behind before `restic check --read-data-subset` takes its
+		// lock, so a drill can't fail "repository is already locked" — BombVault is the
+		// sole writer, so an existing lock is always stale (mirrors CheckDomain; #29).
+		s.unlockStale(ctx, r.Loc, rMode)
+		if checkErr = s.engine.CheckData(ctx, r.Loc, pct, rMode); checkErr != nil {
+			checkErr = fmt.Errorf("reading back %s: %w", s.refName(r), checkErr)
+			break
+		}
 	}
-	if len(snaps) == 0 {
+	if drilled == 0 {
+		// Nothing could be read back. If that is because something was UNREACHABLE
+		// rather than empty, it is a failed drill and has to be recorded as one:
+		// returning without a row leaves the restorability badge frozen on its
+		// previous verdict, so a domain nobody can read any more keeps showing the
+		// green tick it earned last week. The busy-skip branch above already
+		// records its reason for exactly this purpose.
+		if sErr := skippedError("this restorability check", skipped); sErr != nil {
+			rec := store.RestoreDrill{
+				Domain: domain, Source: source, Kind: "subset",
+				At: time.Now().Unix(), OK: false, Detail: truncateRunErr(sErr),
+			}
+			if aErr := s.store.AddRestoreDrill(rec); aErr != nil {
+				log.Printf("api: drill: record unreadable-domain result for %q: %v", domain, aErr) //nolint:gosec // G706: domain is %q-quoted
+			}
+			s.recordDomainRun(domain, "drill", false, rec.Detail)
+			// Scheduled pass only, like the other three in this function - the
+			// rationale is the same one, and it applies here most of all: this is
+			// the unreadable-share branch, which is exactly the state somebody
+			// presses the button at repeatedly while diagnosing it.
+			if wait {
+				s.notifyDrillFailure(outer, domain, source, rec.Detail)
+			}
+			return rec, sErr
+		}
 		return store.RestoreDrill{}, errors.New("no backups to verify yet")
 	}
-
-	// Clear any stale lock a previously interrupted off-site op (replication copy /
-	// integrity check) left behind before `restic check --read-data-subset` takes its
-	// lock, so a drill can't fail "repository is already locked" — BombVault is the
-	// sole writer, so an existing lock is always stale (mirrors CheckDomain; #29).
-	s.unlockStale(ctx, repo, mode)
-	// Reading back a subset of real pack data can be slow on a large repo; bound it.
-	dctx, cancel := context.WithTimeout(ctx, 2*time.Hour)
-	defer cancel()
-	checkErr := s.engine.CheckData(dctx, repo, drillSubsetPct(settings.DrillsSubsetPct), mode)
+	// A pass that read back everything it could reach, but could not reach all of
+	// the domain, is not a passing drill: the badge would be green about data
+	// nobody opened.
+	if checkErr == nil {
+		checkErr = skippedError("this restorability check", skipped)
+	}
 
 	drill = store.RestoreDrill{
 		Domain: domain,
@@ -10241,9 +12715,11 @@ func (s *Service) runSubsetDrill(ctx context.Context, domain, source string, wai
 	// dashboard Activity Log/Run History (the restore_drills row above stays the
 	// badge/scorecard source of truth).
 	s.recordDomainRun(domain, "drill", drill.OK, drill.Detail)
-	// A failed restorability check is important — notify on failure (best-effort).
-	if checkErr != nil {
-		s.notifyDrillFailure(ctx, domain, source, drill.Detail)
+	// A failed restorability check is important — notify on failure (best-effort),
+	// and on the scheduled pass only, like the other three in this function. A
+	// manual press puts the same answer on the screen of whoever pressed it.
+	if checkErr != nil && wait {
+		s.notifyDrillFailure(outer, domain, source, drill.Detail)
 	}
 	return drill, checkErr
 }
@@ -10369,7 +12845,12 @@ func (s *Service) runDRDrill(ctx context.Context, domain, source string, wait bo
 	// hold the domain lock forever; the restore is bounded by restoreTimeout inside
 	// sandboxRestoreVerify.
 	drillCtx := context.WithoutCancel(ctx)
-	mode := s.ModeFor(settings)
+	// The destination is described by the target ROW, which is already in hand
+	// two dozen lines up. offsiteModeForTarget is the builder
+	// copyToOffsiteTarget uses to WRITE this same repository; opening it for a
+	// drill with the shared mode means a destination with its own credentials
+	// can be written and never read back, so the drill could not pass.
+	mode := s.offsiteModeForTarget(settings, target)
 	listCtx, listCancel := context.WithTimeout(drillCtx, drillSnapshotTimeout)
 	snapID, err := s.pickDRSnapshot(listCtx, domain, settings, repo, mode)
 	listCancel()
@@ -10771,13 +13252,13 @@ func (s *Service) repoFor(settings store.Settings, domain, source string) (strin
 	}
 }
 
-// domainRepo resolves the primary (local) restic repo path for a domain.
-func (s *Service) domainRepo(domain string) (store.Settings, string, error) {
-	return s.domainRepoSource(domain, "local")
-}
-
-// domainRepoSource is domainRepo with an explicit source ("local"|"offsite"),
-// returning the settings alongside the resolved repo so callers don't re-read.
+// domainRepoSource resolves ONE repository for a domain and source
+// ("local"|"offsite"), returning the settings alongside it so callers don't
+// re-read. Its local-only wrapper domainRepo lost its last caller when the three
+// Discover functions moved to discoverNamesAcrossRepos, and is gone.
+//
+// An operation that has to reach ALL of a domain's data wants domainReposForOp
+// instead; this one is for the paths that genuinely address a single repository.
 func (s *Service) domainRepoSource(domain, source string) (store.Settings, string, error) {
 	settings, err := s.store.GetSettings()
 	if err != nil {
@@ -10857,6 +13338,97 @@ func (s *Service) requireExistingRepo(repo, notYet string) error {
 		return errors.New(notYet)
 	}
 	return nil
+}
+
+// reposThatExist narrows a domain's repositories (domainReposForOp) to the ones
+// that are actually there, and fails with the caller's "not yet" sentence only
+// when NONE of them is.
+//
+// Before named repositories (#204) a domain had exactly one repository, so "the
+// repository is missing" and "there is nothing to work on" were the same
+// sentence. They are not any more: a domain whose items all sit on named
+// repositories may have no domain repository on disk at all, and refusing the
+// whole operation over that would leave those repositories unverified,
+// unpruned and locked.
+// A repository that is missing while OTHERS are present is reported as a skip,
+// for the same reason a switched-off one is: "the share was not mounted when the
+// nightly verify ran" and "this repository was never created" are different
+// facts, and only the second one is harmless.
+func (s *Service) reposThatExist(repos []domainRepoRef, notYet string) ([]domainRepoRef, []repoSkip, error) {
+	out := make([]domainRepoRef, 0, len(repos))
+	var skipped []repoSkip
+	var first error
+	for _, r := range repos {
+		if err := s.requireExistingRepo(r.Loc, notYet); err != nil {
+			if first == nil {
+				first = err
+			}
+			// NEVER CREATED is silent; WAS THERE AND IS GONE is reported, and so is
+			// DON'T KNOW.
+			//
+			// Treating "never created" as a skip made four nightly operations fail
+			// forever on an ordinary install: point one container at a named
+			// repository before the domain has ever been backed up, and the domain's
+			// own repository is permanently "not present". Verify, prune, unlock and
+			// the drill then reported an incomplete pass every night, over
+			// repositories that were all fine. An empty folder holds no backups, so
+			// nothing is missing and nobody needs telling.
+			//
+			// An UNKNOWN answer goes to the reported side, matching the other two
+			// unknown rules in this file (an unreadable in-use count counts as in
+			// use; an unreadable domain list counts as shared). Silence is the
+			// answer that loses information, so it is not the one an error gets.
+			switch s.repoEstablishmentOf(r.Loc) {
+			case repoWasEstablished:
+				skipped = append(skipped, repoSkip{Name: s.refName(r), Reason: "it was there before and is not reachable now", Unreachable: true})
+			case repoEstablishmentUnknown:
+				skipped = append(skipped, repoSkip{Name: s.refName(r), Reason: "it is not reachable now, and whether it ever held backups could not be read", Unreachable: true})
+			case repoNeverEstablished:
+			}
+			continue
+		}
+		out = append(out, r)
+	}
+	if len(out) == 0 {
+		if first == nil {
+			first = errors.New(notYet)
+		}
+		// The skip list travels with the error: "nothing to verify yet" and "the
+		// one repository this domain has went away" are different messages, and
+		// only the second one asks somebody to act. Discarding it told an
+		// all-named domain that it had no backups at all.
+		//
+		// nothingCoveredError, not skippedError: nothing was covered here, and
+		// `notYet` is a whole sentence rather than a noun phrase, so the other
+		// template produced "no backups to verify yet covered only part of this
+		// domain: …" - in the case this reporting was built for.
+		if sErr := nothingCoveredError(skipped); sErr != nil {
+			return nil, skipped, sErr
+		}
+		return nil, skipped, first
+	}
+	return out, skipped, nil
+}
+
+// shortRepoName names a repository in a message without printing a full host
+// path: the LAST segment, or the remote's scheme, is what a reader recognises,
+// and the error scrubber would redact the whole path anyway.
+//
+// Deliberately slash-free. scrubError's absolute-path regex redacts any
+// slash-led token, so "folder backups/cold" would arrive as "folder
+// backups[path]" - which is why this returns one segment and not two.
+func shortRepoName(repo string) string {
+	if restic.IsRemoteRepo(repo) {
+		if i := strings.IndexByte(repo, ':'); i > 0 {
+			return repo[:i] + " remote"
+		}
+		return "a remote repository"
+	}
+	parts := strings.Split(strings.Trim(filepath.ToSlash(repo), "/"), "/")
+	if n := len(parts); n > 0 && parts[n-1] != "" {
+		return "folder " + parts[n-1]
+	}
+	return "a repository"
 }
 
 // isLockErr reports whether a restic error is a repository-lock conflict. It
@@ -10958,26 +13530,123 @@ func (s *Service) lsSelfHeal(ctx context.Context, repo, snapshotID string, mode 
 	return entries, err
 }
 
+// pathsPresentInSnapshot answers, for each candidate, whether that exact path is
+// a node in the snapshot's tree. One `restic ls` for the whole set.
+//
+// It exists for mapRestorePaths' pass 2, which produces a selector out of a
+// stored path whose ANCESTOR was recorded. An ancestor proves the path lies
+// under a backed-up root and nothing more: a --exclude at backup time (derived
+// from the selection's own exclusion branches) leaves a hole in that root, and a
+// folder created after the snapshot was taken was never in it at all. Handing
+// restic such a selector fails the restore, and on the container route that
+// failure lands after the container has been stopped and removed.
+//
+// Called ONLY when pass 2 actually narrowed something, which is the uncommon
+// case: a selection that still matches the chosen snapshot resolves entirely in
+// pass 1 and never reaches here. That keeps a full listing off the normal path.
+func (s *Service) pathsPresentInSnapshot(ctx context.Context, repo, snapshotID string, mode restic.Mode, candidates []string) (map[string]bool, error) {
+	present := make(map[string]bool, len(candidates))
+	if len(candidates) == 0 {
+		return present, nil
+	}
+	entries, err := s.lsSelfHeal(ctx, repo, snapshotID, mode)
+	if err != nil {
+		return nil, err
+	}
+	want := make(map[string]bool, len(candidates))
+	for _, c := range candidates {
+		want[path.Clean(c)] = true
+	}
+	for _, e := range entries {
+		if p := path.Clean(e.Path); want[p] {
+			present[p] = true
+		}
+	}
+	// Answer under the caller's own spelling too, so a candidate that was not
+	// path.Clean to begin with still looks itself up.
+	for _, c := range candidates {
+		if present[path.Clean(c)] {
+			present[c] = true
+		}
+	}
+	return present, nil
+}
+
 // UnlockDomain removes locks from a domain's repo (restic unlock --remove-all).
 // BombVault is the sole writer and serialises its operations, so a leftover lock
 // is always safe to clear — this is the manual counterpart to the automatic
 // stale-lock cleanup done before each backup.
-func (s *Service) UnlockDomain(ctx context.Context, domain, source string) error {
-	settings, repo, err := s.domainRepoSource(domain, source)
+//
+// EVERY repository this domain's items write to (#204). The button exists for
+// the case where something is stuck, and a lock left on an item's named
+// repository is exactly as stuck as one on the domain's own; unlocking only the
+// latter would report success and change nothing. Every repository is attempted
+// even if one fails, so a single unreachable location cannot leave the others
+// locked; the first failure is what the caller hears about.
+//
+// The skip list is RETURNED, not only folded into the error. A shared repository
+// can only get the stale-lock clear, which is a deliberate, permanent and
+// correct limitation - a Note, in repoSkip's terms, so it must not stamp the run
+// red - but the operator still has to be told, because the one repository they
+// pressed the button for may be exactly the one that kept its lock. Without a
+// return the Note had no channel left at all and the button came back green
+// having changed nothing.
+//
+// Rendered lines rather than the skips themselves: what the caller does with
+// this is show it, the same lines the three discovery endpoints already send,
+// and a repoSkip is this package's own bookkeeping.
+func (s *Service) UnlockDomain(ctx context.Context, domain, source string) ([]string, error) {
+	settings, repos, skipped, err := s.domainReposForOp(domain, source)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if err := s.requireExistingRepo(repo, "no repository to unlock yet"); err != nil {
-		return err
+	repos, missing, err := s.reposThatExist(repos, "no repository to unlock yet")
+	if err != nil {
+		return nil, err
 	}
+	skipped = append(skipped, missing...)
 	unlock, ok := s.tryLockDomainFor(domain, "unlock")
 	if !ok {
-		return errDomainBusy
+		return nil, errDomainBusy
 	}
 	defer unlock()
-	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	// Per repository, like the other three (see CheckDomain).
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(len(repos))*2*time.Minute)
 	defer cancel()
-	return s.engine.Unlock(ctx, repo, true, s.ModeFor(settings))
+	// removeAll (a FORCE removal, live locks included) is only safe where this
+	// process is provably the only writer, and the in-process serialisation is
+	// keyed by DOMAIN. A named repository can be shared between domains - nothing
+	// scopes one to a single domain and the same picker offers it to all three -
+	// so forcing on a shared repository yanks the lock out from under another
+	// domain's running backup. There a STALE clear is the right tool: it removes
+	// a lock restic itself deems dead and leaves a live one alone, which is
+	// exactly what every other site in this file uses.
+	var firstErr error
+	for _, r := range repos {
+		rMode := s.repoModeFor(settings, domain, source, r.Loc)
+		if s.repoSharedWithAnotherDomain(settings, domain, r) {
+			log.Printf("api: unlock %s: %s is shared with another domain; clearing only stale locks there", domain, s.refName(r)) //nolint:gosec // G706: domain is a fixed literal, the name is the row's own
+			// Reported, not silently downgraded. `restic unlock` without --remove-all
+			// removes only what restic itself calls stale, and a lock left by a
+			// previous container incarnation is not stale until it is old enough - so
+			// the button that exists for exactly that case can come back green having
+			// changed nothing. There is no way to ask restic afterwards whether the
+			// lock is gone, so the honest answer is to say which repository got the
+			// weaker treatment and why.
+			if uErr := s.engine.Unlock(ctx, r.Loc, false, rMode); uErr != nil && firstErr == nil {
+				firstErr = fmt.Errorf("clearing stale locks on %s: %w", s.refName(r), uErr)
+			}
+			skipped = append(skipped, repoSkip{Name: s.refName(r), Reason: "another domain writes to it too, so only stale locks were cleared there", Note: true})
+			continue
+		}
+		if uErr := s.engine.Unlock(ctx, r.Loc, true, rMode); uErr != nil && firstErr == nil {
+			firstErr = fmt.Errorf("unlocking %s: %w", s.refName(r), uErr)
+		}
+	}
+	if firstErr == nil {
+		firstErr = skippedError("this unlock", skipped)
+	}
+	return skipNames(skipped), firstErr
 }
 
 // PruneDomain reclaims repository space freed by forgotten snapshots
@@ -11024,35 +13693,72 @@ func (s *Service) PruneAfterBulk(ctx context.Context, domain string) {
 // plain space-reclaim (`restic prune` only — the batched post-bulk pass, whose
 // per-item forgets already ran inline without --prune).
 func (s *Service) pruneDomain(ctx context.Context, domain, source string, applyPolicy bool) (err error) {
-	settings, repo, err := s.domainRepoSource(domain, source)
+	// EVERY repository this domain's items write to (#204). Prune is what turns a
+	// forgotten snapshot back into free space, so pruning only the domain
+	// repository means the space retention freed on a named one is never
+	// reclaimed - and nothing says so.
+	settings, repos, skipped, err := s.domainReposForOp(domain, source)
 	if err != nil {
 		return err
 	}
-	// An immutable off-site repo is never pruned from this box (append-only is
-	// the point). Only the offsite+immutable combination is gated — the local
-	// repo stays fully maintainable. Per-target: bare "offsite" uses the primary
-	// target's flag (== today), "offsite:<id>" that specific target's.
-	if isOffsiteSource(source) && s.offsiteSourceImmutable(settings, domain, source) {
-		return errOffsiteAppendOnly
+	// An immutable repo is never pruned from this box (append-only is the point),
+	// and that is now a decision PER repository rather than for the domain:
+	// - off-site: bare "offsite" uses the primary target's flag (== today),
+	//   "offsite:<id>" that specific target's.
+	// - issue #152: the same refusal when the "local" source IS a remote primary
+	//   flagged append-only in its saved safety settings. There is no separate
+	//   off-site copy in that shape, so refusing is the only thing standing
+	//   between an on-box credential and deleting the sole backup. A named
+	//   repository carries its own flag, so one append-only archive among an
+	//   item's repositories is skipped instead of blocking the whole domain.
+	prunable := make([]domainRepoRef, 0, len(repos))
+	// …and WHY each one was left out, so the refusal below can name the card the
+	// toggle lives on. With a mixed set the first reason is the one reported: a
+	// sentence per repository would be worse than one that names a place to go,
+	// and the operator who clears that one comes straight back here for the next.
+	refusal := error(nil)
+	for _, r := range repos {
+		if isOffsiteSource(source) {
+			if s.offsiteSourceImmutable(settings, domain, source) {
+				if refusal == nil {
+					refusal = errAppendOnlyOffsiteTarget
+				}
+				continue
+			}
+		} else if f := s.refAppendOnly(domain, r); f != appendOnlyNone {
+			if refusal == nil {
+				refusal = appendOnlyRefusal(f)
+			}
+			continue
+		}
+		prunable = append(prunable, r)
 	}
-	// Issue #152: the SAME refusal applies when the "local" source IS actually a
-	// remote primary flagged append-only in its saved safety settings — there is
-	// no separate off-site copy in that shape, so refusing here is the only thing
-	// standing between an on-box credential and deleting the sole backup.
-	if !isOffsiteSource(source) && s.primaryIsImmutable(domain, repo) {
-		return errOffsiteAppendOnly
+	if len(prunable) == 0 {
+		if refusal == nil {
+			refusal = errOffsiteAppendOnly
+		}
+		// The skip list travels with this refusal too. Without it an operator whose
+		// repositories are all append-only AND one of which was switched off or
+		// unresolvable hears only "append-only", and never that a repository was
+		// not considered at all.
+		if sErr := skippedError("this prune", skipped); sErr != nil {
+			return errors.Join(refusal, sErr)
+		}
+		return refusal
 	}
-	if err := s.requireExistingRepo(repo, "no backups to prune yet"); err != nil {
+	repos, missing, err := s.reposThatExist(prunable, "no backups to prune yet")
+	if err != nil {
 		return err
 	}
+	skipped = append(skipped, missing...)
 	unlock, ok := s.tryLockDomainFor(domain, "prune")
 	if !ok {
 		return errDomainBusy
 	}
 	defer unlock()
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Minute)
+	// Per repository, like the other three (see CheckDomain).
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(len(repos))*30*time.Minute)
 	defer cancel()
-	mode := s.ModeFor(settings)
 
 	pkey := "prune:" + domain
 	_, startedAt := s.progBegin(ctx, pkey, "maintenance")
@@ -11081,7 +13787,7 @@ func (s *Service) pruneDomain(ctx context.Context, domain, source string, applyP
 	// sole writer, so an existing lock is always stale. Every other repo-mutating
 	// path (backups, DeleteSnapshot) does this; PruneDomain was missing it, which
 	// made a manual Prune fail with "repository is already locked".
-	s.unlockStale(ctx, repo, mode)
+	//
 	// When a retention policy is configured, Prune APPLIES it (forget --keep-*
 	// --prune): it collapses snapshots per the policy AND reclaims space — i.e. an
 	// "apply retention now", which is what users expect from a manual prune.
@@ -11092,15 +13798,28 @@ func (s *Service) pruneDomain(ctx context.Context, domain, source string, applyP
 	// The batched post-bulk pass skips this (applyPolicy=false): its per-item
 	// forgets already ran inline, so re-running them would only cost 44 more
 	// exclusive-lock round-trips for nothing.
+	policy := restic.RetentionPolicy{}
 	if applyPolicy {
-		if p := s.retentionPolicyForSource(settings, source); p.Any() {
+		policy = s.retentionPolicyForSource(settings, source)
+	}
+	for _, r := range repos {
+		rMode := s.repoModeFor(settings, domain, source, r.Loc)
+		s.unlockStale(ctx, r.Loc, rMode)
+		if policy.Any() {
 			// Per-identity: tag-scoped, ungrouped forget per item + one prune —
 			// also drains frozen path-groups left by the old grouping (issue #91).
-			err = s.applyRetentionPerIdentity(ctx, repo, p, mode)
+			if err = s.applyRetentionPerIdentity(ctx, r.Loc, policy, rMode); err != nil {
+				err = fmt.Errorf("pruning %s: %w", s.refName(r), err)
+				return err
+			}
+			continue
+		}
+		if err = s.engine.Prune(ctx, r.Loc, rMode); err != nil {
+			err = fmt.Errorf("pruning %s: %w", s.refName(r), err)
 			return err
 		}
 	}
-	err = s.engine.Prune(ctx, repo, mode)
+	err = skippedError("this prune", skipped)
 	return err
 }
 
@@ -11113,36 +13832,119 @@ func (s *Service) DeleteSnapshot(ctx context.Context, domain, snapshotID, source
 	if !backup.ValidSnapshotID(snapshotID) {
 		return backup.ErrInvalidSnapshotID
 	}
-	settings, repo, err := s.domainRepoSource(domain, source)
+	// The snapshot is deleted from the repository it is IN, which since named
+	// repositories (#204) need not be the domain's own. The id comes from a list
+	// the interface built out of every one of them, so resolving the domain
+	// repository alone answers "no matching ID" for a snapshot shown right beside
+	// the button - and the snapshot stays.
+	settings, repos, skipped, err := s.domainReposForOp(domain, source)
 	if err != nil {
 		return err
 	}
-	// Deleting snapshots from an immutable off-site repo is refused (same gate
-	// as PruneDomain): append-only means credentials on this box cannot erase
-	// off-site history. The local repo is unaffected. Per-target: bare "offsite"
-	// uses the primary target's flag (== today), "offsite:<id>" that target's.
+	repos, missing, err := s.reposThatExist(repos, "no backups to delete yet")
+	if err != nil {
+		return err
+	}
+	skipped = append(skipped, missing...)
+	unlock, ok := s.tryLockDomainFor(domain, "delete")
+	if !ok {
+		return errDomainBusy
+	}
+	defer unlock()
+	repo, mode, err := s.repoHoldingSnapshot(ctx, settings, domain, source, repos, snapshotID)
+	if err != nil {
+		// A snapshot that was not found while part of the domain was unreachable is
+		// "I could not look everywhere", not "it is not there" - and the difference
+		// decides whether somebody goes looking for it by hand.
+		if sErr := skippedError("this delete", skipped); sErr != nil {
+			return fmt.Errorf("%w; %w", err, sErr)
+		}
+		return err
+	}
+	// Deleting snapshots from an immutable repo is refused (same gate as
+	// pruneDomain): append-only means credentials on this box cannot erase that
+	// history. Asked of the repository the snapshot is actually in, so a named
+	// append-only archive protects itself even though the domain's own repo is
+	// maintainable. Per-target: bare "offsite" uses the primary target's flag
+	// (== today), "offsite:<id>" that target's.
 	if isOffsiteSource(source) && s.offsiteSourceImmutable(settings, domain, source) {
-		return errOffsiteAppendOnly
+		return errAppendOnlyOffsiteTarget
 	}
 	// Issue #152: the SAME refusal applies when the "local" source IS actually a
 	// remote primary flagged append-only in its saved safety settings (same gate
 	// as pruneDomain) — there is no separate off-site copy in that shape, so
 	// refusing here is the only thing standing between an on-box credential and
 	// deleting backup history.
-	if !isOffsiteSource(source) && s.primaryIsImmutable(domain, repo) {
-		return errOffsiteAppendOnly
+	if f := s.primaryAppendOnly(domain, repo); !isOffsiteSource(source) && f != appendOnlyNone {
+		return appendOnlyRefusal(f)
 	}
-	if err := s.requireExistingRepo(repo, "no backups to delete yet"); err != nil {
-		return err
-	}
-	unlock, ok := s.tryLockDomainFor(domain, "delete")
-	if !ok {
-		return errDomainBusy
-	}
-	defer unlock()
-	mode := s.ModeFor(settings)
 	s.unlockStale(ctx, repo, mode)
 	return s.engine.Forget(ctx, repo, []string{snapshotID}, false, mode)
+}
+
+// repoHoldingSnapshot finds which of a domain's repositories a snapshot id lives
+// in, and returns it with the mode that repository needs.
+//
+// A short id is matched by PREFIX, because that is how restic itself prints ids
+// and therefore what the interface passes back. A repository that cannot be
+// listed is skipped rather than failing the search: one unreachable location
+// must not stop a deletion from a reachable one.
+//
+// EVERY repository is searched even after a hit, and an id that matches in TWO
+// of them is REFUSED rather than guessed. A short id is eight hex characters;
+// two repositories of one domain hold snapshots written by the same BombVault,
+// so a collision is likelier here than restic's own within-one-repository odds,
+// and the cost of guessing is deleting the wrong backup.
+//
+// ONE repository short-circuits without listing. There is nothing to be
+// ambiguous with, restic's own "no matching ID" is the better message for an id
+// that is not there, and - the reason this matters - the caller's append-only
+// refusal must be reachable without first READING a repository that may be
+// remote, unreachable, or deliberately write-protected.
+func (s *Service) repoHoldingSnapshot(ctx context.Context, settings store.Settings, domain, source string, repos []domainRepoRef, snapshotID string) (string, restic.Mode, error) {
+	if len(repos) == 1 {
+		return repos[0].Loc, s.repoModeFor(settings, domain, source, repos[0].Loc), nil
+	}
+	var (
+		found     []domainRepoRef
+		foundMode restic.Mode
+		unread    []repoSkip
+	)
+	for _, r := range repos {
+		mode := s.repoModeFor(settings, domain, source, r.Loc)
+		snaps, err := s.listSnapshots(ctx, r.Loc, mode)
+		if err != nil {
+			// Remembered, not swallowed. A repository that could not be READ is not
+			// a repository that does not hold the snapshot, and answering "no
+			// repository of this domain holds it" for a share that is merely
+			// unmounted sends somebody looking for a backup that is right there.
+			unread = append(unread, repoSkip{Name: s.refName(r), Reason: scrubError(err), Unreachable: true})
+			continue
+		}
+		for _, sn := range snaps {
+			if strings.HasPrefix(sn.ID, snapshotID) {
+				found = append(found, r)
+				foundMode = mode
+				break
+			}
+		}
+	}
+	switch len(found) {
+	case 0:
+		if sErr := skippedError("the search for this backup", unread); sErr != nil {
+			return "", restic.Mode{}, fmt.Errorf("no repository of this domain that could be read holds the backup %s; %w", snapshotID, sErr)
+		}
+		return "", restic.Mode{}, fmt.Errorf("no repository of this domain holds the backup %s", snapshotID)
+	case 1:
+		return found[0].Loc, foundMode, nil
+	default:
+		names := make([]string, 0, len(found))
+		for _, r := range found {
+			names = append(names, s.refName(r))
+		}
+		return "", restic.Mode{}, fmt.Errorf("the backup id %s matches a snapshot in more than one repository of this domain (%s); use the full id",
+			snapshotID, strings.Join(names, ", "))
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -11588,6 +14390,37 @@ func (s *Service) decodeCloudFor(settings store.Settings, credsRef string) (Clou
 // Encryption-key recovery kit (disaster recovery without a running BombVault)
 // ---------------------------------------------------------------------------
 
+// namedRepoItemNames lists the containers, VMs and folder sets pointed at one
+// named repository (#204), as a single comma-separated line for the recovery
+// kit. Built from the three item lists rather than a new store query, and
+// tolerant of a read failure: the location is the part that must not be lost,
+// the inventory is the help.
+func (s *Service) namedRepoItemNames(id string) string {
+	var out []string
+	if tgs, err := s.store.ListTargets(); err == nil {
+		for _, t := range tgs {
+			if strings.TrimSpace(t.Repo) == id {
+				out = append(out, "container "+t.ContainerName)
+			}
+		}
+	}
+	if vms, err := s.store.ListVMTargets(); err == nil {
+		for _, v := range vms {
+			if strings.TrimSpace(v.Repo) == id {
+				out = append(out, "VM "+v.Name)
+			}
+		}
+	}
+	if sets, err := s.store.ListFileSets(); err == nil {
+		for _, f := range sets {
+			if strings.TrimSpace(f.Repo) == id {
+				out = append(out, "folder set "+f.Name)
+			}
+		}
+	}
+	return strings.Join(out, ", ")
+}
+
 // recoveryRepo is one domain's resolved repo locations for the recovery kit.
 type recoveryRepo struct {
 	Domain  string
@@ -11671,6 +14504,35 @@ func (s *Service) RecoveryKit() (string, error) {
 	w("backrest) at the specific per-domain path — the parent folder that holds them is\n")
 	w("NOT itself a repository, and the off-site repo only has snapshots once off-site\n")
 	w("replication has actually run. Add each domain repo on its own.\n\n")
+
+	// Named repositories (#204): the locations individual containers, VMs and
+	// folder sets were pointed at instead of their domain's own. Without this
+	// section they are the one thing in BombVault that a lost /config makes
+	// UNFINDABLE: the data is sitting there intact, and nothing left on the box
+	// says where "there" is. The domain repositories above are in settings the
+	// user configured and can re-derive; a named repository's location existed
+	// only in the database. Each line names the items that were pointed at it, so
+	// the kit answers both "where is it" and "what is in there".
+	if named, nErr := s.store.ListNamedRepos(); nErr == nil && len(named) > 0 {
+		w("## Named repositories (per-item)\n\n")
+		w("These repositories hold the backups of individual containers, VMs or folder\n")
+		w("sets that were pointed at them instead of their domain repository above. They\n")
+		w("are ordinary restic repositories and use the SAME password as the rest.\n\n")
+		for _, n := range named {
+			loc := n.Repo
+			if resolved, rErr := s.resolveRepo(n.Repo); rErr == nil {
+				loc = resolved
+			}
+			w("- %s: %s\n", n.Name, loc)
+			if items := s.namedRepoItemNames(n.ID); items != "" {
+				w("  holds: %s\n", items)
+			}
+			if !n.Enabled {
+				w("  (switched off at the time this kit was written)\n")
+			}
+		}
+		w("\n")
+	}
 
 	// BombVault's own settings backup (the "config" self-backup domain). This repo is
 	// the single bootstrap seed a rebuilt box needs: restore it FIRST to bring

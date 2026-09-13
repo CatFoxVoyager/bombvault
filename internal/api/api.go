@@ -244,6 +244,14 @@ func (h *Handler) Router() http.Handler {
 	mux.HandleFunc("DELETE /api/snapshots/{domain}/{id}", h.handleDeleteSnapshot)
 	// Off-site target CRUD (multi-off-site). The literal "targets" segment is more
 	// specific than "{domain}", so these never collide with the per-domain routes.
+	// Named repositories (#204): the locations an individual container, VM or
+	// folder set can be pointed at instead of its domain's own. Written down
+	// once here, picked per item, so ten containers are not ten typed bucket
+	// paths. See internal/api/named_repos_crud.go.
+	mux.HandleFunc("GET /api/repos", h.handleListNamedRepos)
+	mux.HandleFunc("POST /api/repos", h.handleCreateNamedRepo)
+	mux.HandleFunc("PATCH /api/repos/{id}", h.handleUpdateNamedRepo)
+	mux.HandleFunc("DELETE /api/repos/{id}", h.handleDeleteNamedRepo)
 	mux.HandleFunc("GET /api/offsite/targets", h.handleListOffsiteTargets)
 	mux.HandleFunc("POST /api/offsite/targets", h.handleCreateOffsiteTarget)
 	mux.HandleFunc("PUT /api/offsite/targets/{id}", h.handleUpdateOffsiteTarget)

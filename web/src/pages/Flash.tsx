@@ -4,6 +4,7 @@ import { backupFlashNow, listFlashSnapshots, flashDownloadURL, deleteSnapshot } 
 import type { Snapshot } from "../lib/api";
 import { useT } from "../lib/i18n";
 import { PAGE_SHELL } from "../lib/pageShell";
+import { BackupCancelButton } from "../components/BackupCancelButton";
 import { ProgressBar } from "../components/ProgressBar";
 import { useProgress, anyActive, busyPhraseKey } from "../lib/progress";
 import { useBackupWatch } from "../lib/backupWatch";
@@ -396,6 +397,16 @@ export function Flash() {
               busyPhase={running.phase}
             />
           </div>
+
+          {/* Stop a backup that is running (#200), gated exactly as on the
+              Folders page: not on a RESTORE, which has its own control with its
+              own warning, and only while the run is active. The server has
+              accepted this key all along; only the button was missing. */}
+          {progress && progress.active && progress.phase !== "restore" && (
+            <div className="flex justify-end">
+              <BackupCancelButton cancelKey={"flash"} name={t("nav.flash")} t={t} />
+            </div>
+          )}
 
           {/* Live backup/restore progress, pinned to the card's bottom edge */}
           {progress && (

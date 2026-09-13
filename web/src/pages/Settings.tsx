@@ -6,6 +6,7 @@ import { AccentCard, IconResetArrow } from "./settings/AccentCard";
 import { PasskeyCard } from "./settings/PasskeyCard";
 import { TwoFactorCard } from "./settings/TwoFactorCard";
 import { LanguageCard } from "./settings/LanguageCard";
+import { ReposCard } from "./settings/ReposCard";
 import { ThemeCard } from "./settings/ThemeCard";
 import { RestoreChecksSection } from "./settings/RestoreChecksSection";
 import { RcloneCard } from "./settings/RcloneCard";
@@ -3072,6 +3073,14 @@ export function SettingsPage() {
         />
       </Card>
       )}
+
+      {/* ------------------------------------------------------------------ */}
+      {/* STORAGE — Named repositories (#204)                                */}
+      {/* ------------------------------------------------------------------ */}
+      {/* Above the domain paths on purpose: these are the places an INDIVIDUAL
+          container, VM or folder set can be pointed at instead of the domain
+          path below, so the more specific answer is read first. */}
+      {tab === "storage" && <ReposCard hueIndex={nextHue()} />}
 
       {/* ------------------------------------------------------------------ */}
       {/* STORAGE — Backup paths                                             */}

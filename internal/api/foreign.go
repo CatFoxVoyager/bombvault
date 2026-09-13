@@ -776,7 +776,7 @@ func (s *Service) prepareForeignFileSetRestore(ctx context.Context, sess foreign
 		// Subtree from the SNAPSHOT itself (Paths[0]) so the to-folder restore drops
 		// the set's contents directly into target instead of nesting the absolute
 		// path (issue #62); "" (path-less snapshot) → whole-tree fallback.
-		subtree: snapshotSubtree(snaps, snapshotID),
+		subtree: snapshotRestoreRoot(snaps, snapshotID),
 	}, nil
 }
 

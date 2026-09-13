@@ -13,7 +13,7 @@
 // somebody stops by accident is an hour of somebody's evening rather than a
 // disaster. It does NOT borrow the restore's fault-red dialog.
 //
-// It POSTs the backup's exact progress key ("files:<id>", "container:<name>",
+// It POSTs the backup's exact progress key ("files:<name>", "container:<name>",
 // "vm:<name>", "flash", "config"). A key that is no longer running answers
 // cancelled:false and nothing happens, so the button in a browser tab that has
 // not caught up cannot produce an error.

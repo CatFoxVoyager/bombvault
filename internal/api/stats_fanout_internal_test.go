@@ -217,6 +217,14 @@ func TestPrimaryRemoteBudgetMeasuresWithoutSampling(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// The domain's OWN repository is the remote one. That is what the whole
+	// feature is about, and since #204 it has to be said explicitly: an item can
+	// be pointed at a named remote repository that is NOT the primary, and the
+	// budget, the alarm text and the latch key here all belong to the primary.
+	settings.ContainersPath = "s3:example.com/bucket/repo"
+	if err := st.UpdateSettings(settings); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := st.UpsertPrimaryRemoteTarget("containers", store.OffsiteTarget{
 		Repo: "s3:example.com/bucket/repo", Enabled: true, GrowthBudgetGB: 1,
 	}); err != nil {
@@ -230,6 +238,42 @@ func TestPrimaryRemoteBudgetMeasuresWithoutSampling(t *testing.T) {
 	}
 	if rows, err := st.ListRepoStats("containers", "local", 0); err != nil || len(rows) != 0 {
 		t.Fatalf("the budget check must not write a repo_stats row, got %d rows err=%v", len(rows), err)
+	}
+}
+
+// TestPrimaryRemoteBudgetIgnoresAnItemsOwnRepository pins the other half.
+//
+// Every call site passes the repository the ITEM it just backed up uses, which
+// since #204 can be a named repository on a different account entirely. The
+// budget it would be measured against comes from the primary-remote row, the
+// alarm names the primary and the latch is keyed "primary:"+domain - so a named
+// repository charged to it produced an over-budget alarm about a repository that
+// is not the primary, and with several items on several named repositories the
+// latch flapped between their sizes.
+func TestPrimaryRemoteBudgetIgnoresAnItemsOwnRepository(t *testing.T) {
+	eng := &statsFakeEngine{}
+	svc, st := statsTestService(t, eng)
+	svc.offsiteOverBudget = map[string]bool{}
+
+	settings, err := st.GetSettings()
+	if err != nil {
+		t.Fatal(err)
+	}
+	settings.ContainersPath = "s3:example.com/bucket/primary"
+	if err := st.UpdateSettings(settings); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := st.UpsertPrimaryRemoteTarget("containers", store.OffsiteTarget{
+		Repo: "s3:example.com/bucket/primary", Enabled: true, GrowthBudgetGB: 1,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	// A container on a named remote repository, which is not the primary.
+	svc.checkPrimaryRemoteBudget(context.Background(), "containers", "b2:bucket/cold", settings)
+
+	if got := strings.Join(eng.recorded(), ","); got != "" {
+		t.Fatalf("the primary's growth budget measured %q against a repository that is not the primary", got)
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/junkerderprovinz/bombvault/internal/restic"
 	"github.com/junkerderprovinz/bombvault/internal/store"
@@ -123,6 +124,32 @@ func (s *Service) primaryLimitsFor(domain, repo string) restic.Limits {
 // ModeFor plus the (possibly zero) limits produced before this existed.
 func (s *Service) primaryModeFor(settings store.Settings, domain, repo string) restic.Mode {
 	mode := s.ModeFor(settings)
+	// A NAMED repository (#204) answers for itself, and must: the domain's
+	// primary-remote row describes the DOMAIN's own repository, so applying its
+	// credentials, storage class and bandwidth caps to somebody else's bucket is
+	// simply the wrong row. Measured consequence if it is not checked first:
+	// a container pointed at b2:bucket/cold would be backed up with the
+	// credentials saved for the domain's s3: primary.
+	//
+	// It also closes the other half - the credsRef, storageClass and limits that
+	// /api/repos accepts and shows back were stored and never read by anything.
+	if named, ok := s.namedRepoForLocation(repo); ok {
+		mode.Limits = restic.Limits{UploadKBps: named.LimitUpload, DownloadKBps: named.LimitDownload}
+		if restic.IsRemoteRepo(repo) {
+			mode = s.applyTargetCreds(mode, settings, named)
+			// The row's own storage class wins, exactly as offsiteModeForTarget
+			// does it for a destination. Without this the field was accepted by
+			// /api/repos, stored, exported and echoed back while every pack object
+			// landed on the default tier - and two comments claimed otherwise.
+			// applyTargetCreds runs first so an explicit class beats the credential
+			// set's default rather than the other way round.
+			if named.StorageClass != "" {
+				mode.StorageClass = named.StorageClass
+			}
+			return mode
+		}
+		return mode
+	}
 	mode.Limits = s.primaryLimitsFor(domain, repo)
 	if !restic.IsRemoteRepo(repo) {
 		return mode
@@ -134,18 +161,147 @@ func (s *Service) primaryModeFor(settings store.Settings, domain, repo string) r
 	return s.applyTargetCreds(mode, settings, t)
 }
 
-// primaryIsImmutable reports whether repo is a domain's remote primary AND its
-// saved safety settings flag it append-only — the primary-repo counterpart of
-// offsiteImmutableFor, used by applyRetention to skip the local retention
-// prune exactly like copyToOffsiteTarget skips it for an immutable off-site
-// destination (the credentials on this box must not be able to delete the
-// only copy of the backup either).
-func (s *Service) primaryIsImmutable(domain, repo string) bool {
-	if !restic.IsRemoteRepo(repo) {
-		return false
+// namedRepoForLocation finds the named repository (#204) a resolved location
+// belongs to, so the mode and the append-only question can be answered from ITS
+// row rather than from the domain's.
+//
+// Matching on the RESOLVED location rather than threading the row through every
+// call site: the resolution already happened several layers up, and a location
+// identifies a repository uniquely - validateNamedRepo refuses a second row with
+// the same one, precisely so this lookup cannot be ambiguous.
+func (s *Service) namedRepoForLocation(repo string) (store.OffsiteTarget, bool) {
+	if strings.TrimSpace(repo) == "" {
+		return store.OffsiteTarget{}, false
 	}
-	t, ok := s.primaryRemoteTarget(domain)
-	return ok && t.Enabled && t.Immutable
+	rows, err := s.store.ListNamedRepos()
+	if err != nil {
+		// The read failed, so this answers "not a named repository" - and that is
+		// the WRONG way to fail for the append-only question, which is the one
+		// caller that can destroy something with the answer. It is logged rather
+		// than swallowed so a gate that opened because of a database hiccup leaves
+		// a trace; the callers that only want a MODE are correct with the fallback,
+		// which is why the failure is not propagated here.
+		//
+		// primaryIsImmutable does its own conservative read for exactly this
+		// reason - see the note there.
+		log.Printf("api: could not read the named repositories while resolving a location: %v", err)
+		return store.OffsiteTarget{}, false
+	}
+	for _, r := range rows {
+		// sameRepoLocation, not ==: this is the same "is it the same place?"
+		// question the refusals ask, and answering it differently here is how a
+		// remote bucket ended up written with the named row's credentials and
+		// maintained with the domain's. A trailing slash on one of the two
+		// spellings was enough.
+		if loc, rErr := s.resolveRepo(r.Repo); rErr == nil && sameRepoLocation(loc, repo) {
+			return r, true
+		}
+	}
+	return store.OffsiteTarget{}, false
+}
+
+// primaryIsImmutable reports whether repo is flagged append-only — the
+// primary-repo counterpart of offsiteImmutableFor, used by applyRetention to
+// skip the local retention prune exactly like copyToOffsiteTarget skips it for
+// an immutable off-site destination (the credentials on this box must not be
+// able to delete the only copy of the backup either).
+//
+// The NAMED row is consulted FIRST, before the remote check, and the order is
+// the whole point. The remote check belongs to the domain's own primary, where
+// "local" really does mean "this box's own disk, with no safety row anywhere".
+// A named repository (#204) is a different thing: "backups/cold" on a NAS share
+// is an ordinary archive somebody may want append-only, and its row exists
+// whether the location is remote or not.
+//
+// FIVE gates ask this function - the retention after a backup, the three bulk
+// deletes and DeleteSnapshot. The sixth, pruneDomain, asks refAppendOnly, which
+// answers a named repository straight from the row the reference carries and
+// never arrives here. That one therefore honoured the flag all along; it is the
+// retention gate that repacked a local named repository the screen promised was
+// protected, while the toggle said so in 42 languages.
+//
+// The distinction matters for the next change to this function: checking its
+// five call sites is not checking all six gates.
+func (s *Service) primaryIsImmutable(domain, repo string) bool {
+	return s.primaryAppendOnly(domain, repo) != appendOnlyNone
+}
+
+// appendOnlyFlag says WHICH toggle protects a repository, so the refusal can
+// name the card that toggle actually lives on. primaryIsImmutable's bool could
+// not: it answered one sentence for a named repository, a remote primary and a
+// store read failure alike, and two of those three sent the operator to a card
+// their repository is not listed on.
+type appendOnlyFlag int
+
+const (
+	appendOnlyNone appendOnlyFlag = iota
+	// The flag is on the named repository's own row (Settings, Repositories).
+	appendOnlyNamedRepo
+	// The flag is on the domain's remote-primary safety row.
+	appendOnlyPrimaryRemote
+	// Nobody's flag: a store read failed and the safe answer was given.
+	appendOnlyUnreadable
+)
+
+// appendOnlyRefusal turns the flag into the error to return. appendOnlyNone
+// never reaches here; it is a programming error to ask, so it gets the safe
+// sentence rather than nil.
+func appendOnlyRefusal(f appendOnlyFlag) error {
+	switch f {
+	case appendOnlyPrimaryRemote:
+		return errAppendOnlyPrimaryRemote
+	case appendOnlyUnreadable:
+		return errAppendOnlyUnknown
+	case appendOnlyNamedRepo, appendOnlyNone:
+	}
+	return errOffsiteAppendOnly
+}
+
+// primaryAppendOnly is primaryIsImmutable with the reason kept.
+func (s *Service) primaryAppendOnly(domain, repo string) appendOnlyFlag {
+	// A read failure answers YES, not no. This is the gate in front of forget and
+	// prune: "I could not find out whether this repository is protected" must not
+	// resolve to "go ahead and delete". The cost of being wrong the safe way is a
+	// prune that does not run tonight; the cost the other way is history that does
+	// not come back. The same rule the in-use count and repoSharedWithAnotherDomain
+	// already follow.
+	if _, err := s.store.ListNamedRepos(); err != nil {
+		log.Printf("api: could not read the named repositories; treating %s as append-only until it can be read", shortRepoName(repo)) //nolint:gosec // G706: the name is shortened
+		return appendOnlyUnreadable
+	}
+	// Same rule as primaryModeFor: a named repository answers for itself. The
+	// domain's append-only flag said nothing about it, and reading the domain's
+	// row here made retention skip a repository nobody had flagged - while the
+	// log line claimed the primary was append-only about a repository that is
+	// not the primary.
+	if named, ok := s.namedRepoForLocation(repo); ok {
+		if named.Enabled && named.Immutable {
+			return appendOnlyNamedRepo
+		}
+		return appendOnlyNone
+	}
+	if !restic.IsRemoteRepo(repo) {
+		return appendOnlyNone
+	}
+	// The SECOND store read, and it follows the same rule as the first. Routing
+	// through primaryRemoteTarget would not: that helper logs a read failure and
+	// answers "unconfigured", which is the right default for the three callers
+	// that use it to decide whether to apply a bandwidth cap or a growth budget,
+	// and exactly the wrong one here, where "unconfigured" means "not protected"
+	// in front of a forget and a prune. Asking the store directly is what lets
+	// this function fail closed on BOTH of its reads instead of one.
+	if s.store == nil {
+		return appendOnlyNone
+	}
+	t, ok, err := s.store.PrimaryRemoteTarget(domain)
+	if err != nil {
+		log.Printf("api: could not read the remote-primary safety row for %s; treating %s as append-only until it can be read", domain, shortRepoName(repo)) //nolint:gosec // G706: domain is a fixed literal and the name is shortened
+		return appendOnlyUnreadable
+	}
+	if ok && t.Enabled && t.Immutable {
+		return appendOnlyPrimaryRemote
+	}
+	return appendOnlyNone
 }
 
 // PrimaryRemoteConfig returns the domain's saved remote-primary safety

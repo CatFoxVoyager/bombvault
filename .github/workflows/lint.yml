@@ -12,8 +12,17 @@
 # only ran on main would not be seen until after the work it was meant to catch
 # — which is the same "it lived somewhere nobody ran it" failure the lint rules
 # themselves exist to fix. Public repo, so the extra runs cost nothing.
+#
+# `integration/**` is here for the same reason, learned the expensive way. A
+# long-lived integration branch carried 227 commits and nine rounds of review
+# without CI ever seeing one of them, because it was neither main nor an
+# experiment branch and had no pull request. What finally caught it was a
+# migration number that main had taken meanwhile — a collision any run of this
+# workflow on the branch would have surfaced the day it appeared, instead of two
+# days later as a blocker for the whole feature. Only lint.yml gets the branch:
+# build.yml publishes images, and a branch has no business doing that.
 on:
-  push: { branches: [main, feat/v4, "experiment/**"] }
+  push: { branches: [main, feat/v4, "experiment/**", "integration/**"] }
   pull_request: { branches: [main] }
 jobs:
   go:

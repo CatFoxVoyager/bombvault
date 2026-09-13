@@ -110,6 +110,42 @@ func validateOffsiteTargetInput(t store.OffsiteTarget) string {
 	return ""
 }
 
+// rejectOffsiteTargetOnNamedRepo is the reciprocal of the refusal
+// validateNamedRepo makes in the other direction: a named repository may not be
+// created on an off-site destination, and a destination may not be created on a
+// named repository. Only three of the four directions were closed, and the one
+// left open is the supported route into the state that costs data: an item
+// writes its ONLY copy into the place replication treats as the second copy,
+// the copy moves nothing, the run is stamped a success, and the off-site
+// retention policy then ages that only copy.
+//
+// Separate from validateOffsiteTargetInput because it needs the store, and that
+// function is also used by the settings import over rows it has not resolved
+// yet. Returns a user-facing sentence, or "" when the location is free.
+//
+// A store or resolution failure does NOT drop the guard silently: the same rule
+// validateNamedRepo states, for the same reason.
+func (h *Handler) rejectOffsiteTargetOnNamedRepo(t store.OffsiteTarget) string {
+	loc, err := h.svc.resolveRepo(t.Repo)
+	if err != nil {
+		return scrubError(err)
+	}
+	rows, lErr := h.store.ListNamedRepos()
+	if lErr != nil {
+		return "could not check this location against the named repositories: " + scrubError(lErr)
+	}
+	for _, r := range rows {
+		other, oErr := h.svc.resolveRepo(r.Repo)
+		if oErr != nil || !sameRepoLocation(other, loc) {
+			continue
+		}
+		// The row's NAME is not echoed: it is free text, and a name carrying a
+		// slash comes out of scrubError as "[path]". The interface has the list.
+		return "that location is already a named repository; backups written there would be their own off-site copy, and the off-site retention would then age the only copy"
+	}
+	return ""
+}
+
 // handleListOffsiteTargets lists off-site targets. GET /api/offsite/targets
 // (all, in stable per-domain order) or GET /api/offsite/targets?domain=<d> (one
 // domain). An unknown ?domain is rejected; an empty result is a valid [] list.
@@ -147,6 +183,10 @@ func (h *Handler) handleCreateOffsiteTarget(w http.ResponseWriter, r *http.Reque
 		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": msg})
 		return
 	}
+	if msg := h.rejectOffsiteTargetOnNamedRepo(t); msg != "" {
+		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": msg})
+		return
+	}
 	t.ID = "" // force a fresh id even if the client sent one
 	stored, err := h.store.UpsertOffsiteTarget(t)
 	if err != nil {
@@ -178,6 +218,18 @@ func (h *Handler) handleUpdateOffsiteTarget(w http.ResponseWriter, r *http.Reque
 	if msg := validateOffsiteTargetInput(t); msg != "" {
 		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": msg})
 		return
+	}
+	// Only when this request MOVES the destination, the same scoping
+	// rejectSettingsPathOnNamedRepo does and for the same reason. A row that
+	// already sits on a colliding location - installable through the settings
+	// import, or carried in from an older build - would otherwise refuse every
+	// later edit over a field the request does not touch, so the target could not
+	// be disabled, renamed or capped, only deleted.
+	if !sameRepoLocation(strings.TrimSpace(t.Repo), strings.TrimSpace(existing.Repo)) {
+		if msg := h.rejectOffsiteTargetOnNamedRepo(t); msg != "" {
+			writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": msg})
+			return
+		}
 	}
 	t.ID = existing.ID
 	t.CreatedAt = existing.CreatedAt // preserve; UpsertOffsiteTarget would otherwise keep it via ON CONFLICT, but be explicit

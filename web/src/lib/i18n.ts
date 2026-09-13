@@ -674,6 +674,7 @@ export const en = {
   "integrity.prune": "Prune",
   "integrity.verifyHint": "Run restic check to verify structure and metadata are intact.",
   "integrity.unlockHint": "Clear stale repository locks left by a crashed or interrupted run (fixes 'repository is already locked').",
+  "integrity.unlockPartial": "Not every repository was fully unlocked: {list}",
   "integrity.pruneHint": "Apply your retention policy and reclaim space (reclaims space only when no policy is set; can take a while).",
   "integrity.pruneConfirm": "Prune now applies your retention policy. It removes snapshots beyond your keep rules (last/daily/weekly/monthly) and reclaims space. With no policy set it only reclaims space. Continue?",
   // #109: the off-site wizard's tamper test, surfaced in Integrity & maintenance
@@ -729,7 +730,7 @@ export const en = {
   "hooks.pre": "Pre-backup command",
   "hooks.post": "Post-backup command",
   "folders.title": "Backup folders",
-  "folders.hint": "Choose which of this container's mapped folders to back up. The appdata folder is selected by default. Tick others to include them, or add a custom path under the host mount. Unticking everything reverts to the automatic appdata default.",
+  "folders.hint": "Choose which of this container's mapped folders to back up. The appdata folder is selected by default. Tick others to include them, or add a custom path under the host mount. Unticking everything is blocked; use Reset selection to return to the automatic appdata default.",
   "folders.appdataDefault": "appdata (default)",
   "folders.stackNote":
     "This container belongs to the Compose stack {stack}. Its project folder is backed up once for the whole stack, not once per service, so it is not listed here.",
@@ -741,6 +742,45 @@ export const en = {
   "folders.save": "Save folders",
   "folders.saved": "Saved",
   "folders.empty": "No mapped folders found for this container.",
+  // Selection tree (Phase 2) — aria-label on the role="tree" element.
+  "folders.treeLabel": "Backup folder selection",
+  // Truncated listing notice (D-06): the server caps listings at 500 entries.
+  "folders.truncatedList": "First 500 entries shown",
+  // Retry affordance on a node whose listing could not be read (TREE-06).
+  "folders.retry": "Try again",
+  // D-04 empty-selection guard: the inline line under a blocked toggle.
+  // Phase 3 plan 03: the reset is now the named exit to auto-detection, so
+  // the line teaches it instead of implying unticking everything reverts.
+  "folders.emptySelectionBlocked":
+    "At least one folder must stay selected. To back up none of this container, turn off Include in schedule. To return to automatic detection, use Reset selection.",
+  // Phase 3 (D-01): per-root effective-selection preview; {n} = stored
+  // maximal includes at-or-under the root. Invariant {n} key, no plural
+  // fork (stack.members precedent).
+  "folders.previewPaths": "{n} paths",
+  // Phase 3 (D-03/D-04): per-root reviewable-exclusions disclosure label;
+  // {n} = stored exclusions strictly under the root (dormant included).
+  "folders.exclusions": "{n} exclusions",
+  // Phase 3 plan 03 (D-05, INTEG-04): the reset control and its fail-tone
+  // confirm. The confirm message names every consequence (auto-detection
+  // returns, remembered exclusions are removed, and the per-root cache-folder
+  // settings go with them — review WR-04 made the reset body clear the
+  // CACHEDIR map, so the copy must promise exactly that) — the dialog carries
+  // the destructive weight, the trigger stays neutral.
+  "folders.resetSelection": "Reset selection",
+  "folders.resetConfirm":
+    "Reset the folder selection? The container returns to automatic detection (appdata default) and all remembered exclusions and cache-folder settings are removed.",
+  // Phase 3 plan 03 (D-02, SELECT-03): the narrowing note — event-driven
+  // (attempted < last-saved includes, gated on a prior backup), transient
+  // for the editor session. The message scopes the change to FUTURE
+  // snapshots explicitly; existing snapshots are named as unchanged.
+  "folders.narrowedNote":
+    "The selection now covers fewer folders than before. From the next backup on, snapshots will contain only the selected folders. Existing snapshots are unchanged.",
+  // Phase 3 plan 03 Task 2 (D-06, RESTIC-01): the per-root CACHEDIR.TAG
+  // switch. The scope line is the honest disclosure — the flag compiles into
+  // the backup argv for the WHOLE container, so a per-folder reading would
+  // over-promise what the switch does.
+  "folders.cachedirToggle": "Skip cache folders (CACHEDIR.TAG)",
+  "folders.cachedirScope": "Applies to the entire backup of this container, not only this folder.",
   "stophook.title": "Stop other containers",
   "stophook.hint": "Stop these other containers while this one is backed up (for example a database), then start them again afterwards.",
   "stophook.noCandidates": "No other installed containers found.",
@@ -1209,6 +1249,7 @@ export const en = {
   "common.removeFailed": "Remove failed",
   "common.saveFailed": "Save failed",
   "common.discoverFailed": "Discover failed",
+  "common.discoverSkipped": "Not everything was searched: {list}",
   "common.checkFailed": "Check failed",
   "common.networkError": "Network error",
   "common.backupFailed": "Backup failed",
@@ -1625,6 +1666,41 @@ export const en = {
   "files.pathHint": "The folder to back up, a relative subpath under the host mount root.",
   "files.excludes": "Exclude patterns",
   "files.excludesHint": "One pattern per line, passed to restic as --exclude (e.g. *.tmp, cache/).",
+  // #204: a folder set's own repository. Only the English strings are added
+  // here; every other language falls back to English for a missing key, so the
+  // feature works everywhere from the first build and the 41-language pass is
+  // its own mechanical round rather than a blocker.
+  "files.repo": "Repository for this set",
+  "files.repoPlaceholder": "leave empty to use the Folders repository",
+  "files.repoHint": "Where this set's backups are stored. Leave it empty and it uses the Folders repository. The list holds the repositories you set up under Settings, so a location is written down once and picked here.",
+  "files.repoLocked": "This cannot be changed once the set has backups: they stay in the repository they were written to, and nothing moves them. Delete this set's backups first, or create a new set.",
+  // Named repositories (#204). One vocabulary for all three domains, because the
+  // control is the same on a container, a VM and a folder set.
+  "repos.title": "Repositories",
+  "repos.intro": "Places backups can be written to. Set one up here, then pick it on an individual container, VM or folder set instead of using that domain's own repository.",
+  "repos.itemLabel": "Repository",
+  "repos.itemDefault": "the domain repository",
+  "repos.itemHint": "Where this item's backups go. Leave it on the domain repository unless this one needs its own - a large, rarely changing item that only wants an off-site copy is the usual reason. The list holds what you set up under Settings, so a location is written down once and picked here.",
+  "repos.itemLocked": "This cannot be changed once the item has backups: they stay in the repository they were written to, and nothing moves them. Delete its backups first.",
+  "repos.name": "Name",
+  "repos.namePlaceholder": "Cold storage",
+  "repos.location": "Location",
+  "repos.locationPlaceholder": "backups/cold or b2:bucket/path",
+  "repos.locationHint": "A folder under the host mount, or a restic remote such as b2:bucket/path, s3:..., sftp:..., rest:... or rclone:... - a remote is written to directly, with no local copy in between.",
+  "repos.locationLocked": "The location cannot be moved while something backs up here: everything written so far stays where it is, so the next backup would succeed into an empty repository. Add a second repository and point the items at that instead.",
+  "repos.enabled": "Available",
+  "repos.immutable": "Append-only",
+  "repos.immutableHint": "Nothing on this box may delete from this repository: prune and snapshot delete refuse instead of repacking it. Use it for an archive you mean to keep, and enforce it on the far side too where the provider offers object lock.",
+  "repos.inUse": "{n} in use",
+  "repos.unused": "not in use",
+  "repos.inUseUnknown": "in use: unknown",
+  "repos.off": "switched off",
+  "repos.disableWarn": "Items backing up to this repository: {n}. Switching it off does not move them: their next backup fails with a clear message instead of landing somewhere else. Switch it off?",
+  "repos.deleteBlocked": "Still in use. Point those items somewhere else first.",
+  "repos.deleteBlockedUnknown": "The server could not read whether anything still uses this repository, so it was not deleted. Try again in a moment.",
+  "repos.disableWarnUnknown": "The server could not read how many items back up to this repository. Switching it off does not move them: their next backup fails with a clear message instead of landing somewhere else. Switch it off?",
+  "repos.add": "Add repository",
+  "repos.empty": "No repositories yet. Everything uses its own domain's repository.",
   "files.excludesCount": "Excludes: {n}",
   "files.enabled": "Include in schedule",
   "files.effectiveLabel": "Result",
@@ -1651,6 +1727,23 @@ export const en = {
   // flash domain for this). Platform-expansion plan Task 7.
   "files.addPreset": "Add preset: Host system config",
   "files.addPresetHint": "A conservative starting point for host-level configuration outside your containers, not a claim of completeness. Review the folder before saving.",
+  // Phase 4 (INTEG-02): the Files-page selection tree, mounted per the UI-SPEC
+  // reuse contract with one root (the set's resolved Path, D-02). Copy is the
+  // UI-SPEC Copywriting Contract's en source of truth, pinned byte-exact by
+  // i18n.filesSelection.test.ts. Deliberately NOT the container folders.*
+  // wordings: folders.emptySelectionBlocked teaches "Reset selection", which
+  // does not exist here (D-06 - the files domain has no auto-detection to
+  // reset to, so the refusal orients to Delete folder set instead).
+  "files.foldersToggle": "Choose folders",
+  "files.foldersHint":
+    "Tick the folders this set covers. Untick a subfolder to leave it out; the count shows how many paths the next backup hands restic.",
+  "files.emptySelectionBlocked":
+    "A set needs at least one folder, so the last tick cannot be removed. Use Delete folder set if you no longer want this set.",
+  // A3: the dialog disclosure for plan 02's PATCH-time clear rule - changing
+  // the set's folder clears the ticked selection (clear-wins precedence),
+  // so the consequence is named before it happens. Rendered under the
+  // FolderBrowser in FileSetDialog (plan 04-04).
+  "files.pathChangeHint": "Changing the folder clears the ticked sub-folder selection.",
   // Files domain integration — Settings, Dashboard, Recovery (#62 task 7)
   "settings.filesEnabled": "Folders",
   "settings.filesEnabledHint": "Back up arbitrary folders under your mounts as file sets, independent of the other domains.",
@@ -1812,6 +1905,7 @@ export const en = {
   "settingsIO.previewExportedAt": "Exported",
   "settingsIO.previewAppVersion": "From BombVault version",
   "settingsIO.previewOffsiteTargets": "Off-site targets",
+  "settingsIO.previewNamedRepos": "Repositories",
   "settingsIO.previewCredentials": "Credentials",
   "settingsIO.previewCredsIncluded": "included",
   "settingsIO.previewCredsNotIncluded": "not included",
@@ -2420,6 +2514,7 @@ export const de: Translations = {
   "integrity.prune": "Aufräumen",
   "integrity.verifyHint": "restic check ausführen, um Struktur und Metadaten zu verifizieren.",
   "integrity.unlockHint": "Verwaiste Repo-Locks eines abgestürzten/abgebrochenen Laufs entfernen (behebt „repository is already locked“).",
+  "integrity.unlockPartial": "Nicht jedes Repository wurde vollständig entsperrt: {list}",
   "integrity.pruneHint": "Retention anwenden und Speicher freigeben (ohne Policy nur Speicher; kann dauern).",
   "integrity.pruneConfirm": "Aufräumen wendet jetzt deine Retention an: entfernt Snapshots jenseits deiner Keep-Regeln (last/daily/weekly/monthly) und gibt Speicher frei. Ohne Policy wird nur Speicher freigegeben. Fortfahren?",
   "integrity.appendOnly": "Append-only-Prüfung",
@@ -2473,7 +2568,7 @@ export const de: Translations = {
   "hooks.pre": "Pre-Backup-Befehl",
   "hooks.post": "Post-Backup-Befehl",
   "folders.title": "Gesicherte Ordner",
-  "folders.hint": "Wähle, welche gemappten Ordner dieses Containers gesichert werden. Der appdata-Ordner ist standardmäßig ausgewählt. Hake weitere an, um sie einzuschließen, oder füge einen eigenen Pfad unterhalb des Host-Mounts hinzu. Hakst du alles ab, gilt wieder die automatische appdata-Erkennung.",
+  "folders.hint": "Wähle, welche gemappten Ordner dieses Containers gesichert werden. Der appdata-Ordner ist standardmäßig ausgewählt. Hake weitere an, um sie einzuschließen, oder füge einen eigenen Pfad unterhalb des Host-Mounts hinzu. Einen Haken überall zu entfernen ist blockiert; nutze Auswahl zurücksetzen, um zum automatischen appdata-Standard zurückzukehren.",
   "folders.appdataDefault": "appdata (Standard)",
   "folders.stackNote":
     "Dieser Container gehört zum Compose-Stack {stack}. Sein Projektordner wird einmal für den ganzen Stack gesichert, nicht einmal je Dienst, und steht deshalb nicht in dieser Liste.",
@@ -2485,6 +2580,20 @@ export const de: Translations = {
   "folders.save": "Ordner speichern",
   "folders.saved": "Gespeichert",
   "folders.empty": "Keine gemappten Ordner für diesen Container gefunden.",
+  "folders.treeLabel": "Auswahl der Sicherungsordner",
+  "folders.truncatedList": "Erste 500 Einträge angezeigt",
+  "folders.retry": "Erneut versuchen",
+  "folders.emptySelectionBlocked":
+    "Mindestens ein Ordner muss ausgewählt bleiben. Um nichts von diesem Container zu sichern, deaktiviere die Zeitplan-Einbindung. Um zur automatischen Erkennung zurückzukehren, nutze Auswahl zurücksetzen.",
+  "folders.previewPaths": "{n} Pfade",
+  "folders.exclusions": "{n} Ausschlüsse",
+  "folders.resetSelection": "Auswahl zurücksetzen",
+  "folders.resetConfirm":
+    "Ordnerauswahl zurücksetzen? Der Container kehrt zur automatischen Erkennung zurück (appdata-Standard), und alle gemerkten Ausschlüsse und Cache-Ordner-Einstellungen werden entfernt.",
+  "folders.narrowedNote":
+    "Die Auswahl umfasst jetzt weniger Ordner als zuvor. Ab der nächsten Sicherung enthalten Snapshots nur noch die ausgewählten Ordner. Bestehende Snapshots bleiben unverändert.",
+  "folders.cachedirToggle": "Cache-Ordner überspringen (CACHEDIR.TAG)",
+  "folders.cachedirScope": "Gilt für die gesamte Sicherung dieses Containers, nicht nur für diesen Ordner.",
   "stophook.title": "Andere Container stoppen",
   "stophook.hint": "Diese anderen Container während des Backups dieses Containers stoppen (zum Beispiel eine Datenbank) und danach wieder starten.",
   "stophook.noCandidates": "Keine anderen installierten Container gefunden.",
@@ -2843,6 +2952,7 @@ export const de: Translations = {
   "common.removeFailed": "Entfernen fehlgeschlagen",
   "common.saveFailed": "Speichern fehlgeschlagen",
   "common.discoverFailed": "Suche fehlgeschlagen",
+  "common.discoverSkipped": "Nicht alles wurde durchsucht: {list}",
   "common.checkFailed": "Prüfung fehlgeschlagen",
   "common.networkError": "Netzwerkfehler",
   "common.backupFailed": "Sicherung fehlgeschlagen",
@@ -3222,6 +3332,35 @@ export const de: Translations = {
   "files.pathHint": "Der zu sichernde Ordner, ein relativer Unterpfad unter dem Host-Mount-Root.",
   "files.excludes": "Ausschlussmuster",
   "files.excludesHint": "Ein Muster pro Zeile, wird als --exclude an restic übergeben (z. B. *.tmp, cache/).",
+  "files.repo": "Repository für diesen Satz",
+  "files.repoPlaceholder": "leer lassen für das Ordner-Repository",
+  "files.repoHint": "Wo die Sicherungen dieses Satzes liegen. Leer bedeutet: das Ordner-Repository. In der Liste stehen die Repositories, die du in den Einstellungen angelegt hast, ein Ort wird also einmal aufgeschrieben und hier nur ausgewählt.",
+  "files.repoLocked": "Das lässt sich nicht mehr ändern, sobald der Satz Sicherungen hat: sie bleiben in dem Repository, in das sie geschrieben wurden, und nichts holt sie dort weg. Lösche erst die Sicherungen dieses Satzes oder lege einen neuen an.",
+  "repos.title": "Repositories",
+  "repos.intro": "Orte, an die Sicherungen geschrieben werden können. Lege hier einen an und wähle ihn dann bei einem einzelnen Container, einer VM oder einem Ordner-Satz aus, statt das Repository der Domäne zu nutzen.",
+  "repos.itemLabel": "Repository",
+  "repos.itemDefault": "das Repository der Domäne",
+  "repos.itemHint": "Wohin die Sicherungen dieses Eintrags gehen. Lass es beim Repository der Domäne, außer dieser Eintrag braucht ein eigenes - der übliche Grund ist ein großer, selten veränderter Eintrag, von dem nur eine Off-site-Kopie gebraucht wird. In der Liste steht, was du in den Einstellungen angelegt hast.",
+  "repos.itemLocked": "Das lässt sich nicht mehr ändern, sobald der Eintrag Sicherungen hat: sie bleiben in dem Repository, in das sie geschrieben wurden, und nichts holt sie dort weg. Lösche erst seine Sicherungen.",
+  "repos.name": "Name",
+  "repos.namePlaceholder": "Kalte Ablage",
+  "repos.location": "Ort",
+  "repos.locationPlaceholder": "backups/kalt oder b2:bucket/pfad",
+  "repos.locationHint": "Ein Ordner unter dem Host-Mount oder ein restic-Ziel wie b2:bucket/pfad, s3:..., sftp:..., rest:... oder rclone:... - auf ein entferntes Ziel wird direkt geschrieben, ohne lokale Zwischenkopie.",
+  "repos.locationLocked": "Der Ort lässt sich nicht verschieben, solange hierher gesichert wird: alles bisher Geschriebene bleibt liegen, die nächste Sicherung liefe also erfolgreich in ein leeres Repository. Lege ein zweites an und zeige mit den Einträgen dorthin.",
+  "repos.enabled": "Verfügbar",
+  "repos.immutable": "Nur anhängen",
+  "repos.immutableHint": "Von diesem Rechner darf nichts aus diesem Repository gelöscht werden: Aufräumen und Snapshot-Löschen verweigern, statt es umzuschreiben. Für ein Archiv gedacht, das bleiben soll, und wenn der Anbieter Object Lock kann, dort ebenfalls setzen.",
+  "repos.inUse": "{n}× in Verwendung",
+  "repos.unused": "nicht in Verwendung",
+  "repos.inUseUnknown": "in Verwendung: unbekannt",
+  "repos.off": "ausgeschaltet",
+  "repos.disableWarn": "Einträge, die hierher sichern: {n}. Ausschalten holt sie nicht weg: ihre nächste Sicherung schlägt mit einer klaren Meldung fehl, statt woanders zu landen. Ausschalten?",
+  "repos.deleteBlocked": "Wird noch verwendet. Zeig mit diesen Einträgen zuerst woandershin.",
+  "repos.deleteBlockedUnknown": "Der Server konnte nicht lesen, ob dieses Repository noch benutzt wird, deshalb wurde es nicht gelöscht. Versuch es gleich noch einmal.",
+  "repos.disableWarnUnknown": "Der Server konnte nicht lesen, wie viele Einträge hierher sichern. Ausschalten holt sie nicht weg: ihre nächste Sicherung schlägt mit einer klaren Meldung fehl, statt woanders zu landen. Ausschalten?",
+  "repos.add": "Repository hinzufügen",
+  "repos.empty": "Noch keine Repositories. Alles nutzt das Repository seiner eigenen Domäne.",
   "files.excludesCount": "Ausschlüsse: {n}",
   "files.enabled": "Im Zeitplan einschließen",
   "files.effectiveLabel": "Ergebnis",
@@ -3246,6 +3385,16 @@ export const de: Translations = {
   "files.cancel": "Abbrechen",
   "files.addPreset": "Preset hinzufügen: Systemkonfiguration",
   "files.addPresetHint": "Ein vorsichtiger Ausgangspunkt für die Konfiguration auf Host-Ebene außerhalb deiner Container, kein Anspruch auf Vollständigkeit. Ordner vor dem Speichern prüfen.",
+  // Phase 4 (INTEG-02): Auswahlbaum der Files-Seite (de-Übersetzungen der
+  // en-Quelle oben). Bewusst NICHT die Container-Wortwahl von folders.*:
+  // Der files-Domain hat keine automatische Erkennung als Rückfallebene,
+  // deshalb orientiert die Ablehnung an „Set entfernen" statt an einem Reset.
+  "files.foldersToggle": "Ordner auswählen",
+  "files.foldersHint":
+    "Kreuze die Ordner an, die dieses Set abdecken soll. Wähle ein Unterverzeichnis ab, um es wegzulassen; die Zahl zeigt, wie viele Pfade die nächste Sicherung an restic übergibt.",
+  "files.emptySelectionBlocked":
+    "Ein Set braucht mindestens einen Ordner, deshalb kann der letzte Haken nicht entfernt werden. Nutze Set entfernen, wenn du dieses Set nicht mehr brauchst.",
+  "files.pathChangeHint": "Wenn du den Ordner änderst, wird die angekreuzte Unterordner-Auswahl gelöscht.",
   // Files domain integration — Settings, Dashboard, Recovery (#62 task 7)
   "settings.filesEnabled": "Ordner",
   "settings.filesEnabledHint": "Beliebige Ordner unter deinen Mounts als Datei-Sets sichern, unabhängig von den anderen Domänen.",
@@ -3388,6 +3537,7 @@ export const de: Translations = {
   "settingsIO.previewExportedAt": "Exportiert",
   "settingsIO.previewAppVersion": "Aus BombVault-Version",
   "settingsIO.previewOffsiteTargets": "Off-site-Ziele",
+  "settingsIO.previewNamedRepos": "Repositories",
   "settingsIO.previewCredentials": "Zugangsdaten",
   "settingsIO.previewCredsIncluded": "enthalten",
   "settingsIO.previewCredsNotIncluded": "nicht enthalten",

@@ -234,6 +234,18 @@ export function IntegrityCard({
         action === "verify" ? await checkDomain(domain, source)
         : action === "unlock" ? await unlockDomain(domain, source)
         : await pruneDomain(domain, source);
+      // A green tick is not the whole answer for unlock, and neither is a red
+      // one. A repository shared with another domain gets only its STALE locks
+      // cleared, and a lock a previous container incarnation left is not stale
+      // until it is old enough - so this button can report either outcome and
+      // still have changed nothing on the very repository it was pressed for.
+      // That is a deliberate, permanent limitation, so it never becomes the
+      // error; the server names the repositories on both paths, and without
+      // this they were said only to the container log.
+      const skipped: string[] = "skipped" in r && Array.isArray(r.skipped) ? r.skipped : [];
+      if (skipped.length) {
+        push(t("integrity.unlockPartial").replace("{list}", skipped.join(", ")), "warn");
+      }
       if (r.ok) {
         setState((s) => ({ ...s, [key]: "ok" }));
       } else {

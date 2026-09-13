@@ -41,12 +41,20 @@ type exportCredentials struct {
 // non-secret off-site DESTINATION list; Credentials is present only when secrets
 // were requested. It intentionally carries NOTHING about backup repositories,
 // snapshots or run history — the import touches none of those.
+// NamedRepos is the per-item repository list (#204): the locations individual
+// containers, VMs and folder sets are pointed at instead of their domain's own.
+// They belong in the portable file for the same reason the off-site destinations
+// do - they are configuration, not backup data - and leaving them out was worse
+// than an omission: an item's own repo column holds the ID of one of these rows,
+// so a file that carried the items' choices but not the rows they name would
+// rebuild an instance whose items point at repositories that do not exist.
 type settingsExport struct {
 	SchemaVersion  int                 `json:"schemaVersion"`
 	ExportedAt     string              `json:"exportedAt"`
 	AppVersion     string              `json:"appVersion"`
 	Settings       settingsView        `json:"settings"`
 	OffsiteTargets []offsiteTargetView `json:"offsiteTargets"`
+	NamedRepos     []offsiteTargetView `json:"namedRepos,omitempty"`
 	Credentials    *exportCredentials  `json:"credentials,omitempty"`
 }
 
@@ -117,6 +125,9 @@ func redactExportLocations(exp *settingsExport) {
 	for i := range exp.OffsiteTargets {
 		exp.OffsiteTargets[i].Repo = scrubRepoLocation(exp.OffsiteTargets[i].Repo)
 	}
+	for i := range exp.NamedRepos {
+		exp.NamedRepos[i].Repo = scrubRepoLocation(exp.NamedRepos[i].Repo)
+	}
 }
 
 // redactedLocations names the repo-location slots in a file whose credential the
@@ -143,6 +154,16 @@ func redactedLocations(exp settingsExport) []string {
 			name = strings.TrimSpace(tv.ID)
 		}
 		out = append(out, "off-site target "+name)
+	}
+	for _, tv := range exp.NamedRepos {
+		if !locationRedacted(tv.Repo) {
+			continue
+		}
+		name := strings.TrimSpace(tv.Name)
+		if name == "" {
+			name = strings.TrimSpace(tv.ID)
+		}
+		out = append(out, "repository "+name)
 	}
 	return out
 }
@@ -182,6 +203,11 @@ func (h *Handler) handleExportSettings(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, failEnvelope(err))
 		return
 	}
+	namedRepos, err := h.store.ListNamedRepos()
+	if err != nil {
+		writeJSON(w, http.StatusOK, failEnvelope(err))
+		return
+	}
 
 	exp := settingsExport{
 		SchemaVersion:  settingsExportSchema,
@@ -189,6 +215,7 @@ func (h *Handler) handleExportSettings(w http.ResponseWriter, r *http.Request) {
 		AppVersion:     Version,
 		Settings:       buildSettingsView(s),
 		OffsiteTargets: offsiteTargetsToViews(targets),
+		NamedRepos:     offsiteTargetsToViews(namedRepos),
 	}
 
 	if withCredentials {
@@ -245,6 +272,7 @@ type importSummary struct {
 	ExportedAt     string              `json:"exportedAt"`
 	AppVersion     string              `json:"appVersion"`
 	OffsiteTargets int                 `json:"offsiteTargets"`
+	NamedRepos     int                 `json:"namedRepos"`
 	Credentials    importCredsPresence `json:"credentials"`
 	SettingsGroups []string            `json:"settingsGroups"`
 }
@@ -276,6 +304,10 @@ func (h *Handler) handleImportSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if msg := validateExport(exp, h.cfg.HostMountRoot); msg != "" {
+		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": msg})
+		return
+	}
+	if msg := h.rejectImportCollisions(exp); msg != "" {
 		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": msg})
 		return
 	}
@@ -327,6 +359,167 @@ func decodeExport(w http.ResponseWriter, r *http.Request) (settingsExport, bool)
 	return exp, true
 }
 
+// rejectImportCollisions is the half of the import validation that needs the
+// running service: whether two locations in the file name the SAME repository.
+// Returns a user-facing sentence, or "".
+//
+// Kept apart from validateExport because that one is deliberately a pure
+// function over the file, while this has to resolve every location. What it
+// enforces is exactly what the two write paths enforce: a named repository may
+// not sit on a domain's own repository, on a domain's off-site destination, on
+// an off-site target row, or on another named repository.
+//
+// Checked against the state the apply LEAVES BEHIND, not against the file's own
+// two halves. Those are not the same thing, and assuming they were left the hole
+// this guard was written to close. There are THREE shapes, and modelling only
+// the first two left a third of the hole open:
+//
+//   - a file with no namedRepos block writes the settings and leaves the
+//     instance's existing rows in place (applyImport only calls
+//     replaceNamedRepos when the block is non-empty), so an imported domain path
+//     can land on a stored repository nobody checked it against;
+//   - a row the file DOES carry that is IN USE here keeps its current location,
+//     because the move goes through SetNamedRepoLocationIfUnused, so the
+//     location the file names is not the location that ends up stored;
+//   - a stored row the file does NOT carry that is in use here is KEPT, because
+//     the delete goes through DeleteNamedRepoIfUnused. It survives the apply
+//     just as much as the file's own rows do, and nothing was checking the
+//     file's five domain paths against it.
+//
+// An import used to be the one write path that could install a collision the
+// forms refuse, and it surfaced at that repository's first backup - or, worse,
+// quietly, as a repository whose append-only flag and credentials answered for a
+// domain that never set them.
+func (h *Handler) rejectImportCollisions(exp settingsExport) string {
+	// One repository that will exist after the apply, with the name to call it by
+	// in the refusal - the file's rows are numbered as the operator sees them,
+	// and a row that only exists here has no number in the file to give.
+	type repoRow struct{ label, loc string }
+	// COPIED, never aliased. exp.NamedRepos is a slice of value structs, so
+	// writing through the slice header would edit the caller's export - and
+	// handleImportSettings hands that same export on to summarizeExport and
+	// applyImport, where a pinned location silently suppresses the apply's own
+	// "its location was NOT moved" notice. A validator must not rewrite the
+	// document it validates.
+	rows := make([]repoRow, 0, len(exp.NamedRepos))
+	stored, sErr := h.store.ListNamedRepos()
+	if sErr != nil {
+		return "could not check this file against the repositories already set up; try again"
+	}
+	storedByID := make(map[string]store.OffsiteTarget, len(stored))
+	for _, r := range stored {
+		storedByID[r.ID] = r
+	}
+	switch {
+	case len(exp.NamedRepos) == 0:
+		for _, r := range stored {
+			rows = append(rows, repoRow{fmt.Sprintf("the repository %q already set up here", scrubSafeName(r.Name)), r.Repo})
+		}
+	default:
+		inFile := make(map[string]bool, len(exp.NamedRepos))
+		for i, tv := range exp.NamedRepos {
+			id := strings.TrimSpace(tv.ID)
+			inFile[id] = true
+			loc := tv.Repo
+			if cur, ok := storedByID[id]; ok && id != "" {
+				// A row the apply cannot move keeps the location it has. Validating the
+				// one the file asks for would pass a check the stored state then fails.
+				n, cErr := h.store.ItemsUsingNamedRepo(id)
+				if cErr != nil {
+					// Refused rather than guessed. Pinning the location on a read error
+					// validates a location the apply may not write - it would move an
+					// unused row the guard had just decided to leave alone - and the
+					// response would still say applied.
+					return "could not check this file against the repositories already set up; try again"
+				}
+				if n != 0 {
+					loc = cur.Repo
+				} else {
+					// An UNUSED row does move - but not necessarily to what the file
+					// says. A location that arrived REDACTED (a plain export from an
+					// instance whose location carried a credential) is not written over
+					// a working one; importedLocation keeps the stored value there, and
+					// the guard has to validate the same thing the apply will store.
+					// Otherwise this checks "rest:https://[redacted]@host/repo" for
+					// collisions while the instance keeps its real location, which is
+					// the one that could actually collide.
+					loc = importedLocation(cur.Repo, tv.Repo)
+				}
+			}
+			rows = append(rows, repoRow{fmt.Sprintf("repository #%d", i+1), loc})
+		}
+		// …and the rows the apply KEEPS because they are in use and the file does
+		// not carry them.
+		for _, r := range stored {
+			if inFile[r.ID] {
+				continue
+			}
+			n, cErr := h.store.ItemsUsingNamedRepo(r.ID)
+			if cErr != nil {
+				return "could not check this file against the repositories already set up; try again"
+			}
+			if n != 0 {
+				rows = append(rows, repoRow{fmt.Sprintf("the repository %q already set up here", scrubSafeName(r.Name)), r.Repo})
+			}
+		}
+	}
+	if len(rows) == 0 {
+		return ""
+	}
+	resolve := func(loc string) (string, bool) {
+		loc = strings.TrimSpace(loc)
+		if loc == "" {
+			return "", false
+		}
+		out, err := h.svc.resolveRepo(loc)
+		if err != nil {
+			return "", false // validateExport already refused what cannot resolve
+		}
+		return out, true
+	}
+	type place struct{ label, loc string }
+	var occupied []place
+	s := exp.Settings
+	for _, p := range []place{
+		{"the Containers path", s.ContainersPath}, {"the VMs path", s.VMsPath},
+		{"the Flash path", s.FlashPath}, {"the Config path", s.ConfigPath},
+		{"the Folders path", s.FilesPath},
+		{"the Containers off-site destination", s.ContainersOffsite},
+		{"the VMs off-site destination", s.VMsOffsite},
+		{"the Flash off-site destination", s.FlashOffsite},
+		{"the Config off-site destination", s.ConfigOffsite},
+		{"the Folders off-site destination", s.FilesOffsite},
+	} {
+		if loc, ok := resolve(p.loc); ok {
+			occupied = append(occupied, place{p.label, loc})
+		}
+	}
+	for _, tv := range exp.OffsiteTargets {
+		if loc, ok := resolve(tv.Repo); ok {
+			occupied = append(occupied, place{"an off-site destination", loc})
+		}
+	}
+	seen := make([]string, 0, len(rows))
+	for _, row := range rows {
+		loc, ok := resolve(row.loc)
+		if !ok {
+			continue
+		}
+		for _, p := range occupied {
+			if sameRepoLocation(p.loc, loc) {
+				return fmt.Sprintf("%s is at %s; a repository has to be a different place", row.label, p.label)
+			}
+		}
+		for _, other := range seen {
+			if sameRepoLocation(other, loc) {
+				return fmt.Sprintf("%s names the same place as an earlier one; two rows over one repository would give every question about it two answers", row.label)
+			}
+		}
+		seen = append(seen, loc)
+	}
+	return ""
+}
+
 // validateExport checks the envelope is a supported, structurally-sane export.
 // Returns a user-facing error string, or "" when valid.
 //
@@ -348,6 +541,35 @@ func validateExport(exp settingsExport, mountRoot string) string {
 	for i, tv := range exp.OffsiteTargets {
 		if msg := validateOffsiteTargetInput(tv.toStoreTarget()); msg != "" {
 			return fmt.Sprintf("off-site target #%d: %s", i+1, msg)
+		}
+	}
+	// Named repositories (#204) carry NO domain - that is the point of them, an
+	// item picks one regardless of its domain - so they are checked against their
+	// own requirements rather than the off-site contract.
+	//
+	// What this loop enforces: a name, and every refusal in
+	// staticNamedRepoRefusals (non-empty location, no unprefixed rclone remote, a
+	// local path inside the mount root). Those need nothing but the string, so
+	// they are shared verbatim with the create form and cannot drift from it.
+	//
+	// The collision refusals, which need the running service to resolve every
+	// location, are next door in rejectImportCollisions and run on the same
+	// request. They are separate because this function is pure over the file and
+	// those are not, not because the import is allowed to skip them.
+	for i, tv := range exp.NamedRepos {
+		if strings.TrimSpace(tv.Name) == "" {
+			return fmt.Sprintf("repository #%d: needs a name", i+1)
+		}
+		loc := strings.TrimSpace(tv.Repo)
+		if loc == "" {
+			return fmt.Sprintf("repository #%d: needs a location", i+1)
+		}
+		// The SAME refusals the create form applies, not a hand-copied subset.
+		// Mirroring two of four here is how the import became the one write path
+		// that accepted what the form rejects; the shared check below cannot drift
+		// from the form because it IS the form's.
+		if msg := staticNamedRepoRefusals(loc, mountRoot); msg != "" {
+			return fmt.Sprintf("repository #%d (%s): %s", i+1, tv.Name, msg)
 		}
 	}
 	// Every schedule cadence in the imported settings must parse (same grammar the
@@ -404,6 +626,7 @@ func summarizeExport(exp settingsExport) importSummary {
 		ExportedAt:     exp.ExportedAt,
 		AppVersion:     exp.AppVersion,
 		OffsiteTargets: len(exp.OffsiteTargets),
+		NamedRepos:     len(exp.NamedRepos),
 		Credentials:    credsPresence(exp.Credentials),
 		SettingsGroups: settingsGroups(exp.Settings),
 	}
@@ -497,6 +720,16 @@ func (h *Handler) applyImport(r *http.Request, exp settingsExport) error {
 		return err
 	}
 
+	// The named repositories (#204) the same way, but ONLY when the file carries
+	// them. An older file has no namedRepos block at all, and reading that as "the
+	// source had none" would delete the repositories this instance is using and
+	// leave every item pointing at an id that no longer exists.
+	if len(exp.NamedRepos) > 0 {
+		if err := h.replaceNamedRepos(exp.NamedRepos); err != nil {
+			return err
+		}
+	}
+
 	// Credentials: present block → re-encrypt each NON-EMPTY kind with the local
 	// key. An empty kind (or a missing block) leaves the existing secret untouched
 	// — import is additive, it never wipes secrets.
@@ -549,6 +782,73 @@ func (h *Handler) replaceOffsiteTargets(views []offsiteTargetView) error {
 		t.Repo = importedLocation(currentRepo[t.ID], t.Repo)
 		if _, err := h.store.UpsertOffsiteTarget(t); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// replaceNamedRepos does for the per-item repositories (#204) what
+// replaceOffsiteTargets does for the destinations: drop the current rows and
+// re-insert the imported set, each keeping its id so the items that name it
+// still find it.
+//
+// A repository still IN USE is kept when the file does not carry it. Deleting it
+// would put those items silently back on their domain repository and send their
+// next backup somewhere else, which is exactly the failure the delete endpoint
+// refuses outright; an import must not be the way around that refusal.
+func (h *Handler) replaceNamedRepos(views []offsiteTargetView) error {
+	current, err := h.store.ListNamedRepos()
+	if err != nil {
+		return err
+	}
+	currentRepo := make(map[string]string, len(current))
+	imported := make(map[string]bool, len(views))
+	for _, tv := range views {
+		imported[strings.TrimSpace(tv.ID)] = true
+	}
+	for _, t := range current {
+		currentRepo[t.ID] = t.Repo
+		if imported[t.ID] {
+			continue // replaced below, id and all
+		}
+		// The same count-and-delete transaction the DELETE endpoint uses, so the
+		// import cannot become the way around its refusal.
+		n, dErr := h.store.DeleteNamedRepoIfUnused(t.ID)
+		if dErr != nil {
+			return dErr
+		}
+		if n > 0 {
+			log.Printf("api: settings import: repository %q is still in use by %d item(s) and is NOT in the imported file — kept", t.Name, n) //nolint:gosec // G706: the name is %q-quoted
+		}
+	}
+	for _, tv := range views {
+		t := tv.toStoreTarget()
+		t.Role = store.RoleRepo // toStoreTarget defaults to the off-site role
+		t.Domain = ""           // a named repository belongs to no single domain
+		t.ID = strings.TrimSpace(tv.ID)
+		t.CreatedAt = tv.CreatedAt
+		wanted := importedLocation(currentRepo[t.ID], t.Repo)
+		// The LOCATION is written through the guarded transaction, exactly as the
+		// delete half is. Writing it straight through the upsert made an import the
+		// way around the refusal the PATCH endpoint exists to enforce: everything
+		// already written stays where it is, so a moved location makes the next
+		// backup succeed into an empty repository. The rest of the row - name,
+		// limits, flags - moves no data and takes the ordinary upsert.
+		t.Repo = currentRepo[t.ID]
+		if t.Repo == "" {
+			t.Repo = wanted // a row this instance does not have yet: nothing to move
+		}
+		if _, err := h.store.UpsertOffsiteTarget(t); err != nil {
+			return err
+		}
+		if t.Repo != wanted {
+			n, mErr := h.store.SetNamedRepoLocationIfUnused(t.ID, wanted)
+			if mErr != nil {
+				return mErr
+			}
+			if n != 0 {
+				log.Printf("api: settings import: repository %q is in use here, so its location was NOT moved to the one in the file; the backups already written stay where they are", t.Name) //nolint:gosec // G706: the name is %q-quoted
+			}
 		}
 	}
 	return nil

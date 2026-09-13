@@ -1507,6 +1507,11 @@ export default function Recovery() {
   // step so an empty answer is interpretable rather than frightening (#196).
   const [readSources, setReadSources] = useState<string[]>([]);
   const [lastError, setLastError] = useState<string | null>(null);
+  // The repositories the probe left out ON PURPOSE - a named repository switched
+  // off. Its own state rather than lastError, because that one only renders in
+  // the warn state and this must be said at every pill colour without turning
+  // the pill amber.
+  const [readNote, setReadNote] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
 
   // Step 2 — attach settings. Own copy of the settings object; persisted through
@@ -1636,6 +1641,26 @@ export default function Recovery() {
       // "my backups are gone"; the same answer with the path in it reads as
       // "it looked in the wrong place", which is the truth and is actionable.
       setReadSources([c.repo, v.repo, f.repo].filter((r): r is string => !!r));
+      // A repository the probe could NOT open keeps the pill off green, even when
+      // the ones it could open had plenty in them. The probe's whole job is to
+      // answer "are my backups readable from here", and a green tick over a
+      // repository that was never opened answers a different, easier question.
+      //
+      // …but only a repository that could not be opened. A repository switched
+      // off on purpose is named in the same sentence, because after a /config
+      // loss the operator has every reason to know it was not searched - and it
+      // is not a fault, so it must not hold this pill amber for good and swallow
+      // the save-success toast that is gated on "ok". skippedNeedsAction is the
+      // server's own split between the two; see repoSkip.Note.
+      const skipped = [...new Set(results.flatMap((r) => r.skipped ?? []))];
+      const needsAction = results.some((r) => r.skippedNeedsAction === true);
+      const skippedLine = skipped.length > 0 ? t("common.discoverSkipped").replace("{list}", skipped.join(", ")) : null;
+      setReadNote(needsAction ? null : skippedLine);
+      if (skippedLine && needsAction) {
+        setLastError(skippedLine);
+        setReadableState("warn");
+        return "warn";
+      }
       // >0 = repo readable with content; 0 = reachable but empty / not attached yet.
       const next: StepState = total > 0 ? "ok" : "warn";
       setReadableState(next);
@@ -1648,7 +1673,11 @@ export default function Recovery() {
     } finally {
       setChecking(false);
     }
-  }, []);
+    // [t], since the skip sentence is translated here. useT's t closes over the
+    // active table and changes identity on a language switch, and setLanguage
+    // re-renders rather than remounts - so an empty array pinned the German
+    // sentence onto an English card. runDiscover below already declares it.
+  }, [t]);
 
   // connectPreview saves the paths/off-site/encryption fields (mirroring the
   // Settings save() merge onto the server baseline), then re-runs checkReadable
@@ -1835,13 +1864,20 @@ export default function Recovery() {
   // GlimStone follow-up pass (v8.0.0) audit note: `discovered`/`discoverError`
   // below are DELIBERATELY left as inline status, not migrated to a toast —
   // unlike Containers.tsx/VMs.tsx's own discoverMsg (which WAS migrated),
-  // this counts+error feed `discoverStepState` (this StepCard's own ok/warn
-  // pill) AND are read by Step 5 below to decide what's about to be restored.
+  // these counts, the error and the skip flag all feed `discoverStepState`
+  // (this StepCard's own ok/warn pill) AND are read by Step 5 below to decide
+  // what's about to be restored.
   // It's reference content the wizard's later steps depend on, not a one-shot
   // ping — the same "what did the last check say" reasoning as
   // IntegrityCard's persisted results.
   const [discovering, setDiscovering] = useState(false);
-  const [discovered, setDiscovered] = useState<{ containers: number; vms: number; files: number } | null>(null);
+  const [discovered, setDiscovered] = useState<{
+    containers: number;
+    vms: number;
+    files: number;
+    skipped: string[];
+    skippedNeedsAction: boolean;
+  } | null>(null);
   const [discoverError, setDiscoverError] = useState<string | null>(null);
   // Reconstructed target lists — populated by Discover, read by the review step.
   const [containers, setContainers] = useState<Container[]>([]);
@@ -1855,12 +1891,17 @@ export default function Recovery() {
       const counts = await discoverAll();
       // A discover that returned {ok:false} (e.g. a wrong APP_KEY) surfaces its
       // real message here — show it instead of the misleading "found none" state.
+      //
+      // The counts and the skip list are kept EITHER WAY. A pass searches the
+      // named repositories before the domain's own, so when the domain's own is
+      // what failed, whatever was found is real and already written back. On the
+      // screen somebody opens after losing their configuration, "could not open
+      // the domain repository" and "…and nothing was recovered" are two different
+      // answers, and only one of them is true.
       if (counts.error) {
         setDiscoverError(
           isKeyMismatch(counts.error) ? t("recovery.appKeyRemedy") : counts.error
         );
-        setDiscovered(null);
-        return;
       }
       // Re-fetch the reconstructed target lists and store them for the restore step.
       const [cs, vs, fs] = await Promise.all([listContainers(), listVMs(), listFileSets()]);
@@ -1876,10 +1917,18 @@ export default function Recovery() {
     }
   }, [t]);
 
+  // The pill answers for the WHOLE pass, not only for its count. A partial
+  // discover now keeps what it found and carries the error alongside it, so
+  // "four containers rebuilt" and "the domain repository could not be opened"
+  // are both true at once - and the summary dot said ok while the red error box
+  // and the skip line sat underneath it in the same card. checkReadable was
+  // given exactly this rule 250 lines up; this is the other half of it.
   const discoverStepState: StepState = discovered
-    ? discovered.containers + discovered.vms + discovered.files > 0
-      ? "ok"
-      : "warn"
+    ? discoverError || discovered.skippedNeedsAction
+      ? "warn"
+      : discovered.containers + discovered.vms + discovered.files > 0
+        ? "ok"
+        : "warn"
     : "idle";
 
   // Step 4 — review & restore all. anyActive() over the shared progress store is
@@ -2013,8 +2062,14 @@ export default function Recovery() {
             `nav.recovery` instead of retranslating a title in 42 locales also
             means the two can never drift apart again — pageTitle is deleted, so
             there is no second string left to disagree with this one. */}
-        <h1 className="text-lg font-semibold text-carbon-text">{t("recovery.pageTitle")}</h1>
-        <p className="text-sm text-carbon-textMuted mt-1 max-w-2xl">{t("recovery.intro")}</p>
+        {/* The house heading, byte-identical to every other page: text-2xl for
+            the title and text-carbon-textSub for the sentence under it. This one
+            sat on text-lg with the dimmer textMuted, so the tab with the most
+            frightening job in the app had the quietest heading in it. max-w-2xl
+            stays - it only limits the line length of a longer sentence, and
+            nothing about the size. */}
+        <h1 className="text-2xl font-semibold text-carbon-text">{t("recovery.pageTitle")}</h1>
+        <p className="mt-1 text-sm text-carbon-textSub max-w-2xl">{t("recovery.intro")}</p>
       </div>
 
       {/* Step 1 — Can BombVault read your backups? (repo-readable / APP_KEY)
@@ -2076,6 +2131,16 @@ export default function Recovery() {
         {/* The raw (scrubbed) backend message for a warn/other error, as a hint. */}
         {readableState === "warn" && lastError && (
           <p dir="ltr" className="text-xs text-carbon-textMuted font-mono break-all text-start">{lastError}</p>
+        )}
+
+        {/* …and the repositories that were deliberately left out, at every pill
+            colour. This one is not a fault, so it neither turns the pill amber
+            nor rides on lastError (which only renders in the warn state): it is
+            simply a true thing the person rebuilding an instance should know,
+            because a repository switched off is a repository that was not
+            searched. */}
+        {readNote && (
+          <p dir="ltr" className="text-xs text-carbon-textMuted break-words text-start">{readNote}</p>
         )}
       </StepCard>
 
@@ -2421,6 +2486,15 @@ export default function Recovery() {
         {/* 0/0/0 — nothing found: point back to Step 1/2. */}
         {discovered && discovered.containers + discovered.vms + discovered.files === 0 && (
           <p className="text-sm text-statusWarn">{t("recovery.foundNone")}</p>
+        )}
+        {/* A repository the pass could not open. This is the screen somebody
+            reaches after losing their /config, so "found none" has to be able to
+            say "…and here is what was never looked at", otherwise an unmounted
+            share reads exactly like an empty archive. */}
+        {discovered && discovered.skipped.length > 0 && (
+          <p className="text-sm text-statusWarn">
+            {t("common.discoverSkipped").replace("{list}", discovered.skipped.join(", "))}
+          </p>
         )}
         {discoverError && (
           <div className="rounded-card bg-statusFailBgSoft px-3 py-2.5 text-xs text-statusFail leading-relaxed wrap-break-word">

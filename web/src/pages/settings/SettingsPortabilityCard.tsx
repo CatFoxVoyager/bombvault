@@ -235,6 +235,10 @@ export function SettingsPortabilityCard({
                 <dd dir="ltr" className="font-mono text-start">{preview.offsiteTargets}</dd>
               </div>
               <div className="flex justify-between gap-3">
+                <dt className="text-carbon-textMuted">{t("settingsIO.previewNamedRepos")}</dt>
+                <dd dir="ltr" className="font-mono text-start">{preview.namedRepos ?? 0}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
                 <dt className="text-carbon-textMuted">{t("settingsIO.previewCredentials")}</dt>
                 <dd className="text-end">
                   {preview.credentials.present

@@ -1352,6 +1352,164 @@ CREATE TABLE IF NOT EXISTS passkeys (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_passkeys_credential ON passkeys(credential_id);
 CREATE INDEX IF NOT EXISTS idx_passkeys_rp ON passkeys(rp_id);`,
 	},
+	{
+		// Per-root CACHEDIR.TAG toggle (RESTIC-01, D-07): a JSON map of
+		// backup-root host path → bool, the same JSON-column shape excludes uses.
+		// '{}' = no root opted in. Owned by SetExcludeCaches (never reset by
+		// Upsert). Only the boolean UNION of the values ever reaches restic argv
+		// (the constant --exclude-caches flag) — the keys are UI state, never
+		// emitted.
+		version:          101,
+		name:             "target_exclude_caches",
+		alreadySatisfied: columnPresent("targets", "exclude_caches"),
+		sql:              "ALTER TABLE targets ADD COLUMN exclude_caches TEXT NOT NULL DEFAULT '{}';",
+	},
+	{
+		// The file set's tree selection (Phase 4 file-sets parity, D-03): the
+		// same flat encoding as the containers' backupPaths set — bare entries
+		// are included roots, "!"-prefixed entries are deselected branches —
+		// stored as ONE JSON array in one nullable TEXT column.
+		//
+		// Nullable, deliberately with NO default and NO NOT NULL: NULL means
+		// "never touched by the tree" and is the legacy switch — a NULL set
+		// backs up exactly as it did before this column existed (the single
+		// positional [resolved Path]), so every existing row reads NULL after
+		// the ALTER and nothing about existing sets changes. A nullable ADD
+		// COLUMN also accepts the existing CreateFileSet INSERT, which omits
+		// the column, unchanged. '[]' is never stored for that state (a
+		// non-nil empty slice would be a third, meaningless state); the
+		// nil/NULL vs written distinction IS the compile-time switch
+		// (internal/api service.go BackupFileSet is its only reader).
+		//
+		// Owned by SetFileSetSelectedPaths, never written by UpdateFileSet —
+		// the same split as schedule_cadence above: an edit that does not know
+		// about the selection must not be able to clear one by omitting it.
+		// This package treats the column as an opaque TEXT blob; normalization
+		// and compilation of the entries live in the API tier
+		// (internal/api/selection.go), which owns the meaning of "!".
+		version:          102,
+		name:             "file_set_selected_paths",
+		alreadySatisfied: columnPresent("file_sets", "selected_paths"),
+		sql:              "ALTER TABLE file_sets ADD COLUMN selected_paths TEXT;",
+	},
+	{
+		// A file set's OPTIONAL own repository (#204). Empty is the only value
+		// every existing row can have and the only one that means anything by
+		// default: "use the Folders domain repository", which is what every set
+		// did before this column existed.
+		//
+		// NOT NULL DEFAULT '' rather than nullable, unlike selected_paths above.
+		// The difference is what the two columns mean when unset. An unset
+		// selection has to be distinguishable from a deliberately empty one, so
+		// it needs NULL. An unset repository has exactly one reading - follow the
+		// domain - so a plain empty string carries the whole meaning, and every
+		// reader gets a string it can compare without a nil check.
+		//
+		// The column held a repository LOCATION when this migration was written -
+		// the first cut of #204 - and holds a NAMED REPOSITORY'S ID today; see
+		// migration 106, which converts the one into the other. The migration
+		// itself is unchanged either way: it adds an empty TEXT column, and
+		// "empty" means the same thing in both shapes ("use the Folders domain
+		// repository").
+		version: 103, name: "file_set_repo",
+		alreadySatisfied: columnPresent("file_sets", "repo"),
+		sql:              "ALTER TABLE file_sets ADD COLUMN repo TEXT NOT NULL DEFAULT '';",
+	},
+	{
+		// The same per-item repository override for containers (#204, which asks
+		// for "a VM or folder" and gets all three, because a container has the
+		// same reason: one large, rarely-changing item that only wants an
+		// off-site copy should not have to travel through the domain repository
+		// first).
+		//
+		// The column holds a NAMED REPOSITORY'S ID, not a location. Locations are
+		// written once in Settings and picked here, which is the difference
+		// between configuring ten containers and typing a B2 bucket path ten
+		// times. Empty means "use the Containers domain repository", exactly as
+		// before.
+		version:          104,
+		name:             "target_repo",
+		alreadySatisfied: columnPresent("targets", "repo"),
+		sql:              "ALTER TABLE targets ADD COLUMN repo TEXT NOT NULL DEFAULT '';",
+	},
+	{
+		// The VM half of the same override (#204's own wording: "a VM or folder").
+		version:          105,
+		name:             "vm_repo",
+		alreadySatisfied: columnPresent("vms", "repo"),
+		sql:              "ALTER TABLE vms ADD COLUMN repo TEXT NOT NULL DEFAULT '';",
+	},
+	{
+		// file_sets.repo changed MEANING inside this feature. Migration 103 gave
+		// it to the first cut of #204, which wrote a free-text LOCATION into it
+		// ("backups/cold", "b2:bucket/docs") and resolved it directly. The shape
+		// that shipped stores a named repository's ID instead.
+		//
+		// A left-over location is not merely stale, it is a trap with no way
+		// out: the resolution looks the value up as an id, finds nothing, and
+		// refuses - correctly, because a dangling override must never fall back
+		// silently. So every backup, restore and snapshot listing for that set
+		// fails; and the repair is refused too, because the set HAS backups and
+		// the picker is frozen for exactly that reason. The set would need a
+		// hand edit of the database.
+		//
+		// Clearing it puts the set back on the Folders repository, which is
+		// where it was before anyone typed a location, and which is a state the
+		// interface can explain and the user can change. Only values that are
+		// not a known repository row are touched, so an id written by the
+		// shipped shape survives untouched.
+		//
+		// Only a machine that ran a build of this branch can have such a value;
+		// on every other database the statement matches nothing.
+		version: 106,
+		name:    "file_set_repo_is_an_id",
+		sql: `UPDATE file_sets SET repo = ''
+		      WHERE repo != ''
+		        AND repo NOT IN (SELECT id FROM offsite_targets WHERE role = 'repo');`,
+	},
+	{
+		// RENUMBERING RECOVERY for the contested 100 (see the NUMBERING HAZARD note
+		// above v90; this is the same shape as v92, for the same reason, a second
+		// time).
+		//
+		// The collision: main published `100 = passkeys` through :latest, while
+		// this branch had independently taken `100 = target_exclude_caches`. The
+		// branch's six are renumbered to 101..106 above, so a :latest database
+		// takes all of them normally. The other direction is the one that needs
+		// this step: a database born under a BUILD OF THIS BRANCH already has the
+		// row `version = 100`, and Migrate skips a recorded version before it ever
+		// asks alreadySatisfied - so on such a database the passkeys table would
+		// never be created, and every passkey route would fail against a missing
+		// table forever.
+		//
+		// A fresh number nobody has recorded, and a body that is idempotent in
+		// plain SQL, so it runs exactly once on every database whichever numbering
+		// it was born under and does nothing where the table already exists. No
+		// alreadySatisfied guard on purpose: CREATE TABLE IF NOT EXISTS already
+		// says it, and a guard would only hide whether this ever fired.
+		//
+		// Keep this idempotent, and keep it a recovery step rather than a place to
+		// put new schema work: new work gets its own number and runs
+		// unconditionally.
+		version: 107,
+		name:    "passkeys_renumbering_recovery",
+		sql: `
+CREATE TABLE IF NOT EXISTS passkeys (
+	id            TEXT PRIMARY KEY,
+	name          TEXT    NOT NULL DEFAULT '',
+	credential_id BLOB    NOT NULL,
+	public_key    BLOB    NOT NULL,
+	aaguid        BLOB    NOT NULL DEFAULT x'',
+	sign_count    INTEGER NOT NULL DEFAULT 0,
+	transports    TEXT    NOT NULL DEFAULT '',
+	rp_id         TEXT    NOT NULL DEFAULT '',
+	backed_up     INTEGER NOT NULL DEFAULT 0,
+	created_at    INTEGER NOT NULL DEFAULT 0,
+	last_used_at  INTEGER NOT NULL DEFAULT 0
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_passkeys_credential ON passkeys(credential_id);
+CREATE INDEX IF NOT EXISTS idx_passkeys_rp ON passkeys(rp_id);`,
+	},
 }
 
 // Migrate applies any pending forward-only migrations to db.
