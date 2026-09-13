@@ -374,7 +374,7 @@ const da: Partial<Translations> = {
   "auth.passkeysOff": "Ingen registreret",
   "auth.passkeyNeedsPassword": "Sæt først en adgangskode. En adgangsnøgle er en ekstra vej ind, aldrig den eneste.",
   "auth.passkeyNotHere": "Ikke tilgængelig på denne adresse",
-  "auth.passkeyNeedsDomain": "En adgangsnøgle hører til et værtsnavn og virker derfor ikke på en ren IP-adresse.",
+  "auth.passkeyNeedsDomain": "En adgangsnøgle hører til et værtsnavn: en ren IP-adresse kan ikke bære en, og heller ikke en side med et certifikat, browseren ikke stoler på. Nå BombVault via en omvendt proxy under et rigtigt navn med et gyldigt certifikat, åbn det der, og registrér nøglen på den adresse.",
   "auth.passkeyNoBrowser": "Denne browser kan ikke adgangsnøgler.",
   "auth.passkeyUsableHere": "Virker på denne adresse",
   "auth.passkeyOtherAddress": "Hører til {host} og kan ikke bruges her",

@@ -914,7 +914,7 @@ const is: Partial<Translations> = {
   "auth.passkeysOff": "Enginn skráður",
   "auth.passkeyNeedsPassword": "Settu fyrst lykilorð. Aðgangslykill er auka leið inn, aldrei sú eina.",
   "auth.passkeyNotHere": "Ekki í boði á þessu vistfangi",
-  "auth.passkeyNeedsDomain": "Aðgangslykill er bundinn hýsilheiti og virkar því ekki á beru IP-vistfangi.",
+  "auth.passkeyNeedsDomain": "Aðgangslykill er bundinn hýsilheiti: bert IP-vistfang ber hann ekki, né heldur síða með vottorði sem vafrinn treystir ekki. Náðu í BombVault gegnum öfugan milliþjón undir raunverulegu heiti með gildu vottorði, opnaðu það þar og skráðu lykilinn á því vistfangi.",
   "auth.passkeyNoBrowser": "Þessi vafri styður ekki aðgangslykla.",
   "auth.passkeyUsableHere": "Virkar á þessu vistfangi",
   "auth.passkeyOtherAddress": "Tilheyrir {host} og nýtist ekki hér",

@@ -374,7 +374,7 @@ const ko: Partial<Translations> = {
   "auth.passkeysOff": "등록된 것 없음",
   "auth.passkeyNeedsPassword": "먼저 로그인 비밀번호를 설정하세요. 패스키는 추가 통로이지 유일한 통로가 아닙니다.",
   "auth.passkeyNotHere": "이 주소에서는 사용할 수 없음",
-  "auth.passkeyNeedsDomain": "패스키는 호스트 이름에 묶이므로 IP 주소만으로는 작동하지 않습니다.",
+  "auth.passkeyNeedsDomain": "패스키는 호스트 이름에 묶입니다. IP 주소만으로는 가질 수 없고, 브라우저가 신뢰하지 않는 인증서를 쓰는 페이지도 마찬가지입니다. 실제 이름과 유효한 인증서를 가진 리버스 프록시로 BombVault에 접속해 그 주소에서 키를 등록하세요.",
   "auth.passkeyNoBrowser": "이 브라우저는 패스키를 지원하지 않습니다.",
   "auth.passkeyUsableHere": "이 주소에서 작동함",
   "auth.passkeyOtherAddress": "{host}용이라 여기서는 쓸 수 없음",

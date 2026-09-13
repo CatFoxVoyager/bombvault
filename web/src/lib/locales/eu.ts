@@ -914,7 +914,7 @@ const eu: Partial<Translations> = {
   "auth.passkeysOff": "Bat ere ez erregistratuta",
   "auth.passkeyNeedsPassword": "Ezarri lehenik pasahitz bat. Sarbide-gakoa barrurako bide gehigarri bat da, inoiz ez bakarra.",
   "auth.passkeyNotHere": "Helbide honetan ez dago erabilgarri",
-  "auth.passkeyNeedsDomain": "Sarbide-gakoa ostalari-izen bati lotuta dago, beraz IP helbide soil batean ez dabil.",
+  "auth.passkeyNeedsDomain": "Sarbide-gakoa ostalari-izen bati lotuta dago: IP helbide soil batek ezin du eraman, ezta nabigatzaileak fidagarritzat jotzen ez duen ziurtagiria duen orri batek ere. Iritsi BombVaultera alderantzizko proxy baten bidez benetako izen eta baliozko ziurtagiriarekin, ireki han eta erregistratu gakoa helbide horretan.",
   "auth.passkeyNoBrowser": "Nabigatzaile honek ez ditu sarbide-gakoak onartzen.",
   "auth.passkeyUsableHere": "Helbide honetan dabil",
   "auth.passkeyOtherAddress": "{host} helbidearena da eta hemen ezin da erabili",

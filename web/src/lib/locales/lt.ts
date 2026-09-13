@@ -914,7 +914,7 @@ const lt: Partial<Translations> = {
   "auth.passkeysOff": "Nėra užregistruotų",
   "auth.passkeyNeedsPassword": "Pirmiausia nustatykite slaptažodį. Prieigos raktas yra papildomas kelias vidun, niekada ne vienintelis.",
   "auth.passkeyNotHere": "Šiuo adresu neprieinama",
-  "auth.passkeyNeedsDomain": "Prieigos raktas susietas su kompiuterio vardu, todėl su vien IP adresu neveikia.",
+  "auth.passkeyNeedsDomain": "Prieigos raktas susietas su kompiuterio vardu: vien IP adresas jo neišlaikys, kaip ir puslapis, kurio sertifikatu naršyklė nepasitiki. Pasiekite BombVault per atvirkštinį tarpinį serverį tikru vardu su galiojančiu sertifikatu, atidarykite jį ten ir užregistruokite raktą tuo adresu.",
   "auth.passkeyNoBrowser": "Ši naršyklė prieigos raktų nepalaiko.",
   "auth.passkeyUsableHere": "Veikia šiuo adresu",
   "auth.passkeyOtherAddress": "Priklauso {host} ir čia netinka",

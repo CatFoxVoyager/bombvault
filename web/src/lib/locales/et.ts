@@ -914,7 +914,7 @@ const et: Partial<Translations> = {
   "auth.passkeysOff": "Ühtegi registreeritud pole",
   "auth.passkeyNeedsPassword": "Sea kõigepealt parool. Pääsuvõti on lisatee sisse, mitte kunagi ainus.",
   "auth.passkeyNotHere": "Sellel aadressil pole saadaval",
-  "auth.passkeyNeedsDomain": "Pääsuvõti on seotud hostinimega ega tööta seetõttu paljal IP-aadressil.",
+  "auth.passkeyNeedsDomain": "Pääsuvõti on seotud hostinimega: paljas IP-aadress ei kanna seda, samuti mitte leht, mille sertifikaati brauser ei usalda. Jõua BombVaultini pöördproksi kaudu päris nime ja kehtiva sertifikaadiga, ava see seal ja registreeri võti sellel aadressil.",
   "auth.passkeyNoBrowser": "See brauser ei toeta pääsuvõtmeid.",
   "auth.passkeyUsableHere": "Töötab sellel aadressil",
   "auth.passkeyOtherAddress": "Kuulub aadressile {host} ja siin ei sobi",

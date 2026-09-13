@@ -123,12 +123,17 @@ export function PasskeyCard({
 
       {/* THE explanation. Shown whenever this address cannot carry a passkey,
           which on a stock Unraid installation is always: the template opens
-          https://[IP]:3443 with a certificate that covers only localhost. The
-          server's own sentence is used rather than a second copy of it here. */}
+          https://[IP]:3443 with a certificate that covers only localhost.
+          TRANSLATED, not the server's sentence. The server answers in English
+          because its errors are English everywhere, and this is not an error
+          tucked into a toast - it is the paragraph that explains the whole
+          feature, on the card, in front of somebody whose interface is in their
+          own language. Measured in the browser first: the English text really
+          did land in the middle of a German page. */}
       {passwordSet && !addressOK && (
         <div className="rounded-card bg-statusWarnBgSoft px-3 py-2.5 text-sm text-carbon-text leading-relaxed">
           <p className="font-medium">{t("auth.passkeyNotHere")}</p>
-          <p className="mt-1 text-carbon-textSub">{status?.reason ?? t("auth.passkeyNeedsDomain")}</p>
+          <p className="mt-1 text-carbon-textSub">{t("auth.passkeyNeedsDomain")}</p>
         </div>
       )}
 

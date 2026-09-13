@@ -374,7 +374,7 @@ const ar: Partial<Translations> = {
   "auth.passkeysOff": "لا يوجد أي مفتاح مسجَّل",
   "auth.passkeyNeedsPassword": "عيّن كلمة مرور أولاً. مفتاح المرور طريق إضافي للدخول، وليس الطريق الوحيد أبدًا.",
   "auth.passkeyNotHere": "غير متاح على هذا العنوان",
-  "auth.passkeyNeedsDomain": "يرتبط مفتاح المرور باسم مضيف، ولذلك لا يعمل على عنوان IP مجرد.",
+  "auth.passkeyNeedsDomain": "يرتبط مفتاح المرور باسم مضيف: عنوان IP مجرد لا يحمله، ولا صفحة لا يثق المتصفح بشهادتها. صِل إلى BombVault عبر وكيل عكسي باسم حقيقي وشهادة صالحة، افتحه هناك وسجّل المفتاح على ذلك العنوان.",
   "auth.passkeyNoBrowser": "هذا المتصفح لا يدعم مفاتيح المرور.",
   "auth.passkeyUsableHere": "يعمل على هذا العنوان",
   "auth.passkeyOtherAddress": "يخص {host} ولا يمكن استخدامه هنا",

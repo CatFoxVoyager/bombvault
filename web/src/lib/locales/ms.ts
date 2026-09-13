@@ -914,7 +914,7 @@ const ms: Partial<Translations> = {
   "auth.passkeysOff": "Tiada yang didaftarkan",
   "auth.passkeyNeedsPassword": "Tetapkan kata laluan dahulu. Kunci laluan ialah jalan masuk tambahan, bukan satu-satunya.",
   "auth.passkeyNotHere": "Tidak tersedia di alamat ini",
-  "auth.passkeyNeedsDomain": "Kunci laluan terikat pada nama hos, jadi ia tidak berfungsi pada alamat IP semata-mata.",
+  "auth.passkeyNeedsDomain": "Kunci laluan terikat pada nama hos: alamat IP semata-mata tidak boleh membawanya, begitu juga halaman yang sijilnya tidak dipercayai pelayar. Capai BombVault melalui proksi songsang dengan nama sebenar dan sijil sah, buka di sana, dan daftarkan kunci pada alamat itu.",
   "auth.passkeyNoBrowser": "Pelayar ini tidak menyokong kunci laluan.",
   "auth.passkeyUsableHere": "Berfungsi di alamat ini",
   "auth.passkeyOtherAddress": "Milik {host} dan tidak boleh digunakan di sini",

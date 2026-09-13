@@ -914,7 +914,7 @@ const hr: Partial<Translations> = {
   "auth.passkeysOff": "Nijedan nije registriran",
   "auth.passkeyNeedsPassword": "Prvo postavite lozinku. Pristupni ključ je dodatni put unutra, nikad jedini.",
   "auth.passkeyNotHere": "Nije dostupno na ovoj adresi",
-  "auth.passkeyNeedsDomain": "Pristupni ključ vezan je uz ime poslužitelja pa na goloj IP adresi ne radi.",
+  "auth.passkeyNeedsDomain": "Pristupni ključ vezan je uz ime poslužitelja: gola IP adresa ga ne nosi, kao ni stranica čijem certifikatu preglednik ne vjeruje. Dođite do BombVaulta preko obrnutog proxyja pod pravim imenom s valjanim certifikatom, otvorite ga ondje i registrirajte ključ na toj adresi.",
   "auth.passkeyNoBrowser": "Ovaj preglednik ne podržava pristupne ključeve.",
   "auth.passkeyUsableHere": "Radi na ovoj adresi",
   "auth.passkeyOtherAddress": "Pripada {host} i ovdje se ne može koristiti",

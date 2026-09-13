@@ -374,7 +374,7 @@ const fi: Partial<Translations> = {
   "auth.passkeysOff": "Ei yhtään rekisteröityä",
   "auth.passkeyNeedsPassword": "Aseta ensin salasana. Pääsyavain on lisäreitti sisään, ei koskaan ainoa.",
   "auth.passkeyNotHere": "Ei käytettävissä tässä osoitteessa",
-  "auth.passkeyNeedsDomain": "Pääsyavain on sidottu isäntänimeen, joten se ei toimi pelkässä IP-osoitteessa.",
+  "auth.passkeyNeedsDomain": "Pääsyavain on sidottu isäntänimeen: pelkkä IP-osoite ei kanna sitä, eikä sivu, jonka varmenteeseen selain ei luota. Tavoita BombVault käänteisen välityspalvelimen kautta oikealla nimellä ja kelvollisella varmenteella, avaa se siellä ja rekisteröi avain siihen osoitteeseen.",
   "auth.passkeyNoBrowser": "Tämä selain ei osaa pääsyavaimia.",
   "auth.passkeyUsableHere": "Toimii tässä osoitteessa",
   "auth.passkeyOtherAddress": "Kuuluu osoitteeseen {host} eikä toimi täällä",

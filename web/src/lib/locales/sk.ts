@@ -914,7 +914,7 @@ const sk: Partial<Translations> = {
   "auth.passkeysOff": "Žiadny registrovaný",
   "auth.passkeyNeedsPassword": "Najprv nastavte heslo. Prístupový kľúč je cesta navyše, nikdy tá jediná.",
   "auth.passkeyNotHere": "Na tejto adrese nedostupné",
-  "auth.passkeyNeedsDomain": "Prístupový kľúč je viazaný na názov hostiteľa, na holej IP adrese preto nefunguje.",
+  "auth.passkeyNeedsDomain": "Prístupový kľúč je viazaný na názov hostiteľa: holá IP adresa ho neunesie, rovnako ako stránka s certifikátom, ktorému prehliadač neverí. Otvorte BombVault cez reverznú proxy pod skutočným názvom s platným certifikátom a kľúč registrujte na tejto adrese.",
   "auth.passkeyNoBrowser": "Tento prehliadač prístupové kľúče nepozná.",
   "auth.passkeyUsableHere": "Funguje na tejto adrese",
   "auth.passkeyOtherAddress": "Patrí k {host} a tu sa použiť nedá",

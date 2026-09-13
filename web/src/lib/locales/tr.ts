@@ -374,7 +374,7 @@ const tr: Partial<Translations> = {
   "auth.passkeysOff": "Kayıtlı yok",
   "auth.passkeyNeedsPassword": "Önce bir parola belirleyin. Geçiş anahtarı ek bir giriş yoludur, asla tek yol değil.",
   "auth.passkeyNotHere": "Bu adreste kullanılamaz",
-  "auth.passkeyNeedsDomain": "Geçiş anahtarı bir ana bilgisayar adına bağlıdır, bu yüzden çıplak bir IP adresinde çalışmaz.",
+  "auth.passkeyNeedsDomain": "Geçiş anahtarı bir ana bilgisayar adına bağlıdır: çıplak bir IP adresi onu taşıyamaz, tarayıcının güvenmediği bir sertifikaya sahip sayfa da taşıyamaz. BombVault'a gerçek bir adla ve geçerli sertifikayla ters vekil sunucu üzerinden ulaşın, orada açın ve anahtarı o adreste kaydedin.",
   "auth.passkeyNoBrowser": "Bu tarayıcı geçiş anahtarlarını desteklemiyor.",
   "auth.passkeyUsableHere": "Bu adreste çalışır",
   "auth.passkeyOtherAddress": "{host} adresine ait, burada kullanılamaz",

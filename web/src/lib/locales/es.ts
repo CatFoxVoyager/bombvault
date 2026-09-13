@@ -374,7 +374,7 @@ const es: Partial<Translations> = {
   "auth.passkeysOff": "Ninguna registrada",
   "auth.passkeyNeedsPassword": "Primero define una contraseña. Una clave de acceso es una vía adicional, nunca la única.",
   "auth.passkeyNotHere": "No disponible en esta dirección",
-  "auth.passkeyNeedsDomain": "Una clave de acceso está ligada a un nombre de host, así que no sirve en una dirección IP a secas.",
+  "auth.passkeyNeedsDomain": "Una clave de acceso está ligada a un nombre de host: una dirección IP a secas no puede llevarla, ni tampoco una página cuyo certificado el navegador no acepta. Accede a BombVault por un proxy inverso con un nombre real y un certificado válido, ábrelo allí y registra la clave en esa dirección.",
   "auth.passkeyNoBrowser": "Este navegador no admite claves de acceso.",
   "auth.passkeyUsableHere": "Funciona en esta dirección",
   "auth.passkeyOtherAddress": "Pertenece a {host}, así que no sirve aquí",

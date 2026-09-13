@@ -374,7 +374,7 @@ const vi: Partial<Translations> = {
   "auth.passkeysOff": "Chưa đăng ký khóa nào",
   "auth.passkeyNeedsPassword": "Hãy đặt mật khẩu trước. Khóa truy cập là lối vào bổ sung, không bao giờ là lối duy nhất.",
   "auth.passkeyNotHere": "Không khả dụng ở địa chỉ này",
-  "auth.passkeyNeedsDomain": "Khóa truy cập gắn với một tên máy chủ nên không dùng được trên địa chỉ IP trần.",
+  "auth.passkeyNeedsDomain": "Khóa truy cập gắn với một tên máy chủ: địa chỉ IP trần không mang được, trang có chứng chỉ mà trình duyệt không tin cũng vậy. Hãy truy cập BombVault qua một proxy ngược với tên thật và chứng chỉ hợp lệ, mở ở đó rồi đăng ký khóa trên địa chỉ ấy.",
   "auth.passkeyNoBrowser": "Trình duyệt này không hỗ trợ khóa truy cập.",
   "auth.passkeyUsableHere": "Hoạt động ở địa chỉ này",
   "auth.passkeyOtherAddress": "Thuộc về {host} nên không dùng được ở đây",

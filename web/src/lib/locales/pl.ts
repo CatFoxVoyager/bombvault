@@ -368,7 +368,7 @@ const pl: Partial<Translations> = {
   "auth.passkeysOff": "Brak zarejestrowanych",
   "auth.passkeyNeedsPassword": "Najpierw ustaw hasło. Klucz dostępu to dodatkowa droga do środka, nigdy jedyna.",
   "auth.passkeyNotHere": "Niedostępne pod tym adresem",
-  "auth.passkeyNeedsDomain": "Klucz dostępu jest powiązany z nazwą hosta, więc nie zadziała na samym adresie IP.",
+  "auth.passkeyNeedsDomain": "Klucz dostępu jest powiązany z nazwą hosta: sam adres IP go nie uniesie, podobnie jak strona z certyfikatem, któremu przeglądarka nie ufa. Dotrzyj do BombVault przez odwrotne proxy pod prawdziwą nazwą z ważnym certyfikatem, otwórz go tam i zarejestruj klucz pod tym adresem.",
   "auth.passkeyNoBrowser": "Ta przeglądarka nie obsługuje kluczy dostępu.",
   "auth.passkeyUsableHere": "Działa pod tym adresem",
   "auth.passkeyOtherAddress": "Należy do {host} i tutaj się nie przyda",

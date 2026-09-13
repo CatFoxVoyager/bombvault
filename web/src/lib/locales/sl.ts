@@ -909,7 +909,7 @@ const sl: Partial<Translations> = {
   "auth.passkeysOff": "Nobenega registriranega",
   "auth.passkeyNeedsPassword": "Najprej nastavite geslo. Ključ za dostop je dodatna pot noter, nikoli edina.",
   "auth.passkeyNotHere": "Na tem naslovu ni na voljo",
-  "auth.passkeyNeedsDomain": "Ključ za dostop je vezan na ime gostitelja, zato na golem naslovu IP ne deluje.",
+  "auth.passkeyNeedsDomain": "Ključ za dostop je vezan na ime gostitelja: gol naslov IP ga ne nosi, prav tako ne stran s potrdilom, ki mu brskalnik ne zaupa. Do BombVaulta dostopajte prek obratnega posrednika z resničnim imenom in veljavnim potrdilom, odprite ga tam in ključ registrirajte na tem naslovu.",
   "auth.passkeyNoBrowser": "Ta brskalnik ne podpira ključev za dostop.",
   "auth.passkeyUsableHere": "Deluje na tem naslovu",
   "auth.passkeyOtherAddress": "Pripada {host} in tu ni uporaben",

@@ -914,7 +914,7 @@ const lv: Partial<Translations> = {
   "auth.passkeysOff": "Nav reģistrēta neviena",
   "auth.passkeyNeedsPassword": "Vispirms iestati paroli. Piekļuves atslēga ir papildu ceļš iekšā, nekad vienīgais.",
   "auth.passkeyNotHere": "Šajā adresē nav pieejams",
-  "auth.passkeyNeedsDomain": "Piekļuves atslēga ir piesaistīta resursdatora nosaukumam, tāpēc uz kailas IP adreses nedarbojas.",
+  "auth.passkeyNeedsDomain": "Piekļuves atslēga ir piesaistīta resursdatora nosaukumam: kaila IP adrese to nenes, tāpat kā lapa ar sertifikātu, kuram pārlūks neuzticas. Sasniedz BombVault caur apgriezto starpniekserveri ar īstu nosaukumu un derīgu sertifikātu, atver to tur un reģistrē atslēgu šajā adresē.",
   "auth.passkeyNoBrowser": "Šis pārlūks piekļuves atslēgas neatbalsta.",
   "auth.passkeyUsableHere": "Darbojas šajā adresē",
   "auth.passkeyOtherAddress": "Pieder {host} un šeit nav izmantojama",

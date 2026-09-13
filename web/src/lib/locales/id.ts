@@ -914,7 +914,7 @@ const id: Partial<Translations> = {
   "auth.passkeysOff": "Belum ada yang terdaftar",
   "auth.passkeyNeedsPassword": "Tetapkan kata sandi dulu. Kunci sandi adalah jalan masuk tambahan, tidak pernah satu-satunya.",
   "auth.passkeyNotHere": "Tidak tersedia di alamat ini",
-  "auth.passkeyNeedsDomain": "Kunci sandi terikat pada nama host, jadi tidak berfungsi di alamat IP polos.",
+  "auth.passkeyNeedsDomain": "Kunci sandi terikat pada nama host: alamat IP polos tidak bisa membawanya, begitu pula halaman yang sertifikatnya tidak dipercaya peramban. Akses BombVault lewat proksi terbalik dengan nama sungguhan dan sertifikat sah, buka di sana, lalu daftarkan kunci pada alamat itu.",
   "auth.passkeyNoBrowser": "Peramban ini tidak mendukung kunci sandi.",
   "auth.passkeyUsableHere": "Berfungsi di alamat ini",
   "auth.passkeyOtherAddress": "Milik {host} dan tidak bisa dipakai di sini",

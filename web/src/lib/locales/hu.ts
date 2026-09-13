@@ -374,7 +374,7 @@ const hu: Partial<Translations> = {
   "auth.passkeysOff": "Nincs regisztrálva",
   "auth.passkeyNeedsPassword": "Előbb állíts be jelszót. A hozzáférési kulcs egy további út befelé, sosem az egyetlen.",
   "auth.passkeyNotHere": "Ezen a címen nem érhető el",
-  "auth.passkeyNeedsDomain": "A hozzáférési kulcs egy gépnévhez kötődik, ezért puszta IP-címen nem működik.",
+  "auth.passkeyNeedsDomain": "A hozzáférési kulcs egy gépnévhez kötődik: puszta IP-cím nem viheti, és olyan oldal sem, amelynek tanúsítványában a böngésző nem bízik. Érd el a BombVaultot fordított proxyn keresztül valódi néven, érvényes tanúsítvánnyal, nyisd meg ott, és azon a címen regisztráld a kulcsot.",
   "auth.passkeyNoBrowser": "Ez a böngésző nem ismeri a hozzáférési kulcsokat.",
   "auth.passkeyUsableHere": "Ezen a címen működik",
   "auth.passkeyOtherAddress": "A(z) {host} címhez tartozik, itt nem használható",

@@ -374,7 +374,7 @@ const he: Partial<Translations> = {
   "auth.passkeysOff": "אין מפתחות רשומים",
   "auth.passkeyNeedsPassword": "הגדר קודם סיסמה. מפתח גישה הוא דרך נוספת פנימה, לעולם לא היחידה.",
   "auth.passkeyNotHere": "לא זמין בכתובת הזו",
-  "auth.passkeyNeedsDomain": "מפתח גישה קשור לשם מארח, ולכן אינו עובד על כתובת IP בלבד.",
+  "auth.passkeyNeedsDomain": "מפתח גישה קשור לשם מארח: כתובת IP בלבד אינה נושאת אותו, וגם לא דף שהדפדפן אינו סומך על האישור שלו. הגיעו אל BombVault דרך שרת תיווך הפוך בשם אמיתי ועם אישור תקף, פתחו אותו שם ורשמו את המפתח בכתובת ההיא.",
   "auth.passkeyNoBrowser": "הדפדפן הזה אינו תומך במפתחות גישה.",
   "auth.passkeyUsableHere": "עובד בכתובת הזו",
   "auth.passkeyOtherAddress": "שייך אל {host} ולא ניתן להשתמש בו כאן",

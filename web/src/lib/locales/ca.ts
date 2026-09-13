@@ -914,7 +914,7 @@ const ca: Partial<Translations> = {
   "auth.passkeysOff": "Cap registrada",
   "auth.passkeyNeedsPassword": "Defineix primer una contrasenya. Una clau d'accés és una via addicional, mai l'única.",
   "auth.passkeyNotHere": "No disponible en aquesta adreça",
-  "auth.passkeyNeedsDomain": "Una clau d'accés està lligada a un nom d'amfitrió, així que no serveix en una adreça IP tota sola.",
+  "auth.passkeyNeedsDomain": "Una clau d'accés està lligada a un nom d'amfitrió: una adreça IP tota sola no en pot portar cap, ni tampoc una pàgina amb un certificat que el navegador no accepta. Arriba a BombVault per un servidor intermediari invers amb un nom real i un certificat vàlid, obre'l allà i registra la clau en aquesta adreça.",
   "auth.passkeyNoBrowser": "Aquest navegador no admet claus d'accés.",
   "auth.passkeyUsableHere": "Funciona en aquesta adreça",
   "auth.passkeyOtherAddress": "Pertany a {host} i aquí no es pot fer servir",

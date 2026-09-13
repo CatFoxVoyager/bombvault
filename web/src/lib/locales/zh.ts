@@ -374,7 +374,7 @@ const zh: Partial<Translations> = {
   "auth.passkeysOff": "尚未注册",
   "auth.passkeyNeedsPassword": "请先设置登录密码。通行密钥是额外的入口，永远不是唯一的入口。",
   "auth.passkeyNotHere": "此地址上不可用",
-  "auth.passkeyNeedsDomain": "通行密钥绑定到主机名，因此在纯 IP 地址上无法使用。",
+  "auth.passkeyNeedsDomain": "通行密钥绑定到主机名：纯 IP 地址承载不了，浏览器不信任其证书的页面同样不行。请通过带真实名称和有效证书的反向代理访问 BombVault，在那里打开并在该地址上注册密钥。",
   "auth.passkeyNoBrowser": "此浏览器不支持通行密钥。",
   "auth.passkeyUsableHere": "在此地址上可用",
   "auth.passkeyOtherAddress": "属于 {host}，在这里无法使用",

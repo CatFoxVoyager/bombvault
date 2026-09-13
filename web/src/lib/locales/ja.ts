@@ -374,7 +374,7 @@ const ja: Partial<Translations> = {
   "auth.passkeysOff": "登録なし",
   "auth.passkeyNeedsPassword": "先にログインパスワードを設定してください。パスキーは追加の入り口であって、唯一の入り口ではありません。",
   "auth.passkeyNotHere": "このアドレスでは使えません",
-  "auth.passkeyNeedsDomain": "パスキーはホスト名に結び付くため、IP アドレスだけでは使えません。",
+  "auth.passkeyNeedsDomain": "パスキーはホスト名に結び付きます。IP アドレスだけでは持てませんし、ブラウザーが信頼しない証明書のページでも持てません。実在する名前と有効な証明書を持つリバースプロキシ経由で BombVault を開き、そのアドレスで鍵を登録してください。",
   "auth.passkeyNoBrowser": "このブラウザーはパスキーに対応していません。",
   "auth.passkeyUsableHere": "このアドレスで使えます",
   "auth.passkeyOtherAddress": "{host} 用なので、ここでは使えません",

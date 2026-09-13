@@ -371,7 +371,7 @@ const ro: Partial<Translations> = {
   "auth.passkeysOff": "Niciuna înregistrată",
   "auth.passkeyNeedsPassword": "Stabilește mai întâi o parolă. O cheie de acces este o cale în plus, niciodată singura.",
   "auth.passkeyNotHere": "Indisponibil la această adresă",
-  "auth.passkeyNeedsDomain": "O cheie de acces este legată de un nume de gazdă, deci nu merge pe o adresă IP simplă.",
+  "auth.passkeyNeedsDomain": "O cheie de acces este legată de un nume de gazdă: o adresă IP simplă nu o poate purta, nici o pagină al cărei certificat browserul nu îl acceptă. Ajunge la BombVault printr-un proxy invers sub un nume real cu certificat valid, deschide-l acolo și înregistrează cheia la acea adresă.",
   "auth.passkeyNoBrowser": "Acest browser nu suportă chei de acces.",
   "auth.passkeyUsableHere": "Funcționează la această adresă",
   "auth.passkeyOtherAddress": "Aparține lui {host} și nu poate fi folosită aici",

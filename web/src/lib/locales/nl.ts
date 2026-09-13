@@ -368,7 +368,7 @@ const nl: Partial<Translations> = {
   "auth.passkeysOff": "Geen geregistreerd",
   "auth.passkeyNeedsPassword": "Stel eerst een wachtwoord in. Een passkey is een extra manier binnen te komen, nooit de enige.",
   "auth.passkeyNotHere": "Niet beschikbaar op dit adres",
-  "auth.passkeyNeedsDomain": "Een passkey hoort bij een hostnaam en werkt daarom niet op een kaal IP-adres.",
+  "auth.passkeyNeedsDomain": "Een passkey hoort bij een hostnaam: een kaal IP-adres kan er geen dragen, en een pagina met een certificaat dat de browser niet vertrouwt ook niet. Bereik BombVault via een reverse proxy onder een echte naam met een geldig certificaat, open het daar en registreer de sleutel op dat adres.",
   "auth.passkeyNoBrowser": "Deze browser kan geen passkeys.",
   "auth.passkeyUsableHere": "Werkt op dit adres",
   "auth.passkeyOtherAddress": "Hoort bij {host} en kan hier niet worden gebruikt",

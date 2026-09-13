@@ -29,14 +29,21 @@ describe("PasskeyCard", () => {
     passkeyStatus.mockResolvedValue({
       ok: true,
       supported: false,
-      reason: "passkeys need a host name, and this page was opened on an IP address",
+      // The server answers in English, as its errors do everywhere. This exact
+      // sentence must NOT be what the card shows.
+      reason: "ZZZ-SERVER-SENTENCE-ZZZ",
       total: 0,
       here: 0,
       passkeys: [],
     });
     render(<PasskeyCard passwordSet />);
 
-    await waitFor(() => expect(screen.getByText(/host name/i)).toBeTruthy());
+    // The TRANSLATED explanation, which also carries the actionable half.
+    await waitFor(() => expect(screen.getByText(/reverse proxy/i)).toBeTruthy());
+    expect(screen.getByText(/host name/i)).toBeTruthy();
+    // Not the server's own sentence: this is the paragraph explaining the whole
+    // feature, in front of somebody whose interface is in their own language.
+    expect(screen.queryByText(/ZZZ-SERVER-SENTENCE-ZZZ/)).toBeNull();
     // …and no way to start something that would fail.
     expect(screen.queryByRole("button", { name: /add a passkey/i })).toBeNull();
   });

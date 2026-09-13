@@ -914,7 +914,7 @@ const gl: Partial<Translations> = {
   "auth.passkeysOff": "Ningunha rexistrada",
   "auth.passkeyNeedsPassword": "Define primeiro un contrasinal. Unha chave de acceso é unha vía adicional, nunca a única.",
   "auth.passkeyNotHere": "Non dispoñible neste enderezo",
-  "auth.passkeyNeedsDomain": "Unha chave de acceso está ligada a un nome de servidor, así que non serve nun enderezo IP só.",
+  "auth.passkeyNeedsDomain": "Unha chave de acceso está ligada a un nome de servidor: un enderezo IP só non pode levala, nin tampouco unha páxina cun certificado que o navegador non acepta. Chega a BombVault por un proxy inverso cun nome real e un certificado válido, ábreo alí e rexistra a chave nese enderezo.",
   "auth.passkeyNoBrowser": "Este navegador non admite chaves de acceso.",
   "auth.passkeyUsableHere": "Funciona neste enderezo",
   "auth.passkeyOtherAddress": "Pertence a {host} e aquí non se pode usar",
