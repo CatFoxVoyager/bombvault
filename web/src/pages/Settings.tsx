@@ -53,6 +53,7 @@ import { RAINBOW, getRainbow, setRainbow, type RainbowState } from "../lib/appea
 import { SHAPES, getShape, setShape, type Shape } from "../lib/shape";
 import { MOTION_INTENSITIES, getMotionIntensity, setMotionIntensity, type MotionIntensity } from "../lib/motion";
 import { Selector } from "../components/Selector";
+import { BottomSheet } from "../components/mobile/BottomSheet";
 import { IconAdd, IconBackupNow, IconDownload, IconTrash, IconCheckCircle, IconSync, IconGear, IconClose } from "../components/Sidebar";
 // The integrity row's own two verbs ([324]). They live in the ACTION set
 // rather than the nav one, same split IconUpload already crosses.
@@ -4059,7 +4060,16 @@ export function SettingsPage() {
                 />
               </span>
             </div>
-            {wizardOpen ? (
+            {/* 07-07 FLOW-02 wizard gate (OffsiteTargetsSection's own gate is
+                the same shape): on the desktop the wizard stays the inline
+                swap-in it always was (jsdom answers desktop, so the existing
+                dom suites keep seeing exactly this tree); below the breakpoint
+                "Einrichten" opens the SAME OffsiteWizard — same props, same
+                settings/save chains — inside a fullHeight editor sheet
+                (D-05), while the plain repo-URL field stays in the card
+                underneath. The sheet title reuses the Card's own section key
+                (a sheet title is never newly authored over an existing one). */}
+            {wizardOpen && isDesktop ? (
               <OffsiteWizard
                 domain={domain}
                 settings={settings}
@@ -4095,6 +4105,25 @@ export function SettingsPage() {
                   {withLtrFragments(t("offsite.repoLocalHint"), REPO_LOCAL_HINT_LTR_FRAGMENTS)}
                 </span>
               </>
+            )}
+            {wizardOpen && !isDesktop && (
+              <BottomSheet
+                open
+                onClose={() => setOffsiteWizard(null)}
+                title={t("offsite.copyDomainTitle").replace("{domain}", t(label))}
+                fullHeight
+              >
+                <div className="pt-4">
+                  <OffsiteWizard
+                    domain={domain}
+                    settings={settings}
+                    setSettings={setSettings}
+                    save={save}
+                    t={t}
+                    hueIndex={hueIdx}
+                  />
+                </div>
+              </BottomSheet>
             )}
             {/* Additional off-site targets (multi-off-site): extra copies of this
                 domain beyond the primary editor above, managed via the CRUD API.

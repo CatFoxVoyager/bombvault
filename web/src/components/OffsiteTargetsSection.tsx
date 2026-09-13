@@ -17,6 +17,10 @@ import { Button } from "./Button";
 import { IconAdd } from "./Sidebar";
 import { withLtrFragments, REPO_LOCAL_HINT_LTR_FRAGMENTS } from "../lib/ltrFragments";
 import { useToast } from "../lib/toast";
+import { useIsDesktop } from "../lib/useMediaQuery";
+import { useConfirm } from "../lib/useConfirm";
+import { BottomSheet } from "./mobile/BottomSheet";
+import { StickyActionBar } from "./mobile/StickyActionBar";
 
 // The storage-class/immutable badges AND the Test/Edit/Remove buttons in a
 // target row render through Badge at this ONE shared stage, so their heights
@@ -214,6 +218,18 @@ export function OffsiteTargetsSection({
   // added and the new set stayed unselectable until a reload — issue #173.
   const credSets = useCloudCredSets();
 
+  // 07-07 FLOW-02 double gate (the ActivityLog/NotifyCard pattern): the desktop
+  // section above stays the desktop presentation (rendered under max-md:hidden,
+  // so jsdom — which answers desktop — still sees it and every existing dom
+  // suite passes unchanged); the phone gets entry rows that open fullHeight
+  // editor sheets re-hosting the SAME target form, never a fork.
+  const isDesktop = useIsDesktop();
+  // Mobile delete rides useConfirm: the hook's own presentation split renders
+  // ConfirmSheet below the breakpoint with the existing offsite.targets.*
+  // outcome-naming copy — no new confirm UI (UI-SPEC destructive-actions
+  // contract). The desktop two-click inline confirm is untouched.
+  const { confirm, confirmDialog } = useConfirm();
+
   function refresh() {
     listOffsiteTargets(domain)
       .then((r) => {
@@ -330,6 +346,11 @@ export function OffsiteTargetsSection({
         return;
       }
       setConfirmRemove(null);
+      // Mobile sheet flow: the Remove control lives INSIDE the editor sheet,
+      // so the removed target closes its own editor. A no-op on the desktop
+      // flows, where remove fires from a row while the editor either holds
+      // nothing or a DIFFERENT target's draft.
+      setDraft((d) => (d && d.id === id ? null : d));
       offsiteTargetsChanged();
     } catch (e) {
       push(e instanceof Error ? e.message : t("settings.error"), "fail");
@@ -339,13 +360,155 @@ export function OffsiteTargetsSection({
     }
   }
 
+  // Mobile-only entry point (the sheet's Remove badge): routes the same
+  // remove() through useConfirm, which below the breakpoint presents the
+  // ConfirmSheet — message + confirm label are the EXISTING desktop confirm
+  // copy (the two-click badge's own label flip), so nothing new was authored.
+  // The desktop keeps its inline two-click badge; only the presentation of
+  // the confirmation differs, exactly the useConfirm contract.
+  async function requestRemove(id: string) {
+    if (
+      !(await confirm(t("offsite.targets.confirmRemove"), {
+        confirmLabel: t("offsite.targets.remove"),
+        cancelLabel: t("offsite.targets.cancel"),
+      }))
+    )
+      return;
+    await remove(id);
+  }
+
   const inputCls =
     "rounded-control bg-carbon-surface3 text-carbon-text text-sm font-mono px-3 py-1.5 glim-field-focus-well";
   const numCls =
     "rounded-control bg-carbon-surface3 text-carbon-text text-sm px-3 py-1.5 w-full glim-field-focus-well";
 
+  // The target draft's fields, extracted verbatim so BOTH presentations render
+  // the ONE form (07-07's one-form-two-presentations rule, NotifyCard Task 1's
+  // renderCards shape): the desktop editor block below keeps its own
+  // Save/Cancel row, the mobile fullHeight sheet re-hosts these same fields
+  // with a StickyActionBar apply/cancel. No fork: every field, label, hint and
+  // handler here is the desktop form's own, riding the same draft state and
+  // the same createOffsiteTarget/updateOffsiteTarget saveDraft chain.
+  function renderForm() {
+    if (!draft) return null;
+    return (
+      <>
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-carbon-textSub">{t("offsite.targets.name")}</span>
+          <input
+            value={draft.name}
+            onChange={(e) => setDraft((d) => (d ? { ...d, name: e.target.value } : d))}
+            spellCheck={false}
+            placeholder={t("offsite.targets.namePlaceholder")}
+            className={inputCls}
+          />
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-carbon-textSub">{t("offsite.wizard.repoUrl")}</span>
+          <input
+            value={draft.repo}
+            onChange={(e) => setDraft((d) => (d ? { ...d, repo: e.target.value } : d))}
+            spellCheck={false}
+            placeholder={t("offsite.wizard.repoUrlPlaceholder")}
+            dir="ltr"
+            className={`${inputCls} text-start`}
+          />
+          <span className="text-xs text-carbon-textMuted">
+            {withLtrFragments(t("offsite.repoLocalHint"), REPO_LOCAL_HINT_LTR_FRAGMENTS)}
+          </span>
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-carbon-textSub">{t("offsite.targets.credsLabel")}</span>
+          <select
+            value={draft.credsRef}
+            onChange={(e) => setDraft((d) => (d ? { ...d, credsRef: e.target.value } : d))}
+            className={inputCls}
+          >
+            <option value="">{t("offsite.targets.credsDefault")}</option>
+            {credSets.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-carbon-textSub">{t("cloud.storageClass.label")}</span>
+          <select
+            value={draft.storageClass}
+            onChange={(e) => setDraft((d) => (d ? { ...d, storageClass: e.target.value } : d))}
+            className={inputCls}
+          >
+            <option value="">{t("cloud.storageClass.default")}</option>
+            {STORAGE_CLASSES.map((sc) => (
+              <option key={sc} value={sc}>
+                {sc}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {/* Append-only (immutable) toggle */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm text-carbon-text">{t("offsite.immutable")}</span>
+            <span className="text-xs text-carbon-textMuted">{t("offsite.immutableHint")}</span>
+          </div>
+          <Toggle
+            hideLabel
+            label={t("offsite.immutable")}
+            checked={draft.immutable}
+            onChange={(v) => setDraft((d) => (d ? { ...d, immutable: v } : d))}
+            className="mt-0.5"
+          />
+        </div>
+
+        {/* Retention */}
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-carbon-textSub">{t("offsite.targets.retentionTitle")}</span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {([
+              ["retentionKeepLast", "settings.retentionLast"],
+              ["retentionKeepDaily", "settings.retentionDaily"],
+              ["retentionKeepWeekly", "settings.retentionWeekly"],
+              ["retentionKeepMonthly", "settings.retentionMonthly"],
+            ] as const).map(([key, label]) => (
+              <label key={key} className="flex flex-col gap-1">
+                <span className="text-xs text-carbon-textSub">{t(label)}</span>
+                <NumberField
+                  min={0}
+                  value={draft[key]}
+                  onChange={(e) => {
+                    const n = Math.max(0, parseInt(e.target.value, 10) || 0);
+                    setDraft((d) => (d ? { ...d, [key]: n } : d));
+                  }}
+                  className={numCls}
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Growth budget */}
+        <label className="flex flex-col gap-1 max-w-56">
+          <span className="text-xs text-carbon-textSub">{t("offsite.retention.budget")}</span>
+          <NumberField
+            min={0}
+            value={draft.growthBudgetGb}
+            onChange={(e) => {
+              const n = Math.max(0, parseInt(e.target.value, 10) || 0);
+              setDraft((d) => (d ? { ...d, growthBudgetGb: n } : d));
+            }}
+            className={numCls}
+          />
+        </label>
+      </>
+    );
+  }
+
   return (
-    <div className="mt-2 flex flex-col gap-3 rounded-card bg-carbon-surface2 p-3">
+    <>
+    <div className="mt-2 flex flex-col gap-3 rounded-card bg-carbon-surface2 p-3 max-md:hidden">
       <div className="flex flex-col gap-0.5">
         <span className="text-xs font-semibold text-carbon-textSub uppercase tracking-widest">
           {t("offsite.targets.title")}
@@ -434,118 +597,12 @@ export function OffsiteTargetsSection({
         </div>
       ))}
 
-      {/* Editor form (new or edit) */}
+      {/* Editor form (new or edit) — the fields come from renderForm() above,
+          the one form both presentations share; only this block's Save/Cancel
+          row is desktop-presentational. */}
       {draft && (
         <div className="flex flex-col gap-3 rounded-card bg-carbon-surface p-3">
-          <label className="flex flex-col gap-1">
-            <span className="text-xs text-carbon-textSub">{t("offsite.targets.name")}</span>
-            <input
-              value={draft.name}
-              onChange={(e) => setDraft((d) => (d ? { ...d, name: e.target.value } : d))}
-              spellCheck={false}
-              placeholder={t("offsite.targets.namePlaceholder")}
-              className={inputCls}
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-xs text-carbon-textSub">{t("offsite.wizard.repoUrl")}</span>
-            <input
-              value={draft.repo}
-              onChange={(e) => setDraft((d) => (d ? { ...d, repo: e.target.value } : d))}
-              spellCheck={false}
-              placeholder={t("offsite.wizard.repoUrlPlaceholder")}
-              dir="ltr"
-              className={`${inputCls} text-start`}
-            />
-            <span className="text-xs text-carbon-textMuted">
-              {withLtrFragments(t("offsite.repoLocalHint"), REPO_LOCAL_HINT_LTR_FRAGMENTS)}
-            </span>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-xs text-carbon-textSub">{t("offsite.targets.credsLabel")}</span>
-            <select
-              value={draft.credsRef}
-              onChange={(e) => setDraft((d) => (d ? { ...d, credsRef: e.target.value } : d))}
-              className={inputCls}
-            >
-              <option value="">{t("offsite.targets.credsDefault")}</option>
-              {credSets.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-xs text-carbon-textSub">{t("cloud.storageClass.label")}</span>
-            <select
-              value={draft.storageClass}
-              onChange={(e) => setDraft((d) => (d ? { ...d, storageClass: e.target.value } : d))}
-              className={inputCls}
-            >
-              <option value="">{t("cloud.storageClass.default")}</option>
-              {STORAGE_CLASSES.map((sc) => (
-                <option key={sc} value={sc}>
-                  {sc}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          {/* Append-only (immutable) toggle */}
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-sm text-carbon-text">{t("offsite.immutable")}</span>
-              <span className="text-xs text-carbon-textMuted">{t("offsite.immutableHint")}</span>
-            </div>
-            <Toggle
-              hideLabel
-              label={t("offsite.immutable")}
-              checked={draft.immutable}
-              onChange={(v) => setDraft((d) => (d ? { ...d, immutable: v } : d))}
-              className="mt-0.5"
-            />
-          </div>
-
-          {/* Retention */}
-          <div className="flex flex-col gap-1">
-            <span className="text-xs text-carbon-textSub">{t("offsite.targets.retentionTitle")}</span>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {([
-                ["retentionKeepLast", "settings.retentionLast"],
-                ["retentionKeepDaily", "settings.retentionDaily"],
-                ["retentionKeepWeekly", "settings.retentionWeekly"],
-                ["retentionKeepMonthly", "settings.retentionMonthly"],
-              ] as const).map(([key, label]) => (
-                <label key={key} className="flex flex-col gap-1">
-                  <span className="text-xs text-carbon-textSub">{t(label)}</span>
-                  <NumberField
-                    min={0}
-                    value={draft[key]}
-                    onChange={(e) => {
-                      const n = Math.max(0, parseInt(e.target.value, 10) || 0);
-                      setDraft((d) => (d ? { ...d, [key]: n } : d));
-                    }}
-                    className={numCls}
-                  />
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Growth budget */}
-          <label className="flex flex-col gap-1 max-w-56">
-            <span className="text-xs text-carbon-textSub">{t("offsite.retention.budget")}</span>
-            <NumberField
-              min={0}
-              value={draft.growthBudgetGb}
-              onChange={(e) => {
-                const n = Math.max(0, parseInt(e.target.value, 10) || 0);
-                setDraft((d) => (d ? { ...d, growthBudgetGb: n } : d));
-              }}
-              className={numCls}
-            />
-          </label>
+          {renderForm()}
 
           <div className="flex items-center gap-3 flex-wrap">
             <Button
@@ -602,5 +659,120 @@ export function OffsiteTargetsSection({
         />
       )}
     </div>
+
+    {!isDesktop && (
+      <>
+        {/* MOBILE PRESENTATION — entry rows (>=44px) + fullHeight editor sheet.
+            The section header carries the same three lines (title, hint,
+            schedule note), each target becomes a row (name + repo summary +
+            append-only language) opening the SAME form in the sheet, and the
+            add row calls the SAME openNew() the desktop button does — one add
+            flow, two presentations ("Ziel hinzufügen" stays reachable on
+            mobile through the sheet path). */}
+        <div className="mt-2 flex flex-col gap-3 rounded-card bg-carbon-surface2 p-3">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs font-semibold text-carbon-textSub uppercase tracking-widest">
+              {t("offsite.targets.title")}
+            </span>
+            <p className="text-xs text-carbon-textMuted">{t("offsite.targets.hint")}</p>
+            <p className="text-xs text-carbon-textMuted">{t("offsite.targets.scheduleNote")}</p>
+          </div>
+
+          {loadErr && <span className="text-xs text-statusFail wrap-break-word">{loadErr}</span>}
+
+          {loaded && targets.length === 0 && !draft && (
+            <span className="text-xs text-carbon-textMuted">{t("offsite.targets.none")}</span>
+          )}
+
+          {targets.map((tgt) => (
+            <button
+              key={tgt.id}
+              type="button"
+              onClick={() => openEdit(tgt)}
+              className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface px-3 py-2 text-start text-sm font-medium text-carbon-text"
+            >
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="truncate">{tgt.name || tgt.repo}</span>
+                <span dir="ltr" className="truncate text-xs font-normal text-carbon-textMuted">
+                  {tgt.repo}
+                </span>
+              </span>
+              {tgt.immutable && (
+                <span className="shrink-0 text-xs font-normal text-carbon-textMuted">
+                  {t("offsite.immutable")}
+                </span>
+              )}
+            </button>
+          ))}
+
+          {!draft && (
+            <button
+              type="button"
+              onClick={openNew}
+              className="flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-control bg-carbon-surface px-3 py-2 text-start text-sm font-medium text-carbon-text"
+            >
+              <IconAdd />
+              {t("offsite.targets.add")}
+            </button>
+          )}
+        </div>
+
+        {/* The editor sheet: open exactly when a draft exists (the same state
+            the desktop editor block reads), so openNew/openEdit/closeEditor
+            and saveDraft's success-close carry over unchanged. fullHeight per
+            D-05; the draft form rides in the scroll body, apply/cancel pin in
+            the Vms schedule sheet's min-h-full + spacer + StickyActionBar
+            shape. Test and Remove ride the EXISTING surfaces for an existing
+            target (a new draft has no id to test or remove yet). */}
+        <BottomSheet
+          open={draft !== null}
+          onClose={closeEditor}
+          title={t("offsite.targets.title")}
+          fullHeight
+        >
+          <div className="flex min-h-full flex-col">
+            <div className="flex flex-col gap-3 pt-4">
+              {renderForm()}
+              {draft !== null && draft.id !== "" && (
+                <div className="flex items-center gap-3 flex-wrap border-t border-carbon-border pt-3">
+                  <TargetTestButton id={draft.id} t={t} />
+                  <Badge
+                    as="button"
+                    tone="neutral"
+                    size={ROW_BADGE_SIZE}
+                    onClick={() => void requestRemove(draft.id)}
+                  >
+                    {t("offsite.targets.remove")}
+                  </Badge>
+                </div>
+              )}
+            </div>
+            <div className="min-h-4 flex-1" />
+            <StickyActionBar>
+              <Button
+                label={t("offsite.targets.cancel")}
+                labelKey="offsite.targets.cancel"
+                tone="neutral"
+                onClick={closeEditor}
+                className="w-full"
+              />
+              <Button
+                key={saveShake}
+                label={t("offsite.targets.save")}
+                labelKey="offsite.targets.save"
+                tone="accent"
+                onClick={() => void saveDraft()}
+                disabled={saveState === "saving"}
+                busy={saveState === "saving"}
+                title={saveState === "saving" ? t("common.saving") : undefined}
+                className={`w-full ${saveShake ? "glim-shake" : ""}`}
+              />
+            </StickyActionBar>
+          </div>
+        </BottomSheet>
+      </>
+    )}
+    {confirmDialog}
+    </>
   );
 }
