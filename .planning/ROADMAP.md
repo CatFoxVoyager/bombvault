@@ -115,13 +115,24 @@ Plans:
 **Plans**: 8 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 07-01-PLAN.md — Platform chrome layer: data-platform attribute, custom-property variants, Fab
 - [ ] 07-02-PLAN.md — Shared mobile-block foundations + the phase's i18n pre-seed (MobileSectionLabel, useLoadMore, ListToolbar)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 07-03-PLAN.md — VMs + Flash mobile blocks: cards, trigger deep-link, CadenceBuilder sheets, load-more
 - [ ] 07-04-PLAN.md — Config + Receiver + Fleet mobile blocks: guard-chain restore sheet, inventory/scorecard viewers, write-only editors
 - [ ] 07-05-PLAN.md — Settings mobile block: tonal chip strip + stacked cards on the shared tab state
 - [ ] 07-06-PLAN.md — List ergonomics retrofit: Containers, Files sets, ActivityLog on mobile
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 07-07-PLAN.md — Operational editors: notify + offsite CRUD/wizard fullHeight sheets, FLOW-01/02 completion sweep
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 07-08-PLAN.md — Phase close: carried fixes, spacing/weight guard, six-route desktop battery, de/fr narrow sweeps, full green gate
 
 **UI hint**: yes
