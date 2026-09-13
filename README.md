@@ -427,6 +427,8 @@ golangci-lint run ./...        # lint
 go run ./cmd/bombvault         # serves https://localhost:3443 (self-signed cert)
 ```
 
+The frontend build is not optional for `go run`: the repo tracks only an empty marker under `web/dist`, so without `npm --prefix web run build` the binary embeds nothing and the UI answers `500 SPA index not found`. That message is the expected result, not a fault.
+
 Real Docker, libvirt and Unraid behavior cannot be tested in CI (no KVM, no Unraid on runners). Use the **host integration check** (`/spike` in the web UI) to validate mounts, restic and the VM SSH connection on your actual Unraid host before submitting a PR.
 
 <br>
