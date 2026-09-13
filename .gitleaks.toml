@@ -1,24 +1,29 @@
 # gitleaks configuration for BombVault.
 #
 # Why this exists: the global pre-push hook runs gitleaks over the outgoing
-# commits and blocks the push on any finding. Four findings in this repo are test
-# fixtures rather than secrets, so pushing meant forcing it through with
-# --no-verify — which disables the check completely, real leaks included. A narrow
-# path allowlist keeps the guard armed where it matters.
+# commits and blocks the push on any finding. A handful of findings in this repo
+# are test fixtures or prose rather than secrets, so pushing meant forcing it
+# through with --no-verify — which disables the check completely, real leaks
+# included. Narrow allowlists keep the guard armed where it matters.
 #
 # Verified rather than assumed: with this file in place, a commit carrying a
-# realistic AWS key pair and a GitHub token is still reported. Only the paths
-# below are exempt, and only because a test needs a value that LOOKS like a
-# credential in order to assert it is handled correctly.
+# realistic AWS key pair and a GitHub token is still reported. Only what is
+# listed below is exempt, and only because a test needs a value that LOOKS like a
+# credential in order to assert it is handled correctly, or because the match is
+# not a value at all.
 #
 # (Note when testing this yourself: gitleaks deliberately ignores the key pair AWS
 # uses throughout its own documentation, so that pair makes a useless control —
 # use an invented but realistically shaped value instead.)
+#
+# The plural [[allowlists]] form, not the singular [allowlist]: gitleaks 8.30
+# refuses a config that carries both, and the fingerprint exemption below needs
+# the plural form.
 
 [extend]
 useDefault = true
 
-[allowlist]
+[[allowlists]]
 description = "Test fixtures whose values are shaped like credentials on purpose"
 paths = [
   # TrueNAS chart test values: app_key is a throwaway 64-hex string used to render
@@ -32,6 +37,9 @@ paths = [
   # "secret", not a value at all.
   '''web/src/.*\.test\.tsx?$''',
 ]
+
+[[allowlists]]
+description = "A translation key the generic-api-key rule reads as a credential"
 regexes = [
   # CadenceBuilder's cron presets are written as { expr: "0 */6 * * *", key:
   # "cadence.cronExEvery6h" }. The generic-api-key rule sees a field literally
@@ -39,4 +47,25 @@ regexes = [
   # translation key, and the exemption is written against THAT shape rather than
   # against the file, so a real credential in the same file is still reported.
   '''cadence\.cronEx[A-Za-z0-9]+''',
+]
+
+[[allowlists]]
+description = "A prose table row in a planning document, verified by hand"
+# The finding is a markdown TABLE ROW: the generic-api-key rule sees the word
+# "key" followed by a long, varied string and calls the prose a credential. The
+# document carries no values at all.
+#
+# ONE COMMIT, not a path. gitleaks 8.30 does not accept a fingerprint as an
+# allowlist check, and the alternatives are worse: a path exemption would blind
+# the scanner to a real credential pasted into any planning document from now
+# on, while this exempts a single historical commit that adds four markdown
+# files and nothing else. `git show --stat d923e122` is the whole argument.
+#
+# Why it had to be exempted at all: it blocked every push from a checkout that
+# still carried the branch holding it, because the pre-push hook falls back to
+# scanning every local branch when git hands it no ref list, and that sweep
+# reaches commits the push itself does not touch. The offered way out is
+# --no-verify, which switches the whole guard off.
+commits = [
+  "d923e122d49ccfd03d2bebc662583024256d5200",
 ]
