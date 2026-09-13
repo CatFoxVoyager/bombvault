@@ -114,3 +114,64 @@ test("desktop dashboard keeps the customizable grid chrome", async ({ page }, te
   await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Customize" })).toBeVisible();
 });
+
+// ---------------------------------------------------------------------------
+// Phase 7 dual-direction battery (07-08 Task 2) — the six phase routes
+// (/vms /flash /config /receiver /fleet /settings) held from BOTH sides of
+// the 48rem chrome switch, the maquette template generalized:
+//
+//   desktop direction — besides the 10-route loop's shell asserts above, the
+//   phase-7 mobile surfaces must have ZERO matches in the desktop DOM: the
+//   Fab, the ListToolbar sticky bar, the mobile lists' Load-more control and
+//   the Settings chip strip. The needles are the app-wide-unique signatures
+//   (verified over src/ when this pass landed): `button.h-13` is the Fab
+//   alone, `div.sticky.top-0.z-10.bg-carbon-sidebar` is the ListToolbar
+//   alone (the StickyActionBar's bottom-0 twin is phase 6's, guarded above),
+//   useLoadMore's button exists only in mobile lists, and the
+//   settings.tabsNavigation strip ("Settings sections") mounts only in the
+//   mobile Settings block. BottomSheet chrome is deliberately NOT needled
+//   here: on the fresh-DB routes no sheet is ever open, so a count assert
+//   would guard nothing — the Fab/toolbar signatures are the load-bearing
+//   leak needles.
+//
+//   mobile direction — the inverse of the 10-route loop on the same six
+//   routes: the desktop Sidebar has ZERO matches and the bottom nav is
+//   visible. Positives stay chrome-only (the fresh-DB gates default OFF, so
+//   the domain surfaces render their gate-off cards): the always-present
+//   bottom nav, plus the Settings chip strip — chrome that renders whether
+//   or not any domain is enabled. The staged-data mobile guards live in the
+//   destination specs, same split as the phase 6 half above.
+// ---------------------------------------------------------------------------
+const PHASE7_ROUTES = ["/vms", "/flash", "/config", "/receiver", "/fleet", "/settings"];
+const MOBILE_PROJECTS = new Set(["mobile-iphone", "mobile-android"]);
+
+for (const route of PHASE7_ROUTES) {
+  test(`desktop untouched of phase 7 mobile chrome at ${route}`, async ({ page }, testInfo) => {
+    test.skip(!DESKTOP_PROJECTS.has(testInfo.project.name), "desktop-only: the max-md leakage contract");
+    await page.goto(route);
+
+    // The Fab (Discover / Backup now / …): unique h-13 button signature.
+    await expect(page.locator("button.h-13")).toHaveCount(0);
+    // The mobile list toolbar's sticky filter bar (LISTS-01, 07-06).
+    await expect(page.locator("div.sticky.top-0.z-10.bg-carbon-sidebar")).toHaveCount(0);
+    // The mobile lists' windowed Load-more control (07-03 useLoadMore).
+    await expect(page.getByRole("button", { name: "Load more" })).toHaveCount(0);
+    // The Settings chip strip (MORE-01, 07-04): mobile-only section nav.
+    await expect(page.getByRole("navigation", { name: "Settings sections" })).toHaveCount(0);
+  });
+
+  test(`mobile presents at ${route}`, async ({ page }, testInfo) => {
+    test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "mobile-only: the inverse chrome-switch contract");
+    await page.goto(route);
+
+    // Desktop markers absent — the Layout switch never renders them.
+    await expect(page.getByTestId("desktop-sidebar")).toHaveCount(0);
+    // Mobile chrome present.
+    await expect(page.getByTestId("bottom-nav")).toBeVisible();
+    if (route === "/settings") {
+      // The one data-independent positive beyond the nav: the Settings
+      // section chip strip (MORE-01), reachable with every fresh-DB gate off.
+      await expect(page.getByRole("navigation", { name: "Settings sections" })).toBeVisible();
+    }
+  });
+}

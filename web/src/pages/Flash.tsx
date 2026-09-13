@@ -645,14 +645,14 @@ function MobileFlashBlock({
   const [zipOpen, setZipOpen] = useState(false);
 
   return (
-    <div className="flex flex-col gap-3 glim-content-fade">
+    <div className="flex flex-col gap-4 glim-content-fade">
       {/* Page-level load failure: this >=44px tonal row is the mobile recovery
           affordance; the message itself renders below (error paragraph). */}
       {error && (
         <button
           type="button"
           onClick={onRetry}
-          className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+          className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
         >
           {t("folders.retry")}
         </button>
@@ -668,7 +668,7 @@ function MobileFlashBlock({
             <p className="text-sm text-carbon-textSub">{t("settings.flashEnabledHint")}</p>
             <Link
               to="/settings"
-              className="flex min-h-[2.75rem] items-center rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+              className="flex min-h-[2.75rem] items-center rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
             >
               {t("nav.settings")}
             </Link>
@@ -681,10 +681,10 @@ function MobileFlashBlock({
               trigger). The heading's own offsite line is max-md:hidden, so
               this is the one a phone sees. */}
           <div
-            className="glim-hue relative flex flex-col gap-3 overflow-hidden rounded-card bg-carbon-surface p-4"
+            className="glim-hue relative flex flex-col gap-2 overflow-hidden rounded-card bg-carbon-surface p-4"
             style={hueVars(rainbowAt(0)) as CSSProperties}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <span
                 aria-hidden
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-carbon-surface2 text-carbon-textSub"
@@ -728,7 +728,7 @@ function MobileFlashBlock({
           {/* Snapshots section (hue 1): source toggle + rows with tonal
               download/delete entries + load-more. */}
           <div
-            className="glim-hue flex flex-col gap-3 rounded-card bg-carbon-surface p-4"
+            className="glim-hue flex flex-col gap-2 rounded-card bg-carbon-surface p-4"
             style={hueVars(rainbowAt(1)) as CSSProperties}
           >
             <div className="flex items-center gap-2">
@@ -761,7 +761,7 @@ function MobileFlashBlock({
               <button
                 type="button"
                 onClick={showMore}
-                className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+                className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
               >
                 {t("common.loadMore")}
               </button>
@@ -774,7 +774,7 @@ function MobileFlashBlock({
             type="button"
             onClick={() => setZipOpen(true)}
             aria-expanded={zipOpen}
-            className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-3 py-2 text-start text-sm font-medium text-carbon-text"
+            className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-2 text-start text-sm text-carbon-text"
           >
             <span className="truncate">{t("flash.zipExport.title")}</span>
           </button>
@@ -882,7 +882,7 @@ function MobileZipSheet({ open, onClose }: { open: boolean; onClose: () => void 
   return (
     <BottomSheet open={open} onClose={onClose} title={t("flash.zipExport.title")} fullHeight>
       <div className="flex min-h-full flex-col">
-        <div className="flex flex-col gap-3 pt-4">
+        <div className="flex flex-col gap-4 pt-4">
           <p className="text-xs leading-relaxed text-carbon-textMuted">
             {`${t("flash.zipExport.hint")} ${t("flash.zipExport.enableHint")}`}
           </p>
@@ -894,7 +894,7 @@ function MobileZipSheet({ open, onClose }: { open: boolean; onClose: () => void 
             shakeNonce={shake}
           />
           {enabled && (
-            <div className="rounded-card bg-statusWarnBg px-3 py-2.5 text-xs leading-relaxed text-statusWarn">
+            <div className="rounded-card bg-statusWarnBg px-4 py-2 text-xs leading-relaxed text-statusWarn">
               {t("flash.zipExport.plaintextWarn")}
             </div>
           )}
@@ -970,7 +970,7 @@ function MobileFlashSnapshotRow({
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-card bg-carbon-surface p-3">
+    <div className="flex flex-col gap-2 rounded-card bg-carbon-surface p-4">
       <div className="flex items-center gap-2 text-xs">
         <span dir="ltr" className="w-20 shrink-0 font-mono text-carbon-text">
           {snap.id.slice(0, 8)}
@@ -982,7 +982,7 @@ function MobileFlashSnapshotRow({
           type="button"
           onClick={handleDownload}
           disabled={preparing}
-          className="flex min-h-[2.75rem] flex-1 items-center justify-center gap-2 rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text disabled:opacity-50"
+          className="flex min-h-[2.75rem] flex-1 items-center justify-center gap-2 rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text disabled:opacity-50"
         >
           {preparing ? (
             <span
@@ -998,7 +998,7 @@ function MobileFlashSnapshotRow({
           type="button"
           onClick={() => void handleDelete()}
           disabled={deleting || preparing}
-          className={`flex min-h-[2.75rem] flex-1 items-center justify-center gap-2 rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text disabled:opacity-50${shake ? " glim-shake" : ""}`}
+          className={`flex min-h-[2.75rem] flex-1 items-center justify-center gap-2 rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text disabled:opacity-50${shake ? " glim-shake" : ""}`}
         >
           <IconTrash />
           {t("snapshots.delete")}

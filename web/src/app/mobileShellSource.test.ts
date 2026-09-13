@@ -30,7 +30,7 @@
 //
 // Node environment, no DOM: this reads source text, it does not render.
 // ---------------------------------------------------------------------------
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -533,4 +533,248 @@ describe("PLAT-01 — the platform axis stays closed and UA-free", () => {
         "writer would bypass that coercion."
     ).toEqual([join("lib", "platform.ts").replaceAll("\\", "/")]);
   });
+});
+
+// ---------------------------------------------------------------------------
+// PHASE-07 sweep — the 8/16 spacing + 400/600 weight discipline, asserted at
+// the source level over every phase-7 mobile surface (07-08 Task 2).
+//
+// Why a source sweep: the discipline is DECLARATIVE — it lives in utility
+// class strings — so no behavioral assert can catch a re-introduced `gap-3`;
+// only reading the source can. The needle set IS the phase-7 scale decision
+// (07-UI-SPEC, Spacing Scale): 8/16 stops only, which bans the 12px stops
+// (`*-3`) and the half stops (`*-1.5` / `*-2.5`), and weights 400/600 only,
+// which bans font-medium (500). The banned literals appear in THIS file as
+// the negative assertions themselves — their only sanctioned appearance, the
+// same house pattern as the 100vh needles above (which is also why
+// RunDetailSheet.dom.test.tsx is absent from the list below: its
+// not.toContain("font-medium") is a needle, not a violation).
+//
+// Scope: file-wide for the WHOLLY-phase-7 files — everything a 07-* plan
+// created or owns end to end; a banned value anywhere in them is a real
+// violation. The six destination pages + the four retrofitted components are
+// MIXED files: their desktop halves legitimately carry legacy 12px values
+// and are NOT held to the phase-7 scale, so for those the sweep is scoped to
+// the MOBILE BLOCK regions — the `function Mobile*` file-tail components and
+// the `{!isDesktop && (…)` / `{wizardOpen && !isDesktop && (…)` mounts (the
+// D-01 mount discipline: mobile JSX only ever mounts under those gates).
+// Regions are computed on COMMENT-STRIPPED text for two reasons: why-comments
+// carry unbalanced parentheses that would close a paren-scan early, and prose
+// mentions of banned literals are sanctioned (index.css's token-derivation
+// comments cite `p-3` / `py-2.5` / `px-3` as the numbers tokens replace).
+//
+// Anti-shrink (T-07-29, guard erosion): a mixed file must still carry its
+// recorded mount anchors at their recorded counts, and its swept regions must
+// still measure above a recorded character floor — deleting a mount gate or
+// gutting a region to dodge the needle scan fails the suite. (The plan
+// expected D-01 comment strings to serve as the markers; the real mounts
+// carry inconsistent or no adjacent comments, so the MOUNT ANCHOR + COUNT +
+// FLOOR triple is the marker. The whys live at OffsiteTargetsSection's
+// "MOBILE PRESENTATION" and ActivityLog's "MOBILE toolbar/log" comments.)
+// The file list, anchors, counts and floors change only with a written
+// why-comment at the change site — never by deleting a needle to make a
+// failing file pass.
+// ---------------------------------------------------------------------------
+describe("PHASE-07 — the 8/16 spacing + 400/600 weight discipline holds on every phase-7 mobile surface", () => {
+  // [needle, human label] — matched with a token boundary on both sides so
+  // `px-3` never matches inside `px-3.5`-style neighbors of other scales and
+  // `top-3`/`h-3`-style non-spacing utilities never match at all.
+  const SWEEP_NEEDLES: { needle: RegExp; label: string }[] = [
+    {
+      needle: /(^|[^a-zA-Z0-9_-])(?:gap|px|py|pt|pb|pl|pr|mt|mb|ml|mr|mx|my|m|p)-3(?![a-zA-Z0-9_-])/,
+      label: "12px spacing stop (-3)",
+    },
+    {
+      needle: /(^|[^a-zA-Z0-9_-])(?:gap-1\.5|gap-2\.5|py-2\.5|px-2\.5)(?![a-zA-Z0-9_-])/,
+      label: "half spacing stop (-1.5/-2.5)",
+    },
+    {
+      needle: /(^|[^a-zA-Z0-9_-])font-medium(?![a-zA-Z0-9_-])/,
+      label: "font-medium (the banned 500 weight)",
+    },
+  ];
+
+  /** Comment-stripped source: prose can cite banned literals (sanctioned),
+   *  and unbalanced comment parentheses would break the mount paren-scan. */
+  function stripComments(src: string): string {
+    return src
+      .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "))
+      .replace(/(^|[^:"'`])\/\/[^\n]*/g, "$1");
+  }
+
+  /** The JSX each mobile mount renders: from the gate's `(` to its matching
+   *  `)` on stripped text. Overlapping regions are harmless (double-swept). */
+  function mountRegions(stripped: string, anchor: string): string[] {
+    const regions: string[] = [];
+    let at = stripped.indexOf(anchor);
+    while (at >= 0) {
+      let depth = 0;
+      for (let i = at + anchor.length - 1; i < stripped.length; i++) {
+        const ch = stripped[i];
+        if (ch === "(") depth++;
+        else if (ch === ")") {
+          depth--;
+          if (depth === 0) {
+            regions.push(stripped.slice(at, i + 1));
+            break;
+          }
+        }
+      }
+      at = stripped.indexOf(anchor, at + anchor.length);
+    }
+    return regions;
+  }
+
+  function sweepHits(label: string, text: string): string[] {
+    const hits: string[] = [];
+    for (const { needle, label: what } of SWEEP_NEEDLES) {
+      for (const m of text.matchAll(new RegExp(needle.source, "g"))) {
+        hits.push(`${label}: ${what} (matched ${JSON.stringify(m[0])})`);
+      }
+    }
+    return hits;
+  }
+
+  // The union of the 07-* plans' files that are phase-7 END TO END — no
+  // desktop half, no legacy region. Paths are relative to web/.
+  const WHOLLY_PHASE7_FILES = [
+    "src/lib/platform.ts",
+    "src/lib/platform.test.ts",
+    "src/lib/useLoadMore.ts",
+    "src/lib/useLoadMore.test.ts",
+    "src/lib/i18n.ts",
+    "src/index.css",
+    "src/main.tsx",
+    "src/components/mobile/Fab.tsx",
+    "src/components/mobile/Fab.dom.test.tsx",
+    "src/components/mobile/ListToolbar.tsx",
+    "src/components/mobile/MobileSectionLabel.tsx",
+    // The carried-fix file (07-08 Task 1): wholly mobile, so its whole text
+    // is held to the scale — this is what keeps the font-medium purge purged.
+    "src/components/mobile/RunDetailSheet.tsx",
+    "src/pages/VMs.test.tsx",
+    "src/pages/Flash.desktop.dom.test.tsx",
+    "src/pages/Fleet.peerCard.dom.test.tsx",
+    "e2e/platform-chrome.spec.ts",
+    "e2e/destination-vms-flash.spec.ts",
+    "e2e/destination-config-receiver-fleet.spec.ts",
+    "e2e/destination-settings.spec.ts",
+    "e2e/list-ergonomics.spec.ts",
+    "e2e/settings-editors.spec.ts",
+    "e2e/desktop-untouched.spec.ts",
+  ];
+
+  const ISD_MOUNT = "{!isDesktop && (";
+  const WIZARD_MOUNT = "{wizardOpen && !isDesktop && (";
+
+  // Mixed files: mobile regions + the exact recorded geography. isdMounts /
+  // wizardMounts are file-wide gate counts (the anti-shrink anchors);
+  // minChars floors the TOTAL swept size. Floors sit at ~50% of the recorded
+  // geography so a gutted region trips while routine edits above it do not.
+  const MIXED_FILES: {
+    file: string;
+    tailAnchor?: RegExp; // Mobile* components run from here to EOF
+    slice?: [string, string]; // [from, to) literal anchors (Dashboard)
+    isdMounts: number;
+    wizardMounts: number;
+    minChars: number;
+  }[] = [
+    { file: "src/pages/VMs.tsx", tailAnchor: /function Mobile/, isdMounts: 1, wizardMounts: 0, minChars: 9000 },
+    { file: "src/pages/Flash.tsx", tailAnchor: /function Mobile/, isdMounts: 1, wizardMounts: 0, minChars: 7000 },
+    { file: "src/pages/Config.tsx", tailAnchor: /function Mobile/, isdMounts: 1, wizardMounts: 0, minChars: 8000 },
+    { file: "src/pages/Receiver.tsx", tailAnchor: /function Mobile/, isdMounts: 1, wizardMounts: 0, minChars: 10000 },
+    { file: "src/pages/Fleet.tsx", tailAnchor: /function Mobile/, isdMounts: 1, wizardMounts: 0, minChars: 7000 },
+    { file: "src/components/ActivityLog.tsx", isdMounts: 2, wizardMounts: 0, minChars: 1500 },
+    { file: "src/pages/settings/NotifyCard.tsx", isdMounts: 1, wizardMounts: 0, minChars: 600 },
+    { file: "src/components/OffsiteTargetsSection.tsx", isdMounts: 1, wizardMounts: 0, minChars: 2400 },
+    { file: "src/pages/Settings.tsx", isdMounts: 1, wizardMounts: 1, minChars: 700 },
+    {
+      file: "src/pages/Dashboard.tsx",
+      slice: ["function MobileNextRunCard", "export function Dashboard("],
+      isdMounts: 2,
+      wizardMounts: 0,
+      minChars: 4500,
+    },
+  ];
+
+  it("sweep list resolves: every listed phase-7 file exists (the list rots loudly)", () => {
+    const missing = [...WHOLLY_PHASE7_FILES, ...MIXED_FILES.map(({ file }) => file)].filter(
+      (f) => !existsSync(join(WEB, f)),
+    );
+    expect(
+      missing,
+      "phase-7 sweep files are missing from the tree. If a file moved or was " +
+        "renamed, repoint its list entry deliberately (with a why-comment) — " +
+        "the sweep must never pass against a stale or silent list."
+    ).toEqual([]);
+  });
+
+  it("wholly-phase-7 files carry no 12px stop, half stop, or 500 weight", () => {
+    const hits = WHOLLY_PHASE7_FILES.flatMap((f) => sweepHits(f, stripComments(readFileSync(join(WEB, f), "utf8"))));
+    expect(
+      hits,
+      "a wholly-phase-7 file carries a banned spacing stop or the 500 weight. " +
+        "The phase-7 scale is 8/16 stops and 400/600 weights (07-UI-SPEC); a " +
+        "new value means either normalizing the site to the scale or editing " +
+        "this guard WITH a written why at the change site — never silently."
+    ).toEqual([]);
+  });
+
+  it.each(MIXED_FILES.map(({ file }) => [file]))(
+    "mixed file %s holds the scale in its mobile regions with geography intact",
+    (file) => {
+      const scope = MIXED_FILES.find(({ file: f }) => f === file)!;
+      const stripped = stripComments(readFileSync(join(WEB, file), "utf8"));
+
+      // Anti-shrink: the mount gates exist at their recorded counts.
+      expect(
+        (stripped.match(new RegExp(ISD_MOUNT.replaceAll(/[()]/g, "\\$&"), "g")) || []).length,
+        `${file}: the {!isDesktop && ( mount count changed. Each gate is a ` +
+          "recorded mobile mount (D-01); a removed gate shrinks the swept " +
+          "region — restore it or update the guard with a why.",
+      ).toBe(scope.isdMounts);
+      expect(
+        (stripped.match(new RegExp(WIZARD_MOUNT.replaceAll(/[()]/g, "\\$&"), "g")) || []).length,
+        `${file}: the {wizardOpen && !isDesktop && ( mount count changed — ` +
+          "see the isDesktop note above.",
+      ).toBe(scope.wizardMounts);
+
+      // The mobile regions: tail/slice component block + every mount body.
+      const regions: string[] = [];
+      if (scope.tailAnchor) {
+        const at = stripped.search(scope.tailAnchor);
+        expect(
+          at,
+          `${file}: the function Mobile tail anchor is gone — the ` +
+            "mobile components this sweep guards were moved or deleted. " +
+            "Re-anchor the guard deliberately or restore the components.",
+        ).toBeGreaterThanOrEqual(0);
+        regions.push(stripped.slice(at));
+      }
+      if (scope.slice) {
+        const [from, to] = scope.slice;
+        const start = stripped.indexOf(from);
+        const end = stripped.indexOf(to);
+        expect(start, `${file}: slice start anchor ${from} not found`).toBeGreaterThanOrEqual(0);
+        expect(end, `${file}: slice end anchor ${to} not found`).toBeGreaterThan(start);
+        regions.push(stripped.slice(start, end));
+      }
+      regions.push(...mountRegions(stripped, ISD_MOUNT), ...mountRegions(stripped, WIZARD_MOUNT));
+
+      expect(
+        regions.reduce((sum, r) => sum + r.length, 0),
+        `${file}: the swept mobile regions measure below the recorded floor — ` +
+          "a region was gutted. Restore it or re-record the floor with a why."
+      ).toBeGreaterThanOrEqual(scope.minChars);
+
+      const hits = regions.flatMap((r, i) => sweepHits(`${file} region#${i}`, r));
+      expect(
+        hits,
+        `${file}: a banned spacing stop or the 500 weight re-entered a MOBILE ` +
+          "region. The desktop half may keep legacy values (that is why this " +
+          "file is region-scoped), but the mobile block holds the phase-7 " +
+          "scale: normalize the site, or edit this guard with a written why."
+      ).toEqual([]);
+    },
+  );
 });

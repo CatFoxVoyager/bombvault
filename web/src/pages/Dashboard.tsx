@@ -2151,7 +2151,7 @@ function MobileNextRunCard({
               </span>
             </span>
             {countdown && (
-              <span className="shrink-0 rounded-pill bg-accentSoft px-2.5 py-1 text-xs font-semibold text-accentText">
+              <span className="shrink-0 rounded-pill bg-accentSoft px-2 py-1 text-xs font-semibold text-accentText">
                 {countdown}
               </span>
             )}

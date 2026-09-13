@@ -180,7 +180,7 @@ function LogList({ lines }: { lines: LogLine[] }) {
   const { t } = useT();
   if (lines.length === 0) return null;
   return (
-    <div className="rounded-card bg-black/20 font-mono text-xs leading-relaxed px-3 py-2 flex flex-col gap-0.5">
+    <div className="rounded-card bg-black/20 font-mono text-xs leading-relaxed px-4 py-2 flex flex-col gap-0.5">
       {lines.map((l) => (
         <div key={l.id} className="flex items-start gap-2">
           <span className="text-carbon-textMuted shrink-0 tabular-nums">
@@ -418,8 +418,8 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
 
   const footerContent =
     browseSupported || verifyDomain ? (
-      <div className="flex flex-col gap-2 px-4 py-3">
-        <div className={browseSupported && verifyDomain ? "grid grid-cols-2 gap-3" : "flex"}>
+      <div className="flex flex-col gap-2 px-4 py-4">
+        <div className={browseSupported && verifyDomain ? "grid grid-cols-2 gap-2" : "flex"}>
           {browseSupported && (
             <SheetActionRow
               label={t("recovery.foreignStepBrowse")}
@@ -441,13 +441,13 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
             vocabulary IntegrityCard renders after a check (CheckDraw +
             integrity.ok / the scrubbed server reason over verify.failed). */}
         {verifyState === "ok" && (
-          <p className="flex items-center gap-1.5 text-xs text-statusOk">
+          <p className="flex items-center gap-2 text-xs text-statusOk">
             <CheckDraw />
             {t("integrity.ok")}
           </p>
         )}
         {verifyState === "fail" && verifyError != null && (
-          <p className="rounded-card bg-statusFailBgSoft px-3 py-2.5 text-xs text-statusFail leading-relaxed wrap-break-word">
+          <p className="rounded-card bg-statusFailBgSoft px-4 py-2 text-xs text-statusFail leading-relaxed wrap-break-word">
             {verifyError}
           </p>
         )}
@@ -470,9 +470,9 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
         {/* Status headline: the shared status chip + completion time. The
             drawn check appears only on a fresh running→success transition
             observed while open (see the gate above). */}
-        <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <Badge tone={statusTone(run.status)}>{statusLabel(run.status, t)}</Badge>
-          <span className="flex items-center gap-1.5 text-xs text-carbon-textMuted tabular-nums">
+          <span className="flex items-center gap-2 text-xs text-carbon-textMuted tabular-nums">
             {run.status === "success" && freshOk && <CheckDraw />}
             {formatTs(run.finishedAt)}
           </span>
@@ -484,7 +484,7 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
             lib/runReason direction contract). */}
         {run.error !== "" && (
           <p
-            className="rounded-card bg-statusFailBgSoft px-3 py-2.5 text-xs text-statusFail leading-relaxed wrap-break-word"
+            className="rounded-card bg-statusFailBgSoft px-4 py-2 text-xs text-statusFail leading-relaxed wrap-break-word"
             dir={isOwnReason(run.error) ? undefined : "ltr"}
           >
             {runReason(run.error, t)}

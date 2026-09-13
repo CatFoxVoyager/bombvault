@@ -462,7 +462,7 @@ export function ActivityLog({
             ))}
           </select>
           {dayFilter && (
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-pill bg-accent text-accentContrast ps-2.5 pe-1 py-0.5 text-xs font-medium">
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-pill bg-accent text-accentContrast ps-2 pe-1 py-0.5 text-xs font-semibold">
               {resolveName("activityLog.dayFilterChip", {
                 date: new Date(dayFilter + "T00:00:00").toLocaleDateString(),
               })}
@@ -550,7 +550,7 @@ export function ActivityLog({
               <button
                 type="button"
                 onClick={showMore}
-                className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+                className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
               >
                 {t("common.loadMore")}
               </button>

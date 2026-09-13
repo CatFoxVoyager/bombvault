@@ -892,7 +892,7 @@ export function NotifyCard({
       <button
         type="button"
         onClick={() => setSheetOpen(true)}
-        className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-3 py-2 text-start text-sm font-medium text-carbon-text"
+        className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-2 text-start text-sm text-carbon-text"
       >
         <span className="truncate">{t("notify.title")}</span>
         {loadErr ? (

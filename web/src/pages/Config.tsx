@@ -856,7 +856,7 @@ function MobileConfigBlock({
       : { tone: "neutral" as const, label: loading ? t("dashboard.checking") : t("containers.never") };
 
   return (
-    <div className="flex flex-col gap-3 glim-content-fade">
+    <div className="flex flex-col gap-4 glim-content-fade">
       {/* Page-level load failure: this >=44px tonal row is the mobile recovery
           affordance; the desktop cards' own error paragraph stays hidden with
           them below md. folders.retry ("Try again") is the sanctioned existing
@@ -865,7 +865,7 @@ function MobileConfigBlock({
         <button
           type="button"
           onClick={onRetry}
-          className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+          className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
         >
           {t("folders.retry")}
         </button>
@@ -881,7 +881,7 @@ function MobileConfigBlock({
             <p className="text-sm text-carbon-textSub">{t("settings.configEnabledHint")}</p>
             <Link
               to="/settings"
-              className="flex min-h-[2.75rem] items-center rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+              className="flex min-h-[2.75rem] items-center rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
             >
               {t("nav.settings")}
             </Link>
@@ -896,10 +896,10 @@ function MobileConfigBlock({
               ConfigBackupButton trigger, which the Fab also fires through
               fireRef), and the live ProgressBar. */}
           <div
-            className="glim-hue glim-content-fade relative flex flex-col gap-3 overflow-hidden rounded-card bg-carbon-surface p-4"
+            className="glim-hue glim-content-fade relative flex flex-col gap-2 overflow-hidden rounded-card bg-carbon-surface p-4"
             style={hueVars(rainbowAt(0)) as CSSProperties}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <span
                 aria-hidden
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-carbon-surface2 text-carbon-textSub"
@@ -941,12 +941,12 @@ function MobileConfigBlock({
             type="button"
             onClick={() => setScheduleOpen(true)}
             aria-expanded={scheduleOpen}
-            className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-3 py-2 text-start text-sm font-medium text-carbon-text"
+            className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-2 text-start text-sm text-carbon-text"
           >
             <span className="truncate">{t("settings.schedulesSelfBackup")}</span>
             <span className="flex shrink-0 items-center gap-2">
               {scheduleActive && scheduleNext ? (
-                <span className="rounded-pill bg-accentSoft px-2.5 py-1 text-xs font-semibold text-accentText">
+                <span className="rounded-pill bg-accentSoft px-2 py-1 text-xs font-semibold text-accentText">
                   {new Date(scheduleNext.next).toLocaleString()}
                 </span>
               ) : null}
@@ -964,7 +964,7 @@ function MobileConfigBlock({
             type="button"
             onClick={() => setRestoreOpen(true)}
             aria-expanded={restoreOpen}
-            className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-3 py-2 text-start text-sm font-medium text-carbon-text"
+            className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-2 text-start text-sm text-carbon-text"
           >
             <span className="truncate">{t("recovery.stepConfig")}</span>
           </button>
@@ -1183,7 +1183,7 @@ function MobileRestoreSheet({ open, onClose }: { open: boolean; onClose: () => v
 
   return (
     <BottomSheet open={open} onClose={onClose} title={t("recovery.stepConfig")}>
-      <div className="flex flex-col gap-3 pt-4">
+      <div className="flex flex-col gap-4 pt-4">
         <p className="text-sm font-semibold text-carbon-text">{t("config.restoreChain.title")}</p>
         {/* The D-03 chain: a real numbered <ol>, 12px step text, rendered
             BEFORE the confirm control below (DOM order = reading order — the
@@ -1206,12 +1206,12 @@ function MobileRestoreSheet({ open, onClose }: { open: boolean; onClose: () => v
           </div>
         )}
         {phase === "manual" && (
-          <div className="rounded-card bg-statusWarnBg px-3 py-2.5 text-xs text-statusWarn leading-relaxed">
+          <div className="rounded-card bg-statusWarnBg px-4 py-2 text-xs text-statusWarn leading-relaxed">
             {t("recovery.configManualRestart")}
           </div>
         )}
         {phase === "reload" && (
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-statusWarn">{t("recovery.configReloadWhenBack")}</span>
             <Button
               label={t("recovery.configReload")}
@@ -1222,7 +1222,7 @@ function MobileRestoreSheet({ open, onClose }: { open: boolean; onClose: () => v
           </div>
         )}
         {phase === "error" && message && (
-          <div className="rounded-card bg-statusFailBgSoft px-3 py-2.5 text-xs text-statusFail leading-relaxed wrap-break-word">
+          <div className="rounded-card bg-statusFailBgSoft px-4 py-2 text-xs text-statusFail leading-relaxed wrap-break-word">
             {message}
           </div>
         )}

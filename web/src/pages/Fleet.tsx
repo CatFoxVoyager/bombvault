@@ -1230,7 +1230,7 @@ function MobileFleetBlock({
   }, []);
 
   return (
-    <div className="flex flex-col gap-3 glim-content-fade">
+    <div className="flex flex-col gap-4 glim-content-fade">
       {/* Page-level load failure: this >=44px tonal row is the mobile recovery
           affordance; the desktop error paragraph above carries the message.
           folders.retry ("Try again") is the sanctioned existing label — the
@@ -1239,7 +1239,7 @@ function MobileFleetBlock({
         <button
           type="button"
           onClick={onRetry}
-          className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+          className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
         >
           {t("folders.retry")}
         </button>
@@ -1254,7 +1254,7 @@ function MobileFleetBlock({
             <p className="text-sm text-carbon-textSub">{t("settings.fleetEnabledHint")}</p>
             <Link
               to="/settings"
-              className="flex min-h-[2.75rem] items-center rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+              className="flex min-h-[2.75rem] items-center rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
             >
               {t("nav.settings")}
             </Link>
@@ -1288,7 +1288,7 @@ function MobileFleetBlock({
             <button
               type="button"
               onClick={() => onEditor("new")}
-              className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-3 py-2 text-start text-sm font-medium text-carbon-text"
+              className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-2 text-start text-sm text-carbon-text"
             >
               <span className="truncate">{t("fleet.addPeer")}</span>
               <IconFleet />
@@ -1422,7 +1422,7 @@ function MobilePeerCard({
         type="button"
         onClick={() => setDetailOpen(true)}
         aria-expanded={detailOpen}
-        className="flex min-h-[2.75rem] w-full items-center gap-3 rounded-control bg-carbon-surface2 px-3 py-2 text-start"
+        className="flex min-h-[2.75rem] w-full items-center gap-2 rounded-control bg-carbon-surface2 px-4 py-2 text-start"
       >
         <span
           aria-hidden
@@ -1434,7 +1434,7 @@ function MobilePeerCard({
           <span className="block truncate text-sm font-semibold text-carbon-text">
             {peer.lastPollInstanceName || peer.name}
           </span>
-          <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
+          <span className="mt-0.5 flex flex-wrap items-center gap-2">
             {!peer.enabled && <Badge tone="neutral">{t("fleet.monitoringOff")}</Badge>}
             <Badge tone={pollTone}>{pollLabel}</Badge>
           </span>
@@ -1470,8 +1470,8 @@ function MobilePeerCard({
           fullHeight prop) with the full scorecard + poll/edit/remove rows. */}
       {detailOpen && (
         <BottomSheet open onClose={() => setDetailOpen(false)} title={t("fleet.details")}>
-          <div className="flex flex-col gap-3 pt-3">
-            <p className="text-xs font-medium text-carbon-textSub">{t("fleet.scorecardTitle")}</p>
+          <div className="flex flex-col gap-4 pt-4">
+            <p className="text-xs text-carbon-textSub">{t("fleet.scorecardTitle")}</p>
             <PeerScorecard domains={peer.lastPollDomains} t={t} />
 
             {/* Poll now: the desktop card's own accent action, re-hosted as a
@@ -1484,7 +1484,7 @@ function MobilePeerCard({
               onClick={() => void handlePoll()}
               disabled={polling}
               title={polling ? t("fleet.polling") : undefined}
-              className={`min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text disabled:opacity-60 ${
+              className={`min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text disabled:opacity-60 ${
                 shakePoll ? "glim-shake" : ""
               }`}
             >
@@ -1498,7 +1498,7 @@ function MobilePeerCard({
                 setDetailOpen(false);
                 onEdit();
               }}
-              className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+              className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
             >
               {t("fleet.edit")}
             </button>
@@ -1507,7 +1507,7 @@ function MobilePeerCard({
               type="button"
               onClick={() => void handleRemove()}
               disabled={removing}
-              className={`min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text disabled:opacity-60 ${
+              className={`min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text disabled:opacity-60 ${
                 shakeRemove ? "glim-shake" : ""
               }`}
             >
@@ -1600,7 +1600,7 @@ function MobilePeerEditor({
   }
 
   const inputCls =
-    "rounded-control bg-carbon-surface2 text-carbon-text text-sm px-3 py-1.5 glim-field-focus";
+    "rounded-control bg-carbon-surface2 text-carbon-text text-sm px-4 py-1.5 glim-field-focus";
 
   return (
     <BottomSheet
@@ -1614,7 +1614,7 @@ function MobilePeerEditor({
           it to the panel floor when the content is shorter than the sheet) —
           the MobileVMCard schedule-sheet body shape. */}
       <div className="flex min-h-full flex-col gap-4 pt-4">
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           <label className="text-xs text-carbon-textSub">{t("fleet.name")}</label>
           <input
             type="text"
@@ -1627,7 +1627,7 @@ function MobilePeerEditor({
           />
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           <label className="text-xs text-carbon-textSub">{t("fleet.url")}</label>
           <input
             type="text"
@@ -1645,7 +1645,7 @@ function MobilePeerEditor({
         {/* Peer fleet token — write-only (T-07-11): blank input, the desktop's
             own keep placeholder when a token is stored, never a prefilled
             value. */}
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           <label className="text-xs text-carbon-textSub">{t("fleet.token")}</label>
           <RevealInput
             {...revealToken}

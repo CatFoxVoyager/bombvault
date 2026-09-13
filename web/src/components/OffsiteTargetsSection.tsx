@@ -669,7 +669,7 @@ export function OffsiteTargetsSection({
             add row calls the SAME openNew() the desktop button does — one add
             flow, two presentations ("Ziel hinzufügen" stays reachable on
             mobile through the sheet path). */}
-        <div className="mt-2 flex flex-col gap-3 rounded-card bg-carbon-surface2 p-3">
+        <div className="mt-2 flex flex-col gap-2 rounded-card bg-carbon-surface2 p-4">
           <div className="flex flex-col gap-0.5">
             <span className="text-xs font-semibold text-carbon-textSub uppercase tracking-widest">
               {t("offsite.targets.title")}
@@ -689,7 +689,7 @@ export function OffsiteTargetsSection({
               key={tgt.id}
               type="button"
               onClick={() => openEdit(tgt)}
-              className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface px-3 py-2 text-start text-sm font-medium text-carbon-text"
+              className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface px-4 py-2 text-start text-sm text-carbon-text"
             >
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span className="truncate">{tgt.name || tgt.repo}</span>
@@ -709,7 +709,7 @@ export function OffsiteTargetsSection({
             <button
               type="button"
               onClick={openNew}
-              className="flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-control bg-carbon-surface px-3 py-2 text-start text-sm font-medium text-carbon-text"
+              className="flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-control bg-carbon-surface px-4 py-2 text-start text-sm text-carbon-text"
             >
               <IconAdd />
               {t("offsite.targets.add")}
@@ -731,10 +731,10 @@ export function OffsiteTargetsSection({
           fullHeight
         >
           <div className="flex min-h-full flex-col">
-            <div className="flex flex-col gap-3 pt-4">
+            <div className="flex flex-col gap-4 pt-4">
               {renderForm()}
               {draft !== null && draft.id !== "" && (
-                <div className="flex items-center gap-3 flex-wrap border-t border-carbon-border pt-3">
+                <div className="flex items-center gap-2 flex-wrap border-t border-carbon-border pt-4">
                   <TargetTestButton id={draft.id} t={t} />
                   <Badge
                     as="button"

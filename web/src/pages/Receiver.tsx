@@ -907,7 +907,7 @@ function MobileReceiverBlock({
   }, []);
 
   return (
-    <div className="flex flex-col gap-3 glim-content-fade">
+    <div className="flex flex-col gap-4 glim-content-fade">
       {/* Page-level load failure: this >=44px tonal row is the mobile recovery
           affordance; the desktop error paragraph above carries the message.
           folders.retry ("Try again") is the sanctioned existing label — the
@@ -916,7 +916,7 @@ function MobileReceiverBlock({
         <button
           type="button"
           onClick={onRetry}
-          className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+          className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
         >
           {t("folders.retry")}
         </button>
@@ -932,7 +932,7 @@ function MobileReceiverBlock({
             <p className="text-sm text-carbon-textSub">{t("settings.receiverEnabledHint")}</p>
             <Link
               to="/settings"
-              className="flex min-h-[2.75rem] items-center rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+              className="flex min-h-[2.75rem] items-center rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
             >
               {t("nav.settings")}
             </Link>
@@ -968,7 +968,7 @@ function MobileReceiverBlock({
             <button
               type="button"
               onClick={() => onEditor("new")}
-              className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-3 py-2 text-start text-sm font-medium text-carbon-text"
+              className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-2 text-start text-sm text-carbon-text"
             >
               <span className="truncate">{t("receiver.addRepo")}</span>
               <IconReceiver />
@@ -1121,7 +1121,7 @@ function MobileReceiverCard({
         type="button"
         onClick={() => setDetailOpen(true)}
         aria-expanded={detailOpen}
-        className="flex min-h-[2.75rem] w-full items-center gap-3 rounded-control bg-carbon-surface2 px-3 py-2 text-start"
+        className="flex min-h-[2.75rem] w-full items-center gap-2 rounded-control bg-carbon-surface2 px-4 py-2 text-start"
       >
         <span
           aria-hidden
@@ -1131,7 +1131,7 @@ function MobileReceiverCard({
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold text-carbon-text">{repo.name}</span>
-          <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
+          <span className="mt-0.5 flex flex-wrap items-center gap-2">
             {!repo.enabled && <Badge tone="neutral">{t("receiver.monitoringOff")}</Badge>}
             {repo.enabled &&
               (repo.reachable ? (
@@ -1174,10 +1174,10 @@ function MobileReceiverCard({
           rows and the edit/remove rows. */}
       {detailOpen && (
         <BottomSheet open onClose={() => setDetailOpen(false)} title={t("receiver.details")}>
-          <div className="flex flex-col gap-3 pt-3">
+          <div className="flex flex-col gap-4 pt-4">
             {/* Inventory drill-down (the desktop disclosure panel's own fetch
                 and keys, stacked rows instead of the desktop table). */}
-            <p className="text-xs font-medium text-carbon-textSub">{t("receiver.inventoryTitle")}</p>
+            <p className="text-xs text-carbon-textSub">{t("receiver.inventoryTitle")}</p>
             <MobileInventory repo={repo} t={t} />
 
             {/* Manual check rows: the deep-check readData toggle + the check
@@ -1195,7 +1195,7 @@ function MobileReceiverCard({
               type="button"
               onClick={() => void handleCheck()}
               disabled={checking}
-              className={`min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text disabled:opacity-60 ${
+              className={`min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text disabled:opacity-60 ${
                 shakeCheck ? "glim-shake" : ""
               }`}
             >
@@ -1209,7 +1209,7 @@ function MobileReceiverCard({
                 setDetailOpen(false);
                 onEdit();
               }}
-              className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+              className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
             >
               {t("receiver.edit")}
             </button>
@@ -1218,7 +1218,7 @@ function MobileReceiverCard({
               type="button"
               onClick={() => void handleRemove()}
               disabled={removing}
-              className={`min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text disabled:opacity-60 ${
+              className={`min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text disabled:opacity-60 ${
                 shakeRemove ? "glim-shake" : ""
               }`}
             >
@@ -1281,8 +1281,8 @@ function MobileInventory({ repo, t }: { repo: ReceivedRepoStatus; t: T }) {
   return (
     <div className="flex flex-col gap-2">
       {inv.sources.map((s, i) => (
-        <div key={`${s.host}/${s.item}/${i}`} className="rounded-control bg-carbon-surface2 px-3 py-2">
-          <p className="truncate text-sm font-medium text-carbon-text">
+        <div key={`${s.host}/${s.item}/${i}`} className="rounded-control bg-carbon-surface2 px-4 py-2">
+          <p className="truncate text-sm font-semibold text-carbon-text">
             {s.item || "-"}
             {s.host && <span className="text-carbon-textMuted"> · {s.host}</span>}
           </p>
@@ -1297,8 +1297,8 @@ function MobileInventory({ repo, t }: { repo: ReceivedRepoStatus; t: T }) {
         </div>
       ))}
       {/* Repo-wide totals (the desktop tfoot row). */}
-      <div className="rounded-control border border-carbon-border px-3 py-2">
-        <p className="text-sm font-medium text-carbon-text">{t("receiver.total")}</p>
+      <div className="rounded-control border border-carbon-border px-4 py-2">
+        <p className="text-sm font-semibold text-carbon-text">{t("receiver.total")}</p>
         <p className="mt-0.5 text-xs text-carbon-textSub tabular-nums">
           {t("receiver.snapshotsCount").replace("{n}", String(inv.snapshotCount))}
           {" · "}
@@ -1404,7 +1404,7 @@ function MobileRepoEditor({
   }
 
   const inputCls =
-    "rounded-control bg-carbon-surface2 text-carbon-text text-sm px-3 py-1.5 glim-field-focus";
+    "rounded-control bg-carbon-surface2 text-carbon-text text-sm px-4 py-1.5 glim-field-focus";
 
   return (
     <BottomSheet
@@ -1419,7 +1419,7 @@ function MobileRepoEditor({
           the MobileVMCard schedule-sheet body shape. */}
       <div className="flex min-h-full flex-col gap-4 pt-4">
         {/* Name */}
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           <label className="text-xs text-carbon-textSub">{t("receiver.name")}</label>
           <input
             type="text"
@@ -1433,7 +1433,7 @@ function MobileRepoEditor({
         </div>
 
         {/* Repository location */}
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           <label className="text-xs text-carbon-textSub">{t("receiver.repoLocation")}</label>
           <input
             type="text"
@@ -1451,7 +1451,7 @@ function MobileRepoEditor({
         {/* Sending APP_KEY — write-only (T-07-11): blank input, the desktop's
             own keep placeholder when a key is stored, never a prefilled
             value. */}
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           <label className="text-xs text-carbon-textSub">{t("receiver.appKey")}</label>
           <RevealInput
             {...revealAppKey}
@@ -1470,8 +1470,8 @@ function MobileRepoEditor({
         </div>
 
         {/* Dead-mans-switch + deep-check sample */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="flex flex-col gap-1.5">
+        <div className="grid grid-cols-2 gap-2">
+          <div className="flex flex-col gap-2">
             <label className="text-xs text-carbon-textSub">{t("receiver.deadManHours")}</label>
             <NumberField
               min={1}
@@ -1480,7 +1480,7 @@ function MobileRepoEditor({
               className={inputCls}
             />
           </div>
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-2">
             <label className="text-xs text-carbon-textSub">{t("receiver.readDataPercent")}</label>
             <NumberField
               min={0}
@@ -1494,7 +1494,7 @@ function MobileRepoEditor({
         <p className="text-caption text-carbon-textMuted -mt-2">{t("receiver.deadManHoursHint")}</p>
 
         {/* Check cadence */}
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           <label className="text-xs text-carbon-textSub">{t("receiver.checkCadence")}</label>
           <input
             type="text"

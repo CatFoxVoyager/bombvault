@@ -2183,7 +2183,7 @@ function MobileVMsBlock({
   const scheduledCount = sorted.filter((v) => v.includeInSchedule).length;
 
   return (
-    <div className="flex flex-col gap-3 glim-content-fade">
+    <div className="flex flex-col gap-4 glim-content-fade">
       {/* Page-level load failure: the shared error paragraph above carries the
           message; this >=44px tonal row is the mobile recovery affordance.
           folders.retry ("Try again") is the sanctioned existing label — the
@@ -2192,7 +2192,7 @@ function MobileVMsBlock({
         <button
           type="button"
           onClick={onRetry}
-          className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+          className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
         >
           {t("folders.retry")}
         </button>
@@ -2209,7 +2209,7 @@ function MobileVMsBlock({
             <p className="text-sm text-carbon-textSub">{t("settings.vmsEnabledHint")}</p>
             <Link
               to="/settings"
-              className="flex min-h-[2.75rem] items-center rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+              className="flex min-h-[2.75rem] items-center rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
             >
               {t("nav.settings")}
             </Link>
@@ -2283,7 +2283,7 @@ function MobileVMsBlock({
           ))}
 
           {mobileOrphans.length > 0 && (
-            <div className="flex flex-col gap-3 pt-2">
+            <div className="flex flex-col gap-4 pt-2">
               <MobileSectionLabel t={t} labelKey="containers.notInstalledTitle" />
               <p className="-mt-2 text-xs text-carbon-textMuted">{t("vms.notInstalledHint")}</p>
               {mobileOrphans.map((v, i) => (
@@ -2319,7 +2319,7 @@ function MobileVMsBlock({
             <button
               type="button"
               onClick={showMore}
-              className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+              className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
             >
               {t("common.loadMore")}
             </button>
@@ -2466,7 +2466,7 @@ function MobileVMCard({
       {/* Header: monogram + display name + meta + state badge. The identity
           discipline mirrors the desktop row: vm.libvirtName is THE identifier
           (every call below uses it), vm.name is display-only. */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <span
           aria-hidden
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-carbon-surface2 text-sm font-semibold text-carbon-textSub"
@@ -2509,12 +2509,12 @@ function MobileVMCard({
         type="button"
         onClick={openSheet}
         aria-expanded={sheetOpen}
-        className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-3 py-2 text-start text-sm font-medium text-carbon-text"
+        className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-2 text-start text-sm text-carbon-text"
       >
         <span className="truncate">{t("schedule.overrideTitle")}</span>
         <span className="flex shrink-0 items-center gap-2">
           {scheduleActive && scheduleNext ? (
-            <span className="rounded-pill bg-accentSoft px-2.5 py-1 text-xs font-semibold text-accentText">
+            <span className="rounded-pill bg-accentSoft px-2 py-1 text-xs font-semibold text-accentText">
               {formatTs(new Date(scheduleNext.next).getTime() / 1000)}
             </span>
           ) : null}
@@ -2582,7 +2582,7 @@ function MobileVMCard({
         type="button"
         onClick={() => setShowRestore((s) => !s)}
         aria-expanded={showRestore}
-        className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-3 py-2 text-start text-sm font-medium text-carbon-text"
+        className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-2 text-start text-sm text-carbon-text"
       >
         <span className="truncate">{t("snapshots.restore")}</span>
         <IconRestore />
@@ -2611,7 +2611,7 @@ function MobileVMCard({
         type="button"
         onClick={toggleSnaps}
         aria-expanded={showSnaps}
-        className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-3 py-2 text-start text-sm font-medium text-carbon-text"
+        className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-2 text-start text-sm text-carbon-text"
       >
         <span className="truncate">{t("snapshots.title")}</span>
         <IconDownload />
@@ -2627,7 +2627,7 @@ function MobileVMCard({
           {visibleSnaps.map((snap) => (
             <div
               key={snap.id}
-              className="flex min-h-[2.75rem] items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-3 py-1.5"
+              className="flex min-h-[2.75rem] items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-1.5"
             >
               <span dir="ltr" className="font-mono text-xs text-carbon-text">
                 {snap.id.slice(0, 8)}
@@ -2641,7 +2641,7 @@ function MobileVMCard({
             <button
               type="button"
               onClick={showMoreSnaps}
-              className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+              className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
             >
               {t("common.loadMore")}
             </button>
