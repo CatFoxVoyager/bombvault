@@ -65,7 +65,10 @@ Every exception in the app is one command away:
 grep -rn "bv-convention-exception" web/src
 ```
 
-There is exactly one today (`pages/Dashboard.tsx`, the heat-map cell).
+There are three today, outside tests: `pages/Dashboard.tsx`'s heat-map cell for
+`control-reads-engine-tokens`, and `components/NumberField.tsx` plus
+`components/SelectField.tsx` for `user-message-is-translated`, both of them SVG
+path data that is not a message at all.
 
 `reportUnusedDisableDirectives: "error"` is already on in this config, so an
 `eslint-disable` that stops being needed fails the build rather than rotting.
@@ -178,9 +181,9 @@ now follows a `className` identifier to the **`const`** it names in the same
 module, when that const has exactly one definition and is never reassigned. A
 `let` that is written to, a function parameter, an import — all still decline
 and read as unknown, because unknown must never become a guess. The first run
-after the change found a real one: `ConfirmDialog`'s destructive confirm button,
-whose class list lives in a `CONFIRM_BUTTON_TONE` lookup. It now carries an
-explicit `bv-convention-exception` marker instead of being invisible.
+after the change found real ones in `OffsiteTargetsSection`, `OffsiteWizard`,
+`RestorePanel`, `Containers` and `Fleet`: class lists behind a const, invisible
+to the guard until it learned to follow the name.
 
 Still not followed: an identifier imported from another module, and any value
 that does not resolve to a literal. That would need cross-module analysis, which

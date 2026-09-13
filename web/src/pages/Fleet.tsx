@@ -275,17 +275,6 @@ function MeshOfferRow({ offer, t, onChanged }: { offer: MeshOffer; t: T; onChang
             />
           </label>
           <Button
-            key={shakeAccept}
-            label={t("fleet.mesh.accept")}
-            labelKey="fleet.mesh.accept"
-            tone="accent"
-            onClick={() => void handleAccept()}
-            disabled={busy}
-            className={`inline-flex items-center rounded-control bg-accent px-3 py-1.5 text-xs font-medium text-accentContrast hover:opacity-90 transition-opacity disabled:opacity-50${
-              shakeAccept ? " glim-shake" : ""
-            }`}
-          />
-          <Button
             key={shakeDecline}
             label={t("fleet.mesh.decline")}
             labelKey="fleet.mesh.decline"
@@ -294,6 +283,17 @@ function MeshOfferRow({ offer, t, onChanged }: { offer: MeshOffer; t: T; onChang
             disabled={busy}
             className={`inline-flex items-center rounded-control px-3 py-1.5 text-xs text-carbon-text disabled:opacity-50${
               shakeDecline ? " glim-shake" : ""
+            }`}
+          />
+          <Button
+            key={shakeAccept}
+            label={t("fleet.mesh.accept")}
+            labelKey="fleet.mesh.accept"
+            tone="accent"
+            onClick={() => void handleAccept()}
+            disabled={busy}
+            className={`inline-flex items-center rounded-control bg-accent px-3 py-1.5 text-xs font-medium text-accentContrast hover:opacity-90 transition-opacity disabled:opacity-50${
+              shakeAccept ? " glim-shake" : ""
             }`}
           />
         </div>

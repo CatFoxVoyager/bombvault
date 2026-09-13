@@ -68,6 +68,74 @@ it("gives every modal backdrop the class that darkens it", () => {
   }
 });
 
+it("paints the darkness unconditionally, never inside a motion query", () => {
+  // The third half of this, found by the GlimStone 1.11.0 lift and worth its
+  // own test because it is invisible from every call site: the class had the
+  // darkness, and the class itself sat inside
+  // `@media (prefers-reduced-motion: no-preference)` together with its fade.
+  // So somebody whose system asks for less motion got no scrim at all - a
+  // dialog floating over a fully undimmed page - and every check above passed,
+  // because the call sites were all correct and the class did exist.
+  //
+  // Darkening the page is not motion. The fade is, and that one may stay
+  // gated. The test reads the stylesheet's own structure rather than a
+  // rendered page, because no test that renders a dialog can see a media query
+  // it is not currently matching.
+  const css = readFileSync(join(src, "index.css"), "utf8");
+
+  // Everything that lies INSIDE a prefers-reduced-motion query, by brace
+  // counting from each query's own opening brace.
+  const gated: string[] = [];
+  const q = /@media\s*\([^)]*prefers-reduced-motion[^)]*\)\s*\{/g;
+  let m: RegExpExecArray | null;
+  while ((m = q.exec(css))) {
+    let depth = 1;
+    let i = m.index + m[0].length;
+    const from = i;
+    for (; i < css.length && depth > 0; i++) {
+      if (css[i] === "{") depth++;
+      else if (css[i] === "}") depth--;
+    }
+    gated.push(css.slice(from, i));
+  }
+
+  expect(
+    gated.length,
+    "no prefers-reduced-motion query was found in index.css, so this test is\n" +
+      "checking nothing. The query's shape changed.",
+  ).toBeGreaterThan(0);
+
+  for (const block of gated) {
+    const rule = /\.glim-modal-backdrop\s*\{([^}]*)\}/.exec(block);
+    if (!rule) continue;
+    expect(
+      rule[1],
+      "the backdrop's own colour is declared inside a prefers-reduced-motion\n" +
+        "query. A reader who asks their system for less motion then gets NO\n" +
+        "darkening, and a window floating over an undimmed page. Move the\n" +
+        "background out to the unconditional rule and leave only the animation\n" +
+        "in here.",
+    ).not.toMatch(/background/);
+  }
+});
+
+it("takes its darkness from the token, not from a literal", () => {
+  // GlimStone 1.11.0 made the value a token because a literal is a value the
+  // rule describes and nothing holds: asked to change it, somebody has to find
+  // every place it was typed. This app had it in one place, which was the
+  // previous fix - one place is still not the same as one NAME.
+  const css = readFileSync(join(src, "index.css"), "utf8");
+  const rules = Array.from(css.matchAll(/\.glim-modal-backdrop\s*\{([^}]*)\}/g)).map((r) => r[1]);
+  const painting = rules.filter((body) => /background/.test(body));
+
+  expect(painting.length, "no .glim-modal-backdrop rule paints a background at all").toBe(1);
+  expect(
+    painting[0],
+    "the backdrop paints a literal colour. It takes --glim-scrim, which the\n" +
+      "theme blocks set to .65 dark and .55 light.",
+  ).toMatch(/var\(--glim-scrim\)/);
+});
+
 it("keeps the darkness in the class, not beside it", () => {
   // A second value on the element wins or loses against the class depending on
   // which one Tailwind emits last, so two windows would darken differently

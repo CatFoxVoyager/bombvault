@@ -1552,16 +1552,6 @@ function VMBackupOrderPanel({
             </ol>
             <div className="flex items-center gap-3 flex-wrap">
               <Button
-                key={shakeSave}
-                label={t("backupOrder.save")}
-                labelKey="backupOrder.save"
-                tone="accent"
-                onClick={() => void persist(names, "save")}
-                disabled={saveState === "saving"}
-                busy={saveState === "saving"}
-                className={shakeSave ? "glim-shake" : ""}
-              />
-              <Button
                 key={shakeReset}
                 label={t("backupOrder.reset")}
           labelKey="backupOrder.reset"
@@ -1571,6 +1561,16 @@ function VMBackupOrderPanel({
                 className={`inline-flex items-center rounded-control px-3 py-1.5 text-xs font-medium text-carbon-textSub hover:text-carbon-text transition-colors disabled:opacity-50${
                   shakeReset ? " glim-shake" : ""
                 }`}
+              />
+              <Button
+                key={shakeSave}
+                label={t("backupOrder.save")}
+                labelKey="backupOrder.save"
+                tone="accent"
+                onClick={() => void persist(names, "save")}
+                disabled={saveState === "saving"}
+                busy={saveState === "saving"}
+                className={shakeSave ? "glim-shake" : ""}
               />
             </div>
           </>

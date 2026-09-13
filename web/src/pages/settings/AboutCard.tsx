@@ -229,14 +229,12 @@ export function AboutCard({ hueIndex }: { hueIndex?: number }) {
           className={brand("coffee")}
           onClick={() => window.open(COFFEE, "_blank", "noopener,noreferrer")}
         />
-        <Button
-          label={t("about.crypto")}
-          labelKey="about.crypto"
-          glyph={<IconBitcoin />}
-          tone="neutral"
-          className={brand("bitcoin")}
-          onClick={() => setCryptoOpen(true)}
-        />
+        {/* Hosted page first, wallet last: coffee, then PayPal, then the crypto
+            window (GlimStone 1.10.0). It reads as a ramp rather than an
+            alphabet - the routes most people already hold an account for, then
+            the one that needs none and shows no name at either end. The order
+            is the language's, not this app's, because three apps picking three
+            orders is what a shared card exists to prevent. */}
         {PAYPAL !== "" && (
           <Button
             label={t("about.paypal")}
@@ -247,6 +245,14 @@ export function AboutCard({ hueIndex }: { hueIndex?: number }) {
             onClick={() => window.open(PAYPAL, "_blank", "noopener,noreferrer")}
           />
         )}
+        <Button
+          label={t("about.crypto")}
+          labelKey="about.crypto"
+          glyph={<IconBitcoin />}
+          tone="neutral"
+          className={brand("bitcoin")}
+          onClick={() => setCryptoOpen(true)}
+        />
       </div>
       {cryptoOpen && <CryptoDonateDialog onClose={() => setCryptoOpen(false)} />}
 

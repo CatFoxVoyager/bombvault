@@ -206,15 +206,6 @@ export function PasskeyCard({
           />
           <div className="flex items-center gap-3">
             <Button
-              label={t("auth.passkeyCreate")}
-              labelKey="auth.passkeyCreate"
-              tone="accent"
-              onClick={() => void add()}
-              disabled={busy}
-              busy={busy}
-              hueIndex={hueIndex}
-            />
-            <Button
               label={t("common.cancel")}
               labelKey="common.cancel"
               tone="neutral"
@@ -222,6 +213,15 @@ export function PasskeyCard({
                 setAdding(false);
                 setName("");
               }}
+              hueIndex={hueIndex}
+            />
+            <Button
+              label={t("auth.passkeyCreate")}
+              labelKey="auth.passkeyCreate"
+              tone="accent"
+              onClick={() => void add()}
+              disabled={busy}
+              busy={busy}
               hueIndex={hueIndex}
             />
           </div>

@@ -18,7 +18,22 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
-export type ButtonTag = { file: string; line: number; props: string };
+export type ButtonTag = {
+  file: string;
+  line: number;
+  props: string;
+  /** Offset of the tag's own `<` in its file, and of the character after the
+   *  `>` that closes the opening tag. A guard that has to know whether two
+   *  buttons are really SIBLINGS needs these: "close together in line numbers"
+   *  answers yes for two branches of one ternary, which never render together.
+   *  What actually separates siblings is that nothing but whitespace lies
+   *  between them. */
+  start: number;
+  end: number;
+  /** The file's full text, so a caller can look at what lies between two tags
+   *  without reading the file a second time. */
+  source: string;
+};
 
 /** Every non-test .tsx under `dir`, recursively. */
 export function walkTsx(dir: string, out: string[] = []): string[] {
@@ -57,6 +72,9 @@ export function buttonTags(src: string): ButtonTag[] {
         file: file.slice(src.length + 1).replace(/\\/g, "/"),
         line: s.slice(0, m.index).split("\n").length,
         props: s.slice(re.lastIndex, end),
+        start: m.index,
+        end: end + 1,
+        source: s,
       });
     }
   }

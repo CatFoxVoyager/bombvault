@@ -775,6 +775,11 @@
      from reference's light block. */
   --elevation: 0 1px 2px rgba(0, 0, 0, .40), 0 18px 40px -24px rgba(0, 0, 0, .85);
   --hairline: inset 0 1px 0 rgba(255, 255, 255, .045);
+  /* The scrim behind a floating window (GlimStone 1.11.0). A token rather than
+     a literal in .glim-modal-backdrop, because a value the rule describes and
+     nothing holds is a value nobody can change in one place - which is the
+     shape the brand colours were in before they grew tokens. */
+  --glim-scrim: rgba(0, 0, 0, .65);
   --focus-ring: rgba(252, 196, 25, .55);
 
   /* Self-reference-free fallback target for [data-rainbow] .glim-hue's
@@ -1195,6 +1200,7 @@
   /* Elevation/hairline — neutral, copied verbatim from reference/tokens.css. */
   --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
   --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
+  --glim-scrim: rgba(0, 0, 0, .55);
 
   /* Status colors (#105) — Carbon light-theme counterparts. Text tones keep
      ≥4.5:1 on white/#f4f4f4 and on their own chip tints; solids keep ≥3:1 as
@@ -1278,6 +1284,10 @@
 
     --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
     --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
+    /* Restated here for the same reason --focus-ring is: :root:not([data-theme])
+       inherits nothing from [data-theme="light"], so without this line a system
+       light theme with no attribute set takes the dark .65. */
+    --glim-scrim: rgba(0, 0, 0, .55);
 
     /* Same WCAG-driven light-theme value as [data-theme="light"] above —
        needs restating here too, since :root:not([data-theme]) doesn't
@@ -3021,6 +3031,15 @@ body {
    somehow never runs that block) falls back to. */
 .glim-check-draw { stroke-dasharray: 1; stroke-dashoffset: 0; }
 
+/* The scrim behind a floating window, painted UNCONDITIONALLY (GlimStone
+   1.11.0). It sits out here rather than in the motion block below on purpose:
+   darkening the page behind a window is not motion, it is what says the window
+   is in front. While it lived inside the no-preference block, anybody whose
+   system asks for reduced motion got a perfectly transparent backdrop and a
+   dialog floating on an undimmed page. The fade in is the part that is motion,
+   and that one stays gated. */
+.glim-modal-backdrop { background-color: var(--glim-scrim); }
+
 @media (prefers-reduced-motion: no-preference) {
   /* Gentle sway on hover, only while the logo is idle (not mid-egg). */
   .glim-logo-btn:hover .glim-logo-idle { animation: glim-logo-sway 2.4s ease-in-out infinite; }
@@ -3083,13 +3102,22 @@ body {
      literal beside it. Standardised by copy-paste, which is the kind that
      holds right up to the first time somebody wants to change the value and
      has to find all nine.
-     70% rather than 60 (jdp's own pick from three). Dark enough that the
-     window is plainly in front, light enough that the page behind it is still
-     recognisably there, which is what tells a reader they are on top of
-     something rather than somewhere new. */
+     Dark enough that the window is plainly in front, light enough that the
+     page behind it is still recognisably there, which is what tells a reader
+     they are on top of something rather than somewhere new.
+
+     The VALUE moved out again in GlimStone 1.11.0, to --glim-scrim, .65 on the
+     dark theme and .55 on the light one: a literal here was one place rather
+     than nine, which was the fix, but still a value the rule describes and
+     nothing holds.
+
+     And the COLOUR no longer lives in this block. It used to sit inside
+     @media (prefers-reduced-motion: no-preference) together with the fade,
+     which meant somebody who asks their system for less motion got a fully
+     TRANSPARENT scrim: no darkening at all, because the only rule that painted
+     it was gated on an animation preference. Only the animation is gated now. */
   .glim-modal-backdrop {
     animation: glim-fade-in 200ms ease both;
-    background-color: rgb(0 0 0 / 0.7);
   }
   .glim-modal-card { animation: glim-modal-in 260ms cubic-bezier(.2, .6, .2, 1) both; }
 

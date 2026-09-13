@@ -47,7 +47,7 @@ export function BackupCancelButton({
 
   async function handle() {
     const msg = t("backup.cancelConfirm").replace(/\{name\}/g, name);
-    if (!(await confirm(msg, { tone: "warn" }))) return;
+    if (!(await confirm(msg))) return;
     setCancelling(true);
     try {
       await cancelBackup(cancelKey);

@@ -538,6 +538,12 @@ export function OffsiteTargetsSection({
 
           <div className="flex items-center gap-3 flex-wrap">
             <Button
+              label={t("offsite.targets.cancel")}
+          labelKey="offsite.targets.cancel"
+              tone="neutral"
+              onClick={closeEditor}
+            />
+            <Button
               key={saveShake}
               label={t("offsite.targets.save")}
               labelKey="offsite.targets.save"
@@ -547,12 +553,6 @@ export function OffsiteTargetsSection({
               busy={saveState === "saving"}
               title={saveState === "saving" ? t("common.saving") : undefined}
               className={saveShake ? "glim-shake" : ""}
-            />
-            <Button
-              label={t("offsite.targets.cancel")}
-          labelKey="offsite.targets.cancel"
-              tone="neutral"
-              onClick={closeEditor}
             />
           </div>
         </div>

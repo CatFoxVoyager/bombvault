@@ -156,20 +156,31 @@ describe("ConfirmDialog", () => {
     expect(cancelBtn?.props?.autoFocus).toBe(true);
   });
 
-  it("defaults to fail (fault-colour) tone on the confirm button", () => {
+  it("gives the commit button its siblings' colour, never a status one", () => {
+    // GlimStone 1.12.0. The button was fault-red, and this dialog carried the
+    // one sanctioned exception to the no-status-colour-on-a-control rule to
+    // justify it. What warns is the QUESTION: somebody who has read a window
+    // stating the stakes and reached for the button has already been told, and
+    // spending red on every delete teaches people to read past it by the third
+    // time. Cancel and commit look alike on purpose.
     const tree = ConfirmDialog(baseProps);
     const buttons = findAllButtons(tree);
     const confirmBtn = buttons.find((b) => visibleText(b) === "Confirm" && b.props?.autoFocus !== true);
-    // The tone is a NAME now; Button owns which classes it resolves to, and
-    // Button's own test pins that mapping.
-    expect(confirmBtn?.props?.tone).toBe("danger");
+    const cancelBtn = buttons.find((b) => b.props?.autoFocus === true);
+
+    expect(confirmBtn?.props?.tone).toBe("neutral");
+    expect(confirmBtn?.props?.tone).toBe(cancelBtn?.props?.tone);
   });
 
-  it("renders a warn (amber) tone confirm button when tone=\"warn\" (RestoreCancelButton's light-warning branch)", () => {
-    const tree = ConfirmDialog({ ...baseProps, tone: "warn" });
+  it("takes no tone prop at all any more", () => {
+    // GlimStone 1.13.0. A prop that decides nothing is worse than no prop: it
+    // reads like a lever. Passing one has to be inert rather than quietly
+    // resolve to something, which is what this pins - the object is typed
+    // without it, so this is the runtime half of the same statement.
+    const tree = ConfirmDialog({ ...baseProps, ...({ tone: "warn" } as object) });
     const buttons = findAllButtons(tree);
     const confirmBtn = buttons.find((b) => visibleText(b) === "Confirm" && b.props?.autoFocus !== true);
-    expect(confirmBtn?.props?.tone).toBe("warn");
+    expect(confirmBtn?.props?.tone).toBe("neutral");
   });
 
   it("labels the dialog via aria-labelledby pointing at the title heading's id", () => {

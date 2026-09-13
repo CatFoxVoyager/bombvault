@@ -76,6 +76,22 @@ it("keeps the house order: what it is, the coffee, the report, the versions", ()
   expect(repoButton).toBeLessThan(versions);
 });
 
+it("runs the give buttons hosted-page first, wallet last", () => {
+  // GlimStone 1.10.0 fixes this order in the language rather than leaving it to
+  // each app: coffee, then PayPal, then the crypto window. It reads as a ramp -
+  // the routes most people already hold an account for, then the one that needs
+  // none and shows no name at either end. This app shipped coffee, crypto,
+  // PayPal for one release, which is the drift a shared card exists to prevent,
+  // and nothing could see it because each button on its own was correct.
+  renderCard();
+  const coffee = positionOfButton(en["about.coffeeButton"]);
+  const paypal = positionOfButton(en["about.paypal"]);
+  const crypto = positionOfButton(en["about.crypto"]);
+
+  expect(coffee).toBeLessThan(paypal);
+  expect(paypal).toBeLessThan(crypto);
+});
+
 it("gives the report sentence the extra line above it, and only that one", () => {
   renderCard();
   const report = screen.getByText(en["about.report"], { exact: false });

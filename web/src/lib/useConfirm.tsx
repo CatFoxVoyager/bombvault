@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ConfirmDialog, type ConfirmTone } from "../components/ConfirmDialog";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { useT } from "./i18n";
 
 // ---------------------------------------------------------------------------
@@ -65,7 +65,6 @@ import { useT } from "./i18n";
 export interface ConfirmOptions {
   confirmLabel?: string;
   cancelLabel?: string;
-  tone?: ConfirmTone;
 }
 
 interface PendingConfirm extends ConfirmOptions {
@@ -161,7 +160,6 @@ export function useConfirm() {
           confirmLabel={pending.confirmLabel ?? t("common.confirm")}
           cancelLabel={pending.cancelLabel ?? t("common.cancel")}
           closeLabel={t("common.close")}
-          tone={pending.tone ?? "fail"}
           onConfirm={() => settle(true)}
           onCancel={() => settle(false)}
         />,

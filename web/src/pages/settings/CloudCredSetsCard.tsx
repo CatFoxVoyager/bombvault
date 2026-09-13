@@ -261,6 +261,12 @@ export function CloudCredSetsCard({ t, hueIndex }: { t: ReturnType<typeof useT>[
           </div>
           <div className="flex items-center gap-3">
             <Button
+              label={t("common.close")}
+          labelKey="common.close"
+              tone="neutral"
+              onClick={closeEditor}
+            />
+            <Button
               key={shake.save || 0}
               label={t("settings.save")}
               labelKey="settings.save"
@@ -270,12 +276,6 @@ export function CloudCredSetsCard({ t, hueIndex }: { t: ReturnType<typeof useT>[
               busy={state === "saving"}
               title={state === "saving" ? t("auth.saving") : undefined}
               className={shake.save ? "glim-shake" : ""}
-            />
-            <Button
-              label={t("common.close")}
-          labelKey="common.close"
-              tone="neutral"
-              onClick={closeEditor}
             />
           </div>
         </div>

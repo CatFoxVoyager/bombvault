@@ -40,8 +40,6 @@ import { Button } from "./Button";
 import { IconClose } from "./Sidebar";
 import { IconCancel } from "./glyphs";
 
-export type ConfirmTone = "fail" | "warn";
-
 export interface ConfirmDialogProps {
   /** Generic, reusable dialog title (e.g. t("confirmDialog.title") = "Confirm")
    *  — NOT per-call-site copy; every migrated confirm() site already carried
@@ -80,12 +78,6 @@ export interface ConfirmDialogProps {
    *  question about an action already taken. Keep it to a switch or two; a
    *  dialog with a form in it is a page. */
   extra?: ReactNode;
-  /** Fault-red for a genuinely irreversible action (the default — every
-   *  migrated call site but one is exactly this), warn-amber for
-   *  RestoreCancelButton's "light" (non-destructive, restore-to-folder)
-   *  branch. Design-language rule: "the destructive control is always the
-   *  fault colour." */
-  tone?: ConfirmTone;
   onConfirm: () => void;
   onCancel: () => void;
   /** The dialog card's root DOM node, for useConfirm.tsx's focus trap. */
@@ -100,7 +92,6 @@ export function ConfirmDialog({
   closeLabel,
   confirmGlyph,
   extra,
-  tone = "fail",
   onConfirm,
   onCancel,
   ref,
@@ -179,18 +170,18 @@ export function ConfirmDialog({
             autoFocus
             onClick={onCancel}
           />
-          {/* bv-convention-exception: no-status-color-on-control -- this is THE
-              destructive-confirmation control, and the design language states
-              the rule it is the exception to: "the destructive control is
-              always the fault colour" (see the `tone` prop's own doc above).
-              The guard exists to stop bespoke red turning up on arbitrary
-              controls; the answer to that is ONE sanctioned place where the
-              status colour is the meaning, and this is it — every destructive
-              confirmation in the app routes through this dialog. `tone` is a
-              closed two-value union, not a free colour, so nothing here can
-              drift into a third shade. Invisible to the guard until it learned
-              to follow a class list behind an identifier (CONFIRM_BUTTON_TONE),
-              which is why the marker is only being written now. */}
+          {/* The commit button takes its siblings' colour (GlimStone 1.12.0).
+              It used to be fault-red, and this file carried the one sanctioned
+              exception to the no-status-colour-on-a-control rule to justify it.
+              The exception is gone rather than relocated: what warns is the
+              QUESTION. An irreversible action opens a window that states the
+              stakes in words and counts, and somebody who has read that and
+              reached for the button has already been told. A colour cannot say
+              more than the sentence above it, and spending red on every delete
+              teaches people to read past it by the third time. Cancel and
+              commit look alike on purpose - neither is recommended, the
+              sentence decides. Position carries the rest: forward on the
+              right (1.14.0). */}
           <Button
             label={confirmLabel}
             // The confirm button's meaning changes with the action it confirms
@@ -199,7 +190,7 @@ export function ConfirmDialog({
             // gave none is the deliberate 'no key' answer, not an oversight.
             labelKey={confirmLabelKey ?? null}
             glyph={confirmGlyph}
-            tone={tone === "fail" ? "danger" : "warn"}
+            tone="neutral"
             onClick={onConfirm}
           />
         </div>

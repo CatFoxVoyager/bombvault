@@ -1068,17 +1068,6 @@ function ForeignRestoreCard({
         )}
 
         <div className="flex items-center gap-3 pt-1 flex-wrap">
-          <Button
-            key={shake}
-            label={t("recovery.foreignConnect")}
-            labelKey="recovery.foreignConnect"
-            tone="accent"
-            onClick={() => void connect()}
-            disabled={!canConnect}
-            busy={phase === "connecting"}
-            title={phase === "connecting" ? t("recovery.foreignConnecting") : undefined}
-            className={shake ? "glim-shake" : ""}
-          />
           {phase === "connected" && (
             <>
               <span className="text-sm text-statusOk">{t("recovery.foreignConnected")}</span>
@@ -1090,6 +1079,17 @@ function ForeignRestoreCard({
               />
             </>
           )}
+          <Button
+            key={shake}
+            label={t("recovery.foreignConnect")}
+            labelKey="recovery.foreignConnect"
+            tone="accent"
+            onClick={() => void connect()}
+            disabled={!canConnect}
+            busy={phase === "connecting"}
+            title={phase === "connecting" ? t("recovery.foreignConnecting") : undefined}
+            className={shake ? "glim-shake" : ""}
+          />
         </div>
         {phase === "error" && connectError && (
           <div className="rounded-card bg-statusFailBgSoft px-3 py-2.5 text-xs text-statusFail leading-relaxed wrap-break-word">
@@ -2219,6 +2219,13 @@ export default function Recovery() {
                       wording the app already ships for this verb rather than a
                       fresh translation of it. */}
                   <Button
+                    label={t("recovery.configSkip")}
+                    labelKey="recovery.configSkip"
+                    tone="neutral"
+                    onClick={() => setConfigSkipped(true)}
+                    disabled={configPhase === "saving" || configPhase === "restarting"}
+                  />
+                  <Button
                     key={configShake}
                     label={t("recovery.configRestore")}
                     labelKey="recovery.configRestore"
@@ -2228,13 +2235,6 @@ export default function Recovery() {
                     busy={(configPhase === "saving" || configPhase === "restarting")}
                     title={(configPhase === "saving" || configPhase === "restarting") ? t("recovery.configRestoring") : undefined}
                     className={configShake ? "glim-shake" : ""}
-                  />
-                  <Button
-                    label={t("recovery.configSkip")}
-                    labelKey="recovery.configSkip"
-                    tone="neutral"
-                    onClick={() => setConfigSkipped(true)}
-                    disabled={configPhase === "saving" || configPhase === "restarting"}
                   />
                 </div>
 

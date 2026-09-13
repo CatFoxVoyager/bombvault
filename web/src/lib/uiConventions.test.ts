@@ -309,11 +309,14 @@ ruleTester.run("no-status-color-on-control", rules["no-status-color-on-control"]
     `<button onClick={del} className="rounded-control bg-carbon-surface2 text-carbon-text hover:bg-carbon-surface3">{t("x")}</button>`,
     // tone="active" is the accent, not a status colour.
     `<Badge as="button" shape="square" size="icon" tone="active" tip={t("snapshots.delete")}><IconTrash /></Badge>`,
-    // The escape hatch: ConfirmDialog's own severity-bearing variant.
+    // The escape hatch itself, on an invented control. It used to be
+    // ConfirmDialog's commit button, which was the one sanctioned status colour
+    // in the app until GlimStone 1.12.0 took the red off it; the mechanism is
+    // still tested, the example is no longer an exception anybody may copy.
     `
-      {/* bv-convention-exception: no-status-color-on-control -- this dialog
-          IS the status surface; stating the severity is its entire job. */}
-      <button onClick={onConfirm} className="bg-statusFailSolid">{t("x")}</button>
+      {/* bv-convention-exception: no-status-color-on-control -- a made-up
+          control for this fixture, so the hatch itself stays covered. */}
+      <button onClick={onSomething} className="bg-statusFailSolid">{t("x")}</button>
     `,
   ],
   invalid: [

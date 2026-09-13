@@ -119,7 +119,6 @@ export function BackupButton({ name, t, onBackedUp, running }: BackupButtonProps
     if (!acked) {
       const ok = await confirm(t("containers.stopWarning"), {
         confirmLabel: t("containers.backupNow"),
-        tone: "warn",
       });
       if (!ok) return;
       try {

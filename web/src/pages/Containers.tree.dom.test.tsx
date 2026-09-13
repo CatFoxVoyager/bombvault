@@ -873,10 +873,13 @@ describe("Reset selection, narrowing note, guard and hint copy (INTEG-04 D-05, S
     });
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByText(RESET_CONFIRM_EN)).toBeTruthy();
-    // Fail tone: the confirm control is the destructive treatment (Pitfall 2's
-    // companion — the dialog itself carries the weight, not the trigger).
+    // No status colour on the commit button (GlimStone 1.12.0). The window
+    // carries the weight in WORDS - the sentence above names every consequence
+    // - and the button looks like its sibling on purpose. It used to be
+    // bg-statusFailSolid, and this assertion is what that change had to walk
+    // through, which is the point of pinning it the other way round now.
     const confirmBtn = within(dialog).getByRole("button", { name: "Confirm" });
-    expect(confirmBtn.className).toContain("bg-statusFailSolid");
+    expect(confirmBtn.className).not.toContain("bg-statusFailSolid");
 
     // The server's post-reset state: auto-detected default, exclusions gone,
     // custom row gone, caches map CLEARED (the reset PATCH below is what

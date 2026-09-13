@@ -30,9 +30,12 @@
 //     The label already names the action, and every one of these routes
 //     through a confirm dialog or a two-click inline confirm anyway.
 //
-// ConfirmDialog's own destructive-variant button is the real exception the
-// escape hatch exists for: that dialog IS the status surface, stating severity
-// is its whole job. It says so at the call site.
+// There is no sanctioned exception any more. ConfirmDialog's commit button used
+// to be one, with a marker at its own call site arguing that the dialog IS the
+// status surface. GlimStone 1.12.0 took the red off that button - what warns is
+// the QUESTION - so the carve-out was removed rather than relocated, and this
+// rule now covers that file like every other one. That is the tidiest thing a
+// rule change can do: delete the exception instead of finding it a new home.
 // ---------------------------------------------------------------------------
 import {
   attrStringValue,
