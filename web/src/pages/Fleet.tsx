@@ -17,6 +17,7 @@
 
 import { useEffect, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
+import { Link } from "react-router-dom";
 import {
   listFleetPeers,
   createFleetPeer,
@@ -27,11 +28,14 @@ import {
   acceptMeshOffer,
   declineMeshOffer,
   proposeMeshOffer,
+  getSettings,
 } from "../lib/api";
 import type { FleetPeer, FleetPeerInput, DomainStatus, MeshOffer, DeploySnippetData } from "../lib/api";
 import { credSetsChanged } from "../lib/useCloudCredSets";
 import { offsiteTargetsChanged } from "../lib/useOffsiteTargets";
 import { useT, type TranslationKey } from "../lib/i18n";
+import { useIsDesktop } from "../lib/useMediaQuery";
+import { useConfirm } from "../lib/useConfirm";
 import { PAGE_SHELL } from "../lib/pageShell";
 import { relativeTime } from "../lib/reltime";
 import { EmptyStateIcon } from "../components/EmptyStateIcon";
@@ -45,6 +49,9 @@ import { useToast } from "../lib/toast";
 import { hueVars, rainbowAt } from "../lib/appearance";
 import { useRainbow } from "../lib/useRainbow";
 import { Button } from "../components/Button";
+import { BottomSheet } from "../components/mobile/BottomSheet";
+import { MobileSectionLabel } from "../components/mobile/MobileSectionLabel";
+import { StickyActionBar } from "../components/mobile/StickyActionBar";
 
 import { ToggleRow } from "./settings/shared";
 type T = ReturnType<typeof useT>["t"];
@@ -901,6 +908,17 @@ function FleetDialog({
 
 export function Fleet() {
   const { t } = useT();
+  // D-01 double gate (the Containers/VMs/Flash/Config/Receiver
+  // mount-discipline precedent): the desktop JSX below is always rendered and
+  // carries `max-md:hidden`, so the desktop presentation stays
+  // byte-identical; the mobile card block mounts only under `!isDesktop`.
+  // jsdom's matchMedia stub answers "desktop", so Fleet.peerCard.dom.test.tsx
+  // keeps testing the desktop page and the mobile block is an e2e-only
+  // surface. The block owns every mobile-only fetch (the settings gate)
+  // inside itself, so the desktop makes no new requests. The add/edit state
+  // (`dialog`) is SHARED — one state, two presentations: the desktop portal
+  // dialog above md, the fullHeight MobilePeerEditor sheet below it.
+  const isDesktop = useIsDesktop();
   // Registers this page for a re-render on any rainbow-state change (on/off/
   // reactive/rotate/palette edit) — the FleetPeerCard list below reads
   // rainbowAt()/hueVars() directly during render; see lib/useRainbow.ts's own
@@ -988,13 +1006,22 @@ export function Fleet() {
           <p className="mt-1 text-sm text-carbon-textSub">{t("fleet.subtitle")}</p>
         </div>
         {!showEmptyState && (
+          /* The D-01 first gate hides this desktop trigger below md — on a
+             WRAPPER div, deliberately, not on the Button itself: `.glim-btn`
+             is unlayered author CSS (`display: inline-flex`), which beats
+             Tailwind v4's layered `max-md:hidden` utility on the SAME element
+             (the `.glim-picker` width lesson from 06-03, re-learned live when
+             the class-on-Button form left the trigger visible at 360px). A
+             plain div carries no unlayered display rule, so the utility wins.
+             Flash.tsx's desktop cards hide the same way. */
+          <div className="shrink-0 max-md:hidden">
           <Button
             label={t("fleet.addPeer")}
             labelKey="fleet.addPeer"
             tone="accent"
             onClick={() => setDialog("new")}
-            className="shrink-0"
           />
+          </div>
         )}
       </div>
 
@@ -1065,7 +1092,7 @@ export function Fleet() {
         const emptyHue = nextHue();
         return (
           <div
-            className="relative glim-notch-card glim-hue bg-carbon-surface rounded-card p-6 text-center flex flex-col items-center gap-3"
+            className="relative glim-notch-card glim-hue bg-carbon-surface rounded-card p-6 text-center flex flex-col items-center gap-3 max-md:hidden"
             style={hueVars(rainbowAt(emptyHue)) as CSSProperties}
           >
             <h2 className="flex items-center">
@@ -1086,7 +1113,7 @@ export function Fleet() {
       })()}
 
       {!loading && peers.length > 0 && (
-        <div className="flex flex-col gap-3 glim-content-fade">
+        <div className="flex flex-col gap-3 glim-content-fade max-md:hidden">
           {peers.map((p, i) => (
             <FleetPeerCard
               key={p.id}
@@ -1100,7 +1127,11 @@ export function Fleet() {
         </div>
       )}
 
-      {dialog !== null && (
+      {/* Add / edit dialog — the desktop portal shell. The editor STATE is
+          shared with the mobile block below (one state, two presentations):
+          the fullHeight MobilePeerEditor sheet mounts for the same value
+          below md. */}
+      {isDesktop && dialog !== null && (
         <FleetDialog
           initial={dialog === "new" ? null : dialog}
           t={t}
@@ -1111,6 +1142,551 @@ export function Fleet() {
           }}
         />
       )}
+
+      {/* D-01 second gate: the mobile card block. Mounted ONLY under !isDesktop
+          (not just hidden) so the desktop makes no new requests and its DOM and
+          network traffic stay identical — the block owns every mobile-only
+          fetch (the settings gate) inside itself. The desktop mesh-offers card
+          above stays shared: its review/accept rows are desktop chrome for
+          this phase (the plan's mobile scope is peers + scorecard + editor),
+          and the card keeps working below md rather than hiding a live
+          approval flow. */}
+      {!isDesktop && (
+        <MobileFleetBlock
+          peers={peers}
+          loading={loading}
+          error={error}
+          onRetry={() => void loadPeers()}
+          editor={dialog}
+          onEditor={setDialog}
+          onRefresh={() => void loadPeers()}
+        />
+      )}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Mobile fleet block (07-04, MORE-01c) — the Fleet page's card presentation
+// below the 48rem breakpoint (D-01's second gate; the mount-discipline
+// comment on Fleet() above is the other half).
+//
+// WHY A SEPARATE COMPONENT: the block owns the mobile-only fetch — the
+// phase-5 destinations gate (getSettings → settings.fleetEnabled) — and
+// because the desktop never mounts this component, the desktop makes no new
+// requests and its DOM and network traffic stay identical. The add/edit
+// STATE is the page's own (`dialog`, passed in as `editor`): one state, two
+// presentations — the desktop portal dialog above md, the fullHeight
+// MobilePeerEditor sheet below it — so there is no parallel mobile editor
+// state to drift.
+//
+// CARD LANGUAGE: one card per peer, identified by the 32-hex peer id (the
+// list key, same as desktop). The card's tap row opens the DETAIL SHEET — a
+// content-sized BottomSheet (D-04 viewer, deliberately NOT fullHeight)
+// hosting the full DomainStatus scorecard through the SAME PeerScorecard
+// renderer the desktop disclosure uses (called, never forked), plus the
+// poll/edit/remove rows on >=44px tonal rows.
+// ---------------------------------------------------------------------------
+function MobileFleetBlock({
+  peers,
+  loading,
+  error,
+  onRetry,
+  editor,
+  onEditor,
+  onRefresh,
+}: {
+  /** The page's own peer list — one fetch, two presentations. */
+  peers: FleetPeer[];
+  loading: boolean;
+  error: string | null;
+  onRetry: () => void;
+  /** The shared add/edit state ("new" = create; a peer = edit that peer). */
+  editor: "new" | FleetPeer | null;
+  onEditor: (next: "new" | FleetPeer | null) => void;
+  onRefresh: () => void;
+}) {
+  const { t } = useT();
+
+  // GATE-OFF HONESTY (the VMs/Flash/Config/Receiver contract): an unknown
+  // gate state reads as "on" — a failed settings fetch renders the real
+  // surface rather than ever claiming the domain is disabled when we simply
+  // don't know. The desktop page never checks fleetEnabled itself (the nav
+  // owns the gate), so this fetch is mobile-only code.
+  const [gate, setGate] = useState<"unknown" | "on" | "off">("unknown");
+  useEffect(() => {
+    let alive = true;
+    getSettings()
+      .then((r) => {
+        if (!alive) return;
+        setGate(r.ok && r.settings.fleetEnabled === false ? "off" : "on");
+      })
+      .catch(() => {
+        if (alive) setGate("on");
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  return (
+    <div className="flex flex-col gap-3 glim-content-fade">
+      {/* Page-level load failure: this >=44px tonal row is the mobile recovery
+          affordance; the desktop error paragraph above carries the message.
+          folders.retry ("Try again") is the sanctioned existing label — the
+          phase's pre-seed added no retry key (07-02). */}
+      {error && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+        >
+          {t("folders.retry")}
+        </button>
+      )}
+
+      {gate === "off" ? (
+        // The destinations gate, mobile face: the block says plainly that the
+        // fleet view is off and links to the settings row that turns it on.
+        <div>
+          <MobileSectionLabel t={t} labelKey="settings.fleetEnabled" />
+          <div className="mt-2 flex flex-col gap-2 rounded-card border border-carbon-border bg-carbon-surface p-4">
+            <p className="text-sm text-carbon-textSub">{t("settings.fleetEnabledHint")}</p>
+            <Link
+              to="/settings"
+              className="flex min-h-[2.75rem] items-center rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+            >
+              {t("nav.settings")}
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Empty honesty (the desktop empty-state card's own copy, on the
+              card language). */}
+          {!loading && !error && peers.length === 0 && (
+            <div className="flex flex-col gap-2 rounded-card border border-carbon-border bg-carbon-surface p-4">
+              <p className="text-sm font-semibold text-carbon-text">{t("fleet.emptyTitle")}</p>
+              <p className="text-sm text-carbon-textSub">{t("fleet.empty")}</p>
+            </div>
+          )}
+
+          {peers.map((p, i) => (
+            <MobilePeerCard
+              key={p.id}
+              peer={p}
+              t={t}
+              index={i}
+              onRefresh={onRefresh}
+              onEdit={() => onEditor(p)}
+            />
+          ))}
+
+          {/* Add entry row — the page's add action on the card language,
+              rendered whenever the gate is on and the load has settled. */}
+          {!loading && !error && (
+            <button
+              type="button"
+              onClick={() => onEditor("new")}
+              className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-3 py-2 text-start text-sm font-medium text-carbon-text"
+            >
+              <span className="truncate">{t("fleet.addPeer")}</span>
+              <IconFleet />
+            </button>
+          )}
+        </>
+      )}
+
+      {/* The add/edit sheet (D-05 fullHeight) hosting the SAME editor state
+          the desktop portal dialog consumes. */}
+      {editor !== null && (
+        <MobilePeerEditor
+          initial={editor === "new" ? null : editor}
+          t={t}
+          onClose={() => onEditor(null)}
+          onSaved={() => {
+            onEditor(null);
+            onRefresh();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// MobilePeerCard — one fleet peer as a mobile card. Reachability derives
+// from lastPollOk/lastPollError through the DESKTOP card's own four-status
+// badge mapping (pollNever/pollOk/pollFailed + monitoringOff — text labels
+// only, never offsite tokens, T-07-14); last contact renders RELATIVE +
+// tabular with fleet.pollNever for 0; the protection summary renders through
+// the EXISTING PeerScorecard renderer (protectionTone + protectionLabelKey —
+// called, never forked).
+// ---------------------------------------------------------------------------
+function MobilePeerCard({
+  peer,
+  t,
+  index,
+  onRefresh,
+  onEdit,
+}: {
+  peer: FleetPeer;
+  t: T;
+  /** Position in the rendered list — the rainbow palette position (same
+   *  list-index discipline as the desktop card above). */
+  index: number;
+  onRefresh: () => void;
+  onEdit: () => void;
+}) {
+  const { push } = useToast();
+  const { confirm, confirmDialog } = useConfirm();
+  const [detailOpen, setDetailOpen] = useState(false);
+  // Poll row (the desktop card's own handlePoll semantics: failures surface
+  // — res.ok checked — with toast + shake; onRefresh only on a real
+  // response; the server-recorded outcome lands in the persistent badge).
+  const [polling, setPolling] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [shakePoll, setShakePoll] = useState(0);
+  const [shakeRemove, setShakeRemove] = useState(0);
+
+  async function handlePoll() {
+    setPolling(true);
+    try {
+      const res = await pollFleetPeer(peer.id);
+      if (!res.ok) {
+        push(res.error ?? t("fleet.saveError"), "fail");
+        setShakePoll((n) => n + 1);
+      }
+      onRefresh();
+    } catch (err) {
+      push(err instanceof Error ? err.message : t("fleet.saveError"), "fail");
+      setShakePoll((n) => n + 1);
+    } finally {
+      setPolling(false);
+    }
+  }
+
+  // REMOVE VIA useConfirm (the plan's mobile contract): the DESKTOP card
+  // keeps its documented two-click inline confirm; on the phone the action
+  // gets the ConfirmSheet (useConfirm swaps the presentation half below
+  // 48rem, D-07) — same deleteFleetPeer call, same "DB row only, the peer
+  // instance is never contacted" truth.
+  async function handleRemove() {
+    // Removing a monitoring entry never contacts the peer (re-addable in one
+    // step) — the "light" warn branch, same reversible-action reasoning the
+    // desktop card's inline confirm cites.
+    const ok = await confirm(`${t("fleet.remove")}: ${peer.name}`, {
+      confirmLabel: t("fleet.confirmRemove"),
+      cancelLabel: t("common.cancel"),
+      tone: "warn",
+    });
+    if (!ok) return;
+    setRemoving(true);
+    try {
+      const res = await deleteFleetPeer(peer.id);
+      if (res.ok) {
+        setDetailOpen(false);
+        onRefresh();
+      } else {
+        push(res.error ?? t("fleet.saveError"), "fail");
+        setShakeRemove((n) => n + 1);
+      }
+    } catch (err) {
+      push(err instanceof Error ? err.message : t("fleet.saveError"), "fail");
+      setShakeRemove((n) => n + 1);
+    } finally {
+      setRemoving(false);
+    }
+  }
+
+  // The desktop card's own poll tone/label mapping, verbatim (partial-degrade
+  // rows: lastPollAt 0 → pollNever, lastPollOk null → the neutral badge).
+  const pollTone: "ok" | "fail" | "neutral" =
+    peer.lastPollOk === null ? "neutral" : peer.lastPollOk ? "ok" : "fail";
+  const pollLabel =
+    peer.lastPollOk === null
+      ? t("fleet.pollNever")
+      : peer.lastPollOk
+      ? t("fleet.pollOk")
+      : t("fleet.pollFailed");
+
+  return (
+    <div
+      className="glim-hue glim-content-fade relative flex flex-col gap-2 overflow-hidden rounded-card bg-carbon-surface p-4"
+      style={hueVars(rainbowAt(index))}
+    >
+      {/* Tap row → the detail sheet. Name identity mirrors the desktop
+          header: the instance name the peer reported, falling back to the
+          local label. */}
+      <button
+        type="button"
+        onClick={() => setDetailOpen(true)}
+        aria-expanded={detailOpen}
+        className="flex min-h-[2.75rem] w-full items-center gap-3 rounded-control bg-carbon-surface2 px-3 py-2 text-start"
+      >
+        <span
+          aria-hidden
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-carbon-surface text-carbon-textSub"
+        >
+          <IconFleet />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-carbon-text">
+            {peer.lastPollInstanceName || peer.name}
+          </span>
+          <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
+            {!peer.enabled && <Badge tone="neutral">{t("fleet.monitoringOff")}</Badge>}
+            <Badge tone={pollTone}>{pollLabel}</Badge>
+          </span>
+        </span>
+      </button>
+
+      <p dir="ltr" className="truncate text-xs font-mono text-carbon-textMuted">
+        {peer.url}
+      </p>
+
+      {/* Last contact: relative + tabular; fleet.pollNever for 0 (the
+          plan's partial-degrade row). The poll error rides the line on a
+          failure, as on desktop. */}
+      <p className="text-xs text-carbon-textMuted tabular-nums">
+        {peer.lastPollAt > 0
+          ? t("fleet.lastPolled").replace("{time}", relativeTime(t, peer.lastPollAt))
+          : t("fleet.pollNever")}
+        {peer.lastPollOk === false && peer.lastPollError && (
+          <span className="text-statusFail"> · {peer.lastPollError}</span>
+        )}
+      </p>
+      {peer.lastPollVersion && (
+        <p className="text-xs text-carbon-textMuted">{peer.lastPollVersion}</p>
+      )}
+
+      {/* Protection summary — the SAME PeerScorecard renderer the desktop
+          disclosure renders (protectionTone/protectionLabelKey called, not
+          forked). The card shows the summary; the detail sheet shows the full
+          scorecard under its title. */}
+      <PeerScorecard domains={peer.lastPollDomains} t={t} />
+
+      {/* The detail sheet — a CONTENT-SIZED BottomSheet (D-04 viewer, no
+          fullHeight prop) with the full scorecard + poll/edit/remove rows. */}
+      {detailOpen && (
+        <BottomSheet open onClose={() => setDetailOpen(false)} title={t("fleet.details")}>
+          <div className="flex flex-col gap-3 pt-3">
+            <p className="text-xs font-medium text-carbon-textSub">{t("fleet.scorecardTitle")}</p>
+            <PeerScorecard domains={peer.lastPollDomains} t={t} />
+
+            {/* Poll now: the desktop card's own accent action, re-hosted as a
+                tonal row — this READ-ONLY surface has no backup trigger to
+                reserve the accent, and a peer poll is a request/response, not
+                a tracked job. */}
+            <button
+              key={shakePoll}
+              type="button"
+              onClick={() => void handlePoll()}
+              disabled={polling}
+              title={polling ? t("fleet.polling") : undefined}
+              className={`min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text disabled:opacity-60 ${
+                shakePoll ? "glim-shake" : ""
+              }`}
+            >
+              {polling ? t("fleet.polling") : t("fleet.pollNow")}
+            </button>
+
+            {/* Edit + remove rows. */}
+            <button
+              type="button"
+              onClick={() => {
+                setDetailOpen(false);
+                onEdit();
+              }}
+              className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+            >
+              {t("fleet.edit")}
+            </button>
+            <button
+              key={shakeRemove}
+              type="button"
+              onClick={() => void handleRemove()}
+              disabled={removing}
+              className={`min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text disabled:opacity-60 ${
+                shakeRemove ? "glim-shake" : ""
+              }`}
+            >
+              {removing ? t("fleet.removing") : t("fleet.remove")}
+            </button>
+          </div>
+        </BottomSheet>
+      )}
+
+      {/* useConfirm's presentation half (ConfirmSheet below md) — portal-
+          rendered by the hook itself. */}
+      {confirmDialog}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// MobilePeerEditor — the FleetDialog field set re-hosted in a fullHeight
+// BottomSheet (D-05; Pattern 6 dialog re-host). The SAME field components
+// (plain inputs, RevealInput + useReveal, ToggleRow) and the SAME write-only
+// token contract (T-07-11): the token is NEVER echoed — the input mounts
+// blank with the desktop's own "saved (leave blank to keep)" placeholder
+// when a token is stored (hasToken) — blank-on-save keeps the stored token
+// (the PUT carries token: "" and the server keeps it; FleetPeerInput has no
+// removal flag — the frozen desktop contract, api.ts), token required on
+// create, and save/cancel ride the same create/update calls with the same
+// validation, toasts and shake. Failed saves toast AND shake (the standing
+// rule).
+// ---------------------------------------------------------------------------
+function MobilePeerEditor({
+  initial,
+  t,
+  onClose,
+  onSaved,
+}: {
+  /** null = create; a peer = edit that peer. */
+  initial: FleetPeer | null;
+  t: T;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const { push } = useToast();
+  const [name, setName] = useState(initial?.name ?? "");
+  const [url, setUrl] = useState(initial?.url ?? "");
+  const [token, setToken] = useState("");
+  const [enabled, setEnabled] = useState(initial?.enabled ?? true);
+  const [saving, setSaving] = useState(false);
+  const revealToken = useReveal();
+  // GlimStone standing rule (jdp, live review, emphatic, system-wide): shake
+  // the Save button alongside the toast on a failed save.
+  const [shake, setShake] = useState(0);
+
+  const editing = initial !== null;
+  const canSave = name.trim() !== "" && url.trim() !== "" && (token.trim() !== "" || editing) && !saving;
+
+  async function handleSave() {
+    if (name.trim() === "") {
+      push(t("fleet.nameRequired"), "fail");
+      setShake((n) => n + 1);
+      return;
+    }
+    if (url.trim() === "") {
+      push(t("fleet.urlRequired"), "fail");
+      setShake((n) => n + 1);
+      return;
+    }
+    setSaving(true);
+    const input: FleetPeerInput = {
+      name: name.trim(),
+      url: url.trim(),
+      token: token.trim(),
+      enabled,
+      sortOrder: initial?.sortOrder ?? 0,
+    };
+    try {
+      const res = editing ? await updateFleetPeer(initial.id, input) : await createFleetPeer(input);
+      if (res.ok) {
+        push(t("settings.saved"), "success");
+        onSaved();
+      } else {
+        push(res.error ?? t("fleet.saveError"), "fail");
+        setShake((n) => n + 1);
+      }
+    } catch (err) {
+      push(err instanceof Error ? err.message : t("fleet.saveError"), "fail");
+      setShake((n) => n + 1);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const inputCls =
+    "rounded-control bg-carbon-surface2 text-carbon-text text-sm px-3 py-1.5 glim-field-focus";
+
+  return (
+    <BottomSheet
+      open
+      onClose={onClose}
+      title={editing ? t("fleet.editTitle") : t("fleet.addTitle")}
+      fullHeight
+    >
+      {/* The bar is the LAST child of the scroll body (its sticky bottom-0
+          pins it during scroll; the min-h-full wrapper + flex-1 spacer push
+          it to the panel floor when the content is shorter than the sheet) —
+          the MobileVMCard schedule-sheet body shape. */}
+      <div className="flex min-h-full flex-col gap-4 pt-4">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs text-carbon-textSub">{t("fleet.name")}</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            spellCheck={false}
+            autoComplete="off"
+            placeholder="tower"
+            className={inputCls}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs text-carbon-textSub">{t("fleet.url")}</label>
+          <input
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            spellCheck={false}
+            autoComplete="off"
+            placeholder="https://192.168.1.50:3443"
+            dir="ltr"
+            className={`${inputCls} font-mono text-start`}
+          />
+          <p className="text-caption text-carbon-textMuted">{t("fleet.urlHint")}</p>
+        </div>
+
+        {/* Peer fleet token — write-only (T-07-11): blank input, the desktop's
+            own keep placeholder when a token is stored, never a prefilled
+            value. */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs text-carbon-textSub">{t("fleet.token")}</label>
+          <RevealInput
+            {...revealToken}
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            spellCheck={false}
+            autoComplete="off"
+            placeholder={editing ? t("fleet.tokenKeep") : "a1b2c3…"}
+            wrapperClassName="w-full"
+            className={`${inputCls} font-mono`}
+          />
+          <p className="text-caption text-carbon-textMuted">{t("fleet.tokenHint")}</p>
+        </div>
+
+        {/* ToggleRow, not a bare Toggle — see the desktop dialog's identical
+            call site comment. */}
+        <ToggleRow checked={enabled} onChange={setEnabled} label={t("fleet.enabledLabel")} />
+
+        <div className="min-h-4 flex-1" />
+        <StickyActionBar>
+          <Button
+            label={t("files.cancel")}
+            labelKey="files.cancel"
+            tone="neutral"
+            onClick={onClose}
+            disabled={saving}
+            className="w-full"
+          />
+          <Button
+            key={shake}
+            label={t("settings.save")}
+            labelKey="settings.save"
+            tone="accent"
+            onClick={() => void handleSave()}
+            disabled={!canSave}
+            busy={saving}
+            title={saving ? t("common.saving") : undefined}
+            className={`w-full ${shake ? "glim-shake" : ""}`}
+          />
+        </StickyActionBar>
+      </div>
+    </BottomSheet>
   );
 }

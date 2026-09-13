@@ -717,13 +717,21 @@ export function Receiver() {
           <p className="mt-1 text-sm text-carbon-textSub">{t("receiver.subtitle")}</p>
         </div>
         {!showEmptyState && (
+          /* The D-01 first gate hides this desktop trigger below md — on a
+             WRAPPER div, deliberately, not on the Button itself: `.glim-btn`
+             is unlayered author CSS (`display: inline-flex`), which beats
+             Tailwind v4's layered `max-md:hidden` utility on the SAME element
+             (the `.glim-picker` width lesson from 06-03, re-learned live when
+             the class-on-Button form left the trigger visible at 360px). A
+             plain div carries no unlayered display rule, so the utility wins. */
+          <div className="shrink-0 max-md:hidden">
           <Button
             label={t("receiver.addRepo")}
             labelKey="receiver.addRepo"
             tone="accent"
             onClick={() => setDialog("new")}
-            className="shrink-0 max-md:hidden"
           />
+          </div>
         )}
       </div>
 

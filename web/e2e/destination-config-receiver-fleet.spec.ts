@@ -155,8 +155,9 @@ function configSnapshot(i: number, timeIso: string) {
   };
 }
 
-/** The newest snapshot is exactly 30 minutes old — deep enough that its
- *  relative-age badge ("30 minutes ago") stays stable across the whole
+/** Two snapshots: the newest is 26 minutes old, the older one 30 — a real
+ *  ordering the newest-wins reduce has to see past. The 4-minute depth keeps
+ *  the relative-age badge ("26 minutes ago") stable across the whole
  *  scenario's runtime, never straddling a unit boundary. */
 function configSnapshots(nowMs: number) {
   return [
@@ -223,7 +224,9 @@ test("mobile /config: status card, toggle, schedule entry with the server-derive
   // status Badge carries the newest snapshot's relative age.
   const newestIso = snaps[1].time;
   await expect(page.getByText(`Last backup: ${new Date(newestIso).toLocaleString("en-US")}`)).toBeVisible();
-  await expect(page.getByText("30 minutes ago")).toBeVisible();
+  // The status Badge carries the newest snapshot's relative age (26 min —
+  // the fixture's newest, never the 30-minute older one).
+  await expect(page.getByText("26 minutes ago")).toBeVisible();
 
   // The page's ONE accent reservation is the self-backup trigger (the Fab is
   // the same action through fireRef) — both carry the label on material.
@@ -555,20 +558,22 @@ test("mobile /receiver: repo cards render the reachability language as text badg
 
   // Card fields: name, reachability as TEXT status badges (the desktop
   // language, never offsite-blue tokens — T-07-14), relative lastReceived,
-  // snapshot count.
+  // snapshot count. Every text assertion is visible-filtered: the desktop
+  // page's own (hidden) repo cards render the same copy, and getByText
+  // matches DOM nodes regardless of display:none.
   await expect(page.getByRole("button", { name: /tower off-site/ }).filter({ visible: true })).toBeVisible();
-  const reachable = page.getByText("Reachable", { exact: true });
+  const reachable = page.getByText("Reachable", { exact: true }).filter({ visible: true });
   await expect(reachable).toBeVisible();
   // NO offsite token anywhere on the reachability badge's own classes.
   const reachableCls = (await reachable.getAttribute("class")) ?? "";
   expect(reachableCls).not.toContain("offsite");
-  await expect(page.getByText("Last received: 2 minutes ago")).toBeVisible();
-  await expect(page.getByText("42 snapshots")).toBeVisible();
+  await expect(page.getByText("Last received: 2 minutes ago").filter({ visible: true })).toBeVisible();
+  await expect(page.getByText("42 snapshots").filter({ visible: true })).toBeVisible();
 
   // The disabled repo: the desktop's own badge order — "Monitoring off"
   // replaces the reachability badge entirely (four-status language: off is
   // a state, not a failure).
-  await expect(page.getByText("Monitoring off", { exact: true })).toBeVisible();
+  await expect(page.getByText("Monitoring off", { exact: true }).filter({ visible: true })).toBeVisible();
   await expect(page.getByText("Unreachable", { exact: true })).toHaveCount(0);
 });
 
@@ -675,3 +680,338 @@ test("mobile /receiver: the APP_KEY editor is write-only — blank input, blank-
   expect(body.name).toBe("tower off-site");
   expect(body.enabled).toBe(true);
 });
+
+// --- Fleet (Task 3) ----------------------------------------------------------
+//
+// The mobile fleet card presentation: peer cards in the shared card language
+// (rainbow hue, tap row, desktop poll-badge order), the protection scorecard
+// rendered through the SAME PeerScorecard the desktop disclosure renders
+// (called, never forked), and the token editor under the T-07-11 write-only
+// contract — same reality check as the receiver's APP_KEY note above:
+// FleetPeerInput has NO removal flag (api.ts: "On PUT an empty token keeps
+// the stored one"), so the machine-asserted contract is the empty value
+// attribute + the blank-keeps PUT body.
+
+/** One peer-scorecard domain row (DomainStatus, api.ts, field-for-field).
+ *  Only `domain`/`enabled`/`lastSuccess`/`protection` move the PeerScorecard
+ *  renderer; the rest pad the shape the Go handler actually emits. */
+function domainStatusFixture(overrides: Record<string, unknown> = {}) {
+  return {
+    domain: "containers",
+    enabled: true,
+    schedule: "daily 03:00",
+    coveredBy: "",
+    lastSuccess: 0,
+    periodSeconds: 86400,
+    status: "ok",
+    lastVerified: 0,
+    lastVerifiedOK: false,
+    verifiedDetail: "",
+    drillDetail: "",
+    offsiteConfigured: true,
+    offsiteImmutable: true,
+    lastTamperAt: 0,
+    lastTamperOK: false,
+    lastReplicationAt: 0,
+    lastReplicationOK: false,
+    lastDrDrillAt: 0,
+    lastDrDrillOK: false,
+    lastOffsiteSubsetAt: 0,
+    lastOffsiteSubsetOK: false,
+    offsiteDrillScheduled: false,
+    protection: "green",
+    tamperState: "ok",
+    replicationState: "ok",
+    drillState: "ok",
+    encryptionOn: true,
+    pruneStrategySet: true,
+    ...overrides,
+  };
+}
+
+function fleetPeerFixture(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6",
+    name: "DXP480T Plus",
+    url: "https://192.168.1.50:3443",
+    enabled: true,
+    lastPollAt: 0,
+    lastPollOk: null,
+    lastPollError: "",
+    lastPollInstanceName: "",
+    lastPollVersion: "",
+    lastPollDomains: [] as ReturnType<typeof domainStatusFixture>[],
+    createdAt: 1789200000,
+    sortOrder: 0,
+    hasToken: true,
+    ...overrides,
+  };
+}
+
+/** Route-level staging of the fleet domain (Go JSON shapes, api.ts). The
+ *  settings route covers the mobile block's destinations-gate fetch;
+ *  mesh-offers is emptied so the shared desktop card renders its empty state.
+ *  Registration order: list-first, then writes, then the poll route LAST so
+ *  it wins over the peers/* handler (Playwright consults the LAST matching
+ *  handler first). */
+async function stageFleetDomain(
+  page: Page,
+  opts: {
+    settings?: Record<string, unknown>;
+    peers?: ReturnType<typeof fleetPeerFixture>[];
+  } = {},
+) {
+  await page.route("**/api/display-prefs*", (route) => route.abort());
+  await page.route("**/api/settings", (route) =>
+    route.fulfill({ json: settingsBody(opts.settings) }),
+  );
+  await page.route("**/api/fleet/mesh-offers", (route) =>
+    route.fulfill({ json: { ok: true, offers: [] } }),
+  );
+  await page.route("**/api/fleet/peers", (route) => {
+    if (route.request().method() === "POST") {
+      route.fulfill({ json: { ok: true, peer: null } });
+      return;
+    }
+    route.fulfill({ json: { ok: true, peers: opts.peers ?? [] } });
+  });
+  await page.route("**/api/fleet/peers/*", (route) => {
+    // Single-peer writes: PUT (update, blank token keeps) and DELETE.
+    route.fulfill({ json: { ok: true } });
+  });
+  await page.route("**/api/fleet/peers/*/poll", (route) =>
+    route.fulfill({ json: { ok: true, peer: null } }),
+  );
+}
+
+const NOW_SEC = Math.floor(Date.now() / 1000);
+
+/** A freshly-polled healthy peer: instance name + version reported, poll OK
+ *  2 minutes ago, containers protected green / VMs degraded amber. The
+ *  relative windows (2 min, 10 min, 2 hours) are chosen so no unit boundary
+ *  is straddled during the scenario's runtime. */
+function polledPeerFixture() {
+  return fleetPeerFixture({
+    lastPollAt: NOW_SEC - 120,
+    lastPollOk: true,
+    lastPollInstanceName: "tower",
+    lastPollVersion: "v8.0.0+main.abc1234",
+    lastPollDomains: [
+      domainStatusFixture({ domain: "containers", protection: "green", lastSuccess: NOW_SEC - 600 }),
+      domainStatusFixture({ domain: "vms", protection: "amber", lastSuccess: NOW_SEC - 7200 }),
+    ],
+  });
+}
+
+test("mobile /fleet: peer cards render the desktop poll badges and the PeerScorecard protection language", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    !MOBILE_PROJECTS.has(testInfo.project.name),
+    "mobile-only: the Fleet card block is MORE-01c's surface",
+  );
+  await stageFleetDomain(page, {
+    peers: [
+      polledPeerFixture(),
+      // A never-polled peer: the neutral "Never polled" badge + line, and the
+      // noScorecard copy instead of any protection chip.
+      fleetPeerFixture({
+        id: "d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a1",
+        name: "backup box",
+      }),
+    ],
+  });
+  await page.goto("/fleet");
+
+  // Card identity mirrors the desktop header: the peer's reported instance
+  // name wins over the local label.
+  const card1 = page.getByRole("button", { name: /tower/ }).filter({ visible: true });
+  await expect(card1).toBeVisible();
+
+  // Poll status as TEXT badges in the desktop order (T-07-14): "Poll OK" on
+  // the healthy card; the never-polled card carries the neutral "Never
+  // polled" badge AND the last-polled line's copy — exactly two VISIBLE
+  // occurrences (the desktop page's own hidden cards render the same copy,
+  // so the count is visible-filtered).
+  await expect(page.getByText("Poll OK", { exact: true }).filter({ visible: true })).toBeVisible();
+  await expect(page.getByText("Never polled", { exact: true }).filter({ visible: true })).toHaveCount(2);
+
+  // The reported version line (no doubled v — the desktop card's own rule).
+  await expect(page.getByText("v8.0.0+main.abc1234").filter({ visible: true })).toBeVisible();
+
+  // The protection scorecard ON THE CARD — the same PeerScorecard renderer,
+  // so the chips are the desktop mapping text: green → "Protected", amber →
+  // "Degraded", with the domain label and the relative lastBackup line.
+  await expect(page.getByText("Protected", { exact: true }).filter({ visible: true })).toBeVisible();
+  await expect(page.getByText("Degraded", { exact: true }).filter({ visible: true })).toBeVisible();
+  await expect(page.getByText("last backup 10 minutes ago").filter({ visible: true })).toBeVisible();
+
+  // The never-polled peer has no cached scorecard → the desktop's own
+  // noScorecard copy, never a fabricated chip.
+  await expect(
+    page.getByText("No cached scorecard yet. Poll this peer to fetch one.").filter({ visible: true }),
+  ).toBeVisible();
+});
+
+test("mobile /fleet: the detail sheet is content-sized and hosts the scorecard plus poll/edit/remove", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    !MOBILE_PROJECTS.has(testInfo.project.name),
+    "mobile-only: the D-04 viewer contract + the read-only poll action",
+  );
+  await stageFleetDomain(page, { peers: [polledPeerFixture()] });
+  await page.goto("/fleet");
+
+  await page.getByRole("button", { name: /tower/ }).filter({ visible: true }).tap();
+  const sheet = page.getByRole("dialog", { name: "Details" });
+  await expect(sheet).toBeVisible();
+
+  // CONTENT-SIZED (D-04): the max-height viewer shell, never the fullHeight
+  // editor's h-dvh.
+  const sheetCls = (await sheet.getAttribute("class")) ?? "";
+  expect(sheetCls).toContain("max-h-");
+  expect(sheetCls).not.toContain("h-dvh");
+
+  // The full scorecard under its title, through the shared renderer.
+  await expect(sheet.getByText("Protection scorecard")).toBeVisible();
+  await expect(sheet.getByText("Protected", { exact: true })).toBeVisible();
+
+  // Poll now fires the same read-only poll call the desktop button fires.
+  const polled = page.waitForRequest(
+    (r) => r.method() === "POST" && /\/api\/fleet\/peers\/[^/]+\/poll$/.test(r.url()),
+  );
+  await sheet.getByRole("button", { name: "Poll now" }).tap();
+  await polled;
+
+  // Edit and remove rows close out the sheet's action set.
+  await expect(sheet.getByRole("button", { name: "Edit", exact: true })).toBeVisible();
+  await expect(sheet.getByRole("button", { name: "Remove", exact: true })).toBeVisible();
+});
+
+test("mobile /fleet: the token editor is write-only — blank input, blank-keeps on save", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    !MOBILE_PROJECTS.has(testInfo.project.name),
+    "mobile-only: the T-07-11 write-only contract, machine-asserted on the wire",
+  );
+  await stageFleetDomain(page, { peers: [polledPeerFixture()] });
+  await page.goto("/fleet");
+
+  // CREATE: fullHeight sheet (D-05), token mounts BLANK with the desktop's
+  // fresh-entry placeholder — never a generated or echoed value.
+  await page.getByRole("button", { name: "Add peer" }).filter({ visible: true }).tap();
+  const createSheet = page.getByRole("dialog", { name: "Add fleet peer" });
+  await expect(createSheet).toBeVisible();
+  const createCls = (await createSheet.getAttribute("class")) ?? "";
+  expect(createCls).toContain("h-dvh");
+  const createToken = createSheet.getByPlaceholder("a1b2c3…");
+  await expect(createToken).toBeVisible();
+  expect(await createToken.inputValue()).toBe("");
+  await createSheet.getByRole("button", { name: "Cancel" }).tap();
+
+  // EDIT a peer with a stored token: blank input + the desktop's own
+  // keep-placeholder from hasToken.
+  await page.getByRole("button", { name: /tower/ }).filter({ visible: true }).tap();
+  await page.getByRole("dialog", { name: "Details" }).getByRole("button", { name: "Edit", exact: true }).tap();
+  const editSheet = page.getByRole("dialog", { name: "Edit fleet peer" });
+  await expect(editSheet).toBeVisible();
+  const editToken = editSheet.getByPlaceholder("saved (leave blank to keep)");
+  await expect(editToken).toBeVisible();
+  expect(await editToken.inputValue()).toBe("");
+
+  // Blank-keeps on the wire: the PUT carries token: "" (the server keeps the
+  // stored token; FleetPeerInput has no removal flag — the frozen desktop
+  // contract), with the rest of the peer identity intact.
+  const put = page.waitForRequest(
+    (r) => r.method() === "PUT" && /\/api\/fleet\/peers\/[^/]+$/.test(r.url()),
+  );
+  await editSheet.getByRole("button", { name: "Save" }).tap();
+  const body = (await put).postDataJSON() as Record<string, unknown>;
+  expect(body.token).toBe("");
+  expect(body.name).toBe("DXP480T Plus");
+  expect(body.url).toBe("https://192.168.1.50:3443");
+  expect(body.enabled).toBe(true);
+});
+
+test("mobile /fleet: gate-off shows the honest outline card and nothing else", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    !MOBILE_PROJECTS.has(testInfo.project.name),
+    "mobile-only: the destinations-gate mobile face",
+  );
+  await stageFleetDomain(page, { settings: { fleetEnabled: false } });
+  await page.goto("/fleet");
+
+  // The gate hint + the settings row that turns the fleet view back on…
+  await expect(
+    page.getByText("Watch the protection status of peer BombVault instances (read-only)"),
+  ).toBeVisible();
+  const settingsLink = page
+    .locator("#bv-main")
+    .getByRole("link", { name: "Settings" })
+    .filter({ visible: true });
+  await expect(settingsLink).toBeVisible();
+
+  // …and NOTHING else: no add entry, no peer cards, no desktop Add (hidden)
+  // leaking through as visible.
+  await expect(page.getByRole("button", { name: "Add peer" }).filter({ visible: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /tower/ }).filter({ visible: true })).toHaveCount(0);
+
+  await settingsLink.tap();
+  await expect(page).toHaveURL(/\/settings$/);
+});
+
+// --- Desktop dual-direction guard (Task 3) -----------------------------------
+//
+// The desktop-untouched template, extended to the three routes this plan
+// touched: at >=48rem the desktop chrome is present AND the phone chrome this
+// phase added is absent. Absence is asserted by ROLE/TEXT and by the two
+// class signatures no desktop surface carries (the Fab's h-13, the
+// fullHeight editor's h-dvh) — the mobile block is UNMOUNTED on desktop
+// (D-01's second gate), so its DOM never exists, not merely hidden.
+
+for (const route of ["/config", "/receiver", "/fleet"]) {
+  test(`desktop ${route}: desktop chrome present, mobile chrome absent`, async ({ page }, testInfo) => {
+    test.skip(
+      !DESKTOP_PROJECTS.has(testInfo.project.name),
+      "desktop-only: the dual-direction guard for the 07-04 routes",
+    );
+    await stageConfigDomain(page);
+    await stageReceiverDomain(page);
+    await stageFleetDomain(page, { peers: [polledPeerFixture()] });
+    await page.goto(route);
+
+    // Desktop chrome: the Sidebar rail, no bottom bar, the main scroller.
+    await expect(page.getByTestId("desktop-sidebar")).toBeVisible();
+    await expect(page.getByTestId("bottom-nav")).toHaveCount(0);
+    await expect(page.locator("#bv-main")).toHaveCount(1);
+
+    // Phone chrome absent: the mobile Fab signature and the fullHeight
+    // editor shell exist nowhere in the desktop DOM. The h-dvh check is
+    // dialog-scoped deliberately: the app shell ROOT (Layout.tsx, SHELL-05)
+    // legitimately carries h-dvh on every route — the leak this guard hunts
+    // is a mobile sheet, i.e. a role="dialog" panel with the class.
+    await expect(page.locator("button.h-13")).toHaveCount(0);
+    await expect(page.locator('[role="dialog"].h-dvh')).toHaveCount(0);
+
+    // The route's desktop action is present and singular — the mobile twin
+    // (Fab / card entry row) is unmounted rather than hidden, so a leak
+    // would double the visible count.
+    if (route === "/config") {
+      await expect(
+        page.getByRole("button", { name: "Back up settings now" }).filter({ visible: true }),
+      ).toHaveCount(1);
+    } else if (route === "/receiver") {
+      await expect(
+        page.getByRole("button", { name: "Add received repo" }).filter({ visible: true }),
+      ).toHaveCount(1);
+    } else {
+      await expect(
+        page.getByRole("button", { name: "Add peer" }).filter({ visible: true }),
+      ).toHaveCount(1);
+    }
+  });
+}
