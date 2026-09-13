@@ -1,8 +1,10 @@
 // ---------------------------------------------------------------------------
 // List ergonomics e2e — LISTS-01 retrofits onto the EXISTING long lists
 // (07-06; the VMs block's twin assertions live in destination-vms-flash.spec.ts
-// scenario 1). Five scenarios over the Containers mobile card list, the tracer
-// destination of the plan:
+// scenario 1). Ten scenarios over the two retrofitted destination lists — the
+// Containers mobile card list (the plan's tracer, Tasks 1) and the Files sets
+// list (Task 2), which additionally carries the 06-UI-REVIEW editor-header
+// wrap fix under German labels:
 //
 //   a. the ListToolbar search drives the page's ONE shared filter state —
 //      narrowing, the honest no-match card when nothing survives, and the
@@ -21,12 +23,15 @@
 // Harness honesty — the maquette-screens.spec.ts / touch-tree.spec.ts /
 // destination-vms-flash.spec.ts deviation (Rule 3), reused: the e2e webServer
 // is the real bombvault binary over a wiped fresh DB, but the harness has no
-// Docker, so a fresh DB can never hold a container. The container, settings
-// and schedule-next domains are fulfilled at the Playwright route layer — the
-// SPA, its fetches, the binary and every route shape are real; only the staged
-// payloads are fake, mirroring the Go JSON shapes field-for-field (api.ts).
-// The display-prefs abort keeps the harness default English labels regardless
-// of worker order (the boot-look cut, 05-06).
+// Docker, so a fresh DB can never hold a container (and never holds file
+// sets either). The container, file-set, settings and schedule-next domains
+// are fulfilled at the Playwright route layer — the SPA, its fetches, the
+// binary and every route shape are real; only the staged payloads are fake,
+// mirroring the Go JSON shapes field-for-field (api.ts). The display-prefs
+// abort keeps the harness default English labels regardless of worker order
+// (the boot-look cut, 05-06) — the ONE deliberate exception is the German
+// describe below, whose carried-fix regression only bites on the de strings
+// (mutation-checked).
 //
 // Mobile projects only: LISTS-01's desktop invariant ("byte-identical above
 // 48rem") is proven in jsdom by the desktop dom suites, which see the SAME
@@ -374,4 +379,169 @@ test("every rendered card clears the 44px touch floor", async ({ page }, testInf
     Math.min(...els.map((el) => el.getBoundingClientRect().height)),
   );
   expect(minHeight).toBeGreaterThanOrEqual(44);
+});
+
+// --- the Files sets list (Task 2) --------------------------------------------
+//
+// The sets list has NO desktop search state to bind (the page's `filter` is
+// the restore browser's), so its toolbar owns the ONE new mobile-bound search
+// state, keyed with the pre-seeded shared common.search placeholder ("Search").
+
+// --- staged file-set domain (Go JSON shapes, api.ts; the maquette-screens
+// staging discipline) ---------------------------------------------------------
+
+function fileSetPayload(i: number, overrides: Record<string, unknown> = {}) {
+  const name = `set-${String(i).padStart(2, "0")}`;
+  return {
+    // 32-char hex-style id, unique per fixture (the expanded row and the Save
+    // bar key off it).
+    id: String(i).padStart(2, "0").repeat(16),
+    name,
+    path: `data/${name}`,
+    excludes: [],
+    enabled: true,
+    lastBackup: 0,
+    pathExists: true,
+    selectedPaths: [`data/${name}`],
+    ...overrides,
+  };
+}
+
+function fileSetList(count: number) {
+  return Array.from({ length: count }, (_, i) => fileSetPayload(i));
+}
+
+/** Route-level staging of the file-set domain (maquette-screens.spec.ts's
+ *  stageFilesDomain, parameterized over the fixture list and extended with the
+ *  snapshots route the expanded row's restore disclosure reads). */
+async function stageFilesDomain(page: Page, sets: ReturnType<typeof fileSetPayload>[]) {
+  await page.route("**/api/display-prefs*", (route) => route.abort());
+  await page.route("**/api/settings", (route) => route.fulfill({ json: settingsBody() }));
+  await page.route("**/api/files/sets/preset*", (route) =>
+    route.fulfill({ json: { ok: true, offered: false, name: "", path: "", excludes: [] } }),
+  );
+  await page.route("**/api/snapshots*", (route) => route.fulfill({ json: { ok: true, snapshots: [] } }));
+  await page.route("**/api/files", (route) => route.fulfill({ json: { ok: true, fileSets: sets } }));
+  await page.route(/\/api\/files\/sets\/[^/]+$/, (route) => route.fulfill({ json: { ok: true } }));
+}
+
+function setCards(page: Page) {
+  return page.getByRole("button", { name: /^set-/ });
+}
+
+test("sets search filters the list, zero-match shows the empty card, clearing resets the window", async ({
+  page,
+}, testInfo) => {
+  test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "LISTS-01 mobile presentation only");
+  await stageFilesDomain(page, fileSetList(40));
+  await page.goto("/files");
+
+  const search = page.getByPlaceholder("Search").filter({ visible: true });
+  await expect(search).toBeVisible();
+  await expect(setCards(page)).toHaveCount(20);
+
+  // "set-1" matches set-10..set-19 → 10 rows, under the constant threshold →
+  // no Load more.
+  await search.fill("set-1");
+  await expect(setCards(page)).toHaveCount(10);
+  await expect(page.getByRole("button", { name: "Load more" })).toHaveCount(0);
+
+  // Zero-match: the explicit empty card, never a blank column; the toolbar
+  // stays reachable.
+  await search.fill("zzz-nothing");
+  await expect(setCards(page)).toHaveCount(0);
+  await expect(page.getByText("No items match the current filters.").filter({ visible: true })).toBeVisible();
+  await expect(search).toBeVisible();
+
+  // Clearing resets the window to the constant 20 and restores the affordance.
+  await search.fill("");
+  await expect(setCards(page)).toHaveCount(20);
+  await expect(page.getByRole("button", { name: "Load more" })).toBeVisible();
+});
+
+test("sets load-more window: 20 rows, one extension to 40, then the button is gone", async ({
+  page,
+}, testInfo) => {
+  test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "LISTS-01 mobile presentation only");
+  await stageFilesDomain(page, fileSetList(40));
+  await page.goto("/files");
+
+  await expect(setCards(page)).toHaveCount(20);
+  await expect(page.getByText("set-39", { exact: true }).filter({ visible: true })).toHaveCount(0);
+
+  const loadMore = page.getByRole("button", { name: "Load more" });
+  await expect(loadMore).toBeVisible();
+  await loadMore.tap();
+
+  await expect(setCards(page)).toHaveCount(40);
+  await expect(page.getByText("set-39", { exact: true }).filter({ visible: true })).toBeVisible();
+  await expect(loadMore).toHaveCount(0);
+});
+
+test("sets list never auto-loads on scroll", async ({ page }, testInfo) => {
+  test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "LISTS-01 mobile presentation only");
+  await stageFilesDomain(page, fileSetList(40));
+  await page.goto("/files");
+  await expect(setCards(page)).toHaveCount(20);
+
+  for (let i = 0; i < 3; i++) {
+    await scrollMainToBottom(page);
+    await page.waitForTimeout(300);
+  }
+
+  await expect(setCards(page)).toHaveCount(20);
+  await expect(page.getByRole("button", { name: "Load more" })).toBeVisible();
+});
+
+// The carried 06-UI-REVIEW regression runs under GERMAN labels — the narrow-
+// viewport sweep's longest strings ("Im Zeitplan einschließen") are the case
+// that actually overflows at 360px; the English labels fit even unfixed, so
+// only the de run bites on a regression (mutation-checked: reverting the fix
+// fails this test, restoring it passes).
+test.describe("with German labels", () => {
+  test.use({ locale: "de-DE" });
+
+  test("the expanded set's editor header wraps at 360px with no clipped control (carried 06-UI-REVIEW fix)", async ({
+    page,
+  }, testInfo) => {
+    test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "LISTS-01 mobile presentation only");
+    await stageFilesDomain(page, [fileSetPayload(0)]);
+    await page.goto("/files");
+
+    // Expand the set — the tap IS the disclosure (SCRN-04) — which renders the
+    // FULL FileSetRow below the card, header row included.
+    await setCards(page).first().tap();
+    const edit = page.getByRole("button", { name: "Ordner-Set bearbeiten" }).filter({ visible: true });
+    await expect(edit).toBeVisible();
+
+    // The carried-fix regression assertion: every header-row control sits fully
+    // inside the 360px viewport — nothing clips past the right edge. exact:
+    // names — "Jetzt sichern" is a SUBSTRING of the bulk bar's "Alle jetzt
+    // sichern" further up the page, and a substring match binds the assertion
+    // to the wrong control (found on mobile-iphone, where that misplaced probe
+    // masked a real page-pan bug — the header action row's shrink-0 overflow —
+    // fixed in Files.tsx alongside this spec).
+    const viewportWidth = page.viewportSize()?.width ?? 360;
+    const controlNames = ["Ordner-Set bearbeiten", "Set entfernen", "Jetzt sichern"];
+    for (const name of controlNames) {
+      const box = await page
+        .getByRole("button", { name, exact: true })
+        .filter({ visible: true })
+        .first()
+        .boundingBox();
+      expect(box, `${name} should have a bounding box`).not.toBeNull();
+      expect(box!.x, `${name} left edge`).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width, `${name} right edge`).toBeLessThanOrEqual(viewportWidth);
+    }
+    // The schedule toggle gets the same proof (the shared Toggle's control
+    // exposes role="switch" with the row's label as its accessible name).
+    const toggleBox = await page
+      .getByRole("switch", { name: "Im Zeitplan einschließen" })
+      .filter({ visible: true })
+      .first()
+      .boundingBox();
+    expect(toggleBox).not.toBeNull();
+    expect(toggleBox!.x).toBeGreaterThanOrEqual(0);
+    expect(toggleBox!.x + toggleBox!.width).toBeLessThanOrEqual(viewportWidth);
+  });
 });

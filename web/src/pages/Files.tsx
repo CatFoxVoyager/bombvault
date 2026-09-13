@@ -8,7 +8,7 @@
 // FolderBrowser path picker and an excludes textarea (one pattern per line).
 // ---------------------------------------------------------------------------
 
-import { useEffect, useId, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import {
   listFileSets,
@@ -32,6 +32,8 @@ import { applyToggle, browseRelToHost, splitFlatSet, toFlatList } from "../lib/s
 import { SelectionTree } from "../components/SelectionTree";
 import { StickyActionBar } from "../components/mobile/StickyActionBar";
 import { RunDetailSheet } from "../components/mobile/RunDetailSheet";
+import { ListToolbar } from "../components/mobile/ListToolbar";
+import { useLoadMore } from "../lib/useLoadMore";
 import { useIsCoarsePointer, useIsDesktop } from "../lib/useMediaQuery";
 import { SourceToggle, type RepoSource } from "../components/SourceToggle";
 import { PAGE_SHELL_RESPONSIVE } from "../lib/pageShell";
@@ -1657,8 +1659,13 @@ export function FileSetRow({
               icon-badge pair in this app already sits at gap-1.5 (Containers.tsx's
               BackupButton/Export pair in the card's top-right corner is the
               reference). The row's own gap-4 still separates this pair from the
-              schedule toggle beside it, which is a different kind of control. */}
-          <div className="flex items-center gap-1.5">
+              schedule toggle beside it, which is a different kind of control.
+                flex-wrap (carried 06-UI-REVIEW fix, landed by 07-06): without
+              it the pair is one unbreakable min-content block and the 360px
+              de/fr narrow viewport overflows the row — the pair now drops
+              under the toggle instead of pushing the backup button past the
+              viewport edge. No visual change when space allows. */}
+          <div className="flex items-center gap-1.5 flex-wrap">
             <Button
               label={t("files.editSet")}
               labelKey="files.editSet"
@@ -1678,6 +1685,16 @@ export function FileSetRow({
             />
           </div>
         </div>
+        {/* ms-auto column (carried 06-UI-REVIEW fix, 07-06): the column keeps
+            the default min-width:auto ON PURPOSE — it must carry the backup
+            button's min-content, so a tight flex line WRAPS the whole column
+            onto its own (ms-auto right-aligned) line instead of squeezing it.
+            An earlier min-w-0 variant was mutation-checked out: a squeezed
+            column with `items-end` is unsafe cross-end alignment and pushes
+            the button out through the column's LEFT edge (measured x=-3 at
+            390px German — the exact clip this fix exists to forbid). With
+            min-width:auto the button never sits in a column narrower than its
+            own longest word, so a squeeze wraps text, never clips a control. */}
         <div className="ms-auto flex flex-col items-end">
           <FileSetBackupButton
             set={set}
@@ -1883,6 +1900,13 @@ export function Files() {
   // (the tap IS the disclosure), and the expanded set's editor wires the
   // page-level Save bar through the SAME contract Containers' detail uses.
   const isDesktop = useIsDesktop();
+  // LISTS-01 (07-06): the mobile sets list's search. The desktop sets list has
+  // NO search-like state to bind — the page's only other filter (`filter`) is
+  // the RESTORE browser's, a different surface — so this is the one new local
+  // state the plan sanctions, bound ONLY to the mobile toolbar and keyed with
+  // the pre-seeded shared common.search placeholder instead of a per-domain
+  // key (prohibition: no per-domain forks; one shared key, many consumers).
+  const [setsSearch, setSetsSearch] = useState("");
   const [expandedSetId, setExpandedSetId] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<SaveBarState>({ ticked: 0, inFlight: false, shakeNonce: 0 });
   const saveFlushRef = useRef<(() => void) | null>(null);
@@ -1904,6 +1928,21 @@ export function Files() {
   // discover, dialog save) replaces the views, and a stale id would pin the
   // bar to a dead row.
   const expandedSet = sets.find((s) => s.id === expandedSetId) ?? null;
+
+  // LISTS-01 (07-06): the mobile sets window. Memoized end-to-end because
+  // useLoadMore resets on ARRAY IDENTITY (lib/useLoadMore.ts's contract): an
+  // unmemoized filter chain would hand the hook a fresh array every render and
+  // the window could never extend. Identity changes exactly when the list or
+  // the search changes — the reset the contract wants.
+  const setsQuery = setsSearch.trim().toLowerCase();
+  const matchedSets = useMemo(
+    () =>
+      setsQuery === ""
+        ? sets
+        : sets.filter((s) => s.name.toLowerCase().includes(setsQuery)),
+    [sets, setsQuery]
+  );
+  const { visible: visibleSets, showMore, hasMore } = useLoadMore(matchedSets);
 
   function toggleExpanded(id: string): void {
     setSaveState({ ticked: 0, inFlight: false, shakeNonce: 0 });
@@ -2044,7 +2083,16 @@ export function Files() {
           <p className="mt-1 text-sm text-carbon-textSub">{t("files.subtitle")}</p>
           <div className="mt-2"><OffsiteIndicator domain="files" /></div>
         </div>
-        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+        {/* NO shrink-0 on this row (07-06, found by the carried-fix e2e): a
+            flex item with shrink-0 renders at its max-content width even when
+            that is wider than its parent — 393px of German buttons inside a
+            358px content box — and an inner flex-wrap then never engages (the
+            row "fits" its own inflated width). The un-wrapped row overflowed
+            main#bv-main horizontally, and the first tap's scroll-into-view
+            panned the WHOLE page ~19px sideways on a phone. Shrinkable +
+            flex-wrap: the row takes the space it has and the buttons drop
+            lines instead. */}
+        <div className="flex items-center gap-2 flex-wrap">
           <Button
             key={shakeDiscover}
             label={t("containers.discover")}
@@ -2222,7 +2270,16 @@ export function Files() {
           existing suites. */}
       {!isDesktop && !loading && !error && sets.length > 0 && (
         <div className="flex flex-col gap-3 glim-content-fade">
-          {sets.map((s, i) => {
+          {/* LISTS-01 (07-06): the sticky-in-flow toolbar. It binds the page's
+              OWN new sets-search state (see the state's comment — the desktop
+              sets list has none to bind) with the pre-seeded shared
+              common.search placeholder; no chips because the sets list has no
+              other filter state to re-present. Rendered whenever the list has
+              settled — including when the current search matches nothing, so
+              the filter stays clearable (an unreachable toolbar would strand
+              the empty state). */}
+          <ListToolbar search={setsSearch} onSearch={setSetsSearch} placeholder="common.search" />
+          {visibleSets.map((s, i) => {
             const expanded = expandedSetId === s.id;
             return (
               <div key={s.id} className="flex flex-col gap-3">
@@ -2259,6 +2316,27 @@ export function Files() {
               </div>
             );
           })}
+          {/* Zero-match honesty (LISTS-01): an explicit empty state, never a
+              blank column below the toolbar. The EXISTING filter.noMatch copy
+              — the same sentence the Containers retrofits render — as a card. */}
+          {visibleSets.length === 0 && (
+            <div className="rounded-card bg-carbon-surface p-4">
+              <p className="text-sm text-carbon-textMuted">{t("filter.noMatch")}</p>
+            </div>
+          )}
+          {/* LISTS-01: the one load-more affordance, gated on hasMore — no
+              rows beyond the window, no button (hasMore is the ONLY signal
+              this may gate on); never auto-loads (no observer, no scroll
+              listener — lib/useLoadMore.ts's construction-level ban). */}
+          {hasMore && (
+            <button
+              type="button"
+              onClick={showMore}
+              className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
+            >
+              {t("common.loadMore")}
+            </button>
+          )}
           {/* The deselect-floor rule, stated in the list itself (SCRN-04):
               outline card, muted caption — it describes a boundary, it is not
               an error. {action} interpolated at render time from the existing
