@@ -35,7 +35,11 @@ saying ransomware is welcome to knock.
 <br>
 
 <p align="center">
-  <a href="https://junkerderprovinz.github.io/bombvault/"><img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/button-docs.png" alt="Documentation" width="220"></a>
+  <a href="https://junkerderprovinz.github.io/bombvault/"><img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/download-buttons/docs.svg" alt="Read the documentation" width="195"></a>
+  &nbsp;
+  <a href="https://github.com/junkerderprovinz/bombvault/pkgs/container/bombvault"><img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/download-buttons/docker-image.svg" alt="The container image on ghcr.io" width="195"></a>
+  &nbsp;
+  <a href="https://github.com/junkerderprovinz/bombvault/releases/latest"><img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/download-buttons/source-zip.svg" alt="Download the source archive for this release" width="195"></a>
 </p>
 
 <br>
