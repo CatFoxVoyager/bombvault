@@ -153,11 +153,16 @@ export function PasskeyCard({
             >
               <div className="flex min-w-0 flex-col">
                 <span className="truncate text-sm text-carbon-text">{p.name}</span>
+                {/* Two independent facts about the key, so they get a separator
+                    rather than being run together. Neither sentence can carry
+                    the punctuation itself: whether the second one is there at
+                    all depends on the authenticator, and a trailing full stop
+                    on the first would then dangle. */}
                 <span className="truncate text-xs text-carbon-textSub">
                   {p.usableHere
                     ? t("auth.passkeyUsableHere")
                     : t("auth.passkeyOtherAddress").replace("{host}", p.rpId)}
-                  {!p.backedUp && <> {t("auth.passkeyNotSynced")}</>}
+                  {!p.backedUp && <> · {t("auth.passkeyNotSynced")}</>}
                 </span>
               </div>
               <Button
