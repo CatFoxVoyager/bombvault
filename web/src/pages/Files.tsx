@@ -1520,6 +1520,9 @@ export function FileSetRow({
   const [removing, setRemoving] = useState(false);
   const { push } = useToast();
   const { confirm, confirmDialog } = useConfirm();
+  // Gates the remove button's tone flip below 48rem (see the actions-row
+  // colour paragraph) — the same width authority every D-01 double gate uses.
+  const isDesktop = useIsDesktop();
   // GlimStone standing rule (jdp, live review, emphatic, system-wide): a
   // failed action toasts AND shakes its button.
   const [shake, setShake] = useState(0);
@@ -1631,12 +1634,15 @@ export function FileSetRow({
               the identical shape Containers.tsx's IncludeToggle call site
               already uses — see that component's own comment. */}
           <FileSetEnabledToggle id={set.id} initial={set.enabled} />
-          {/* Edit + remove, both square icon badges (jdp: "Ordnertab: die
-              Buttons 'Ordnerset bearbeiten' und 'Set entfernen' sollen
-              quadratische Badges mit Glyphen sein. In die Farbmodi integriert.
-              Keine Sonderfarbe fuer den Entfernen-Badge."). Both were plain
-              text `<button>`s: edit a flat `bg-carbon-surface2` grey, remove a
-              `bg-statusFailBg`/`text-statusFail` red.
+          {/* Edit + remove, both square icon badges (jdp's Ordnertab ruling:
+              "Ordnertab: die Buttons 'Ordnerset bearbeiten' und 'Set
+              entfernen' sollen quadratische Badges mit Glyphen sein. In die
+              Farbmodi integriert. Keine Sonderfarbe fuer den Entfernen-Badge."
+              — the no-second-colour clause was ruled on the desktop tab and
+              still holds there; below 48rem the remove badge's tone
+              deliberately leaves the hue, see the colour paragraph). Both were
+              plain text `<button>`s: edit a flat `bg-carbon-surface2` grey,
+              remove a `bg-statusFailBg`/`text-statusFail` red.
                 `tone="active"` + `size="icon"` + `shape="square"` + `tip` is
               the app's whole icon-badge recipe in one line — icon-only +
               active resolves to the solid `bg-accent`/`text-accentContrast`
@@ -1649,18 +1655,28 @@ export function FileSetRow({
               is the app's one square-icon-badge size (32px) — see Badge.tsx's
               "ONE SIZE FOR SQUARE ICON BADGES" block; not a number measured
               against these two buttons' own old text footprint.
-                The remove badge gets NO special colour treatment — not the red
-              it used to carry, and equally not a grey-neutral exemption
-              (`neutral` is one of the tones Badge deliberately keeps out of the
-              rainbow, so it would have left this badge flat grey beside a hued
-              sibling — the "anders eingefärbt" defect jdp already reported on
-              RestorePanel's delete and Config's snapshot rows). It is the same
-              tone and the same hue as the edit badge next to it. Nothing about
-              the action becomes ambiguous: the destructive meaning is carried
-              by IconTrash and by the tip bubble (t("files.deleteSet") — "Set
-              entfernen"), and handleRemove still routes through the existing
-              useConfirm dialog (t("files.deleteSetConfirm")) before anything is
-              removed — that confirmation is untouched.
+                Colour is now SPLIT BY WIDTH (P2-14, 390px review, 2026-09-14).
+              On desktop the ruling above still stands — the remove badge is
+              the same in-hue solid accent as the edit badge next to it, no
+              special colour of its own, and equally no grey-neutral exemption
+              (`neutral` is one of the tones Badge deliberately keeps out of
+              the rainbow, so it would have left this badge flat grey beside a
+              hued sibling — the "anders eingefärbt" defect jdp already
+              reported on RestorePanel's delete and Config's snapshot rows).
+              Below 48rem the phone renders the remove action in the shared
+              Button `danger` tone (Button.tsx's tone table — the solid
+              fail/background pairing ConfirmDialog worked out and the
+              component adopted): an irreversible "remove this set" must not
+              wear the primary-CTA colour it shares with Save and Back up now.
+              The flip rides this row's `useIsDesktop` gate, so jsdom suites
+              keep seeing the desktop accent and >=48rem stays byte-identical.
+              Nothing about the action becomes ambiguous in either branch: the
+              destructive meaning is still carried by IconTrash and by the tip
+              bubble (t("files.deleteSet") — "Set entfernen"), and handleRemove
+              still routes through the existing useConfirm dialog
+              (t("files.deleteSetConfirm")) before anything is removed — that
+              confirmation is untouched. The tone swap changes no geometry:
+              same badge size, mobile 44px bleed intact.
                 The `removing` in-flight state used to swap the label to
               "Prüfe…"; an icon-only badge has no label to swap, so it surfaces
               as `disabled` alone, matching every other icon badge in the app
@@ -1695,7 +1711,7 @@ export function FileSetRow({
               label={t("files.deleteSet")}
               labelKey="files.deleteSet"
               glyph={<IconTrash />}
-              tone="accent"
+              tone={isDesktop ? "accent" : "danger"}
               onClick={() => void handleRemove()}
               disabled={removing}
               className={shake ? "glim-shake" : ""}
