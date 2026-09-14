@@ -109,6 +109,100 @@ describe("SHELL-04 — safe-area custom properties exist and are env-paired", ()
   );
 });
 
+// ---------------------------------------------------------------------------
+// D-11 (2026-09-14 real-device pass — the venue D-12 had reserved) — the
+// phantom Android bottom inset is zeroed on material. Source-level like the
+// guards above because the fix is DECLARATIVE: a custom-property override in
+// index.css that no behavioral assert can distinguish from the phantom it
+// replaces without a real device. Android's browser reports a phantom
+// env(safe-area-inset-bottom) under viewport-fit=cover (the meta is required
+// by the shell, so the ghost cannot be turned off at the source) and on
+// device it produced ~80px of dead space under the BottomNav and ~67px in
+// the StickyActionBar. Material (Android's platform expression) zeroes the
+// bottom axis; cupertino keeps the real inset — the iPhone home indicator
+// genuinely claims that space.
+// ---------------------------------------------------------------------------
+describe("D-11 — the phantom Android safe-area bottom inset is zeroed on material", () => {
+  // Every match below runs on COMMENT-STRIPPED text: index.css's why-comments
+  // legitimately discuss the safe-area properties in prose (the D-11 block's
+  // own comment names all four), and a negation that scanned prose would
+  // count the tombstone's own words as violations. Only rule BODIES are
+  // held; the prose is sanctioned.
+  const strippedCss = indexCss.replace(/\/\*[\s\S]*?\*\//g, (m) =>
+    m.replace(/[^\n]/g, " ")
+  );
+
+  /** Bodies of every rule whose selector mentions the given data-platform
+   *  value (the `:root` token blocks AND the media-wrapped consumer rules). */
+  function platformRuleBodies(platform: string): string[] {
+    return [
+      ...strippedCss.matchAll(
+        new RegExp(`[^{}]*data-platform="${platform}"[^{}]*\\{([^}]*)\\}`, "g")
+      ),
+    ].map((m) => m[1]);
+  }
+
+  it("finds cupertino rules to scan at all (self-guard against vacuous negation)", () => {
+    expect(
+      platformRuleBodies("cupertino").length,
+      "no data-platform=\"cupertino\" rules were found in index.css. The --mob-* " +
+        "token blocks (PLAT-01) or their consumer rules were removed or " +
+        "reformatted beyond this guard's shape — restore them or update this " +
+        "guard deliberately (D-11)."
+    ).toBeGreaterThanOrEqual(2);
+  });
+
+  it("zeros the bottom inset on material", () => {
+    expect(
+      /:root\[data-platform="material"\]\s*\{[^}]*--safe-area-bottom:\s*0px/.test(
+        strippedCss
+      ),
+      "the :root[data-platform=\"material\"] rule no longer zeroes " +
+        "--safe-area-bottom. Android's browser reports a phantom bottom inset " +
+        "under viewport-fit=cover (the meta is required by the shell, so the " +
+        "ghost cannot be turned off at the source) — on the 2026-09-14 device " +
+        "pass it left ~80px of dead space under the BottomNav and ~67px in the " +
+        "StickyActionBar (D-11). Restore `--safe-area-bottom: 0px;` in the " +
+        "material override, or move the fix deliberately with a why."
+    ).toBe(true);
+  });
+
+  it("moves only the bottom axis — top/right/left keep their env() pairing", () => {
+    const zeroRule =
+      /:root\[data-platform="material"\]\s*\{([^}]*)--safe-area-bottom:\s*0px/.exec(
+        strippedCss
+      );
+    // Self-guard first: the positive assert above fails loudly if the rule is
+    // gone, so this scope check only runs against a rule that exists.
+    expect(zeroRule).not.toBeNull();
+    expect(
+      /--safe-area-(top|right|left)/.test(zeroRule![1]),
+      "the material safe-area override started touching an axis other than the " +
+        "bottom. D-11's finding is bottom-only: no phantom was ever observed on " +
+        "top/right/left, and their max(env(...), 0px) pairing is what keeps the " +
+        "inset real on notched devices. Revert the extra axes or widen this " +
+        "guard deliberately with a why."
+    ).toBe(false);
+  });
+
+  it("keeps the real inset on every cupertino rule (no --safe-area-bottom anywhere)", () => {
+    // Every rule whose selector mentions data-platform="cupertino" — the
+    // --mob-* token blocks AND the media-wrapped consumer rules (the HIG
+    // title). The count self-guard above keeps this scan non-vacuous.
+    const hits = platformRuleBodies("cupertino").filter((body) =>
+      body.includes("--safe-area-bottom")
+    );
+    expect(
+      hits.length,
+      "a cupertino rule declares --safe-area-bottom. Cupertino is iOS's " +
+        "platform expression and the iPhone home indicator genuinely claims " +
+        "that space — the D-11 zero is material-only, so the override must " +
+        "never grow a cupertino twin. Remove the declaration or re-scope " +
+        "this guard deliberately with a why."
+    ).toBe(0);
+  });
+});
+
 describe("SHELL-06 — viewport meta carries the mobile directives", () => {
   const viewport = /<meta\s+name="viewport"\s+content="([^"]*)"\s*\/>/.exec(indexHtml);
 

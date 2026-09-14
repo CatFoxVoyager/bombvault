@@ -235,6 +235,28 @@
   --safe-area-left: max(env(safe-area-inset-left), 0px);
 }
 
+/* The material zero (D-11, 2026-09-14 real-device pass — the venue D-12 had
+   reserved). Android's browser reports a PHANTOM bottom inset under
+   viewport-fit=cover: the directive is required by the shell (one half of
+   the SHELL-04 contract above — without it every env() below reads 0px,
+   silently), but on Android the system bar's height leaks into
+   env(safe-area-inset-bottom) even where the page never actually draws
+   underneath, and on device the phantom fed two very visible holes —
+   ~80px of dead space under the BottomNav and ~67px inside the
+   StickyActionBar's Save card.
+
+   Material is Android's platform expression, so it zeroes the bottom axis;
+   cupertino keeps the real inset — the iPhone home indicator genuinely
+   claims that space, so this override must never grow a cupertino twin.
+   Only the bottom axis moves: no ghost was ever observed on top/right/left,
+   so their env() pairing stays. Desktop is unchanged too: boot stamps the
+   attribute with the default "material" (lib/platform.ts), and desktop
+   env() was already reading ~0. mobileShellSource.test.ts pins this rule's
+   shape and its cupertino absence (D-11 guard). */
+:root[data-platform="material"] {
+  --safe-area-bottom: 0px;
+}
+
 /* The one raised surface, from GlimStone. It was already being used on the
    glyph gallery and defined nowhere, so that element rendered with no ground,
    no radius and no elevation at all. Nothing failed and no test went red: a
