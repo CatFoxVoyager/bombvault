@@ -1561,7 +1561,15 @@ export function FileSetRow({
       <div className="flex items-start gap-3 flex-wrap">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-carbon-text text-sm truncate">
+            {/* Below md this name is ALREADY on screen: the MobileFileSetCard
+                disclosure header directly above the expanded row renders the
+                same set name (the card IS the disclosure header — see its
+                block comment below). The expanded panel therefore repeated it
+                on a phone: two name spans visible at once with a set expanded
+                (P1-13, 390px review, 2026-09-14). The desktop list renders
+                FileSetRow bare — no card — so >=48rem keeps this span: it is
+                THE row title there. */}
+            <span className="font-semibold text-carbon-text text-sm truncate max-md:hidden">
               {set.name}
             </span>
             {set.excludes.length > 0 && (
@@ -2375,7 +2383,21 @@ export function Files() {
           no expanded editor there is no queue to flush, so the bar only
           renders while a path-bearing set is expanded — and still visible
           under the current search (WR-02: the editor lives in the filtered
-          window, so when search hides it, its bar goes with it). */}
+          window, so when search hides it, its bar goes with it).
+            WHY THE LAST CHILD OF THE PAGE COLUMN (verified 2026-09-14, P1-11):
+          this block must stay a DIRECT child of the PAGE_SHELL_RESPONSIVE
+          root — the column's last visible child, after the mobile list and
+          before the sheet/dialog portals — so `sticky bottom-0` resolves
+          against main#bv-main (Layout.tsx). Wrapped in a Card, or behind an
+          overflow/contain wrapper, it would stick only inside that box and
+          scroll away with it (Pitfall 3): the same contract the Containers
+          detail Save bar documents (Containers.tsx, the D-03 block) and
+          components/mobile/StickyActionBar.tsx's header spells out ("WHY THE
+          LAST DIRECT CHILD OF THE PAGE COLUMN"). Being sticky-IN-FLOW the bar
+          also reserves its own layout space, so at max scroll nothing above
+          it is covered; the measured overlap with mid-page content at rest
+          (390px review) is a correctly pinned bar, not misplaced markup —
+          no move, no padding hack. */}
       {!isDesktop && expandedVisible && expandedSet !== null && expandedSet.path !== "" && (
         <StickyActionBar className="md:hidden">
           <div className="flex items-center gap-2 min-h-[1.25rem]">
