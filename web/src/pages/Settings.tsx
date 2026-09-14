@@ -52,6 +52,7 @@ import { ColorPickerSwatch } from "../components/ColorPickerPopover";
 import { RAINBOW, getRainbow, setRainbow, type RainbowState } from "../lib/appearance";
 import { SHAPES, getShape, setShape, type Shape } from "../lib/shape";
 import { MOTION_INTENSITIES, getMotionIntensity, setMotionIntensity, type MotionIntensity } from "../lib/motion";
+import { PLATFORMS, PLATFORM_STORAGE_KEY, applyPlatform, usePlatform, type Platform } from "../lib/platform";
 import { Selector } from "../components/Selector";
 import { BottomSheet } from "../components/mobile/BottomSheet";
 import { IconAdd, IconBackupNow, IconDownload, IconTrash, IconCheckCircle, IconSync, IconGear, IconClose } from "../components/Sidebar";
@@ -1354,6 +1355,14 @@ export function SettingsPage() {
   // localStorage via motion.ts, the identical pattern shape state above
   // already uses.
   const [motion, setMotionLocal] = useState<MotionIntensity>(() => getMotionIntensity());
+
+  // Platform state (D-11, quick 260914-nsv) — NO local mirror, unlike
+  // shape/motion above: applyPlatform() announces bv:platform-changed and
+  // usePlatform() re-reads the applied attribute, so the Selector's active
+  // segment follows the APPLIED value with exactly one writer. A
+  // setPlatformLocal twin would be a second source of truth for a value the
+  // choke point already owns (lib/platform.ts's recorded decision).
+  const platform = usePlatform();
   // #178: the three label modes, mirrored into local state so the selectors
   // show the current choice; the controls themselves read through
   // useLabelMode, which the labelModeChanged() call below wakes.
@@ -4884,6 +4893,41 @@ export function SettingsPage() {
           onChange={(id) => {
             setMotionLocal(id as MotionIntensity);
             setMotionIntensity(id as MotionIntensity);
+          }}
+          size="lg"
+          variant="well"
+          equalWidth
+        />
+      </Card>
+      )}
+
+      {/* Platform control (D-11, quick 260914-nsv) — the UI for the
+          material|cupertino preference PLAT-01 already persists and applies.
+          Material zeroes the phantom Android bottom safe-area inset (the
+          :root[data-platform="material"] rule in index.css — on the
+          2026-09-14 device pass Android reported a ghost
+          env(safe-area-inset-bottom) under viewport-fit=cover that left
+          ~80px of dead space under the BottomNav and ~67px inside the
+          StickyActionBar's Save card), cupertino keeps the real
+          home-indicator inset. PLAT-01 bans any OS detection, so this
+          control WRITES the preference — it never sniffs the device. The
+          write order is storage-then-apply, exactly lib/platform.ts's
+          getPlatform() read direction, and there is deliberately NO local
+          state mirror (see the usePlatform() read above): applying through
+          the one choke point re-renders this card via the announcement. */}
+      {tab === "general" && (
+      <Card title={t("settings.platform")} hint={t("settings.platformHint")} hueIndex={nextHue()}>
+        <Selector
+          items={PLATFORMS.map((p) => ({
+            id: p,
+            label: t(`settings.platform.${p}` as TranslationKey),
+          }))}
+          label={t("settings.platform")}
+          select="one"
+          active={platform}
+          onChange={(id) => {
+            localStorage.setItem(PLATFORM_STORAGE_KEY, id);
+            applyPlatform(id as Platform);
           }}
           size="lg"
           variant="well"
