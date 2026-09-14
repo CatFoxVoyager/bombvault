@@ -1512,8 +1512,16 @@ export function FoldersEditor({
           {t("folders.narrowedNote")}
         </p>
       )}
-      <div className="flex items-end gap-2 pt-1">
-        <div className="flex-1 min-w-0">
+      {/* Under 48rem this panel's column (~223px at a 390px viewport) is
+          narrower than the browser field's minimum width plus the add
+          control, so the horizontal row let the field's right edge run under
+          the button (the one P0 of the 2026-09-14 390px review, proven via
+          elementFromPoint). Below that breakpoint the row therefore wraps:
+          the field takes the full line and the add action drops onto its
+          own, left-aligned; from 48rem up the horizontal items-end row is
+          untouched. */}
+      <div className="flex items-end gap-2 pt-1 max-md:flex-wrap">
+        <div className="flex-1 min-w-0 max-md:min-w-full">
           <FolderBrowser
             label={t("folders.addCustom")}
             value={browseValue}
@@ -1541,7 +1549,11 @@ export function FoldersEditor({
             BADGES" block). The 32px value is still exactly right here for the
             reason it always was — this badge shares an `items-end` row with a
             FolderBrowser field that measures 32px live (`text-sm px-3 py-1.5`)
-            — it is simply no longer a number this call site owns. `tip`
+            — it is simply no longer a number this call site owns. That shared
+            row is the desktop presentation: under 48rem the row wraps (see
+            the block directly above this control), so the badge's
+            neighbourhood becomes the vertical one instead of the horizontal.
+            `tip`
             carries the exact text this button showed before becoming
             icon-only. */}
         <Button
