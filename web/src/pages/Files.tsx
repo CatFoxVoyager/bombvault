@@ -1171,7 +1171,8 @@ export function FileSetFoldersEditor({
   onSaveState?: (s: SaveBarState) => void;
   /** Phase 6 (SCRN-04): filled with the flush closure the page-level Save
    *  bar invokes; assigned every render so the closure always reads the live
-   *  mirror refs. Optional; same single-caller story as onSaveState. */
+   *  mirror refs, and cleared on unmount (WR-02) so a bar that outlives the
+   *  editor no-ops. Optional; same single-caller story as onSaveState. */
   flushRef?: RefObject<(() => void) | null>;
 }) {
   const regionId = useId();
@@ -1391,9 +1392,17 @@ export function FileSetFoldersEditor({
 
   // Assigned EVERY render (no dep array): the closure must always read the
   // live mirror refs, never a stale render's snapshot — the same assign-per-
-  // render contract FoldersEditor's flushRef uses.
+  // render contract FoldersEditor's flushRef uses. Cleared on unmount
+  // (WR-02): search can unmount THIS editor while the page-level Save bar's
+  // ref still holds the last assigned closure — the mirror refs outlive the
+  // unmount, so a press on the surviving bar would silently commit this
+  // row's discarded queue. After the cleanup the ref is null and the bar's
+  // saveFlushRef.current?.() no-ops.
   useEffect(() => {
     if (flushRef) flushRef.current = flushSaveQueue;
+    return () => {
+      if (flushRef) flushRef.current = null;
+    };
   });
 
   // A no-Path set has nothing to present — the card's files.noPathHint line
@@ -1944,6 +1953,17 @@ export function Files() {
   );
   const { visible: visibleSets, showMore, hasMore } = useLoadMore(matchedSets);
 
+  // WR-02: the Save bar describes ONE editor — the expanded set's — and that
+  // editor mounts inline in the SEARCH-FILTERED window (visibleSets.map
+  // below), not in the full list the expandedSet lookup above resolves from.
+  // Gating the bar on expandedSet alone let a search that hides the expanded
+  // set unmount its editor (draft discarded) yet keep the bar on screen,
+  // stale ticked count and all, over the zero-match card. The bar therefore
+  // also requires the expanded set to be in the visible window; the stale
+  // flush ref is separately nulled on editor unmount (see
+  // FileSetFoldersEditor's flushRef effect).
+  const expandedVisible = expandedSetId !== null && visibleSets.some((s) => s.id === expandedSetId);
+
   function toggleExpanded(id: string): void {
     setSaveState({ ticked: 0, inFlight: false, shakeNonce: 0 });
     setExpandedSetId((cur) => (cur === id ? null : id));
@@ -2353,8 +2373,10 @@ export function Files() {
           two rows the container detail renders — count + spinner row, Save row.
           NO cachedir row: the files domain has no CACHEDIR.TMP concept. With
           no expanded editor there is no queue to flush, so the bar only
-          renders while a path-bearing set is expanded. */}
-      {!isDesktop && expandedSet !== null && expandedSet.path !== "" && (
+          renders while a path-bearing set is expanded — and still visible
+          under the current search (WR-02: the editor lives in the filtered
+          window, so when search hides it, its bar goes with it). */}
+      {!isDesktop && expandedVisible && expandedSet !== null && expandedSet.path !== "" && (
         <StickyActionBar className="md:hidden">
           <div className="flex items-center gap-2 min-h-[1.25rem]">
             {saveState.inFlight && (
