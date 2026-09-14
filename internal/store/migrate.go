@@ -1510,6 +1510,55 @@ CREATE TABLE IF NOT EXISTS passkeys (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_passkeys_credential ON passkeys(credential_id);
 CREATE INDEX IF NOT EXISTS idx_passkeys_rp ON passkeys(rp_id);`,
 	},
+	{
+		// Pull sources (#227): a repository belonging to ANOTHER BombVault that
+		// this box fetches snapshots out of, into its own repository, on its own
+		// schedule. The mirror image of off-site replication, which pushes.
+		//
+		// Shaped on received_repos (version 76) rather than on offsite_targets,
+		// and the reason is the one column offsite_targets does not have: a
+		// FOREIGN APP_KEY. A pull source is another instance's repository, so its
+		// restic password is derived from THAT instance's key, which has to be
+		// stored encrypted at rest exactly as the receiver stores the sending
+		// side's. An off-site target is our own repository under another address
+		// and needs no such field.
+		//
+		// domain says which of this box's repositories the snapshots land in.
+		// Empty means every domain the source holds, which is the common case:
+		// somebody pulling a neighbour's box usually wants all of it.
+		version: 108,
+		name:    "pull_sources",
+		sql: `
+CREATE TABLE IF NOT EXISTS pull_sources (
+  id               TEXT    PRIMARY KEY,
+  name             TEXT    NOT NULL DEFAULT '',
+  repo             TEXT    NOT NULL DEFAULT '',
+  app_key_enc      BLOB    NOT NULL DEFAULT x'',
+  creds_ref        TEXT    NOT NULL DEFAULT '',
+  domain           TEXT    NOT NULL DEFAULT '',
+  cadence          TEXT    NOT NULL DEFAULT 'off',
+  limit_download   INTEGER NOT NULL DEFAULT 0,
+  limit_upload     INTEGER NOT NULL DEFAULT 0,
+  last_pull_at     INTEGER NOT NULL DEFAULT 0,
+  last_pull_ok     INTEGER,                       -- nullable: NULL = never pulled
+  last_pull_error  TEXT    NOT NULL DEFAULT '',
+  snapshots_pulled INTEGER NOT NULL DEFAULT 0,
+  enabled          INTEGER NOT NULL DEFAULT 1,
+  created_at       INTEGER NOT NULL DEFAULT 0,
+  sort_order       INTEGER NOT NULL DEFAULT 0
+);
+
+ALTER TABLE settings ADD COLUMN pull_enabled INTEGER NOT NULL DEFAULT 0;`,
+		// The column is exactly what this body adds, so its presence is the same
+		// fact as "this body already ran here, under some number". That case is
+		// real rather than theoretical: a database born under the branch
+		// numbering carries rows for versions this body never wrote, and without
+		// the guard the ALTER aborts the whole upgrade with "duplicate column
+		// name". The CREATE above is already idempotent, and it cannot be true
+		// that the column exists while the table does not, because one body
+		// writes both.
+		alreadySatisfied: columnPresent("settings", "pull_enabled"),
+	},
 }
 
 // Migrate applies any pending forward-only migrations to db.
