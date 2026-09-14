@@ -35,7 +35,8 @@ actuals:
   tokens: 7100
   tasks: 2
   commits: 2
-requirements-completed: [SCRN-06]
+requirements-progressed: [SCRN-06]
+requirements-completed: []
 status: complete
 ---
 
