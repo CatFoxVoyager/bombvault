@@ -63,9 +63,12 @@ import { BottomSheet } from "./BottomSheet";
 //   - verify: checkDomain() with the Settings integrity tab's own labels
 //   - restore entry: the desktop restore surface's own label
 //     ("snapshots.restore"), secondary/tonal, never accent — restore is
-//     deliberate (design-bible product rule). The full guided restore flow is
-//     SCRN-06 / Phase 8; today the entry reveals the snapshot file tree, the
-//     surface the desktop restore flow itself starts from.
+//     deliberate (design-bible product rule). The guided restore flow itself
+//     is SHIPPED at /recovery (SCRN-06, Recovery.tsx's MobileRecoveryFlow,
+//     phase 8); this entry stays reveal-only by the recorded default
+//     (08-UI-SPEC research Open Question 2) — it reveals the snapshot file
+//     tree, the surface the desktop restore flow itself starts from, and
+//     deliberately adds no deep link into the wizard.
 //
 // Domain honesty — what each run kind gets:
 //   - browse/restore entry: container + files domains only (the two domains
@@ -561,8 +564,10 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
         {/* Restore entry — in the scroll body, ABOVE the footer rows
             (secondary, away from the thumb's default path; the design bible's
             "restore is deliberate" rule). It reveals the same snapshot file
-            surface the desktop restore flow starts from; the full guided
-            restore is SCRN-06 / Phase 8. */}
+            surface the desktop restore flow starts from; the guided restore
+            flow itself is shipped at /recovery (SCRN-06, phase 8) and this
+            entry deliberately stays reveal-only — no deep link (recorded
+            default, 08-UI-SPEC research Open Question 2). */}
         {browseSupported && (
           <SheetActionRow
             label={t("snapshots.restore")}

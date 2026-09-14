@@ -679,13 +679,11 @@ describe("PHASE-07/08 — the 8/16 spacing + 400/600 weight discipline holds on 
 
   // The wholly-PHASE-8 files (08-04 Task 2 — D-06 fix-3 sweep extension):
   // files the 08-* plans created end to end join the same wholly-swept
-  // discipline. Plans 01-02 created exactly ONE non-test source file — the
+  // discipline. Plans 01-03 created exactly ONE non-test source file — the
   // guided-restore e2e — because the mobile step flow itself lives INSIDE
-  // Recovery.tsx, a MIXED file whose geography entry (tailAnchor on the
-  // in-file mobile function, isdMounts count, minChars floor) is deliberately
-  // calibrated by Plan 03 Task 2, the LAST writer of Recovery.tsx, so the
-  // anti-shrink floor lands against final geography — never here, never
-  // against a file that will still change. Recovery.mobile.dom.test.tsx is
+  // Recovery.tsx, a MIXED file whose geography entry was calibrated by Plan
+  // 03 Task 2 (the LAST writer of Recovery.tsx) against final geography and
+  // now lives in MIXED_FILES below. Recovery.mobile.dom.test.tsx is
   // a dom TEST, not a swept source file (this plan's own scope note).
   const WHOLLY_PHASE8_FILES = ["e2e/guided-restore.spec.ts"];
 
@@ -719,6 +717,21 @@ describe("PHASE-07/08 — the 8/16 spacing + 400/600 weight discipline holds on 
       isdMounts: 2,
       wizardMounts: 0,
       minChars: 4500,
+    },
+    {
+      // 08-03 Task 2: Recovery.tsx's guided-restore step flow — the first
+      // /function Mobile/ match anchors on the step-5 helper block
+      // (MobileLogList and siblings) and runs through MobileRecoveryFlow to
+      // EOF, plus the one D-01 mount in Recovery()'s return. The entry is
+      // calibrated HERE, by the file's LAST writer, against FINAL geography
+      // (the populated step-5 body included): the floor sits at ~half the
+      // recorded ~42.7k-char swept total, so a gutted mobile block trips it
+      // while routine edits above it do not.
+      file: "src/pages/Recovery.tsx",
+      tailAnchor: /function Mobile/,
+      isdMounts: 1,
+      wizardMounts: 0,
+      minChars: 20000,
     },
   ];
 
