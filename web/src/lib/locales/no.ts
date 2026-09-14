@@ -245,7 +245,7 @@ const no: Partial<Translations> = {
   "settings.labels.mode.reactive": "Reaktiv",
   "settings.motion.off": "Av",
   "settings.motion.subtle": "Diskret",
-  "settings.motion.full": "Full",
+  "settings.motion.wild": "Vill",
   "settings.motion.storm": "Storm",
   "settings.rainbow": "Regnbuemodus",
   "settings.rainbowHint": "Hver rad i en liste får sin egen farge fra et sett med åtte, i stedet for at alt deler én aksentfarge. Gjør lange lister lettere å skille fra hverandre på et blikk.",

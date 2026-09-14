@@ -245,7 +245,7 @@ const pt: Partial<Translations> = {
   "settings.labels.mode.reactive": "Reativo",
   "settings.motion.off": "Desativado",
   "settings.motion.subtle": "Subtil",
-  "settings.motion.full": "Completo",
+  "settings.motion.wild": "Selvagem",
   "settings.motion.storm": "Storm",
   "settings.rainbow": "Modo arco-íris",
   "settings.rainbowHint": "Cada linha de uma lista recebe a sua própria cor de um conjunto de oito, em vez de tudo partilhar uma só cor de destaque. Torna listas longas mais fáceis de distinguir num relance.",

@@ -901,7 +901,7 @@ export const en = {
   "settings.labels.mode.reactive": "Reactive",
   "settings.motion.off": "Off",
   "settings.motion.subtle": "Subtle",
-  "settings.motion.full": "Full",
+  "settings.motion.wild": "Wild",
   "settings.motion.storm": "Storm",
   // Rainbow (GlimStone form-engine Phase 2, Task 1) — the accent, plural:
   // an eight-colour palette handed out by list position instead of one
@@ -2670,7 +2670,7 @@ export const de: Translations = {
   "settings.labels.mode.reactive": "Reaktiv",
   "settings.motion.off": "Aus",
   "settings.motion.subtle": "Dezent",
-  "settings.motion.full": "Voll",
+  "settings.motion.wild": "Wild",
   "settings.motion.storm": "Sturm",
   "settings.rainbow": "Regenbogen-Modus",
   "settings.rainbowHint": "Jede Zeile in einer Liste bekommt eine eigene Farbe aus einer festen Auswahl von acht, statt dass alles dieselbe Akzentfarbe hat. Das macht lange Listen auf einen Blick leichter unterscheidbar.",

@@ -243,7 +243,7 @@ const ru: Partial<Translations> = {
   "settings.labels.mode.reactive": "Реактивный",
   "settings.motion.off": "Выключено",
   "settings.motion.subtle": "Слабое",
-  "settings.motion.full": "Полное",
+  "settings.motion.wild": "Буйное",
   "settings.motion.storm": "Storm",
   "settings.rainbow": "Режим радуги",
   "settings.rainbowHint": "Каждая строка в списке получает свой собственный цвет из набора восьми, вместо того чтобы всё использовало один акцентный цвет — так длинные списки легче различить с первого взгляда.",

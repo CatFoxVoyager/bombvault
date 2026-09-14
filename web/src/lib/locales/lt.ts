@@ -703,7 +703,7 @@ const lt: Partial<Translations> = {
   "settings.labels.mode.reactive": "Reaguojantis",
   "settings.motion.off": "Išjungta",
   "settings.motion.subtle": "Subtilus",
-  "settings.motion.full": "Pilnas",
+  "settings.motion.wild": "Laukinis",
   "settings.motion.storm": "Storm",
   "settings.rainbow": "Vaivorykštės režimas",
   "settings.rainbowHint": "Kiekviena sąrašo eilutė gauna savo spalvą iš aštuonių spalvų rinkinio, o ne visos dalijasi viena akcentine spalva. Tai palengvina ilgų sąrašų atskyrimą vienu žvilgsniu.",

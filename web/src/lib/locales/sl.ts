@@ -701,7 +701,7 @@ const sl: Partial<Translations> = {
   "settings.labels.mode.reactive": "Odziven",
   "settings.motion.off": "Izklopljeno",
   "settings.motion.subtle": "Rahlo",
-  "settings.motion.full": "Polno",
+  "settings.motion.wild": "Divje",
   "settings.motion.storm": "Storm",
   "settings.rainbow": "Mavrični način",
   "settings.rainbowHint": "Vsaka vrstica na seznamu dobi lastno barvo iz nabora osmih, namesto da si vse deli eno poudarjeno barvo. Dolge sezname naredi lažje razločljive na prvi pogled.",

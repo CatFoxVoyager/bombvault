@@ -248,7 +248,7 @@ const vi: Partial<Translations> = {
   "settings.labels.mode.reactive": "Phản hồi",
   "settings.motion.off": "Tắt",
   "settings.motion.subtle": "Nhẹ",
-  "settings.motion.full": "Đầy đủ",
+  "settings.motion.wild": "Sôi động",
   "settings.motion.storm": "Storm",
   "settings.rainbow": "Chế độ cầu vồng",
   "settings.rainbowHint": "Mỗi dòng trong danh sách nhận màu riêng từ một bộ tám màu, thay vì tất cả dùng chung một màu nhấn, giúp các danh sách dài dễ phân biệt chỉ bằng một cái nhìn.",

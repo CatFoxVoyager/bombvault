@@ -248,7 +248,7 @@ const zh: Partial<Translations> = {
   "settings.labels.mode.reactive": "响应式",
   "settings.motion.off": "关闭",
   "settings.motion.subtle": "轻微",
-  "settings.motion.full": "完整",
+  "settings.motion.wild": "狂野",
   "settings.motion.storm": "Storm",
   "settings.rainbow": "彩虹模式",
   "settings.rainbowHint": "列表中的每一行都会从八种颜色中获得专属颜色，而不是所有内容共用一种强调色，让长列表一眼就能区分开。",

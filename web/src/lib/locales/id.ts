@@ -703,7 +703,7 @@ const id: Partial<Translations> = {
   "settings.labels.mode.reactive": "Reaktif",
   "settings.motion.off": "Mati",
   "settings.motion.subtle": "Halus",
-  "settings.motion.full": "Penuh",
+  "settings.motion.wild": "Liar",
   "settings.motion.storm": "Storm",
   "settings.rainbow": "Mode Pelangi",
   "settings.rainbowHint": "Setiap baris dalam daftar mendapatkan warnanya sendiri dari sekumpulan delapan warna, alih-alih semuanya berbagi satu warna aksen. Membuat daftar panjang lebih mudah dibedakan sekilas.",

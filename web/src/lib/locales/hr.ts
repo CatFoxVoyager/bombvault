@@ -703,7 +703,7 @@ const hr: Partial<Translations> = {
   "settings.labels.mode.reactive": "Reaktivno",
   "settings.motion.off": "Isključeno",
   "settings.motion.subtle": "Suptilno",
-  "settings.motion.full": "Puno",
+  "settings.motion.wild": "Divlje",
   "settings.motion.storm": "Storm",
   "settings.rainbow": "Rainbow način",
   "settings.rainbowHint": "Svaki redak na popisu dobiva vlastitu boju iz skupa od osam, umjesto da svi dijele jednu naglasnu boju. To olakšava razlikovanje dugih popisa na prvi pogled.",

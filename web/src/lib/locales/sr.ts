@@ -701,7 +701,7 @@ const sr: Partial<Translations> = {
   "settings.labels.mode.reactive": "Реактивно",
   "settings.motion.off": "Искључено",
   "settings.motion.subtle": "Благо",
-  "settings.motion.full": "Пуно",
+  "settings.motion.wild": "Дивље",
   "settings.motion.storm": "Storm",
   "settings.rainbow": "Дугин режим",
   "settings.rainbowHint": "Сваки ред на листи добија сопствену боју из скупа од осам, уместо да све дели једну истакнуту боју — олакшава разликовање дугих листи на први поглед.",

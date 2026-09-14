@@ -148,8 +148,8 @@ let wipeTimer: ReturnType<typeof setTimeout> | undefined;
  * way (nothing is still transitioning by the time it comes off), so there is
  * no correctness reason to parse a CSS value back into JS just to compute a
  * number this constant already safely over-approximates for every
- * off/subtle/full state at once. 500ms comfortably exceeds --motion-wipe-dur's
- * own top end (320ms, "full") with margin for a slow paint. Re-entrant: a
+ * off/subtle/wild state at once. 500ms comfortably exceeds --motion-wipe-dur's
+ * own top end (320ms, "wild") with margin for a slow paint. Re-entrant: a
  * second flip while the first wipe's timer is still pending clears and
  * restarts it, so a rapid on→off→on never removes the class out from under a
  * still-settling transition.

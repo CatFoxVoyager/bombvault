@@ -703,7 +703,7 @@ const lv: Partial<Translations> = {
   "settings.labels.mode.reactive": "Reaģējošs",
   "settings.motion.off": "Izslēgta",
   "settings.motion.subtle": "Neliela",
-  "settings.motion.full": "Pilna",
+  "settings.motion.wild": "Mežonīga",
   "settings.motion.storm": "Storm",
   "settings.rainbow": "Varavīksnes režīms",
   "settings.rainbowHint": "Katra saraksta rinda iegūst savu krāsu no astoņu krāsu kopas, nevis visi koplieto vienu akcenta krāsu. Tas atvieglo garu sarakstu atšķiršanu vienā skatienā.",

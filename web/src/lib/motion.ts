@@ -1,6 +1,6 @@
 import { save as saveDisplayPrefs } from "./displayPrefs";
 // ---------------------------------------------------------------------------
-// Motion intensity — off / subtle / full via data-motion on <html> +
+// Motion intensity — off / subtle / wild via data-motion on <html> +
 // localStorage.
 //
 // GlimStone motion-engine — a NEW axis (jdp, live-review: "Wäre eine
@@ -26,10 +26,10 @@ import { save as saveDisplayPrefs } from "./displayPrefs";
 // an OS-level reduced-motion user is unaffected by whatever this attribute
 // says — that media query, not this file, is what enforces "OS wins." See
 // index.css's own "Motion intensity" section header for the full cascade
-// design and the off/subtle/full resolution table for every keyframe.
+// design and the off/subtle/wild resolution table for every keyframe.
 // ---------------------------------------------------------------------------
 
-export type MotionIntensity = "off" | "subtle" | "full" | "storm";
+export type MotionIntensity = "off" | "subtle" | "wild" | "storm";
 
 /**
  * What the PICKER offers. "storm" is deliberately absent.
@@ -40,7 +40,7 @@ export type MotionIntensity = "off" | "subtle" | "full" | "storm";
  * See isMotionIntensity below, which accepts "storm", and GSS 1.17.0's
  * "A hidden fourth level" for the rule.
  */
-export const MOTION_INTENSITIES: MotionIntensity[] = ["off", "subtle", "full"];
+export const MOTION_INTENSITIES: MotionIntensity[] = ["off", "subtle", "wild"];
 
 /** Every level, including the one no picker lists. Validation reads this. */
 const ALL_INTENSITIES: MotionIntensity[] = [...MOTION_INTENSITIES, "storm"];
@@ -51,7 +51,7 @@ export const STORM_CLICKS = 5;
 /**
  * The gesture that reveals the storm, GSS 1.17.0.
  *
- * SET THE MOTION TO "full", THEN CLICK THAT SAME OPTION FIVE MORE TIMES. It is
+ * SET THE MOTION TO "wild", THEN CLICK THAT SAME OPTION FIVE MORE TIMES. It is
  * the gesture of pressing a button that is already pressed because you wanted
  * more of it, which is exactly who the level is for, and it is unreachable from
  * any other level on purpose: clicking "off" five times means somebody is
@@ -73,7 +73,7 @@ export function stormTap(
   clicked: string,
   current: MotionIntensity,
 ): MotionIntensity | undefined {
-  if (clicked !== "full" || current !== "full") {
+  if (clicked !== "wild" || current !== "wild") {
     state.taps = 0;
     return undefined;
   }
@@ -86,7 +86,7 @@ export function stormTap(
 const STORAGE_KEY = "bv-motion";
 
 /**
- * DEFAULT is "full", not shape.ts's kind of arbitrary-but-fixed pick and not
+ * DEFAULT is "wild", not shape.ts's kind of arbitrary-but-fixed pick and not
  * theme.ts's "system" either — deliberately chosen, not just copied:
  *   - "system" (mirroring theme.ts) would be redundant here specifically,
  *     not wrong in general: prefers-reduced-motion is ALREADY read
@@ -95,17 +95,17 @@ const STORAGE_KEY = "bv-motion";
  *     just re-derive a signal the app already honours everywhere, for a
  *     control whose entire reason to exist is letting a user without OS-
  *     level reduced-motion still dial intensity as a STYLE preference.
- *   - "full" over "off"/"subtle" because this axis is additive polish a
+ *   - "wild" over "off"/"subtle" because this axis is additive polish a
  *     user dials DOWN, not a compatibility fallback a user has to opt INTO
  *     — the same reasoning rainbow mode's own default (RAINBOW_OFF, an
  *     opt-in) does NOT apply here: rainbow changes what a list looks like
  *     (a real visual identity choice with no obviously-correct default),
  *     while motion intensity only ever makes existing, already-shipped
- *     animations quicker/smaller/absent — "full" is simply what this app
+ *     animations quicker/smaller/absent — "wild" is simply what this app
  *     already looked like before this axis existed, so booting there means
  *     nobody's experience changes just because the toggle now exists.
  */
-const DEFAULT: MotionIntensity = "full";
+const DEFAULT: MotionIntensity = "wild";
 
 /* ALL_INTENSITIES, not MOTION_INTENSITIES. A stored "storm" is accepted even
    though no picker offers it, or the gesture above would have produced a
@@ -115,7 +115,7 @@ function isMotionIntensity(v: unknown): v is MotionIntensity {
   return typeof v === "string" && (ALL_INTENSITIES as string[]).includes(v);
 }
 
-/** The stored preference, defaulting to "full" when unset or corrupt. */
+/** The stored preference, defaulting to "wild" when unset or corrupt. */
 export function getMotionIntensity(): MotionIntensity {
   const stored = localStorage.getItem(STORAGE_KEY);
   return isMotionIntensity(stored) ? stored : DEFAULT;
@@ -123,10 +123,15 @@ export function getMotionIntensity(): MotionIntensity {
 
 /**
  * applyMotionIntensity sets the attribute index.css's motion tokens key off,
- * validating against MOTION_INTENSITIES and falling back to "full" for
- * anything else — matches shape.ts's own applyShape() exactly, so a caller
- * can hand this an unvalidated value (straight out of localStorage, say)
- * without checking it first.
+ * validating against ALL_INTENSITIES and falling back to "wild" for anything
+ * else — matches shape.ts's own applyShape() exactly, so a caller can hand
+ * this an unvalidated value (straight out of localStorage, say) without
+ * checking it first.
+ *
+ * ALL_INTENSITIES and not MOTION_INTENSITIES, which is the same distinction
+ * isMotionIntensity above is written for: what the picker LISTS is three
+ * levels, what a stored value may legally BE is four. Validating against the
+ * picker's list here would throw a stored "storm" away on every boot.
  */
 export function applyMotionIntensity(intensity: MotionIntensity | string | undefined): void {
   const m = isMotionIntensity(intensity) ? intensity : DEFAULT;

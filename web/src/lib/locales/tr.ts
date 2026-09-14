@@ -248,7 +248,7 @@ const tr: Partial<Translations> = {
   "settings.labels.mode.reactive": "Tepkisel",
   "settings.motion.off": "Kapalı",
   "settings.motion.subtle": "Hafif",
-  "settings.motion.full": "Tam",
+  "settings.motion.wild": "Vahşi",
   "settings.motion.storm": "Storm",
   "settings.rainbow": "Gökkuşağı modu",
   "settings.rainbowHint": "Listedeki her satır, tek bir vurgu rengini paylaşmak yerine sekiz renkten oluşan bir setten kendi rengini alır, bu da uzun listeleri tek bakışta ayırt etmeyi kolaylaştırır.",

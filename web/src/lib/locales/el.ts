@@ -248,7 +248,7 @@ const el: Partial<Translations> = {
   "settings.labels.mode.reactive": "Αντιδραστικό",
   "settings.motion.off": "Απενεργοποιημένη",
   "settings.motion.subtle": "Διακριτική",
-  "settings.motion.full": "Πλήρης",
+  "settings.motion.wild": "Άγρια",
   "settings.motion.storm": "Storm",
   "settings.rainbow": "Λειτουργία ουράνιου τόξου",
   "settings.rainbowHint": "Κάθε γραμμή σε μια λίστα αποκτά το δικό της χρώμα από ένα σύνολο οκτώ, αντί όλα να μοιράζονται ένα χρώμα τονισμού, έτσι οι μεγάλες λίστες ξεχωρίζουν με μια ματιά.",

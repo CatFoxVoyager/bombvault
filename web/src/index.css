@@ -489,7 +489,7 @@
    width stages already reserve every label's own width in every mode, which is
    the whole reason words can appear here without moving the page.
 
-   ANY STATE ADDED HERE MUST ALSO BE ADDED to the `full` motion block's
+   ANY STATE ADDED HERE MUST ALSO BE ADDED to the lively-motion block's
    transform reset further down — this rule hands back width, opacity and
    margin, that one hands back the resting `translateX`/`scaleX`. Adding a
    state to one list and not the other leaves the label revealed but still
@@ -536,12 +536,18 @@
       margin-inline-start 160ms cubic-bezier(0.22, 0.61, 0.36, 1);
   }
 
-  /* Full: jdp said it may be wild here. The box springs open past its target
+  /* Wild: jdp said it may be wild here. The box springs open past its target
      and settles (the overshoot lives in the easing curve, so the label's own
      width does the bouncing and nothing else has to move), while the text
      itself slides in from the left and unsquashes — it starts slightly
-     compressed and scales back to 1 as it lands. */
-  :root[data-motion="full"] .glim-label-reactive {
+     compressed and scales back to 1 as it lands.
+
+     THE SELECTOR NAMES THE QUIET LEVELS AND NOT THE LIVELY ONE, on purpose.
+     Written as `[data-motion="wild"]` it would exclude `storm`, which is a
+     level with MORE motion getting none of this. This form covers wild, storm
+     and the attribute being absent, and goes on covering whatever is added
+     above. */
+  :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-label-reactive {
     transition:
       max-width 320ms cubic-bezier(0.34, 1.56, 0.64, 1),
       opacity 180ms ease-out,
@@ -555,7 +561,7 @@
      -------------------------------------------------------------------------
      The reveal above hands the active label its width, its opacity and its
      `margin-inline-start`. It does not hand back the resting TRANSFORM, and in
-     `full` motion that transform is `translateX(-0.4rem) scaleX(0.82)`. So the
+     `wild` motion that transform is `translateX(-0.4rem) scaleX(0.82)`. So the
      active tab's words sat 6.4px left of where its 8px margin put them —
      measured gap glyph-to-text 1.6px, not 8 — and squashed to 82% besides.
      jdp: "Der Text der im aktiven Tab bleibt rutscht zu nah an den glyph".
@@ -566,11 +572,14 @@
      reset are two lists that must always name the same states, and nothing in
      the file made them move together. They are adjacent and cross-referenced
      now, which is the cheapest guard available short of merging them — and they
-     cannot merge, because one is inside the reduced-motion gate and one is not. */
-  :root[data-motion="full"] .glim-reactive.glim-active .glim-label-reactive,
-  :root[data-motion="full"] .glim-reactive:hover .glim-label-reactive,
-  :root[data-motion="full"] .glim-reactive:focus-visible .glim-label-reactive,
-  :root[data-motion="full"] .glim-reactive:focus-within .glim-label-reactive {
+     cannot merge, because one is inside the reduced-motion gate and one is not.
+
+     The quiet levels are named here too, and not the lively one - see the rule
+     just above for why, and for the level it would otherwise leave behind. */
+  :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-reactive.glim-active .glim-label-reactive,
+  :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-reactive:hover .glim-label-reactive,
+  :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-reactive:focus-visible .glim-label-reactive,
+  :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-reactive:focus-within .glim-label-reactive {
     transform: translateX(0) scaleX(1);
   }
 }
@@ -2421,7 +2430,7 @@ body {
    reduced-motion users get a quiet fade fallback instead (never a violent shake).
    The Tailwind-driven nav hover/press transforms are motion-safe-gated inline.
 
-   GlimStone motion-engine (data-motion="off"|"subtle"|"full" — lib/motion.ts
+   GlimStone motion-engine (data-motion="off"|"subtle"|"wild" — lib/motion.ts
    is the JS half: read/write/persist which of the three is chosen, stamp the
    attribute on <html>, the exact shape/pattern as the shape engine's own
    data-shape above). A DELIBERATE reversal of this file's — and design-
@@ -2446,10 +2455,10 @@ body {
    reduced motion already does," not a second, separately-tuned recipe.
 
    Tokens, not per-state duplicated rules: "subtle" and "off" reuse the
-   IDENTICAL keyframes as "full", just parameterized to smaller numbers —
+   IDENTICAL keyframes as "wild", just parameterized to smaller numbers —
    the same technique this file already uses for --glim-toast-slide (per
    [dir]) and --glim-indet-from/--glim-indet-to (per [dir]) rather than forking
-   the keyframe itself. Declared on a bare :root FIRST as the full-intensity
+   the keyframe itself. Declared on a bare :root FIRST as the wild-intensity
    values (byte-identical to what this app already shipped before this axis
    existed), so anything that runs before main.tsx's
    applyStoredMotionIntensity() paints (or a page that never runs JS at all)
@@ -2479,12 +2488,12 @@ body {
   /* Round 2 (seven more animations plugged into this SAME engine, from day
      one rather than a later retrofit — see this file's own git history for
      the exact failure mode this avoids): every token below follows the
-     identical "declare full-intensity on bare :root first, override in
+     identical "declare wild-intensity on bare :root first, override in
      [data-motion=subtle]/[data-motion=off], consume only inside the
      (prefers-reduced-motion: no-preference) block further down" shape the
      five originals above already established. Each one is introduced at its
      own consuming rule further down this file, not here — this block is
-     only ever the OFF/SUBTLE/FULL numbers, kept together so the whole dial
+     only ever the OFF/SUBTLE/WILD numbers, kept together so the whole dial
      is readable in one place.
 
      1) Shape-morph (--motion-shape-*): border-radius transition duration
@@ -2542,7 +2551,7 @@ body {
      Same twelve tokens as every other level, consumed by the same keyframes.
      A level is a different NUMBER, never a different animation, so this block
      is the entire cost - which is the whole argument for the token shape the
-     three levels above already use. Roughly double the travel of "full" and
+     three levels above already use. Roughly double the travel of "wild" and
      about twice its duration, on a curve that overshoots further and takes
      longer to settle.
 
@@ -2777,7 +2786,7 @@ body {
 /* Route/page enter (Item 7c). `translateY(var(--motion-page-dist))`, not a
    hard-coded 8px — the motion-engine token above (GlimStone motion-engine
    section, further up this file) parameterizes the distance per
-   off/subtle/full without needing a second keyframe. */
+   off/subtle/wild without needing a second keyframe. */
 @keyframes glim-page-in {
   from { opacity: 0; transform: translateY(var(--motion-page-dist, 8px)); }
   /* End at `none`, not translateY(0): animation-fill-mode:both keeps the final
@@ -2823,7 +2832,7 @@ body {
 [dir="rtl"] { --glim-toast-slide: -12px; }
 /* `calc(... * var(--motion-toast-slide-scale))`, not the bare
    --glim-toast-slide above — the motion-engine token (further up this
-   file) scales the slide distance per off/subtle/full (0 / .5 / 1) on top
+   file) scales the slide distance per off/subtle/wild (0 / .5 / 1) on top
    of the RTL-aware base distance, without needing a second keyframe or a
    second [dir] pair. */
 @keyframes glim-toast-in {
@@ -2855,7 +2864,7 @@ body {
 
    `calc(var(--motion-shake-scale) * ...)` on every step, not bare px —
    the motion-engine token (further up this file) scales the whole
-   oscillation per off/subtle/full (0 / .5 / 1) without a second keyframe.
+   oscillation per off/subtle/wild (0 / .5 / 1) without a second keyframe.
    The scale-0 case is never actually reached in practice: data-motion="off"
    swaps `.glim-shake`'s animation-name entirely to glim-egg-fade-pulse below
    (a 0-amplitude shake is invisible, not a "rejected" signal) — the token
@@ -2871,7 +2880,7 @@ body {
 
 /* ---------------------------------------------------------------------------
    Round 2 — seven more motion-engine animations, each plugging into the
-   off/subtle/full tokens declared above from the start (design-language.md's
+   off/subtle/wild tokens declared above from the start (design-language.md's
    own "a guard applied once is a guard missing twice" convention applied to
    motion this time: every one of these reads its numbers from a token, none
    hard-codes a literal the engine can't reach).
@@ -3098,7 +3107,7 @@ body {
   }
 
   /* Duration/easing/distance all read the GlimStone motion-engine tokens
-     (data-motion="off"|"subtle"|"full" — declared at the top of this
+     (data-motion="off"|"subtle"|"wild" — declared at the top of this
      section) instead of a literal 320ms/8px: this animation now runs at a
      different intensity depending on that attribute, WITHOUT this rule
      itself needing to fork into three copies — see the token block's own
@@ -3106,7 +3115,7 @@ body {
   .glim-page-enter { animation: glim-page-in var(--motion-page-dur, 320ms) var(--motion-page-ease, cubic-bezier(.2, .6, .2, 1)) both; }
 
   /* Info bubble entrance (GlimStone form-engine #3). Motion-engine retrofit:
-     duration reads --motion-fade-dur (110/70/0ms for full/subtle/off) — at
+     duration reads --motion-fade-dur (110/70/0ms for wild/subtle/off) — at
      "off" this completes instantly, the same "nothing to see" outcome the
      (reduce) block below already gives this element by never mentioning it
      at all (see that token's own comment above for why). */
@@ -3115,7 +3124,7 @@ body {
   /* Toast entrance (GlimStone form-engine #9) — slides in from the trailing
      edge (translateX) + fades. Motion-engine retrofit: duration/easing read
      the --motion-toast-* tokens, and the keyframe's own translateX now
-     scales by --motion-toast-slide-scale (1/.5/0 for full/subtle/off) — at
+     scales by --motion-toast-slide-scale (1/.5/0 for wild/subtle/off) — at
      "off" this is a pure fade, matching the (reduce) block's own swap to
      glim-fade-in below. */
   .glim-toast { animation: glim-toast-in var(--motion-toast-dur, 220ms) var(--motion-toast-ease, cubic-bezier(.2, .6, .2, 1)) both; }
@@ -3146,7 +3155,7 @@ body {
 
   /* Generic error-feedback shake (#142) — see glim-shake's own keyframe
      comment above for the reusability contract. Motion-engine retrofit:
-     duration reads --motion-shake-dur (360/220ms for full/subtle) and the
+     duration reads --motion-shake-dur (360/220ms for wild/subtle) and the
      keyframe's own amplitude scales by --motion-shake-scale — but "off"
      needs more than a smaller number: a 0-amplitude shake is invisible, not
      a "rejected" signal, so data-motion="off" swaps the animation-name
