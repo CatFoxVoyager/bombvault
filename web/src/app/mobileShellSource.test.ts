@@ -558,6 +558,19 @@ describe("PLAT-01 — the platform axis stays closed and UA-free", () => {
 // the MOBILE BLOCK regions — the `function Mobile*` file-tail components and
 // the `{!isDesktop && (…)` / `{wizardOpen && !isDesktop && (…)` mounts (the
 // D-01 mount discipline: mobile JSX only ever mounts under those gates).
+//
+// D-06 fix 3 (phase 8, BINDING — 08-UI-SPEC Spacing): this mobile-regions
+// scoping is the CONTRACT, not a gap to close later. The sweep deliberately
+// covers ONLY the mobile surfaces — the !isDesktop mounts, the Mobile* tail
+// components, the max-md:hidden blocks' mobile counterparts, and the wholly
+// mobile files — because the desktop halves of the mixed files legitimately
+// keep their legacy values (e.g. Dashboard.tsx:3029 `gap-3`, :3037 `px-2.5`
+// inside max-md:hidden blocks, and ActivityLog.tsx:418's desktop-only chip
+// twins): desktop byte-identity above 48rem WINS over this guard's letter,
+// so those values are never "normalized" to make a file-wide sweep pass. A
+// future normalizing sweep over desktop halves would be a desktop-change
+// plan, not an edit to this guard.
+//
 // Regions are computed on COMMENT-STRIPPED text for two reasons: why-comments
 // carry unbalanced parentheses that would close a paren-scan early, and prose
 // mentions of banned literals are sanctioned (index.css's token-derivation
@@ -575,7 +588,7 @@ describe("PLAT-01 — the platform axis stays closed and UA-free", () => {
 // why-comment at the change site — never by deleting a needle to make a
 // failing file pass.
 // ---------------------------------------------------------------------------
-describe("PHASE-07 — the 8/16 spacing + 400/600 weight discipline holds on every phase-7 mobile surface", () => {
+describe("PHASE-07/08 — the 8/16 spacing + 400/600 weight discipline holds on every phase-7/8 mobile surface", () => {
   // [needle, human label] — matched with a token boundary on both sides so
   // `px-3` never matches inside `px-3.5`-style neighbors of other scales and
   // `top-3`/`h-3`-style non-spacing utilities never match at all.
@@ -664,6 +677,18 @@ describe("PHASE-07 — the 8/16 spacing + 400/600 weight discipline holds on eve
     "e2e/desktop-untouched.spec.ts",
   ];
 
+  // The wholly-PHASE-8 files (08-04 Task 2 — D-06 fix-3 sweep extension):
+  // files the 08-* plans created end to end join the same wholly-swept
+  // discipline. Plans 01-02 created exactly ONE non-test source file — the
+  // guided-restore e2e — because the mobile step flow itself lives INSIDE
+  // Recovery.tsx, a MIXED file whose geography entry (tailAnchor on the
+  // in-file mobile function, isdMounts count, minChars floor) is deliberately
+  // calibrated by Plan 03 Task 2, the LAST writer of Recovery.tsx, so the
+  // anti-shrink floor lands against final geography — never here, never
+  // against a file that will still change. Recovery.mobile.dom.test.tsx is
+  // a dom TEST, not a swept source file (this plan's own scope note).
+  const WHOLLY_PHASE8_FILES = ["e2e/guided-restore.spec.ts"];
+
   const ISD_MOUNT = "{!isDesktop && (";
   const WIZARD_MOUNT = "{wizardOpen && !isDesktop && (";
 
@@ -697,20 +722,24 @@ describe("PHASE-07 — the 8/16 spacing + 400/600 weight discipline holds on eve
     },
   ];
 
-  it("sweep list resolves: every listed phase-7 file exists (the list rots loudly)", () => {
-    const missing = [...WHOLLY_PHASE7_FILES, ...MIXED_FILES.map(({ file }) => file)].filter(
-      (f) => !existsSync(join(WEB, f)),
-    );
+  it("sweep list resolves: every listed wholly-swept file exists (the list rots loudly)", () => {
+    const missing = [
+      ...WHOLLY_PHASE7_FILES,
+      ...WHOLLY_PHASE8_FILES,
+      ...MIXED_FILES.map(({ file }) => file),
+    ].filter((f) => !existsSync(join(WEB, f)));
     expect(
       missing,
-      "phase-7 sweep files are missing from the tree. If a file moved or was " +
+      "a sweep file is missing from the tree. If a file moved or was " +
         "renamed, repoint its list entry deliberately (with a why-comment) — " +
         "the sweep must never pass against a stale or silent list."
     ).toEqual([]);
   });
 
-  it("wholly-phase-7 files carry no 12px stop, half stop, or 500 weight", () => {
-    const hits = WHOLLY_PHASE7_FILES.flatMap((f) => sweepHits(f, stripComments(readFileSync(join(WEB, f), "utf8"))));
+  it("wholly-swept phase-7/8 files carry no 12px stop, half stop, or 500 weight", () => {
+    const hits = [...WHOLLY_PHASE7_FILES, ...WHOLLY_PHASE8_FILES].flatMap((f) =>
+      sweepHits(f, stripComments(readFileSync(join(WEB, f), "utf8"))),
+    );
     expect(
       hits,
       "a wholly-phase-7 file carries a banned spacing stop or the 500 weight. " +
