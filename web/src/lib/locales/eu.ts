@@ -381,6 +381,7 @@ const eu: Partial<Translations> = {
   "settings.schedule": "Egutegia",
   "settings.scheduleOff": "itzalita",
   "settings.language": "Hizkuntza",
+  "settings.appearance": "Kanpo-itxura",
   "settings.theme": "Itxura",
   "settings.save": "Gorde",
   "settings.saved": "Ezarpenak gordeta",

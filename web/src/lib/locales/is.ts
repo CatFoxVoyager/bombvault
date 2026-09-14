@@ -381,6 +381,7 @@ const is: Partial<Translations> = {
   "settings.schedule": "Tímaáætlun",
   "settings.scheduleOff": "slökkt",
   "settings.language": "Tungumál",
+  "settings.appearance": "Útlit",
   "settings.theme": "Þema",
   "settings.save": "Vista",
   "settings.saved": "Stillingar vistaðar",

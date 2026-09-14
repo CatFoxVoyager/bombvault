@@ -212,6 +212,7 @@ const cs: Partial<Translations> = {
   "settings.schedule": "Plán",
   "settings.scheduleOff": "vypnuto",
   "settings.language": "Jazyk",
+  "settings.appearance": "Vzhled",
   "settings.theme": "Motiv",
   "settings.save": "Uložit",
   "settings.saved": "Nastavení uloženo",

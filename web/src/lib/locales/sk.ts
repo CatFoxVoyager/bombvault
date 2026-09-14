@@ -381,6 +381,7 @@ const sk: Partial<Translations> = {
   "settings.schedule": "Plán",
   "settings.scheduleOff": "vypnuté",
   "settings.language": "Jazyk",
+  "settings.appearance": "Vzhľad",
   "settings.theme": "Motív",
   "settings.save": "Uložiť",
   "settings.saved": "Nastavenia uložené",

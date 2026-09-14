@@ -212,6 +212,7 @@ const hu: Partial<Translations> = {
   "settings.schedule": "Ütemezés",
   "settings.scheduleOff": "ki",
   "settings.language": "Nyelv",
+  "settings.appearance": "Megjelenés",
   "settings.theme": "Téma",
   "settings.save": "Mentés",
   "settings.saved": "Beállítások mentve",

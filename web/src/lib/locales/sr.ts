@@ -381,6 +381,7 @@ const sr: Partial<Translations> = {
   "settings.schedule": "Распоред",
   "settings.scheduleOff": "искључено",
   "settings.language": "Језик",
+  "settings.appearance": "Изглед",
   "settings.theme": "Тема",
   "settings.save": "Сачувај",
   "settings.saved": "Подешавања сачувана",

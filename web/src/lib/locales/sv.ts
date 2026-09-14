@@ -212,6 +212,7 @@ const sv: Partial<Translations> = {
   "settings.schedule": "Schema",
   "settings.scheduleOff": "av",
   "settings.language": "Språk",
+  "settings.appearance": "Utseende",
   "settings.theme": "Tema",
   "settings.save": "Spara",
   "settings.saved": "Inställningar sparade",

@@ -381,6 +381,7 @@ const sl: Partial<Translations> = {
   "settings.schedule": "Urnik",
   "settings.scheduleOff": "izklopljeno",
   "settings.language": "Jezik",
+  "settings.appearance": "Videz",
   "settings.theme": "Tema",
   "settings.save": "Shrani",
   "settings.saved": "Nastavitve shranjene",

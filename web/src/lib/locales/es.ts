@@ -212,6 +212,7 @@ const es: Partial<Translations> = {
   "settings.schedule": "Calendario",
   "settings.scheduleOff": "desactivado",
   "settings.language": "Idioma",
+  "settings.appearance": "Apariencia",
   "settings.theme": "Tema",
   "settings.save": "Guardar",
   "settings.saved": "Ajustes guardados",

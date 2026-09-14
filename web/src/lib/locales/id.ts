@@ -381,6 +381,7 @@ const id: Partial<Translations> = {
   "settings.schedule": "Jadwal",
   "settings.scheduleOff": "mati",
   "settings.language": "Bahasa",
+  "settings.appearance": "Tampilan",
   "settings.theme": "Tema",
   "settings.save": "Simpan",
   "settings.saved": "Pengaturan disimpan",

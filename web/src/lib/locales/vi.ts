@@ -212,6 +212,7 @@ const vi: Partial<Translations> = {
   "settings.schedule": "Lịch trình",
   "settings.scheduleOff": "tắt",
   "settings.language": "Ngôn ngữ",
+  "settings.appearance": "Diện mạo",
   "settings.theme": "Giao diện",
   "settings.save": "Lưu",
   "settings.saved": "Đã lưu cài đặt",

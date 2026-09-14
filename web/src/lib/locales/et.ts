@@ -381,6 +381,7 @@ const et: Partial<Translations> = {
   "settings.schedule": "Ajakava",
   "settings.scheduleOff": "väljas",
   "settings.language": "Keel",
+  "settings.appearance": "Välimus",
   "settings.theme": "Teema",
   "settings.save": "Salvesta",
   "settings.saved": "Seaded salvestatud",

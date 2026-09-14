@@ -212,6 +212,7 @@ const ko: Partial<Translations> = {
   "settings.schedule": "일정",
   "settings.scheduleOff": "끔",
   "settings.language": "언어",
+  "settings.appearance": "모양",
   "settings.theme": "테마",
   "settings.save": "저장",
   "settings.saved": "설정이 저장되었습니다",

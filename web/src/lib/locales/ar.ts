@@ -212,6 +212,7 @@ const ar: Partial<Translations> = {
   "settings.schedule": "الجدول الزمني",
   "settings.scheduleOff": "إيقاف",
   "settings.language": "اللغة",
+  "settings.appearance": "المظهر العام",
   "settings.theme": "المظهر",
   "settings.save": "حفظ",
   "settings.saved": "تم حفظ الإعدادات",

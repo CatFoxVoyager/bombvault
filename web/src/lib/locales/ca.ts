@@ -381,6 +381,7 @@ const ca: Partial<Translations> = {
   "settings.schedule": "Horari",
   "settings.scheduleOff": "desactivat",
   "settings.language": "Idioma",
+  "settings.appearance": "Aparença",
   "settings.theme": "Tema",
   "settings.save": "Desa",
   "settings.saved": "Configuració desada",

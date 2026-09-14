@@ -381,6 +381,7 @@ const hr: Partial<Translations> = {
   "settings.schedule": "Raspored",
   "settings.scheduleOff": "isključeno",
   "settings.language": "Jezik",
+  "settings.appearance": "Izgled",
   "settings.theme": "Tema",
   "settings.save": "Spremi",
   "settings.saved": "Postavke spremljene",

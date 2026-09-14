@@ -381,6 +381,7 @@ const ms: Partial<Translations> = {
   "settings.schedule": "Jadual",
   "settings.scheduleOff": "mati",
   "settings.language": "Bahasa",
+  "settings.appearance": "Penampilan",
   "settings.theme": "Tema",
   "settings.save": "Simpan",
   "settings.saved": "Tetapan disimpan",

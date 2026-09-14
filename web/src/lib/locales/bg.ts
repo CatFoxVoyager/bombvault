@@ -381,6 +381,7 @@ const bg: Partial<Translations> = {
   "settings.schedule": "График",
   "settings.scheduleOff": "изключен",
   "settings.language": "Език",
+  "settings.appearance": "Външен вид",
   "settings.theme": "Тема",
   "settings.save": "Запази",
   "settings.saved": "Настройките са запазени",

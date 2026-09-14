@@ -381,6 +381,7 @@ const lv: Partial<Translations> = {
   "settings.schedule": "Grafiks",
   "settings.scheduleOff": "izslēgts",
   "settings.language": "Valoda",
+  "settings.appearance": "Izskats",
   "settings.theme": "Tēma",
   "settings.save": "Saglabāt",
   "settings.saved": "Iestatījumi saglabāti",

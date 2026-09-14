@@ -381,6 +381,7 @@ const fa: Partial<Translations> = {
   "settings.schedule": "زمان‌بندی",
   "settings.scheduleOff": "خاموش",
   "settings.language": "زبان",
+  "settings.appearance": "ظاهر",
   "settings.theme": "تم",
   "settings.save": "ذخیره",
   "settings.saved": "تنظیمات ذخیره شد",

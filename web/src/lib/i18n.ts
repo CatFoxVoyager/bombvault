@@ -534,6 +534,17 @@ export const en = {
   "settings.schedule": "Schedule",
   "settings.scheduleOff": "off",
   "settings.language": "Language",
+  // settings.appearance (device verdict D-11, 2026-09-14; quick 260914-p9a):
+  // the General tab had grown to NINE Cards and ~2300 CSS px of scroll on a
+  // 390px device, and the user decision of the same day merges its six
+  // appearance Cards (theme, shape, motion, platform, labels, colors) back
+  // under ONE umbrella Card titled with this key — nine heading stamps become
+  // four, and the sub-topics live on as discreet sub-sections inside it (the
+  // merged Card's own banner comment in Settings.tsx carries the full
+  // history). Pre-seeded across all 42 tables in one commit so the parity
+  // gate holds until Settings.tsx consumes it (the phase 7 single-writer
+  // pattern; i18n.preseed.test.ts pins the en copy).
+  "settings.appearance": "Appearance",
   "settings.theme": "Theme",
   "settings.save": "Save",
   "settings.saved": "Settings saved",
@@ -874,10 +885,16 @@ export const en = {
   "excludes.assistRemoveLine": "Remove exclusion {line}",
 
   // Appearance / Accent
-  // ("settings.appearance", the old umbrella Card title, was removed here and
-  // from every locale in the GlimStone follow-up pass — the shared Appearance
-  // Card it titled was split into one Card per sub-topic (live-review point
-  // 5), and nothing else ever read this key.)
+  // ("settings.appearance" has now been removed AND reinstated once each: it
+  // was removed here and from every locale in the GlimStone follow-up pass,
+  // when the shared Appearance Card it titled was split into one Card per
+  // sub-topic (live-review point 5) and nothing else read the key; quick
+  // 260914-p9a reinstated it in all 42 tables after device verdict D-11
+  // (2026-09-14: nine General-tab Cards, ~2300 CSS px of scroll) and the user
+  // decision of the same day re-merged six of those sub-topic Cards under
+  // ONE umbrella Card titled with it again. The four-way split's fuller
+  // history stays narrated on the merged Card's banner comment in
+  // Settings.tsx.)
   //   "settings.colors" is a LATER live-review round's own new key (jdp:
   // "Die card von Akzentfarbe und Regenbogenmodus in eine mergen. Gehört ja
   // zusammen") — the merged accent+rainbow Card's own title. Deliberately a
@@ -2373,6 +2390,8 @@ export const de: Translations = {
   "settings.schedule": "Zeitplan",
   "settings.scheduleOff": "aus",
   "settings.language": "Sprache",
+  // quick 260914-p9a: umbrella title of the merged General-tab appearance Card (D-11).
+  "settings.appearance": "Erscheinungsbild",
   "settings.theme": "Design",
   "settings.save": "Speichern",
   "settings.saved": "Einstellungen gespeichert",

@@ -213,3 +213,51 @@ describe("phase quick 260914-nsv pre-seed (settings.platform*)", () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// Phase quick 260914-p9a pre-seed — the ONE new key of the General-tab
+// appearance merge (device verdict D-11, 2026-09-14): the umbrella Card title
+// the six appearance sub-sections (theme/shape/motion/platform/labels/colors)
+// now sit under. Same two roles as the blocks above: orphan-gate cover until
+// the merged Settings.tsx Card consumes it, then the copy-contract ratchet.
+// Same de shape as the 260914-nsv block's opening pair (non-empty; the value
+// IS a real translation here, but the block keeps the simplest four-role form
+// of its named sibling block).
+// ---------------------------------------------------------------------------
+const PRESEEDP9A_EN: Record<string, string> = {
+  "settings.appearance": "Appearance",
+};
+
+const PRESEEDP9A_KEYS = Object.keys(PRESEEDP9A_EN);
+
+describe("phase quick 260914-p9a pre-seed (settings.appearance)", () => {
+  it("en carries the exact contracted copy for every pre-seeded key", () => {
+    for (const [key, expected] of Object.entries(PRESEEDP9A_EN)) {
+      expect(en[key as keyof typeof en], key).toBe(expected);
+    }
+  });
+
+  it("de carries every pre-seeded key with a non-empty German value", () => {
+    for (const key of PRESEEDP9A_KEYS) {
+      const value = de[key as keyof typeof de];
+      expect(typeof value, key).toBe("string");
+      expect(value.length, key).toBeGreaterThan(0);
+    }
+  });
+
+  it.each(PRESEEDP9A_KEYS)("every locale table carries %s non-empty", (key) => {
+    for (const [code, table] of Object.entries(locales)) {
+      const value = table[key as keyof typeof table];
+      expect(typeof value, `${code}:${key}`).toBe("string");
+      expect(value.length, `${code}:${key}`).toBeGreaterThan(0);
+    }
+  });
+
+  it("no pre-seeded value in any language carries an em or en dash", () => {
+    for (const [code, table] of Object.entries(locales)) {
+      for (const key of PRESEEDP9A_KEYS) {
+        expect(table[key as keyof typeof table], `${code}:${key}`).not.toMatch(/—|–/);
+      }
+    }
+  });
+});

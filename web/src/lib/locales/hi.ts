@@ -381,6 +381,7 @@ const hi: Partial<Translations> = {
   "settings.schedule": "शेड्यूल",
   "settings.scheduleOff": "बंद",
   "settings.language": "भाषा",
+  "settings.appearance": "दिखावट",
   "settings.theme": "थीम",
   "settings.save": "सहेजें",
   "settings.saved": "सेटिंग्स सहेज ली गईं",

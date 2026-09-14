@@ -381,6 +381,7 @@ const lt: Partial<Translations> = {
   "settings.schedule": "Tvarkaraštis",
   "settings.scheduleOff": "išjungta",
   "settings.language": "Kalba",
+  "settings.appearance": "Išvaizda",
   "settings.theme": "Tema",
   "settings.save": "Išsaugoti",
   "settings.saved": "Nustatymai išsaugoti",

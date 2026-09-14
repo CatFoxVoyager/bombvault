@@ -207,6 +207,7 @@ const pl: Partial<Translations> = {
   "settings.schedule": "Harmonogram",
   "settings.scheduleOff": "wyłączony",
   "settings.language": "Język",
+  "settings.appearance": "Wygląd",
   "settings.theme": "Motyw",
   "settings.save": "Zapisz",
   "settings.saved": "Ustawienia zapisane",

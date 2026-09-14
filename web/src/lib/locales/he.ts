@@ -212,6 +212,7 @@ const he: Partial<Translations> = {
   "settings.schedule": "לוח זמנים",
   "settings.scheduleOff": "כבוי",
   "settings.language": "שפה",
+  "settings.appearance": "מראה",
   "settings.theme": "ערכת נושא",
   "settings.save": "שמור",
   "settings.saved": "ההגדרות נשמרו",

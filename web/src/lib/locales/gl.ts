@@ -381,6 +381,7 @@ const gl: Partial<Translations> = {
   "settings.schedule": "Horario",
   "settings.scheduleOff": "desactivado",
   "settings.language": "Idioma",
+  "settings.appearance": "Aparencia",
   "settings.theme": "Tema",
   "settings.save": "Gardar",
   "settings.saved": "Configuración gardada",
