@@ -111,4 +111,13 @@ describe("humanBytes", () => {
     expect(humanBytes(1536)).toBe("1.5 KB");
     expect(humanBytes(2 * GIB)).toBe("2.0 GB");
   });
+
+  it("promotes at 95% of a unit boundary (a near-1.0 reading never shows the lower unit)", () => {
+    // 1022.7 KB — the exact display the 2026-09-14 review flagged.
+    expect(humanBytes(1047245)).toBe("1.0 MB");
+    // 971 KB, just below the promotion zone — stays in kilobytes.
+    expect(humanBytes(994304)).toBe("971.0 KB");
+    // The exact boundary promotes through as well.
+    expect(humanBytes(1048576)).toBe("1.0 MB");
+  });
 });

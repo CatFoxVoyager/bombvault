@@ -22,12 +22,16 @@ type T = ReturnType<typeof useT>["t"];
 
 // humanBytes formats a byte count with a binary (1024) unit and one decimal
 // (mirrors the Dashboard's storage card so sizes read the same everywhere).
+// Promotes at 95% of each unit boundary: a value rounding to the next
+// unit's "1.0" never displays in the lower one (holds at every boundary,
+// bytes just under a kilobyte included). Moves in lockstep with the other
+// two mirrors or this "reads the same everywhere" claim goes stale.
 function humanBytes(n: number): string {
   if (!n || n <= 0) return "0 B";
   const units = ["B", "KB", "MB", "GB", "TB"];
   let v = n;
   let i = 0;
-  while (v >= 1024 && i < units.length - 1) {
+  while (v >= 1024 * 0.95 && i < units.length - 1) {
     v /= 1024;
     i++;
   }

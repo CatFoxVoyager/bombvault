@@ -1767,20 +1767,35 @@ function FreshInstallNudge({
             (e.g. Config.tsx's Save button) — matching an established idiom
             rather than routing through Badge's tone system, which has no
             "primary CTA" tone of its own and isn't the right place to invent
-            one for a single call site. */}
+            one for a single call site. Under 48rem the CTA also takes the
+            app's link-as-control height (the same value the Config/Flash
+            destinations-gate links carry), staying a real touch target on a
+            phone; desktop keeps the engine's 32px control height. Still not
+            a Button: that renders a plain <button>, which cannot navigate. */}
         <Link
           to="/recovery"
-          className="self-start inline-flex items-center gap-1 rounded-control bg-accent px-4 py-1.5 text-sm font-medium text-accentContrast hover:opacity-90 transition-opacity"
+          className="self-start inline-flex items-center gap-1 rounded-control bg-accent px-4 py-1.5 text-sm font-medium text-accentContrast hover:opacity-90 transition-opacity max-md:min-h-[2.75rem]"
         >
           {t("recovery.freshNudgeCta")} <span className="inline-block rtl:-scale-x-100">→</span>
         </Link>
       </div>
+      {/* The chip variant deliberately leaves out the shared mobile bleed
+          (Button.tsx's "Scoped to the DEFAULT variant only" block): a chip
+          normally rides INSIDE a host pill whose own row carries the touch
+          floor. HERE the chip is not in a pill — it is the card's only close
+          control, loose in a flex row — so this call site lays the floor
+          itself by re-passing the bleed classes, with a wider inset than
+          Button.tsx's shared one: the chip's engine box is 18px, and 18 plus
+          2x12 stays under the 44px floor, so each side gets 14px (46 total).
+          An ::after owned by the button is what makes bleed taps register on
+          it; a padded wrapper would just be dead zone. Every class is
+          max-md:-scoped, so nothing applies above 48rem. */}
       <Button
         label={t("common.close")}
         labelKey="common.close"
         variant="chip"
         onClick={onDismiss}
-        className="shrink-0"
+        className="shrink-0 max-md:relative max-md:after:absolute max-md:after:-inset-3.5 max-md:after:content-['']"
       />
     </div>
   );

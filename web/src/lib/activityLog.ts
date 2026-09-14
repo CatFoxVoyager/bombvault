@@ -174,13 +174,17 @@ function displayPercent(percent: number): number {
 }
 
 /** Binary (1024) byte formatter, one decimal — mirrors Dashboard's humanBytes
- *  so the activity log reads the same way the storage/backups cards do. */
+ *  so the activity log reads the same way the storage/backups cards do.
+ *  Promotes at 95% of each unit boundary, so a value rounding to the next
+ *  unit's "1.0" never shows in the lower unit (at every boundary, bytes
+ *  just under a kilobyte included). Moves in lockstep with the other two
+ *  mirrors or this "mirrors" claim goes stale. */
 function formatBytesShort(n: number): string {
   if (!n || n <= 0) return "0 B";
   const units = ["B", "KB", "MB", "GB", "TB"];
   let v = n;
   let i = 0;
-  while (v >= 1024 && i < units.length - 1) {
+  while (v >= 1024 * 0.95 && i < units.length - 1) {
     v /= 1024;
     i++;
   }

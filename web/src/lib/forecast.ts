@@ -19,13 +19,20 @@ export type ResolveForecast = (key: string, params?: Record<string, string>) => 
  *  The shared formatter for the dashboard's storage figures (moved out of
  *  Dashboard.tsx so the forecast line reads exactly like the size column).
  *  Zero and negatives collapse to "0 B" — a signed display is the caller's
- *  job (buildForecastLine picks growth vs shrink wording instead). */
+ *  job (buildForecastLine picks growth vs shrink wording instead).
+ *  Promotion kicks in at 95% of each unit boundary (2026-09-14 review): a
+ *  value that rounds to the next unit's "1.0" must never render in the
+ *  lower unit, so a kilobyte reading just under a megabyte displays as
+ *  1.0 MB. The rule holds at EVERY boundary, so bytes just under a
+ *  kilobyte read "1.0 KB" — a wanted delta, not a bug. The mirrored copies
+ *  (activityLog's formatBytesShort, RestorePanel's humanBytes) must move
+ *  in lockstep or their "reads the same everywhere" comments go stale. */
 export function humanBytes(n: number): string {
   if (!n || n <= 0) return "0 B";
   const units = ["B", "KB", "MB", "GB", "TB"];
   let v = n;
   let i = 0;
-  while (v >= 1024 && i < units.length - 1) {
+  while (v >= 1024 * 0.95 && i < units.length - 1) {
     v /= 1024;
     i++;
   }
