@@ -33,8 +33,8 @@ Phase: 8 (Guided Restore & Real-Device Verification) — EXECUTING
 Plan: 5 of 5
 Total Plans in Phase: 5
 Status: All 5 plans complete — awaiting orchestrator tail gate (full e2e once, D-10) and the D-11 device-session pause; VERIFY-02's device pass happens there, not in the plans
-Last activity: 2026-09-14 — Completed quick task 260914-j4p: Quickplan 1/3 review UI mobile — controles qui debordent sous 48rem (Selector equalWidth, ListToolbar chips, nav Settings, Language)
-Last Activity Description: UI-review fix lot 1/3 committed (P1-9, P1-2, P1-3, P2-10) — lots 2/3 and D-11 device session still pending
+Last activity: 2026-09-14 — Completed quick task 260914-k2r: Quickplan 2/3 review UI mobile — barres sticky flottantes et editeur Files (Files set name rendered once, Remove set danger tone mobile)
+Last Activity Description: UI-review fix lot 2/3 committed (P1-13, P2-14; P1-11/P1-12 resolved as non-findings with source evidence) — lot 3/3 and D-11 device session still pending
 
 ## Performance Metrics
 
@@ -216,6 +216,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260914-j4p | Quickplan 1/3 review UI mobile: controles qui debordent sous 48rem (Selector equalWidth pin off mobile, ListToolbar chips wrap, Settings nav wrap, Language full-width) | 2026-09-14 | baa28f58 | [260914-j4p-quickplan-1-3-review-ui-mobile-controles](./quick/260914-j4p-quickplan-1-3-review-ui-mobile-controles/) |
+| 260914-k2r | Quickplan 2/3 review UI mobile: barres sticky + editeur Files (Files set name once, Remove set danger tone; P1-11/P1-12 resolved as non-findings, bars already last-child) | 2026-09-14 | e56d1e3b | [260914-k2r-quickplan-2-3-review-ui-mobile-barres-st](./quick/260914-k2r-quickplan-2-3-review-ui-mobile-barres-st/) |
 
 ## Deferred Items
 
