@@ -33,7 +33,7 @@
 - [x] **SCRN-03**: Touch selection tree: an interaction-layer variant of the ONE `SelectionTree` (never a fork) — full-row ≥ 44px targets, chevron/check hit-area separation, EXCLUDED rows muted, per-root CACHEDIR.TAG toggle with plain-language line, pinned live "handed to restic · n of m ticked" count, Save pinned in a bottom action bar; wired to the existing serialized save queue; semantics byte-identical (APG `aria-checked`/roving tabindex/Space-through-`onToggle` preserved); empty-deselect rule surfaced in copy
 - [x] **SCRN-04**: File sets: coverage cards ("n of m folders ticked"), status, last-run line; empty-selection rule in copy ("Use Delete set to remove it entirely"); the same touch tree inside
 - [x] **SCRN-05**: Run detail / Recovery: "Backup complete" + timestamp + duration + monospace snapshot id; stats triad (new/changed/unchanged, tabular numerals); activity log with mono timestamps naming exclusion reasons (unticked / CACHEDIR.TAG); verify integrity; browse snapshot files (touch rows); restore entry point
-- [ ] **SCRN-06**: Guided restore mobile flow: full-screen step flow — preflight summary → confirmation naming overwrite consequences → optional dry-run/verify → live progress with log → completion; restore controls secondary-styled, away from the thumb's default path; guard chain unchanged server-side
+- [x] **SCRN-06**: Guided restore mobile flow: full-screen step flow — preflight summary → confirmation naming overwrite consequences → optional dry-run/verify → live progress with log → completion; restore controls secondary-styled, away from the thumb's default path; guard chain unchanged server-side
 
 ### Operational Flows
 
@@ -58,7 +58,7 @@
 
 - [x] **VERIFY-01**: Playwright smoke harness from the first phase: desktop-untouched assertions (viewport ≥ 48rem renders today's layout) + mobile device descriptors; responsive regressions fail CI
 - [ ] **VERIFY-02**: Real-device pass as the milestone exit criterion: notched + SE-class iPhone Safari and Android Chrome, portrait + landscape, guided restore exercised on device
-- [ ] **VERIFY-03**: i18n: every mobile string through the `t()` pipeline with 42-locale parity; de/fr narrow-viewport passes (320–360px) on the chrome and key screens
+- [x] **VERIFY-03**: i18n: every mobile string through the `t()` pipeline with 42-locale parity; de/fr narrow-viewport passes (320–360px) on the chrome and key screens
 - [x] **VERIFY-04**: Touch-target + hover audit: every interactive control ≥ 44px below the breakpoint; every hover-dependent affordance has a non-hover path (Tailwind v4 gates `hover:` behind `@media (hover: hover)`)
 - [ ] **VERIFY-05**: Both themes verified on mobile; four-status language with text labels (never color alone, WCAG 1.4.1); semantic tokens only — never hard-coded design-bible hex values
 
@@ -135,8 +135,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FLOW-02 | Phase 7 | Complete |
 | LISTS-01 | Phase 7 | Complete |
 | PLAT-01 | Phase 7 | Complete |
-| SCRN-06 | Phase 8 | Pending |
+| SCRN-06 | Phase 8 | Complete |
 | VERIFY-02 | Phase 8 | Pending |
-| VERIFY-03 | Phase 8 | Pending |
+| VERIFY-03 | Phase 8 | Complete |
 | VERIFY-04 | Phase 8 | Complete |
 | VERIFY-05 | Phase 8 | Pending |

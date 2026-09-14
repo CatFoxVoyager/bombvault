@@ -149,7 +149,7 @@ Plans:
   3. Every mobile string ships through the `t()` pipeline with 42-locale parity, and German and French pass narrow-viewport (320-360px) checks on the shell and key screens
   4. Every interactive control below the breakpoint is ≥44px and every hover-dependent affordance has a non-hover path; both themes are verified on mobile with four-status language carried by text labels (never color alone) and semantic tokens only — no hard-coded design-bible hex values
 
-**Plans**: 3/5 plans executed
+**Plans**: 4/5 plans executed
 
 Plans:
 **Wave 1**
@@ -163,7 +163,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 08-03-PLAN.md — Mobile review/restore step: ConfirmSheet-gated restores, optional checkDomain row, live progress + log, completion, RunDetailSheet stale-note update, narrow-viewport + 48rem landscape battery
+- [x] 08-03-PLAN.md — Mobile review/restore step: ConfirmSheet-gated restores, optional checkDomain row, live progress + log, completion, RunDetailSheet stale-note update, narrow-viewport + 48rem landscape battery
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -184,4 +184,4 @@ Plans:
 | 5. Mobile Shell & Navigation Foundation | v1.1 | 6/6 | Complete    | 2026-09-12 |
 | 6. Maquette Screens | v1.1 | 7/7 | Complete    | 2026-09-12 |
 | 7. Remaining Destinations & Operational Parity | v1.1 | 8/8 | Complete    | 2026-09-14 |
-| 8. Guided Restore & Real-Device Verification | v1.1 | 3/5 | In Progress|  |
+| 8. Guided Restore & Real-Device Verification | v1.1 | 4/5 | In Progress|  |

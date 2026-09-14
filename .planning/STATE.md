@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 8
 current_phase_name: Guided Restore & Real-Device Verification
 status: executing
-stopped_at: Completed 08-04-PLAN.md
-last_updated: "2026-09-14T13:45:21.824Z"
+stopped_at: Completed 08-03-PLAN.md
+last_updated: "2026-09-14T15:17:14.865Z"
 last_activity: 2026-09-14
 last_activity_desc: Phase 8 planning complete — 5 plans ready
-state_head: 269e59a73143f8031dbc38899313a368f52b8701
+state_head: f42b3e25a063b2386684b8f465df69862e71eb5a
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 26
-  completed_plans: 24
+  completed_plans: 25
   percent: 75
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-14)
 ## Current Position
 
 Phase: 8 (Guided Restore & Real-Device Verification) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Total Plans in Phase: 5
 Status: Plan 08-01 complete, next 08-02
 Last activity: 2026-09-14 — 08-01 guided-restore tracer complete
@@ -106,6 +106,7 @@ Last Activity Description: Phase 8 planning complete — 5 plans ready
 | Phase 08 P01 | 190m | 3 tasks | 7 files |
 | Phase 08 P02 | 66m | 2 tasks | 2 files |
 | Phase 08 P04 | 38m | 3 tasks | 5 files |
+| Phase 08 P03 | 150m | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -188,6 +189,9 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 8]: D-06 fix 2 resolved tonal: mobile day chip bg-accentSoft/text-accentText + py-1; desktop :418 twin keeps solid accent (active-selection chips are tonal on mobile)
 - [Phase 8]: e2e hit-box proof reads computed ::after insets (boundingBox is blind to pseudo-elements; elementFromPoint rejected - adjacent option bleeds overlap by design)
 - [Phase 8]: WHOLLY_PHASE8_FILES = [e2e/guided-restore.spec.ts] only; Recovery.tsx MIXED geography entry is Plan 03 Task 2's (last writer) - guard floors never recorded against a file that will still change
+- [Phase 8]: Step-5 restore-all consumes the desktop restoreAll handler verbatim (sequential fireAndWaitRun, single-flight); mobile adds presentation only, never a second fire path (D-02)
+- [Phase 8]: E2E one-at-a-time proof: staged runs flip terminal 700ms after the POST serve, so a /api/runs serve already observing target N terminal between POST N and POST N+1 is impossible for a parallel loop
+- [Phase 8]: Recovery h1 is shared page chrome above the max-md split; the sticky step bar is the mobile-only chrome needle (D-09 boundary: 844x390 landscape = desktop chrome is the contract)
 
 ### Pending Todos
 
@@ -217,8 +221,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-14T13:45:21.357Z
-Stopped at: Completed 08-04-PLAN.md
+Last session: 2026-09-14T15:17:14.266Z
+Stopped at: Completed 08-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
