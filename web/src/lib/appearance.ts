@@ -139,6 +139,10 @@ let wipeMounted = false;
 let wipeLastAttr: string | null = null;
 let wipeTimer: ReturnType<typeof setTimeout> | undefined;
 
+/** `animate: false` applies the value without the colour wipe. For a change
+ *  nobody made: the stored look arriving from the server after paint. */
+export type ApplyOpts = { animate?: boolean };
+
 /**
  * beginColourWipe adds `.glim-colour-wipe` to <html> — the class index.css's
  * own "Round 2, item 4" rule scopes its coordinated colour transition onto —
@@ -188,7 +192,7 @@ export function subscribeRainbow(fn: () => void): () => void {
  * is no path from a caller's raw string array to a CSS custom property that
  * skips this check.
  */
-export function applyRainbow(next: Partial<RainbowState> | undefined): void {
+export function applyRainbow(next: Partial<RainbowState> | undefined, opts?: ApplyOpts): void {
   const merged: RainbowState = { ...RAINBOW_OFF, ...next };
   merged.palette = usablePalette(merged.palette);
   merged.seed = Number.isFinite(merged.seed) ? Math.abs(Math.trunc(merged.seed)) % RAINBOW.length : 0;
@@ -211,7 +215,17 @@ export function applyRainbow(next: Partial<RainbowState> | undefined): void {
   // and this transition need to land in the SAME style recalculation for
   // the wipe to actually catch the colour change instead of missing it by
   // one frame.
-  if (wipeMounted && nextAttr !== wipeLastAttr) beginColourWipe();
+  // `animate: false` is the SECOND half of the same thought the gate above
+  // encodes, and it was missing (#228). The boot call is silent because there
+  // is nothing on screen yet. The call that follows it is the server handing
+  // this browser its stored look (main.tsx's ADOPTED listener), and that is
+  // not a mode flip somebody made either - it is the same look arriving late,
+  // after paint. Animating it walks every hued element from the flat accent to
+  // its own rainbow hue and back across the whole page, which is what "the
+  // screen flashes green when switching options" turned out to be. The value
+  // still lands; only the excursion is skipped.
+  const animate = opts?.animate !== false;
+  if (animate && wipeMounted && nextAttr !== wipeLastAttr) beginColourWipe();
   wipeLastAttr = nextAttr;
   wipeMounted = true;
 
@@ -393,7 +407,9 @@ export function setRainbow(patch: Partial<RainbowState>): RainbowState {
 
 /** Called at boot in main.tsx before first render (flash prevention), same
  * spot accent.ts's applyStoredAccent() and theme.ts's applyStoredTheme()
- * already run from. */
-export function applyStoredRainbow(): void {
-  applyRainbow(getRainbow());
+ * already run from, and AGAIN when the server hands this browser a different
+ * stored look. The second call passes `{ animate: false }`: adopting a look is
+ * not a mode flip, and animating it is what #228 reported. */
+export function applyStoredRainbow(opts?: ApplyOpts): void {
+  applyRainbow(getRainbow(), opts);
 }
