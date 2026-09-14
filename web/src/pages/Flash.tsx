@@ -694,13 +694,27 @@ function MobileFlashBlock({
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-carbon-text">{t("flash.backupTitle")}</p>
                 <p className="truncate text-xs text-carbon-textMuted">
-                  {`${t("containers.lastBackup")}: ${newest ? formatTs(newestUnix) : t("containers.never")}`}
+                  {/* WR-03: a fetch in flight is not an empty repo — the desktop
+                      hero's own {loading && checking} paragraph (above) and
+                      MobileConfigBlock's lastRunLine (Config.tsx) both hold the
+                      "Never" claim until the data lands. */}
+                  {`${t("containers.lastBackup")}: ${
+                    loading ? t("dashboard.checking") : newest ? formatTs(newestUnix) : t("containers.never")
+                  }`}
                 </p>
               </div>
               {/* Status Badge: live backup wins; otherwise the newest
-                  snapshot's relative age; "never" when the repo is empty. */}
+                  snapshot's relative age; "never" only once the list has
+                  settled empty — while loading it reads "checking" (WR-03,
+                  the same honesty rule the line above follows). */}
               <Badge tone={progressLive ? "warn" : newest ? "ok" : "neutral"}>
-                {progressLive ? t("flash.backingUp") : newest ? relativeTime(t, newestUnix!) : t("containers.never")}
+                {progressLive
+                  ? t("flash.backingUp")
+                  : newest
+                    ? relativeTime(t, newestUnix!)
+                    : loading
+                      ? t("dashboard.checking")
+                      : t("containers.never")}
               </Badge>
             </div>
             <OffsiteIndicator domain="flash" />
