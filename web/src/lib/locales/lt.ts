@@ -12,8 +12,6 @@ const lt: Partial<Translations> = {
   "nav.vms": "VM",
   "nav.flash": "Flash",
   "nav.config": "Savarankiška atsarga",
-  "nav.receiver": "Imtuvas",
-  "nav.fleet": "Parkas",
   "nav.settings": "Nustatymai",
 
   // Mode toggle
@@ -1074,6 +1072,8 @@ const lt: Partial<Translations> = {
 
   // Receiver dashboard
   "receiver.title": "Imtuvas",
+  "instances.title": "Egzemplioriai",
+  "instances.subtitle": "Viskas, kas susiję su kitu BombVault: čia atsiųstos saugyklos, per HTTP stebimi egzemplioriai ir saugyklos, iš kurių ši mašina parsisiunčia.",
   "receiver.subtitle": "Stebėkite nuotolines kopijas, kurias kiti BombVault egzemplioriai siunčia į šią dėžę, tik skaitymui.",
   "receiver.addRepo": "Pridėti gautą saugyklą",
   "receiver.emptyTitle": "Gautos saugyklos",
@@ -1127,7 +1127,6 @@ const lt: Partial<Translations> = {
   "receiver.nameRequired": "Įveskite pavadinimą.",
   "receiver.repoRequired": "Įveskite saugyklos vietą.",
   "receiver.saveError": "Nepavyko išsaugoti gautos saugyklos.",
-  "nav.pull": "Traukimas",
   "pull.name": "Pavadinimas",
   "pull.title": "Traukimas",
   "pull.subtitle": "Traukite atsargines kopijas iš kito BombVault saugyklos į šią.",

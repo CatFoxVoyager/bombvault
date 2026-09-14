@@ -12,8 +12,6 @@ const gl: Partial<Translations> = {
   "nav.vms": "MV",
   "nav.flash": "Flash",
   "nav.config": "Autocopia",
-  "nav.receiver": "Receptor",
-  "nav.fleet": "Frota",
   "nav.settings": "Configuración",
 
   // Mode toggle
@@ -1074,6 +1072,8 @@ const gl: Partial<Translations> = {
 
   // Receiver dashboard
   "receiver.title": "Receptor",
+  "instances.title": "Instancias",
+  "instances.subtitle": "Todo o relacionado con outro BombVault: repositorios enviados aquí, instancias vixiadas por HTTP e repositorios dos que recolle esta máquina.",
   "receiver.subtitle": "Supervisa as copias externas que outras instancias de BombVault envían a esta caixa, só en lectura.",
   "receiver.addRepo": "Engadir repositorio recibido",
   "receiver.emptyTitle": "Repositorios recibidos",
@@ -1127,7 +1127,6 @@ const gl: Partial<Translations> = {
   "receiver.nameRequired": "Introduce un nome.",
   "receiver.repoRequired": "Introduce a localización do repositorio.",
   "receiver.saveError": "Non se puido gardar o repositorio recibido.",
-  "nav.pull": "Recollida",
   "pull.name": "Nome",
   "pull.title": "Recollida",
   "pull.subtitle": "Recolle copias de seguridade do repositorio doutro BombVault neste.",

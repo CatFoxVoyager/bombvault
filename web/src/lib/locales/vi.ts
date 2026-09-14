@@ -1405,13 +1405,13 @@ const vi: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "Mã hóa xuất",
 
   // Receiver dashboard
-  "nav.receiver": "Bộ nhận",
-  "nav.fleet": "Đội",
   "settings.receiverEnabled": "Bảng điều khiển bộ nhận",
   "settings.receiverEnabledHint": "Giám sát kho lưu trữ ngoài chỉ-thêm mà một BombVault khác đẩy tới (chỉ đọc)",
   "settings.fleetEnabled": "Xem đội",
   "settings.fleetEnabledHint": "Theo dõi trạng thái bảo vệ của các phiên bản BombVault liên kết (chỉ đọc)",
   "receiver.title": "Bộ nhận",
+  "instances.title": "Phiên bản",
+  "instances.subtitle": "Mọi thứ liên quan đến một BombVault khác: các kho được gửi tới đây, các phiên bản được theo dõi qua HTTP, và các kho mà máy này kéo về.",
   "receiver.subtitle": "Giám sát các bản sao ngoài mà các phiên bản BombVault khác đẩy tới máy này, ở chế độ chỉ đọc.",
   "receiver.addRepo": "Thêm kho đã nhận",
   "receiver.emptyTitle": "Kho đã nhận",
@@ -1465,7 +1465,6 @@ const vi: Partial<Translations> = {
   "receiver.nameRequired": "Nhập tên.",
   "receiver.repoRequired": "Nhập vị trí kho.",
   "receiver.saveError": "Không thể lưu kho đã nhận.",
-  "nav.pull": "Kéo về",
   "pull.name": "Tên",
   "pull.title": "Kéo về",
   "pull.subtitle": "Kéo các bản sao lưu từ kho của một BombVault khác về kho này.",

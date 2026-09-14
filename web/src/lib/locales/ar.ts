@@ -1416,13 +1416,13 @@ const ar: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "تشفير التصدير",
 
   // Receiver dashboard
-  "nav.receiver": "المستقبِل",
-  "nav.fleet": "الأسطول",
   "settings.receiverEnabled": "لوحة المستقبِل",
   "settings.receiverEnabledHint": "مراقبة مستودع خارجي للإلحاق فقط يرسل إليه BombVault آخر (للقراءة فقط)",
   "settings.fleetEnabled": "عرض الأسطول",
   "settings.fleetEnabledHint": "راقب حالة الحماية للنُسخ المتصلة من BombVault (للقراءة فقط)",
   "receiver.title": "المستقبِل",
+  "instances.title": "المثيلات",
+  "instances.subtitle": "كل ما يتعلق بنسخة BombVault أخرى: المستودعات المرسلة إلى هنا، والمثيلات التي تُراقَب عبر HTTP، والمستودعات التي يجلب منها هذا الجهاز.",
   "receiver.subtitle": "راقب النسخ الخارجية التي ترسلها نسخ BombVault الأخرى إلى هذا الجهاز، للقراءة فقط.",
   "receiver.addRepo": "إضافة مستودع مستلَم",
   "receiver.emptyTitle": "مستودعات مستلَمة",
@@ -1476,7 +1476,6 @@ const ar: Partial<Translations> = {
   "receiver.nameRequired": "أدخل اسمًا.",
   "receiver.repoRequired": "أدخل موقع المستودع.",
   "receiver.saveError": "تعذّر حفظ المستودع المستلَم.",
-  "nav.pull": "سحب",
   "pull.name": "الاسم",
   "pull.title": "سحب",
   "pull.subtitle": "اسحب النسخ الاحتياطية من مستودع نسخة BombVault أخرى إلى هذا المستودع.",

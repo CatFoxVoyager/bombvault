@@ -12,8 +12,6 @@ const sl: Partial<Translations> = {
   "nav.vms": "VM-ji",
   "nav.flash": "Flash",
   "nav.config": "Lastna varnostna kopija",
-  "nav.receiver": "Sprejemnik",
-  "nav.fleet": "Flota",
   "nav.settings": "Nastavitve",
 
   // Mode toggle
@@ -1068,6 +1066,8 @@ const sl: Partial<Translations> = {
 
   // Receiver dashboard
   "receiver.title": "Sprejemnik",
+  "instances.title": "Primerki",
+  "instances.subtitle": "Vse, kar zadeva drug BombVault: repozitoriji, poslani sem, primerki, opazovani prek HTTP, in repozitoriji, iz katerih ta naprava prenaša.",
   "receiver.subtitle": "Nadzoruj zunanje kopije, ki jih druge instance BombVault pošiljajo v to napravo, samo za branje.",
   "receiver.addRepo": "Dodaj prejeti repozitorij",
   "receiver.emptyTitle": "Prejeti repozitoriji",
@@ -1121,7 +1121,6 @@ const sl: Partial<Translations> = {
   "receiver.nameRequired": "Vnesi ime.",
   "receiver.repoRequired": "Vnesi lokacijo repozitorija.",
   "receiver.saveError": "Prejetega repozitorija ni bilo mogoče shraniti.",
-  "nav.pull": "Poteg",
   "pull.name": "Ime",
   "pull.title": "Poteg",
   "pull.subtitle": "Povleci varnostne kopije iz repozitorija drugega BombVaulta v tega.",

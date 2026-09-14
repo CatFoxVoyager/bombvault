@@ -12,8 +12,6 @@ const et: Partial<Translations> = {
   "nav.vms": "VM-id",
   "nav.flash": "Flash",
   "nav.config": "Iseenda varundus",
-  "nav.receiver": "Vastuvõtja",
-  "nav.fleet": "Laevastik",
   "nav.settings": "Seaded",
 
   // Mode toggle
@@ -1074,6 +1072,8 @@ const et: Partial<Translations> = {
 
   // Receiver dashboard
   "receiver.title": "Vastuvõtja",
+  "instances.title": "Eksemplarid",
+  "instances.subtitle": "Kõik, mis puudutab teist BombVaulti: siia saadetud hoidlad, HTTP kaudu jälgitavad eksemplarid ja hoidlad, millest see masin tõmbab.",
   "receiver.subtitle": "Jälgi väliseid koopiaid, mida teised BombVault eksemplarid sellesse kasti saadavad, ainult lugemiseks.",
   "receiver.addRepo": "Lisa vastuvõetud hoidla",
   "receiver.emptyTitle": "Vastuvõetud hoidlad",
@@ -1127,7 +1127,6 @@ const et: Partial<Translations> = {
   "receiver.nameRequired": "Sisesta nimi.",
   "receiver.repoRequired": "Sisesta hoidla asukoht.",
   "receiver.saveError": "Vastuvõetud hoidlat ei õnnestunud salvestada.",
-  "nav.pull": "Tõmbamine",
   "pull.name": "Nimi",
   "pull.title": "Tõmbamine",
   "pull.subtitle": "Tõmba varundused teise BombVaulti hoidlast siia hoidlasse.",

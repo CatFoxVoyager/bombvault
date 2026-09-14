@@ -10,7 +10,10 @@ import {
   IconContainers,
   IconVM,
   IconFiles,
-  IconReceiver,
+  // IconReceiver is no longer rendered here (the three instance rows became
+  // one), but it is still re-exported below for Receiver.tsx and Pull.tsx,
+  // which import it from this module. That export block reads from navGlyphs
+  // directly, so it does not need this import.
   IconFleet,
   IconDashboard,
   IconRecovery,
@@ -770,20 +773,22 @@ export function Sidebar({ settings, authEnabled }: SidebarProps) {
               {configEnabled && (
                 <NavItem to="/config" label={t("nav.config")} icon={<IconConfig />} hueIndex={nextHue()} />
               )}
-              {/* Receiver dashboard appears only once its domain is enabled. */}
-              {receiverEnabled && (
-                <NavItem to="/receiver" label={t("nav.receiver")} icon={<IconReceiver />} hueIndex={nextHue()} />
-              )}
-              {/* Fleet view appears only once its domain is enabled. */}
-              {fleetEnabled && (
-                <NavItem to="/fleet" label={t("nav.fleet")} icon={<IconFleet />} hueIndex={nextHue()} />
-              )}
-              {/* Pull sources (#227) appear only once the flag is on. Below the
-                  two dashboards on purpose: those two watch, this one moves
-                  data, and the rail reads top to bottom from what this box owns
-                  to what it reaches for. */}
-              {pullEnabled && (
-                <NavItem to="/pull" label={t("nav.pull")} icon={<IconReceiver />} hueIndex={nextHue()} />
+              {/* Everything about ANOTHER instance lives behind one row now
+                  (jdp: "ein eintrag aber der name gefällt mir nicht. sollen wir
+                  ihn nicht besser instanzen nennen"). Receiver, Fleet and Pull
+                  are still three separate objects with three separate tables -
+                  see Instances.tsx for why merging THEM would be wrong - but
+                  they were three rows answering one question, and two of them
+                  wore the same glyph. The row appears as soon as ANY of the
+                  three is switched on; the page then shows only the tabs whose
+                  own setting is on. */}
+              {(receiverEnabled || fleetEnabled || pullEnabled) && (
+                <NavItem
+                  to="/instances"
+                  label={t("instances.title")}
+                  icon={<IconFleet />}
+                  hueIndex={nextHue()}
+                />
               )}
             </nav>
 

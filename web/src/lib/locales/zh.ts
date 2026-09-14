@@ -1405,13 +1405,13 @@ const zh: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "导出加密",
 
   // Receiver dashboard
-  "nav.receiver": "接收端",
-  "nav.fleet": "舰队",
   "settings.receiverEnabled": "接收端仪表板",
   "settings.receiverEnabledHint": "监控另一个 BombVault 推送到的仅追加异地仓库（只读）",
   "settings.fleetEnabled": "舰队视图",
   "settings.fleetEnabledHint": "以只读方式查看其他 BombVault 实例的保护状态",
   "receiver.title": "接收端",
+  "instances.title": "实例",
+  "instances.subtitle": "与另一台 BombVault 有关的一切：发送到这里的仓库、通过 HTTP 观察的实例，以及本机拉取的仓库。",
   "receiver.subtitle": "以只读方式监控其他 BombVault 实例推送到本机的异地副本。",
   "receiver.addRepo": "添加接收仓库",
   "receiver.emptyTitle": "接收仓库",
@@ -1465,7 +1465,6 @@ const zh: Partial<Translations> = {
   "receiver.nameRequired": "请输入名称。",
   "receiver.repoRequired": "请输入仓库位置。",
   "receiver.saveError": "无法保存接收仓库。",
-  "nav.pull": "拉取",
   "pull.name": "名称",
   "pull.title": "拉取",
   "pull.subtitle": "把另一个 BombVault 仓库中的备份拉取到本机仓库。",

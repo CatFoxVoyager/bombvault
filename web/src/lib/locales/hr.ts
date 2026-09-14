@@ -12,8 +12,6 @@ const hr: Partial<Translations> = {
   "nav.vms": "VM-ovi",
   "nav.flash": "Flash",
   "nav.config": "Samostalna sigurnosna kopija",
-  "nav.receiver": "Prijamnik",
-  "nav.fleet": "Flota",
   "nav.settings": "Postavke",
 
   // Mode toggle
@@ -1074,6 +1072,8 @@ const hr: Partial<Translations> = {
 
   // Receiver dashboard
   "receiver.title": "Prijamnik",
+  "instances.title": "Instance",
+  "instances.subtitle": "Sve što se tiče drugog BombVaulta: repozitoriji poslani ovamo, instance nadzirane preko HTTP-a i repozitoriji iz kojih ovaj stroj dohvaća.",
   "receiver.subtitle": "Nadzirite izvanmrežne kopije koje druge BombVault instance šalju ovom uređaju, samo za čitanje.",
   "receiver.addRepo": "Dodaj primljeni repozitorij",
   "receiver.emptyTitle": "Primljeni repozitoriji",
@@ -1127,7 +1127,6 @@ const hr: Partial<Translations> = {
   "receiver.nameRequired": "Unesite naziv.",
   "receiver.repoRequired": "Unesite lokaciju repozitorija.",
   "receiver.saveError": "Primljeni repozitorij nije se mogao spremiti.",
-  "nav.pull": "Povlačenje",
   "pull.name": "Naziv",
   "pull.title": "Povlačenje",
   "pull.subtitle": "Povucite sigurnosne kopije iz repozitorija drugog BombVaulta u ovaj.",

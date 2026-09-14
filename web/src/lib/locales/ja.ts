@@ -1405,13 +1405,13 @@ const ja: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "エクスポートの暗号化",
 
   // Receiver dashboard
-  "nav.receiver": "レシーバー",
-  "nav.fleet": "フリート",
   "settings.receiverEnabled": "レシーバーダッシュボード",
   "settings.receiverEnabledHint": "別の BombVault が送信する追記専用のオフサイトリポジトリを監視（読み取り専用）",
   "settings.fleetEnabled": "フリートビュー",
   "settings.fleetEnabledHint": "接続された BombVault インスタンスの保護状態を確認します（読み取り専用）",
   "receiver.title": "レシーバー",
+  "instances.title": "インスタンス",
+  "instances.subtitle": "他の BombVault に関わるものすべてです。ここへ送られてきたリポジトリ、HTTP 越しに見ているインスタンス、そしてこの機器が取得元にしているリポジトリ。",
   "receiver.subtitle": "他の BombVault インスタンスがこのマシンに送信するオフサイトコピーを読み取り専用で監視します。",
   "receiver.addRepo": "受信リポジトリを追加",
   "receiver.emptyTitle": "受信リポジトリ",
@@ -1465,7 +1465,6 @@ const ja: Partial<Translations> = {
   "receiver.nameRequired": "名前を入力してください。",
   "receiver.repoRequired": "リポジトリの場所を入力してください。",
   "receiver.saveError": "受信リポジトリを保存できませんでした。",
-  "nav.pull": "取得",
   "pull.name": "名前",
   "pull.title": "取得",
   "pull.subtitle": "他の BombVault のリポジトリからバックアップをこのリポジトリに取得します。",

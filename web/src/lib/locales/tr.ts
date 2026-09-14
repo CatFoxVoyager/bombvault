@@ -1413,13 +1413,13 @@ const tr: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "Dışa aktarma şifrelemesi",
 
   // Receiver dashboard
-  "nav.receiver": "Alıcı",
-  "nav.fleet": "Filo",
   "settings.receiverEnabled": "Alıcı panosu",
   "settings.receiverEnabledHint": "Başka bir BombVault'un gönderdiği yalnızca-ekleme site dışı deposunu izle (salt okunur)",
   "settings.fleetEnabled": "Filo görünümü",
   "settings.fleetEnabledHint": "Bağlı BombVault örneklerinin koruma durumunu izleyin (salt okunur)",
   "receiver.title": "Alıcı",
+  "instances.title": "Örnekler",
+  "instances.subtitle": "Başka bir BombVault ile ilgili her şey: buraya gönderilen depolar, HTTP üzerinden izlenen örnekler ve bu makinenin çektiği depolar.",
   "receiver.subtitle": "Diğer BombVault örneklerinin bu makineye gönderdiği site dışı kopyaları salt okunur olarak izleyin.",
   "receiver.addRepo": "Alınan depo ekle",
   "receiver.emptyTitle": "Alınan depolar",
@@ -1473,7 +1473,6 @@ const tr: Partial<Translations> = {
   "receiver.nameRequired": "Bir ad girin.",
   "receiver.repoRequired": "Bir depo konumu girin.",
   "receiver.saveError": "Alınan depo kaydedilemedi.",
-  "nav.pull": "Çekme",
   "pull.name": "Ad",
   "pull.title": "Çekme",
   "pull.subtitle": "Başka bir BombVault'un deposundaki yedekleri buradaki depoya çekin.",

@@ -1413,13 +1413,13 @@ const fi: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "Vientien salaus",
 
   // Receiver dashboard
-  "nav.receiver": "Vastaanotin",
-  "nav.fleet": "Laivue",
   "settings.receiverEnabled": "Vastaanottimen kojelauta",
   "settings.receiverEnabledHint": "Valvo vain-lisäys-etävarastoa, johon toinen BombVault lähettää (vain luku)",
   "settings.fleetEnabled": "Laivuenäkymä",
   "settings.fleetEnabledHint": "Tarkkaile liitettyjen BombVault-instanssien suojaustilaa (vain luku)",
   "receiver.title": "Vastaanotin",
+  "instances.title": "Ilmentymät",
+  "instances.subtitle": "Kaikki mikä liittyy toiseen BombVaultiin: tänne lähetetyt arkistot, HTTP:n yli valvotut ilmentymät ja arkistot, joista tämä kone noutaa.",
   "receiver.subtitle": "Valvo etäkopioita, joita muut BombVault-esiintymät lähettävät tälle koneelle, vain lukutilassa.",
   "receiver.addRepo": "Lisää vastaanotettu varasto",
   "receiver.emptyTitle": "Vastaanotetut varastot",
@@ -1473,7 +1473,6 @@ const fi: Partial<Translations> = {
   "receiver.nameRequired": "Anna nimi.",
   "receiver.repoRequired": "Anna varaston sijainti.",
   "receiver.saveError": "Vastaanotettua varastoa ei voitu tallentaa.",
-  "nav.pull": "Nouto",
   "pull.name": "Nimi",
   "pull.title": "Nouto",
   "pull.subtitle": "Nouda varmuuskopioita toisen BombVaultin varastosta tämän koneen omaan varastoon.",

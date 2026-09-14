@@ -12,8 +12,6 @@ const eu: Partial<Translations> = {
   "nav.vms": "MB",
   "nav.flash": "Flash",
   "nav.config": "Autobabeskopia",
-  "nav.receiver": "Hartzailea",
-  "nav.fleet": "Flota",
   "nav.settings": "Ezarpenak",
 
   // Mode toggle
@@ -1074,6 +1072,8 @@ const eu: Partial<Translations> = {
 
   // Receiver dashboard
   "receiver.title": "Hartzailea",
+  "instances.title": "Instantziak",
+  "instances.subtitle": "Beste BombVault batekin zerikusia duen guztia: hona bidalitako biltegiak, HTTP bidez zaindutako instantziak eta makina honek ekartzen dituen biltegiak.",
   "receiver.subtitle": "Gainbegiratu beste BombVault instantziek kutxa honetara bidaltzen dituzten kanpoko kopiak, irakurtzeko soilik.",
   "receiver.addRepo": "Gehitu jasotako biltegia",
   "receiver.emptyTitle": "Jasotako biltegiak",
@@ -1127,7 +1127,6 @@ const eu: Partial<Translations> = {
   "receiver.nameRequired": "Sartu izen bat.",
   "receiver.repoRequired": "Sartu biltegiaren kokapena.",
   "receiver.saveError": "Ezin izan da jasotako biltegia gorde.",
-  "nav.pull": "Ekarri",
   "pull.name": "Izena",
   "pull.title": "Ekarri",
   "pull.subtitle": "Ekarri beste BombVault baten biltegiko babeskopiak biltegi honetara.",

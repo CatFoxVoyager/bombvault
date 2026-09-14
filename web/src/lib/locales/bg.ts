@@ -12,8 +12,6 @@ const bg: Partial<Translations> = {
   "nav.vms": "ВМ",
   "nav.flash": "Flash",
   "nav.config": "Самобекъп",
-  "nav.receiver": "Приемник",
-  "nav.fleet": "Флот",
   "nav.settings": "Настройки",
 
   // Mode toggle
@@ -1074,6 +1072,8 @@ const bg: Partial<Translations> = {
 
   // Receiver dashboard
   "receiver.title": "Приемник",
+  "instances.title": "Инстанции",
+  "instances.subtitle": "Всичко, свързано с друг BombVault: хранилища, изпратени тук, инстанции, наблюдавани по HTTP, и хранилища, от които тази машина изтегля.",
   "receiver.subtitle": "Наблюдавай копията извън обекта, които други BombVault инстанции изпращат на тази кутия, само за четене.",
   "receiver.addRepo": "Добави получено хранилище",
   "receiver.emptyTitle": "Получени хранилища",
@@ -1127,7 +1127,6 @@ const bg: Partial<Translations> = {
   "receiver.nameRequired": "Въведи име.",
   "receiver.repoRequired": "Въведи местоположение на хранилището.",
   "receiver.saveError": "Полученото хранилище не можа да бъде запазено.",
-  "nav.pull": "Издърпване",
   "pull.name": "Име",
   "pull.title": "Издърпване",
   "pull.subtitle": "Издърпай архивите от хранилището на друг BombVault в това.",

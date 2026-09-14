@@ -12,8 +12,6 @@ const ca: Partial<Translations> = {
   "nav.vms": "MV",
   "nav.flash": "Flash",
   "nav.config": "Autocòpia",
-  "nav.receiver": "Receptor",
-  "nav.fleet": "Flota",
   "nav.settings": "Configuració",
 
   // Mode toggle
@@ -1074,6 +1072,8 @@ const ca: Partial<Translations> = {
 
   // Receiver dashboard
   "receiver.title": "Receptor",
+  "instances.title": "Instàncies",
+  "instances.subtitle": "Tot el que té a veure amb un altre BombVault: dipòsits enviats aquí, instàncies vigilades per HTTP i dipòsits d'on recull aquesta màquina.",
   "receiver.subtitle": "Supervisa les còpies externes que altres instàncies de BombVault envien a aquesta caixa, només lectura.",
   "receiver.addRepo": "Afegeix repositori rebut",
   "receiver.emptyTitle": "Repositoris rebuts",
@@ -1127,7 +1127,6 @@ const ca: Partial<Translations> = {
   "receiver.nameRequired": "Introdueix un nom.",
   "receiver.repoRequired": "Introdueix la ubicació del repositori.",
   "receiver.saveError": "No s'ha pogut desar el repositori rebut.",
-  "nav.pull": "Recollida",
   "pull.name": "Nom",
   "pull.title": "Recollida",
   "pull.subtitle": "Recull còpies de seguretat del repositori d'un altre BombVault cap a aquest.",

@@ -1405,13 +1405,13 @@ const ko: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "내보내기 암호화",
 
   // Receiver dashboard
-  "nav.receiver": "수신기",
-  "nav.fleet": "플릿",
   "settings.receiverEnabled": "수신기 대시보드",
   "settings.receiverEnabledHint": "다른 BombVault가 푸시하는 추가 전용 오프사이트 저장소를 모니터링(읽기 전용)",
   "settings.fleetEnabled": "플릿 보기",
   "settings.fleetEnabledHint": "연결된 BombVault 인스턴스의 보호 상태를 확인합니다 (읽기 전용)",
   "receiver.title": "수신기",
+  "instances.title": "인스턴스",
+  "instances.subtitle": "다른 BombVault와 관련된 모든 것입니다. 이곳으로 보내진 저장소, HTTP로 지켜보는 인스턴스, 그리고 이 장비가 가져오는 저장소.",
   "receiver.subtitle": "다른 BombVault 인스턴스가 이 컴퓨터로 푸시하는 오프사이트 복사본을 읽기 전용으로 모니터링합니다.",
   "receiver.addRepo": "수신 저장소 추가",
   "receiver.emptyTitle": "수신 저장소",
@@ -1465,7 +1465,6 @@ const ko: Partial<Translations> = {
   "receiver.nameRequired": "이름을 입력하세요.",
   "receiver.repoRequired": "저장소 위치를 입력하세요.",
   "receiver.saveError": "수신 저장소를 저장하지 못했습니다.",
-  "nav.pull": "가져오기",
   "pull.name": "이름",
   "pull.title": "가져오기",
   "pull.subtitle": "다른 BombVault 저장소의 백업을 이 저장소로 가져옵니다.",

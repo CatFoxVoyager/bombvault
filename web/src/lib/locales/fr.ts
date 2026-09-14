@@ -1413,13 +1413,13 @@ const fr: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "Chiffrement des exports",
 
   // Receiver dashboard
-  "nav.receiver": "Récepteur",
-  "nav.fleet": "Flotte",
   "settings.receiverEnabled": "Tableau de bord récepteur",
   "settings.receiverEnabledHint": "Surveiller un dépôt hors site en ajout seul dans lequel un autre BombVault pousse (lecture seule)",
   "settings.fleetEnabled": "Vue flotte",
   "settings.fleetEnabledHint": "Surveillez l'état de protection des instances BombVault associées (lecture seule)",
   "receiver.title": "Récepteur",
+  "instances.title": "Instances",
+  "instances.subtitle": "Tout ce qui concerne un autre BombVault : dépôts envoyés ici, instances surveillées par HTTP et dépôts dont cette machine récupère.",
   "receiver.subtitle": "Surveillez les copies hors site que d'autres instances BombVault poussent vers cette machine, en lecture seule.",
   "receiver.addRepo": "Ajouter un dépôt reçu",
   "receiver.emptyTitle": "Dépôts reçus",
@@ -1473,7 +1473,6 @@ const fr: Partial<Translations> = {
   "receiver.nameRequired": "Saisissez un nom.",
   "receiver.repoRequired": "Saisissez un emplacement de dépôt.",
   "receiver.saveError": "Impossible d'enregistrer le dépôt reçu.",
-  "nav.pull": "Rapatriement",
   "pull.name": "Nom",
   "pull.title": "Rapatriement",
   "pull.subtitle": "Rapatrier des sauvegardes depuis le dépôt d'un autre BombVault vers celui-ci.",

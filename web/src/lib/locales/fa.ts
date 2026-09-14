@@ -12,8 +12,6 @@ const fa: Partial<Translations> = {
   "nav.vms": "ماشین‌های مجازی",
   "nav.flash": "فلش",
   "nav.config": "پشتیبان‌گیری خودکار",
-  "nav.receiver": "گیرنده",
-  "nav.fleet": "ناوگان",
   "nav.settings": "تنظیمات",
 
   // Mode toggle
@@ -1074,6 +1072,8 @@ const fa: Partial<Translations> = {
 
   // Receiver dashboard
   "receiver.title": "گیرنده",
+  "instances.title": "نمونه‌ها",
+  "instances.subtitle": "هر چیزی که به یک BombVault دیگر مربوط است: مخزن‌هایی که به اینجا فرستاده شده‌اند، نمونه‌هایی که از راه HTTP زیر نظر هستند، و مخزن‌هایی که این دستگاه از آن‌ها می‌کشد.",
   "receiver.subtitle": "نسخه‌های خارج از محلی که نمونه‌های دیگر BombVault به این جعبه ارسال می‌کنند را فقط به‌صورت خواندنی نظارت کنید.",
   "receiver.addRepo": "افزودن مخزن دریافتی",
   "receiver.emptyTitle": "مخزن‌های دریافتی",
@@ -1127,7 +1127,6 @@ const fa: Partial<Translations> = {
   "receiver.nameRequired": "نامی وارد کنید.",
   "receiver.repoRequired": "مکان مخزن را وارد کنید.",
   "receiver.saveError": "مخزن دریافتی ذخیره نشد.",
-  "nav.pull": "واکشی",
   "pull.name": "نام",
   "pull.title": "واکشی",
   "pull.subtitle": "پشتیبان‌ها را از مخزن یک BombVault دیگر به این مخزن بیاورید.",

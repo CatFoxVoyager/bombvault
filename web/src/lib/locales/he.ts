@@ -1413,13 +1413,13 @@ const he: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "הצפנת ייצוא",
 
   // Receiver dashboard
-  "nav.receiver": "מקלט",
-  "nav.fleet": "צי",
   "settings.receiverEnabled": "לוח מקלט",
   "settings.receiverEnabledHint": "ניטור מאגר חיצוני להוספה-בלבד שאליו שולח BombVault אחר (קריאה בלבד)",
   "settings.fleetEnabled": "תצוגת צי",
   "settings.fleetEnabledHint": "עקוב אחר מצב ההגנה של מופעי BombVault מקושרים (קריאה בלבד)",
   "receiver.title": "מקלט",
+  "instances.title": "מופעים",
+  "instances.subtitle": "כל מה שקשור ל-BombVault אחר: מאגרים שנשלחו לכאן, מופעים שנצפים דרך HTTP, ומאגרים שהמכונה הזו מושכת מהם.",
   "receiver.subtitle": "נטר את העותקים החיצוניים ש-BombVault אחרים דוחפים אל מכונה זו, בקריאה בלבד.",
   "receiver.addRepo": "הוסף מאגר שהתקבל",
   "receiver.emptyTitle": "מאגרים שהתקבלו",
@@ -1473,7 +1473,6 @@ const he: Partial<Translations> = {
   "receiver.nameRequired": "הזן שם.",
   "receiver.repoRequired": "הזן מיקום מאגר.",
   "receiver.saveError": "לא ניתן לשמור את המאגר שהתקבל.",
-  "nav.pull": "משיכה",
   "pull.name": "שם",
   "pull.title": "משיכה",
   "pull.subtitle": "משוך גיבויים מהמאגר של BombVault אחר אל המאגר הזה.",

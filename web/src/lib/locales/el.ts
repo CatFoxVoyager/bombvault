@@ -1413,13 +1413,13 @@ const el: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "Κρυπτογράφηση εξαγωγών",
 
   // Receiver dashboard
-  "nav.receiver": "Δέκτης",
-  "nav.fleet": "Στόλος",
   "settings.receiverEnabled": "Πίνακας δέκτη",
   "settings.receiverEnabledHint": "Παρακολούθηση εξωτερικού αποθετηρίου μόνο-προσθήκης όπου στέλνει ένα άλλο BombVault (μόνο ανάγνωση)",
   "settings.fleetEnabled": "Προβολή στόλου",
   "settings.fleetEnabledHint": "Παρακολουθήστε την κατάσταση προστασίας συνδεδεμένων εγκαταστάσεων BombVault (μόνο για ανάγνωση)",
   "receiver.title": "Δέκτης",
+  "instances.title": "Στιγμιότυπα",
+  "instances.subtitle": "Ό,τι αφορά ένα άλλο BombVault: αποθετήρια που στάλθηκαν εδώ, στιγμιότυπα που παρακολουθούνται μέσω HTTP και αποθετήρια από τα οποία αντλεί αυτό το μηχάνημα.",
   "receiver.subtitle": "Παρακολουθήστε τα εξωτερικά αντίγραφα που στέλνουν άλλες εγκαταστάσεις BombVault σε αυτό το μηχάνημα, μόνο για ανάγνωση.",
   "receiver.addRepo": "Προσθήκη ληφθέντος αποθετηρίου",
   "receiver.emptyTitle": "Ληφθέντα αποθετήρια",
@@ -1473,7 +1473,6 @@ const el: Partial<Translations> = {
   "receiver.nameRequired": "Εισαγάγετε ένα όνομα.",
   "receiver.repoRequired": "Εισαγάγετε μια τοποθεσία αποθετηρίου.",
   "receiver.saveError": "Δεν ήταν δυνατή η αποθήκευση του ληφθέντος αποθετηρίου.",
-  "nav.pull": "Άντληση",
   "pull.name": "Όνομα",
   "pull.title": "Άντληση",
   "pull.subtitle": "Αντλήστε αντίγραφα ασφαλείας από το αποθετήριο ενός άλλου BombVault σε αυτό εδώ.",

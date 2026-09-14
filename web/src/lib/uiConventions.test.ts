@@ -212,6 +212,16 @@ ruleTester.run("page-uses-page-shell", rules["page-uses-page-shell"], {
     },
     // The documented exception, allowed BY NAME and only for its own shell.
     { code: `export function SettingsPage() { return <div className={PAGE_SHELL_TABBED}><h1 /></div>; }`, filename: SETTINGS, options: shellOptions },
+    // A page that ALSO renders as a tab panel of another page (Receiver, Fleet
+    // and Pull inside Instances) may choose between the two SHARED shells. Both
+    // arms are constants from pageShell.ts and one is this file's required
+    // shell, so the page still cannot invent a third width. The invalid list
+    // below holds the two shapes this must NOT let through.
+    {
+      code: `export function Fleet({ embedded }) { return <div className={embedded ? PAGE_SHELL_TABBED : PAGE_SHELL}><h1 /></div>; }`,
+      filename: PAGE,
+      options: shellOptions,
+    },
     // Login is exempt entirely — it never sits under <Outlet />.
     { code: `export function LoginPage() { return <div className="w-full max-w-sm"><h1 /></div>; }`, filename: LOGIN, options: shellOptions },
     // Components outside src/pages are not pages.
@@ -223,6 +233,22 @@ ruleTester.run("page-uses-page-shell", rules["page-uses-page-shell"], {
     { code: `export function SettingsPage() { return <div className={PAGE_SHELL_TABBED}><div className="flex flex-col gap-1 text-xs max-w-xs" /></div>; }`, filename: SETTINGS, options: shellOptions },
   ],
   invalid: [
+    {
+      // The ternary escape hatch, abused: a literal in one arm is a page
+      // hand-rolling its own width behind a condition, which is the exact drift
+      // this rule exists to stop. Both nets fire.
+      code: `export function Fleet({ embedded }) { return <div className={embedded ? "flex flex-col gap-6 max-w-5xl" : PAGE_SHELL}><h1 /></div>; }`,
+      filename: PAGE,
+      options: shellOptions,
+      errors: [{ messageId: "notShelled" }, { messageId: "handRolled" }],
+    },
+    {
+      // Both arms shared, but NEITHER is the shell this file must use.
+      code: `export function Fleet({ embedded }) { return <div className={embedded ? PAGE_SHELL_TABBED : PAGE_SHELL_TABBED}><h1 /></div>; }`,
+      filename: PAGE,
+      options: shellOptions,
+      errors: [{ messageId: "notShelled" }],
+    },
     {
       // An ARROW with an expression body has no ReturnStatement, so the rule
       // found no returns and skipped the component in silence — a page written

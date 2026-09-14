@@ -1408,13 +1408,13 @@ const ru: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "Шифрование экспортов",
 
   // Receiver dashboard
-  "nav.receiver": "Приёмник",
-  "nav.fleet": "Флот",
   "settings.receiverEnabled": "Панель приёмника",
   "settings.receiverEnabledHint": "Мониторинг внешнего репозитория «только добавление», в который отправляет другой BombVault (только чтение)",
   "settings.fleetEnabled": "Обзор флота",
   "settings.fleetEnabledHint": "Следите за статусом защиты подключённых экземпляров BombVault (только для чтения)",
   "receiver.title": "Приёмник",
+  "instances.title": "Экземпляры",
+  "instances.subtitle": "Всё, что связано с другим BombVault: присланные сюда репозитории, экземпляры, за которыми ведётся наблюдение по HTTP, и репозитории, из которых эта машина забирает.",
   "receiver.subtitle": "Мониторьте внешние копии, которые другие экземпляры BombVault отправляют на эту машину, только для чтения.",
   "receiver.addRepo": "Добавить принятый репозиторий",
   "receiver.emptyTitle": "Принятые репозитории",
@@ -1468,7 +1468,6 @@ const ru: Partial<Translations> = {
   "receiver.nameRequired": "Введите имя.",
   "receiver.repoRequired": "Введите расположение репозитория.",
   "receiver.saveError": "Не удалось сохранить принятый репозиторий.",
-  "nav.pull": "Подтягивание",
   "pull.name": "Имя",
   "pull.title": "Подтягивание",
   "pull.subtitle": "Подтягивайте резервные копии из репозитория другого BombVault в этот.",

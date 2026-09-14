@@ -1411,13 +1411,13 @@ const cs: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "Šifrování exportů",
 
   // Receiver dashboard
-  "nav.receiver": "Přijímač",
-  "nav.fleet": "Flotila",
   "settings.receiverEnabled": "Panel přijímače",
   "settings.receiverEnabledHint": "Sledovat externí repozitář pouze pro připojení, do kterého odesílá jiný BombVault (jen ke čtení)",
   "settings.fleetEnabled": "Zobrazení flotily",
   "settings.fleetEnabledHint": "Sledujte stav ochrany propojených instancí BombVault (jen ke čtení)",
   "receiver.title": "Přijímač",
+  "instances.title": "Instance",
+  "instances.subtitle": "Vše, co se týká jiného BombVaultu: repozitáře poslané sem, instance sledované přes HTTP a repozitáře, ze kterých tento stroj stahuje.",
   "receiver.subtitle": "Sledujte externí kopie, které jiné instance BombVault odesílají na tento stroj, jen ke čtení.",
   "receiver.addRepo": "Přidat přijatý repozitář",
   "receiver.emptyTitle": "Přijaté repozitáře",
@@ -1471,7 +1471,6 @@ const cs: Partial<Translations> = {
   "receiver.nameRequired": "Zadejte název.",
   "receiver.repoRequired": "Zadejte umístění repozitáře.",
   "receiver.saveError": "Nepodařilo se uložit přijatý repozitář.",
-  "nav.pull": "Stažení",
   "pull.name": "Název",
   "pull.title": "Stažení",
   "pull.subtitle": "Stáhněte zálohy z repozitáře jiného BombVaultu do tohoto.",

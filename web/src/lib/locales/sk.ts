@@ -12,8 +12,6 @@ const sk: Partial<Translations> = {
   "nav.vms": "VM",
   "nav.flash": "Flash",
   "nav.config": "Vlastná záloha",
-  "nav.receiver": "Prijímač",
-  "nav.fleet": "Flotila",
   "nav.settings": "Nastavenia",
 
   // Mode toggle
@@ -1074,6 +1072,8 @@ const sk: Partial<Translations> = {
 
   // Receiver dashboard
   "receiver.title": "Prijímač",
+  "instances.title": "Inštancie",
+  "instances.subtitle": "Všetko, čo sa týka iného BombVaultu: repozitáre poslané sem, inštancie sledované cez HTTP a repozitáre, z ktorých tento stroj sťahuje.",
   "receiver.subtitle": "Sledujte externé kópie, ktoré do tohto boxu posielajú iné inštancie BombVault, iba na čítanie.",
   "receiver.addRepo": "Pridať prijatý repozitár",
   "receiver.emptyTitle": "Prijaté repozitáre",
@@ -1127,7 +1127,6 @@ const sk: Partial<Translations> = {
   "receiver.nameRequired": "Zadajte názov.",
   "receiver.repoRequired": "Zadajte umiestnenie repozitára.",
   "receiver.saveError": "Prijatý repozitár sa nepodarilo uložiť.",
-  "nav.pull": "Sťahovanie",
   "pull.name": "Názov",
   "pull.title": "Sťahovanie",
   "pull.subtitle": "Stiahnite zálohy z repozitára iného BombVaultu do tohto.",

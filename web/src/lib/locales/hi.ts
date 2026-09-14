@@ -12,8 +12,6 @@ const hi: Partial<Translations> = {
   "nav.vms": "VM",
   "nav.flash": "फ़्लैश",
   "nav.config": "सेल्फ़-बैकअप",
-  "nav.receiver": "रिसीवर",
-  "nav.fleet": "फ़्लीट",
   "nav.settings": "सेटिंग्स",
 
   // Mode toggle
@@ -1074,6 +1072,8 @@ const hi: Partial<Translations> = {
 
   // Receiver dashboard
   "receiver.title": "रिसीवर",
+  "instances.title": "इंस्टेंस",
+  "instances.subtitle": "किसी दूसरे BombVault से जुड़ी हर चीज़: यहाँ भेजे गए रिपॉज़िटरी, HTTP पर देखे जाने वाले इंस्टेंस, और वे रिपॉज़िटरी जिनसे यह मशीन खींचती है।",
   "receiver.subtitle": "इस बॉक्स को दूसरे BombVault इंस्टेंस भेजने वाली ऑफ़-साइट कॉपियों की निगरानी करें, केवल पढ़ने के लिए।",
   "receiver.addRepo": "प्राप्त रिपॉज़िटरी जोड़ें",
   "receiver.emptyTitle": "प्राप्त रिपॉज़िटरीज़",
@@ -1127,7 +1127,6 @@ const hi: Partial<Translations> = {
   "receiver.nameRequired": "एक नाम दर्ज करें।",
   "receiver.repoRequired": "रिपॉज़िटरी का स्थान दर्ज करें।",
   "receiver.saveError": "प्राप्त रिपॉज़िटरी सहेजी नहीं जा सकी।",
-  "nav.pull": "पुल",
   "pull.name": "नाम",
   "pull.title": "पुल",
   "pull.subtitle": "दूसरे BombVault की रिपॉज़िटरी से बैकअप इस रिपॉज़िटरी में खींचें।",

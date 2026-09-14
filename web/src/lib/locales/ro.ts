@@ -1416,13 +1416,13 @@ const ro: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "Criptarea exporturilor",
 
   // Receiver dashboard
-  "nav.receiver": "Receptor",
-  "nav.fleet": "Flotă",
   "settings.receiverEnabled": "Panou receptor",
   "settings.receiverEnabledHint": "Monitorizează un depozit extern doar-adăugare în care trimite un alt BombVault (doar citire)",
   "settings.fleetEnabled": "Vizualizare flotă",
   "settings.fleetEnabledHint": "Monitorizează starea de protecție a instanțelor BombVault conectate (doar în citire)",
   "receiver.title": "Receptor",
+  "instances.title": "Instanțe",
+  "instances.subtitle": "Tot ce ține de un alt BombVault: depozite trimise aici, instanțe urmărite prin HTTP și depozite din care preia această mașină.",
   "receiver.subtitle": "Monitorizează copiile externe pe care alte instanțe BombVault le trimit către această mașină, doar în citire.",
   "receiver.addRepo": "Adaugă depozit primit",
   "receiver.emptyTitle": "Depozite primite",
@@ -1476,7 +1476,6 @@ const ro: Partial<Translations> = {
   "receiver.nameRequired": "Introdu un nume.",
   "receiver.repoRequired": "Introdu o locație a depozitului.",
   "receiver.saveError": "Nu s-a putut salva depozitul primit.",
-  "nav.pull": "Preluare",
   "pull.name": "Nume",
   "pull.title": "Preluare",
   "pull.subtitle": "Preia copiile de siguranță din depozitul altui BombVault în acesta.",

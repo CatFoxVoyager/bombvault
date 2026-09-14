@@ -1413,13 +1413,13 @@ const no: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "Eksportkryptering",
 
   // Receiver dashboard
-  "nav.receiver": "Mottaker",
-  "nav.fleet": "Flåte",
   "settings.receiverEnabled": "Mottakerpanel",
   "settings.receiverEnabledHint": "Overvåk et off-site-arkiv med kun tillegg som en annen BombVault sender til (skrivebeskyttet)",
   "settings.fleetEnabled": "Flåtevisning",
   "settings.fleetEnabledHint": "Overvåk beskyttelsesstatusen til tilkoblede BombVault-instanser (skrivebeskyttet)",
   "receiver.title": "Mottaker",
+  "instances.title": "Instanser",
+  "instances.subtitle": "Alt som har med en annen BombVault å gjøre: repositorier sendt hit, instanser overvåket over HTTP og repositorier denne maskinen henter fra.",
   "receiver.subtitle": "Overvåk off-site-kopiene som andre BombVault-instanser sender til denne maskinen, skrivebeskyttet.",
   "receiver.addRepo": "Legg til mottatt arkiv",
   "receiver.emptyTitle": "Mottatte arkiver",
@@ -1473,7 +1473,6 @@ const no: Partial<Translations> = {
   "receiver.nameRequired": "Skriv inn et navn.",
   "receiver.repoRequired": "Skriv inn en arkivplassering.",
   "receiver.saveError": "Kunne ikke lagre det mottatte arkivet.",
-  "nav.pull": "Henting",
   "pull.name": "Navn",
   "pull.title": "Henting",
   "pull.subtitle": "Hent sikkerhetskopier fra arkivet til en annen BombVault inn i arkivet til denne maskinen.",

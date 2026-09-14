@@ -1408,13 +1408,13 @@ const uk: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "Шифрування експортів",
 
   // Receiver dashboard
-  "nav.receiver": "Приймач",
-  "nav.fleet": "Флот",
   "settings.receiverEnabled": "Панель приймача",
   "settings.receiverEnabledHint": "Моніторинг зовнішнього репозиторію «лише додавання», куди надсилає інший BombVault (лише читання)",
   "settings.fleetEnabled": "Огляд флоту",
   "settings.fleetEnabledHint": "Стежте за станом захисту підключених екземплярів BombVault (лише для читання)",
   "receiver.title": "Приймач",
+  "instances.title": "Екземпляри",
+  "instances.subtitle": "Усе, що стосується іншого BombVault: надіслані сюди репозиторії, екземпляри, за якими стежать через HTTP, і репозиторії, з яких ця машина забирає.",
   "receiver.subtitle": "Відстежуйте зовнішні копії, які інші екземпляри BombVault надсилають на цю машину, лише для читання.",
   "receiver.addRepo": "Додати отриманий репозиторій",
   "receiver.emptyTitle": "Отримані репозиторії",
@@ -1468,7 +1468,6 @@ const uk: Partial<Translations> = {
   "receiver.nameRequired": "Введіть назву.",
   "receiver.repoRequired": "Введіть розташування репозиторію.",
   "receiver.saveError": "Не вдалося зберегти отриманий репозиторій.",
-  "nav.pull": "Стягування",
   "pull.name": "Назва",
   "pull.title": "Стягування",
   "pull.subtitle": "Стягуйте резервні копії з репозиторію іншого BombVault до цього.",

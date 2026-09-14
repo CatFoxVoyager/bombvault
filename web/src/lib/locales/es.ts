@@ -1411,13 +1411,13 @@ const es: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "Cifrado de exportaciones",
 
   // Receiver dashboard
-  "nav.receiver": "Receptor",
-  "nav.fleet": "Flota",
   "settings.receiverEnabled": "Panel de receptor",
   "settings.receiverEnabledHint": "Supervisar un repositorio externo de solo anexado al que otro BombVault envía (solo lectura)",
   "settings.fleetEnabled": "Vista de flota",
   "settings.fleetEnabledHint": "Supervisa el estado de protección de las instancias de BombVault vinculadas (solo lectura)",
   "receiver.title": "Receptor",
+  "instances.title": "Instancias",
+  "instances.subtitle": "Todo lo relacionado con otro BombVault: repositorios enviados aquí, instancias vigiladas por HTTP y repositorios de los que recoge esta máquina.",
   "receiver.subtitle": "Supervisa las copias externas que otras instancias de BombVault envían a esta máquina, en solo lectura.",
   "receiver.addRepo": "Añadir repositorio recibido",
   "receiver.emptyTitle": "Repositorios recibidos",
@@ -1471,7 +1471,6 @@ const es: Partial<Translations> = {
   "receiver.nameRequired": "Introduce un nombre.",
   "receiver.repoRequired": "Introduce una ubicación de repositorio.",
   "receiver.saveError": "No se pudo guardar el repositorio recibido.",
-  "nav.pull": "Recogida",
   "pull.name": "Nombre",
   "pull.title": "Recogida",
   "pull.subtitle": "Recoge copias de seguridad del repositorio de otro BombVault en el de esta máquina.",

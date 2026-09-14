@@ -1416,13 +1416,13 @@ const hu: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "Exportok titkosítása",
 
   // Receiver dashboard
-  "nav.receiver": "Fogadó",
-  "nav.fleet": "Flotta",
   "settings.receiverEnabled": "Fogadó irányítópult",
   "settings.receiverEnabledHint": "Csak-hozzáfűzés külső tároló figyelése, amelybe egy másik BombVault küld (csak olvasható)",
   "settings.fleetEnabled": "Flottanézet",
   "settings.fleetEnabledHint": "Kapcsolt BombVault-példányok védelmi állapotának megtekintése (csak olvasható)",
   "receiver.title": "Fogadó",
+  "instances.title": "Példányok",
+  "instances.subtitle": "Minden, ami egy másik BombVaulttal kapcsolatos: ide küldött tárházak, HTTP-n figyelt példányok és tárházak, amelyekből ez a gép behúz.",
   "receiver.subtitle": "Figyelje a külső másolatokat, amelyeket más BombVault-példányok küldenek erre a gépre, csak olvasható módban.",
   "receiver.addRepo": "Fogadott tároló hozzáadása",
   "receiver.emptyTitle": "Fogadott tárolók",
@@ -1476,7 +1476,6 @@ const hu: Partial<Translations> = {
   "receiver.nameRequired": "Adjon meg egy nevet.",
   "receiver.repoRequired": "Adjon meg egy tárolóhelyet.",
   "receiver.saveError": "A fogadott tárolót nem sikerült menteni.",
-  "nav.pull": "Lehívás",
   "pull.name": "Név",
   "pull.title": "Lehívás",
   "pull.subtitle": "Mentések lehívása egy másik BombVault tárolójából ebbe a tárolóba.",

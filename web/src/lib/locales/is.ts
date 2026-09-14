@@ -12,8 +12,6 @@ const is: Partial<Translations> = {
   "nav.vms": "Sýndarvélar",
   "nav.flash": "Flash",
   "nav.config": "Sjálfvirk afritun",
-  "nav.receiver": "Móttakandi",
-  "nav.fleet": "Floti",
   "nav.settings": "Stillingar",
 
   // Mode toggle
@@ -1074,6 +1072,8 @@ const is: Partial<Translations> = {
 
   // Receiver dashboard
   "receiver.title": "Móttakandi",
+  "instances.title": "Tilvik",
+  "instances.subtitle": "Allt sem snertir annað BombVault: söfn sem send eru hingað, tilvik sem fylgst er með um HTTP og söfn sem þessi vél sækir í.",
   "receiver.subtitle": "Fylgstu með fjarlægum afritum sem önnur BombVault-tilvik senda á þessa vél, aðeins lestur.",
   "receiver.addRepo": "Bæta við mótteknu geymslusafni",
   "receiver.emptyTitle": "Móttekin geymslusöfn",
@@ -1127,7 +1127,6 @@ const is: Partial<Translations> = {
   "receiver.nameRequired": "Sláðu inn nafn.",
   "receiver.repoRequired": "Sláðu inn staðsetningu geymslusafns.",
   "receiver.saveError": "Ekki tókst að vista móttekna geymslusafnið.",
-  "nav.pull": "Sækja",
   "pull.name": "Nafn",
   "pull.title": "Sækja",
   "pull.subtitle": "Sæktu afrit úr geymslusafni annars BombVault inn í þetta.",

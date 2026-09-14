@@ -12,8 +12,6 @@ const lv: Partial<Translations> = {
   "nav.vms": "VM",
   "nav.flash": "Flash",
   "nav.config": "Pašrezerve",
-  "nav.receiver": "Uztvērējs",
-  "nav.fleet": "Flote",
   "nav.settings": "Iestatījumi",
 
   // Mode toggle
@@ -1074,6 +1072,8 @@ const lv: Partial<Translations> = {
 
   // Receiver dashboard
   "receiver.title": "Uztvērējs",
+  "instances.title": "Instances",
+  "instances.subtitle": "Viss, kas saistīts ar citu BombVault: šeit atsūtītie repozitoriji, pa HTTP uzraudzītās instances un repozitoriji, no kuriem šī mašīna ievelk.",
   "receiver.subtitle": "Uzraugiet attālinātās kopijas, ko citas BombVault instances sūta uz šo ierīci, tikai lasīšanai.",
   "receiver.addRepo": "Pievienot saņemto repozitoriju",
   "receiver.emptyTitle": "Saņemtie repozitoriji",
@@ -1127,7 +1127,6 @@ const lv: Partial<Translations> = {
   "receiver.nameRequired": "Ievadiet nosaukumu.",
   "receiver.repoRequired": "Ievadiet repozitorija atrašanās vietu.",
   "receiver.saveError": "Neizdevās saglabāt saņemto repozitoriju.",
-  "nav.pull": "Ievilkšana",
   "pull.name": "Nosaukums",
   "pull.title": "Ievilkšana",
   "pull.subtitle": "Ievelciet rezerves kopijas no cita BombVault repozitorija šajā repozitorijā.",

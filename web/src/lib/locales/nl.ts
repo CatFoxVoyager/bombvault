@@ -1410,13 +1410,13 @@ const nl: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "Exportversleuteling",
 
   // Receiver dashboard
-  "nav.receiver": "Ontvanger",
-  "nav.fleet": "Vloot",
   "settings.receiverEnabled": "Ontvanger-dashboard",
   "settings.receiverEnabledHint": "Bewaak een alleen-toevoegen off-site-repo waar een andere BombVault naartoe pusht (alleen-lezen)",
   "settings.fleetEnabled": "Vlootweergave",
   "settings.fleetEnabledHint": "Bewaak de beschermingsstatus van gekoppelde BombVault-instanties (alleen-lezen)",
   "receiver.title": "Ontvanger",
+  "instances.title": "Instanties",
+  "instances.subtitle": "Alles wat met een andere BombVault te maken heeft: repository's die hierheen zijn gestuurd, instanties die via HTTP worden gevolgd, en repository's waaruit deze machine ophaalt.",
   "receiver.subtitle": "Bewaak de off-site-kopieën die andere BombVault-instanties naar deze machine pushen, alleen-lezen.",
   "receiver.addRepo": "Ontvangen repo toevoegen",
   "receiver.emptyTitle": "Ontvangen repo's",
@@ -1470,7 +1470,6 @@ const nl: Partial<Translations> = {
   "receiver.nameRequired": "Voer een naam in.",
   "receiver.repoRequired": "Voer een repository-locatie in.",
   "receiver.saveError": "Kon de ontvangen repo niet opslaan.",
-  "nav.pull": "Ophalen",
   "pull.name": "Naam",
   "pull.title": "Ophalen",
   "pull.subtitle": "Back-ups uit de repository van een andere BombVault naar deze halen.",

@@ -12,8 +12,6 @@ const ms: Partial<Translations> = {
   "nav.vms": "VM",
   "nav.flash": "Flash",
   "nav.config": "Sandaran Sendiri",
-  "nav.receiver": "Penerima",
-  "nav.fleet": "Armada",
   "nav.settings": "Tetapan",
 
   // Mode toggle
@@ -1074,6 +1072,8 @@ const ms: Partial<Translations> = {
 
   // Receiver dashboard
   "receiver.title": "Penerima",
+  "instances.title": "Instans",
+  "instances.subtitle": "Segala yang berkaitan dengan BombVault lain: repositori yang dihantar ke sini, instans yang dipantau melalui HTTP, dan repositori yang ditarik oleh mesin ini.",
   "receiver.subtitle": "Pantau salinan luar tapak yang dihantar instans BombVault lain ke kotak ini, baca sahaja.",
   "receiver.addRepo": "Tambah repositori diterima",
   "receiver.emptyTitle": "Repositori diterima",
@@ -1127,7 +1127,6 @@ const ms: Partial<Translations> = {
   "receiver.nameRequired": "Masukkan nama.",
   "receiver.repoRequired": "Masukkan lokasi repositori.",
   "receiver.saveError": "Repositori diterima gagal disimpan.",
-  "nav.pull": "Tarik",
   "pull.name": "Nama",
   "pull.title": "Tarik",
   "pull.subtitle": "Tarik sandaran dari repositori BombVault lain ke repositori ini.",

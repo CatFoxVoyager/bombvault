@@ -27,7 +27,7 @@ import type {
   ReceiverInventory,
 } from "../lib/api";
 import { useT } from "../lib/i18n";
-import { PAGE_SHELL } from "../lib/pageShell";
+import { PAGE_SHELL, PAGE_SHELL_TABBED } from "../lib/pageShell";
 import { relativeTime } from "../lib/reltime";
 import { humanBytes } from "../lib/forecast";
 import { EmptyStateIcon } from "../components/EmptyStateIcon";
@@ -644,7 +644,11 @@ function ReceiverDialog({
 // Receiver page
 // ---------------------------------------------------------------------------
 
-export function Receiver() {
+/** `embedded` is the Instances page rendering this as one of its tabs: the
+ *  outer shell and the <h1> belong to that page then, because a tab panel
+ *  that repeats the strip's own label reads as two headings for one thing.
+ *  Everything else, the subtitle included, is the same page either way. */
+export function Receiver({ embedded = false }: { embedded?: boolean } = {}) {
   const { t } = useT();
   // Registers this page for a re-render on any rainbow-state change (on/off/
   // reactive/rotate/palette edit) — the ReceivedRepoCard list below reads
@@ -693,11 +697,11 @@ export function Receiver() {
     // changes, max-w-5xl (1024px) → the shared 1152px. This page's heading is
     // a single bare h1+p row, so the one flat shell gap still governs every
     // gap on it. See lib/pageShell.ts for the full before/after table.
-    <div className={PAGE_SHELL}>
+    <div className={embedded ? PAGE_SHELL_TABBED : PAGE_SHELL}>
       {/* Heading + Add */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold text-carbon-text">{t("receiver.title")}</h1>
+          {!embedded && <h1 className="text-2xl font-semibold text-carbon-text">{t("receiver.title")}</h1>}
           <p className="mt-1 text-sm text-carbon-textSub">{t("receiver.subtitle")}</p>
         </div>
         {!showEmptyState && (

@@ -1416,13 +1416,13 @@ const th: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "การเข้ารหัสการส่งออก",
 
   // Receiver dashboard
-  "nav.receiver": "ตัวรับ",
-  "nav.fleet": "กองเรือ",
   "settings.receiverEnabled": "แดชบอร์ดตัวรับ",
   "settings.receiverEnabledHint": "ตรวจสอบที่เก็บนอกสถานที่แบบเพิ่มต่อเท่านั้นที่ BombVault อื่นส่งมา (อ่านอย่างเดียว)",
   "settings.fleetEnabled": "มุมมองกองเรือ",
   "settings.fleetEnabledHint": "ตรวจสอบสถานะการป้องกันของอินสแตนซ์ BombVault ที่เชื่อมต่อ (อ่านอย่างเดียว)",
   "receiver.title": "ตัวรับ",
+  "instances.title": "อินสแตนซ์",
+  "instances.subtitle": "ทุกอย่างที่เกี่ยวกับ BombVault เครื่องอื่น ได้แก่ คลังที่ส่งมาที่นี่ อินสแตนซ์ที่เฝ้าดูผ่าน HTTP และคลังที่เครื่องนี้ดึงข้อมูลมา",
   "receiver.subtitle": "ตรวจสอบสำเนานอกสถานที่ที่อินสแตนซ์ BombVault อื่นส่งมายังเครื่องนี้ แบบอ่านอย่างเดียว",
   "receiver.addRepo": "เพิ่มที่เก็บที่รับ",
   "receiver.emptyTitle": "ที่เก็บที่รับ",
@@ -1476,7 +1476,6 @@ const th: Partial<Translations> = {
   "receiver.nameRequired": "ป้อนชื่อ",
   "receiver.repoRequired": "ป้อนตำแหน่งที่เก็บ",
   "receiver.saveError": "ไม่สามารถบันทึกที่เก็บที่รับได้",
-  "nav.pull": "ดึง",
   "pull.name": "ชื่อ",
   "pull.title": "ดึง",
   "pull.subtitle": "ดึงข้อมูลสำรองจากที่เก็บของ BombVault อื่นมายังที่เก็บนี้",

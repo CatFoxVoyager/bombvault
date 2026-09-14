@@ -64,8 +64,6 @@ export const en = {
   "nav.vms": "VMs",
   "nav.flash": "Flash",
   "nav.config": "Self-Backup",
-  "nav.receiver": "Receiver",
-  "nav.fleet": "Fleet",
   "nav.settings": "Settings",
   "about.title": "About BombVault",
   "about.body":
@@ -1356,6 +1354,8 @@ export const en = {
   // Receiver dashboard (read-only monitoring of an append-only off-site repo
   // another BombVault pushes to)
   "receiver.title": "Receiver",
+  "instances.title": "Instances",
+  "instances.subtitle": "Everything to do with another BombVault: repositories sent here, instances watched over HTTP, and repositories this box fetches from.",
   "receiver.subtitle": "Monitor the off-site copies other BombVault instances push to this box, read-only.",
   "receiver.addRepo": "Add received repo",
   // Card-title Badge headline for the empty-state list card (GlimStone
@@ -1418,7 +1418,6 @@ export const en = {
   "receiver.saveError": "Could not save the received repo.",
   // Pull sources (#227): fetching backups OUT of another instance's repository
   // into this one. The mirror image of off-site replication.
-  "nav.pull": "Pull",
   "pull.name": "Name",
   "pull.title": "Pull",
   "pull.subtitle": "Fetch backups out of another BombVault's repository into this one.",
@@ -2010,8 +2009,6 @@ export const de: Translations = {
   "nav.vms": "VMs",
   "nav.flash": "Flash",
   "nav.config": "Selbst-Backup",
-  "nav.receiver": "Empfänger",
-  "nav.fleet": "Flotte",
   "nav.settings": "Einstellungen",
   "about.title": "Über BombVault",
   "about.body":
@@ -3077,6 +3074,8 @@ export const de: Translations = {
   // Empfänger-Dashboard (nur lesende Überwachung eines Append-only-Off-site-Repos,
   // in das ein anderes BombVault schiebt)
   "receiver.title": "Empfänger",
+  "instances.title": "Instanzen",
+  "instances.subtitle": "Alles, was mit einer anderen BombVault-Instanz zu tun hat: hierher gesendete Repositorien, per HTTP beobachtete Instanzen und Repositorien, aus denen diese Kiste holt.",
   "receiver.subtitle": "Überwache die Off-site-Kopien, die andere BombVault-Instanzen auf diese Box schieben, rein lesend.",
   "receiver.addRepo": "Empfangenes Repo hinzufügen",
   "receiver.emptyTitle": "Empfangene Repos",
@@ -3131,7 +3130,6 @@ export const de: Translations = {
   "receiver.repoRequired": "Repository-Speicherort eingeben.",
   "receiver.saveError": "Das empfangene Repo konnte nicht gespeichert werden.",
   // Holen (#227)
-  "nav.pull": "Holen",
   "pull.name": "Name",
   "pull.title": "Holen",
   "pull.subtitle": "Sicherungen aus dem Repositorium eines anderen BombVault in dieses hier holen.",

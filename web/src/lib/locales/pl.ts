@@ -1408,13 +1408,13 @@ const pl: Partial<Translations> = {
   "settingsIO.group.exportEncryption": "Szyfrowanie eksportów",
 
   // Receiver dashboard
-  "nav.receiver": "Odbiornik",
-  "nav.fleet": "Flota",
   "settings.receiverEnabled": "Panel odbiornika",
   "settings.receiverEnabledHint": "Monitoruj repozytorium off-site tylko-do-dopisywania, do którego wysyła inny BombVault (tylko do odczytu)",
   "settings.fleetEnabled": "Widok floty",
   "settings.fleetEnabledHint": "Obserwuj status ochrony połączonych instancji BombVault (tylko do odczytu)",
   "receiver.title": "Odbiornik",
+  "instances.title": "Instancje",
+  "instances.subtitle": "Wszystko, co dotyczy innego BombVaulta: repozytoria przysłane tutaj, instancje obserwowane przez HTTP i repozytoria, z których ta maszyna pobiera.",
   "receiver.subtitle": "Monitoruj kopie off-site, które inne instancje BombVault wysyłają na tę maszynę, tylko do odczytu.",
   "receiver.addRepo": "Dodaj odebrane repozytorium",
   "receiver.emptyTitle": "Odebrane repozytoria",
@@ -1468,7 +1468,6 @@ const pl: Partial<Translations> = {
   "receiver.nameRequired": "Wprowadź nazwę.",
   "receiver.repoRequired": "Wprowadź lokalizację repozytorium.",
   "receiver.saveError": "Nie udało się zapisać odebranego repozytorium.",
-  "nav.pull": "Pobieranie",
   "pull.name": "Nazwa",
   "pull.title": "Pobieranie",
   "pull.subtitle": "Pobieraj kopie zapasowe z repozytorium innego BombVault do repozytorium tej maszyny.",
