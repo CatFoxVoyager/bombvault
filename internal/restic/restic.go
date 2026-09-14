@@ -112,6 +112,46 @@ type Mode struct {
 	// this knob — and the zero value is a no-op, so argv stays byte-identical
 	// for every item with no root enabled.
 	ExcludeCaches bool
+	// From carries the SOURCE repository's own credentials for `restic copy`.
+	//
+	// Nil means what every caller before the pull meant: the source is this
+	// instance's own repository under another address, so it shares the
+	// destination's password and encryption flag. Off-site replication is
+	// exactly that shape, and nil keeps its argv and environment byte-identical.
+	//
+	// A CROSS-INSTANCE PULL IS THE CASE WHERE ALL OF THAT IS FALSE, and it is
+	// the reason this field exists. Two BombVaults never share a password: each
+	// derives its repository password from its OWN APP_KEY. Without a source
+	// side, Copy hands restic the DESTINATION's password as
+	// RESTIC_FROM_PASSWORD, restic answers with a decryption failure, and the
+	// message it produces is the one both foreign.go and receiver.go already
+	// print for a genuinely wrong key. So the failure does not look like a bug,
+	// it looks like the operator mistyping a key they typed correctly, which is
+	// the worst shape a defect can take on this surface.
+	From *From
+}
+
+// From is the source half of a `restic copy`: which password opens the
+// repository being copied FROM, as opposed to the one being copied INTO.
+type From struct {
+	// Encrypted mirrors Mode.Encrypted for the source. It is separate because
+	// the two ends genuinely differ: a plain local repository can be pulled into
+	// an encrypted one and the other way round.
+	Encrypted bool
+	// Password is the source repository's password. Passed as
+	// RESTIC_FROM_PASSWORD, never in argv, exactly like Mode.Password.
+	Password string
+}
+
+// fromSide returns the source's credentials, falling back to the destination's
+// when no source side was given. One place decides the fallback, so a caller
+// that predates the pull cannot accidentally get a different answer than it did
+// before, and a caller that sets From cannot accidentally be ignored.
+func (m Mode) fromSide() From {
+	if m.From != nil {
+		return *m.From
+	}
+	return From{Encrypted: m.Encrypted, Password: m.Password}
 }
 
 // AllowedStorageClasses is the whitelist of S3 storage classes BombVault will emit
@@ -499,8 +539,18 @@ func CopyArgs(destRepo, srcRepo string, snapshotIDs []string, lim Limits, m Mode
 	args = append(args, retryLockFlags()...)
 	args = append(args, limitFlags(lim)...)
 	args = append(args, "copy", "--from-repo", srcRepo)
+	// The two ends answer separately. `--insecure-no-password` is about the
+	// DESTINATION and `--from-insecure-no-password` about the SOURCE, and a pull
+	// is precisely the case where they differ: an unencrypted local repository
+	// can be filled from an encrypted foreign one, or the other way round.
+	// Before the pull both were decided by m.Encrypted alone, which was correct
+	// only because every caller copied between two repositories of this same
+	// instance.
 	if !m.Encrypted {
-		args = append(args, insecureFlag, "--from-insecure-no-password")
+		args = append(args, insecureFlag)
+	}
+	if !m.fromSide().Encrypted {
+		args = append(args, "--from-insecure-no-password")
 	}
 	if len(snapshotIDs) > 0 {
 		args = append(args, "--")
@@ -1906,8 +1956,12 @@ func (r Restic) Copy(ctx context.Context, destRepo, srcRepo string, snapshotIDs 
 	cmd := exec.CommandContext(ctx, r.bin(), args...) //nolint:gosec // G204: argv from typed builders; repos are operator-configured
 	configureProcGroup(cmd)
 	env := r.authEnv(m)
-	if m.Encrypted {
-		env = append(env, "RESTIC_FROM_PASSWORD="+m.Password)
+	// authEnv has already put the DESTINATION's password in RESTIC_PASSWORD.
+	// This is the source's, and it is a different secret whenever the source is
+	// another instance's repository. See Mode.From for what goes wrong silently
+	// when the two are conflated.
+	if from := m.fromSide(); from.Encrypted {
+		env = append(env, "RESTIC_FROM_PASSWORD="+from.Password)
 	}
 	if sink := progress.CopySinkFrom(ctx); sink != nil {
 		// Same reasoning as r.run(): restic only emits its periodic progress when

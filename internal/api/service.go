@@ -13492,9 +13492,23 @@ func (s *Service) unlockStale(ctx context.Context, repo string, mode restic.Mode
 // listSnapshots lists snapshots, self-healing a stale-lock conflict: on a lock
 // error it clears stale locks and retries once. This fixes "Failed to load
 // backups" when an interrupted run left a lock behind.
+//
+// THE SELF-HEAL IS SKIPPED FOR A READ-ONLY CALLER, and that is not a detail.
+// `restic unlock` WRITES: it deletes lock files in the repository. Mode.NoLock
+// is how a caller declares "I never write to this repository", and the two
+// surfaces that set it mean it about somebody ELSE's repository - the foreign
+// restore session and the receiver dashboard, both of which say so in their own
+// words on screen. Retrying through an unlock would break that promise at the
+// one moment it matters, against a box whose owner never agreed to it, and it
+// would do so only occasionally, which is how it stayed invisible: a lock error
+// is rare, and the repair looks like the read succeeding.
+//
+// A lock error on a foreign repository is also not ours to repair. It usually
+// means the far instance is running a backup right now, and the honest answer
+// is to report that rather than to clear the marker it set.
 func (s *Service) listSnapshots(ctx context.Context, repo string, mode restic.Mode) ([]restic.Snapshot, error) {
 	snaps, err := s.engine.Snapshots(ctx, repo, mode)
-	if isLockErr(err) {
+	if isLockErr(err) && !mode.NoLock {
 		s.unlockStale(ctx, repo, mode)
 		snaps, err = s.engine.Snapshots(ctx, repo, mode)
 	}

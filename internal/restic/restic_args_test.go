@@ -504,6 +504,71 @@ func TestCopyArgsNoPasswordWithIDs(t *testing.T) {
 	}
 }
 
+// TestCopyArgsTwoEnds pins that the two ends of a copy answer separately.
+//
+// Before the pull, one flag decided both: every caller copied between two
+// repositories of THIS instance, which share a password, so `m.Encrypted` was
+// the honest answer for the source as well. A cross-instance pull is the case
+// where it is not, and getting it wrong is invisible in argv review - the
+// command still looks plausible, restic just refuses to open the source and
+// says something that reads as "wrong key".
+//
+// All four combinations, because each one is a real deployment: an encrypted
+// box pulling from an encrypted one, from a plain one, and both mirrors of
+// that.
+func TestCopyArgsTwoEnds(t *testing.T) {
+	cases := []struct {
+		name string
+		mode Mode
+		want []string
+	}{
+		{
+			name: "encrypted into encrypted names neither flag",
+			mode: Mode{Encrypted: true, From: &From{Encrypted: true}},
+			want: []string{"-r", "/dest", "--retry-lock", "5m", "copy", "--from-repo", "/src"},
+		},
+		{
+			name: "plain source into encrypted destination names only the source",
+			mode: Mode{Encrypted: true, From: &From{Encrypted: false}},
+			want: []string{"-r", "/dest", "--retry-lock", "5m", "copy", "--from-repo", "/src", "--from-insecure-no-password"},
+		},
+		{
+			name: "encrypted source into plain destination names only the destination",
+			mode: Mode{Encrypted: false, From: &From{Encrypted: true}},
+			want: []string{"-r", "/dest", "--retry-lock", "5m", "copy", "--from-repo", "/src", "--insecure-no-password"},
+		},
+		{
+			name: "no source side falls back to the destination, byte for byte as before",
+			mode: Mode{Encrypted: false},
+			want: []string{"-r", "/dest", "--retry-lock", "5m", "copy", "--from-repo", "/src", "--insecure-no-password", "--from-insecure-no-password"},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := CopyArgs("/dest", "/src", nil, Limits{}, tc.mode)
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Fatalf("got %v want %v", got, tc.want)
+			}
+		})
+	}
+}
+
+// TestFromSideFallback pins the fallback itself, because it is what keeps every
+// caller that predates the pull unchanged. A source side that quietly stopped
+// falling back would break off-site replication for every encrypted instance,
+// and the argv test above cannot see it: the flags would still be right, only
+// the PASSWORD would be missing.
+func TestFromSideFallback(t *testing.T) {
+	m := Mode{Encrypted: true, Password: "dest-secret"}
+	if got := m.fromSide(); got.Password != "dest-secret" || !got.Encrypted {
+		t.Fatalf("without a source side the destination's credentials must stand in, got %+v", got)
+	}
+	m.From = &From{Encrypted: true, Password: "source-secret"}
+	if got := m.fromSide(); got.Password != "source-secret" {
+		t.Fatalf("a source side must win over the destination's, got %+v", got)
+	}
+}
+
 func TestCopyArgsLimits(t *testing.T) {
 	t.Run("both limits set prepend global flags before the subcommand", func(t *testing.T) {
 		got := CopyArgs("/dest", "/src", nil, Limits{UploadKBps: 1024, DownloadKBps: 512}, Mode{Encrypted: true})
