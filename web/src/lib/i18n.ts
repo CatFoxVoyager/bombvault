@@ -2670,7 +2670,7 @@ export const de: Translations = {
   "settings.motion.off": "Aus",
   "settings.motion.subtle": "Dezent",
   "settings.motion.wild": "Wild",
-  "settings.motion.storm": "Stürmisch",
+  "settings.motion.storm": "Sturm",
   "settings.rainbow": "Regenbogen-Modus",
   "settings.rainbowHint": "Jede Zeile in einer Liste bekommt eine eigene Farbe aus einer festen Auswahl von acht, statt dass alles dieselbe Akzentfarbe hat. Das macht lange Listen auf einen Blick leichter unterscheidbar.",
   "settings.rainbowReactive": "Reaktiver Modus",

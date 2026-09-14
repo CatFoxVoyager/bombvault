@@ -19,6 +19,8 @@ import {
   applyMotionIntensity,
   getMotionIntensity,
   setMotionIntensity,
+  STORM_CLICKS,
+  stormTap,
   type MotionIntensity,
 } from "./motion";
 
@@ -50,14 +52,14 @@ describe("applyMotionIntensity", () => {
     expect(document.documentElement.getAttribute("data-motion")).toBe("wild");
   });
 
-  it('defaults to "full" for an invalid/unknown string', () => {
+  it('defaults to "wild" for an invalid/unknown string', () => {
     applyMotionIntensity("turbo");
     expect(document.documentElement.getAttribute("data-motion")).toBe("wild");
   });
 });
 
 describe("getMotionIntensity", () => {
-  it('defaults to "full" when nothing is stored', () => {
+  it('defaults to "wild" when nothing is stored', () => {
     expect(getMotionIntensity()).toBe("wild");
   });
 
@@ -66,9 +68,22 @@ describe("getMotionIntensity", () => {
     expect(getMotionIntensity()).toBe("subtle");
   });
 
-  it('falls back to "full" for a corrupt/invalid stored value', () => {
+  it('falls back to "wild" for a corrupt/invalid stored value', () => {
     localStorage.setItem(STORAGE_KEY, "not-a-motion-level");
     expect(getMotionIntensity()).toBe("wild");
+  });
+
+  // WHY THERE IS NO MIGRATION for the old spelling, pinned rather than
+  // asserted in a comment. "full" was this level's name before GSS 2.0.0 and
+  // is now simply not one of the four, so a value stored by an older visit
+  // fails validation and takes the default - and the default IS this same
+  // level under its new name. The fallback path and a migration path would
+  // land on the identical value, so the migration would be a no-op.
+  it('reads a pre-2.0.0 stored "full" back as "wild", so no migration is needed', () => {
+    localStorage.setItem(STORAGE_KEY, "full");
+    expect(getMotionIntensity()).toBe("wild");
+    applyMotionIntensity(localStorage.getItem(STORAGE_KEY) ?? undefined);
+    expect(document.documentElement.getAttribute("data-motion")).toBe("wild");
   });
 });
 
@@ -97,41 +112,66 @@ describe("setMotionIntensity", () => {
   });
 });
 
-describe("the rename from \"full\" to \"wild\" (GlimStone 1.10.0)", () => {
-  // The name changed because it is about the setting's ENERGY rather than its
-  // completeness, which is what somebody is actually choosing between. What
-  // matters here is the browser that already holds the old word.
-  //
-  // It is tempting to skip this: the new default IS the top stage, so a stored
-  // "full" falling through to the default lands on the same setting. That
-  // reasoning is why it needs a test - it is true by coincidence, not by
-  // construction. Somebody who deliberately chose the top stage would have
-  // their own choice silently replaced by a default that happens to match, and
-  // the day the default changes, their setting moves without them.
-  beforeEach(() => localStorage.clear());
-
-  it("reads an old stored value as the new one", () => {
-    localStorage.setItem(STORAGE_KEY, "full");
-    expect(getMotionIntensity()).toBe("wild");
+// ---------------------------------------------------------------------------
+// GSS 1.17.0's hidden fourth level.
+//
+// Two things are easy to get wrong here and both are silent. A gesture that
+// counts clicks on the WRONG level turns an annoyed user into a surprised one;
+// and a stored "storm" rejected at boot turns the level into a flicker that
+// survives exactly until the next page load, which reads as the app forgetting
+// a setting rather than as a hidden one behaving correctly.
+// ---------------------------------------------------------------------------
+describe("the storm", () => {
+  it("is not in the list a picker builds from", () => {
+    expect(MOTION_INTENSITIES).not.toContain("storm");
   });
 
-  it("rewrites it, so the old word does not sit there forever", () => {
-    localStorage.setItem(STORAGE_KEY, "full");
-    getMotionIntensity();
-    expect(localStorage.getItem(STORAGE_KEY)).toBe("wild");
+  it("opens on the fifth click, and only from the level already chosen", () => {
+    const state = { taps: 0 };
+    for (let i = 1; i < STORM_CLICKS; i += 1) {
+      expect(stormTap(state, "wild", "wild")).toBeUndefined();
+    }
+    expect(stormTap(state, "wild", "wild")).toBe("storm");
   });
 
-  it("applies it, for the boot path that never goes through the getter", () => {
-    // applyMotionIntensity is documented as taking an unvalidated value
-    // straight out of localStorage, so it is the one place an old word can
-    // arrive without passing the getter. Without its own mapping the page
-    // would boot on the default attribute instead of the stored choice.
-    applyMotionIntensity("full");
-    expect(document.documentElement.getAttribute("data-motion")).toBe("wild");
+  it("starts over after it has opened, so a sixth click is not a seventh", () => {
+    const state = { taps: 0 };
+    for (let i = 1; i < STORM_CLICKS; i += 1) stormTap(state, "wild", "wild");
+    stormTap(state, "wild", "wild");
+    expect(state.taps).toBe(0);
   });
 
-  it("still falls back for a word that never existed", () => {
-    localStorage.setItem(STORAGE_KEY, "ZZZ-not-a-stage");
-    expect(getMotionIntensity()).toBe("wild");
+  // Clicking "off" five times means somebody is annoyed, not curious.
+  it("cannot be reached from any other level", () => {
+    const state = { taps: 0 };
+    for (let i = 0; i < STORM_CLICKS * 2; i += 1) {
+      expect(stormTap(state, "off", "off")).toBeUndefined();
+      expect(stormTap(state, "subtle", "subtle")).toBeUndefined();
+    }
+  });
+
+  // The count is about ONE level, held down. A click elsewhere in between is
+  // somebody browsing the picker rather than pressing the same button again.
+  it("forgets the count when another level is clicked in between", () => {
+    const state = { taps: 0 };
+    stormTap(state, "wild", "wild");
+    stormTap(state, "wild", "wild");
+    stormTap(state, "subtle", "wild");
+    for (let i = 1; i < STORM_CLICKS; i += 1) {
+      expect(stormTap(state, "wild", "wild")).toBeUndefined();
+    }
+    expect(stormTap(state, "wild", "wild")).toBe("storm");
+  });
+
+  // A hidden level that cannot survive a reload is not a level, it is a
+  // flicker: validating a stored value and populating a picker are two
+  // different questions.
+  it("survives a reload even though no picker offers it", () => {
+    setMotionIntensity("storm");
+    expect(localStorage.getItem(STORAGE_KEY)).toBe("storm");
+    expect(getMotionIntensity()).toBe("storm");
+    document.documentElement.removeAttribute("data-motion");
+    applyMotionIntensity(getMotionIntensity());
+    expect(document.documentElement.getAttribute("data-motion")).toBe("storm");
   });
 });

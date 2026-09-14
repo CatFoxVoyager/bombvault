@@ -248,7 +248,7 @@ const ar: Partial<Translations> = {
   "settings.labels.mode.reactive": "تفاعلي",
   "settings.motion.off": "إيقاف",
   "settings.motion.subtle": "خفيفة",
-  "settings.motion.wild": "جامح",
+  "settings.motion.wild": "جامحة",
   "settings.motion.storm": "عاصف",
   "settings.rainbow": "وضع قوس قزح",
   "settings.rainbowHint": "يحصل كل صف في القائمة على لونه الخاص من مجموعة مكوّنة من ثمانية ألوان، بدلاً من أن يشترك كل شيء في لون تمييز واحد، ما يجعل القوائم الطويلة أسهل تمييزًا للوهلة الأولى.",

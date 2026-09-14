@@ -490,7 +490,7 @@
    width stages already reserve every label's own width in every mode, which is
    the whole reason words can appear here without moving the page.
 
-   ANY STATE ADDED HERE MUST ALSO BE ADDED to the lively motion block's
+   ANY STATE ADDED HERE MUST ALSO BE ADDED to the lively-motion block's
    transform reset further down — this rule hands back width, opacity and
    margin, that one hands back the resting `translateX`/`scaleX`. Adding a
    state to one list and not the other leaves the label revealed but still
@@ -537,18 +537,17 @@
       margin-inline-start 160ms cubic-bezier(0.22, 0.61, 0.36, 1);
   }
 
-  /* Above the quiet levels, jdp said it may be wild here. The box springs open
-     past its target and settles (the overshoot lives in the easing curve, so
-     the label's own width does the bouncing and nothing else has to move),
-     while the text itself slides in from the left and unsquashes — it starts
-     slightly compressed and scales back to 1 as it lands.
+  /* Wild: jdp said it may be wild here. The box springs open past its target
+     and settles (the overshoot lives in the easing curve, so the label's own
+     width does the bouncing and nothing else has to move), while the text
+     itself slides in from the left and unsquashes — it starts slightly
+     compressed and scales back to 1 as it lands.
 
-     THE SELECTOR NAMES THE QUIET LEVELS AND NOT THE LIVELY ONE (GlimStone
-     1.19.0). Written as `[data-motion="wild"]` it excludes anything ABOVE wild,
-     so the storm — a level with MORE motion — would get none of this, and every
-     future level above it would have to be added here by hand. This form covers
-     wild, storm and the attribute being absent, which is the same set the token
-     block further down already treats as the default. */
+     THE SELECTOR NAMES THE QUIET LEVELS AND NOT THE LIVELY ONE, on purpose.
+     Written as `[data-motion="wild"]` it would exclude `storm`, which is a
+     level with MORE motion getting none of this. This form covers wild, storm
+     and the attribute being absent, and goes on covering whatever is added
+     above. */
   :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-label-reactive {
     transition:
       max-width 320ms cubic-bezier(0.34, 1.56, 0.64, 1),
@@ -576,10 +575,8 @@
      now, which is the cheapest guard available short of merging them — and they
      cannot merge, because one is inside the reduced-motion gate and one is not.
 
-     The selector matches the rule above for the same reason it does there: the
-     rule above APPLIES the displaced transform and this one undoes it, so if
-     only one of the two named the lively level by name, a storm would get
-     either a permanently squashed label or a reset with nothing to reset. */
+     The quiet levels are named here too, and not the lively one - see the rule
+     just above for why, and for the level it would otherwise leave behind. */
   :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-reactive.glim-active .glim-label-reactive,
   :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-reactive:hover .glim-label-reactive,
   :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-reactive:focus-visible .glim-label-reactive,
@@ -2451,7 +2448,7 @@ body {
    reduced-motion users get a quiet fade fallback instead (never a violent shake).
    The Tailwind-driven nav hover/press transforms are motion-safe-gated inline.
 
-   GlimStone motion-engine (data-motion="off"|"subtle"|"wild"|"storm" — lib/motion.ts
+   GlimStone motion-engine (data-motion="off"|"subtle"|"wild" — lib/motion.ts
    is the JS half: read/write/persist which of the three is chosen, stamp the
    attribute on <html>, the exact shape/pattern as the shape engine's own
    data-shape above). A DELIBERATE reversal of this file's — and design-
@@ -2476,7 +2473,7 @@ body {
    reduced motion already does," not a second, separately-tuned recipe.
 
    Tokens, not per-state duplicated rules: "subtle" and "off" reuse the
-   IDENTICAL keyframes as "full", just parameterized to smaller numbers —
+   IDENTICAL keyframes as "wild", just parameterized to smaller numbers —
    the same technique this file already uses for --glim-toast-slide (per
    [dir]) and --glim-indet-from/--glim-indet-to (per [dir]) rather than forking
    the keyframe itself. Declared on a bare :root FIRST as the wild-intensity
@@ -2531,7 +2528,7 @@ body {
      (prefers-reduced-motion: no-preference) block further down" shape the
      five originals above already established. Each one is introduced at its
      own consuming rule further down this file, not here — this block is
-     only ever the OFF/SUBTLE/FULL numbers, kept together so the whole dial
+     only ever the OFF/SUBTLE/WILD numbers, kept together so the whole dial
      is readable in one place.
 
      1) Shape-morph (--motion-shape-*): border-radius transition duration
@@ -2575,68 +2572,73 @@ body {
   --motion-tab-dur: 220ms;
 }
 
-/* THE HIDDEN FOURTH, and it is a real level rather than a joke
-   (GlimStone 2.1.0, shipped there as 1.17.0's `storm`).
-
-   Same keyframes, same elements, same tokens: a spring that swings further and
-   takes longer to come to rest. The language's own rule about intensities - a
-   level is a different NUMBER, never a different animation - is what makes a
-   fourth one cost exactly this block and nothing else.
-
-   IT OVERRIDES THE BARE `:root` DIRECTLY, because there is no `[data-motion="wild"]`
-   block to sit beside: wild IS the bare-root default, so "attribute absent" and
-   "wild" are the same numbers by construction. `:root[data-motion="storm"]` has
-   one more attribute of specificity than a bare `:root`, so it wins without an
-   !important.
-
-   AND IT STATES EVERY CURVE IT WANTS rather than inheriting. The quiet levels
-   below may omit a curve and fall back to the default, which is harmless when
-   they are asking for LESS. A level asking for MORE that inherits the default's
-   curve gets a longer animation on a gentler spring, which reads as sluggish
-   rather than wilder - the one way this block can be wrong while looking
-   complete.
-
-   Nothing offers it. It is reached by a gesture, and it is not written into a
-   settings list by finding it: see stormTap() in lib/motion.ts. */
 :root[data-motion="storm"] {
-  --motion-page-dist: 34px;
+  /* THE HIDDEN FOURTH, GSS 1.17.0.
+
+     Not in the picker. Set the motion to the top level, then click that same
+     option five more times - the gesture of pressing a button that is already
+     pressed because you wanted more of it, which is exactly who this level is
+     for. lib/motion.ts's stormTap() is the whole mechanism, and the rule it
+     carries is the part worth copying: an easter egg that changes BEHAVIOUR
+     must be switchable back off and must not quietly become a permanent entry
+     in a settings list.
+
+     Same twelve tokens as every other level, consumed by the same keyframes.
+     A level is a different NUMBER, never a different animation, so this block
+     is the entire cost - which is the whole argument for the token shape the
+     three levels above already use. Roughly double the travel of "wild" and
+     about twice its duration, on a curve that overshoots further and takes
+     longer to settle.
+
+     It sits INSIDE the same (prefers-reduced-motion: no-preference) gate as
+     the other three rather than beside it, so a machine whose owner asked the
+     operating system for less motion never evaluates a data-motion selector at
+     all. That is the one way a hidden "more animation" switch could genuinely
+     do harm, and it is closed by where this block sits rather than by a
+     check. */
+  --motion-page-dist: 20px;
+  /* The scale belongs here as much as the distance, and leaving it out is the
+     quiet half of the trap this block's own comment describes: without it the
+     storm inherits .96 from the bare root, so a level that travels further and
+     springs harder arrives at exactly the size wild does. GlimStone names .9
+     for this level. */
   --motion-page-scale: .9;
-  --motion-page-dur: 760ms;
-  /* Further past 1 than the default's 1.56: this is the overshoot that makes it
-     read as a spring somebody wound too far. */
+  --motion-page-dur: 620ms;
   --motion-page-ease: cubic-bezier(.22, 1.94, .45, 1);
 
-  --motion-toast-slide-scale: 1.5;        /* 24px base -> 36px of travel */
-  --motion-toast-dur: 480ms;
+  --motion-toast-slide-scale: 1.9;
+  --motion-toast-dur: 420ms;
   --motion-toast-ease: cubic-bezier(.22, 1.94, .45, 1);
 
-  --motion-fade-dur: 240ms;
+  --motion-fade-dur: 200ms;
 
-  --motion-shake-scale: 1.8;
-  --motion-shake-dur: 720ms;
+  --motion-shake-scale: 1.9;
+  --motion-shake-dur: 520ms;
 
-  --motion-shape-dur: 560ms;
+  --motion-shape-dur: 460ms;
   --motion-shape-ease: cubic-bezier(.22, 1.94, .45, 1);
 
-  --motion-pulse-scale: 1.8;
-  --motion-pulse-dur: 900ms;
+  --motion-pulse-scale: 1.9;
+  --motion-pulse-dur: 700ms;
 
-  --motion-stagger-step: 60ms;
-  --motion-stagger-cap: 900ms;
-  --motion-stagger-dur: 480ms;
+  --motion-stagger-step: 55ms;
+  /* The cap earns its keep here more than anywhere else: at 55ms a step, a
+     fifty-row list would otherwise stagger for nearly three seconds. */
+  --motion-stagger-cap: 700ms;
+  --motion-stagger-dur: 420ms;
 
-  /* The wipe keeps a plain ease, stated rather than inherited. It is a COLOUR
-     transition across the whole page, and a spring that overshoots a colour
-     lands on a hue nobody picked. */
-  --motion-wipe-dur: 680ms;
+  /* Stated rather than inherited, and deliberately NOT the spring: a wipe is a
+     colour transition across the whole page, and a curve that overshoots a
+     colour lands on a hue nobody picked. */
+  --motion-wipe-dur: 560ms;
   --motion-wipe-ease: ease;
 
-  --motion-check-dur: 720ms;
+  --motion-check-dur: 620ms;
 
-  --motion-content-dur: 440ms;
+  --motion-content-dur: 380ms;
 
   --motion-tab-dist: 34px;
-  --motion-tab-dur: 480ms;
+  --motion-tab-dur: 380ms;
 }
 
 :root[data-motion="subtle"] {
@@ -2764,6 +2766,7 @@ body {
    times something itself keeps its number. */
 :root { --motion-control-dur: 150ms; }
 :root[data-motion="storm"] { --motion-control-dur: 300ms; }
+:root[data-motion="storm"] { --motion-control-dur: 300ms; }
 :root[data-motion="subtle"] { --motion-control-dur: 80ms; }
 :root[data-motion="off"] { --motion-control-dur: 0s; }
 :root[data-motion="off"] * { transition-duration: 0s !important; }
@@ -2885,7 +2888,7 @@ body {
 [dir="rtl"] { --glim-toast-slide: -24px; }
 /* `calc(... * var(--motion-toast-slide-scale))`, not the bare
    --glim-toast-slide above — the motion-engine token (further up this
-   file) scales the slide distance per off/subtle/full (0 / .5 / 1) on top
+   file) scales the slide distance per off/subtle/wild (0 / .5 / 1) on top
    of the RTL-aware base distance, without needing a second keyframe or a
    second [dir] pair. */
 @keyframes glim-toast-in {
@@ -2917,7 +2920,7 @@ body {
 
    `calc(var(--motion-shake-scale) * ...)` on every step, not bare px —
    the motion-engine token (further up this file) scales the whole
-   oscillation per off/subtle/full (0 / .5 / 1) without a second keyframe.
+   oscillation per off/subtle/wild (0 / .5 / 1) without a second keyframe.
    The scale-0 case is never actually reached in practice: data-motion="off"
    swaps `.glim-shake`'s animation-name entirely to glim-egg-fade-pulse below
    (a 0-amplitude shake is invisible, not a "rejected" signal) — the token
@@ -2933,7 +2936,7 @@ body {
 
 /* ---------------------------------------------------------------------------
    Round 2 — seven more motion-engine animations, each plugging into the
-   off/subtle/full tokens declared above from the start (design-language.md's
+   off/subtle/wild tokens declared above from the start (design-language.md's
    own "a guard applied once is a guard missing twice" convention applied to
    motion this time: every one of these reads its numbers from a token, none
    hard-codes a literal the engine can't reach).

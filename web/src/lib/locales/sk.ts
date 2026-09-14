@@ -703,7 +703,7 @@ const sk: Partial<Translations> = {
   "settings.labels.mode.reactive": "Reaktívne",
   "settings.motion.off": "Vypnuté",
   "settings.motion.subtle": "Jemný",
-  "settings.motion.wild": "Divoké",
+  "settings.motion.wild": "Divoký",
   "settings.motion.storm": "Búrlivé",
   "settings.rainbow": "Dúhový režim",
   "settings.rainbowHint": "Každý riadok v zozname dostane vlastnú farbu z ôsmich farieb namiesto toho, aby si všetko delilo jednu zvýrazňujúcu farbu. To uľahčuje rozlíšenie dlhých zoznamov na prvý pohľad.",

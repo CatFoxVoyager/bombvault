@@ -74,7 +74,7 @@ const ATTRIBUTE: Record<ControlAxis, string> = {
  * DEFAULT is "textGlyph" for every axis: that is what the app looks like today
  * (buttons with a label, sidebar rows with icon plus text, tabs with text),
  * so nobody's interface changes merely because the setting now exists. Same
- * reasoning motion.ts gives for defaulting to the top stage.
+ * reasoning motion.ts gives for defaulting to "wild".
  */
 const DEFAULT: LabelMode = "textGlyph";
 

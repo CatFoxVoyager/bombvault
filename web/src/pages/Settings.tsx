@@ -1304,18 +1304,12 @@ export function SettingsPage() {
   // localStorage via motion.ts, the identical pattern shape state above
   // already uses.
   const [motion, setMotionLocal] = useState<MotionIntensity>(() => getMotionIntensity());
-  // The hidden fourth level, and the two pieces of state that keep it hidden.
-  //
-  // Both live in THIS screen and neither is persisted, which is the whole rule
-  // (GlimStone 2.1.0): an easter egg that changes behaviour must be switchable
-  // back off and must not quietly become a permanent entry in a settings list.
-  // Store a "found it" flag and one gesture puts a fourth option in the picker
-  // for ever, which is a secret turned into a setting nobody can explain to
-  // themselves later. Leave the screen and it is gone again - unless it is the
-  // value currently chosen, because a picker that hid the value it is showing
-  // would be lying about the interface.
-  const stormTaps = useRef({ taps: 0 });
+  // GSS 1.17.0's hidden fourth level. Both of these are deliberately COMPONENT
+  // state: `stormFound` must not survive leaving this page (an egg that
+  // changes behaviour has to be switchable back off, never a permanent picker
+  // entry), and the click counter has nothing to remember past the gesture.
   const [stormFound, setStormFound] = useState(false);
+  const stormClicks = useRef({ taps: 0 });
   // #178: the three label modes, mirrored into local state so the selectors
   // show the current choice; the controls themselves read through
   // useLabelMode, which the labelModeChanged() call below wakes.
@@ -4747,21 +4741,28 @@ export function SettingsPage() {
       <Card title={t("settings.motion")} hint={t("settings.motionHint")} hueIndex={nextHue()}>
         {/* No "don't stretch" wrapper div, same as the Theme/Shape Selectors
             right above — `variant="well"` hugs its own segments now. */}
+        {/* THE FOURTH SEGMENT IS NOT ALWAYS THERE, GSS 1.17.0's hidden level.
+            It is offered while it is CHOSEN - a picker that hid the value it
+            is currently showing would be lying about the interface - and
+            otherwise only for as long as this screen stays open, which is why
+            `stormFound` is component state and never storage. Pick something
+            else and leave, and it is gone until the gesture is made again. */}
         <Selector
-          items={[...MOTION_INTENSITIES, ...(motion === "storm" || stormFound ? (["storm"] as const) : [])].map((m) => ({
-            id: m,
-            label: t(`settings.motion.${m}` as TranslationKey),
-          }))}
+          items={[...MOTION_INTENSITIES, ...(stormFound || motion === "storm" ? (["storm"] as const) : [])].map(
+            (m) => ({
+              id: m,
+              label: t(`settings.motion.${m}` as TranslationKey),
+            }),
+          )}
           label={t("settings.motion")}
           select="one"
           active={motion}
           onChange={(id) => {
-            // Tapping the top level while ALREADY on it is the gesture, so the
-            // counter has to run before the ordinary path - which otherwise
-            // treats "chose what is already chosen" as nothing happening.
-            const revealed = stormTap(stormTaps.current, id, motion);
-            const next = (revealed ?? id) as MotionIntensity;
-            if (revealed) setStormFound(true);
+            // The gesture first, because it fires on the level ALREADY chosen
+            // and therefore on a click that changes nothing else.
+            const storm = stormTap(stormClicks.current, id, motion);
+            if (storm) setStormFound(true);
+            const next = (storm ?? id) as MotionIntensity;
             setMotionLocal(next);
             setMotionIntensity(next);
           }}
