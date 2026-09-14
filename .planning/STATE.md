@@ -22,10 +22,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-13)
+See: .planning/PROJECT.md (updated 2026-09-14)
 
 **Core value:** Every container, VM, and config on the host can be backed up consistently and restored completely — a dead server is rebuilt from the restic repo alone.
-**Current focus:** Phase 7 — Remaining Destinations & Operational Parity
+**Current focus:** Phase 8 — Guided Restore & Real-Device Verification
 
 ## Current Position
 
@@ -36,7 +36,7 @@ Status: Ready to plan
 Last activity: 2026-09-14 — Phase 7 complete, transitioned to Phase 8
 Last Activity Description: Phase 7 complete, transitioned to Phase 8
 
-Progress: [█████░░░░░] 50% (2/4 phases complete)
+Progress: [████████████████████] 21/21 plans (100%) — phases 5-7 complete, phase 8 not yet planned
 
 ## Performance Metrics
 
@@ -187,7 +187,10 @@ None yet.
 
 - Windows Playwright e2e runs wedge intermittently in two modes: webServer teardown hang (bombvault.exe survives, kill manually) and orphaned playwright worker processes accumulating between runs (`Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where CommandLine -match 'playwright'` cleanup). Never buffer Playwright output through `| tail` — it hides progress and makes wedge diagnosis impossible.
 - Code review 06 documented 2 Info findings fix-skipped as out of scope (recorded in 06-REVIEW-FIX.md): stale "26 locales" comments in runDisplay.ts:132,212 (IN-01); flushRef never nulled at unmount in Containers.tsx/Files.tsx (IN-02, harmless by inspection).
-- Suggested follow-ups surfaced by the phase 6 cycle: `/gsd-secure-phase 6` (verify:post hook active, no SECURITY.md exists), `/gsd-map-codebase` (structural drift since the 2026-09-09 refresh — mobile shell, sheets, stacked views are unmapped).
+- Suggested follow-up from the phase 6 cycle: `/gsd-map-codebase` (structural drift since the 2026-09-09 refresh — mobile shell, sheets, stacked views are unmapped; verified still relevant after phase 7).
+- [Phase 7] Two verifier behavior_unverified items (implemented + source-verified, no automated test exercises them): WR-01 multi-row chip-hide branch and WR-02 Files save-bar-under-search path — fold into the Phase 8 VERIFY-02..05 real-device validation window.
+- [Phase 7] Code review IN-03: destination e2e fixtures wire schedule inaccurates only as the domain job (job:"vms"/"config"), which masked the WR-01 multi-row ambiguity — improve fixture fidelity when schedule fixtures are next touched.
+- [Phase 7] Code review Info candidates routed to backlog v2: Flash Fab lacks the `!error` gate (IN-01); MobileZipSheet `loaded` gate is one-shot with no retry on a failed fetch (IN-02).
 - SCRN-05 per-file stats triade remains a recorded v2 data candidate (frozen-API substitutes shipped in its place).
 - Design bible reference: `design/mobile/README.md` + maquettes @0b64c7df (branch `mobile-design-concepts`).
 
@@ -204,10 +207,10 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-14T02:48:36.399Z
+Last session: 2026-09-14T04:20:00.000Z
 Stopped at: Phase 7 complete, ready to plan Phase 8
 Resume file: None
 
 ## Operator Next Steps
 
-- Review `.planning/ROADMAP.md`, then start Phase 7 with /gsd-plan-phase 7
+- Review `.planning/ROADMAP.md`, then start Phase 8 with /gsd-discuss-phase 8

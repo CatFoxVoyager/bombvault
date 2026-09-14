@@ -45,13 +45,13 @@ Every container, VM, and config on the host can be backed up consistently and re
 - ✓ File Sets parity: the same `SelectionTree` component powers file-set coverage — NULL `selectedPaths` seeds a synthetic root include with zero writes, PATCH is a three-state pointer (64-cap, segment-aligned containment, empty-selection refusal), path edits clear the selection atomically (clear-wins), and in-place restore maps the compiled selection against snapshot Paths with a pre-teardown abort (D-08) — Phase 4
 - ✓ MOBILE-01: responsive mobile shell — bottom nav + More sheet, safe areas, desktop intact (Playwright real-binary harness, 4 projects incl. WebKit) — Phase 5
 - ✓ MOBILE-02: maquette screens (Home glanceable + thumb-zone trigger, Containers + touch tree, File sets + touch tree, Run detail with frozen-API substitutes) — Phase 6 (SCRN-05 per-file stats triade is a recorded v2 data candidate)
+- ✓ MOBILE-03: remaining destinations (VMs, Flash, Config, Receiver, Fleet, Settings) in the mobile language — Phase 7 (verifier 5/5 must-haves; code review 3 warnings fixed)
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
-- [ ] MOBILE-03: remaining destinations (VMs, Flash, Config, Receiver, Fleet, Settings) in the mobile language
-- [ ] MOBILE-04: full operational parity — trigger, tree editing, guided restore, schedules, notifications, replication
+- [ ] MOBILE-04: full operational parity — trigger, tree editing, guided restore, schedules, notifications, replication (guided restore + real-device validation remain, Phase 8)
 
 ### Out of Scope
 
@@ -117,4 +117,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-11 after v1.1 milestone start*
+*Last updated: 2026-09-14 after Phase 7*
