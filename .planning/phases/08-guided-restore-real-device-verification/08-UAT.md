@@ -56,7 +56,7 @@ readout) so the expected-chrome derivation is auditable in Notes.
 | 2 | Notched iPhone (13-class, ~844 px) Safari — landscape | 844 ≥ 768 → DESKTOP chrome (pass when observed) | | |
 | 3 | SE-class iPhone (~375 px) Safari — portrait | 375 < 768 → MOBILE chrome | | |
 | 4 | SE-class iPhone (~667 px) Safari — landscape | 667 < 768 → MOBILE chrome (SE stays mobile in landscape) | | |
-| 5 | Android Chrome (~360–412 px) — portrait | < 768 → MOBILE chrome | | |
+| 5 | Android Chrome (~360–412 px) — portrait | < 768 → MOBILE chrome | | 2026-09-14: safe-area bottom fix (260914-nsv) validated on this device — both phantom gaps gone; full cell procedure still pending |
 | 6 | Android Chrome — landscape (measure: 740 px-class vs 800 px+ Pixel-class) | 740 < 768 → MOBILE; ≥ 768 (e.g. 800/851 px) → DESKTOP (pass when observed) | | |
 
 ### Per-cell session steps (every cell records all four)
@@ -177,6 +177,21 @@ exists to prevent.
     Files (full-width field, browse button stacked below, no overlap, scrollWidth 390).
     The exact Containers call site needs docker.sock and was verified FROM SOURCE ONLY;
     the full e2e gate on BombVault-test re-proves it on device-reachable infra.
+- **D-11 device verdicts (2026-09-14, session in progress):**
+  - **Safe-area phantom inset — PASS on device.** After 260914-nsv (deployed as
+    `mobilefix-0aa38372`), both phantom gaps confirmed GONE on the Android device
+    (the Save-card gap and the below-bottom-nav gap). Root cause validated live:
+    `viewport-fit=cover` ghost `env(safe-area-inset-bottom)` under material; zeroed
+    by the platform rule, cupertino keeps the real inset. The Platform card renders
+    in Settings General on device.
+  - **Settings page verdict (device) — heavy/unfriendly, per the operator:** 9 red
+    card stamps + General as a catch-all (no grouping), Labels = 6 segmented rows
+    in a row, Language a whole card for one control. NO rendering drift: the device
+    matches the local 390px build (stamps, toggle alignment, wrap behaviors from
+    260914-j4p all as designed). User decision (D-11): REGROUP — Theme, Corners,
+    Animations, Platform, Colors and Labels fold into ONE Appearance card with
+    quiet sub-sections (9 stamps → ~4, scroll markedly shorter); no shared
+    design-system change, desktop intact. Quickplan to follow.
 
 ---
 
