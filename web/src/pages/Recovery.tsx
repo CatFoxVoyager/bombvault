@@ -2671,6 +2671,13 @@ export default function Recovery() {
           configStepState={configStepState}
           configSkipped={configSkipped}
           onConfigSkip={() => setConfigSkipped(true)}
+          configSource={configSource}
+          setConfigSource={setConfigSource}
+          configPhase={configPhase}
+          configError={configError}
+          configShake={configShake}
+          restoreOwnConfig={restoreOwnConfig}
+          confirm={confirm}
           checkReadable={checkReadable}
           connectPreview={connectPreview}
           discovering={discovering}
@@ -2721,11 +2728,14 @@ export default function Recovery() {
 // Recovery.mobile.dom.test.tsx asserts the desktop-first-8 hue sequence
 // survives this component's existence.
 //
-// TRACER SCOPE (08-01): steps 1/3/4/6 are real; step 2 carries its sanctioned
-// skip path only (the full config-restore body is Plan 02) and step 5 renders
-// its empty branch only (the populated restore body is Plan 03) — both are
-// functionality gaps a later plan fills with NO architectural change: the
-// gates, the chrome and the handlers this component consumes already exist.
+// SCOPE: steps 1/3/4/6 are real (the 08-01 tracer); step 2 carries the FULL
+// config-restore body as of Plan 02 — source picker, the D-03 chain narration,
+// the confirm-gated restore row, the skip resolution and the configPhase
+// narration states, all re-hosted from the desktop card (same state, same
+// handler). Step 5 still renders its empty branch only (the populated restore
+// body is Plan 03) — a functionality gap a later plan fills with NO
+// architectural change: the gates, the chrome and the handlers this component
+// consumes already exist.
 // ---------------------------------------------------------------------------
 
 // The flow's step count — the chip's {total}. Six steps, desktop order.
@@ -2775,6 +2785,13 @@ function MobileRecoveryFlow({
   configStepState,
   configSkipped,
   onConfigSkip,
+  configSource,
+  setConfigSource,
+  configPhase,
+  configError,
+  configShake,
+  restoreOwnConfig,
+  confirm,
   checkReadable,
   connectPreview,
   discovering,
@@ -2807,6 +2824,19 @@ function MobileRecoveryFlow({
   configStepState: StepState;
   configSkipped: boolean;
   onConfigSkip: () => void;
+  // Plan 02 (the config step body): the shared config-restore state, the ONE
+  // settings-write handler (D-02 — no second fire path, Pitfall 6 — no direct
+  // PUT), and the shared confirm() promise (below md it presents ConfirmSheet:
+  // destructive control on top, safe cancel at the thumb-default bottom, D-03).
+  // ConfigPhase is Recovery()'s function-local union, inlined here because
+  // that type is not module-scope.
+  configSource: RepoSource;
+  setConfigSource: Dispatch<SetStateAction<RepoSource>>;
+  configPhase: "idle" | "saving" | "restarting" | "manual" | "reload" | "error";
+  configError: string | null;
+  configShake: number;
+  restoreOwnConfig: () => Promise<void>;
+  confirm: (message: string) => Promise<boolean>;
   checkReadable: () => Promise<StepState>;
   connectPreview: () => Promise<void>;
   discovering: boolean;
@@ -2876,6 +2906,18 @@ function MobileRecoveryFlow({
         setKitShake((n) => n + 1);
       }
     });
+  }
+
+  // The confirm-gated restore row (Plan 02, D-03): the promise gate FIRST —
+  // below md useConfirm presents ConfirmSheet (destructive control on top,
+  // safe cancel at the thumb-default bottom), so the destructive action never
+  // sits in the sticky bar's thumb-default slot — then the EXISTING shared
+  // handler. restoreOwnConfig stays the ONLY settings-write path for this
+  // step: it re-fetches the server baseline and merges before the PUT
+  // (D-02, Pitfall 6).
+  async function restoreConfigGated() {
+    if (!(await confirm(t("config.restoreChain.title")))) return;
+    await restoreOwnConfig();
   }
 
   // The step's own StepState, desktop parity (the attach card shows the
@@ -2991,29 +3033,139 @@ function MobileRecoveryFlow({
             </>
           )}
 
-          {/* ---- Step 2 (optional): the sanctioned skip path. The full
-                  config-restore body (source toggle, path browser, phase
-                  narration) is Plan 02 — this tracer carries the skip
-                  resolution only, which sets the SAME state the desktop skip
-                  sets and advances the flow. ---- */}
+          {/* ---- Step 2 (optional): the FULL config-restore body (Plan 02).
+                  Every field re-hosts the desktop card's (D-02): the SAME
+                  shared state (configSource, settings.configPath /
+                  settings.configOffsite) and the SAME restoreOwnConfig
+                  handler — this block adds presentation only, never a second
+                  settings-write path (Pitfall 6). ---- */}
           {step === 2 && (
             <>
               <p className="text-xs leading-relaxed text-carbon-textMuted">
                 {`${t("recovery.configHint")} ${t("recovery.configAppKeyReminder")}`}
               </p>
               {configSkipped ? (
+                // The sanctioned empty resolution: a user without a settings
+                // backup skips — no settings write can fire from this state.
                 <p className="text-sm text-carbon-textMuted">{t("recovery.configSkipped")}</p>
+              ) : settings ? (
+                <>
+                  {/* Where the config backup lives: the desktop card's source
+                      toggle + local-path / off-site-URL field, same state. */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-carbon-textMuted">{t("recovery.configSourceLabel")}</span>
+                    <SourceToggle
+                      source={configSource}
+                      onChange={setConfigSource}
+                      disabled={configPhase === "saving" || configPhase === "restarting"}
+                    />
+                  </div>
+
+                  {configSource === "local" ? (
+                    <FolderBrowser
+                      label={t("recovery.configLocalPath")}
+                      value={settings.configPath}
+                      hostMountRoot={hostMountRoot}
+                      onChange={(v) => setSettings((prev) => (prev ? { ...prev, configPath: v } : prev))}
+                    />
+                  ) : (
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs text-carbon-textSub">{t("recovery.configOffsiteUrl")}</label>
+                      <input
+                        value={settings.configOffsite}
+                        spellCheck={false}
+                        onChange={(e) =>
+                          setSettings((prev) => (prev ? { ...prev, configOffsite: e.target.value } : prev))
+                        }
+                        placeholder="rest:http://host:8000/repo"
+                        dir="ltr"
+                        className={`${offsiteInput} text-start`}
+                      />
+                    </div>
+                  )}
+
+                  {/* D-03: the chain narration IS the consequence copy — the
+                      numbered steps render READ-ONLY, ABOVE the destructive
+                      control (DOM order = reading order, the Config
+                      MobileRestoreSheet precedent at Config.tsx:1187-1197),
+                      and the restore row awaits the shared confirm() promise
+                      before the handler fires. Secondary/tonal styling,
+                      mid-screen: the sticky bar keeps the safe Continue
+                      (the destructive action never owns the thumb-default
+                      slot). */}
+                  <p className="text-sm font-semibold text-carbon-text">{t("config.restoreChain.title")}</p>
+                  <ol className="list-decimal space-y-2 ps-5 text-xs leading-relaxed text-carbon-textSub">
+                    <li>{t("config.restoreChain.step1")}</li>
+                    <li>{t("config.restoreChain.step2")}</li>
+                    <li>{t("config.restoreChain.step3")}</li>
+                    <li>{t("config.restoreChain.step4")}</li>
+                    <li>{t("config.restoreChain.step5")}</li>
+                  </ol>
+                  <Button
+                    key={configShake}
+                    label={t("recovery.configRestore")}
+                    labelKey="recovery.configRestore"
+                    tone="neutral"
+                    onClick={() => void restoreConfigGated()}
+                    disabled={configPhase === "saving" || configPhase === "restarting"}
+                    busy={configPhase === "saving" || configPhase === "restarting"}
+                    title={(configPhase === "saving" || configPhase === "restarting") ? t("recovery.configRestoring") : undefined}
+                    className={`min-h-[2.75rem] w-full${configShake ? " glim-shake" : ""}`}
+                  />
+                  {/* Skip stays first-class: advances without firing any
+                      restore call (the same state the desktop skip sets). */}
+                  <Button
+                    label={t("recovery.configSkip")}
+                    labelKey="recovery.configSkip"
+                    tone="neutral"
+                    onClick={() => {
+                      onConfigSkip();
+                      setStep(3);
+                    }}
+                    className="min-h-[2.75rem] w-full"
+                  />
+
+                  {/* configPhase narration — the SAME states Config's mobile
+                      sheet presents (Config.tsx:1200-1228), class-for-class.
+                      The mid-flow window reload is CORRECT (Pitfall 7): the
+                      flow re-enters at step 1 with the restored settings
+                      live; step position is deliberately not preserved. */}
+                  {configPhase === "restarting" && (
+                    <div className="flex flex-col gap-1">
+                      <p className="text-sm text-accentText">{t("recovery.configRestarting")}</p>
+                      <Badge as="button" onClick={() => window.location.reload()} tone="neutral" size="small" className="self-start">
+                        {t("recovery.configReload")}
+                      </Badge>
+                    </div>
+                  )}
+                  {configPhase === "manual" && (
+                    <div className="rounded-card bg-statusWarnBg px-4 py-2 text-xs text-statusWarn leading-relaxed">
+                      {t("recovery.configManualRestart")}
+                    </div>
+                  )}
+                  {configPhase === "reload" && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs text-statusWarn">{t("recovery.configReloadWhenBack")}</span>
+                      <Button
+                        label={t("recovery.configReload")}
+                        labelKey="recovery.configReload"
+                        tone="neutral"
+                        onClick={() => window.location.reload()}
+                      />
+                    </div>
+                  )}
+                  {/* Backend error text verbatim (pre-scrubbed server-side,
+                      T-08-03 — the APP_KEY remap already happened inside
+                      restoreOwnConfig). Failure keeps the user ON this step;
+                      the chrome around it stays stable. */}
+                  {configPhase === "error" && configError && (
+                    <div className="rounded-card bg-statusFailBgSoft px-4 py-2 text-xs text-statusFail leading-relaxed wrap-break-word">
+                      {configError}
+                    </div>
+                  )}
+                </>
               ) : (
-                <Button
-                  label={t("recovery.configSkip")}
-                  labelKey="recovery.configSkip"
-                  tone="neutral"
-                  onClick={() => {
-                    onConfigSkip();
-                    setStep(3);
-                  }}
-                  className="min-h-[2.75rem] w-full"
-                />
+                <p className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</p>
               )}
             </>
           )}
