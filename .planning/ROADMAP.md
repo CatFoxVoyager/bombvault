@@ -149,7 +149,7 @@ Plans:
   3. Every mobile string ships through the `t()` pipeline with 42-locale parity, and German and French pass narrow-viewport (320-360px) checks on the shell and key screens
   4. Every interactive control below the breakpoint is ≥44px and every hover-dependent affordance has a non-hover path; both themes are verified on mobile with four-status language carried by text labels (never color alone) and semantic tokens only — no hard-coded design-bible hex values
 
-**Plans**: 4/5 plans executed
+**Plans**: 5/5 plans executed
 
 Plans:
 **Wave 1**
@@ -167,7 +167,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 08-05-PLAN.md — 08-UAT.md: real-device matrix with D-09 landscape math, BombVault-test redeploy runbook, inherited checklist (D-11 preparation, honest labeling)
+- [x] 08-05-PLAN.md — 08-UAT.md: real-device matrix with D-09 landscape math, BombVault-test redeploy runbook, inherited checklist (D-11 preparation, honest labeling)
 
 **UI hint**: yes
 
@@ -184,4 +184,4 @@ Plans:
 | 5. Mobile Shell & Navigation Foundation | v1.1 | 6/6 | Complete    | 2026-09-12 |
 | 6. Maquette Screens | v1.1 | 7/7 | Complete    | 2026-09-12 |
 | 7. Remaining Destinations & Operational Parity | v1.1 | 8/8 | Complete    | 2026-09-14 |
-| 8. Guided Restore & Real-Device Verification | v1.1 | 4/5 | In Progress|  |
+| 8. Guided Restore & Real-Device Verification | v1.1 | 5/5 | In Progress|  |

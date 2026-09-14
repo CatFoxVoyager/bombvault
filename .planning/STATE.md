@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 8
 current_phase_name: Guided Restore & Real-Device Verification
 status: executing
-stopped_at: Completed 08-03-PLAN.md
-last_updated: "2026-09-14T15:17:14.865Z"
+stopped_at: Completed 08-05-PLAN.md (all phase 8 plans done)
+last_updated: "2026-09-14T15:30:32.059Z"
 last_activity: 2026-09-14
 last_activity_desc: Phase 8 planning complete — 5 plans ready
-state_head: f42b3e25a063b2386684b8f465df69862e71eb5a
+state_head: acf17bb5d82bff19bd1a611cca7eadc71a5d76a9
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 26
-  completed_plans: 25
+  completed_plans: 26
   percent: 75
 ---
 
@@ -32,9 +32,9 @@ See: .planning/PROJECT.md (updated 2026-09-14)
 Phase: 8 (Guided Restore & Real-Device Verification) — EXECUTING
 Plan: 5 of 5
 Total Plans in Phase: 5
-Status: Plan 08-01 complete, next 08-02
-Last activity: 2026-09-14 — 08-01 guided-restore tracer complete
-Last Activity Description: Phase 8 planning complete — 5 plans ready
+Status: All 5 plans complete — awaiting orchestrator tail gate (full e2e once, D-10) and the D-11 device-session pause; VERIFY-02's device pass happens there, not in the plans
+Last activity: 2026-09-14 — 08-05 real-device UAT artifact complete
+Last Activity Description: Phase 8 execution complete — 08-UAT.md ready for the D-11 session
 
 ## Performance Metrics
 
@@ -107,6 +107,7 @@ Last Activity Description: Phase 8 planning complete — 5 plans ready
 | Phase 08 P02 | 66m | 2 tasks | 2 files |
 | Phase 08 P04 | 38m | 3 tasks | 5 files |
 | Phase 08 P03 | 150m | 3 tasks | 5 files |
+| Phase 08 P05 | 5min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -192,6 +193,8 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 8]: Step-5 restore-all consumes the desktop restoreAll handler verbatim (sequential fireAndWaitRun, single-flight); mobile adds presentation only, never a second fire path (D-02)
 - [Phase 8]: E2E one-at-a-time proof: staged runs flip terminal 700ms after the POST serve, so a /api/runs serve already observing target N terminal between POST N and POST N+1 is impossible for a parallel loop
 - [Phase 8]: Recovery h1 is shared page chrome above the max-md split; the sticky step bar is the mobile-only chrome needle (D-09 boundary: 844x390 landscape = desktop chrome is the contract)
+- [Phase 8]: VERIFY-02/VERIFY-05 ledger complete = all declarer plans done; the device session remains the milestone exit criterion, orchestrator-owned - 08-UAT.md states producing it does NOT satisfy VERIFY-02 (the pass happens on real hardware after the --no-transition stop)
+- [Phase 8]: 08-UAT.md: per-cell verdicts PRE-DERIVED via the 48rem math (notched landscape 844px -> desktop chrome is a PASS; SE 667px -> mobile) but pass/fail columns never pre-filled; runbook rebuilds web/dist BEFORE the binary build (embedded SPA, Pitfall 4), redeploys BombVault-test only, placeholder coordinates only
 
 ### Pending Todos
 
@@ -221,8 +224,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-14T15:17:14.266Z
-Stopped at: Completed 08-03-PLAN.md
+Last session: 2026-09-14T15:29:35.659Z
+Stopped at: Completed 08-05-PLAN.md (all phase 8 plans done)
 Resume file: None
 
 ## Operator Next Steps
