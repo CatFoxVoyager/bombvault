@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 8
 current_phase_name: Guided Restore & Real-Device Verification
 status: executing
-stopped_at: Phase 8 UI-SPEC approved
-last_updated: "2026-09-14T06:33:55.079Z"
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-09-14T11:37:55.671Z"
 last_activity: 2026-09-14
 last_activity_desc: Phase 8 planning complete — 5 plans ready
-state_head: 13fb24636c1bf0587698e3ff6109c47009b87198
+state_head: 1242d9f917718cb8ff2fcf5bb1e2bdff064cc8e5
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 26
-  completed_plans: 21
+  completed_plans: 22
   percent: 75
 ---
 
@@ -29,14 +29,12 @@ See: .planning/PROJECT.md (updated 2026-09-14)
 
 ## Current Position
 
-Phase: 8 (Guided Restore & Real-Device Verification) — READY TO EXECUTE
-Plan: Not started
+Phase: 8 (Guided Restore & Real-Device Verification) — EXECUTING
+Plan: 2 of 5
 Total Plans in Phase: 5
-Status: Ready to execute
-Last activity: 2026-09-14 — Phase 7 complete, transitioned to Phase 8
+Status: Plan 08-01 complete, next 08-02
+Last activity: 2026-09-14 — 08-01 guided-restore tracer complete
 Last Activity Description: Phase 8 planning complete — 5 plans ready
-
-Progress: [████████████████████] 21/21 plans (100%) — phases 5-7 complete, phase 8 not yet planned
 
 ## Performance Metrics
 
@@ -105,6 +103,7 @@ Progress: [████████████████████] 21/21 p
 | Phase 07 P06 | 3h22m | 3 tasks | 10 files |
 | Phase 07 P07 | 2h43m | 3 tasks | 4 files |
 | Phase 07 P08 | 1h 15m (resume session; prior executor interrupted mid-Task-3) | 3 tasks | 17 files |
+| Phase 08 P01 | 190m | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -178,6 +177,9 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 7]: OffsiteTarget has no secret fields, so the write-only contract is e2e-asserted structurally (zero password inputs across reopen cycles) instead of blank+Set-badge
 - [Phase 7]: Wizard sheet mount-gated in Settings.tsx (wizardOpen && !isDesktop); desktop ternary byte-identical behind wizardOpen && isDesktop
 - [Phase 7]: FLOW-01 sweep verdict: no client schedule derivation and no second helper in Settings surfaces; previews ride getScheduleNext/EffectiveScheduleLine/ScheduleRow
+- [Phase 8]: Mobile recovery flow re-hosts the SAME handlers (checkReadable/connectPreview/runDiscover/fireKitDownload) - a tap is never a second fire path; e2e parity multiset in guided-restore.spec.ts makes any extra call loud
+- [Phase 8]: CloudCredsDisclosure takes FIXED hue literals 3/4 at the mobile call site - a nextHue() at that mount site would shift desktop hue identity on every 48rem viewport cross
+- [Phase 8]: e2e REQUIRES a fresh binary after any web/ change - npm run build + go build -o bombvault.exe ./cmd/bombvault before playwright test, or the harness serves the stale embedded SPA (bit 08-01: 8 phantom failures); restore the web/dist/index.html placeholder before committing
 
 ### Pending Todos
 
@@ -207,9 +209,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-14T05:28:16.156Z
-Stopped at: Phase 8 UI-SPEC approved
-Resume file: .planning/phases/08-guided-restore-real-device-verification/08-UI-SPEC.md
+Last session: 2026-09-14T11:37:29.035Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
