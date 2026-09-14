@@ -2148,17 +2148,31 @@ function MobileVMsBlock({
   }, []);
 
   // FLOW-01: domain-level next-fire read. ScheduleNext is DOMAIN granularity
-  // (backend jobDomainFromName: the "vms" schedule job), so one entry serves
-  // every card — and it is SERVER-derived: no client cadence math anywhere in
-  // this block. scheduleTick is bumped after a card saves an override (the
-  // next fire may have moved).
+  // (backend jobDomainFromName: the "vms" schedule job), and it is
+  // SERVER-derived: no client cadence math anywhere in this block.
+  // scheduleTick is bumped after a card saves an override (the next fire may
+  // have moved).
+  //
+  // WR-01: per-item overrides (#121) each register their own cron entry, and
+  // both they and the domain job land on the wire IDENTICALLY labeled
+  // (job "backup", domain "vms" — addPerItemEntry vs jobDomainFromName), with
+  // NextRuns sorted soonest-first — so with more than one vms row a find()
+  // hands every override card whichever row fires soonest: another VM's fire,
+  // or the domain job's, a fire that does not back that VM up at all (an
+  // overridden VM rides its own entry, not the domain run). The wire carries
+  // no per-item identity to match on, so the chip is fed a row only when
+  // exactly ONE vms row exists; ambiguity never renders as a specific — and
+  // possibly wrong — fire. Until the backend gives NextRun an item identity,
+  // an override-bearing fleet shows the cadence label alone.
   const [scheduleNext, setScheduleNext] = useState<ScheduleNext | null>(null);
   const [scheduleTick, setScheduleTick] = useState(0);
   useEffect(() => {
     let alive = true;
     getScheduleNext()
       .then((rows) => {
-        if (alive) setScheduleNext(rows.find((r) => r.domain === "vms") ?? null);
+        if (!alive) return;
+        const vmsRows = rows.filter((r) => r.domain === "vms");
+        setScheduleNext(vmsRows.length === 1 ? vmsRows[0] : null);
       })
       .catch(() => {
         if (alive) setScheduleNext(null);
