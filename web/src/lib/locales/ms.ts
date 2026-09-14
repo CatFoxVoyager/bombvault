@@ -1565,6 +1565,12 @@ const ms: Partial<Translations> = {
   "config.restoreChain.step4": "Konfigurasi yang dipulihkan disemak terhadap sistem yang berjalan.",
   "config.restoreChain.step5": "Aplikasi dan perkhidmatan yang diaktifkan dimulakan semula dan halaman dimuat semula. Dengan mula semula automatik dimatikan, anda memulakan semula sendiri.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Langkah {n} daripada {total}",
+  "common.continue": "Teruskan",
+
 };
 
 export default ms;

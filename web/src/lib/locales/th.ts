@@ -1557,6 +1557,12 @@ const th: Partial<Translations> = {
   "config.restoreChain.step4": "การตั้งค่าที่กู้คืนแล้วจะได้รับการตรวจสอบกับระบบที่กำลังทำงาน",
   "config.restoreChain.step5": "แอปและบริการที่เปิดใช้งานจะเริ่มใหม่และหน้าเว็บจะโหลดใหม่ หากปิดการเริ่มใหม่อัตโนมัติ คุณต้องเริ่มใหม่เอง",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "ขั้นตอนที่ {n} จาก {total}",
+  "common.continue": "ต่อไป",
+
 };
 
 export default th;

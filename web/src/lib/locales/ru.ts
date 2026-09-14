@@ -1549,6 +1549,12 @@ const ru: Partial<Translations> = {
   "config.restoreChain.step4": "Восстановленная конфигурация проверяется на соответствие работающей системе.",
   "config.restoreChain.step5": "Включённые приложения и службы перезапускаются, и страница перезагружается. При выключенном автоперезапуске вы перезапускаете их сами.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Шаг {n} из {total}",
+  "common.continue": "Продолжить",
+
 };
 
 export default ru;

@@ -1546,6 +1546,12 @@ const zh: Partial<Translations> = {
   "config.restoreChain.step4": "恢复后的配置会与运行中的系统进行核对。",
   "config.restoreChain.step5": "已启用的应用和服务会重新启动，页面会重新加载。如果自动重启已关闭，您需要自行重启它们。",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "第 {n} 步，共 {total} 步",
+  "common.continue": "继续",
+
 };
 
 export default zh;

@@ -22,6 +22,11 @@
 // Pure logic, node environment (the i18n.parity.test.ts precedent: importing
 // ./i18n only builds the tables; all DOM access in that module lives inside
 // functions).
+//
+// PHASE 8 (08-01) extends this file with its own pre-seed block below: the
+// guided-restore mobile flow's two new keys, pinned for the same two reasons
+// (orphan gate until the Recovery.tsx mobile block consumes them, then the
+// copy-contract ratchet).
 // ---------------------------------------------------------------------------
 import { describe, expect, it } from "vitest";
 import { de, en } from "./i18n";
@@ -101,6 +106,55 @@ describe("home.newBackupConfirm aligned copy (07-02 carried fix 3a)", () => {
     // that contradicts the D-03 one-at-a-time guard chain.
     for (const [code, table] of Object.entries(locales)) {
       expect(table["home.newBackupConfirm"], code).not.toMatch(/restarted\./);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase 8 pre-seed (08-01) — the guided-restore mobile flow's complete new-key
+// list (08-UI-SPEC Copywriting Contract census: exactly these two keys for the
+// whole phase). Same two roles as the phase-7 block above: orphan-gate cover
+// until the Recovery.tsx mobile block consumes them, then the copy-contract
+// ratchet. The {n}/{total} placeholder form is INVARIANT across locales (the
+// position chip renders tabular-nums and the 320px sweep asserts single-line),
+// which the parity test's placeholder assertion enforces structurally.
+// ---------------------------------------------------------------------------
+const PRESEED8_EN: Record<string, string> = {
+  "recovery.mobile.stepOf": "Step {n} of {total}",
+  "common.continue": "Continue",
+};
+
+const PRESEED8_KEYS = Object.keys(PRESEED8_EN);
+
+describe("phase 8 pre-seed (08-01)", () => {
+  it("en carries the exact contracted copy for every pre-seeded key", () => {
+    for (const [key, expected] of Object.entries(PRESEED8_EN)) {
+      expect(en[key as keyof typeof en], key).toBe(expected);
+    }
+  });
+
+  it("de carries every pre-seeded key with a non-empty German value", () => {
+    for (const key of PRESEED8_KEYS) {
+      const value = de[key as keyof typeof de];
+      expect(typeof value, key).toBe("string");
+      expect(value.length, key).toBeGreaterThan(0);
+      expect(value, key).not.toBe(PRESEED_EN[key]);
+    }
+  });
+
+  it.each(PRESEED8_KEYS)("every locale table carries %s non-empty", (key) => {
+    for (const [code, table] of Object.entries(locales)) {
+      const value = table[key as keyof typeof table];
+      expect(typeof value, `${code}:${key}`).toBe("string");
+      expect(value.length, `${code}:${key}`).toBeGreaterThan(0);
+    }
+  });
+
+  it("no pre-seeded value in any language carries an em dash", () => {
+    for (const [code, table] of Object.entries(locales)) {
+      for (const key of PRESEED8_KEYS) {
+        expect(table[key as keyof typeof table], `${code}:${key}`).not.toMatch(/—|–/);
+      }
     }
   });
 });

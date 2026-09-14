@@ -1565,6 +1565,12 @@ const et: Partial<Translations> = {
   "config.restoreChain.step4": "Taastatud seadistust kontrollitakse töötava süsteemi vastu.",
   "config.restoreChain.step5": "Lubatud rakendused ja teenused taaskäivitatakse ja leht laaditakse uuesti. Kui automaatne taaskäivitus on välja lülitatud, käivitad sa need ise uuesti.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Samm {n} / {total}",
+  "common.continue": "Jätka",
+
 };
 
 export default et;

@@ -1557,6 +1557,12 @@ const ro: Partial<Translations> = {
   "config.restoreChain.step4": "Configurația restaurată este verificată față de sistemul live.",
   "config.restoreChain.step5": "Aplicațiile și serviciile activate sunt repornite și pagina se reîncarcă. Cu repornirea automată dezactivată, le repornești tu însuți.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Pasul {n} din {total}",
+  "common.continue": "Continuă",
+
 };
 
 export default ro;

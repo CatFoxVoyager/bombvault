@@ -1554,6 +1554,12 @@ const sv: Partial<Translations> = {
   "config.restoreChain.step4": "Den återställda konfigurationen kontrolleras mot det körande systemet.",
   "config.restoreChain.step5": "Aktiverade appar och tjänster startas om och sidan laddas om. Med automatisk omstart avstängd startar du om dem själv.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Steg {n} av {total}",
+  "common.continue": "Fortsätt",
+
 };
 
 export default sv;

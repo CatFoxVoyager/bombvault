@@ -1565,6 +1565,12 @@ const hi: Partial<Translations> = {
   "config.restoreChain.step4": "रीस्टोर की गई कॉन्फ़िगरेशन की जीवित सिस्टम से जाँच होती है.",
   "config.restoreChain.step5": "सक्रिय ऐप्स और सेवाएँ फिर से शुरू होती हैं और पेज फिर से लोड होता है. ऑटो-रीस्टार्ट बंद होने पर, आप उन्हें स्वयं फिर से शुरू करते हैं.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "चरण {n} / {total}",
+  "common.continue": "जारी रखें",
+
 };
 
 export default hi;

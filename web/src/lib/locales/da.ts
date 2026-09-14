@@ -1554,6 +1554,12 @@ const da: Partial<Translations> = {
   "config.restoreChain.step4": "Den gendannede konfiguration kontrolleres mod det kørende system.",
   "config.restoreChain.step5": "Aktiverede apps og tjenester genstartes, og siden genindlæses. Med automatisk genstart slået fra genstarter du dem selv.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Trin {n} af {total}",
+  "common.continue": "Fortsæt",
+
 };
 
 export default da;

@@ -1554,6 +1554,12 @@ const fi: Partial<Translations> = {
   "config.restoreChain.step4": "Palautetut asetukset tarkistetaan käynnissä olevaa järjestelmää vasten.",
   "config.restoreChain.step5": "Käytössä olevat sovellukset ja palvelut käynnistetään uudelleen ja sivu latautuu uudelleen. Jos automaattinen uudelleenkäynnistys on pois päältä, käynnistät ne itse uudelleen.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Vaihe {n} / {total}",
+  "common.continue": "Jatka",
+
 };
 
 export default fi;

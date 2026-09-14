@@ -1546,6 +1546,12 @@ const ko: Partial<Translations> = {
   "config.restoreChain.step4": "복원된 설정은 실행 중인 시스템과 대조하여 검사됩니다.",
   "config.restoreChain.step5": "활성화된 앱과 서비스가 다시 시작되고 페이지가 다시 로드됩니다. 자동 재시작이 꺼져 있으면 직접 다시 시작합니다.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "{n}/{total} 단계",
+  "common.continue": "계속",
+
 };
 
 export default ko;

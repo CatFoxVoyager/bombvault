@@ -1565,6 +1565,12 @@ const ca: Partial<Translations> = {
   "config.restoreChain.step4": "La configuració restaurada es comprova contra el sistema en marxa.",
   "config.restoreChain.step5": "Les aplicacions i els serveis activats es reinicien i la pàgina es torna a carregar. Amb el reinici automàtic desactivat, els reinicies tu mateix.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Pas {n} de {total}",
+  "common.continue": "Continua",
+
 };
 
 export default ca;

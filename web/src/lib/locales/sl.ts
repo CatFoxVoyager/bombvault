@@ -1549,6 +1549,12 @@ const sl: Partial<Translations> = {
   "config.restoreChain.step4": "Obnovljene nastavitve se preverijo glede na delujoči sistem.",
   "config.restoreChain.step5": "Omogočene aplikacije in storitve se znova zaženejo in stran se ponovno naloži. Z izklopljenim samodejnim ponovnim zagonom jih zaženete znova sami.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Korak {n} od {total}",
+  "common.continue": "Nadaljuj",
+
 };
 
 export default sl;

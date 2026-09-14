@@ -1552,6 +1552,12 @@ const cs: Partial<Translations> = {
   "config.restoreChain.step4": "Obnovená konfigurace se zkontroluje vůči běžícímu systému.",
   "config.restoreChain.step5": "Zapnuté aplikace a služby se restartují a stránka se znovu načte. Se vypnutým automatickým restartem je restartujete sami.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Krok {n} z {total}",
+  "common.continue": "Pokračovat",
+
 };
 
 export default cs;

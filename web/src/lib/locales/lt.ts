@@ -1565,6 +1565,12 @@ const lt: Partial<Translations> = {
   "config.restoreChain.step4": "Atkurta konfigūracija patikrinama pagal veikiančią sistemą.",
   "config.restoreChain.step5": "Įjungtos programos ir paslaugos paleidžiamos iš naujo ir puslapis įkeliamas iš naujo. Kai automatinis paleidimas iš naujo išjungtas, paleidžiate juos patys.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Žingsnis {n} iš {total}",
+  "common.continue": "Tęsti",
+
 };
 
 export default lt;

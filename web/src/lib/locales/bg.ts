@@ -1565,6 +1565,12 @@ const bg: Partial<Translations> = {
   "config.restoreChain.step4": "Възстановената конфигурация се проверява срещу работещата система.",
   "config.restoreChain.step5": "Включените приложения и услуги се рестартират и страницата се презарежда. При изключен автоматичен рестарт ги рестартирате сами.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Стъпка {n} от {total}",
+  "common.continue": "Продължи",
+
 };
 
 export default bg;

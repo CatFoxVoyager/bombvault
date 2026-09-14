@@ -1557,6 +1557,12 @@ const ar: Partial<Translations> = {
   "config.restoreChain.step4": "تُحقَّق الإعدادات المستعادة مقابل النظام الفعلي.",
   "config.restoreChain.step5": "تُعاد تشغيل التطبيقات والخدمات الممكّنة وتُعاد تحميل الصفحة. مع إيقاف إعادة التشغيل التلقائي، تعيد تشغيلها بنفسك.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "الخطوة {n} من {total}",
+  "common.continue": "متابعة",
+
 };
 
 export default ar;

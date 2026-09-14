@@ -1565,6 +1565,12 @@ const fa: Partial<Translations> = {
   "config.restoreChain.step4": "پیکربندی بازیابی‌شده با سیستم زنده بررسی می‌شود.",
   "config.restoreChain.step5": "برنامه‌ها و سرویس‌های فعال دوباره راه‌اندازی می‌شوند و صفحه بارگذاری مجدد می‌شود. با خاموش بودن راه‌اندازی مجدد خودکار، خودتان آن‌ها را راه‌اندازی مجدد می‌کنید.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "مرحله {n} از {total}",
+  "common.continue": "ادامه",
+
 };
 
 export default fa;

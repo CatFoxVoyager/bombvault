@@ -1554,6 +1554,12 @@ const pt: Partial<Translations> = {
   "config.restoreChain.step4": "A configuração restaurada é verificada em relação ao sistema em execução.",
   "config.restoreChain.step5": "As aplicações e serviços ativados são reiniciados e a página é recarregada. Com o reinício automático desligado, reinicia-os você próprio.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Passo {n} de {total}",
+  "common.continue": "Continuar",
+
 };
 
 export default pt;

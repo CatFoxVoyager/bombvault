@@ -1565,6 +1565,12 @@ const lv: Partial<Translations> = {
   "config.restoreChain.step4": "Atjaunotā konfigurācija tiek pārbaudīta pret dzīvo sistēmu.",
   "config.restoreChain.step5": "Iespējotās lietotnes un pakalpojumi tiek pārstartēti, un lapa tiek pārlādēta. Ja automātiskā pārstartēšana ir izslēgta, jūs tos pārstartējat pats.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Solis {n} no {total}",
+  "common.continue": "Turpināt",
+
 };
 
 export default lv;

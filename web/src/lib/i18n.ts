@@ -1229,6 +1229,11 @@ export const en = {
   // Phase 6 (SCRN-02): mobile stacked-detail back row. A visible label (not an
   // icon-only affordance) — the maquette's back row reads chevron + "Back".
   "common.back": "Back",
+  // Phase 8 (SCRN-06): the mobile recovery step flow's sticky-bar action that
+  // advances a completed/optional step WITHOUT re-firing the step's primary
+  // action. Pre-seeded 08-01 across all 42 tables (07-02 single-writer
+  // pattern); the flow consumes it in the same phase.
+  "common.continue": "Continue",
   "common.loadingBackups": "Loading backups…",
   "common.saving": "Saving…",
   "common.restoreRunning": "A restore is running…",
@@ -1607,6 +1612,13 @@ export const en = {
   "recovery.step5": "Your recovery kit",
   "recovery.kitHint": "Download and store your recovery kit somewhere safe. It holds the encryption key and the exact restic commands to restore even without BombVault.",
   "recovery.kitDownload": "Download recovery kit",
+  // Phase 8 (SCRN-06): mobile step-header position chip. The {n}/{total}
+  // placeholder form is INVARIANT across all 42 tables (08-UI-SPEC): the chip
+  // renders tabular-nums and the 320px narrow-viewport battery asserts it
+  // single-line, so no locale may grow a third placeholder or unbounded prose.
+  // Pre-seeded 08-01 (07-02 single-writer pattern), consumed by the mobile
+  // block in the same phase.
+  "recovery.mobile.stepOf": "Step {n} of {total}",
   // Dashboard fresh-install nudge → guided Recovery tab
   "recovery.freshNudge": "Restoring from a previous server or a rebuild? Recover your existing backups.",
   "recovery.freshNudgeCta": "Go to Recovery",
@@ -2917,6 +2929,10 @@ export const de: Translations = {
   // Phase 6 (SCRN-02): Zurück-Zeile der gestapelten Detailansicht — Chevron
   // mit sichtbarem Schriftlabel (nicht nur Icon), wie in der Maquette.
   "common.back": "Zurück",
+  // Phase 8 (SCRN-06): sichere Sticky-Bar-Aktion, die einen erledigten oder
+  // optionalen Schritt weiter schaltet, OHNE die Primäraktion erneut
+  // auszulösen. 08-01 über alle 42 Tabellen vorgesät (07-02-Muster).
+  "common.continue": "Weiter",
   "common.loadingBackups": "Sicherungen werden geladen…",
   "common.saving": "Speichern…",
   "common.restoreRunning": "Eine Wiederherstellung läuft…",
@@ -3242,6 +3258,11 @@ export const de: Translations = {
   "recovery.step5": "Dein Recovery-Kit",
   "recovery.kitHint": "Lade dein Recovery-Kit herunter und bewahre es sicher auf. Es enthält den Verschlüsselungsschlüssel und die genauen restic-Befehle, um selbst ohne BombVault wiederherzustellen.",
   "recovery.kitDownload": "Recovery-Kit herunterladen",
+  // Phase 8 (SCRN-06): Positions-Chip im mobilen Schritt-Kopf. Die
+  // {n}/{total}-Platzhalterform ist über alle 42 Tabellen INVARIANT
+  // (08-UI-SPEC): der Chip rendert tabular-nums, und der 320px-Sweep
+  // behauptet ihn einzeilig.
+  "recovery.mobile.stepOf": "Schritt {n} von {total}",
   // Dashboard-Hinweis bei frischer Installation → geführter Wiederherstellungs-Tab
   "recovery.freshNudge": "Wiederherstellung von einem früheren Server oder nach einem Neuaufbau? Stelle deine vorhandenen Backups wieder her.",
   "recovery.freshNudgeCta": "Zur Wiederherstellung",

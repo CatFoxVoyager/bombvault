@@ -1565,6 +1565,12 @@ const gl: Partial<Translations> = {
   "config.restoreChain.step4": "A configuración restaurada compróbase contra o sistema en vivo.",
   "config.restoreChain.step5": "As aplicacións e servizos activados reinícianse e a páxina vólvese cargar. Co reinicio automático desactivado, reinícias ti mesmo.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Paso {n} de {total}",
+  "common.continue": "Continuar",
+
 };
 
 export default gl;

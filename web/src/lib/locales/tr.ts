@@ -1554,6 +1554,12 @@ const tr: Partial<Translations> = {
   "config.restoreChain.step4": "Geri yüklenen yapılandırma, çalışan sistemle karşılaştırılarak denetlenir.",
   "config.restoreChain.step5": "Etkin uygulamalar ve hizmetler yeniden başlatılır ve sayfa yeniden yüklenir. Otomatik yeniden başlatma kapalıyken, onları kendiniz yeniden başlatırsınız.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Adım {n} / {total}",
+  "common.continue": "Devam et",
+
 };
 
 export default tr;

@@ -1546,6 +1546,12 @@ const vi: Partial<Translations> = {
   "config.restoreChain.step4": "Cấu hình đã khôi phục được kiểm tra đối chiếu với hệ thống đang chạy.",
   "config.restoreChain.step5": "Các ứng dụng và dịch vụ đang bật được khởi động lại và trang được tải lại. Khi tự động khởi động lại đang tắt, bạn tự khởi động lại chúng.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Bước {n} trên {total}",
+  "common.continue": "Tiếp tục",
+
 };
 
 export default vi;

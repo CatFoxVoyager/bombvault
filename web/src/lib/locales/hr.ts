@@ -1565,6 +1565,12 @@ const hr: Partial<Translations> = {
   "config.restoreChain.step4": "Vraćena konfiguracija provjerava se prema živom sustavu.",
   "config.restoreChain.step5": "Omogućene aplikacije i usluge ponovno se pokreću i stranica se ponovno učitava. S isključenim automatskim ponovnim pokretanjem sami ih ponovno pokrećete.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Korak {n} od {total}",
+  "common.continue": "Nastavi",
+
 };
 
 export default hr;

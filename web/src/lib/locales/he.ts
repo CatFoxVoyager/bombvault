@@ -1554,6 +1554,12 @@ const he: Partial<Translations> = {
   "config.restoreChain.step4": "התצורה המשוחזרת נבדקת מול המערכת החיה.",
   "config.restoreChain.step5": "אפליקציות ושירותים מופעלים מופעלים מחדש והדף נטען מחדש. כשההפעלה מחדש האוטומטית כבויה, אתה מפעיל אותם מחדש בעצמך.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "שלב {n} מתוך {total}",
+  "common.continue": "המשך",
+
 };
 
 export default he;

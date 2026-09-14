@@ -1551,6 +1551,12 @@ const nl: Partial<Translations> = {
   "config.restoreChain.step4": "De herstelde configuratie wordt gecontroleerd tegen het live systeem.",
   "config.restoreChain.step5": "Ingeschakelde apps en diensten worden herstart en de pagina herlaadt. Met auto-herstart uit herstart je ze zelf.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Stap {n} van {total}",
+  "common.continue": "Verder",
+
 };
 
 export default nl;

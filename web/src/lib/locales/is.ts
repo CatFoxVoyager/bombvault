@@ -1565,6 +1565,12 @@ const is: Partial<Translations> = {
   "config.restoreChain.step4": "Endurheimta uppsetningin er borin saman við kerfið í gangi.",
   "config.restoreChain.step5": "Virk forrit og þjónustur eru endurræst og síðan hleðst aftur. Með slökkt á sjálfvirkri endurræsingu endurræsir þú þau sjálfur.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Skref {n} af {total}",
+  "common.continue": "Halda áfram",
+
 };
 
 export default is;

@@ -1549,6 +1549,12 @@ const uk: Partial<Translations> = {
   "config.restoreChain.step4": "Відновлену конфігурацію перевіряють на відповідність чинній системі.",
   "config.restoreChain.step5": "Увімкнені застосунки та служби перезапускаються, і сторінка перезавантажується. Якщо автоматичний перезапуск вимкнено, ви перезапускаєте їх самі.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Крок {n} із {total}",
+  "common.continue": "Продовжити",
+
 };
 
 export default uk;

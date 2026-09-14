@@ -1557,6 +1557,12 @@ const hu: Partial<Translations> = {
   "config.restoreChain.step4": "A visszaállított konfigurációt az élő rendszerrel ellenőrzik.",
   "config.restoreChain.step5": "Az engedélyezett alkalmazások és szolgáltatások újraindulnak, és az oldal újratölt. Ha az automatikus újraindítás ki van kapcsolva, te indítod újra őket.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "{n}. lépés / {total}",
+  "common.continue": "Tovább",
+
 };
 
 export default hu;

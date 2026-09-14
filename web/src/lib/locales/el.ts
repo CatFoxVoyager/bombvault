@@ -1554,6 +1554,12 @@ const el: Partial<Translations> = {
   "config.restoreChain.step4": "Η επαναφερμένη ρύθμιση ελέγχεται έναντι του ζωντανού συστήματος.",
   "config.restoreChain.step5": "Οι ενεργές εφαρμογές και υπηρεσίες επανεκκινούνται και η σελίδα επαναφορτώνεται. Με απενεργοποιημένη την αυτόματη επανεκκίνηση, τις επανεκκινείτε μόνοι σας.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "Βήμα {n} από {total}",
+  "common.continue": "Συνέχεια",
+
 };
 
 export default el;

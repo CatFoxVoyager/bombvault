@@ -1546,6 +1546,12 @@ const ja: Partial<Translations> = {
   "config.restoreChain.step4": "復元された設定は、稼働中のシステムに対して検証されます。",
   "config.restoreChain.step5": "有効なアプリとサービスが再起動され、ページが再読み込みされます。自動再起動がオフの場合は、自分で再起動します。",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "ステップ {n} / {total}",
+  "common.continue": "続ける",
+
 };
 
 export default ja;

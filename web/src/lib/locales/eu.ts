@@ -1565,6 +1565,12 @@ const eu: Partial<Translations> = {
   "config.restoreChain.step4": "Leheneratutako konfigurazioa sistema errealearen aurka egiaztatzen da.",
   "config.restoreChain.step5": "Gaitutako aplikazioak eta zerbitzuak berrabiarazi egiten dira eta orria birkargatzen da. Berrabiarazte automatikoa desaktibatuta badago, zuk berrabiarazten dituzu.",
 
+  // Phase 8 pre-seed (08-01, nav.mobileNavigation precedent; see the
+  // English block in src/lib/i18n.ts for the copy contract):
+  // the mobile recovery flow's position chip and step-advance action.
+  "recovery.mobile.stepOf": "{n}/{total}. urratsa",
+  "common.continue": "Jarraitu",
+
 };
 
 export default eu;
