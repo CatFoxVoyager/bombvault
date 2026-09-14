@@ -138,7 +138,11 @@ describe("phase 8 pre-seed (08-01)", () => {
       const value = de[key as keyof typeof de];
       expect(typeof value, key).toBe("string");
       expect(value.length, key).toBeGreaterThan(0);
-      expect(value, key).not.toBe(PRESEED_EN[key]);
+      // Fixed (Rule 1, quick 260914-nsv): this block iterates PRESEED8_KEYS
+      // but compared against PRESEED_EN — the phase-7 constant — so the
+      // difference assert could never fail on the keys it names. Compare
+      // against the block's own table.
+      expect(value, key).not.toBe(PRESEED8_EN[key]);
     }
   });
 
@@ -153,6 +157,57 @@ describe("phase 8 pre-seed (08-01)", () => {
   it("no pre-seeded value in any language carries an em dash", () => {
     for (const [code, table] of Object.entries(locales)) {
       for (const key of PRESEED8_KEYS) {
+        expect(table[key as keyof typeof table], `${code}:${key}`).not.toMatch(/—|–/);
+      }
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase quick 260914-nsv pre-seed — the Settings platform control's four keys
+// (D-11). Same two roles as the blocks above: orphan-gate cover until the
+// Settings.tsx platform card consumes them, then the copy-contract ratchet.
+// Deliberate deviation from the 08-01 block's de assert: the option labels
+// "Material"/"Cupertino" are design-language proper names, INVARIANT across
+// every table, so a de-must-differ-from-en assertion would fail on them
+// wrongly — de is checked non-empty only.
+// ---------------------------------------------------------------------------
+const PRESEEDQUICK_EN: Record<string, string> = {
+  "settings.platform": "Platform",
+  "settings.platformHint":
+    "How the app's mobile chrome is shaped: Material follows Android's conventions, Cupertino follows iOS's.",
+  "settings.platform.material": "Material",
+  "settings.platform.cupertino": "Cupertino",
+};
+
+const PRESEEDQUICK_KEYS = Object.keys(PRESEEDQUICK_EN);
+
+describe("phase quick 260914-nsv pre-seed (settings.platform*)", () => {
+  it("en carries the exact contracted copy for every pre-seeded key", () => {
+    for (const [key, expected] of Object.entries(PRESEEDQUICK_EN)) {
+      expect(en[key as keyof typeof en], key).toBe(expected);
+    }
+  });
+
+  it("de carries every pre-seeded key with a non-empty German value", () => {
+    for (const key of PRESEEDQUICK_KEYS) {
+      const value = de[key as keyof typeof de];
+      expect(typeof value, key).toBe("string");
+      expect(value.length, key).toBeGreaterThan(0);
+    }
+  });
+
+  it.each(PRESEEDQUICK_KEYS)("every locale table carries %s non-empty", (key) => {
+    for (const [code, table] of Object.entries(locales)) {
+      const value = table[key as keyof typeof table];
+      expect(typeof value, `${code}:${key}`).toBe("string");
+      expect(value.length, `${code}:${key}`).toBeGreaterThan(0);
+    }
+  });
+
+  it("no pre-seeded value in any language carries an em or en dash", () => {
+    for (const [code, table] of Object.entries(locales)) {
+      for (const key of PRESEEDQUICK_KEYS) {
         expect(table[key as keyof typeof table], `${code}:${key}`).not.toMatch(/—|–/);
       }
     }

@@ -922,6 +922,14 @@ export const en = {
   // "one product, every language" reasoning as the shape keys right above.
   "settings.motion": "Animations",
   "settings.motionHint": "How much every animation in the app moves: a manual dial that sits alongside your system's reduced-motion setting, never overrides it.",
+  // The platform control (D-11, quick 260914-nsv) — the General tab's
+  // material|cupertino card, placed after motion and before labels because
+  // that is the cards' on-screen order. The two option labels are the design
+  // languages' proper names: INVARIANTS in every table, never translated.
+  "settings.platform": "Platform",
+  "settings.platformHint": "How the app's mobile chrome is shaped: Material follows Android's conventions, Cupertino follows iOS's.",
+  "settings.platform.material": "Material",
+  "settings.platform.cupertino": "Cupertino",
   "settings.labels": "Labels",
   "settings.labelsHint": "How much of a control is shown: its words, its symbol, or both. Reactive shows the symbol alone and slides the words back in when you point at it. Buttons keep the same width in all four, so switching never reshuffles the page.",
   "settings.labels.buttons": "Buttons",
@@ -2672,6 +2680,12 @@ export const de: Translations = {
   "settings.shape.square": "Eckig",
   "settings.motion": "Animationen",
   "settings.motionHint": "Wie stark sich alle Animationen der App bewegen: ein manueller Regler neben der Systemeinstellung für reduzierte Bewegung, der sie nie überschreibt.",
+  // Platform control (D-11, quick 260914-nsv) — same placement contract as
+  // the en table: after motion, before labels; option labels are invariants.
+  "settings.platform": "Plattform",
+  "settings.platformHint": "Die Form der mobilen Oberfläche: Material folgt Androids Konventionen, Cupertino denen von iOS.",
+  "settings.platform.material": "Material",
+  "settings.platform.cupertino": "Cupertino",
   "settings.labels": "Beschriftungen",
   "settings.labelsHint": "Wie viel von einem Bedienelement gezeigt wird: seine Wörter, sein Symbol oder beides. Reaktiv zeigt nur das Symbol und blendet die Wörter ein, sobald du darauf zeigst. Buttons behalten in allen vier Fällen dieselbe Breite, das Umschalten verschiebt also nichts.",
   "settings.labels.buttons": "Buttons",
