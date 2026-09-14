@@ -21,8 +21,17 @@ import { RcloneCard } from "./settings/RcloneCard";
 import { ToggleRow } from "./settings/shared";
 import { Selector } from "../components/Selector";
 import { RestoreAction } from "../components/restore/RestoreAction";
+import { RestoreCancelButton } from "../components/RestoreCancelButton";
 import { fireAndWaitRun } from "../lib/backupWatch";
 import { useProgress, anyActive, busyPhraseKey } from "../lib/progress";
+import { statusLabel, statusTone } from "../lib/runDisplay";
+import { buildLogLines, formatLogDate } from "../lib/activityLog";
+import type { LogLine, ResolveName } from "../lib/activityLog";
+import { formatClockTime } from "../lib/reltime";
+import { useVisibilityGate } from "../lib/useVisibilityGate";
+import { colorFor, glyphFor, glyphLabelKey } from "../components/ActivityLog";
+import { ProgressBar } from "../components/ProgressBar";
+import { CheckDraw } from "../components/CheckDraw";
 import {
   discover,
   discoverVMs,
@@ -34,6 +43,8 @@ import {
   listVMs,
   listFileSets,
   fileSetSnapshots,
+  checkDomain,
+  listRuns,
   restore,
   restoreVM,
   restoreFileSet,
@@ -53,6 +64,7 @@ import {
   type ForeignBindWarning,
   type Settings,
   type Container,
+  type Run,
   type VM,
   type FileSetView,
   type FileEntry,
@@ -2690,6 +2702,11 @@ export default function Recovery() {
           fileSets={fileSets}
           restoreAllResult={restoreAllResult}
           restoreStepState={restoreStepState}
+          restoreAll={restoreAll}
+          restoreAllBusy={restoreAllBusy}
+          runningActivity={running}
+          rowOtherActive={rowOtherActive}
+          vmSshConfigured={vmSshConfigured}
           kitError={kitError}
           kitShake={kitShake}
           setKitError={setKitError}
@@ -2732,10 +2749,13 @@ export default function Recovery() {
 // config-restore body as of Plan 02 — source picker, the D-03 chain narration,
 // the confirm-gated restore row, the skip resolution and the configPhase
 // narration states, all re-hosted from the desktop card (same state, same
-// handler). Step 5 still renders its empty branch only (the populated restore
-// body is Plan 03) — a functionality gap a later plan fills with NO
-// architectural change: the gates, the chrome and the handlers this component
-// consumes already exist.
+// handler). Step 5 carries the FULL populated restore body as of Plan 03:
+// the shared restoreAll handler behind its ConfirmSheet gate, the desktop
+// row components re-hosted, per-target four-status Badges from the read-only
+// runs feed, the optional checkDomain verify row, and the visibility-gated
+// live progress + log section. The component's only fetches are READS (the
+// runs poll and checkDomain) — every WRITE and every restore fire path stays
+// in the handlers Recovery() owns (D-02).
 // ---------------------------------------------------------------------------
 
 // The flow's step count — the chip's {total}. Six steps, desktop order.
@@ -2768,6 +2788,189 @@ const MOBILE_STEP_TITLES: Record<number, TranslationKey> = {
   5: "recovery.step4",
   6: "recovery.step5",
 };
+
+// ---------------------------------------------------------------------------
+// Step 5's populated body (Plan 03) — the shared machinery below is COPIED,
+// never imported from a frozen or half-frozen source, per the D-12 rule that
+// mapping helpers live in the CONSUMER (the RunDetailSheet twins are the
+// recorded origin of each copy and are named at every site).
+// ---------------------------------------------------------------------------
+
+/** Locally-copied mapping #1: a run's domain -> the shared-SSE progress key
+ *  the backend publishes that run under ("container:<name>" / "vm:<name>" /
+ *  "files:<name>"; flash and config are singletons). Byte-equivalent copy of
+ *  RunDetailSheet's progressKeyFor (RunDetailSheet.tsx:120-135) — progress.ts
+ *  and its consumers' helpers are frozen surfaces, so the copy lives HERE
+ *  (D-12; why-copy recorded at the plan's key_links). */
+function restoreProgressKeyFor(run: Run): string | null {
+  switch (run.domain) {
+    case "container":
+    case "vm":
+    case "files":
+      // target = the name the SSE key publishes under; targetId is the row id
+      // and matches no published key (the twin's own hard-won comment).
+      return `${run.domain}:${run.target}`;
+    case "flash":
+      return "flash";
+    case "config":
+      return "config";
+    default:
+      return null;
+  }
+}
+
+/** Locally-copied mapping #2: a run's domain -> the checkDomain() union, or
+ *  null when the domain has no verify endpoint. Copy of RunDetailSheet's
+ *  verifyDomainFor (RunDetailSheet.tsx:140-153); same D-12 why-copy. */
+function restoreVerifyDomainFor(domain: string): "containers" | "vms" | "flash" | "files" | null {
+  switch (domain) {
+    case "container":
+      return "containers";
+    case "vm":
+      return "vms";
+    case "flash":
+      return "flash";
+    case "files":
+      return "files";
+    default:
+      return null;
+  }
+}
+
+/** The checkDomain union -> the nav label that names it in the verify
+ *  results (existing 42-table vocabulary only; flash is carried for
+ *  completeness even though this step never discovers a flash target). */
+const VERIFY_DOMAIN_LABEL: Record<string, TranslationKey> = {
+  containers: "nav.containers",
+  vms: "nav.vms",
+  flash: "nav.flash",
+  files: "nav.files",
+};
+
+/** The newest restore-kind run per (domain, target) key, OLDEST-first — the
+ *  per-target four-status Badge feed. Pure: same runs in, same list out. */
+function latestRestoreByTarget(runs: Run[]): [string, Run][] {
+  const by = new Map<string, Run>();
+  for (const r of runs) {
+    const k = `${r.domain}:${r.target}`;
+    const prev = by.get(k);
+    if (!prev || r.startedAt > prev.startedAt) by.set(k, r);
+  }
+  return [...by.entries()].sort((a, b) => a[1].startedAt - b[1].startedAt);
+}
+
+// The mobile log's live-tick cadence — RunDetailSheet's LIVE_TICK_MS value
+// (its own comment pins the why: the ActivityLog live tail's visible rate).
+const MOBILE_LOG_TICK_MS = 1000;
+// The step's read-only runs poll cadence — useBackupWatch's POLL_INTERVAL_MS
+// value, so the step's outcome lookup paces exactly like the watcher the
+// desktop rows ride.
+const MOBILE_RUNS_POLL_MS = 2000;
+
+/** Resolves a translation key (+ optional {placeholder} params) — the only
+ *  i18n dependency buildLogLines takes. Copy of RunDetailSheet's makeResolver
+ *  (RunDetailSheet.tsx:165-173, itself ActivityLog.tsx's closure): keeping the
+ *  merge/dedupe/order logic pure and identical between surfaces. */
+function mobileLogResolver(t: ReturnType<typeof useT>["t"]): ResolveName {
+  return (key, params) => {
+    let s = t(key as TranslationKey);
+    if (params) {
+      for (const [name, value] of Object.entries(params)) s = s.split(`{${name}}`).join(value);
+    }
+    return s;
+  };
+}
+
+/** The ActivityLog.tsx:385-390 mono line rendering, copied CLASS-FOR-CLASS
+ *  from RunDetailSheet's LogList (RunDetailSheet.tsx:179-197) — LogList is
+ *  the ONLY log style; a second style is the documented anti-pattern. */
+function MobileLogList({ lines }: { lines: LogLine[] }) {
+  const { t } = useT();
+  if (lines.length === 0) return null;
+  return (
+    <div className="rounded-card bg-black/20 font-mono text-xs leading-relaxed px-4 py-2 flex flex-col gap-0.5">
+      {lines.map((l) => (
+        <div key={l.id} className="flex items-start gap-2">
+          <span className="text-carbon-textMuted shrink-0 tabular-nums">
+            {formatLogDate(l.atMs)} {formatClockTime(l.atMs / 1000, true)}
+          </span>
+          <span className={`shrink-0 w-4 text-center ${colorFor(l.status)}`} aria-label={t(glyphLabelKey(l.status))}>
+            {glyphFor(l.status)}
+          </span>
+          <span className={`flex-1 min-w-0 wrap-break-word ${colorFor(l.status)}`}>{l.text}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** The IN-FLIGHT half of step 5's progress + log section — the ONLY place
+ *  this flow subscribes to the shared progress singleton. Mounting is the
+ *  subscription: MobileRecoveryFlow renders this conditionally on
+ *  useVisibilityGate() (`{visible && ...}`, the RunDetailSheet LiveRunSection
+ *  contract, RunDetailSheet.tsx:205-238), so hiding the page unmounts it and
+ *  the frozen singleton's ref-count drops the shared EventSource. Adapts the
+ *  twin's ONE-run shape to the step's TARGETS-shaped input: the active entry
+ *  is whichever of OUR in-flight runs' keys the copied progress mapping
+ *  resolves against a live, active progress entry. */
+function MobileRestoreLiveSection({ runs }: { runs: Run[] }) {
+  const { t } = useT();
+  const progressMap = useProgress();
+  // buildLogLines reads `now` for the live line's elapsed-duration text; tick
+  // at the ActivityLog live cadence while mounted.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), MOBILE_LOG_TICK_MS);
+    return () => clearInterval(id);
+  }, []);
+
+  const resolveName = mobileLogResolver(t);
+  const lines = buildLogLines(runs, progressMap, [], resolveName, now, now).filter((l) => !l.idle);
+
+  // Which in-flight run is actually moving (there is at most one — restoreAll
+  // is sequential and the rows single-flight): first of ours whose copied
+  // progress key has a live active entry. Drives the bar and the cancel row.
+  const activeRun = runs.find(
+    (r) => r.status === "running" && (() => {
+      const k = restoreProgressKeyFor(r);
+      return k !== null && (progressMap[k]?.active ?? false);
+    })(),
+  );
+  const activeKey = activeRun ? restoreProgressKeyFor(activeRun) : null;
+
+  return (
+    <div className="flex flex-col gap-2">
+      {/* Inline (in-flow) variant, the twin's reasoning verbatim: the default
+          ProgressBar pins to a positioned card's bottom edge; indeterminate
+          until the first SSE frame carries a percent. */}
+      {activeKey && (
+        <ProgressBar
+          percent={progressMap[activeKey]?.percent ?? 0}
+          active={progressMap[activeKey]?.active ?? false}
+          inline
+        />
+      )}
+      {/* Cancel rides RestoreCancelButton against the EXACT progress key the
+          backend registered the in-flight restore under; inPlace = the hard
+          warning (these restores write original locations). A cancel records a
+          "cancelled" run — the NEUTRAL terminal the Badge below renders. */}
+      {activeKey && activeRun && (
+        <RestoreCancelButton cancelKey={activeKey} inPlace name={activeRun.target} t={t} />
+      )}
+      <MobileLogList lines={lines} />
+    </div>
+  );
+}
+
+/** The TERMINAL half: finished (failed/cancelled) restore runs render their
+ *  history lines from the same builder with an empty progress map — the
+ *  RunDetailSheet HistoryLogSection shape (RunDetailSheet.tsx:243-250). */
+function MobileRestoreHistoryLog({ runs }: { runs: Run[] }) {
+  const { t } = useT();
+  const resolveName = mobileLogResolver(t);
+  const lines = buildLogLines(runs, {}, [], resolveName, Date.now()).filter((l) => !l.idle);
+  return <MobileLogList lines={lines} />;
+}
 
 function MobileRecoveryFlow({
   readableState,
@@ -2804,6 +3007,11 @@ function MobileRecoveryFlow({
   fileSets,
   restoreAllResult,
   restoreStepState,
+  restoreAll,
+  restoreAllBusy,
+  runningActivity,
+  rowOtherActive,
+  vmSshConfigured,
   kitError,
   kitShake,
   setKitError,
@@ -2849,6 +3057,21 @@ function MobileRecoveryFlow({
   fileSets: FileSetView[];
   restoreAllResult: { ok: number; fail: number } | null;
   restoreStepState: StepState;
+  // Plan 03 (the populated restore body): the ONE restore-all fire path —
+  // Recovery()'s own restoreAll useCallback, consumed VERBATIM. Its first
+  // line awaits the shared confirm() promise (below md: ConfirmSheet,
+  // destructive top / cancel thumb-default, D-03), then the sequential
+  // fireAndWaitRun loop. The busy flag, the page-level "something is
+  // running" derivation (anyActive over the shared progress store) and the
+  // per-row block flag arrive pre-computed so this component never touches
+  // the progress singleton outside the visibility-gated section below.
+  restoreAll: () => Promise<void>;
+  restoreAllBusy: boolean;
+  runningActivity: { active: boolean; phase?: string };
+  rowOtherActive: boolean;
+  // The libvirt SSH probe's answer (null = unknown); only the advisory
+  // VM note consumes it, never a gate.
+  vmSshConfigured: boolean | null;
   kitError: string | null;
   kitShake: number;
   setKitError: Dispatch<SetStateAction<string | null>>;
@@ -2857,9 +3080,13 @@ function MobileRecoveryFlow({
   const { t } = useT();
   const { push } = useToast();
   const navigate = useNavigate();
-  // The ONLY local state: which step is on screen. Pure presentation — every
-  // gate below reads the SHARED Recovery state, so Back never loses completed
-  // step state and a gate that stops holding closes its own Continue.
+  // The step position is the flow's navigation state. Pure presentation —
+  // every gate below reads the SHARED Recovery state, so Back never loses
+  // completed step state and a gate that stops holding closes its own
+  // Continue. (Step 5 adds its own PRESENTATION-ONLY local state: the
+  // read-only runs feed, the verify row's busy/result state and the local
+  // hue counter — none of it can fire a restore; the handlers remain the
+  // desktop-owned ones.)
   const [step, setStep] = useState(1);
 
   // The gate chain, desktop disclosure order. gateTo(n) answers "may the flow
@@ -2888,6 +3115,90 @@ function MobileRecoveryFlow({
 
   const goBack = () => setStep((s) => Math.max(1, s - 1));
   const anyDiscovered = containers.length > 0 || vms.length > 0 || fileSets.length > 0;
+
+  // --- Step 5's read-only feeds (Plan 03) ------------------------------------
+  // The step's ONLY fetch is a read: listRuns, polled while the step is on
+  // screen AND the page is visible (the PRIM-04 gate — hiding pauses the
+  // chain; the return refetches FIRST, reconciling a run that finished in the
+  // background from the SERVER record, never from a clock). This is the same
+  // consumer-side contract RunDetailSheet documents for its hosts; it is NOT
+  // a restore fire path (D-02's forbidden fork is a second restore trigger —
+  // restoreAll and the rows' RestoreAction stay the only ones).
+  const flowVisible = useVisibilityGate();
+  const [restoreRuns, setRestoreRuns] = useState<Run[]>([]);
+  useEffect(() => {
+    if (step !== 5 || !flowVisible) return;
+    let cancelled = false;
+    const fetchRuns = () => {
+      listRuns()
+        .then((res) => {
+          if (!cancelled && res.ok) setRestoreRuns(res.runs ?? []);
+        })
+        .catch(() => {
+          // A failed read leaves the last snapshot on screen; the poll retries.
+        });
+    };
+    fetchRuns();
+    const id = setInterval(fetchRuns, MOBILE_RUNS_POLL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [step, flowVisible]);
+
+  // OUR targets keyed exactly the way restore runs record themselves
+  // (domain:target — RestoreRow's matchRun discipline, FileSetRecoveryRow's
+  // files:set.Name), so the badge feed below only ever names a target this
+  // flow discovered.
+  const ourTargets = new Map<string, string>();
+  for (const c of containers) ourTargets.set(`container:${c.name}`, c.name);
+  for (const v of vms) ourTargets.set(`vm:${v.libvirtName}`, v.name);
+  for (const s of fileSets) ourTargets.set(`files:${s.name}`, s.name);
+  const ourRestoreRuns = restoreRuns.filter(
+    (r) => r.kind === "restore" && ourTargets.has(`${r.domain}:${r.target}`),
+  );
+  const targetBadges = latestRestoreByTarget(ourRestoreRuns);
+  const anyRestoreInFlight = ourRestoreRuns.some((r) => r.status === "running");
+
+  // The optional integrity verify beat (SCRN-06 beat 3): one row, firing
+  // checkDomain SEQUENTIALLY over every domain that has discovered targets,
+  // through the locally-copied mapping. Read-only, never a gate: no restore
+  // control below consults this state, and the row's copy never implies it
+  // does. Results land per domain as they resolve (busy shows integrity.
+  // checking until the last one settles).
+  const verifyDomains = [
+    ...(containers.length > 0 ? (["container"] as const) : []),
+    ...(vms.length > 0 ? (["vm"] as const) : []),
+    ...(fileSets.length > 0 ? (["files"] as const) : []),
+  ]
+    .map(restoreVerifyDomainFor)
+    .filter((d): d is "containers" | "vms" | "flash" | "files" => d !== null);
+  const [verifyBusy, setVerifyBusy] = useState(false);
+  const [verifyResults, setVerifyResults] = useState<{ domain: string; ok: boolean; error: string | null }[]>([]);
+  async function runVerify() {
+    if (verifyBusy || verifyDomains.length === 0) return;
+    setVerifyBusy(true);
+    setVerifyResults([]);
+    const results: { domain: string; ok: boolean; error: string | null }[] = [];
+    for (const d of verifyDomains) {
+      try {
+        const res = await checkDomain(d);
+        // Backend error text verbatim when present (pre-scrubbed server-side).
+        results.push({ domain: d, ok: res.ok, error: res.ok ? null : res.error ?? t("verify.failed") });
+      } catch (err) {
+        results.push({ domain: d, ok: false, error: err instanceof Error ? err.message : t("verify.failed") });
+      }
+      setVerifyResults([...results]);
+    }
+    setVerifyBusy(false);
+  }
+
+  // LOCAL hue counter for this block's rows (the UI-SPEC hue discipline: the
+  // mobile block uses its OWN counter — the page-flat nextHue() is
+  // desktop-only by evaluation order, and a call at this mount site would
+  // shift every desktop heading after it on each 48rem viewport cross).
+  let mobileHueSeq = 0;
+  const mobileHue = () => mobileHueSeq++;
 
   // The kit download, re-hosted VERBATIM from the desktop card's inline button
   // handler (the same frozen api fn, the same refusal -> toast + shake
@@ -2950,7 +3261,7 @@ function MobileRecoveryFlow({
   //   4: Discover while undiscovered, else Continue.
   //   5: Continue only when the kit gate holds — with the gate unmet the bar
   //      renders NO action at all (a Continue past a gate cannot render; the
-  //      restore rows themselves are Plan 03).
+  //      restore controls live in the body, secondary/tonal, D-03).
   //   6: the kit download + Done (the flow's terminal).
   return (
     <>
@@ -3265,11 +3576,11 @@ function MobileRecoveryFlow({
             </>
           )}
 
-          {/* ---- Step 5: EMPTY BRANCH ONLY (tracer scope) — the found-counts
-                  echo plus the zero-target copy. The populated restore body
-                  (restore-all + per-row RestoreAction under the ConfirmSheet)
-                  is Plan 03; with targets present and no result yet the gate
-                  below simply holds no bar action. ---- */}
+          {/* ---- Step 5: the populated restore body (Plan 03). D-03 anatomy:
+                  the destructive controls are secondary/tonal rows IN THE
+                  BODY, mid-screen — the sticky bar keeps the safe Continue.
+                  Zero targets keep the empty copy (the kit gate opens on the
+                  empty set). ---- */}
           {step === 5 && (
             <>
               {discovered && discovered.containers + discovered.vms + discovered.files > 0 && (
@@ -3282,17 +3593,193 @@ function MobileRecoveryFlow({
                   )}
                 </span>
               )}
-              {restoreAllResult && (
-                <span
-                  className={`text-sm ${restoreAllResult.fail > 0 ? "text-statusWarn" : "text-statusOk"}`}
-                >
-                  {t("recovery.restoreAllResult")
-                    .replace("{ok}", String(restoreAllResult.ok))
-                    .replace("{fail}", String(restoreAllResult.fail))}
-                </span>
-              )}
-              {!anyDiscovered && (
+              {!anyDiscovered ? (
                 <p className="text-sm text-carbon-textMuted">{t("recovery.noneDiscovered")}</p>
+              ) : (
+                <>
+                  {/* Restore all — every container then VM, sequential + left
+                      stopped. The confirm gate lives INSIDE the shared
+                      restoreAll handler (its first line awaits the same
+                      useConfirm promise the desktop button rides; below md
+                      that presents ConfirmSheet — destructive control on top,
+                      safe cancel at the thumb-default bottom). This row is
+                      presentation ONLY: no second fire path (D-02). File sets
+                      are excluded exactly as the desktop card excludes them
+                      (a rediscovered set has no original path). */}
+                  {(containers.length > 0 || vms.length > 0) && (
+                    <div className="flex flex-col gap-2">
+                      {runningActivity.active && !restoreAllBusy && (
+                        <span className="text-xs text-carbon-textMuted">
+                          {t(busyPhraseKey(runningActivity.phase))}
+                        </span>
+                      )}
+                      {restoreAllResult && (
+                        <span
+                          className={`text-sm ${restoreAllResult.fail > 0 ? "text-statusWarn" : "text-statusOk"}`}
+                        >
+                          {t("recovery.restoreAllResult")
+                            .replace("{ok}", String(restoreAllResult.ok))
+                            .replace("{fail}", String(restoreAllResult.fail))}
+                        </span>
+                      )}
+                      <Button
+                        label={t("recovery.restoreAll")}
+                        labelKey="recovery.restoreAll"
+                        tone="neutral"
+                        onClick={() => void restoreAll()}
+                        disabled={restoreAllBusy || runningActivity.active}
+                        busy={restoreAllBusy}
+                        className="min-h-[2.75rem] w-full"
+                      />
+                    </div>
+                  )}
+
+                  {/* Per-target four-status Badges (VERIFY-05: text label +
+                      hue, never color alone): the NEWEST restore-kind run per
+                      discovered target, rendered through the shared
+                      statusTone/statusLabel. A cancelled restore is the
+                      NEUTRAL terminal — statusLabel's own "Cancelled" bucket
+                      — never a failure tone; "running" shows the active
+                      bucket while the restore moves. Empty until a run
+                      record exists (honest: no fabricated outcomes). */}
+                  {targetBadges.map(([key, run]) => (
+                    <div key={key} className="flex items-center justify-between gap-2">
+                      <span className="min-w-0 truncate text-xs text-carbon-text">
+                        {ourTargets.get(key) ?? run.target}
+                      </span>
+                      <Badge tone={statusTone(run.status)} size="small" className="shrink-0">
+                        {statusLabel(run.status, t)}
+                      </Badge>
+                    </div>
+                  ))}
+
+                  {/* VM restore needs the libvirt SSH link — advisory note,
+                      never a block (desktop card parity: the note degrades
+                      the VM rows' expectations, it never skips them). */}
+                  {vms.length > 0 && vmSshConfigured === false && (
+                    <div className="rounded-card bg-statusWarnBg px-4 py-2 text-xs text-statusWarn leading-relaxed">
+                      {t("recovery.vmSshNote")}
+                    </div>
+                  )}
+
+                  {/* Containers first, then VMs — the desktop card's own rows,
+                      re-hosted verbatim (their RestoreAction confirmMessage
+                      path already presents the per-row ConfirmSheet below md,
+                      with the target name substituted). Hue rides the LOCAL
+                      counter above — never nextHue(). */}
+                  {containers.length > 0 && (
+                    <div className="flex flex-col">
+                      <span className="text-xs text-carbon-textSub pt-1 pb-1">
+                        {t("nav.containers")}
+                      </span>
+                      {containers.map((c) => (
+                        <RestoreRow
+                          key={`container:${c.name}`}
+                          domain="container"
+                          name={c.name}
+                          lastBackup={c.lastBackup}
+                          t={t}
+                          otherActive={rowOtherActive}
+                          hueIndex={mobileHue()}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {vms.length > 0 && (
+                    <div className="flex flex-col">
+                      <span className="text-xs text-carbon-textSub pt-2 pb-1">{t("nav.vms")}</span>
+                      {vms.map((v) => (
+                        <RestoreRow
+                          key={`vm:${v.libvirtName}`}
+                          domain="vm"
+                          name={v.libvirtName}
+                          displayName={v.name}
+                          lastBackup={v.lastBackup}
+                          t={t}
+                          otherActive={rowOtherActive}
+                          hueIndex={mobileHue()}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {/* File sets — restore into a chosen folder (restoreAll
+                      covers containers + VMs only; a rediscovered set has no
+                      original path, so each row picks its own target). The
+                      desktop card's InfoBubble hint moves with the label. */}
+                  {fileSets.length > 0 && (
+                    <div className="flex flex-col">
+                      <span className="inline-flex items-center gap-1 self-start text-xs text-carbon-textSub pt-2 pb-1">
+                        {t("nav.files")}
+                        <InfoBubble tip={t("recovery.filesRestoreHint")} />
+                      </span>
+                      {fileSets.map((s) => (
+                        <FileSetRecoveryRow
+                          key={`files:${s.id}`}
+                          set={s}
+                          hostMountRoot={hostMountRoot}
+                          t={t}
+                          otherActive={rowOtherActive}
+                          hueIndex={mobileHue()}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Live progress + log (D-04, read-only): the frozen
+                      pipeline consumed from outside. IN-FLIGHT renders
+                      through the visibility-gated live section — mounting IS
+                      the SSE subscription, so hiding the page pauses the
+                      pipeline AND the runs poll above, and returning
+                      reconciles from the refetched server records (the run
+                      that finished in the background arrives as its terminal
+                      record, never extrapolated). Terminal runs render the
+                      pure history view (ungated: a pure view needs no live
+                      connection). Both go through MobileLogList — the ONE
+                      log style. */}
+                  {anyRestoreInFlight ? (
+                    flowVisible ? (
+                      <MobileRestoreLiveSection runs={ourRestoreRuns} />
+                    ) : null
+                  ) : ourRestoreRuns.some((r) => r.finishedAt != null) ? (
+                    <MobileRestoreHistoryLog runs={ourRestoreRuns} />
+                  ) : null}
+
+                  {/* The optional integrity verify row (SCRN-06 beat 3):
+                      fires checkDomain per discovered domain through the
+                      locally-copied mapping. NON-BLOCKING by construction —
+                      nothing above consults verifyBusy/verifyResults, and
+                      the restore rows stay enabled while it runs. Result
+                      lines: Badge (domain, ok/fail hue) + status text —
+                      backend reason verbatim on fail. */}
+                  {verifyDomains.length > 0 && (
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        label={verifyBusy ? t("integrity.checking") : t("integrity.verify")}
+                        labelKey={verifyBusy ? "integrity.checking" : "integrity.verify"}
+                        tone="neutral"
+                        onClick={() => void runVerify()}
+                        disabled={verifyBusy}
+                        busy={verifyBusy}
+                        className="min-h-[2.75rem] w-full"
+                      />
+                      {verifyResults.map((r) => (
+                        <div key={r.domain} className="flex items-start gap-2 text-xs">
+                          <Badge tone={r.ok ? "ok" : "fail"} size="small" className="shrink-0">
+                            {t(VERIFY_DOMAIN_LABEL[r.domain])}
+                          </Badge>
+                          {r.ok ? (
+                            <span className="flex items-center gap-2 text-statusOk">
+                              <CheckDraw />
+                              {t("integrity.ok")}
+                            </span>
+                          ) : (
+                            <span className="min-w-0 wrap-break-word text-statusFail">{r.error}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}
