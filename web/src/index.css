@@ -2538,6 +2538,25 @@ body {
      faster work, which is why it is a motion token rather than a constant: the
      bar already says how far, and this says how busy. */
   --motion-sheen-dur: 1500ms;
+
+  /* FOUR MORE DIALS, and they exist at every level rather than only at the
+     lively end - a quiet level is a smaller number, never a missing animation.
+     That is the difference between "less movement" and "a dead interface", and
+     it is the whole reason these are tokens and not media queries.
+
+     press  - how far a button sinks under the finger. The one animation that
+              answers EVERY click in the app, so it is the one a person feels
+              most often and notices least.
+     lift   - how far a button rises to meet the pointer.
+     spin   - one turn of a busy ring. Slower does not read as calmer here, it
+              reads as a slower machine, so the spread is deliberately narrow.
+     card   - how far a card rises as it arrives. Ends at `none`, like the page
+              entrance, so no card becomes a containing block for a fixed
+              child once it has landed. */
+  --motion-press-scale: .97;
+  --motion-lift-dist: 2px;
+  --motion-spin-dur: 800ms;
+  --motion-card-dist: 10px;
   /* A curve that overshoots and settles. The control point past 1 is what
      makes it spring rather than ease. */
   --motion-page-ease: cubic-bezier(.34, 1.56, .64, 1);
@@ -2636,6 +2655,10 @@ body {
   --motion-page-scale: .9;
   --motion-page-tilt: 3deg;
   --motion-sheen-dur: 900ms;
+  --motion-press-scale: .94;
+  --motion-lift-dist: 4px;
+  --motion-spin-dur: 560ms;
+  --motion-card-dist: 18px;
   --motion-page-dur: 620ms;
   --motion-page-ease: cubic-bezier(.22, 1.94, .45, 1);
 
@@ -2684,6 +2707,10 @@ body {
   --motion-page-tilt: 0deg;
   --motion-page-dur: 180ms;
   --motion-sheen-dur: 2400ms;
+  --motion-press-scale: .99;
+  --motion-lift-dist: 1px;
+  --motion-spin-dur: 1000ms;
+  --motion-card-dist: 4px;
   --motion-page-ease: cubic-bezier(.2, .6, .2, 1);
 
   --motion-toast-slide-scale: .5;
@@ -2752,6 +2779,13 @@ body {
      nobody has to go looking for, and the guard reads the block, not the
      rule. */
   --motion-sheen-dur: 0ms;
+  /* Off is 1, 0 and 0 rather than "no rule": the same declarations resolve,
+     they just resolve to no movement. A level that removed the rules instead
+     would need every one of them added back by hand the day a rule changes. */
+  --motion-press-scale: 1;
+  --motion-lift-dist: 0px;
+  --motion-spin-dur: 1200ms;
+  --motion-card-dist: 0px;
   --motion-page-ease: linear;
 
   --motion-toast-slide-scale: 0;
@@ -2881,6 +2915,16 @@ body {
    the scale and the curve per stage without needing a second keyframe. The
    scale is what makes the top stage read as a page arriving rather than
    sliding: at 1 it is the same motion the quiet stage already had. */
+/* A card arriving. Same shape as the page entrance one step down: a rise and a
+   fade, ending at `none` for the same containing-block reason that keyframe's
+   own comment sets out at length. No scale and no tilt - a card is a smaller
+   object than a page, and at card size both read as a wobble rather than as an
+   arrival. */
+@keyframes glim-card-in {
+  from { opacity: 0; transform: translateY(var(--motion-card-dist, 0px)); }
+  to   { opacity: 1; transform: none; }
+}
+
 @keyframes glim-page-in {
   from {
     opacity: 0;
@@ -3191,6 +3235,37 @@ body {
 .glim-modal-backdrop { background-color: var(--glim-scrim); }
 
 @media (prefers-reduced-motion: no-preference) {
+  /* THE PRESS. Every button in the app sinks a little under the finger, which
+     is the one piece of motion a person triggers deliberately and dozens of
+     times a session. `:active` only, so a keyboard user sees it on space/enter
+     too, and it composes with whatever transform a button already carries
+     because nothing else sets one on .glim-btn.
+
+     `transition` rather than an animation: a press has no duration of its own,
+     it lasts exactly as long as the finger is down. */
+  .glim-btn { transition: opacity 120ms, background-color 120ms, transform var(--motion-control-dur, 150ms); }
+  .glim-btn:active { transform: scale(var(--motion-press-scale, 1)); }
+
+  /* THE LIFT, the press's other half: the button comes up to meet the pointer
+     before it goes down under it. Deliberately on buttons rather than cards -
+     a card holds bubbles and popovers, and a card carrying a transform while
+     hovered becomes the containing block for anything fixed inside it, which
+     is the trap the page keyframe below documents at length. */
+  .glim-btn:hover:not(:active) { transform: translateY(calc(-1 * var(--motion-lift-dist, 0px))); }
+
+  /* THE BUSY RING. Tailwind's own `animate-spin` runs at a fixed second; this
+     hands it the dial so a machine that is working looks busier at the lively
+     levels and calmer at the quiet ones. It is an override of a utility class
+     on purpose and only inside this gate: at "off" the duration is long rather
+     than zero, because a spinner frozen mid-turn reads as a hang. */
+  .animate-spin { animation-duration: var(--motion-spin-dur, 1000ms); }
+
+  /* THE CARD ARRIVING. No class and no JavaScript: a CSS animation runs when
+     the element is created and never again, so every card plays this once on
+     mount - a fresh page, a tab change, a card appearing because a switch was
+     turned on - and never on a re-render. */
+  .glim-notch-card { animation: glim-card-in var(--motion-page-dur, 320ms) var(--motion-page-ease, ease) both; }
+
   /* The travelling light on a bar that is filling. `overflow: hidden` on the
      fill keeps the band inside it, so the effect stops exactly at the edge the
      number claims - a sweep running past the fill would be a bar lying about
