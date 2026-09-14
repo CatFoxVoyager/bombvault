@@ -74,6 +74,18 @@ async function stageVMs(page: Page): Promise<void> {
   await page.route("**/api/vms", (route) =>
     route.fulfill({ json: { ok: true, vms: [STAGED_VM] } }),
   );
+  // The mobile card block is mount-gated on the destinations gate
+  // (settings.vmsEnabled — fresh-DB default OFF, 07-03's MobileVMsBlock),
+  // so the gate flips ON here by overriding ONLY that field over the real
+  // binary's reply: the mobile card list renders (its VMRow carries
+  // .glim-stagger-row — the paint proof below), while every other setting
+  // stays the server's own and the harness DB is never written.
+  await page.route("**/api/settings", async (route) => {
+    const real = await route.fetch();
+    const body = (await real.json()) as { settings?: Record<string, unknown> };
+    body.settings = { ...body.settings, vmsEnabled: true };
+    await route.fulfill({ response: real, json: body });
+  });
 }
 
 // The check consumer, observed the way Chromium allows (see the header):
@@ -151,12 +163,27 @@ test("mobile cupertino: attribute flips, token resolves, consumers re-skin", asy
   // The check consumer on a mobile-visible surface: the rule is present,
   // breakpoint-scoped, and the token resolves at a live checkbox to the
   // circular HIG value (see the header for the Chromium normalization limit).
-  // toBeVisible first: the staged list renders after the route reply lands,
-  // and it proves the surface is genuinely PAINTED at 360px, not just attached.
+  // The staged list renders after the route reply lands — its card is the
+  // paint proof. The DOM truth on /vms (learned from the first full-suite
+  // run's two failures): the mobile block renders MobileVMCard, whose
+  // `glim-hue` + `glim-content-fade` combo NO desktop-half element carries
+  // (the desktop VMRow is `glim-hue glim-stagger-row` — hidden under
+  // max-md:hidden, which is exactly why the earlier `.glim-stagger-row`
+  // locator could never see it); the visible filter pins the contract: a
+  // VISIBLE card below md is the mobile block, painted.
+  // Native checkboxes are another story: multi-select wiring is
+  // desktop-half-only (onToggleSelect at the desktop list), so below md the
+  // only live checkbox in DOM is the desktop half's select-all, mounted but
+  // max-md:hidden since the D-01 gate made the desktop JSX always-rendered.
+  // The var read therefore resolves at that hidden checkbox — valid CSS
+  // truth either way, because custom properties inherit to every element,
+  // displayed or not, and the media rule's computed border-radius resolves
+  // the platform token identically at any checkbox below md.
   await stageVMs(page);
   await page.goto("/vms");
-  const checkbox = page.locator("input[type='checkbox']").first();
-  await expect(checkbox).toBeVisible();
+  await expect(
+    page.locator("div.glim-hue.glim-content-fade").filter({ visible: true }).first(),
+  ).toBeVisible();
   const cupCheck = await readCheckConsumer(page);
   expect(cupCheck.ruleFound).toBe(true);
   expect(cupCheck.ruleInMobileMedia).toBe(true);
@@ -177,9 +204,14 @@ test("mobile material: the same consumers keep today's expressions", async ({ pa
 
   // The check rule resolves its variable under BOTH attribute values:
   // material's 0px is today's native rendering (square-cornered control).
+  // Same staged-card paint proof (glim-hue + glim-content-fade, visible-
+  // filtered — see the cupertino test for the full DOM story) and
+  // hidden-select-all var read as above.
   await stageVMs(page);
   await page.goto("/vms");
-  await expect(page.locator("input[type='checkbox']").first()).toBeVisible();
+  await expect(
+    page.locator("div.glim-hue.glim-content-fade").filter({ visible: true }).first(),
+  ).toBeVisible();
   const matCheck = await readCheckConsumer(page);
   expect(matCheck.ruleFound).toBe(true);
   expect(matCheck.ruleInMobileMedia).toBe(true);

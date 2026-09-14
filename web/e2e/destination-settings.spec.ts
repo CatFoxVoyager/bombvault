@@ -292,8 +292,19 @@ test("mobile /settings: tapping each chip switches the stacked cards — one tab
 
   for (const [chipLabel, landmark] of TAB_LANDMARKS) {
     await strip.getByRole("button", { name: chipLabel, exact: true }).tap();
-    await expect(cardHeading(page, landmark)).toHaveCount(1);
-    await expect(cardHeading(page, landmark)).toBeVisible();
+    if (chipLabel === "Notifications") {
+      // 07-07's NotifyCard sheet editor replaced this tab's mobile title
+      // card with the D-01 entry row + fullHeight sheet: the only
+      // "Notifications" h2 left in DOM sits inside the max-md:hidden
+      // desktop half, so the stacked presentation to assert is the entry
+      // row (title + the staged fixture's "Never" summary).
+      await expect(
+        page.getByRole("button", { name: "Notifications Never" }),
+      ).toBeVisible();
+    } else {
+      await expect(cardHeading(page, landmark)).toHaveCount(1);
+      await expect(cardHeading(page, landmark)).toBeVisible();
+    }
 
     // ONE state, two presentations (T-07-16): the desktop strip's OWN
     // selection follows the chip tap — the same TabKey state rendering

@@ -153,7 +153,12 @@ test("touch rows are full-size targets and the chevron zone is disjoint from the
 
   const tree = backupTree(page);
   await expect(tree).toBeVisible();
-  const row = tree.getByRole("treeitem", { name: /appdata\/plex/ });
+  // aria-level="1" scoping, not name-only: once Expand renders the
+  // lazy-browse child, the child treeitem's accessible name contains the
+  // same path text, so a name-only locator re-resolves to TWO elements and
+  // every later expect(row) is a strict-mode violation. The row under test
+  // is always the top-level item.
+  const row = tree.locator('[aria-level="1"]').filter({ hasText: /appdata\/plex/ });
   await expect(row).toBeVisible();
 
   // (1) Full-row target: the row's laid-out box is at least 44px tall
@@ -195,7 +200,12 @@ test("tap toggles the check both ways; the chevron expands without ever toggling
 
   const tree = backupTree(page);
   await expect(tree).toBeVisible();
-  const row = tree.getByRole("treeitem", { name: /appdata\/plex/ });
+  // aria-level="1" scoping, not name-only: once Expand renders the
+  // lazy-browse child, the child treeitem's accessible name contains the
+  // same path text, so a name-only locator re-resolves to TWO elements and
+  // every later expect(row) is a strict-mode violation. The row under test
+  // is always the top-level item.
+  const row = tree.locator('[aria-level="1"]').filter({ hasText: /appdata\/plex/ });
   await expect(row).toBeVisible();
 
   // The served baseline is checked (mounts fixture: selected: true).
