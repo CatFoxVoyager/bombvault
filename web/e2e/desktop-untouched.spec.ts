@@ -175,3 +175,46 @@ for (const route of PHASE7_ROUTES) {
     }
   });
 }
+
+// ---------------------------------------------------------------------------
+// Phase 8 dual-direction battery (08-01 Task 3) — /recovery held from BOTH
+// sides of the 48rem chrome switch, the phase-7 template applied to the
+// guided-restore page. Recovery is double-gated (D-01): the desktop stepper
+// is mounted at every width (max-md:hidden) and the mobile flow mounts behind
+// exactly one !isDesktop, so the two directions assert mutually exclusive
+// DOMs, not just visibilities. The needles are the mobile flow's two
+// app-unique DOM signatures: the position chip's stepOf fill and the
+// phase-6 sticky-bar chrome class (no desktop element in Recovery carries
+// it). Copy is deliberately NOT needled in the desktop direction — the two
+// halves share most strings (noneDiscovered renders in the desktop step-5
+// card too), so a copy count-0 would fail on the desktop's own text.
+// Positive chrome only, fresh-DB safe: step 1's chip + Check render with
+// zero data; the desktop positives are the page heading and step 1's card
+// heading, present on the ungated route. The staged-data flow choreography
+// lives in guided-restore.spec.ts, same split as phases 6-7.
+// ---------------------------------------------------------------------------
+test("desktop untouched of phase 8 mobile chrome at /recovery", async ({ page }, testInfo) => {
+  test.skip(!DESKTOP_PROJECTS.has(testInfo.project.name), "desktop-only: the max-md leakage contract");
+  await page.goto("/recovery");
+
+  // Mobile-only surfaces have ZERO matches (the block never mounts here).
+  await expect(page.getByText("Step 1 of 6")).toHaveCount(0);
+  await expect(page.locator("div.sticky.bottom-0.z-10.bg-carbon-sidebar")).toHaveCount(0);
+
+  // Desktop markers present.
+  await expect(page.getByRole("heading", { level: 1, name: "Disaster recovery" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Can BombVault read your backups?" })).toBeVisible();
+});
+
+test("mobile presents at /recovery", async ({ page }, testInfo) => {
+  test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "mobile-only: the inverse chrome-switch contract");
+  await page.goto("/recovery");
+
+  // Desktop markers absent — the Layout switch never renders them.
+  await expect(page.getByTestId("desktop-sidebar")).toHaveCount(0);
+  // Mobile chrome present (data-independent): the position chip and step 1's
+  // bar action, the first rung of the gating chain.
+  await expect(page.getByTestId("bottom-nav")).toBeVisible();
+  await expect(page.getByText("Step 1 of 6")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Check" })).toBeVisible();
+});
