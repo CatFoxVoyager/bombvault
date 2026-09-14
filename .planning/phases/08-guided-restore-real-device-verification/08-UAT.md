@@ -132,3 +132,63 @@ exists to prevent.
 - **Config restore reloads the page mid-flow** (Pitfall 7) — a config restore ends in a
   page reload and the flow re-enters at step 1 with the restarting narration visible
   before it happens. Correct behavior; not a bug.
+
+---
+
+## Redeploy runbook (executed once, before the session)
+
+This runbook DESCRIBES the protocol — the device session (the operator) executes it;
+no deploy command runs from the repo. The steps are numbered and ORDERED; step 1
+before step 2 is load-bearing.
+
+1. **Rebuild the SPA first** — from the repo root:
+
+   ```sh
+   cd web && npm ci && npm run build
+   ```
+
+   Why it must precede the binary build: the Go binary embeds `web/dist`
+   (`//go:embed all:dist`, `web/embed.go`). Skipping this step ships the pre-phase SPA
+   to the device session and silently invalidates every observation (Pitfall 4 — stale
+   embedded SPA). After redeploy, check the UI's build stamp reflects this phase before
+   trusting any cell.
+2. **Build the binary** embedding the fresh dist — `go build` from the repo root (e.g.
+   `go build -o bombvault ./cmd/bombvault`, or your usual release build). The embed
+   picks up the `web/dist` output from step 1.
+3. **Redeploy ONLY the `BombVault-test` container** — via your usual compose/Unraid
+   mechanism, pointing the TEST instance at the freshly built image/binary. The PROD
+   `BombVault` container is NEVER touched by this protocol: no stop, no image swap, no
+   config edit — nothing.
+4. **Coordinates (placeholders only — real values travel outside the repo).** Hand the
+   session operator:
+   - device-reachable URL: `https://<server-ip>:3443/` (or the test instance's HTTP
+     port if it runs HTTP_ONLY);
+   - test-instance login credentials: `<test-username>` / `<test-password>` (only if
+     auth is enabled on the test instance);
+   - APP_KEY note: if the test instance's stored settings/credentials are APP_KEY
+     sealed, the session needs the TEST instance's app key — `<app-key>` (used by the
+     attach and config beats of Procedure R).
+
+   The angle-bracket tokens are mandated verbatim by the phase security rule; real IPs,
+   hostnames, credentials, and app keys never enter this repo (public repo, always has
+   been).
+5. **Session order:** execute the device-matrix cells top to bottom (1 → 6), then the
+   inherited checklist rows in order, then the known-surfaces confirmations — recording
+   pass/fail/notes IN PLACE in this document as each item completes.
+
+### Optional probes the session may run (Pitfall 6/7 context)
+
+- **Concurrent settings edit (Pitfall 6):** in another tab, change a setting on the
+  test instance immediately before running the config restore in Procedure R — the
+  restore must NOT roll back the concurrent change (the wizard re-fetches and merges
+  onto the fresh server baseline before every PUT). A rolled-back change is a real
+  defect; record it as a failure with the cell of origin.
+- **Config restore reload (Pitfall 7):** already listed under Known surfaces — the
+  reload and step-1 re-entry with restarting narration are correct behavior.
+
+## Session record (filled after the device session)
+
+After the session: update the Status line at the top of this file (DRAFT → session
+held), fill every empty cell, and file any Notes-flagged failure as a gap item naming
+its cell/row of origin. VERIFY-02's verdict is whatever this file records AFTER the
+session — never a pre-fill.
