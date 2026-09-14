@@ -152,6 +152,21 @@
 //      gets exactly that larger number. Scoped to every EXISTING pinWidth
 //      call site (all three are "lg") — see that constant's own doc for why
 //      a per-size table isn't warranted yet.
+//   5d. Mobile suppression (UI review lot 1, P1-9): the 200px pin is a
+//      DESKTOP-scale decision. Measured at 390px, a ~303px phone column fits
+//      exactly ONE MIN_PINNED_WIDTH segment per row, so the Settings General
+//      tab stacked 12+ pinned 200x43 blocks into ~2400px of page scroll —
+//      every picker rendered as a vertical pillar of mostly-empty pills. So
+//      below 48rem the pinning measurement is SUPPRESSED: the `pinWidth` gate
+//      also requires useIsDesktop (lib/useMediaQuery — the one DESKTOP_QUERY
+//      authority, the same query the CSS max-md:/md: variants flip on; no
+//      second width literal anywhere), and these strips fall back to the
+//      content-hugging presentation, which already wraps per this file's own
+//      "wraps, never scrolls" rule — nothing new had to be built for the
+//      fallback, the unpinned well IS that presentation. Desktop >=48rem is
+//      byte-identical by construction: above the breakpoint `pinWidth`
+//      evaluates exactly as items 5b/5c left it, so both the classes AND the
+//      inline widths are unchanged.
 //   5. `variant` ("chip", default, vs "well"). Live-review follow-up: "turn
 //      the shape picker into a horizontal selector styled like the one in
 //      TrickWork." TrickWork's own segmentedRow() (ui/src/controlWidgets.ts)
@@ -284,6 +299,7 @@ import {
 import { hueVars, rainbowAt } from "../lib/appearance";
 import { useRainbow } from "../lib/useRainbow";
 import { useLabelMode } from "../lib/useLabelMode";
+import { useIsDesktop } from "../lib/useMediaQuery";
 import { hidesLabel, labelWidth } from "../lib/controls";
 import { useTipBubble } from "../lib/useTipBubble";
 
@@ -754,7 +770,9 @@ export function Selector(props: SelectorProps) {
   // either: the "chip"-only guard existed to stop `equalWidth` engaging on a
   // "track" segment, and there is no "track" to protect.
   // The strip needs the axis too, not just each segment: whether to pin is a
-  // decision about the whole row.
+  // decision about the whole row. Below 48rem the decision is NO (header item
+  // 5d — the pin is a desktop-scale width), so `isDesktop` gates the whole
+  // expression and the measured pipeline never runs on a phone.
   const labelModeForStrip = useLabelMode("tabs");
 
   //   A STRIP WHOSE LABELS ARE OFF SCREEN DOES NOT PIN AT ALL. The pinned
@@ -771,7 +789,8 @@ export function Selector(props: SelectorProps) {
   // row stays a row instead of collapsing into seven small squares.
   const labelsOffScreen = hidesLabel(labelModeForStrip) && items.every((i) => !!i.icon);
   const reactiveStrip = labelModeForStrip === "reactive" && items.every((i) => !!i.icon && !i.iconOnly);
-  const pinWidth = equalWidth && !(labelsOffScreen && size !== "lg");
+  const isDesktop = useIsDesktop();
+  const pinWidth = isDesktop && equalWidth && !(labelsOffScreen && size !== "lg");
 
   // Content-width measurement for `pinWidth` (item 5b, corrected — see the
   // file header): every segment gets pinned to the WIDEST segment's own
