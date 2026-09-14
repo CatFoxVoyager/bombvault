@@ -132,6 +132,51 @@ exists to prevent.
 - **Config restore reloads the page mid-flow** (Pitfall 7) — a config restore ends in a
   page reload and the flow re-enters at step 1 with the restarting narration visible
   before it happens. Correct behavior; not a bug.
+- **Mobile UI review (2026-09-14, 390px) — leftovers carried to D-11, recouper on
+  device before acting.** Four P2 findings were left OPEN on purpose after the
+  three-quickplan fix batch (recap below); each needs a real-device look to promote,
+  fix, or drop:
+  - **P2-7 (Dashboard)** — the Skipped and Not scheduled pills sit adjacent with
+    similar wording; candidate fixes are reorder or merge. Wording/layout decision,
+    needs eyes on hardware.
+  - **P2-8 (Dashboard)** — "OK" badges give the impression of straddling the card
+    name and its sub-line. VISION-ONLY: no geometric proof was captured. Recouper on
+    device with a real measurement; do not act on the impression alone.
+  - **P2-15 (Files)** — the "Include in schedule" toggle hugs its label instead of
+    right-aligning the way the Settings switches do (pattern inconsistency,
+    consistency rule).
+  - **P2-16 (Files)** — a 100%-full accent progress strip is PERMANENT under every
+    healthy set card (track SPAN h-1.5 rounded-full + inner w-full bg-accent); at
+    rest it reads as "backup in progress" — misleading affordance.
+- **Mobile UI review — non-findings, do NOT re-file on D-11:**
+  - **P1-11 / P1-12 (sticky bars suspected of reserving no space)** — disproven from
+    source: both bar containers sit last in normal flow inside scrolling regions that
+    already account for them; sticky positioning reserves its own space. No fix, no gap.
+  - Also checked healthy during the review: the Settings switches, the deliberate
+    three-row header on Containers, the More sheet (Close 44×44, five 358×52 links),
+    the New backup button placement (x16 / w343, inside margins), and the Square
+    theme explaining the toggle corners.
+- **Mobile UI review — fix batch landed (3 GSD quickplans, 2026-09-14), verified live
+  at 390×844 on a fresh-install local build:**
+  - **260914-j4p** — controls overflowing under 48rem: P1-9 Settings selectors stacked
+    one-option-per-row, P1-2 Containers filter columns overflowing (chips clipped
+    mid-word), P1-3 Settings nav pills clipped (5 sections unreachable), P2-10
+    Language menu width.
+  - **260914-k2r** — P1-13 Files editor double header ("uat-test" rendered twice),
+    P2-14 "Remove set" styled identical to the primary CTAs; P1-11/P1-12 triaged to
+    the non-findings above.
+  - **260914-l7c** — P0-1 Containers FolderBrowser/Add overlap: the row stacks under
+    md AND the FolderBrowser's own value+browse row wraps (component-level fix covers
+    ~19 call sites); P1-4 nudge × touch pad added at the CALL SITE via bleed classes
+    (Button.tsx untouched — the chip variant excludes MOBILE_BLEED deliberately):
+    proven live by computed `::after` 46×46 at −14px plus hit-tests landing on the
+    button at −13px and the wrapper at −16px; P2-5 recovery CTA `max-md:min-h-[2.75rem]`,
+    measured 44px exactly; P2-6 the three mirrored byte formatters promote units at
+    95% of the boundary (1024×0.95), proven by vitest (1047245 → "1.0 MB").
+  - **P0-1 caveat:** the live 390px check exercised the shared FolderBrowser dialog on
+    Files (full-width field, browse button stacked below, no overlap, scrollWidth 390).
+    The exact Containers call site needs docker.sock and was verified FROM SOURCE ONLY;
+    the full e2e gate on BombVault-test re-proves it on device-reachable infra.
 
 ---
 
