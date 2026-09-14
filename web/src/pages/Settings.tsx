@@ -3535,7 +3535,7 @@ export function SettingsPage() {
             min={0}
             value={settings.resticCacheMaxMB}
             onChange={(e) => {
-              // Structural cast (cf. handleLogoutAll): runtime-identical to
+              // Structural cast (cf. downloadRecoveryKit in api.ts): runtime-identical to
               // e.target.value, but immune to the broken DOM lib resolution.
               const raw = (e.target as unknown as { value: string }).value;
               const n = Math.max(0, parseInt(raw, 10) || 0);
