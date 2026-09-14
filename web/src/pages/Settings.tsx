@@ -1382,6 +1382,7 @@ export function SettingsPage() {
     | "filesEnabled"
     | "configEnabled"
     | "receiverEnabled"
+    | "pullEnabled"
     | "fleetEnabled";
   const [domainToggleBusy, setDomainToggleBusy] = useState<Partial<Record<DomainToggleKey, boolean>>>({});
   const [domainToggleShake, setDomainToggleShake] = useState<Partial<Record<DomainToggleKey, number>>>({});
@@ -3062,6 +3063,20 @@ export function SettingsPage() {
           shakeNonce={domainToggleShake.fleetEnabled}
           pulseNonce={fieldPulse.fleetEnabled}
           hueIndex={6}
+        />
+        {/* Pull (#227). Last of the three and the only one that WRITES: the two
+            above watch, this one fetches another instance's backups into this
+            box's own repository. Its hint says so rather than leaving it to be
+            discovered. */}
+        <ToggleRow
+          label={t("settings.pullEnabled")}
+          hint={t("settings.pullEnabledHint")}
+          checked={settings.pullEnabled}
+          onChange={(v) => void toggleDomainEnabled("pullEnabled", v)}
+          disabled={domainToggleBusy.pullEnabled}
+          shakeNonce={domainToggleShake.pullEnabled}
+          pulseNonce={fieldPulse.pullEnabled}
+          hueIndex={7}
         />
       </Card>
       )}

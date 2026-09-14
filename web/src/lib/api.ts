@@ -121,6 +121,8 @@ export interface Settings {
   /** Fleet view (read-only monitoring of peer BombVault instances' protection
    *  status). Gates the Fleet tab like the other domain enables. Default false. */
   fleetEnabled: boolean;
+  /** Fetching another instance's backups into this box's own repository (#227). */
+  pullEnabled: boolean;
   containersPath: string;
   vmsPath: string;
   flashPath: string;
@@ -2950,6 +2952,96 @@ export interface ReceiverCheckResult {
   error: string;
   ranReadData: boolean;
   at: number;
+}
+
+/* ---------------------------------------------------------------------------
+ * Pull sources (#227): repositories belonging to OTHER instances that this box
+ * fetches snapshots out of. The mirror image of off-site replication.
+ * ------------------------------------------------------------------------- */
+
+/** A configured pull source. The stored APP_KEY is never returned, only whether
+ *  one is there. */
+export interface PullSourceView {
+  id: string;
+  name: string;
+  repo: string;
+  credsRef: string;
+  /** Which local repository the pulled snapshots land in. */
+  domain: string;
+  cadence: string;
+  limitDownload: number;
+  limitUpload: number;
+  lastPullAt: number;
+  /** null = never pulled. */
+  lastPullOk: boolean | null;
+  lastPullError: string;
+  snapshotsPulled: number;
+  enabled: boolean;
+  createdAt: number;
+  sortOrder: number;
+  /** A source key is stored; the key itself is NEVER returned. */
+  hasAppKey: boolean;
+}
+
+/** The create/update request body. On PUT an empty appKey keeps the stored key,
+ *  so editing a name cannot silently disarm a source. */
+export interface PullSourceInput {
+  name: string;
+  repo: string;
+  appKey: string;
+  credsRef: string;
+  domain: string;
+  cadence: string;
+  limitDownload: number;
+  limitUpload: number;
+  enabled: boolean;
+  sortOrder: number;
+}
+
+/** GET /api/pull/sources - every configured source. */
+export function listPullSources(): Promise<OkEnvelope & { sources?: PullSourceView[] }> {
+  return fetchJSON("/api/pull/sources");
+}
+
+/** POST /api/pull/sources - register a source. The server opens it read-only
+ *  before it saves anything, so a mistyped location or key is refused here
+ *  rather than at four in the morning. */
+export function createPullSource(in_: PullSourceInput): Promise<OkEnvelope & { source?: PullSourceView }> {
+  return fetchJSON("/api/pull/sources", {
+    method: "POST",
+    body: JSON.stringify(in_),
+  });
+}
+
+/** PUT /api/pull/sources/{id} - update a source (an empty appKey keeps the
+ *  stored one). */
+export function updatePullSource(
+  id: string,
+  in_: PullSourceInput
+): Promise<OkEnvelope & { source?: PullSourceView }> {
+  return fetchJSON(`/api/pull/sources/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    body: JSON.stringify(in_),
+  });
+}
+
+/** DELETE /api/pull/sources/{id} - drop the row only. Neither repository is
+ *  touched: the source belongs to somebody else, and what was already pulled
+ *  belongs to this box and stays. */
+export function deletePullSource(id: string): Promise<OkEnvelope> {
+  return fetchJSON(`/api/pull/sources/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+/** POST /api/pull/sources/{id}/test - open the source read-only and report
+ *  whether it answers, without pulling anything. */
+export function testPullSource(id: string): Promise<OkEnvelope> {
+  return fetchJSON(`/api/pull/sources/${encodeURIComponent(id)}/test`, { method: "POST" });
+}
+
+/** POST /api/pull/sources/{id}/run - pull now. Answers with how many snapshots
+ *  the copy was asked to carry. */
+export function runPullSource(id: string): Promise<OkEnvelope & { snapshots?: number }> {
+  return fetchJSON(`/api/pull/sources/${encodeURIComponent(id)}/run`, { method: "POST" });
 }
 
 /** GET /api/receiver/repos — every registered received repo with live status. */

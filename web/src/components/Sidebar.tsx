@@ -490,6 +490,7 @@ export function Sidebar({ settings, authEnabled }: SidebarProps) {
   const filesEnabled = settings?.filesEnabled ?? false;
   const receiverEnabled = settings?.receiverEnabled ?? false;
   const fleetEnabled = settings?.fleetEnabled ?? false;
+  const pullEnabled = settings?.pullEnabled ?? false;
 
   // #178: the logo row lives IN the rail, so it follows the rail's own axis
   // like every other row does. jdp's call after seeing the centred glyph
@@ -776,6 +777,13 @@ export function Sidebar({ settings, authEnabled }: SidebarProps) {
               {/* Fleet view appears only once its domain is enabled. */}
               {fleetEnabled && (
                 <NavItem to="/fleet" label={t("nav.fleet")} icon={<IconFleet />} hueIndex={nextHue()} />
+              )}
+              {/* Pull sources (#227) appear only once the flag is on. Below the
+                  two dashboards on purpose: those two watch, this one moves
+                  data, and the rail reads top to bottom from what this box owns
+                  to what it reaches for. */}
+              {pullEnabled && (
+                <NavItem to="/pull" label={t("nav.pull")} icon={<IconReceiver />} hueIndex={nextHue()} />
               )}
             </nav>
 

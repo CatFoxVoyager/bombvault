@@ -1782,6 +1782,10 @@ type settingsView struct {
 	// instances this box polls for their protection status). Default false
 	// (opt-in), like ReceiverEnabled; the sidebar gates its tab on it.
 	FleetEnabled bool `json:"fleetEnabled"`
+	// PullEnabled gates fetching another instance's backups INTO this box's own
+	// repository (#227). Default false (opt-in) like the two flags above, and the
+	// only one of the three that writes data here rather than reading.
+	PullEnabled bool `json:"pullEnabled"`
 	// InstanceName is this instance's own display name, reported to polling
 	// fleet peers so a peer's Fleet page can label this box. Not a secret.
 	InstanceName string `json:"instanceName"`
@@ -1908,6 +1912,7 @@ func toView(s store.Settings) settingsView {
 		RestartHealthTimeoutSec:     s.RestartHealthTimeoutSec,
 		PerItemSchedules:            s.PerItemSchedules,
 		FleetEnabled:                s.FleetEnabled,
+		PullEnabled:                 s.PullEnabled,
 		InstanceName:                s.InstanceName,
 		FleetToken:                  "", // secret — never echoed; FleetTokenSet reports presence
 		FleetTokenSet:               s.FleetToken != "",
@@ -2350,6 +2355,7 @@ func (h *Handler) handlePutSettings(w http.ResponseWriter, r *http.Request) {
 		cur.RestartHealthTimeoutSec = clampHealthTimeoutSec(v.RestartHealthTimeoutSec)
 		cur.PerItemSchedules = v.PerItemSchedules
 		cur.FleetEnabled = v.FleetEnabled
+		cur.PullEnabled = v.PullEnabled
 		cur.InstanceName = strings.TrimSpace(v.InstanceName)
 		cur.EverythingSchedule = v.EverythingSchedule
 		// Blank keeps the stored command, same contract as the three tokens

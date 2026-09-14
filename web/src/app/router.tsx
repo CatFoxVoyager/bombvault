@@ -7,6 +7,7 @@ import { Flash } from "../pages/Flash";
 import { Config } from "../pages/Config";
 import { Files } from "../pages/Files";
 import { Receiver } from "../pages/Receiver";
+import { Pull } from "../pages/Pull";
 import { Fleet } from "../pages/Fleet";
 import { SettingsPage } from "../pages/Settings";
 import Recovery from "../pages/Recovery";
@@ -31,6 +32,7 @@ export function AppRouter() {
               <Route path="/config" element={<Config />} />
               <Route path="/files" element={<Files />} />
               <Route path="/receiver" element={<Receiver />} />
+              <Route path="/pull" element={<Pull />} />
               <Route path="/fleet" element={<Fleet />} />
               <Route path="/recovery" element={<Recovery />} />
               {/* The Plans page was retired into Settings › Schedules; keep /jobs

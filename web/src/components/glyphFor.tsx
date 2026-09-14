@@ -112,7 +112,11 @@ const RULES: Rule[] = [
   [/hint|info|explain|examples/i, () => <IconInfo />],
 
   // Transfer.
-  [/download|export/i, () => <IconDownload />],
+  // "pull" joins the transfer family rather than earning a mark of its own:
+  // fetching another instance's snapshots into this one IS a download, and the
+  // language's own rule is that a reader learns one shape per VERB faster than
+  // one shape per feature.
+  [/download|export|pullNow|pullFrom/i, () => <IconDownload />],
   [/upload|send|offer|push|proposeButton/i, () => <IconUpload />],
   [/copy/i, () => <IconCopy />],
 
