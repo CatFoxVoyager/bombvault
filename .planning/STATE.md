@@ -5,16 +5,16 @@ milestone_name: Mobile Interface
 current_phase: 8
 current_phase_name: Guided Restore & Real-Device Verification
 status: executing
-stopped_at: Completed 08-02-PLAN.md
-last_updated: "2026-09-14T12:55:39.180Z"
+stopped_at: Completed 08-04-PLAN.md
+last_updated: "2026-09-14T13:45:21.824Z"
 last_activity: 2026-09-14
 last_activity_desc: Phase 8 planning complete — 5 plans ready
-state_head: a3daa226f72b5f018ae951fa8e9900aedfea95d0
+state_head: 269e59a73143f8031dbc38899313a368f52b8701
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 26
-  completed_plans: 23
+  completed_plans: 24
   percent: 75
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-14)
 ## Current Position
 
 Phase: 8 (Guided Restore & Real-Device Verification) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Total Plans in Phase: 5
 Status: Plan 08-01 complete, next 08-02
 Last activity: 2026-09-14 — 08-01 guided-restore tracer complete
@@ -105,6 +105,7 @@ Last Activity Description: Phase 8 planning complete — 5 plans ready
 | Phase 07 P08 | 1h 15m (resume session; prior executor interrupted mid-Task-3) | 3 tasks | 17 files |
 | Phase 08 P01 | 190m | 3 tasks | 7 files |
 | Phase 08 P02 | 66m | 2 tasks | 2 files |
+| Phase 08 P04 | 38m | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -183,6 +184,10 @@ Cleared at v1.0 milestone close — decisions live in `.planning/PROJECT.md` Key
 - [Phase 8]: e2e REQUIRES a fresh binary after any web/ change - npm run build + go build -o bombvault.exe ./cmd/bombvault before playwright test, or the harness serves the stale embedded SPA (bit 08-01: 8 phantom failures); restore the web/dist/index.html placeholder before committing
 - [Phase 8]: Config step: D-03 chain narration read-only above a confirm-gated neutral restore row; sticky bar keeps Continue; one useConfirm instance serves both halves
 - [Phase 8]: E2E parity slices captured at POST-serve time; Button title rides useTipBubble, never the accessible name
+- [Phase 8]: D-06 fix 1 rides the shared Button (MOBILE_BLEED, default variant only - chip excluded); max-md:relative anchors the bleed to the unpositioned glim-btn, else it resolves against a wrapping Card
+- [Phase 8]: D-06 fix 2 resolved tonal: mobile day chip bg-accentSoft/text-accentText + py-1; desktop :418 twin keeps solid accent (active-selection chips are tonal on mobile)
+- [Phase 8]: e2e hit-box proof reads computed ::after insets (boundingBox is blind to pseudo-elements; elementFromPoint rejected - adjacent option bleeds overlap by design)
+- [Phase 8]: WHOLLY_PHASE8_FILES = [e2e/guided-restore.spec.ts] only; Recovery.tsx MIXED geography entry is Plan 03 Task 2's (last writer) - guard floors never recorded against a file that will still change
 
 ### Pending Todos
 
@@ -212,8 +217,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-14T12:55:38.074Z
-Stopped at: Completed 08-02-PLAN.md
+Last session: 2026-09-14T13:45:21.357Z
+Stopped at: Completed 08-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

@@ -59,7 +59,7 @@
 - [x] **VERIFY-01**: Playwright smoke harness from the first phase: desktop-untouched assertions (viewport ≥ 48rem renders today's layout) + mobile device descriptors; responsive regressions fail CI
 - [ ] **VERIFY-02**: Real-device pass as the milestone exit criterion: notched + SE-class iPhone Safari and Android Chrome, portrait + landscape, guided restore exercised on device
 - [ ] **VERIFY-03**: i18n: every mobile string through the `t()` pipeline with 42-locale parity; de/fr narrow-viewport passes (320–360px) on the chrome and key screens
-- [ ] **VERIFY-04**: Touch-target + hover audit: every interactive control ≥ 44px below the breakpoint; every hover-dependent affordance has a non-hover path (Tailwind v4 gates `hover:` behind `@media (hover: hover)`)
+- [x] **VERIFY-04**: Touch-target + hover audit: every interactive control ≥ 44px below the breakpoint; every hover-dependent affordance has a non-hover path (Tailwind v4 gates `hover:` behind `@media (hover: hover)`)
 - [ ] **VERIFY-05**: Both themes verified on mobile; four-status language with text labels (never color alone, WCAG 1.4.1); semantic tokens only — never hard-coded design-bible hex values
 
 ## v2 Requirements
@@ -138,5 +138,5 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCRN-06 | Phase 8 | Pending |
 | VERIFY-02 | Phase 8 | Pending |
 | VERIFY-03 | Phase 8 | Pending |
-| VERIFY-04 | Phase 8 | Pending |
+| VERIFY-04 | Phase 8 | Complete |
 | VERIFY-05 | Phase 8 | Pending |
