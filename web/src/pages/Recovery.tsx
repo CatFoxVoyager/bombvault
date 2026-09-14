@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, Dispatch, ReactNode, SetStateAction } from "react";
+import { useNavigate } from "react-router-dom";
 import { useT, type TranslationKey } from "../lib/i18n";
 import { PAGE_SHELL } from "../lib/pageShell";
 import { hueVars, rainbowAt } from "../lib/appearance";
+import { useIsDesktop } from "../lib/useMediaQuery";
 import { RevealInput } from "../components/RevealInput";
 import { useReveal } from "../lib/useReveal";
 import { withLtrIsolates, FOREIGN_APPDATA_DEST_HINT_LTR_FRAGMENTS } from "../lib/ltrFragments";
 import { StepCard, type StepState } from "../components/recovery/StepCard";
-import { Badge } from "../components/Badge";
+import { Badge, type BadgeTone } from "../components/Badge";
+import { StickyActionBar } from "../components/mobile/StickyActionBar";
 import { Button } from "../components/Button";
 import { IconRestore } from "../components/Sidebar";
 import { InfoBubble } from "../components/InfoBubble";
@@ -1499,6 +1502,16 @@ export default function Recovery() {
   const { confirm, confirmDialog } = useConfirm();
   const { push } = useToast();
 
+  // D-01 double gate (the Config/VMs/Flash mount-discipline precedent): the
+  // desktop stepper below is always rendered and carries `max-md:hidden`, so
+  // the desktop presentation stays byte-identical and its effects keep firing;
+  // the mobile step flow mounts only under `!isDesktop`, inside the same
+  // PAGE_SHELL root. jsdom's matchMedia stub answers "desktop", so every
+  // existing suite keeps testing the desktop page; the mobile block is the
+  // stub-the-other-way dom/e2e surface (Recovery.mobile.dom.test.tsx +
+  // guided-restore.spec.ts).
+  const isDesktop = useIsDesktop();
+
   // Step 1 — repo-readable / APP_KEY state, shared with later steps.
   const [readableState, setReadableState] = useState<StepState>("idle");
   // The repository folders the readability check actually read, shown under the
@@ -2015,447 +2028,1107 @@ export default function Recovery() {
         <p className="text-sm text-carbon-textMuted mt-1 max-w-2xl">{t("recovery.intro")}</p>
       </div>
 
-      {/* Step 1 — Can BombVault read your backups? (repo-readable / APP_KEY)
-          jdp live-review ("Info-Texte in i Infobubbles"): the permanent
-          appKeyExplain <p> is now the heading badge's own (i), same treatment
-          Flash.tsx/Config.tsx/Settings.tsx's Cards already give theirs. */}
-      <StepCard n={1} title={t("recovery.step1")} hint={t("recovery.appKeyExplain")} state={readableState} hueIndex={nextHue()}>
-        <div className="flex items-center gap-3">
-          {/* jdp live-review: "Card 1: Button 'Erneut prüfen' soll nur 'Prüfen'
-              heissen." `recovery.recheck` was shortened IN PLACE (its value, in
-              all 42 locales) rather than swapped for another key — it has
-              exactly ONE call site in the whole app, this one, so nothing else
-              could break, and the two near-matches that exist (`integrity.verify`
-              = "Verify"/"Prüfen", the restic-check card's own button;
-              `spike.checkNow` = "Check now") both belong to other domains and
-              would couple this button's wording to theirs. Its KEY still reads
-              `recheck` because that name is what the plan doc and the two
-              remedy strings below ("…then re-check" / "…und prüfe erneut", which
-              are prose about repeating the action, not this label) refer to;
-              the button's own wording is the value, and the value is now plain.
-              Do not re-lengthen it. */}
-          <Button
-            label={t("recovery.recheck")}
-            labelKey="recovery.recheck"
-            tone="accent"
-            onClick={() => void checkReadable()}
-            disabled={checking}
-            busy={checking}
-            title={checking ? t("dashboard.checking") : undefined}
-          />
+      {/* ---------------------------------------------------------------------------
+          D-01 double gate, desktop half: this wrapper is ALWAYS rendered and only
+          hidden below md by CSS, so there is still exactly ONE component instance
+          and every existing effect (the mount-time getSettings + encryption
+          detect, the getVMSSH probe) keeps firing identically. The page-flat
+          hueSeq counter above assigns rainbow positions in JSX EVALUATION ORDER,
+          so this half keeps its exact element order: nothing inside the wrapper
+          was reordered, conditioned or re-rendered — the wrapper div itself is
+          the only structural addition. Review byte-identity with `git diff -w`:
+          the +2 re-indent inside this wrapper is whitespace-only by construction.
+      --------------------------------------------------------------------------- */}
+      <div className="max-md:hidden">
+        {/* Step 1 — Can BombVault read your backups? (repo-readable / APP_KEY)
+            jdp live-review ("Info-Texte in i Infobubbles"): the permanent
+            appKeyExplain <p> is now the heading badge's own (i), same treatment
+            Flash.tsx/Config.tsx/Settings.tsx's Cards already give theirs. */}
+        <StepCard n={1} title={t("recovery.step1")} hint={t("recovery.appKeyExplain")} state={readableState} hueIndex={nextHue()}>
+          <div className="flex items-center gap-3">
+            {/* jdp live-review: "Card 1: Button 'Erneut prüfen' soll nur 'Prüfen'
+                heissen." `recovery.recheck` was shortened IN PLACE (its value, in
+                all 42 locales) rather than swapped for another key — it has
+                exactly ONE call site in the whole app, this one, so nothing else
+                could break, and the two near-matches that exist (`integrity.verify`
+                = "Verify"/"Prüfen", the restic-check card's own button;
+                `spike.checkNow` = "Check now") both belong to other domains and
+                would couple this button's wording to theirs. Its KEY still reads
+                `recheck` because that name is what the plan doc and the two
+                remedy strings below ("…then re-check" / "…und prüfe erneut", which
+                are prose about repeating the action, not this label) refer to;
+                the button's own wording is the value, and the value is now plain.
+                Do not re-lengthen it. */}
+            <Button
+              label={t("recovery.recheck")}
+              labelKey="recovery.recheck"
+              tone="accent"
+              onClick={() => void checkReadable()}
+              disabled={checking}
+              busy={checking}
+              title={checking ? t("dashboard.checking") : undefined}
+            />
 
-          {readableState === "ok" && (
-            <span className="text-sm text-statusOk">{t("recovery.readable")}</span>
-          )}
-          {readableState === "warn" && (
-            <span className="text-sm text-statusWarn">{t("recovery.notReachable")}</span>
-          )}
-        </div>
-
-        {/* Which folders were read (#196). Shown whenever the check has run, not
-            only on failure: on a green result it confirms the right place, and
-            on an empty one it turns "my backups are gone" into "it looked
-            somewhere else". Deliberately the raw paths, because the next thing
-            a stuck user does is compare them with what they typed. */}
-        {readSources.length > 0 && readableState !== "idle" && (
-          <p className="text-xs text-carbon-textMuted leading-relaxed wrap-break-word">
-            {t("recovery.readFrom")}{" "}
-            <span className="font-mono">{readSources.join(", ")}</span>
-          </p>
-        )}
-
-        {/* Exact remedy when the key doesn't match the repo. */}
-        {readableState === "bad" && (
-          <div className="rounded-card bg-statusFailBgSoft px-3 py-2.5 text-xs text-statusFail leading-relaxed">
-            {t("recovery.appKeyRemedy")}
+            {readableState === "ok" && (
+              <span className="text-sm text-statusOk">{t("recovery.readable")}</span>
+            )}
+            {readableState === "warn" && (
+              <span className="text-sm text-statusWarn">{t("recovery.notReachable")}</span>
+            )}
           </div>
-        )}
 
-        {/* The raw (scrubbed) backend message for a warn/other error, as a hint. */}
-        {readableState === "warn" && lastError && (
-          <p dir="ltr" className="text-xs text-carbon-textMuted font-mono break-all text-start">{lastError}</p>
-        )}
-      </StepCard>
+          {/* Which folders were read (#196). Shown whenever the check has run, not
+              only on failure: on a green result it confirms the right place, and
+              on an empty one it turns "my backups are gone" into "it looked
+              somewhere else". Deliberately the raw paths, because the next thing
+              a stuck user does is compare them with what they typed. */}
+          {readSources.length > 0 && readableState !== "idle" && (
+            <p className="text-xs text-carbon-textMuted leading-relaxed wrap-break-word">
+              {t("recovery.readFrom")}{" "}
+              <span className="font-mono">{readSources.join(", ")}</span>
+            </p>
+          )}
 
-      {/* Step 2 — Restore BombVault's OWN settings first (optional, pre-attach).
-          On a rebuilt box this pre-fills the attach + discover steps below; it
-          ends with a self-restart, so it lives here rather than on the Config
-          page. Skippable — a user without a settings backup attaches manually. */}
-      {/* jdp live-review ("Info-Texte in i Infobubbles"): configHint and
-          configAppKeyReminder were two stacked permanent <p>s — one bubble on
-          the heading now carries both. They are one explanation split across
-          two sentences (what this step does, and the precondition it needs),
-          not two separate topics, so a second bubble on the same heading would
-          just be two (i) glyphs a reader has to hover in turn.
-          `recovery.configSkipped` below is NOT folded in: it is what the card
-          says once the step has been skipped — a state readout, and the card's
-          only content in that state. */}
-      <StepCard
-        n={2}
-        title={t("recovery.stepConfig")}
-        hint={`${t("recovery.configHint")} ${t("recovery.configAppKeyReminder")}`}
-        state={configStepState}
-        hueIndex={nextHue()}
-      >
-        {configSkipped ? (
-          <p className="text-sm text-carbon-textMuted">{t("recovery.configSkipped")}</p>
-        ) : (
-          <>
-            {settings ? (
-              <>
-                {/* Where the config backup lives: a local path or an off-site URL. */}
-                <div className="flex items-center gap-2 flex-wrap pt-1">
-                  <span className="text-xs text-carbon-textMuted">{t("recovery.configSourceLabel")}</span>
-                  <SourceToggle
-                    source={configSource}
-                    onChange={setConfigSource}
-                    disabled={configPhase === "saving" || configPhase === "restarting"}
-                  />
-                </div>
+          {/* Exact remedy when the key doesn't match the repo. */}
+          {readableState === "bad" && (
+            <div className="rounded-card bg-statusFailBgSoft px-3 py-2.5 text-xs text-statusFail leading-relaxed">
+              {t("recovery.appKeyRemedy")}
+            </div>
+          )}
 
-                {configSource === "local" ? (
-                  <FolderBrowser
-                    label={t("recovery.configLocalPath")}
-                    value={settings.configPath}
-                    hostMountRoot={hostMountRoot}
-                    onChange={(v) => setSettings((prev) => (prev ? { ...prev, configPath: v } : prev))}
-                  />
-                ) : (
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs text-carbon-textSub">{t("recovery.configOffsiteUrl")}</label>
+          {/* The raw (scrubbed) backend message for a warn/other error, as a hint. */}
+          {readableState === "warn" && lastError && (
+            <p dir="ltr" className="text-xs text-carbon-textMuted font-mono break-all text-start">{lastError}</p>
+          )}
+        </StepCard>
+
+        {/* Step 2 — Restore BombVault's OWN settings first (optional, pre-attach).
+            On a rebuilt box this pre-fills the attach + discover steps below; it
+            ends with a self-restart, so it lives here rather than on the Config
+            page. Skippable — a user without a settings backup attaches manually. */}
+        {/* jdp live-review ("Info-Texte in i Infobubbles"): configHint and
+            configAppKeyReminder were two stacked permanent <p>s — one bubble on
+            the heading now carries both. They are one explanation split across
+            two sentences (what this step does, and the precondition it needs),
+            not two separate topics, so a second bubble on the same heading would
+            just be two (i) glyphs a reader has to hover in turn.
+            `recovery.configSkipped` below is NOT folded in: it is what the card
+            says once the step has been skipped — a state readout, and the card's
+            only content in that state. */}
+        <StepCard
+          n={2}
+          title={t("recovery.stepConfig")}
+          hint={`${t("recovery.configHint")} ${t("recovery.configAppKeyReminder")}`}
+          state={configStepState}
+          hueIndex={nextHue()}
+        >
+          {configSkipped ? (
+            <p className="text-sm text-carbon-textMuted">{t("recovery.configSkipped")}</p>
+          ) : (
+            <>
+              {settings ? (
+                <>
+                  {/* Where the config backup lives: a local path or an off-site URL. */}
+                  <div className="flex items-center gap-2 flex-wrap pt-1">
+                    <span className="text-xs text-carbon-textMuted">{t("recovery.configSourceLabel")}</span>
+                    <SourceToggle
+                      source={configSource}
+                      onChange={setConfigSource}
+                      disabled={configPhase === "saving" || configPhase === "restarting"}
+                    />
+                  </div>
+
+                  {configSource === "local" ? (
+                    <FolderBrowser
+                      label={t("recovery.configLocalPath")}
+                      value={settings.configPath}
+                      hostMountRoot={hostMountRoot}
+                      onChange={(v) => setSettings((prev) => (prev ? { ...prev, configPath: v } : prev))}
+                    />
+                  ) : (
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs text-carbon-textSub">{t("recovery.configOffsiteUrl")}</label>
+                      <input
+                        value={settings.configOffsite}
+                        spellCheck={false}
+                        onChange={(e) =>
+                          setSettings((prev) => (prev ? { ...prev, configOffsite: e.target.value } : prev))
+                        }
+                        placeholder="rest:http://host:8000/repo"
+                        dir="ltr"
+                        className={`${offsiteInput} text-start`}
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-3 pt-1">
+                    {/* jdp live-review: "Card 2: Button 'BV Einstellungen
+                        wiederherstellen' soll nur 'Wiederherstellen' heissen."
+                        Safe because this card's OWN heading already names the
+                        object — verified live on the deployed page before
+                        shortening, not assumed: the step-2 notch reads
+                        "BombVaults eigene Einstellungen wiederherstellen"
+                        (`recovery.stepConfig`) and sits directly above this
+                        button, so "Wiederherstellen" is never read in isolation.
+                        Shortened IN PLACE like step 1's, and for the same reason:
+                        `recovery.configRestore` has exactly one call site. Its new
+                        value in each locale is that locale's OWN existing
+                        `snapshots.restore` string, verbatim, so all 42 use the
+                        wording the app already ships for this verb rather than a
+                        fresh translation of it. */}
+                    <Button
+                      key={configShake}
+                      label={t("recovery.configRestore")}
+                      labelKey="recovery.configRestore"
+                      tone="accent"
+                      onClick={() => void restoreOwnConfig()}
+                      disabled={configPhase === "saving" || configPhase === "restarting"}
+                      busy={(configPhase === "saving" || configPhase === "restarting")}
+                      title={(configPhase === "saving" || configPhase === "restarting") ? t("recovery.configRestoring") : undefined}
+                      className={configShake ? "glim-shake" : ""}
+                    />
+                    <Button
+                      label={t("recovery.configSkip")}
+                      labelKey="recovery.configSkip"
+                      tone="neutral"
+                      onClick={() => setConfigSkipped(true)}
+                      disabled={configPhase === "saving" || configPhase === "restarting"}
+                    />
+                  </div>
+
+                  {/* Restarting — optimistic; waitForAppBack() reloads on return. The
+                      manual reload is offered right away too: if BombVault comes back
+                      faster than the poll's down-detection window, the user isn't stuck
+                      watching the spinner and can reload the moment the app is up. */}
+                  {configPhase === "restarting" && (
+                    <div className="flex flex-col gap-1">
+                      {/* Task 7: was text-statusInfo (the old fifth hue) — genuine
+                          activity (the app really is restarting right now), a
+                          single occurrence on this page, so plain accent-derived
+                          text is safe (no competing solid-accent elements at
+                          once). text-accentText, not the flat text-accent: a
+                          spec-compliance review measured the flat accent gold
+                          at 1.61:1 in light theme here (7.79:1 as
+                          text-statusInfo #0043ce before this task) — badly under the
+                          4.5:1 text minimum. See index.css's --accent-text
+                          comment for the fix and the measured numbers. */}
+                      <p className="text-sm text-accentText">{t("recovery.configRestarting")}</p>
+                      {/* Task 5 (rule 13): same shape as ItemScheduleOverride's
+                          converted button — a plain underlined text link. */}
+                      <Badge as="button" onClick={() => window.location.reload()} tone="neutral" size="small" className="self-start">
+                        {t("recovery.configReload")}
+                      </Badge>
+                    </div>
+                  )}
+                  {/* Manual restart needed (Docker socket unreachable). */}
+                  {configPhase === "manual" && (
+                    <div className="rounded-card bg-statusWarnBg px-3 py-2.5 text-xs text-statusWarn leading-relaxed">
+                      {t("recovery.configManualRestart")}
+                    </div>
+                  )}
+                  {/* Auto-restart poll timed out — offer a manual reload. */}
+                  {configPhase === "reload" && (
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="text-xs text-statusWarn">{t("recovery.configReloadWhenBack")}</span>
+                      <Button
+                        label={t("recovery.configReload")}
+                        labelKey="recovery.configReload"
+                        tone="neutral"
+                        onClick={() => window.location.reload()}
+                      />
+                    </div>
+                  )}
+                  {configPhase === "error" && configError && (
+                    <div className="rounded-card bg-statusFailBgSoft px-3 py-2.5 text-xs text-statusFail leading-relaxed wrap-break-word">
+                      {configError}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</p>
+              )}
+            </>
+          )}
+        </StepCard>
+
+        {/* Step 3 — Attach your backups (consolidated; cloud creds un-gated here) */}
+        {/* jdp live-review ("Info-Texte in i Infobubbles"): attachHint (a
+            permanent <p> at the top of the card) and credsSaveHint (another one
+            buried between the credential cards and the Connect button) are both
+            "how this step works" prose with no live value in them, so both fold
+            into the heading's own (i) — same single-bubble reasoning as Step 2
+            above. */}
+        <StepCard
+          n={3}
+          title={t("recovery.step2")}
+          hint={`${t("recovery.attachHint")} ${t("recovery.credsSaveHint")}`}
+          state={previewed ? readableState : "idle"}
+          hueIndex={nextHue()}
+        >
+          {settings ? (
+            <>
+              {/* Encryption mode, FIRST in the card (jdp: "Card 3: kannst du den
+                  Passwort-Toggle ganz nach oben in der Card verschieben?").
+                    Top placement is also what the block now earns: it stopped
+                  being a field the user fills in and became this step's own
+                  outcome line — "here is what your backups actually are". On
+                  load it reads unconfigured/absent, and the moment "Connect &
+                  preview" persists the paths below it turns into the detected
+                  verdict. See EncryptionStatus for why a control still appears
+                  in the undecidable cases and never in the detected ones. */}
+              <EncryptionStatus
+                t={t}
+                detection={encDetection}
+                detecting={encDetecting}
+                encryptionEnabled={settings.encryptionEnabled}
+                onOverride={(v) =>
+                  setSettings((prev) => (prev ? { ...prev, encryptionEnabled: v } : prev))
+                }
+              />
+
+              {/* Local backup paths (relative to the host mount). */}
+              <FolderBrowser
+                label={t("settings.containersPath")}
+                value={settings.containersPath}
+                hostMountRoot={hostMountRoot}
+                onChange={(v) => setSettings((prev) => (prev ? { ...prev, containersPath: v } : prev))}
+              />
+              <FolderBrowser
+                label={t("settings.vmsPath")}
+                value={settings.vmsPath}
+                hostMountRoot={hostMountRoot}
+                onChange={(v) => setSettings((prev) => (prev ? { ...prev, vmsPath: v } : prev))}
+              />
+              <FolderBrowser
+                label={t("settings.flashPath")}
+                value={settings.flashPath}
+                hostMountRoot={hostMountRoot}
+                onChange={(v) => setSettings((prev) => (prev ? { ...prev, flashPath: v } : prev))}
+              />
+              <FolderBrowser
+                label={t("settings.filesPath")}
+                value={settings.filesPath}
+                hostMountRoot={hostMountRoot}
+                onChange={(v) => setSettings((prev) => (prev ? { ...prev, filesPath: v } : prev))}
+              />
+
+              {/* Off-site repo URLs (rest / S3 / B2 / sftp / rclone) — the
+                  SECOND disclosure (jdp: "Card 3: können wir den Offsite-
+                  Abschnitt auch in einen ausklappbaren Button machen?"). Same
+                  StepDisclosure component as the credentials one below, so the
+                  two are siblings by construction rather than by resemblance —
+                  see that component for the trigger's size, its colour-engine
+                  wiring, and why BOTH now start closed.
+                    The chip REPLACES the bare `settings.offsiteTitle` eyebrow
+                  span this section used to carry: that string is now the chip's
+                  own label, so the section is still named exactly as before and
+                  the name isn't printed twice. Its tip is settings.offsiteHint,
+                  the paragraph the Settings page already shows under the same
+                  fields — no new i18n key for either.
+                    `gap-2` rather than the default `gap-8`: this section reveals
+                  plain labelled inputs, not notch-badged Cards, so there is no
+                  notch poking up out of the first child that needs clearing. It
+                  matches the step body's own gap-2 above and below, which is
+                  what makes the revealed fields read as part of the step rather
+                  than as a floating panel. */}
+              <StepDisclosure
+                label={t("settings.offsiteTitle")}
+                tip={t("settings.offsiteHint")}
+                gap="gap-2"
+              >
+                {([
+                  ["containersOffsite", "nav.containers"],
+                  ["vmsOffsite", "nav.vms"],
+                  ["flashOffsite", "nav.flash"],
+                  ["filesOffsite", "nav.files"],
+                ] as const).map(([key, label]) => (
+                  <div key={key} className="flex flex-col gap-1">
+                    <label className="text-xs text-carbon-textSub">{t(label)}</label>
                     <input
-                      value={settings.configOffsite}
+                      value={settings[key]}
                       spellCheck={false}
-                      onChange={(e) =>
-                        setSettings((prev) => (prev ? { ...prev, configOffsite: e.target.value } : prev))
-                      }
+                      onChange={(e) => setSettings((prev) => (prev ? { ...prev, [key]: e.target.value } : prev))}
                       placeholder="rest:http://host:8000/repo"
                       dir="ltr"
                       className={`${offsiteInput} text-start`}
                     />
                   </div>
-                )}
+                ))}
+              </StepDisclosure>
 
-                <div className="flex flex-wrap items-center gap-3 pt-1">
-                  {/* jdp live-review: "Card 2: Button 'BV Einstellungen
-                      wiederherstellen' soll nur 'Wiederherstellen' heissen."
-                      Safe because this card's OWN heading already names the
-                      object — verified live on the deployed page before
-                      shortening, not assumed: the step-2 notch reads
-                      "BombVaults eigene Einstellungen wiederherstellen"
-                      (`recovery.stepConfig`) and sits directly above this
-                      button, so "Wiederherstellen" is never read in isolation.
-                      Shortened IN PLACE like step 1's, and for the same reason:
-                      `recovery.configRestore` has exactly one call site. Its new
-                      value in each locale is that locale's OWN existing
-                      `snapshots.restore` string, verbatim, so all 42 use the
-                      wording the app already ships for this verb rather than a
-                      fresh translation of it. */}
-                  <Button
-                    key={configShake}
-                    label={t("recovery.configRestore")}
-                    labelKey="recovery.configRestore"
-                    tone="accent"
-                    onClick={() => void restoreOwnConfig()}
-                    disabled={configPhase === "saving" || configPhase === "restarting"}
-                    busy={(configPhase === "saving" || configPhase === "restarting")}
-                    title={(configPhase === "saving" || configPhase === "restarting") ? t("recovery.configRestoring") : undefined}
-                    className={configShake ? "glim-shake" : ""}
-                  />
-                  <Button
-                    label={t("recovery.configSkip")}
-                    labelKey="recovery.configSkip"
-                    tone="neutral"
-                    onClick={() => setConfigSkipped(true)}
-                    disabled={configPhase === "saving" || configPhase === "restarting"}
-                  />
-                </div>
+              {/* The encryption ToggleRow used to sit HERE, between the off-site
+                  disclosure and the credential cards. It moved to the TOP of this
+                  card and became EncryptionStatus (jdp: "kannst du den
+                  Passwort-Toggle ganz nach oben in der Card verschieben? Wieso
+                  brauchen wir da ein Passwort-Toggle? ... Kann es das nicht
+                  automatisch erkennen?"). It can: the mode is now probed off the
+                  repositories themselves, so on the common path there is no
+                  control here at all. See EncryptionStatus above.
+                    The old spacing fix this position needed (jdp: "Der darunter
+                  folgende Badge ist zu nah am Passworttoggle-Text") is gone with
+                  it — nothing sits between the disclosure and the credential
+                  cards anymore, so the notch-badge gap described below is now
+                  measured against the off-site disclosure's own bottom edge. */}
 
-                {/* Restarting — optimistic; waitForAppBack() reloads on return. The
-                    manual reload is offered right away too: if BombVault comes back
-                    faster than the poll's down-detection window, the user isn't stuck
-                    watching the spinner and can reload the moment the app is up. */}
-                {configPhase === "restarting" && (
-                  <div className="flex flex-col gap-1">
-                    {/* Task 7: was text-statusInfo (the old fifth hue) — genuine
-                        activity (the app really is restarting right now), a
-                        single occurrence on this page, so plain accent-derived
-                        text is safe (no competing solid-accent elements at
-                        once). text-accentText, not the flat text-accent: a
-                        spec-compliance review measured the flat accent gold
-                        at 1.61:1 in light theme here (7.79:1 as
-                        text-statusInfo #0043ce before this task) — badly under the
-                        4.5:1 text minimum. See index.css's --accent-text
-                        comment for the fix and the measured numbers. */}
-                    <p className="text-sm text-accentText">{t("recovery.configRestarting")}</p>
-                    {/* Task 5 (rule 13): same shape as ItemScheduleOverride's
-                        converted button — a plain underlined text link. */}
-                    <Badge as="button" onClick={() => window.location.reload()} tone="neutral" size="small" className="self-start">
-                      {t("recovery.configReload")}
-                    </Badge>
-                  </div>
+              {/* Cloud + rclone credential cards — the exact Settings components,
+                  self-persisting via setCloud/setRclone (no duplicate persistence)
+                  — behind the SECOND of this step's two identical expanders,
+                  because they are optional for most installs. See StepDisclosure
+                  above for the whole "why a disclosure / why this trigger / why
+                  both start closed" writeup, and CloudCredsDisclosure just below
+                  it for why the two `nextHue()` calls stay HERE, at this exact
+                  point in the JSX, instead of moving inside the collapsed branch
+                  (a conditional nextHue() would renumber every heading below
+                  step 3 whenever the section is closed).
+                    SPACING (jdp: "Der darunter folgende Badge ist zu nah am
+                  Passworttoggle-Text"): measured live before this change, the
+                  CloudCard heading notch's top edge sat at y=1189 while the
+                  toggle label's bottom sat at y=1190 — a NEGATIVE 1px gap, the
+                  badge literally overlapping the text. The DOM gap looked fine
+                  (8px, the step body's own gap-2) and that is exactly the trap:
+                  a notch badge is centred ON its card's top edge, so it eats
+                  half its own height (11px) out of whatever gap precedes it.
+                  8 - 11 = -3. The disclosure wrapper adds `pt-3` on top of the
+                  body gap, and its own `gap-8` sits between the chip and the
+                  first card's edge, so both badge gaps land ~20px clear — see
+                  that component. */}
+              <CloudCredsDisclosure t={t} cloudHue={nextHue()} rcloneHue={nextHue()} />
+
+              {/* Connect & preview — save paths/off-site/encryption, then re-check.
+                  (The "credentials save via each card's own Save button" note that
+                  used to sit here is now part of this step's heading bubble — see
+                  the StepCard's own `hint` above.) */}
+              <div className="flex items-center gap-3 pt-1">
+                <Button
+                  key={connectPreviewShake}
+                  label={t("recovery.connectPreview")}
+                  labelKey="recovery.connectPreview"
+                  tone="accent"
+                  onClick={() => void connectPreview()}
+                  disabled={attachState === "saving"}
+                  busy={attachState === "saving"}
+                  className={connectPreviewShake ? "glim-shake" : ""}
+                />
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</p>
+          )}
+        </StepCard>
+
+        {/* Step 4 — Discover everything (rebuild targets from the backup defs) */}
+        <StepCard n={4} title={t("recovery.step3")} state={discoverStepState} hueIndex={nextHue()}>
+          <div className="flex items-center gap-3">
+            <Button
+              label={t("recovery.discover")}
+              labelKey="recovery.discover"
+              tone="accent"
+              onClick={() => void runDiscover()}
+              disabled={discovering}
+              busy={discovering}
+              title={discovering ? t("containers.discovering") : undefined}
+            />
+
+            {discovered && discovered.containers + discovered.vms + discovered.files > 0 && (
+              <span className="text-sm text-statusOk">
+                {t("recovery.foundCounts")
+                  .replace("{c}", String(discovered.containers))
+                  .replace("{v}", String(discovered.vms))}
+                {discovered.files > 0 && (
+                  <> {t("recovery.filesFound").replace("{f}", String(discovered.files))}</>
                 )}
-                {/* Manual restart needed (Docker socket unreachable). */}
-                {configPhase === "manual" && (
-                  <div className="rounded-card bg-statusWarnBg px-3 py-2.5 text-xs text-statusWarn leading-relaxed">
-                    {t("recovery.configManualRestart")}
-                  </div>
-                )}
-                {/* Auto-restart poll timed out — offer a manual reload. */}
-                {configPhase === "reload" && (
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-xs text-statusWarn">{t("recovery.configReloadWhenBack")}</span>
-                    <Button
-                      label={t("recovery.configReload")}
-                      labelKey="recovery.configReload"
-                      tone="neutral"
-                      onClick={() => window.location.reload()}
-                    />
-                  </div>
-                )}
-                {configPhase === "error" && configError && (
-                  <div className="rounded-card bg-statusFailBgSoft px-3 py-2.5 text-xs text-statusFail leading-relaxed wrap-break-word">
-                    {configError}
-                  </div>
-                )}
-              </>
-            ) : (
-              <p className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</p>
+              </span>
             )}
-          </>
-        )}
-      </StepCard>
+          </div>
 
-      {/* Step 3 — Attach your backups (consolidated; cloud creds un-gated here) */}
-      {/* jdp live-review ("Info-Texte in i Infobubbles"): attachHint (a
-          permanent <p> at the top of the card) and credsSaveHint (another one
-          buried between the credential cards and the Connect button) are both
-          "how this step works" prose with no live value in them, so both fold
-          into the heading's own (i) — same single-bubble reasoning as Step 2
-          above. */}
-      <StepCard
-        n={3}
-        title={t("recovery.step2")}
-        hint={`${t("recovery.attachHint")} ${t("recovery.credsSaveHint")}`}
-        state={previewed ? readableState : "idle"}
-        hueIndex={nextHue()}
-      >
-        {settings ? (
-          <>
-            {/* Encryption mode, FIRST in the card (jdp: "Card 3: kannst du den
-                Passwort-Toggle ganz nach oben in der Card verschieben?").
-                  Top placement is also what the block now earns: it stopped
-                being a field the user fills in and became this step's own
-                outcome line — "here is what your backups actually are". On
-                load it reads unconfigured/absent, and the moment "Connect &
-                preview" persists the paths below it turns into the detected
-                verdict. See EncryptionStatus for why a control still appears
-                in the undecidable cases and never in the detected ones. */}
-            <EncryptionStatus
-              t={t}
-              detection={encDetection}
-              detecting={encDetecting}
-              encryptionEnabled={settings.encryptionEnabled}
-              onOverride={(v) =>
-                setSettings((prev) => (prev ? { ...prev, encryptionEnabled: v } : prev))
-              }
-            />
-
-            {/* Local backup paths (relative to the host mount). */}
-            <FolderBrowser
-              label={t("settings.containersPath")}
-              value={settings.containersPath}
-              hostMountRoot={hostMountRoot}
-              onChange={(v) => setSettings((prev) => (prev ? { ...prev, containersPath: v } : prev))}
-            />
-            <FolderBrowser
-              label={t("settings.vmsPath")}
-              value={settings.vmsPath}
-              hostMountRoot={hostMountRoot}
-              onChange={(v) => setSettings((prev) => (prev ? { ...prev, vmsPath: v } : prev))}
-            />
-            <FolderBrowser
-              label={t("settings.flashPath")}
-              value={settings.flashPath}
-              hostMountRoot={hostMountRoot}
-              onChange={(v) => setSettings((prev) => (prev ? { ...prev, flashPath: v } : prev))}
-            />
-            <FolderBrowser
-              label={t("settings.filesPath")}
-              value={settings.filesPath}
-              hostMountRoot={hostMountRoot}
-              onChange={(v) => setSettings((prev) => (prev ? { ...prev, filesPath: v } : prev))}
-            />
-
-            {/* Off-site repo URLs (rest / S3 / B2 / sftp / rclone) — the
-                SECOND disclosure (jdp: "Card 3: können wir den Offsite-
-                Abschnitt auch in einen ausklappbaren Button machen?"). Same
-                StepDisclosure component as the credentials one below, so the
-                two are siblings by construction rather than by resemblance —
-                see that component for the trigger's size, its colour-engine
-                wiring, and why BOTH now start closed.
-                  The chip REPLACES the bare `settings.offsiteTitle` eyebrow
-                span this section used to carry: that string is now the chip's
-                own label, so the section is still named exactly as before and
-                the name isn't printed twice. Its tip is settings.offsiteHint,
-                the paragraph the Settings page already shows under the same
-                fields — no new i18n key for either.
-                  `gap-2` rather than the default `gap-8`: this section reveals
-                plain labelled inputs, not notch-badged Cards, so there is no
-                notch poking up out of the first child that needs clearing. It
-                matches the step body's own gap-2 above and below, which is
-                what makes the revealed fields read as part of the step rather
-                than as a floating panel. */}
-            <StepDisclosure
-              label={t("settings.offsiteTitle")}
-              tip={t("settings.offsiteHint")}
-              gap="gap-2"
-            >
-              {([
-                ["containersOffsite", "nav.containers"],
-                ["vmsOffsite", "nav.vms"],
-                ["flashOffsite", "nav.flash"],
-                ["filesOffsite", "nav.files"],
-              ] as const).map(([key, label]) => (
-                <div key={key} className="flex flex-col gap-1">
-                  <label className="text-xs text-carbon-textSub">{t(label)}</label>
-                  <input
-                    value={settings[key]}
-                    spellCheck={false}
-                    onChange={(e) => setSettings((prev) => (prev ? { ...prev, [key]: e.target.value } : prev))}
-                    placeholder="rest:http://host:8000/repo"
-                    dir="ltr"
-                    className={`${offsiteInput} text-start`}
-                  />
-                </div>
-              ))}
-            </StepDisclosure>
-
-            {/* The encryption ToggleRow used to sit HERE, between the off-site
-                disclosure and the credential cards. It moved to the TOP of this
-                card and became EncryptionStatus (jdp: "kannst du den
-                Passwort-Toggle ganz nach oben in der Card verschieben? Wieso
-                brauchen wir da ein Passwort-Toggle? ... Kann es das nicht
-                automatisch erkennen?"). It can: the mode is now probed off the
-                repositories themselves, so on the common path there is no
-                control here at all. See EncryptionStatus above.
-                  The old spacing fix this position needed (jdp: "Der darunter
-                folgende Badge ist zu nah am Passworttoggle-Text") is gone with
-                it — nothing sits between the disclosure and the credential
-                cards anymore, so the notch-badge gap described below is now
-                measured against the off-site disclosure's own bottom edge. */}
-
-            {/* Cloud + rclone credential cards — the exact Settings components,
-                self-persisting via setCloud/setRclone (no duplicate persistence)
-                — behind the SECOND of this step's two identical expanders,
-                because they are optional for most installs. See StepDisclosure
-                above for the whole "why a disclosure / why this trigger / why
-                both start closed" writeup, and CloudCredsDisclosure just below
-                it for why the two `nextHue()` calls stay HERE, at this exact
-                point in the JSX, instead of moving inside the collapsed branch
-                (a conditional nextHue() would renumber every heading below
-                step 3 whenever the section is closed).
-                  SPACING (jdp: "Der darunter folgende Badge ist zu nah am
-                Passworttoggle-Text"): measured live before this change, the
-                CloudCard heading notch's top edge sat at y=1189 while the
-                toggle label's bottom sat at y=1190 — a NEGATIVE 1px gap, the
-                badge literally overlapping the text. The DOM gap looked fine
-                (8px, the step body's own gap-2) and that is exactly the trap:
-                a notch badge is centred ON its card's top edge, so it eats
-                half its own height (11px) out of whatever gap precedes it.
-                8 - 11 = -3. The disclosure wrapper adds `pt-3` on top of the
-                body gap, and its own `gap-8` sits between the chip and the
-                first card's edge, so both badge gaps land ~20px clear — see
-                that component. */}
-            <CloudCredsDisclosure t={t} cloudHue={nextHue()} rcloneHue={nextHue()} />
-
-            {/* Connect & preview — save paths/off-site/encryption, then re-check.
-                (The "credentials save via each card's own Save button" note that
-                used to sit here is now part of this step's heading bubble — see
-                the StepCard's own `hint` above.) */}
-            <div className="flex items-center gap-3 pt-1">
-              <Button
-                key={connectPreviewShake}
-                label={t("recovery.connectPreview")}
-                labelKey="recovery.connectPreview"
-                tone="accent"
-                onClick={() => void connectPreview()}
-                disabled={attachState === "saving"}
-                busy={attachState === "saving"}
-                className={connectPreviewShake ? "glim-shake" : ""}
-              />
+          {/* 0/0/0 — nothing found: point back to Step 1/2. */}
+          {discovered && discovered.containers + discovered.vms + discovered.files === 0 && (
+            <p className="text-sm text-statusWarn">{t("recovery.foundNone")}</p>
+          )}
+          {discoverError && (
+            <div className="rounded-card bg-statusFailBgSoft px-3 py-2.5 text-xs text-statusFail leading-relaxed wrap-break-word">
+              {discoverError}
             </div>
-          </>
-        ) : (
-          <p className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</p>
-        )}
-      </StepCard>
+          )}
+        </StepCard>
 
-      {/* Step 4 — Discover everything (rebuild targets from the backup defs) */}
-      <StepCard n={4} title={t("recovery.step3")} state={discoverStepState} hueIndex={nextHue()}>
-        <div className="flex items-center gap-3">
-          <Button
-            label={t("recovery.discover")}
-            labelKey="recovery.discover"
-            tone="accent"
-            onClick={() => void runDiscover()}
-            disabled={discovering}
-            busy={discovering}
-            title={discovering ? t("containers.discovering") : undefined}
-          />
-
-          {discovered && discovered.containers + discovered.vms + discovered.files > 0 && (
-            <span className="text-sm text-statusOk">
-              {t("recovery.foundCounts")
-                .replace("{c}", String(discovered.containers))
-                .replace("{v}", String(discovered.vms))}
-              {discovered.files > 0 && (
-                <> {t("recovery.filesFound").replace("{f}", String(discovered.files))}</>
+        {/* Step 5 — Review & restore everything (in place, left stopped) */}
+        <StepCard n={5} title={t("recovery.step4")} state={restoreStepState} hueIndex={nextHue()}>
+          {!anyDiscovered ? (
+            <p className="text-sm text-carbon-textMuted">{t("recovery.noneDiscovered")}</p>
+          ) : (
+            <>
+              {/* Restore all — every container then VM, sequential + left stopped.
+                  Shown ONLY when there are containers/VMs to bulk-restore: file
+                  sets carry no original path, so they're restored per-row (below)
+                  into a chosen folder and restoreAll() deliberately skips them. */}
+              {(containers.length > 0 || vms.length > 0) && (
+              /* jdp live-review: "Card 5: Der Wiederherstellen-Button der ganzen
+                 Container soll ganz nach rechts." The button used to LEAD this
+                 row, with the busy phrase and the ok/fail result trailing it.
+                 Both readouts now come first and the button is pushed to the
+                 row's far edge with `ms-auto` — this app's established
+                 flush-right idiom for a control that shares its row with a
+                 leading sibling (Containers.tsx's BackupButton/ExportButton
+                 row; Flash.tsx's own comment spells out the same pair of
+                 options and why `justify-end` is the one to use only when there
+                 is nothing to push away from). `ms-auto`, not `ml-auto`: under
+                 dir="rtl" the row's far edge is its left one, and the button
+                 has to follow it.
+                   It still lands flush right when NEITHER readout is present —
+                 a lone flex child with `margin-inline-start: auto` absorbs all
+                 the free space on its start side. Verified live in both states. */
+              <div className="flex flex-wrap items-center gap-3">
+                {running.active && !restoreAllBusy && (
+                  <span className="text-xs text-carbon-textMuted">{t(busyPhraseKey(running.phase))}</span>
+                )}
+                {restoreAllResult && (
+                  <span
+                    className={`text-sm ${restoreAllResult.fail > 0 ? "text-statusWarn" : "text-statusOk"}`}
+                  >
+                    {t("recovery.restoreAllResult")
+                      .replace("{ok}", String(restoreAllResult.ok))
+                      .replace("{fail}", String(restoreAllResult.fail))}
+                  </span>
+                )}
+                <Button
+                  label={t("recovery.restoreAll")}
+                  labelKey="recovery.restoreAll"
+                  tone="accent"
+                  onClick={() => void restoreAll()}
+                  disabled={restoreAllBusy || running.active}
+                  busy={restoreAllBusy}
+                  className="ms-auto"
+                />
+              </div>
               )}
-            </span>
+
+              {/* VM restore needs the libvirt SSH link — advisory note, not a block. */}
+              {vms.length > 0 && vmSshConfigured === false && (
+                <div className="rounded-card bg-statusWarnBg px-3 py-2.5 text-xs text-statusWarn leading-relaxed">
+                  {t("recovery.vmSshNote")}
+                </div>
+              )}
+
+              {/* Containers first, then VMs. */}
+              {containers.length > 0 && (
+                <div className="flex flex-col">
+                  <span className="text-xs font-medium text-carbon-textSub pt-1 pb-1">
+                    {t("nav.containers")}
+                  </span>
+                  {containers.map((c) => (
+                    <RestoreRow
+                      key={`container:${c.name}`}
+                      domain="container"
+                      name={c.name}
+                      lastBackup={c.lastBackup}
+                      t={t}
+                      otherActive={rowOtherActive}
+                      hueIndex={nextHue()}
+                    />
+                  ))}
+                </div>
+              )}
+              {vms.length > 0 && (
+                <div className="flex flex-col">
+                  <span className="text-xs font-medium text-carbon-textSub pt-2 pb-1">
+                    {t("nav.vms")}
+                  </span>
+                  {vms.map((v) => (
+                    <RestoreRow
+                      key={`vm:${v.libvirtName}`}
+                      domain="vm"
+                      name={v.libvirtName}
+                      displayName={v.name}
+                      lastBackup={v.lastBackup}
+                      t={t}
+                      otherActive={rowOtherActive}
+                      hueIndex={nextHue()}
+                    />
+                  ))}
+                </div>
+              )}
+              {/* File sets — restore into a chosen folder ("Restore all" covers
+                  containers + VMs only; a rediscovered set has no original path,
+                  so each row needs its own target folder). */}
+              {fileSets.length > 0 && (
+                <div className="flex flex-col">
+                  {/* jdp live-review ("Info-Texte in i Infobubbles"): the
+                      filesRestoreHint <p> under this group label explained why
+                      each set needs its own target folder — permanent prose about
+                      a group of controls, so it moves onto the group's own label
+                      as the plain (neutral) InfoBubble, not the `onAccent` one:
+                      this is a bare eyebrow label on the card surface, not a
+                      solid-accent heading badge. */}
+                  <span className="inline-flex items-center gap-1 self-start text-xs font-medium text-carbon-textSub pt-2 pb-1">
+                    {t("nav.files")}
+                    <InfoBubble tip={t("recovery.filesRestoreHint")} />
+                  </span>
+                  {fileSets.map((s) => (
+                    <FileSetRecoveryRow
+                      key={`files:${s.id}`}
+                      set={s}
+                      hostMountRoot={hostMountRoot}
+                      t={t}
+                      otherActive={rowOtherActive}
+                      hueIndex={nextHue()}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </StepCard>
+
+        {/* Step 6 — Your recovery kit (safety net for next time)
+            jdp live-review ("Info-Texte in i Infobubbles"): kitHint was the
+            card's whole body apart from the download button — now the heading's
+            own (i). The `kitError` span below stays: it is the backend's own
+            refusal text, shown only when a download is actually refused. */}
+        <StepCard n={6} title={t("recovery.step5")} hint={t("recovery.kitHint")} state="idle" hueIndex={nextHue()}>
+          <Button
+            key={kitShake}
+            label={t("recovery.kitDownload")}
+            labelKey="recovery.kitDownload"
+            // Accent ([326]). The kit is the one artefact this page exists to
+            // hand over, and its card holds nothing else to do.
+            tone="neutral"
+            onClick={() => {
+              setKitError(null);
+              void downloadRecoveryKit().then((err) => {
+                setKitError(err);
+                if (err) {
+                  push(err, "fail");
+                  setKitShake((n) => n + 1);
+                }
+              });
+            }}
+            // Only the layout stays here ([326]). Surface, hover, radius,
+            // padding, text size and colour all come from `tone` and `.glim-btn`
+            // already, and restating them was not merely redundant: Tailwind
+            // resolves two competing background utilities by their order in the
+            // compiled stylesheet, not by the order they appear in the
+            // attribute, so `` quietly beat the `bg-accent`
+            // the tone had added. Measured on the deployed build: both classes
+            // sat on the element and the wrong one was painting.
+            className={`self-start${kitShake ? " glim-shake" : ""}`}
+          />
+          {kitError && (
+            // Backend-provided error text shown verbatim BY DESIGN (e.g. the
+            // fail-closed "set a login password" refusal when auth is off) —
+            // the API answers English and is not translated client-side.
+            <span className="text-xs text-statusFail wrap-break-word">✗ {kitError}</span>
+          )}
+        </StepCard>
+
+        {/* Restore from ANOTHER BombVault repo (#61) — visually separate from the
+            attach steps above; read-only session, nothing persisted. */}
+        {/* DESKTOP-ONLY BY DECISION (08-01, research Open Question 1's recorded
+            default): this card stays inside the max-md:hidden wrapper and is
+            deliberately absent from the mobile step flow — it is a separate
+            read-only-session card OUTSIDE the numbered wizard path, D-02 scopes
+            the mobile flow to the stepper's own six steps, and SCRN-06/VERIFY
+            never name it. Recorded as a known desktop-only surface in 08-UAT.md
+            so the device session sees the decision, not a gap. */}
+        <ForeignRestoreCard hostMountRoot={hostMountRoot} t={t} otherActive={rowOtherActive} nextHue={nextHue} />
+      </div>
+
+      {/* D-01 second gate — the mobile step flow, mounted ONLY under !isDesktop
+          (not merely hidden) inside the same PAGE_SHELL root: one component
+          instance, one set of shared state and handlers. Every step below fires
+          the identical guarded handler the desktop StepCard fires
+          (checkReadable / connectPreview / runDiscover / the kit download), so
+          there is no second fire path (D-02) and no new API surface (D-12).
+
+          HUE-COUNTER DISCIPLINE (contract, not advice): the page-flat `hueSeq`
+          counter above assigns rainbow positions in desktop JSX EVALUATION
+          ORDER — it is DESKTOP-ONLY by construction. This block calls NO
+          nextHue() anywhere. Every accent here is a fixed semantic token (the
+          position chip's accentSoft/accentText per 08-UI-SPEC reservation 12,
+          status hues via Badge tones) and the one re-hosted hue-consuming
+          component (CloudCredsDisclosure) takes fixed literal indices — the
+          same 3/4 the desktop's evaluation order hands it. A stray nextHue()
+          at this mount site would shift every desktop heading after it by one
+          position whenever the viewport crossed 48rem — a desktop identity
+          regression even though no desktop pixel moved.
+          Recovery.mobile.dom.test.tsx asserts the desktop-first-8 sequence
+          (card1=0, card2=1, card3=2, cloud=3, rclone=4, card4=5, card5=6,
+          card6=7 on a fresh mount) still holds with this block present. */}
+      {!isDesktop && (
+        <MobileRecoveryFlow
+          readableState={readableState}
+          readSources={readSources}
+          lastError={lastError}
+          checking={checking}
+          settings={settings}
+          hostMountRoot={hostMountRoot}
+          attachState={attachState}
+          previewed={previewed}
+          connectPreviewShake={connectPreviewShake}
+          encDetection={encDetection}
+          encDetecting={encDetecting}
+          setSettings={setSettings}
+          configStepState={configStepState}
+          configSkipped={configSkipped}
+          onConfigSkip={() => setConfigSkipped(true)}
+          checkReadable={checkReadable}
+          connectPreview={connectPreview}
+          discovering={discovering}
+          discovered={discovered}
+          discoverError={discoverError}
+          runDiscover={runDiscover}
+          discoverStepState={discoverStepState}
+          containers={containers}
+          vms={vms}
+          fileSets={fileSets}
+          restoreAllResult={restoreAllResult}
+          restoreStepState={restoreStepState}
+          kitError={kitError}
+          kitShake={kitShake}
+          setKitError={setKitError}
+          setKitShake={setKitShake}
+        />
+      )}
+      {confirmDialog}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// MobileRecoveryFlow — SCRN-06's mobile face of the guided restore (08-01
+// tracer). Rendered ONLY under `!isDesktop` from Recovery's PAGE_SHELL root
+// (the D-01 second gate; see the mount comment there). It owns NOTHING the
+// desktop also owns: no shared state, no fetches, no api.ts calls of its own —
+// every value and every handler below arrives as a prop from the one
+// Recovery() instance, so a mobile tap fires the exact same guarded handler a
+// desktop click does (D-02). The step position is the block's only local
+// state, and it is pure presentation: Back/Continue move it while the shared
+// state decides what may render (the gates below mirror the desktop
+// disclosure order — 1 readable, 2 config (optional), 3 attached,
+// 4 discovered, 5 restored, 6 kit; a Continue past an unmet gate cannot even
+// render).
+//
+// WHY A FRAGMENT ROOT: StickyActionBar must be the LAST DIRECT child of the
+// PAGE_SHELL column for its sticky-in-flow discipline (StickyActionBar.tsx's
+// own doc) — a fragment keeps the bar a direct DOM child of that column while
+// the step chrome above groups into one content div.
+//
+// WHY NO nextHue() HERE (see also the mount comment in Recovery's return): the
+// page-flat counter is desktop-only by evaluation order. The one re-hosted
+// hue-consuming component (CloudCredsDisclosure) takes FIXED literals —
+// deliberately the same 3/4 the desktop's evaluation order hands it — so the
+// mobile presentation colours identically without consuming from the counter.
+// Recovery.mobile.dom.test.tsx asserts the desktop-first-8 hue sequence
+// survives this component's existence.
+//
+// TRACER SCOPE (08-01): steps 1/3/4/6 are real; step 2 carries its sanctioned
+// skip path only (the full config-restore body is Plan 02) and step 5 renders
+// its empty branch only (the populated restore body is Plan 03) — both are
+// functionality gaps a later plan fills with NO architectural change: the
+// gates, the chrome and the handlers this component consumes already exist.
+// ---------------------------------------------------------------------------
+
+// The flow's step count — the chip's {total}. Six steps, desktop order.
+const MOBILE_STEP_TOTAL = 6;
+
+// D-08/VERIFY-05 four-status rule: the mobile step header renders the
+// desktop StepCard's StepState as a Badge with a TEXT label — never the bare
+// color dot, never color alone. The labels reuse existing 42-table vocabulary
+// (the phase's two-key i18n census allows no new status strings):
+// spike.ok/spike.info/spike.fail are runDisplay.ts statusLabel's own buckets,
+// and "idle" maps to fleet.mesh.status.pending because statusLabel's default
+// bucket would render the run-level "Skipped" — dishonest for a step that has
+// not run yet.
+const MOBILE_STEP_BADGE: Record<StepState, { tone: BadgeTone; labelKey: TranslationKey }> = {
+  idle: { tone: "neutral", labelKey: "fleet.mesh.status.pending" },
+  ok: { tone: "ok", labelKey: "spike.ok" },
+  warn: { tone: "warn", labelKey: "spike.info" },
+  bad: { tone: "fail", labelKey: "spike.fail" },
+};
+
+// The desktop StepCard titles, verbatim (08-UI-SPEC Screen Contract). The
+// desktop's own key numbering skips the config card (it was inserted into the
+// wizard later), so the keys are NOT positional — this map is the mobile
+// position -> existing key bridge, exactly the pairing the desktop cards use.
+const MOBILE_STEP_TITLES: Record<number, TranslationKey> = {
+  1: "recovery.step1",
+  2: "recovery.stepConfig",
+  3: "recovery.step2",
+  4: "recovery.step3",
+  5: "recovery.step4",
+  6: "recovery.step5",
+};
+
+function MobileRecoveryFlow({
+  readableState,
+  readSources,
+  lastError,
+  checking,
+  settings,
+  hostMountRoot,
+  attachState,
+  previewed,
+  connectPreviewShake,
+  encDetection,
+  encDetecting,
+  setSettings,
+  configStepState,
+  configSkipped,
+  onConfigSkip,
+  checkReadable,
+  connectPreview,
+  discovering,
+  discovered,
+  discoverError,
+  runDiscover,
+  discoverStepState,
+  containers,
+  vms,
+  fileSets,
+  restoreAllResult,
+  restoreStepState,
+  kitError,
+  kitShake,
+  setKitError,
+  setKitShake,
+}: {
+  readableState: StepState;
+  readSources: string[];
+  lastError: string | null;
+  checking: boolean;
+  settings: Settings | null;
+  hostMountRoot: string;
+  attachState: "idle" | "saving";
+  previewed: boolean;
+  connectPreviewShake: number;
+  encDetection: EncryptionDetection | null;
+  encDetecting: boolean;
+  setSettings: Dispatch<SetStateAction<Settings | null>>;
+  configStepState: StepState;
+  configSkipped: boolean;
+  onConfigSkip: () => void;
+  checkReadable: () => Promise<StepState>;
+  connectPreview: () => Promise<void>;
+  discovering: boolean;
+  discovered: { containers: number; vms: number; files: number } | null;
+  discoverError: string | null;
+  runDiscover: () => Promise<void>;
+  discoverStepState: StepState;
+  containers: Container[];
+  vms: VM[];
+  fileSets: FileSetView[];
+  restoreAllResult: { ok: number; fail: number } | null;
+  restoreStepState: StepState;
+  kitError: string | null;
+  kitShake: number;
+  setKitError: Dispatch<SetStateAction<string | null>>;
+  setKitShake: Dispatch<SetStateAction<number>>;
+}) {
+  const { t } = useT();
+  const { push } = useToast();
+  const navigate = useNavigate();
+  // The ONLY local state: which step is on screen. Pure presentation — every
+  // gate below reads the SHARED Recovery state, so Back never loses completed
+  // step state and a gate that stops holding closes its own Continue.
+  const [step, setStep] = useState(1);
+
+  // The gate chain, desktop disclosure order. gateTo(n) answers "may the flow
+  // sit on step n" — a step's Continue renders only when it holds for
+  // step n + 1.
+  const gateTo = (n: number): boolean => {
+    if (n <= 1) return true;
+    // 1 readable: the check has produced AN answer (ok/warn/bad). warn is the
+    // honest first-run "not attached yet" answer, so requiring "ok" would
+    // strand every fresh install — the desktop never blocks on it either.
+    if (n === 2) return readableState !== "idle";
+    // 2 config: optional — always skippable, never gates the flow.
+    if (n === 3) return true;
+    // 3 attached: connectPreview ran (it stays true across re-attaches; a
+    // re-attach also clears discovery, so step 4 re-gates itself).
+    if (n === 4) return previewed;
+    // 4 discovered: runDiscover completed (its error paths leave it null).
+    if (n === 5) return discovered !== null;
+    // 5 restored — OR nothing to restore: zero-target users must reach the
+    // kit (08-UI-SPEC: they are never stranded on the restore step).
+    if (n === 6) {
+      return restoreAllResult !== null || (containers.length === 0 && vms.length === 0);
+    }
+    return false;
+  };
+
+  const goBack = () => setStep((s) => Math.max(1, s - 1));
+  const anyDiscovered = containers.length > 0 || vms.length > 0 || fileSets.length > 0;
+
+  // The kit download, re-hosted VERBATIM from the desktop card's inline button
+  // handler (the same frozen api fn, the same refusal -> toast + shake
+  // handling). Deliberately a body-copy rather than an extraction: extracting
+  // a shared callback would rewrite the desktop button's onClick, and the
+  // tracer freezes desktop bytes byte-for-byte (D-01). Both call sites fire
+  // the identical downloadRecoveryKit call, so D-02's single fire path holds
+  // at the API boundary; noted in 08-01-SUMMARY for the plan that next
+  // touches this step.
+  function fireKitDownload() {
+    setKitError(null);
+    void downloadRecoveryKit().then((err) => {
+      setKitError(err);
+      if (err) {
+        push(err, "fail");
+        setKitShake((n) => n + 1);
+      }
+    });
+  }
+
+  // The step's own StepState, desktop parity (the attach card shows the
+  // readability state only once attached; the kit card carries none).
+  const stepState: StepState =
+    step === 1
+      ? readableState
+      : step === 2
+        ? configStepState
+        : step === 3
+          ? previewed
+            ? readableState
+            : "idle"
+          : step === 4
+            ? discoverStepState
+            : step === 5
+              ? restoreStepState
+              : "idle";
+
+  const badge = MOBILE_STEP_BADGE[stepState];
+
+  // BAR ANATOMY (the SAFE action owns the bottom row — the thumb-default
+  // position, D-03):
+  //   1: Check while unanswered, else Continue.
+  //   2: Continue always (optional step — it never gates).
+  //   3: Connect & preview always (accent while unattached, secondary once
+  //      attached): the fields stay editable and the bar is their only save
+  //      path, so hiding it after a first attach would strand field edits;
+  //      Continue joins it (bottom, safe) once attached.
+  //   4: Discover while undiscovered, else Continue.
+  //   5: Continue only when the kit gate holds — with the gate unmet the bar
+  //      renders NO action at all (a Continue past a gate cannot render; the
+  //      restore rows themselves are Plan 03).
+  //   6: the kit download + Done (the flow's terminal).
+  return (
+    <>
+      <div className="flex flex-col gap-4 glim-content-fade">
+        {/* Position chip (reservation 12: accentSoft/accentText tonal chip,
+            tabular-nums, single-line by design) + Back (>=44px hit area).
+            Back is presentation-only navigation: the shared state it returns
+            to is untouched, so completed steps stay completed. */}
+        <div className="flex items-center justify-between gap-2">
+          <span className="inline-flex items-center whitespace-nowrap rounded-pill bg-accentSoft px-2 py-1 text-xs font-semibold tabular-nums text-accentText">
+            {t("recovery.mobile.stepOf")
+              .replace("{n}", String(step))
+              .replace("{total}", String(MOBILE_STEP_TOTAL))}
+          </span>
+          {step > 1 && (
+            <Button
+              label={t("common.back")}
+              labelKey="common.back"
+              tone="neutral"
+              onClick={goBack}
+              className="min-h-[2.75rem]"
+            />
           )}
         </div>
 
-        {/* 0/0/0 — nothing found: point back to Step 1/2. */}
-        {discovered && discovered.containers + discovered.vms + discovered.files === 0 && (
-          <p className="text-sm text-statusWarn">{t("recovery.foundNone")}</p>
-        )}
-        {discoverError && (
-          <div className="rounded-card bg-statusFailBgSoft px-3 py-2.5 text-xs text-statusFail leading-relaxed wrap-break-word">
-            {discoverError}
+        <div className="flex flex-col gap-2 rounded-card border border-carbon-border bg-carbon-surface p-4">
+          {/* Step title (the desktop StepCard's, verbatim) + the four-status
+              Badge (TEXT label + status hue, never the bare dot) + the
+              optional badge on the config step. */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold text-carbon-text">
+              {t(MOBILE_STEP_TITLES[step])}
+            </span>
+            <Badge tone={badge.tone} size="small">
+              {t(badge.labelKey)}
+            </Badge>
+            {step === 2 && (
+              <Badge tone="neutral" size="small">
+                {t("spike.bestEffort")}
+              </Badge>
+            )}
           </div>
-        )}
-      </StepCard>
 
-      {/* Step 5 — Review & restore everything (in place, left stopped) */}
-      <StepCard n={5} title={t("recovery.step4")} state={restoreStepState} hueIndex={nextHue()}>
-        {!anyDiscovered ? (
-          <p className="text-sm text-carbon-textMuted">{t("recovery.noneDiscovered")}</p>
-        ) : (
-          <>
-            {/* Restore all — every container then VM, sequential + left stopped.
-                Shown ONLY when there are containers/VMs to bulk-restore: file
-                sets carry no original path, so they're restored per-row (below)
-                into a chosen folder and restoreAll() deliberately skips them. */}
-            {(containers.length > 0 || vms.length > 0) && (
-            /* jdp live-review: "Card 5: Der Wiederherstellen-Button der ganzen
-               Container soll ganz nach rechts." The button used to LEAD this
-               row, with the busy phrase and the ok/fail result trailing it.
-               Both readouts now come first and the button is pushed to the
-               row's far edge with `ms-auto` — this app's established
-               flush-right idiom for a control that shares its row with a
-               leading sibling (Containers.tsx's BackupButton/ExportButton
-               row; Flash.tsx's own comment spells out the same pair of
-               options and why `justify-end` is the one to use only when there
-               is nothing to push away from). `ms-auto`, not `ml-auto`: under
-               dir="rtl" the row's far edge is its left one, and the button
-               has to follow it.
-                 It still lands flush right when NEITHER readout is present —
-               a lone flex child with `margin-inline-start: auto` absorbs all
-               the free space on its start side. Verified live in both states. */
-            <div className="flex flex-wrap items-center gap-3">
-              {running.active && !restoreAllBusy && (
-                <span className="text-xs text-carbon-textMuted">{t(busyPhraseKey(running.phase))}</span>
+          {/* ---- Step 1: readability (the check's readouts; the action lives
+                  in the bar below). ---- */}
+          {step === 1 && (
+            <>
+              <p className="text-xs leading-relaxed text-carbon-textMuted">
+                {t("recovery.appKeyExplain")}
+              </p>
+              {readableState === "ok" && (
+                <span className="text-sm text-statusOk">{t("recovery.readable")}</span>
+              )}
+              {readableState === "warn" && (
+                <>
+                  <span className="text-sm text-statusWarn">{t("recovery.notReachable")}</span>
+                  {lastError && (
+                    <p
+                      dir="ltr"
+                      className="text-xs font-mono break-all text-start text-carbon-textMuted"
+                    >
+                      {lastError}
+                    </p>
+                  )}
+                </>
+              )}
+              {readableState === "bad" && (
+                <div className="rounded-card bg-statusFailBgSoft px-4 py-2 text-xs leading-relaxed text-statusFail">
+                  {t("recovery.appKeyRemedy")}
+                </div>
+              )}
+              {/* Which folders were read (#196) — the desktop card's own #196
+                  reasoning: an empty answer must name where it looked. */}
+              {readSources.length > 0 && readableState !== "idle" && (
+                <p className="text-xs leading-relaxed wrap-break-word text-carbon-textMuted">
+                  {t("recovery.readFrom")}{" "}
+                  <span className="font-mono">{readSources.join(", ")}</span>
+                </p>
+              )}
+            </>
+          )}
+
+          {/* ---- Step 2 (optional): the sanctioned skip path. The full
+                  config-restore body (source toggle, path browser, phase
+                  narration) is Plan 02 — this tracer carries the skip
+                  resolution only, which sets the SAME state the desktop skip
+                  sets and advances the flow. ---- */}
+          {step === 2 && (
+            <>
+              <p className="text-xs leading-relaxed text-carbon-textMuted">
+                {`${t("recovery.configHint")} ${t("recovery.configAppKeyReminder")}`}
+              </p>
+              {configSkipped ? (
+                <p className="text-sm text-carbon-textMuted">{t("recovery.configSkipped")}</p>
+              ) : (
+                <Button
+                  label={t("recovery.configSkip")}
+                  labelKey="recovery.configSkip"
+                  tone="neutral"
+                  onClick={() => {
+                    onConfigSkip();
+                    setStep(3);
+                  }}
+                  className="min-h-[2.75rem] w-full"
+                />
+              )}
+            </>
+          )}
+
+          {/* ---- Step 3: attach — the desktop card's fields, re-hosted (same
+                  components, same handlers, same write-only secret contract
+                  via CloudCard/RcloneCard's RevealInputs). ---- */}
+          {step === 3 &&
+            (settings ? (
+              <>
+                <EncryptionStatus
+                  t={t}
+                  detection={encDetection}
+                  detecting={encDetecting}
+                  encryptionEnabled={settings.encryptionEnabled}
+                  onOverride={(v) =>
+                    setSettings((prev) => (prev ? { ...prev, encryptionEnabled: v } : prev))
+                  }
+                />
+                <FolderBrowser
+                  label={t("settings.containersPath")}
+                  value={settings.containersPath}
+                  hostMountRoot={hostMountRoot}
+                  onChange={(v) => setSettings((prev) => (prev ? { ...prev, containersPath: v } : prev))}
+                />
+                <FolderBrowser
+                  label={t("settings.vmsPath")}
+                  value={settings.vmsPath}
+                  hostMountRoot={hostMountRoot}
+                  onChange={(v) => setSettings((prev) => (prev ? { ...prev, vmsPath: v } : prev))}
+                />
+                <FolderBrowser
+                  label={t("settings.flashPath")}
+                  value={settings.flashPath}
+                  hostMountRoot={hostMountRoot}
+                  onChange={(v) => setSettings((prev) => (prev ? { ...prev, flashPath: v } : prev))}
+                />
+                <FolderBrowser
+                  label={t("settings.filesPath")}
+                  value={settings.filesPath}
+                  hostMountRoot={hostMountRoot}
+                  onChange={(v) => setSettings((prev) => (prev ? { ...prev, filesPath: v } : prev))}
+                />
+                <StepDisclosure label={t("settings.offsiteTitle")} tip={t("settings.offsiteHint")} gap="gap-2">
+                  {([
+                    ["containersOffsite", "nav.containers"],
+                    ["vmsOffsite", "nav.vms"],
+                    ["flashOffsite", "nav.flash"],
+                    ["filesOffsite", "nav.files"],
+                  ] as const).map(([key, label]) => (
+                    <div key={key} className="flex flex-col gap-1">
+                      <label className="text-xs text-carbon-textSub">{t(label)}</label>
+                      <input
+                        value={settings[key]}
+                        spellCheck={false}
+                        onChange={(e) =>
+                          setSettings((prev) => (prev ? { ...prev, [key]: e.target.value } : prev))
+                        }
+                        placeholder="rest:http://host:8000/repo"
+                        dir="ltr"
+                        className={`${offsiteInput} text-start`}
+                      />
+                    </div>
+                  ))}
+                </StepDisclosure>
+                {/* Fixed hue literals (3/4) — the exact indices the desktop's
+                    evaluation order hands CloudCredsDisclosure. NO nextHue()
+                    here: see the mount comment's hue-discipline note. */}
+                <CloudCredsDisclosure t={t} cloudHue={3} rcloneHue={4} />
+              </>
+            ) : (
+              <p className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</p>
+            ))}
+
+          {/* ---- Step 4: discover (the action lives in the bar; the body is
+                  readouts only). ---- */}
+          {step === 4 && (
+            <>
+              {discovered && discovered.containers + discovered.vms + discovered.files > 0 && (
+                <span className="text-sm text-statusOk">
+                  {t("recovery.foundCounts")
+                    .replace("{c}", String(discovered.containers))
+                    .replace("{v}", String(discovered.vms))}
+                  {discovered.files > 0 && (
+                    <> {t("recovery.filesFound").replace("{f}", String(discovered.files))}</>
+                  )}
+                </span>
+              )}
+              {discovered && discovered.containers + discovered.vms + discovered.files === 0 && (
+                <p className="text-sm text-statusWarn">{t("recovery.foundNone")}</p>
+              )}
+              {discoverError && (
+                <div className="rounded-card bg-statusFailBgSoft px-4 py-2 text-xs leading-relaxed wrap-break-word text-statusFail">
+                  {discoverError}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ---- Step 5: EMPTY BRANCH ONLY (tracer scope) — the found-counts
+                  echo plus the zero-target copy. The populated restore body
+                  (restore-all + per-row RestoreAction under the ConfirmSheet)
+                  is Plan 03; with targets present and no result yet the gate
+                  below simply holds no bar action. ---- */}
+          {step === 5 && (
+            <>
+              {discovered && discovered.containers + discovered.vms + discovered.files > 0 && (
+                <span className="text-sm text-statusOk">
+                  {t("recovery.foundCounts")
+                    .replace("{c}", String(discovered.containers))
+                    .replace("{v}", String(discovered.vms))}
+                  {discovered.files > 0 && (
+                    <> {t("recovery.filesFound").replace("{f}", String(discovered.files))}</>
+                  )}
+                </span>
               )}
               {restoreAllResult && (
                 <span
@@ -2466,140 +3139,144 @@ export default function Recovery() {
                     .replace("{fail}", String(restoreAllResult.fail))}
                 </span>
               )}
-              <Button
-                label={t("recovery.restoreAll")}
-                labelKey="recovery.restoreAll"
-                tone="accent"
-                onClick={() => void restoreAll()}
-                disabled={restoreAllBusy || running.active}
-                busy={restoreAllBusy}
-                className="ms-auto"
-              />
-            </div>
-            )}
+              {!anyDiscovered && (
+                <p className="text-sm text-carbon-textMuted">{t("recovery.noneDiscovered")}</p>
+              )}
+            </>
+          )}
 
-            {/* VM restore needs the libvirt SSH link — advisory note, not a block. */}
-            {vms.length > 0 && vmSshConfigured === false && (
-              <div className="rounded-card bg-statusWarnBg px-3 py-2.5 text-xs text-statusWarn leading-relaxed">
-                {t("recovery.vmSshNote")}
-              </div>
-            )}
+          {/* ---- Step 6: the kit (hint + refusal readout; the download
+                  itself lives in the bar). ---- */}
+          {step === 6 && (
+            <>
+              <p className="text-xs leading-relaxed text-carbon-textMuted">{t("recovery.kitHint")}</p>
+              {kitError && (
+                // Backend-provided error text verbatim, same as the desktop
+                // card (fail-closed refusals are English by design).
+                <span className="text-xs wrap-break-word text-statusFail">✗ {kitError}</span>
+              )}
+            </>
+          )}
+        </div>
+      </div>
 
-            {/* Containers first, then VMs. */}
-            {containers.length > 0 && (
-              <div className="flex flex-col">
-                <span className="text-xs font-medium text-carbon-textSub pt-1 pb-1">
-                  {t("nav.containers")}
-                </span>
-                {containers.map((c) => (
-                  <RestoreRow
-                    key={`container:${c.name}`}
-                    domain="container"
-                    name={c.name}
-                    lastBackup={c.lastBackup}
-                    t={t}
-                    otherActive={rowOtherActive}
-                    hueIndex={nextHue()}
-                  />
-                ))}
-              </div>
-            )}
-            {vms.length > 0 && (
-              <div className="flex flex-col">
-                <span className="text-xs font-medium text-carbon-textSub pt-2 pb-1">
-                  {t("nav.vms")}
-                </span>
-                {vms.map((v) => (
-                  <RestoreRow
-                    key={`vm:${v.libvirtName}`}
-                    domain="vm"
-                    name={v.libvirtName}
-                    displayName={v.name}
-                    lastBackup={v.lastBackup}
-                    t={t}
-                    otherActive={rowOtherActive}
-                    hueIndex={nextHue()}
-                  />
-                ))}
-              </div>
-            )}
-            {/* File sets — restore into a chosen folder ("Restore all" covers
-                containers + VMs only; a rediscovered set has no original path,
-                so each row needs its own target folder). */}
-            {fileSets.length > 0 && (
-              <div className="flex flex-col">
-                {/* jdp live-review ("Info-Texte in i Infobubbles"): the
-                    filesRestoreHint <p> under this group label explained why
-                    each set needs its own target folder — permanent prose about
-                    a group of controls, so it moves onto the group's own label
-                    as the plain (neutral) InfoBubble, not the `onAccent` one:
-                    this is a bare eyebrow label on the card surface, not a
-                    solid-accent heading badge. */}
-                <span className="inline-flex items-center gap-1 self-start text-xs font-medium text-carbon-textSub pt-2 pb-1">
-                  {t("nav.files")}
-                  <InfoBubble tip={t("recovery.filesRestoreHint")} />
-                </span>
-                {fileSets.map((s) => (
-                  <FileSetRecoveryRow
-                    key={`files:${s.id}`}
-                    set={s}
-                    hostMountRoot={hostMountRoot}
-                    t={t}
-                    otherActive={rowOtherActive}
-                    hueIndex={nextHue()}
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        )}
-      </StepCard>
-
-      {/* Step 6 — Your recovery kit (safety net for next time)
-          jdp live-review ("Info-Texte in i Infobubbles"): kitHint was the
-          card's whole body apart from the download button — now the heading's
-          own (i). The `kitError` span below stays: it is the backend's own
-          refusal text, shown only when a download is actually refused. */}
-      <StepCard n={6} title={t("recovery.step5")} hint={t("recovery.kitHint")} state="idle" hueIndex={nextHue()}>
-        <Button
-          key={kitShake}
-          label={t("recovery.kitDownload")}
-          labelKey="recovery.kitDownload"
-          // Accent ([326]). The kit is the one artefact this page exists to
-          // hand over, and its card holds nothing else to do.
-          tone="neutral"
-          onClick={() => {
-            setKitError(null);
-            void downloadRecoveryKit().then((err) => {
-              setKitError(err);
-              if (err) {
-                push(err, "fail");
-                setKitShake((n) => n + 1);
-              }
-            });
-          }}
-          // Only the layout stays here ([326]). Surface, hover, radius,
-          // padding, text size and colour all come from `tone` and `.glim-btn`
-          // already, and restating them was not merely redundant: Tailwind
-          // resolves two competing background utilities by their order in the
-          // compiled stylesheet, not by the order they appear in the
-          // attribute, so `` quietly beat the `bg-accent`
-          // the tone had added. Measured on the deployed build: both classes
-          // sat on the element and the wrong one was painting.
-          className={`self-start${kitShake ? " glim-shake" : ""}`}
-        />
-        {kitError && (
-          // Backend-provided error text shown verbatim BY DESIGN (e.g. the
-          // fail-closed "set a login password" refusal when auth is off) —
-          // the API answers English and is not translated client-side.
-          <span className="text-xs text-statusFail wrap-break-word">✗ {kitError}</span>
-        )}
-      </StepCard>
-
-      {/* Restore from ANOTHER BombVault repo (#61) — visually separate from the
-          attach steps above; read-only session, nothing persisted. */}
-      <ForeignRestoreCard hostMountRoot={hostMountRoot} t={t} otherActive={rowOtherActive} nextHue={nextHue} />
-      {confirmDialog}
-    </div>
+      {step === 1 && (
+        <StickyActionBar className="md:hidden">
+          {readableState === "idle" ? (
+            <Button
+              label={t("recovery.recheck")}
+              labelKey="recovery.recheck"
+              tone="accent"
+              onClick={() => void checkReadable()}
+              disabled={checking}
+              busy={checking}
+              title={checking ? t("dashboard.checking") : undefined}
+              className="min-h-[2.75rem] w-full"
+            />
+          ) : (
+            <Button
+              label={t("common.continue")}
+              labelKey="common.continue"
+              tone="accent"
+              onClick={() => setStep(2)}
+              className="min-h-[2.75rem] w-full"
+            />
+          )}
+        </StickyActionBar>
+      )}
+      {step === 2 && (
+        <StickyActionBar className="md:hidden">
+          <Button
+            label={t("common.continue")}
+            labelKey="common.continue"
+            tone="accent"
+            onClick={() => setStep(3)}
+            className="min-h-[2.75rem] w-full"
+          />
+        </StickyActionBar>
+      )}
+      {step === 3 && (
+        <StickyActionBar className="md:hidden">
+          <Button
+            key={connectPreviewShake}
+            label={t("recovery.connectPreview")}
+            labelKey="recovery.connectPreview"
+            tone={previewed ? "neutral" : "accent"}
+            onClick={() => void connectPreview()}
+            disabled={attachState === "saving"}
+            busy={attachState === "saving"}
+            className={`min-h-[2.75rem] w-full${connectPreviewShake ? " glim-shake" : ""}`}
+          />
+          {previewed && (
+            <Button
+              label={t("common.continue")}
+              labelKey="common.continue"
+              tone="accent"
+              onClick={() => setStep(4)}
+              className="min-h-[2.75rem] w-full"
+            />
+          )}
+        </StickyActionBar>
+      )}
+      {step === 4 && (
+        <StickyActionBar className="md:hidden">
+          {discovered === null ? (
+            <Button
+              label={t("recovery.discover")}
+              labelKey="recovery.discover"
+              tone="accent"
+              onClick={() => void runDiscover()}
+              disabled={discovering}
+              busy={discovering}
+              title={discovering ? t("containers.discovering") : undefined}
+              className="min-h-[2.75rem] w-full"
+            />
+          ) : (
+            <Button
+              label={t("common.continue")}
+              labelKey="common.continue"
+              tone="accent"
+              onClick={() => setStep(5)}
+              className="min-h-[2.75rem] w-full"
+            />
+          )}
+        </StickyActionBar>
+      )}
+      {/* Step 5's bar EXISTS only when the kit gate holds — a Continue past an
+          unmet gate cannot render (gating decides, not the button). */}
+      {step === 5 && gateTo(6) && (
+        <StickyActionBar className="md:hidden">
+          <Button
+            label={t("common.continue")}
+            labelKey="common.continue"
+            tone="accent"
+            onClick={() => setStep(6)}
+            className="min-h-[2.75rem] w-full"
+          />
+        </StickyActionBar>
+      )}
+      {step === 6 && (
+        <StickyActionBar className="md:hidden">
+          <Button
+            key={kitShake}
+            label={t("recovery.kitDownload")}
+            labelKey="recovery.kitDownload"
+            tone="neutral"
+            onClick={fireKitDownload}
+            className={`min-h-[2.75rem] w-full${kitShake ? " glim-shake" : ""}`}
+          />
+          {/* The terminal row: home is where the restored-but-stopped targets
+              get started ("Start them from the Containers/VMs tabs"), so Done
+              lands there rather than dead-ending on the flow. */}
+          <Button
+            label={t("common.done")}
+            labelKey="common.done"
+            tone="accent"
+            onClick={() => navigate("/")}
+            className="min-h-[2.75rem] w-full"
+          />
+        </StickyActionBar>
+      )}
+    </>
   );
 }
