@@ -142,7 +142,7 @@ func TestMakeOffsiteRepoReadableSkipsRemote(t *testing.T) {
 		if !restic.IsRemoteRepo(repo) {
 			t.Fatalf("%q must be recognised as a remote repo", repo)
 		}
-		makeOffsiteRepoReadable(repo) // must not panic, must not touch the filesystem
+		makeOffsiteRepoReadable(repo, t.TempDir()) // must not panic, must not touch the filesystem
 	}
 }
 
@@ -150,7 +150,7 @@ func TestMakeOffsiteRepoReadableSkipsRemote(t *testing.T) {
 // not mounted (#55) — must be a silent no-op, never a panic or a stray mkdir.
 func TestMakeOffsiteRepoReadableToleratesMissingPath(t *testing.T) {
 	missing := filepath.Join(t.TempDir(), "never-mounted")
-	makeOffsiteRepoReadable(missing)
+	makeOffsiteRepoReadable(missing, t.TempDir())
 	if _, err := os.Stat(missing); !os.IsNotExist(err) {
 		t.Fatalf("relax pass must not create the destination, stat err = %v", err)
 	}

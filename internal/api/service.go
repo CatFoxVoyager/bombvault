@@ -8,8 +8,10 @@ package api
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -3007,7 +3009,7 @@ func (s *Service) copyToOffsiteTarget(ctx context.Context, domain string, settin
 	// copy that fails half-way, or a retention prune that writes fresh index/pack
 	// files after it, is covered too; makeOffsiteRepoReadable skips remote
 	// destinations and a path that is not there yet.
-	defer makeOffsiteRepoReadable(dest)
+	defer makeOffsiteRepoReadable(dest, s.cfg.DataDir)
 	// Per-target restic mode carrying this destination's S3 storage class (see
 	// offsiteModeForTarget: the global class is preserved for a backfilled N=1
 	// target whose class is "").
@@ -4896,7 +4898,7 @@ func (s *Service) Backup(ctx context.Context, name string) (_ backup.Summary, re
 		}
 	}
 	s.applyRetention(ctx, repo, settings, mode, "container:"+name, "containers")
-	makeRepoReadable(repo) // keep the local repo copyable off-box by a non-root user
+	makeRepoReadable(repo, s.cfg.DataDir) // keep the local repo copyable off-box by a non-root user
 	s.replicateOffsite(ctx, "containers", settings, mode, repo)
 	s.collectStatsAfterItem(ctx, "containers")
 	s.checkPrimaryRemoteBudget(ctx, "containers", repo, settings)
@@ -5627,28 +5629,155 @@ func writeDef(dir, fn string, enc []byte) error {
 // once per batch, trading a redundant walk for simplicity and total coverage.
 // Best-effort: a walk/chmod error must never fail a good backup, and a non-local
 // repo path (an off-site rclone remote) simply yields a walk error and is skipped.
-func makeRepoReadable(repo string) {
-	_ = filepath.WalkDir(repo, func(p string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return nil //nolint:nilerr // best-effort; a walk error must not fail the backup
+//
+// MEASURED, and the "negligible" above was wrong ([5437]). Against a real 123 GB
+// repository of 8119 entries spread over four array disks: the bare WalkDir costs
+// 43 ms, the same walk with d.Info() costs 592 ms, and reading the same files
+// directly instead of through /mnt/user costs 16 ms. So 93% of it is one lstat
+// per entry, and shfs multiplies that by about 37. Cold and warm measured the
+// same (94 ms against 74 ms on an untouched repository), so it is the steady
+// state, not a first-run effect. Against that stood a run history of 859 real
+// backups: median 2 s, and 261 of them under one second. This walk runs inside
+// Backup() before it returns, so it was roughly a third of a median run and the
+// larger part of the fastest third. It also grew with the REPOSITORY, which only
+// ever gets bigger, rather than with the run.
+//
+// What the same measurement pointed at: of those 8119 entries exactly FOUR
+// needed a chmod, and all four were files restic had just written (two packs,
+// two index files). Adding a file always updates its directory's mtime, so a
+// directory untouched since the last clean pass cannot contain an entry that
+// pass did not already relax. Stat the 263 directories, skip the contents of the
+// unchanged ones: same result, about 20 ms.
+//
+// MTIME DOES NOT PROPAGATE UPWARDS, and getting that wrong is the whole
+// difficulty here. Writing data/bb/newpack updates bb's mtime and leaves data's
+// mtime exactly as it was. So a walk that skips a directory wholesale the moment
+// its own mtime looks old skips every subtree under it too, and data/ is old
+// almost always - the first version of this did precisely that and relaxed
+// nothing at all after the first pass. Directories are therefore ALWAYS
+// descended into. What the shortcut saves is the per-FILE lstat inside a
+// directory whose own entries have not changed, which is where the 8119 stats
+// actually were: 263 directory stats instead of 8119 file stats.
+//
+// Two things keep that from becoming a coverage hole. The stamp only advances
+// after a pass that saw NO errors, so a pass that failed halfway repeats in full
+// rather than marking unseen directories as done. And a stamp older than
+// fullSweepAfter is ignored outright, which repairs the one case the mtime
+// shortcut genuinely cannot see: something outside BombVault chmod'ing a file
+// restrictive without touching its directory.
+func makeRepoReadable(repo, stampDir string) {
+	stamp := permStampPath(stampDir, repo)
+	var cutoff time.Time
+	if fi, err := os.Stat(stamp); err == nil && time.Since(fi.ModTime()) < fullSweepAfter {
+		cutoff = fi.ModTime()
+	}
+
+	// Stamped with the time the pass STARTED, not the time it finished: a file
+	// written while the pass was already past its directory leaves that
+	// directory's mtime at or after this instant, so the next pass still sees it.
+	started := time.Now()
+	clean := true
+	relaxTree(repo, cutoff, &clean)
+
+	if clean {
+		writePermStamp(stamp, started.Add(-stampBackdate))
+	}
+}
+
+// stampBackdate is how far the stamp is set BEHIND the moment the pass began.
+//
+// A directory's mtime is not as precise as time.Now(). tmpfs and several other
+// filesystems stamp a directory at the timer tick, not at the nanosecond, and
+// measured on the test box two writes 1.5 ms apart left a directory's mtime
+// identical to the nanosecond. Without a margin, a file written a fraction after
+// the pass started could carry a directory mtime on a tick just BEFORE it, and
+// the next pass would read that directory as unchanged and skip the file.
+// Backdating costs a rescan of whatever changed in the last few seconds before a
+// pass, which is nothing, and closes the window.
+const stampBackdate = 5 * time.Second
+
+// relaxTree relaxes one directory and recurses. `cutoff` is the start of the
+// last clean pass, or the zero time to stat everything.
+func relaxTree(dir string, cutoff time.Time, clean *bool) {
+	di, err := os.Stat(dir)
+	if err != nil || !di.IsDir() {
+		*clean = false
+		return
+	}
+	relaxPerm(dir, di, true)
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		*clean = false
+		return
+	}
+	// An unchanged directory cannot hold a file the last clean pass did not
+	// already relax: creating one would have moved this mtime.
+	statFiles := cutoff.IsZero() || !di.ModTime().Before(cutoff)
+
+	for _, e := range entries {
+		p := filepath.Join(dir, e.Name())
+		if e.IsDir() {
+			relaxTree(p, cutoff, clean)
+			continue
 		}
-		info, ierr := d.Info()
+		if !statFiles {
+			continue
+		}
+		info, ierr := e.Info()
 		if ierr != nil {
-			return nil
+			*clean = false
+			continue
 		}
-		perm := info.Mode().Perm()
-		want := perm | 0o044 // group+other read
-		if d.IsDir() {
-			want |= 0o011 // group+other traverse
-		}
-		if want != perm {
-			// Perm() drops setuid/setgid/sticky; re-add them so a group-inheritance
-			// (setgid) dir on a shared NAS keeps its special bit through the chmod.
-			special := info.Mode() & (os.ModeSetuid | os.ModeSetgid | os.ModeSticky)
-			_ = os.Chmod(p, want|special) //nolint:gosec // G302: encrypted repo; must be readable by the operator's off-box sync tool
-		}
-		return nil
-	})
+		relaxPerm(p, info, false)
+	}
+}
+
+// fullSweepAfter is how long a stamp is trusted. Beyond it the next pass walks
+// everything again, so the one case a directory's mtime cannot reveal is still
+// repaired within a day instead of never.
+const fullSweepAfter = 24 * time.Hour
+
+// relaxPerm adds group+other read (and traverse, on a directory) if they are
+// missing, and nothing otherwise.
+func relaxPerm(p string, info fs.FileInfo, isDir bool) {
+	perm := info.Mode().Perm()
+	want := perm | 0o044 // group+other read
+	if isDir {
+		want |= 0o011 // group+other traverse
+	}
+	if want == perm {
+		return
+	}
+	// Perm() drops setuid/setgid/sticky; re-add them so a group-inheritance
+	// (setgid) dir on a shared NAS keeps its special bit through the chmod.
+	special := info.Mode() & (os.ModeSetuid | os.ModeSetgid | os.ModeSticky)
+	_ = os.Chmod(p, want|special) //nolint:gosec // G302: encrypted repo; must be readable by the operator's off-box sync tool
+}
+
+// permStampPath is where the last clean pass over `repo` is recorded. Keyed by a
+// hash of the path so two repositories never share a stamp, and kept in
+// BombVault's own data directory rather than inside the repository: a restic
+// repository is restic's to own, and an unexpected file at its root is something
+// `restic check` would have to explain away.
+func permStampPath(stampDir, repo string) string {
+	sum := sha256.Sum256([]byte(filepath.Clean(repo)))
+	return filepath.Join(stampDir, "perms", hex.EncodeToString(sum[:16])+".stamp")
+}
+
+// writePermStamp records `at` as the moment of the last clean pass. Best-effort
+// throughout: a stamp that cannot be written costs a full walk next time, which
+// is exactly the old behaviour and never a wrong result.
+func writePermStamp(path string, at time.Time) {
+	if err := paths.EnsureDir(filepath.Dir(path)); err != nil {
+		return
+	}
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0o600) //nolint:gosec // G304: path is derived from a hash under our own data dir
+	if err != nil {
+		return
+	}
+	_ = f.Close()
+	_ = os.Chtimes(path, at, at)
 }
 
 // makeOffsiteRepoReadable is makeRepoReadable for an off-site DESTINATION repo:
@@ -5672,11 +5801,11 @@ func makeRepoReadable(repo string) {
 // WalkDir over "rest:http://…" would merely fail, but the guard says so). The
 // repo is encrypted, so group/other READ exposes nothing — the same reasoning
 // makeRepoReadable already documents. Best-effort throughout.
-func makeOffsiteRepoReadable(dest string) {
+func makeOffsiteRepoReadable(dest, stampDir string) {
 	if restic.IsRemoteRepo(dest) {
 		return
 	}
-	makeRepoReadable(dest)
+	makeRepoReadable(dest, stampDir)
 }
 
 // readStoredDef reads an encrypted definition, preferring the new in-repo location
@@ -9543,7 +9672,7 @@ func (s *Service) BackupVM(ctx context.Context, name string) (backup.Summary, er
 		}
 		s.applyRetention(ctx, repo, settings, mode, "vm:"+name+":zvol:"+bd.Dev, "vms")
 	}
-	makeRepoReadable(repo) // keep the local repo copyable off-box by a non-root user
+	makeRepoReadable(repo, s.cfg.DataDir) // keep the local repo copyable off-box by a non-root user
 	s.replicateOffsite(ctx, "vms", settings, mode, repo)
 	s.collectStatsAfterItem(ctx, "vms")
 	s.checkPrimaryRemoteBudget(ctx, "vms", repo, settings)
@@ -10420,7 +10549,7 @@ func (s *Service) BackupFlash(ctx context.Context) (backup.Summary, error) {
 		return backup.Summary{}, err
 	}
 	s.applyRetention(ctx, repo, settings, mode, "flash", "flash")
-	makeRepoReadable(repo) // keep the local repo copyable off-box by a non-root user
+	makeRepoReadable(repo, s.cfg.DataDir) // keep the local repo copyable off-box by a non-root user
 	s.replicateOffsite(ctx, "flash", settings, mode, repo)
 	s.collectStatsAfterItem(ctx, "flash")
 	s.checkPrimaryRemoteBudget(ctx, "flash", repo, settings)
@@ -10695,7 +10824,7 @@ func (s *Service) BackupFileSet(ctx context.Context, id string) (backup.Summary,
 		return backup.Summary{}, err
 	}
 	s.applyRetention(ctx, repo, settings, mode, "fileset:"+set.Name, "files")
-	makeRepoReadable(repo) // keep the local repo copyable off-box by a non-root user
+	makeRepoReadable(repo, s.cfg.DataDir) // keep the local repo copyable off-box by a non-root user
 	s.replicateOffsite(ctx, "files", settings, mode, repo)
 	s.collectStatsAfterItem(ctx, "files")
 	s.checkPrimaryRemoteBudget(ctx, "files", repo, settings)
