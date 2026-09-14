@@ -71,6 +71,14 @@ export function LanguageCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"];
             the label span below keeps a genuinely long locale name (this
             list has 42) from overflowing the now-fixed width instead of
             just growing the button the way it used to. */}
+        {/* Mobile hit-area extension (D-06 fix 1 / VERIFY-04, phase 8): this
+            card-local raw button measures ~33px tall (py-1.5 + text-sm) —
+            under the 44px floor — and it does not route through the shared
+            Button, so it gets the Toggle bleed pattern at its own site:
+            below md an invisible ::after bleeds 12px past every side (~57px
+            activation box). max-md:relative anchors the pseudo-element to
+            THIS button, not its Card; desktop >=48rem byte-identical (every
+            class is max-md:-scoped). */}
         <button
           ref={ref}
           type="button"
@@ -79,7 +87,7 @@ export function LanguageCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"];
           aria-haspopup="listbox"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className="flex items-center gap-2.5 w-48 rounded-control bg-carbon-surface2 px-3 py-1.5 text-sm text-carbon-text hover:bg-carbon-hover transition-colors"
+          className="flex items-center gap-2.5 w-48 rounded-control bg-carbon-surface2 px-3 py-1.5 text-sm text-carbon-text hover:bg-carbon-hover transition-colors max-md:relative max-md:after:absolute max-md:after:-inset-3 max-md:after:content-['']"
         >
           <Flag code={current.flag} />
           <span className="min-w-0 truncate text-start">{current.label}</span>
@@ -91,13 +99,20 @@ export function LanguageCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"];
           label={t("language.label")}
         >
           {languages.map((l) => (
+            /* Same D-06 fix-1 bleed as the trigger above: option rows measure
+               ~37px (py-2 + text-sm), under the floor, and are card-local raw
+               buttons. Adjacent options' 12px bleeds overlap inside the row
+               gap — the Toggle pattern's intended forgiveness: where two
+               bleeds share a point the later sibling wins, which resolves a
+               between-rows tap to the row it sits closer beneath. Desktop
+               >=48rem byte-identical (max-md:-scoped). */
             <button
               key={l.code}
               type="button"
               role="option"
               aria-selected={l.code === lang}
               onClick={() => { setLanguage(l.code); setOpen(false); }}
-              className={`flex items-center gap-2.5 w-full px-3 py-2 text-sm text-start transition-colors ${
+              className={`flex items-center gap-2.5 w-full px-3 py-2 text-sm text-start transition-colors max-md:relative max-md:after:absolute max-md:after:-inset-3 max-md:after:content-[''] ${
                 l.code === lang
                   ? "bg-carbon-surface3 text-carbon-text"
                   : "text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text"

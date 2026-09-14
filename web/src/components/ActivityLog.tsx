@@ -462,7 +462,16 @@ export function ActivityLog({
             ))}
           </select>
           {dayFilter && (
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-pill bg-accent text-accentContrast ps-2 pe-1 py-0.5 text-xs font-semibold">
+            // D-06 fix 2 (phase 8): the mobile twin of the :418 desktop chip
+            // goes TONAL — accentSoft/accentText, the active-selection chip
+            // language of accent reservation 10 (the Settings tab chips) —
+            // while the desktop twin keeps its solid accent pill on purpose:
+            // the two presentations already legitimately diverge everywhere
+            // else in this milestone, and a filter chip is an
+            // active-SELECTION state, which the mobile chip language renders
+            // tonal, never solid. py-0.5 (2px) normalized to the on-scale
+            // py-1 stop in the same touch (the 4/8 scale).
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-pill bg-accentSoft text-accentText ps-2 pe-1 py-1 text-xs font-semibold">
               {resolveName("activityLog.dayFilterChip", {
                 date: new Date(dayFilter + "T00:00:00").toLocaleDateString(),
               })}
