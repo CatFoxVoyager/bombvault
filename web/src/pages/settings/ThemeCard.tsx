@@ -4,8 +4,20 @@
 // in Settings.tsx, and it was already module-level and prop-driven, so
 // nothing crosses a new seam. See that file's own note for why the cut
 // stops here rather than continuing into SettingsPage itself.
+//
+// BODY-ONLY since quick 260914-p9a (device verdict D-11, 2026-09-14): the
+// General tab's six appearance Cards merged into ONE Card titled
+// settings.appearance, and this picker moved into it as the Theme
+// sub-section — the same body-only treatment AccentCard already
+// established (its own header comment). The removed Card wrapper and
+// hueIndex prop fed only the old heading notch, which is now the merged
+// Card's own; the selector, its state and its system-flip effect are
+// unchanged. Corrected en passant below: the two comments that used to
+// point at "this Card's" own root now name the host Card (the merged
+// Apparence Card in Settings.tsx), and the old "further down this file"
+// pointer to the Settings tab strip names Settings.tsx — the component no
+// longer lives there.
 import type { ResolvedTheme } from "../../lib/theme";
-import { Card } from "../settings/shared";
 import { Selector } from "../../components/Selector";
 import { getResolvedTheme, getTheme, onSystemThemeChange, setTheme } from "../../lib/theme";
 import { useEffect, useState } from "react";
@@ -25,8 +37,8 @@ import { useT } from "../../lib/i18n";
 // A horizontal Selector, not the old single toggle button (jdp, live-review:
 // "das design dunkel/hell bitte ein horizontaler selektor machen") — this IS
 // "one of a small, mutually exclusive set of options," design-language.md's
-// own "The one horizontal selector" case, the exact shape the Shape Card's
-// own round/soft/square picker right below it already uses. Matched to that
+// own "The one horizontal selector" case, the exact shape the Shape
+// sub-section's own round/soft/square picker right below it already uses. Matched to that
 // picker's OWN exact established treatment (jdp approved that look live for
 // the same kind of control): `size="lg"` (the page's own full Settings-
 // decision register, not a tight toolbar chip) and `variant="well"
@@ -49,7 +61,7 @@ import { useT } from "../../lib/i18n";
 // logic, which only made sense for a single two-state button) — clicking the
 // segment that's already active is a harmless no-op, same as clicking the
 // already-active Shape segment.
-export function ThemeCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hueIndex?: number }) {
+export function ThemeCard({ t }: { t: ReturnType<typeof useT>["t"] }) {
   // getResolvedTheme(), not the raw stored preference: the default is
   // "system" (GlimStone form-engine #1), and this picker only ever shows/
   // sets an explicit dark or light state, so it must reflect what's actually
@@ -123,20 +135,21 @@ export function ThemeCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hu
   );
 
   return (
-    <Card title={t("settings.theme")} hueIndex={hueIndex}>
+    <>
       {/* NO `inline-flex self-start max-w-full` wrapper any more (jdp,
           live-review: "Die horizontalen Selektoren sollen nicht auf die ganze
           Card-Breite gestreckt werden, sondern eine standardisierte Breite
-          bekommen"). That ask is still honoured — this Card's own root is
-          `flex flex-col` (Card's own comment above), whose default
-          `align-items: stretch` would otherwise blockify this row to the
-          Card's full content width — but round 8 moved the mechanism INTO
+          bekommen"). That ask is still honoured — the host Card's own root
+          (the merged Apparence Card in Settings.tsx) is
+          `flex flex-col` (Card's own comment in settings/shared), whose
+          default `align-items: stretch` would otherwise blockify this row to
+          the Card's full content width — but round 8 moved the mechanism INTO
           the variant: `variant="well"` now carries `w-fit max-w-full` itself,
           and `width: fit-content` is not `auto`, so a stretch alignment no
           longer applies to it. Three call sites hand-rolling the identical
           wrapper div was the same "one control, two mechanisms" drift that
           round's whole change is about; see Selector.tsx's file header item
-          6. (The Settings tab strip further down this file KEEPS its own
+          6. (The Settings tab strip in Settings.tsx KEEPS its own
           `tabStripEl` wrapper — it is `variant="chip"`, not a grooved well,
           so nothing in the variant hugs for it.) */}
       <Selector
@@ -157,6 +170,6 @@ export function ThemeCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hu
         // content-hugging scale the CadenceBuilder mode pickers use.
         equalWidth
       />
-    </Card>
+    </>
   );
 }

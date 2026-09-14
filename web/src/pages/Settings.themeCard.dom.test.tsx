@@ -4,8 +4,8 @@
 // picker, moved out of Sidebar.tsx's own footer into its own Card in
 // Settings' General tab. Converted to a horizontal Selector in a LATER
 // live-review round (jdp: "das design dunkel/hell bitte ein horizontaler
-// selektor machen") — see ThemeCard's own header comment in Settings.tsx for
-// the full rationale. This covers the picker's OWN behaviour in that shape:
+// selektor machen") — see ThemeCard's own header comment for the full
+// rationale. This covers the picker's OWN behaviour in that shape:
 // both segments are always present (light and dark), clicking one sets the
 // theme DIRECTLY to that segment (never a flip-the-current-value toggle) and
 // persists via lib/theme.ts's setTheme() (same STORAGE_KEY, same data-theme
@@ -15,6 +15,13 @@
 // SidebarControls' old theme row had, just relocated and re-skinned.
 // Sidebar.language.dom.test.tsx (sibling file) is the other half: proving
 // the OLD location no longer renders it.
+//
+// BODY-ONLY since quick 260914-p9a (device verdict D-11): the Card wrapper
+// moved into Settings.tsx's merged Apparence card as the Theme
+// sub-section, so this component no longer renders a heading — the
+// settings.appearance heading assert lives at page level (see
+// Settings.platformCard.dom.test.tsx, which renders the real page), and
+// this file keeps the picker's own behaviour coverage.
 //
 // jsdom opted in explicitly (real DOM/click behaviour needed, plus a
 // matchMedia stub lib/theme.ts's getResolvedTheme()/onSystemThemeChange()
@@ -76,10 +83,12 @@ afterEach(() => {
 });
 
 describe("ThemeCard", () => {
-  it("renders as a Card with the theme heading and both segments always present", () => {
+  it("renders the theme selector with both segments always present", () => {
     localStorage.setItem(STORAGE_KEY, "light");
     renderCard();
-    expect(screen.getByText("Theme")).toBeTruthy();
+    // No heading assert here any more: body-only since quick 260914-p9a —
+    // the settings.theme heading is now the merged Apparence card's
+    // sub-section caption in Settings.tsx, covered at page level.
     expect(screen.getByRole("tab", { name: "Light" })).toBeTruthy();
     expect(screen.getByRole("tab", { name: "Dark" })).toBeTruthy();
   });

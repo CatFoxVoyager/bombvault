@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 // ---------------------------------------------------------------------------
-// SettingsPage — the Platform card (D-11, quick 260914-nsv).
+// SettingsPage — the Platform sub-section of the merged Apparence card
+// (D-11, quick 260914-nsv; re-hosted as a sub-section by quick 260914-p9a).
 //
 // The General tab's material|cupertino Selector is the FIRST writer of the
 // bv-platform preference in src/ (lib/platform.ts had the whole mechanism —
@@ -8,7 +9,8 @@
 // wrote the key; only the e2e seeded it by hand). This file pins the write
 // contract end to end against the real page:
 //
-//   - the card renders on the General tab (label hint + both segments);
+//   - the sub-section renders inside the merged Apparence card on the
+//     General tab (caption + hint bubble + both segments);
 //   - material is the default active segment (boot stamps the attribute —
 //     and where nothing has, usePlatform() falls back to DEFAULT_PLATFORM);
 //   - clicking Cupertino writes localStorage["bv-platform"] AND applies the
@@ -146,19 +148,22 @@ afterEach(() => {
   cleanup();
 });
 
-describe("the Platform card (D-11)", () => {
-  it("renders on the General tab with both segments present", async () => {
+describe("the Platform sub-section (D-11)", () => {
+  it("renders inside the merged Apparence card on the General tab, with both segments present", async () => {
     await renderPage();
-    // The Card's heading proves the CARD rendered on this tab. The heading's
-    // accessible name is title + hint: Card renders the hint as an InfoBubble
-    // inside the heading badge, and the bubble's tip is the icon's aria-label
-    // (InfoBubble.tsx: "the help text is also the icon's aria-label"), so it
-    // contributes to the name — a plain-text query would find nothing, the
-    // tip only exists as an attribute until the bubble opens.
+    // Since quick 260914-p9a (D-11) the platform Selector lives as a
+    // sub-section of the merged Apparence card, so the page's heading is now
+    // settings.appearance. The heading's accessible name is the title alone
+    // (the umbrella Card passes no hint), matched by role as before.
     const heading = screen.getByRole("heading", {
-      name: new RegExp(en["settings.platform"]),
+      name: new RegExp(en["settings.appearance"]),
     });
-    expect(heading.textContent).toContain(en["settings.platform"]);
+    expect(heading.textContent).toContain(en["settings.appearance"]);
+    // The sub-section's caption span proves the platform group rendered
+    // inside that card. Unambiguous without a within(): the Selector's own
+    // label={t("settings.platform")} is an aria-label ATTRIBUTE, which
+    // getByText never matches, so the caption span is the only text node.
+    expect(screen.getByText(en["settings.platform"])).toBeTruthy();
     expect(screen.getByRole("tab", { name: en["settings.platform.material"] })).toBeTruthy();
     expect(screen.getByRole("tab", { name: en["settings.platform.cupertino"] })).toBeTruthy();
   });

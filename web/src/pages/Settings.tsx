@@ -4730,14 +4730,69 @@ export function SettingsPage() {
       {tab === "general" && <LanguageCard t={t} hueIndex={nextHue()} />}
 
       {/* ------------------------------------------------------------------ */}
-      {/* GENERAL — Theme (GlimStone follow-up pass, later live-review round). */}
-      {/* Moved out of Sidebar.tsx's footer — see ThemeCard's own header       */}
-      {/* comment above. Same register and immediately below Language: both   */}
-      {/* are fundamental, whole-app identity settings (not one of the purely */}
-      {/* cosmetic Appearance sub-topics below), so this Card sits right      */}
-      {/* after Language and right before Accent colour.                      */}
+      {/* GENERAL — Apparence: the SIX appearance sub-topics merged into ONE  */}
+      {/* Card (device verdict D-11, 2026-09-14; quick 260914-p9a). The 390px */}
+      {/* device pass measured this tab at NINE Cards and ~2300 CSS px of     */}
+      {/* scroll, with the nine red heading stamps judged too heavy on        */}
+      {/* mobile; the user decision of the same day ("Regrouper — une carte   */}
+      {/* Apparence unique : Thème, Coins, Animations, Plateforme, Couleurs,  */}
+      {/* Labels en sous-sections discrètes. 9 stamps -> ~4") merges theme,   */}
+      {/* shape, motion, platform, labels and colors back under ONE umbrella  */}
+      {/* Card titled settings.appearance. "Desktop intact" means the design  */}
+      {/* system and the desktop LOOK are not degraded — the page itself is   */}
+      {/* reorganized the same way for both (same IA everywhere); no frozen   */}
+      {/* desktop DOM.                                                        */}
+      {/*   History, kept rather than overwritten: this cluster used to be    */}
+      {/* ONE shared Card, split into one Card per sub-topic in the GlimStone */}
+      {/* follow-up pass (live-review point 5 — the border-line violation the */}
+      {/* Shape sub-section's comment below recounts), then accent+rainbow    */}
+      {/* re-merged into the Colors Card; THIS pass is the six-way re-merge,  */}
+      {/* the sub-topics demoted to discreet sub-sections instead of a        */}
+      {/* restored shared surface. Each sub-section opens with the Labels     */}
+      {/* Card's own caption pattern — a text-xs text-carbon-textSub span,    */}
+      {/* plus the sub-topic's ORIGINAL InfoBubble wherever a hint key        */}
+      {/* already existed (shape/motion/platform/labels — those keys stay     */}
+      {/* alive on their bubbles); Theme and Colors never had one, so their   */}
+      {/* captions are bare spans. Controls, props and per-control            */}
+      {/* why-comments are unchanged.                                         */}
+      {/*   ONE `tab === "general"` condition wraps the whole IIFE now, in    */}
+      {/* place of the repeated per-Card condition this tab used (the pattern */}
+      {/* every other multi-Card tab on this page still uses — e.g. the       */}
+      {/* "system" tab's Security Card + Settings Portability Card below;     */}
+      {/* AboutCard, that tab's old THIRD tab-conditioned element, has long   */}
+      {/* since moved out of that repeated condition entirely — see its own   */}
+      {/* header comment). The umbrella Card is this tab's second element,    */}
+      {/* between LanguageCard above and Quiet toasts below, which STAYS its  */}
+      {/* own Card: General renders FOUR Cards (Domains, Language,            */}
+      {/* Apparence, Quiet toasts).                                           */}
+      {/*   hueSeq: exactly ONE `nextHue()` call feeds the umbrella heading   */}
+      {/* notch — the five the standalone Theme/Shape/Motion/Platform/Labels  */}
+      {/* Cards each burned are removed rather than left dead (a hueSeq slot  */}
+      {/* nothing renders would misnumber every LATER Card); the survivor is  */}
+      {/* the Colors IIFE's own call, lifted to this IIFE's head — see the    */}
+      {/* self-correcting-sequence note above the Colors sub-section.         */}
       {/* ------------------------------------------------------------------ */}
-      {tab === "general" && <ThemeCard t={t} hueIndex={nextHue()} />}
+      {tab === "general" && (() => {
+      const hueIdx = nextHue();
+      // "Is there anything left to reset?" for the palette row in the Colors
+      // sub-section below — the mirror of AccentCard's own
+      // `presetsAreDefault`, same case-insensitive comparison
+      // (setRainbow()/isValidPalette() accept either case, so a palette
+      // restored by hand as "#ff8389" must still count as default).
+      const paletteIsDefault =
+        rainbow.palette.length === RAINBOW.length &&
+        rainbow.palette.every((hex, i) => hex.toLowerCase() === RAINBOW[i]?.toLowerCase());
+      return (
+      <Card title={t("settings.appearance")} hueIndex={hueIdx}>
+        {/* Theme sub-section — the body-only <ThemeCard/> (its own header
+            comment carries the de-wrappering note; the old standalone Card
+            burned its own nextHue() on a heading notch that is now the
+            umbrella's). Caption pattern: bare span — the theme picker never
+            had a hint key. */}
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-carbon-textSub">{t("settings.theme")}</span>
+          <ThemeCard t={t} />
+        </div>
 
       {/* ------------------------------------------------------------------ */}
       {/* GENERAL — Appearance                                               */}
@@ -4773,8 +4828,9 @@ export function SettingsPage() {
           one radius token set driving every rounded corner). lib/shape.ts is
           the JS half (read/write/persist which of the three is chosen, stamp
           the attribute), index.css already carries the matching
-          [data-shape="soft"|"square"] radius-token overrides. Lives directly
-          above the merged Colors Card below: same kind of setting
+          [data-shape="soft"|"square"] radius-token overrides. Sits as the
+          Corners sub-section of the merged Apparence Card, directly above
+          the Animations sub-section: same kind of setting
           (client-only, applied at the app root — shape.ts's own header
           comment), same "one picker, no Save step" shape.
             Selector, not a bespoke button row: this IS "three mutually
@@ -4823,36 +4879,41 @@ export function SettingsPage() {
           competing with the groove's own look) and already the page's most
           "three mutually exclusive settings, read together as one control"
           Selector — the shape it suits best. A LATER round gave the Theme
-          Card's own light/dark picker (above) this exact same treatment, and
+          sub-section's own light/dark picker (above) this exact same treatment, and
           round 8 spread the variant itself (minus `equalWidth`) to every
           small in-card selector in the app. The 7-tab strip above stays on
           `variant="chip"` — it is a tab strip of individual badges, not a
           grooved segmented control; see Selector.tsx's item 5b. */}
-      {tab === "general" && (
-      <Card title={t("settings.shape")} hint={t("settings.shapeHint")} hueIndex={nextHue()}>
-        {/* No "don't stretch" wrapper div here any more — `variant="well"`
-            carries `w-fit max-w-full` itself as of round 8, which opts the
-            row out of this Card's `flex flex-col` default
-            `align-items: stretch` without an extra element. See the Theme
-            Card's own Selector above for the full note. */}
-        <Selector
-          items={SHAPES.map((s) => ({
-            id: s,
-            label: t(`settings.shape.${s}` as TranslationKey),
-          }))}
-          label={t("settings.shape")}
-          select="one"
-          active={shape}
-          onChange={(id) => {
-            setShapeLocal(id as Shape);
-            setShape(id as Shape);
-          }}
-          size="lg"
-          variant="well"
-          equalWidth
-        />
-      </Card>
-      )}
+        {/* Corners sub-section — the shapeHint key stays alive on its bubble
+            beside the caption (no new umbrella hint: the four original hint
+            keys keep exactly their old bubbles, quick 260914-p9a decision). */}
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-carbon-textSub">{t("settings.shape")}</span>
+            <InfoBubble tip={t("settings.shapeHint")} />
+          </div>
+          {/* No "don't stretch" wrapper div here any more — `variant="well"`
+              carries `w-fit max-w-full` itself as of round 8, which opts the
+              row out of the host Card's `flex flex-col` default
+              `align-items: stretch` without an extra element. See the Theme
+              sub-section's own Selector above for the full note. */}
+          <Selector
+            items={SHAPES.map((s) => ({
+              id: s,
+              label: t(`settings.shape.${s}` as TranslationKey),
+            }))}
+            label={t("settings.shape")}
+            select="one"
+            active={shape}
+            onChange={(id) => {
+              setShapeLocal(id as Shape);
+              setShape(id as Shape);
+            }}
+            size="lg"
+            variant="well"
+            equalWidth
+          />
+        </div>
 
       {/* Motion intensity (GlimStone motion-engine — jdp, live-review:
           "Wäre eine Animationsengine gut?" -> "Echte Engine mit eigenem
@@ -4862,11 +4923,11 @@ export function SettingsPage() {
           jetzt") — see that doc's updated Motion Intensity write-up for the
           full course-correction note, quoting the old text rather than
           silently dropping it.
-            Same architecture as the Shape Card right above (lib/motion.ts
-          mirrors lib/shape.ts's getShape/setShape/applyShape/
+            Same architecture as the Shape sub-section right above
+          (lib/motion.ts mirrors lib/shape.ts's getShape/setShape/applyShape/
           applyStoredShape exactly; index.css's `[data-motion="..."]` token
-          blocks mirror `[data-shape="..."]`'s own), so this Card sits
-          directly below Shape: same kind of setting (client-only, applied
+          blocks mirror `[data-shape="..."]`'s own), so this sub-section sits
+          directly below Shape's: same kind of setting (client-only, applied
           at the app root), same "one Selector, no Save step" shape, same
           `variant="well" equalWidth`/`size="lg"` treatment already proven
           live on Theme's and Shape's own pickers right above.
@@ -4875,31 +4936,35 @@ export function SettingsPage() {
           that "it's a settings control, not content" is exactly the kind
           of self-authored exception that rule forbids; this Selector's
           three segments read RAINBOW[0]/[1]/[2] like Shape's own segments
-          right above, and the Card's own heading badge gets a real
-          `hueIndex={nextHue()}` the same way every other Card on this tab
-          does. */}
-      {tab === "general" && (
-      <Card title={t("settings.motion")} hint={t("settings.motionHint")} hueIndex={nextHue()}>
-        {/* No "don't stretch" wrapper div, same as the Theme/Shape Selectors
-            right above — `variant="well"` hugs its own segments now. */}
-        <Selector
-          items={MOTION_INTENSITIES.map((m) => ({
-            id: m,
-            label: t(`settings.motion.${m}` as TranslationKey),
-          }))}
-          label={t("settings.motion")}
-          select="one"
-          active={motion}
-          onChange={(id) => {
-            setMotionLocal(id as MotionIntensity);
-            setMotionIntensity(id as MotionIntensity);
-          }}
-          size="lg"
-          variant="well"
-          equalWidth
-        />
-      </Card>
-      )}
+          right above, and the merged Card's own heading badge gets the
+          tab's single real `hueIndex={nextHue()}` (see the banner above) —
+          sub-sections carry no notch of their own. */}
+        {/* Animations sub-section — the motionHint key stays alive on its
+            bubble beside the caption, same contract as Corners. */}
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-carbon-textSub">{t("settings.motion")}</span>
+            <InfoBubble tip={t("settings.motionHint")} />
+          </div>
+          {/* No "don't stretch" wrapper div, same as the Theme/Shape Selectors
+              right above — `variant="well"` hugs its own segments now. */}
+          <Selector
+            items={MOTION_INTENSITIES.map((m) => ({
+              id: m,
+              label: t(`settings.motion.${m}` as TranslationKey),
+            }))}
+            label={t("settings.motion")}
+            select="one"
+            active={motion}
+            onChange={(id) => {
+              setMotionLocal(id as MotionIntensity);
+              setMotionIntensity(id as MotionIntensity);
+            }}
+            size="lg"
+            variant="well"
+            equalWidth
+          />
+        </div>
 
       {/* Platform control (D-11, quick 260914-nsv) — the UI for the
           material|cupertino preference PLAT-01 already persists and applies.
@@ -4914,31 +4979,43 @@ export function SettingsPage() {
           write order is storage-then-apply, exactly lib/platform.ts's
           getPlatform() read direction, and there is deliberately NO local
           state mirror (see the usePlatform() read above): applying through
-          the one choke point re-renders this card via the announcement. */}
-      {tab === "general" && (
-      <Card title={t("settings.platform")} hint={t("settings.platformHint")} hueIndex={nextHue()}>
-        <Selector
-          items={PLATFORMS.map((p) => ({
-            id: p,
-            label: t(`settings.platform.${p}` as TranslationKey),
-          }))}
-          label={t("settings.platform")}
-          select="one"
-          active={platform}
-          onChange={(id) => {
-            localStorage.setItem(PLATFORM_STORAGE_KEY, id);
-            applyPlatform(id as Platform);
-          }}
-          size="lg"
-          variant="well"
-          equalWidth
-        />
-      </Card>
-      )}
+          the one choke point re-renders this sub-section via the
+          announcement. */}
+        {/* Platform sub-section — the platformHint key stays alive on its
+            bubble beside the caption, same contract as Corners/Animations. */}
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-carbon-textSub">{t("settings.platform")}</span>
+            <InfoBubble tip={t("settings.platformHint")} />
+          </div>
+          <Selector
+            items={PLATFORMS.map((p) => ({
+              id: p,
+              label: t(`settings.platform.${p}` as TranslationKey),
+            }))}
+            label={t("settings.platform")}
+            select="one"
+            active={platform}
+            onChange={(id) => {
+              localStorage.setItem(PLATFORM_STORAGE_KEY, id);
+              applyPlatform(id as Platform);
+            }}
+            size="lg"
+            variant="well"
+            equalWidth
+          />
+        </div>
 
-      {tab === "general" && (
-      <>
-      {/* Control labels (#178) — how much of a control's identity is shown.
+        {/* Labels sub-section — the labelsHint key stays alive on its bubble
+            beside the caption; the per-axis captions below become
+            sub-sub-captions one level deeper (deliberate — same visual
+            pattern, same controls, quick 260914-p9a). */}
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-carbon-textSub">{t("settings.labels")}</span>
+            <InfoBubble tip={t("settings.labelsHint")} />
+          </div>
+          {/* Control labels (#178) — how much of a control's identity is shown.
           Three axes rather than one switch, because the right answer differs
           per axis: a sidebar reduced to glyphs narrows the whole page, tabs do
           not, and action buttons are a density preference. jdp asked for one
@@ -4946,59 +5023,62 @@ export function SettingsPage() {
           Placed straight after Animations on purpose: both are per-viewer
           appearance dials kept in this browser rather than server settings,
           and they read as a pair. */}
-      <Card title={t("settings.labels")} hint={t("settings.labelsHint")} hueIndex={nextHue()}>
-        <div className="flex flex-col gap-4">
-          {CONTROL_AXES.map((axis) => (
-            <div key={axis} className="flex flex-col gap-1">
-              <span className="text-xs text-carbon-textSub">
-                {t(`settings.labels.${axis}` as TranslationKey)}
-              </span>
-              <Selector
-                items={LABEL_MODES.map((m) => ({
-                  id: m,
-                  label: t(`settings.labels.mode.${m}` as TranslationKey),
-                }))}
-                label={t(`settings.labels.${axis}` as TranslationKey)}
-                select="one"
-                active={labelModes[axis]}
-                onChange={(id) => {
-                  setLabelMode(axis, id as LabelMode);
-                  setLabelModes((prev) => ({ ...prev, [axis]: id as LabelMode }));
-                  // Every mounted control re-reads on this, so the page changes
-                  // under the selector instead of only after a reload.
-                  labelModeChanged();
-                }}
-                size="lg"
-                variant="well"
-                equalWidth
-              />
-            </div>
-          ))}
+          <div className="flex flex-col gap-4">
+            {CONTROL_AXES.map((axis) => (
+              <div key={axis} className="flex flex-col gap-1">
+                <span className="text-xs text-carbon-textSub">
+                  {t(`settings.labels.${axis}` as TranslationKey)}
+                </span>
+                <Selector
+                  items={LABEL_MODES.map((m) => ({
+                    id: m,
+                    label: t(`settings.labels.mode.${m}` as TranslationKey),
+                  }))}
+                  label={t(`settings.labels.${axis}` as TranslationKey)}
+                  select="one"
+                  active={labelModes[axis]}
+                  onChange={(id) => {
+                    setLabelMode(axis, id as LabelMode);
+                    setLabelModes((prev) => ({ ...prev, [axis]: id as LabelMode }));
+                    // Every mounted control re-reads on this, so the page changes
+                    // under the selector instead of only after a reload.
+                    labelModeChanged();
+                  }}
+                  size="lg"
+                  variant="well"
+                  equalWidth
+                />
+              </div>
+            ))}
+          </div>
         </div>
-      </Card>
-      </>
-      )}
 
       {/* Colors (GlimStone form-engine Phase 2, Task 1; the accent Card and
           the Rainbow Card, MERGED — jdp, live-review: "Die card von
           Akzentfarbe und Regenbogenmodus in eine mergen. Gehört ja
-          zusammen"). AccentCard above now returns just its own body (no
-          Card wrapper of its own — see its header comment), composed here
-          alongside the Rainbow controls this Card used to hold on its own.
-          One heading, `settings.colors` ("Colours"/"Farben") — new key, not
-          a repurposed `settings.accentColor`/`settings.rainbow`: those two
-          stay in use as the sub-topics' own row labels below, so the Card's
-          own title needed a THIRD string that reads as "colour, broadly"
-          without clashing with either. No `hint` on the Card itself any
+          zusammen"). AccentCard returns just its own body (no Card wrapper
+          of its own — see its header comment), composed in this sub-section
+          alongside the Rainbow controls the standalone Colors Card used to
+          hold on its own. Its caption, `settings.colors` ("Colours"/
+          "Farben") — new key, not a repurposed
+          `settings.accentColor`/`settings.rainbow`: those two
+          stay in use as the sub-topics' own row labels below, so the
+          caption needed a THIRD string that reads as "colour, broadly"
+          without clashing with either. No `hint` on the caption any
           more (see the master toggle below for where Rainbow's own hint
           moved). No divider between the two halves — spacing only, this
           app's established "cards separate sections, never a rule line"
           convention (see the Shape/Rainbow split's own comment above for
           the fuller house-rule writeup); AccentCard's body and the rainbow
-          `<div>` below it are simply two direct children of this Card's own
-          `flex flex-col gap-4`, the same "adjacent flex children, no divider"
+          `<div>` below it are simply two direct children of this
+          sub-section's own `flex flex-col gap-4` group, the same "adjacent
+          flex children, no divider"
           shape the (now-relocated) Flash-zip-export/Plain-export/Repository
           trio in the Storage tab's encryption Card already established.
+          (Since quick 260914-p9a the caption itself sits under the merged
+          Apparence Card's settings.appearance heading — D-11's six-way
+          re-merge; the standalone Card's title key still names this group,
+          the umbrella's names the whole.)
             hueIndex: merging two Cards into one Card means one FEWER
           `nextHue()` call in the sequence than before — removed here rather
           than left as a dead call, since `hueSeq++` would otherwise burn a
@@ -5020,30 +5100,29 @@ export function SettingsPage() {
           flipping this switch never changes the rail's own colours.
             The master toggle's own hueIndex/hint fixes are documented right
           on that ToggleRow below — see its own comment for both.
-            IIFE-captured `hueIdx` feeds this Card's own heading notch plus
+            IIFE-captured `hueIdx` (declared at the merged Card's IIFE head
+          above) feeds the merged Card's own heading notch plus
           the three rainbow ToggleRows below (hueIndex 0/1/2) — the same
           one-call-feeds-several-children shape the schedulesSelfBackup Card
           (Card+CadenceBuilder) and every offsite per-domain Card above
-          already use, so a bare inline `hueIndex={nextHue()}` on the Card
-          alone doesn't also have to be re-derived at each child call site.
-            This Card's own two reset Badges (the accent-preset reset inside
+          already use, so a bare inline `hueIndex={nextHue()}` on the
+          umbrella Card alone doesn't also have to be re-derived at each
+          child call site.
+            This sub-section's own two reset Badges (the accent-preset reset inside
           AccentCard below, and the rainbow-palette reset further down) are
           DELIBERATELY NOT among hueIdx's consumers — both are `tone="neutral"`,
           not hue-tinted, on purpose (see each Badge's own call-site comment
           for the full "a reset control must not blend into the very colours
           it resets" reasoning), so neither reads `hueIdx` at all. */}
-      {tab === "general" && (() => {
-      const hueIdx = nextHue();
-      // "Is there anything left to reset?" for the palette row below — the
-      // mirror of AccentCard's own `presetsAreDefault`, same case-insensitive
-      // comparison (setRainbow()/isValidPalette() accept either case, so a
-      // palette restored by hand as "#ff8389" must still count as default).
-      const paletteIsDefault =
-        rainbow.palette.length === RAINBOW.length &&
-        rainbow.palette.every((hex, i) => hex.toLowerCase() === RAINBOW[i]?.toLowerCase());
-      return (
-      <Card title={t("settings.colors")} hueIndex={hueIdx}>
-        <AccentCard t={t} rainbowOn={rainbow.on} />
+        {/* Colors sub-section — bare caption (never had a hint key); the
+            accent row and the rainbow block keep the exact spacing the
+            standalone Card gave them (its root's own gap-4, preserved by
+            the group wrapper below); the inner toggle stack keeps its
+            original indentation verbatim. */}
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-carbon-textSub">{t("settings.colors")}</span>
+          <div className="flex flex-col gap-4">
+            <AccentCard t={t} rainbowOn={rainbow.on} />
         <div className="flex flex-col gap-3">
           {/* hueIndex 0/1/2 (jdp, live-review, extremely emphatic — "auch
               nicht die Toggles der Regenbogen-Card! ... Es soll immer alles
@@ -5059,7 +5138,7 @@ export function SettingsPage() {
               logically independent or a master-plus-two-sub-options group.
               Given the SAME `.glim-hue`/`hueVars(rainbowAt(i))` treatment
               the Domains Card's seven rows already use (own local 0-based
-              index, unrelated to this Card's own `nextHue()` sequence — see
+              index, unrelated to the merged Card's own `nextHue()` sequence — see
               ToggleRow's `hueIndex` doc). ToggleRow's own comment excluding
               this exact trio by name has been corrected to match. */}
           <ToggleRow
@@ -5210,7 +5289,7 @@ export function SettingsPage() {
                 a silent no-op — a control that looks live and does nothing is
                 the same broken promise as one that is permanently greyed out,
                 just harder to notice. `paletteIsDefault` (computed beside
-                `hueIdx` at this Card's own IIFE head) closes that: the badge
+                `hueIdx` at the merged Card's IIFE head) closes that: the badge
                 is now live exactly when a click would actually change
                 something. The `!rainbow.on` half of the gate STAYS — the
                 eight PaletteSwatches next to it carry the identical
@@ -5263,6 +5342,8 @@ export function SettingsPage() {
               <IconResetArrow />
             </Badge>
             </div>
+          </div>
+        </div>
           </div>
         </div>
       </Card>
