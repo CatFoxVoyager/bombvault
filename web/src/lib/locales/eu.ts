@@ -704,6 +704,7 @@ const eu: Partial<Translations> = {
   "settings.motion.off": "Itzalita",
   "settings.motion.subtle": "Leuna",
   "settings.motion.wild": "Basatia",
+  "settings.motion.storm": "Ekaiztsua",
   "settings.rainbow": "Ostadar modua",
   "settings.rainbowHint": "Zerrenda bateko errenkada bakoitzak zortzikako multzo bateko bere kolorea jasotzen du, guztiek azentu-kolore bakarra partekatu ordez. Horrek zerrenda luzeak begirada batean errazago bereizten laguntzen du.",
   "settings.rainbowReactive": "Modu erreaktiboa",
@@ -931,7 +932,7 @@ const eu: Partial<Translations> = {
   "auth.passkeyUsableHere": "Helbide honetan dabil",
   "auth.passkeyOtherAddress": "{host} helbidearena da eta hemen ezin da erabili",
   "auth.passkeyNotSynced": "Sinkronizatu gabe: gailuarekin batera galtzen da.",
-  "auth.passkeyAdd": "Gehitu sarbide-gako bat",
+  "auth.passkeyAdd": "Konfiguratu",
   "auth.passkeyNameLabel": "Izena",
   "auth.passkeyNamePlaceholder": "Telefonoa, ordenagailua, segurtasun-gakoa",
   "auth.passkeyCreate": "Sortu",
@@ -946,7 +947,7 @@ const eu: Partial<Translations> = {
   "auth.twoFactorOn": "Piztuta. Pasahitzaz gain kode bat behar da.",
   "auth.twoFactorOff": "Itzalita. Pasahitzarekin bakarrik sartzen da.",
   "auth.twoFactorNeedsPassword": "Ezarri lehenik saioa hasteko pasahitz bat.",
-  "auth.twoFactorEnable": "Piztu",
+  "auth.twoFactorEnable": "Konfiguratu",
   "auth.twoFactorDisable": "Itzali",
   "auth.twoFactorConfirm": "Berretsi",
   "auth.twoFactorOnNow": "Bi faktoreko autentifikazioa piztuta dago",
@@ -1334,7 +1335,6 @@ const eu: Partial<Translations> = {
   "settings.cacheTitle": "Babeskopia-motorraren cachea",
   "settings.cacheHint": "Babeskopia-motorrak biltegiaren datuen cache bat mantentzen du /config azpian, exekuzio inkrementalak eta kanpokoak azkarrak izaten jarraitu dezaten. Muga hori gaindituz gero, azkenik erabilitako biltegi-cacheak kentzen dira programatutako exekuzioen ondoren.",
   "settings.cacheLimitLabel": "Cachearen tamaina-muga (MB, 0 = mugarik gabe)",
-  "settings.logoutAll": "Amaitu saioa nonahi",
 
   // What is new dialog
   "whatsnew.title": "{version} bertsioaren berritasunak",

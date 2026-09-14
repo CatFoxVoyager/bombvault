@@ -704,6 +704,7 @@ const sk: Partial<Translations> = {
   "settings.motion.off": "Vypnuté",
   "settings.motion.subtle": "Jemný",
   "settings.motion.wild": "Divoké",
+  "settings.motion.storm": "Búrlivé",
   "settings.rainbow": "Dúhový režim",
   "settings.rainbowHint": "Každý riadok v zozname dostane vlastnú farbu z ôsmich farieb namiesto toho, aby si všetko delilo jednu zvýrazňujúcu farbu. To uľahčuje rozlíšenie dlhých zoznamov na prvý pohľad.",
   "settings.rainbowReactive": "Reaktívny režim",
@@ -931,7 +932,7 @@ const sk: Partial<Translations> = {
   "auth.passkeyUsableHere": "Funguje na tejto adrese",
   "auth.passkeyOtherAddress": "Patrí k {host} a tu sa použiť nedá",
   "auth.passkeyNotSynced": "Bez synchronizácie: so zariadením zmizne.",
-  "auth.passkeyAdd": "Pridať prístupový kľúč",
+  "auth.passkeyAdd": "Nastaviť",
   "auth.passkeyNameLabel": "Názov",
   "auth.passkeyNamePlaceholder": "Telefón, notebook, bezpečnostný kľúč",
   "auth.passkeyCreate": "Vytvoriť",
@@ -946,7 +947,7 @@ const sk: Partial<Translations> = {
   "auth.twoFactorOn": "Zapnuté. Okrem hesla je potrebný kód.",
   "auth.twoFactorOff": "Vypnuté. Na prihlásenie stačí samotné heslo.",
   "auth.twoFactorNeedsPassword": "Najprv nastav prihlasovacie heslo.",
-  "auth.twoFactorEnable": "Zapnúť",
+  "auth.twoFactorEnable": "Nastaviť",
   "auth.twoFactorDisable": "Vypnúť",
   "auth.twoFactorConfirm": "Potvrdiť",
   "auth.twoFactorOnNow": "Dvojfaktorové overenie je zapnuté",
@@ -1334,7 +1335,6 @@ const sk: Partial<Translations> = {
   "settings.cacheTitle": "Vyrovnávacia pamäť zálohovacej jednotky",
   "settings.cacheHint": "Zálohovacia jednotka udržiava vyrovnávaciu pamäť dát repozitára pod /config, aby prírastkové a externé behy zostali rýchle. Keď prekročí tento limit, po naplánovaných behoch sa odstránia najmenej používané vyrovnávacie pamäte pre jednotlivé repozitáre.",
   "settings.cacheLimitLabel": "Limit veľkosti vyrovnávacej pamäte (MB, 0 = bez obmedzenia)",
-  "settings.logoutAll": "Odhlásiť sa všade",
 
   // What is new dialog
   "whatsnew.title": "Novinky vo verzii {version}",

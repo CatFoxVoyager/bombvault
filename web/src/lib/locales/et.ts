@@ -704,6 +704,7 @@ const et: Partial<Translations> = {
   "settings.motion.off": "Väljas",
   "settings.motion.subtle": "Vähene",
   "settings.motion.wild": "Metsik",
+  "settings.motion.storm": "Tormine",
   "settings.rainbow": "Vikerkaarerežiim",
   "settings.rainbowHint": "Iga loendi rida saab oma värvi kaheksast valikust, selle asemel et kõik jagaks üht aktsendivärvi. Nii on pikki loendeid ühe pilguga lihtsam eristada.",
   "settings.rainbowReactive": "Reaktiivne režiim",
@@ -931,7 +932,7 @@ const et: Partial<Translations> = {
   "auth.passkeyUsableHere": "Töötab sellel aadressil",
   "auth.passkeyOtherAddress": "Kuulub aadressile {host} ja siin ei sobi",
   "auth.passkeyNotSynced": "Pole sünkroonitud: kaob koos seadmega.",
-  "auth.passkeyAdd": "Lisa pääsuvõti",
+  "auth.passkeyAdd": "Seadista",
   "auth.passkeyNameLabel": "Nimi",
   "auth.passkeyNamePlaceholder": "Telefon, sülearvuti, turvavõti",
   "auth.passkeyCreate": "Loo",
@@ -946,7 +947,7 @@ const et: Partial<Translations> = {
   "auth.twoFactorOn": "Sees. Lisaks paroolile on vaja koodi.",
   "auth.twoFactorOff": "Väljas. Sisselogimiseks piisab paroolist.",
   "auth.twoFactorNeedsPassword": "Määra kõigepealt sisselogimisparool.",
-  "auth.twoFactorEnable": "Lülita sisse",
+  "auth.twoFactorEnable": "Seadista",
   "auth.twoFactorDisable": "Lülita välja",
   "auth.twoFactorConfirm": "Kinnita",
   "auth.twoFactorOnNow": "Kaheastmeline autentimine on sees",
@@ -1334,7 +1335,6 @@ const et: Partial<Translations> = {
   "settings.cacheTitle": "Varundusmootori vahemälu",
   "settings.cacheHint": "Varundusmootor hoiab kausta /config all hoidla andmete vahemälu, et järkjärgulised ja välised käivitused püsiksid kiired. Kui see ületab selle piiri, eemaldatakse vähim kasutatud hoidla vahemälud pärast plaanitud käivitusi.",
   "settings.cacheLimitLabel": "Vahemälu suuruse piirang (MB, 0 = piiramatu)",
-  "settings.logoutAll": "Logi kõikjal välja",
 
   // What is new dialog
   "whatsnew.title": "Uuendused versioonis {version}",

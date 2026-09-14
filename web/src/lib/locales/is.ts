@@ -704,6 +704,7 @@ const is: Partial<Translations> = {
   "settings.motion.off": "Slökkt",
   "settings.motion.subtle": "Væg",
   "settings.motion.wild": "Villt",
+  "settings.motion.storm": "Tryllt",
   "settings.rainbow": "Regnbogahamur",
   "settings.rainbowHint": "Hver lína í lista fær eigin lit úr átta lita safni, í stað þess að allt deili einum áherslulit. Þetta gerir langa lista auðveldari að greina í einum svip.",
   "settings.rainbowReactive": "Viðbragðshamur",
@@ -931,7 +932,7 @@ const is: Partial<Translations> = {
   "auth.passkeyUsableHere": "Virkar á þessu vistfangi",
   "auth.passkeyOtherAddress": "Tilheyrir {host} og nýtist ekki hér",
   "auth.passkeyNotSynced": "Ekki samstilltur: hverfur með tækinu.",
-  "auth.passkeyAdd": "Bæta við aðgangslykli",
+  "auth.passkeyAdd": "Setja upp",
   "auth.passkeyNameLabel": "Heiti",
   "auth.passkeyNamePlaceholder": "Sími, fartölva, öryggislykill",
   "auth.passkeyCreate": "Búa til",
@@ -946,7 +947,7 @@ const is: Partial<Translations> = {
   "auth.twoFactorOn": "Kveikt. Kóða þarf til viðbótar við lykilorðið.",
   "auth.twoFactorOff": "Slökkt. Lykilorðið eitt og sér skráir inn.",
   "auth.twoFactorNeedsPassword": "Settu fyrst innskráningarlykilorð.",
-  "auth.twoFactorEnable": "Kveikja",
+  "auth.twoFactorEnable": "Setja upp",
   "auth.twoFactorDisable": "Slökkva",
   "auth.twoFactorConfirm": "Staðfesta",
   "auth.twoFactorOnNow": "Kveikt er á tveggja þátta auðkenningu",
@@ -1334,7 +1335,6 @@ const is: Partial<Translations> = {
   "settings.cacheTitle": "Skyndiminni afritunarvélarinnar",
   "settings.cacheHint": "Afritunarvélin heldur skyndiminni af gögnum geymslusafns undir /config svo að stigvaxandi og fjarlægar keyrslur haldist hraðar. Þegar það fer yfir þessa mörk eru minnst notuðu skyndiminnin fyrir hvert geymslusafn fjarlægð eftir áætlaðar keyrslur.",
   "settings.cacheLimitLabel": "Stærðarmörk skyndiminnis (MB, 0 = ótakmarkað)",
-  "settings.logoutAll": "Skrá út alls staðar",
 
   // What is new dialog
   "whatsnew.title": "Nýtt í {version}",

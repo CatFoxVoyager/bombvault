@@ -704,6 +704,7 @@ const gl: Partial<Translations> = {
   "settings.motion.off": "Desactivado",
   "settings.motion.subtle": "Sutil",
   "settings.motion.wild": "Salvaxe",
+  "settings.motion.storm": "Tormentoso",
   "settings.rainbow": "Modo arco da vella",
   "settings.rainbowHint": "Cada fila dunha lista recibe a súa propia cor dun conxunto de oito, en vez de que todo comparta unha soa cor de acento: isto fai que as listas longas sexan máis fáciles de distinguir dunha ollada.",
   "settings.rainbowReactive": "Modo reactivo",
@@ -931,7 +932,7 @@ const gl: Partial<Translations> = {
   "auth.passkeyUsableHere": "Funciona neste enderezo",
   "auth.passkeyOtherAddress": "Pertence a {host} e aquí non se pode usar",
   "auth.passkeyNotSynced": "Sen sincronizar: desaparece co dispositivo.",
-  "auth.passkeyAdd": "Engadir unha chave de acceso",
+  "auth.passkeyAdd": "Configurar",
   "auth.passkeyNameLabel": "Nome",
   "auth.passkeyNamePlaceholder": "Teléfono, portátil, chave de seguridade",
   "auth.passkeyCreate": "Crear",
@@ -946,7 +947,7 @@ const gl: Partial<Translations> = {
   "auth.twoFactorOn": "Activada. Pídese un código ademais do contrasinal.",
   "auth.twoFactorOff": "Desactivada. O contrasinal por si só inicia a sesión.",
   "auth.twoFactorNeedsPassword": "Estabelece primeiro un contrasinal de acceso.",
-  "auth.twoFactorEnable": "Activar",
+  "auth.twoFactorEnable": "Configurar",
   "auth.twoFactorDisable": "Desactivar",
   "auth.twoFactorConfirm": "Confirmar",
   "auth.twoFactorOnNow": "A autenticación en dous pasos está activada",
@@ -1334,7 +1335,6 @@ const gl: Partial<Translations> = {
   "settings.cacheTitle": "Caché do motor de copia",
   "settings.cacheHint": "O motor de copia mantén unha caché de datos de repositorio baixo /config para que as execucións incrementais e externas se manteñan rápidas. Cando supera este límite, elimínanse as cachés de repositorio menos usadas recentemente despois das execucións programadas.",
   "settings.cacheLimitLabel": "Límite de tamaño da caché (MB, 0 = sen límite)",
-  "settings.logoutAll": "Pechar sesión en todas partes",
 
   // What is new dialog
   "whatsnew.title": "Novidades de {version}",

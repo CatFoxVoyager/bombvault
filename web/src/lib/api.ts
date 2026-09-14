@@ -3206,13 +3206,21 @@ export function login(password: string, code?: string): Promise<LoginResponse> {
 }
 
 /** POST /api/logout — clears the bv_session cookie. Client-side only: the
- *  stateless token stays valid until expiry; logoutAll is the revocation path. */
+ *  stateless token stays valid until expiry. Revocation is a different thing
+ *  and lives elsewhere now: setting a password rotates the session epoch. */
 export function logout(): Promise<OkEnvelope> {
   return fetchJSON("/api/logout", { method: "POST" });
 }
 
 /** POST /api/logout-all — rotate the server-side session epoch, invalidating
- *  EVERY outstanding session cookie (all browsers/devices), then clear ours. */
+ *  EVERY outstanding session cookie (all browsers/devices), then clear ours.
+ *
+ *  NOTHING IN THE UI CALLS THIS ANY MORE, and it is kept on purpose. The button
+ *  that did was removed with the Security card's sign-out row (GlimStone 2.1.0,
+ *  rule 22), and the capability moved into setAuthPassword: the server rotates
+ *  the epoch on every password write. The route stays registered, so this
+ *  wrapper is what a future caller reaches for instead of re-deriving the path,
+ *  and deleting it would leave a live endpoint with no client at all. */
 export function logoutAll(): Promise<OkEnvelope> {
   return fetchJSON("/api/logout-all", { method: "POST" });
 }

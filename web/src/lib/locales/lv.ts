@@ -704,6 +704,7 @@ const lv: Partial<Translations> = {
   "settings.motion.off": "Izslēgta",
   "settings.motion.subtle": "Neliela",
   "settings.motion.wild": "Mežonīgs",
+  "settings.motion.storm": "Vētrains",
   "settings.rainbow": "Varavīksnes režīms",
   "settings.rainbowHint": "Katra saraksta rinda iegūst savu krāsu no astoņu krāsu kopas, nevis visi koplieto vienu akcenta krāsu. Tas atvieglo garu sarakstu atšķiršanu vienā skatienā.",
   "settings.rainbowReactive": "Reaktīvais režīms",
@@ -931,7 +932,7 @@ const lv: Partial<Translations> = {
   "auth.passkeyUsableHere": "Darbojas šajā adresē",
   "auth.passkeyOtherAddress": "Pieder {host} un šeit nav izmantojama",
   "auth.passkeyNotSynced": "Nav sinhronizēta: pazudīs kopā ar ierīci.",
-  "auth.passkeyAdd": "Pievienot piekļuves atslēgu",
+  "auth.passkeyAdd": "Iestatīt",
   "auth.passkeyNameLabel": "Nosaukums",
   "auth.passkeyNamePlaceholder": "Tālrunis, klēpjdators, drošības atslēga",
   "auth.passkeyCreate": "Izveidot",
@@ -946,7 +947,7 @@ const lv: Partial<Translations> = {
   "auth.twoFactorOn": "Ieslēgta. Papildus parolei ir vajadzīgs kods.",
   "auth.twoFactorOff": "Izslēgta. Pieteikties var ar pašu paroli.",
   "auth.twoFactorNeedsPassword": "Vispirms iestati pieteikšanās paroli.",
-  "auth.twoFactorEnable": "Ieslēgt",
+  "auth.twoFactorEnable": "Iestatīt",
   "auth.twoFactorDisable": "Izslēgt",
   "auth.twoFactorConfirm": "Apstiprināt",
   "auth.twoFactorOnNow": "Divfaktoru autentifikācija ir ieslēgta",
@@ -1334,7 +1335,6 @@ const lv: Partial<Translations> = {
   "settings.cacheTitle": "Rezerves kopēšanas dzinēja kešatmiņa",
   "settings.cacheHint": "Rezerves kopēšanas dzinējs uztur repozitorija datu kešatmiņu zem /config, lai pieaugoši un attālināti izpildījumi paliktu ātri. Kad tā pārsniedz šo ierobežojumu, pēc ieplānotajiem izpildījumiem tiek noņemtas mazāk izmantotās kešatmiņas katram repozitorijam.",
   "settings.cacheLimitLabel": "Kešatmiņas izmēra ierobežojums (MB, 0 = neierobežots)",
-  "settings.logoutAll": "Izrakstīties visur",
 
   // What is new dialog
   "whatsnew.title": "Jaunumi versijā {version}",

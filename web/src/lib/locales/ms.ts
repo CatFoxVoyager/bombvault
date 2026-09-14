@@ -704,6 +704,7 @@ const ms: Partial<Translations> = {
   "settings.motion.off": "Mati",
   "settings.motion.subtle": "Halus",
   "settings.motion.wild": "Liar",
+  "settings.motion.storm": "Ribut",
   "settings.rainbow": "Mod Pelangi",
   "settings.rainbowHint": "Setiap baris dalam senarai mendapat warnanya sendiri daripada set lapan warna, dan bukannya semua berkongsi satu warna aksen. Ini menjadikan senarai panjang lebih mudah dibezakan sepintas lalu.",
   "settings.rainbowReactive": "Mod reaktif",
@@ -931,7 +932,7 @@ const ms: Partial<Translations> = {
   "auth.passkeyUsableHere": "Berfungsi di alamat ini",
   "auth.passkeyOtherAddress": "Milik {host} dan tidak boleh digunakan di sini",
   "auth.passkeyNotSynced": "Tidak disegerakkan: hilang bersama peranti.",
-  "auth.passkeyAdd": "Tambah kunci laluan",
+  "auth.passkeyAdd": "Sediakan",
   "auth.passkeyNameLabel": "Nama",
   "auth.passkeyNamePlaceholder": "Telefon, komputer riba, kunci keselamatan",
   "auth.passkeyCreate": "Cipta",
@@ -946,7 +947,7 @@ const ms: Partial<Translations> = {
   "auth.twoFactorOn": "Hidup. Selain kata laluan, satu kod diperlukan.",
   "auth.twoFactorOff": "Mati. Kata laluan sahaja sudah memadai untuk log masuk.",
   "auth.twoFactorNeedsPassword": "Tetapkan kata laluan log masuk dahulu.",
-  "auth.twoFactorEnable": "Hidupkan",
+  "auth.twoFactorEnable": "Sediakan",
   "auth.twoFactorDisable": "Matikan",
   "auth.twoFactorConfirm": "Sahkan",
   "auth.twoFactorOnNow": "Pengesahan dua faktor dihidupkan",
@@ -1334,7 +1335,6 @@ const ms: Partial<Translations> = {
   "settings.cacheTitle": "Cache enjin sandaran",
   "settings.cacheHint": "Enjin sandaran mengekalkan cache data repositori di bawah /config supaya larian tokokan dan luar tapak kekal pantas. Apabila ia melebihi had ini, cache setiap repositori yang paling kurang digunakan dialih keluar selepas larian berjadual.",
   "settings.cacheLimitLabel": "Had saiz cache (MB, 0 = tanpa had)",
-  "settings.logoutAll": "Log keluar di mana-mana sahaja",
 
   // What is new dialog
   "whatsnew.title": "Apa baharu dalam {version}",

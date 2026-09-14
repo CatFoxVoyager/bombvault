@@ -704,6 +704,7 @@ const bg: Partial<Translations> = {
   "settings.motion.off": "Изключено",
   "settings.motion.subtle": "Леко",
   "settings.motion.wild": "Буйно",
+  "settings.motion.storm": "Бурно",
   "settings.rainbow": "Дъгов режим",
   "settings.rainbowHint": "Всеки ред в списък получава собствен цвят от набор от осем, вместо всичко да споделя един акцентен цвят — прави дългите списъци по-лесни за разграничаване с един поглед.",
   "settings.rainbowReactive": "Реактивен режим",
@@ -931,7 +932,7 @@ const bg: Partial<Translations> = {
   "auth.passkeyUsableHere": "Работи на този адрес",
   "auth.passkeyOtherAddress": "Принадлежи на {host} и тук не може да се използва",
   "auth.passkeyNotSynced": "Не е синхронизиран: изчезва заедно с устройството.",
-  "auth.passkeyAdd": "Добавяне на ключ за достъп",
+  "auth.passkeyAdd": "Настрой",
   "auth.passkeyNameLabel": "Име",
   "auth.passkeyNamePlaceholder": "Телефон, лаптоп, хардуерен ключ",
   "auth.passkeyCreate": "Създаване",
@@ -946,7 +947,7 @@ const bg: Partial<Translations> = {
   "auth.twoFactorOn": "Включено. Освен паролата се изисква и код.",
   "auth.twoFactorOff": "Изключено. Само паролата позволява вход.",
   "auth.twoFactorNeedsPassword": "Първо задай парола за вход.",
-  "auth.twoFactorEnable": "Включи",
+  "auth.twoFactorEnable": "Настрой",
   "auth.twoFactorDisable": "Изключи",
   "auth.twoFactorConfirm": "Потвърди",
   "auth.twoFactorOnNow": "Двуфакторното удостоверяване е включено",
@@ -1334,7 +1335,6 @@ const bg: Partial<Translations> = {
   "settings.cacheTitle": "Кеш на архивиращия механизъм",
   "settings.cacheHint": "Архивиращият механизъм пази кеш с данни от хранилището под /config, за да останат инкременталните и извън-обектните изпълнения бързи. Когато надхвърли този лимит, най-отдавна неизползваните кешове по хранилище се премахват след планираните изпълнения.",
   "settings.cacheLimitLabel": "Лимит на размера на кеша (MB, 0 = без ограничение)",
-  "settings.logoutAll": "Излез навсякъде",
 
   // What's new dialog
   "whatsnew.title": "Новото в {version}",

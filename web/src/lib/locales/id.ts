@@ -704,6 +704,7 @@ const id: Partial<Translations> = {
   "settings.motion.off": "Mati",
   "settings.motion.subtle": "Halus",
   "settings.motion.wild": "Liar",
+  "settings.motion.storm": "Badai",
   "settings.rainbow": "Mode Pelangi",
   "settings.rainbowHint": "Setiap baris dalam daftar mendapatkan warnanya sendiri dari sekumpulan delapan warna, alih-alih semuanya berbagi satu warna aksen. Membuat daftar panjang lebih mudah dibedakan sekilas.",
   "settings.rainbowReactive": "Mode reaktif",
@@ -931,7 +932,7 @@ const id: Partial<Translations> = {
   "auth.passkeyUsableHere": "Berfungsi di alamat ini",
   "auth.passkeyOtherAddress": "Milik {host} dan tidak bisa dipakai di sini",
   "auth.passkeyNotSynced": "Tidak tersinkron: hilang bersama perangkatnya.",
-  "auth.passkeyAdd": "Tambah kunci sandi",
+  "auth.passkeyAdd": "Siapkan",
   "auth.passkeyNameLabel": "Nama",
   "auth.passkeyNamePlaceholder": "Ponsel, laptop, kunci keamanan",
   "auth.passkeyCreate": "Buat",
@@ -946,7 +947,7 @@ const id: Partial<Translations> = {
   "auth.twoFactorOn": "Aktif. Selain kata sandi diperlukan sebuah kode.",
   "auth.twoFactorOff": "Nonaktif. Kata sandi saja sudah cukup untuk masuk.",
   "auth.twoFactorNeedsPassword": "Atur kata sandi masuk terlebih dahulu.",
-  "auth.twoFactorEnable": "Aktifkan",
+  "auth.twoFactorEnable": "Siapkan",
   "auth.twoFactorDisable": "Nonaktifkan",
   "auth.twoFactorConfirm": "Konfirmasi",
   "auth.twoFactorOnNow": "Autentikasi dua faktor aktif",
@@ -1334,7 +1335,6 @@ const id: Partial<Translations> = {
   "settings.cacheTitle": "Cache mesin pencadangan",
   "settings.cacheHint": "Mesin pencadangan mempertahankan cache data repositori di bawah /config agar eksekusi inkremental dan off-site tetap cepat. Saat melebihi batas ini, cache per-repositori yang paling jarang digunakan dihapus setelah eksekusi terjadwal.",
   "settings.cacheLimitLabel": "Batas ukuran cache (MB, 0 = tanpa batas)",
-  "settings.logoutAll": "Keluar di mana pun",
 
   // What is new dialog
   "whatsnew.title": "Yang baru di {version}",

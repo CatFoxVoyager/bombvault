@@ -1,6 +1,6 @@
 import { save as saveDisplayPrefs } from "./displayPrefs";
 // ---------------------------------------------------------------------------
-// Motion intensity — off / subtle / full via data-motion on <html> +
+// Motion intensity — off / subtle / wild (/ storm) via data-motion on <html> +
 // localStorage.
 //
 // GlimStone motion-engine — a NEW axis (jdp, live-review: "Wäre eine
@@ -29,9 +29,24 @@ import { save as saveDisplayPrefs } from "./displayPrefs";
 // design and the off/subtle/wild resolution table for every keyframe.
 // ---------------------------------------------------------------------------
 
-export type MotionIntensity = "off" | "subtle" | "wild";
+export type MotionIntensity = "off" | "subtle" | "wild" | "storm";
 
+/**
+ * WHAT A PICKER OFFERS. The storm is deliberately not in here.
+ *
+ * Validating a stored value and populating a picker are two different
+ * questions, and conflating them is what breaks the level below (GlimStone
+ * 2.1.0). A persisted "storm" has to be ACCEPTED - somebody who found it and
+ * then reloaded must get it back, or the gesture produced a setting that
+ * silently forgets itself - while no list offers it.
+ */
 export const MOTION_INTENSITIES: MotionIntensity[] = ["off", "subtle", "wild"];
+
+/** Every level the attribute may legally carry, the hidden one included. */
+export const MOTION_STORED: MotionIntensity[] = [...MOTION_INTENSITIES, "storm"];
+
+/** How many taps on the level already chosen open the one below the floor. */
+export const STORM_TAPS = 5;
 
 const STORAGE_KEY = "bv-motion";
 
@@ -58,7 +73,8 @@ const STORAGE_KEY = "bv-motion";
 const DEFAULT: MotionIntensity = "wild";
 
 function isMotionIntensity(v: unknown): v is MotionIntensity {
-  return typeof v === "string" && (MOTION_INTENSITIES as string[]).includes(v);
+  // MOTION_STORED, not MOTION_INTENSITIES: this is the VALIDATION question.
+  return typeof v === "string" && (MOTION_STORED as string[]).includes(v);
 }
 
 /**
@@ -114,4 +130,42 @@ export function setMotionIntensity(intensity: MotionIntensity): void {
  * theme.ts's applyStoredTheme() already run from. */
 export function applyStoredMotionIntensity(): void {
   applyMotionIntensity(getMotionIntensity());
+}
+
+/**
+ * The gesture that reveals the storm, and the rule it carries.
+ *
+ * SET THE MOTION TO THE TOP VISIBLE LEVEL, THEN TAP THAT SAME OPTION FIVE MORE
+ * TIMES. It is the gesture of somebody pressing a button that is already
+ * pressed because they wanted more of it, which is exactly who this level is
+ * for. It cannot be reached from any other level on purpose: tapping "off" five
+ * times means somebody is annoyed, not curious.
+ *
+ * THE RULE, and it is the part worth copying rather than the count: AN EASTER
+ * EGG THAT CHANGES BEHAVIOUR MUST BE SWITCHABLE BACK OFF, AND MUST NOT QUIETLY
+ * BECOME A PERMANENT ENTRY IN A SETTINGS LIST. Storing a "found it" flag would
+ * put a fourth option in the picker for ever after one gesture, which turns a
+ * secret into a setting somebody has to explain to themselves months later
+ * (jdp, 13.09.2026: "sturm soll wieder verschwinden wenn man zb sanft
+ * einstellt und die einstellungen verlaesst").
+ *
+ * So what keeps it visible is the plain truth about the current state: it is
+ * offered while it is CHOSEN, because a picker that hid the value it is
+ * currently showing would be lying about the interface, and otherwise only for
+ * as long as the screen stays open.
+ *
+ * The caller owns the screen and therefore owns how long "open" means: keep
+ * both the counter and the found flag in the settings screen's own state, never
+ * in storage. Returns the level to switch to, or undefined when the tap was not
+ * the fifth.
+ */
+export function stormTap(state: { taps: number }, tapped: string, current: string): MotionIntensity | undefined {
+  if (tapped !== "wild" || current !== "wild") {
+    state.taps = 0;
+    return undefined;
+  }
+  state.taps += 1;
+  if (state.taps < STORM_TAPS) return undefined;
+  state.taps = 0;
+  return "storm";
 }

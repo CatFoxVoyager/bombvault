@@ -45,7 +45,7 @@ describe("PasskeyCard", () => {
     // feature, in front of somebody whose interface is in their own language.
     expect(screen.queryByText(/ZZZ-SERVER-SENTENCE-ZZZ/)).toBeNull();
     // …and no way to start something that would fail.
-    expect(screen.queryByRole("button", { name: /add a passkey/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /set up/i })).toBeNull();
   });
 
   it("offers the button once the address can carry one", async () => {
@@ -59,7 +59,7 @@ describe("PasskeyCard", () => {
     });
     render(<PasskeyCard passwordSet />);
 
-    await waitFor(() => expect(screen.getByRole("button", { name: /add a passkey/i })).toBeTruthy());
+    await waitFor(() => expect(screen.getByRole("button", { name: /set up/i })).toBeTruthy());
   });
 
   it("shows a key that belongs to another address, and says so", async () => {
@@ -94,6 +94,6 @@ describe("PasskeyCard", () => {
     render(<PasskeyCard passwordSet={false} />);
 
     await waitFor(() => expect(screen.getByText(/set a login password first/i)).toBeTruthy());
-    expect(screen.queryByRole("button", { name: /add a passkey/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /set up/i })).toBeNull();
   });
 });

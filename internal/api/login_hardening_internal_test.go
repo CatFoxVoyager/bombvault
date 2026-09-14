@@ -693,3 +693,72 @@ func TestClearingThePasswordSendsTheSessionAway(t *testing.T) {
 		t.Error("clearing the password left the browser's session cookie in place")
 	}
 }
+
+// TestSetPasswordEndsEveryOtherSession pins the capability that moved when the
+// Security card lost its "sign out everywhere" button (GlimStone 2.1.0: a card
+// configures, the shell operates - and removing an operation must not remove
+// what it could do).
+//
+// The session tokens are stateless and signed against the stored epoch, so
+// rotating that epoch is the ONLY way to revoke them; nothing else reaches a
+// cookie sitting in a browser somewhere else. With the button gone, a password
+// change is where that lives, which is what somebody changing a password out of
+// suspicion assumed was happening anyway.
+//
+// Both halves are asserted, because each has a failure that looks like success:
+// the old cookie must DIE, and the caller's own new cookie must WORK. Mint the
+// new one from the old epoch and the operator locks themselves out in the same
+// request that was meant to secure them.
+func TestSetPasswordEndsEveryOtherSession(t *testing.T) {
+	h, repo, _ := newAuthGateHandler(t)
+	pw := strings.Repeat("x", secret.MinPasswordLen)
+
+	// A login that already exists, and a session minted under it: the other
+	// browser, the one nobody can reach any more.
+	first := postPassword(t, h, pw)
+	before, err := repo.GetSettings()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !secret.ValidSessionToken(h.cfg.AppKey, before.AuthPasswordHash, before.SessionEpoch, first) {
+		t.Fatal("the first session is invalid before anything was changed - the test cannot prove what it is here for")
+	}
+
+	// The password changes. Same account, new secret.
+	second := postPassword(t, h, pw+"2")
+	after, err := repo.GetSettings()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if after.SessionEpoch == before.SessionEpoch {
+		t.Fatal("the session epoch did not move.\n" +
+			"Every outstanding seven-day token stays valid, and with the card's own button gone\n" +
+			"there is no way left to revoke them at all.")
+	}
+	if secret.ValidSessionToken(h.cfg.AppKey, after.AuthPasswordHash, after.SessionEpoch, first) {
+		t.Error("a session minted before the password change still validates")
+	}
+	if second == "" {
+		t.Fatal("the password change issued no cookie of its own")
+	}
+	if !secret.ValidSessionToken(h.cfg.AppKey, after.AuthPasswordHash, after.SessionEpoch, second) {
+		t.Error("the caller's own new session does not validate - the cookie was minted from the epoch that was just replaced")
+	}
+}
+
+// postPassword posts a password and returns the session cookie it issued.
+func postPassword(t *testing.T, h *Handler, pw string) string {
+	t.Helper()
+	r := httptest.NewRequest(http.MethodPost, "/api/auth/password", strings.NewReader(`{"password":"`+pw+`"}`))
+	r.Header.Set("Content-Type", "application/json")
+	r.RemoteAddr = "10.0.0.1:1"
+	w := httptest.NewRecorder()
+	h.handleSetPassword(w, r)
+	for _, c := range w.Result().Cookies() {
+		if c.Name == sessionCookieName {
+			return c.Value
+		}
+	}
+	return ""
+}

@@ -3978,7 +3978,32 @@ func (h *Handler) handleSetPassword(w http.ResponseWriter, r *http.Request) {
 			s.TOTPSecret = ""
 			s.TOTPRecovery = ""
 		}
-		epoch = s.SessionEpoch
+		// SETTING A PASSWORD ENDS EVERY OTHER SESSION, and that is a deliberate
+		// widening of what this route used to do (GlimStone 2.1.0, rule 22).
+		//
+		// The Security card used to carry a separate "sign out everywhere"
+		// button, and the card lost it: a card configures, the shell operates,
+		// and a form with unsaved fields in it should not end with the two
+		// controls that throw the form away. Deleting a button must not delete
+		// the CAPABILITY, though, and this was the only way to revoke the
+		// outstanding seven-day tokens - they are stateless and bound to this
+		// epoch, so nothing else can reach them.
+		//
+		// Moving it here is not a workaround for the removal. It is what
+		// somebody changing a password out of suspicion already believed was
+		// happening: a password that may have leaked is worth nothing while the
+		// sessions minted under it stay alive. Rotating on the FIRST set costs
+		// nothing (no other session exists yet), so this needs no branch.
+		//
+		// The caller keeps working because the cookie minted below is minted
+		// from THIS value rather than the old one - see the token line further
+		// down, which signs hash and epoch together.
+		next, err := newSessionEpoch()
+		if err != nil {
+			return err
+		}
+		s.SessionEpoch = next
+		epoch = next
 		return nil
 	}); err != nil {
 		writeJSON(w, http.StatusOK, failEnvelope(err))

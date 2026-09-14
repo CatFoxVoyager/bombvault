@@ -902,6 +902,7 @@ export const en = {
   "settings.motion.off": "Off",
   "settings.motion.subtle": "Subtle",
   "settings.motion.wild": "Wild",
+  "settings.motion.storm": "Storm",
   // Rainbow (GlimStone form-engine Phase 2, Task 1) — the accent, plural:
   // an eight-colour palette handed out by list position instead of one
   // accent everywhere. Originally matched the same keys in KnightLoader (the
@@ -1174,7 +1175,7 @@ export const en = {
   "auth.passkeyUsableHere": "Works on this address",
   "auth.passkeyOtherAddress": "For {host}, so it cannot be used here",
   "auth.passkeyNotSynced": "Not synced, so it is gone if you lose the device.",
-  "auth.passkeyAdd": "Add a passkey",
+  "auth.passkeyAdd": "Set up",
   "auth.passkeyNameLabel": "Name",
   "auth.passkeyNamePlaceholder": "Phone, laptop, security key",
   "auth.passkeyCreate": "Create",
@@ -1189,7 +1190,7 @@ export const en = {
   "auth.twoFactorOn": "On. A code is needed as well as the password.",
   "auth.twoFactorOff": "Off. The password alone signs in.",
   "auth.twoFactorNeedsPassword": "Set a login password first.",
-  "auth.twoFactorEnable": "Turn on",
+  "auth.twoFactorEnable": "Set up",
   "auth.twoFactorDisable": "Turn off",
   "auth.twoFactorConfirm": "Confirm",
   "auth.twoFactorOnNow": "Two-factor authentication is on",
@@ -1638,7 +1639,6 @@ export const en = {
   "settings.cacheTitle": "Backup engine cache",
   "settings.cacheHint": "The backup engine keeps a cache of repository data under /config so incremental and off-site runs stay fast. When it grows past this limit, the least-recently-used per-repository caches are removed after scheduled runs.",
   "settings.cacheLimitLabel": "Cache size limit (MB, 0 = unlimited)",
-  "settings.logoutAll": "Sign out everywhere",
 
   // What's new dialog (#48) — shown once when a new version is running
   "whatsnew.title": "What's new in {version}",
@@ -2670,6 +2670,7 @@ export const de: Translations = {
   "settings.motion.off": "Aus",
   "settings.motion.subtle": "Dezent",
   "settings.motion.wild": "Wild",
+  "settings.motion.storm": "Stürmisch",
   "settings.rainbow": "Regenbogen-Modus",
   "settings.rainbowHint": "Jede Zeile in einer Liste bekommt eine eigene Farbe aus einer festen Auswahl von acht, statt dass alles dieselbe Akzentfarbe hat. Das macht lange Listen auf einen Blick leichter unterscheidbar.",
   "settings.rainbowReactive": "Reaktiver Modus",
@@ -2897,7 +2898,7 @@ export const de: Translations = {
   "auth.passkeyUsableHere": "Funktioniert auf dieser Adresse",
   "auth.passkeyOtherAddress": "Gehört zu {host} und lässt sich hier nicht verwenden",
   "auth.passkeyNotSynced": "Nicht synchronisiert, also weg, wenn das Gerät weg ist.",
-  "auth.passkeyAdd": "Passkey hinzufügen",
+  "auth.passkeyAdd": "Einrichten",
   "auth.passkeyNameLabel": "Name",
   "auth.passkeyNamePlaceholder": "Handy, Rechner, Sicherheitsschlüssel",
   "auth.passkeyCreate": "Anlegen",
@@ -2912,7 +2913,7 @@ export const de: Translations = {
   "auth.twoFactorOn": "An. Neben dem Passwort wird ein Code verlangt.",
   "auth.twoFactorOff": "Aus. Das Passwort allein genügt zum Anmelden.",
   "auth.twoFactorNeedsPassword": "Setze zuerst ein Anmeldepasswort.",
-  "auth.twoFactorEnable": "Einschalten",
+  "auth.twoFactorEnable": "Einrichten",
   "auth.twoFactorDisable": "Ausschalten",
   "auth.twoFactorConfirm": "Bestätigen",
   "auth.twoFactorOnNow": "Zwei-Faktor-Anmeldung ist an",
@@ -3308,7 +3309,6 @@ export const de: Translations = {
   "settings.cacheTitle": "Backup-Engine-Cache",
   "settings.cacheHint": "Die Backup-Engine hält unter /config einen Cache mit Repository-Daten, damit inkrementelle und Off-site-Läufe schnell bleiben. Wächst er über dieses Limit, werden nach geplanten Läufen die am längsten ungenutzten Repository-Caches entfernt.",
   "settings.cacheLimitLabel": "Cache-Größenlimit (MB, 0 = unbegrenzt)",
-  "settings.logoutAll": "Überall abmelden",
 
   // Neu-Dialog (#48) — einmalig bei einer neuen laufenden Version
   "whatsnew.title": "Neu in {version}",

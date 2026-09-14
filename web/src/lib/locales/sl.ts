@@ -702,6 +702,7 @@ const sl: Partial<Translations> = {
   "settings.motion.off": "Izklopljeno",
   "settings.motion.subtle": "Rahlo",
   "settings.motion.wild": "Divje",
+  "settings.motion.storm": "Viharno",
   "settings.rainbow": "Mavrični način",
   "settings.rainbowHint": "Vsaka vrstica na seznamu dobi lastno barvo iz nabora osmih, namesto da si vse deli eno poudarjeno barvo. Dolge sezname naredi lažje razločljive na prvi pogled.",
   "settings.rainbowReactive": "Odzivni način",
@@ -926,7 +927,7 @@ const sl: Partial<Translations> = {
   "auth.passkeyUsableHere": "Deluje na tem naslovu",
   "auth.passkeyOtherAddress": "Pripada {host} in tu ni uporaben",
   "auth.passkeyNotSynced": "Ni sinhroniziran: izgine skupaj z napravo.",
-  "auth.passkeyAdd": "Dodaj ključ za dostop",
+  "auth.passkeyAdd": "Nastavi",
   "auth.passkeyNameLabel": "Ime",
   "auth.passkeyNamePlaceholder": "Telefon, prenosnik, varnostni ključ",
   "auth.passkeyCreate": "Ustvari",
@@ -941,7 +942,7 @@ const sl: Partial<Translations> = {
   "auth.twoFactorOn": "Vklopljeno. Poleg gesla je potrebna koda.",
   "auth.twoFactorOff": "Izklopljeno. Za prijavo zadostuje geslo.",
   "auth.twoFactorNeedsPassword": "Najprej nastavi prijavno geslo.",
-  "auth.twoFactorEnable": "Vklopi",
+  "auth.twoFactorEnable": "Nastavi",
   "auth.twoFactorDisable": "Izklopi",
   "auth.twoFactorConfirm": "Potrdi",
   "auth.twoFactorOnNow": "Dvostopenjsko preverjanje je vklopljeno",
@@ -1319,7 +1320,6 @@ const sl: Partial<Translations> = {
   "settings.cacheTitle": "Predpomnilnik pogona za varnostno kopiranje",
   "settings.cacheHint": "Pogon za varnostno kopiranje pod /config vodi predpomnilnik podatkov repozitorija, tako da postopni in zunanji zagoni ostajajo hitri. Ko preseže to omejitev, se po načrtovanih zagonih odstranijo najmanj nedavno uporabljeni predpomnilniki posameznih repozitorijev.",
   "settings.cacheLimitLabel": "Omejitev velikosti predpomnilnika (MB, 0 = neomejeno)",
-  "settings.logoutAll": "Odjava povsod",
 
   // What's new dialog (#48)
   "whatsnew.title": "Novosti v {version}",

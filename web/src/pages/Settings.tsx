@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { ApiError, backupEverythingNow, downloadRecoveryKit, getAuth, getSettings, importSettingsApply, listContainers, listFileSets, listVMs, logout, logoutAll, patchFileSet, putSettings, replicateOffsite, setAuthPassword, setScheduleCadence, setVMScheduleCadence, testOffsite } from "../lib/api";
+import { ApiError, backupEverythingNow, downloadRecoveryKit, getAuth, getSettings, importSettingsApply, listContainers, listFileSets, listVMs, patchFileSet, putSettings, replicateOffsite, setAuthPassword, setScheduleCadence, setVMScheduleCadence, testOffsite } from "../lib/api";
 import { useOffsiteTargets, type OffsiteDomain } from "../lib/useOffsiteTargets";
 import { FolderBrowser } from "../components/FolderBrowser";
 import { AccentCard, IconResetArrow } from "./settings/AccentCard";
@@ -52,7 +52,7 @@ import { SpikePanel } from "../components/SpikePanel";
 import { ColorPickerSwatch } from "../components/ColorPickerPopover";
 import { RAINBOW, getRainbow, setRainbow, type RainbowState } from "../lib/appearance";
 import { SHAPES, getShape, setShape, type Shape } from "../lib/shape";
-import { MOTION_INTENSITIES, getMotionIntensity, setMotionIntensity, type MotionIntensity } from "../lib/motion";
+import { MOTION_INTENSITIES, getMotionIntensity, setMotionIntensity, stormTap, type MotionIntensity } from "../lib/motion";
 import { Selector } from "../components/Selector";
 import { IconAdd, IconBackupNow, IconDownload, IconTrash, IconCheckCircle, IconSync, IconGear, IconClose } from "../components/Sidebar";
 // The integrity row's own two verbs ([324]). They live in the ACTION set
@@ -1239,7 +1239,6 @@ export function SettingsPage() {
 
   // Auth state for the Security card.
   const [authEnabled, setAuthEnabled] = useState(false);
-  const [authAuthed, setAuthAuthed] = useState(false);
   // The second factor's state, and the minimum the SERVER enforces. The
   // minimum is read rather than hard-coded so the field and the server can
   // never disagree about the number they both quote to the user.
@@ -1305,6 +1304,18 @@ export function SettingsPage() {
   // localStorage via motion.ts, the identical pattern shape state above
   // already uses.
   const [motion, setMotionLocal] = useState<MotionIntensity>(() => getMotionIntensity());
+  // The hidden fourth level, and the two pieces of state that keep it hidden.
+  //
+  // Both live in THIS screen and neither is persisted, which is the whole rule
+  // (GlimStone 2.1.0): an easter egg that changes behaviour must be switchable
+  // back off and must not quietly become a permanent entry in a settings list.
+  // Store a "found it" flag and one gesture puts a fourth option in the picker
+  // for ever, which is a secret turned into a setting nobody can explain to
+  // themselves later. Leave the screen and it is gone again - unless it is the
+  // value currently chosen, because a picker that hid the value it is showing
+  // would be lying about the interface.
+  const stormTaps = useRef({ taps: 0 });
+  const [stormFound, setStormFound] = useState(false);
   // #178: the three label modes, mirrored into local state so the selectors
   // show the current choice; the controls themselves read through
   // useLabelMode, which the labelModeChanged() call below wakes.
@@ -1550,7 +1561,6 @@ export function SettingsPage() {
     getAuth()
       .then((res) => {
         setAuthEnabled(res.enabled);
-        setAuthAuthed(res.authed);
         setTotpEnabled(res.totp ?? false);
         setRecoveryLeft(res.recoveryCodesLeft);
         if (res.minPasswordLen) setMinPasswordLen(res.minPasswordLen);
@@ -2296,7 +2306,6 @@ export function SettingsPage() {
         // away: the enable button was there, and the request behind it answered
         // 401 because the login it had just switched on had issued nobody a
         // session yet.
-        setAuthAuthed(res.authed ?? false);
         setPwSaveState("idle");
         push(pwNew === "" ? t("auth.passwordCleared") : t("auth.passwordSaved"), "success");
         setPwNew("");
@@ -2313,22 +2322,6 @@ export function SettingsPage() {
     }
   }
 
-  async function handleLogout() {
-    await logout().catch(() => undefined);
-    // Reload so the auth gate re-checks and shows the login screen.
-    window.location.reload();
-  }
-
-  async function handleLogoutAll() {
-    // Rotates the server-side session epoch, revoking EVERY outstanding session
-    // cookie (all browsers/devices) — not just clearing this one.
-    await logoutAll().catch(() => undefined);
-    // Reload so the auth gate re-checks and shows the login screen. Reached via
-    // globalThis (cf. downloadRecoveryKit in api.ts): runtime-identical to bare
-    // window, but immune to the broken DOM lib resolution.
-    const g = globalThis as unknown as { location: { reload(): void } };
-    g.location.reload();
-  }
 
   // Tamper-test schedule eligibility (#109): mirrors immutableOffsiteDomains in
   // internal/schedule/schedule.go — the scheduler only wires the scheduled
@@ -4464,8 +4457,10 @@ export function SettingsPage() {
       {/* ------------------------------------------------------------------ */}
       {/* Button-size/colour-engine sweep (jdp, live review — "Die vielen
           Buttons sind unterschiedlich groß und nicht alle im
-          Regenbogenmodus"): the Save/Logout/Logout-everywhere buttons below
-          had no tie to this Card's own hue at all. IIFE captures `hueIdx`
+          Regenbogenmodus"): the buttons below had no tie to this Card's own
+          hue at all. (It used to name three - Save, Logout and
+          Logout-everywhere; the two sign-out buttons are gone, see the note
+          where they stood.) IIFE captures `hueIdx`
           once and reuses it for both the Card's own heading notch and every
           button inside it — the same "one Card, several hue-aware children
           share ONE position" shape the schedulesChecks/Spike Cards above
@@ -4543,27 +4538,17 @@ export function SettingsPage() {
           </div>
         </div>
 
-        {/* Logout buttons — only shown when currently signed in. Plain sign-out
-            clears THIS browser's cookie; "sign out everywhere" rotates the
-            server-side session epoch, revoking every outstanding session. */}
-        {authEnabled && authAuthed && (
-          <div className="pt-2 border-t border-carbon-border flex items-center gap-3">
-            <Button
-              label={t("auth.logout")}
-              labelKey="auth.logout"
-              tone="neutral"
-              onClick={() => void handleLogout()}
-              hueIndex={hueIdx}
-            />
-            <Button
-              label={t("settings.logoutAll")}
-              labelKey="settings.logoutAll"
-              tone="neutral"
-              onClick={() => void handleLogoutAll()}
-              hueIndex={hueIdx}
-            />
-          </div>
-        )}
+        {/* No sign-out here, and no "sign out everywhere" either (GlimStone
+            2.1.0, rule 22: a settings card CONFIGURES, the shell OPERATES).
+            Both used to sit along this card's bottom edge, which put the two
+            controls that throw a half-filled password form away directly under
+            the field somebody was typing in - and the plain one duplicated the
+            sidebar's own sign-out, where everybody looks for it anyway.
+              Removing a button must not remove what it could do, so the
+            "everywhere" half moved into the action that already implies it:
+            handleSetPassword rotates the session epoch now, which ends every
+            other session exactly when somebody changes a password because they
+            fear it leaked. See its comment in internal/api/handlers.go. */}
       </Card>
         );
       })()}
@@ -4763,7 +4748,7 @@ export function SettingsPage() {
         {/* No "don't stretch" wrapper div, same as the Theme/Shape Selectors
             right above — `variant="well"` hugs its own segments now. */}
         <Selector
-          items={MOTION_INTENSITIES.map((m) => ({
+          items={[...MOTION_INTENSITIES, ...(motion === "storm" || stormFound ? (["storm"] as const) : [])].map((m) => ({
             id: m,
             label: t(`settings.motion.${m}` as TranslationKey),
           }))}
@@ -4771,8 +4756,14 @@ export function SettingsPage() {
           select="one"
           active={motion}
           onChange={(id) => {
-            setMotionLocal(id as MotionIntensity);
-            setMotionIntensity(id as MotionIntensity);
+            // Tapping the top level while ALREADY on it is the gesture, so the
+            // counter has to run before the ordinary path - which otherwise
+            // treats "chose what is already chosen" as nothing happening.
+            const revealed = stormTap(stormTaps.current, id, motion);
+            const next = (revealed ?? id) as MotionIntensity;
+            if (revealed) setStormFound(true);
+            setMotionLocal(next);
+            setMotionIntensity(next);
           }}
           size="lg"
           variant="well"

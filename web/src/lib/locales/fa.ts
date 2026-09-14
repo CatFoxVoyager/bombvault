@@ -704,6 +704,7 @@ const fa: Partial<Translations> = {
   "settings.motion.off": "خاموش",
   "settings.motion.subtle": "ملایم",
   "settings.motion.wild": "وحشی",
+  "settings.motion.storm": "طوفانی",
   "settings.rainbow": "حالت رنگین‌کمان",
   "settings.rainbowHint": "هر ردیف در یک فهرست، رنگ خودش را از میان هشت رنگ می‌گیرد، به‌جای اینکه همه یک رنگ تأکیدی مشترک داشته باشند. این کار تشخیص فهرست‌های طولانی را در یک نگاه راحت‌تر می‌کند.",
   "settings.rainbowReactive": "حالت واکنشی",
@@ -931,7 +932,7 @@ const fa: Partial<Translations> = {
   "auth.passkeyUsableHere": "روی این نشانی کار می‌کند",
   "auth.passkeyOtherAddress": "متعلق به {host} است و اینجا به کار نمی‌آید",
   "auth.passkeyNotSynced": "همگام‌سازی نشده: با دستگاه از بین می‌رود.",
-  "auth.passkeyAdd": "افزودن کلید عبور",
+  "auth.passkeyAdd": "راه‌اندازی",
   "auth.passkeyNameLabel": "نام",
   "auth.passkeyNamePlaceholder": "گوشی، لپ‌تاپ، کلید امنیتی",
   "auth.passkeyCreate": "ساختن",
@@ -946,7 +947,7 @@ const fa: Partial<Translations> = {
   "auth.twoFactorOn": "روشن. علاوه بر گذرواژه یک کد لازم است.",
   "auth.twoFactorOff": "خاموش. تنها گذرواژه برای ورود کافی است.",
   "auth.twoFactorNeedsPassword": "ابتدا یک گذرواژه ورود تعیین کنید.",
-  "auth.twoFactorEnable": "روشن کردن",
+  "auth.twoFactorEnable": "راه‌اندازی",
   "auth.twoFactorDisable": "خاموش کردن",
   "auth.twoFactorConfirm": "تأیید",
   "auth.twoFactorOnNow": "احراز هویت دومرحله‌ای روشن است",
@@ -1334,7 +1335,6 @@ const fa: Partial<Translations> = {
   "settings.cacheTitle": "کش موتور پشتیبان‌گیری",
   "settings.cacheHint": "موتور پشتیبان‌گیری کشی از داده‌های مخزن زیر /config نگه می‌دارد تا اجراهای افزایشی و خارج از محل سریع بمانند. وقتی از این حد فراتر رود، کش‌های مخزن با کمترین استفاده اخیر پس از اجراهای زمان‌بندی‌شده حذف می‌شوند.",
   "settings.cacheLimitLabel": "حد اندازه کش (MB، ۰ = نامحدود)",
-  "settings.logoutAll": "خروج از همه‌جا",
 
   // What is new dialog
   "whatsnew.title": "تازه‌های نسخه {version}",

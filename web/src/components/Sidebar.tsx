@@ -332,9 +332,15 @@ function NavItem({ to, label, icon, hueIndex }: NavItem) {
 // glyph mode, and a tooltip only where the words are gone.
 //
 // Signing out clears this browser's cookie and reloads, which is what puts the
-// login screen back up. Settings keeps its own sign-out (and the "everywhere"
-// variant that rotates the session epoch); this one is the reach-for-it copy,
-// so it does the plain thing only.
+// login screen back up.
+//
+// THIS IS THE ONLY SIGN-OUT IN THE APP NOW. The Security card used to carry a
+// second one plus an "everywhere" variant; both are gone (GlimStone 2.1.0,
+// rule 22: a settings card configures, the shell operates). So the duplicate
+// this comment used to point at no longer exists, and the "everywhere" half
+// did not simply vanish either - rotating the session epoch moved into
+// changing the password, where somebody who fears their password leaked
+// already expects it to happen.
 function SidebarSignOut({ hueIndex }: { hueIndex: number }) {
   const { t } = useT();
   const labelMode = useLabelMode("sidebar");
