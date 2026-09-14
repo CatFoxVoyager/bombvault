@@ -59,7 +59,15 @@ const LINE_BOX = 20;
 // PUT back to the shared harness server, which is what makes parallel de/fr
 // workers deterministic (a booted de page otherwise seeds bv-lang=de on the
 // server and every later fr boot adopts it — observed live in this phase).
-async function bootSeededPage(page: Page, locale: string, width: number, path = "/dashboard"): Promise<void> {
+async function bootSeededPage(
+  page: Page,
+  locale: string,
+  width: number,
+  path = "/dashboard",
+  // Landscape dimensions (the D-09 boundary tests) pass a real phone-landscape
+  // height; the portrait sweep keeps the original 700.
+  height = 700,
+): Promise<void> {
   await page.route("**/api/display-prefs*", (route) => route.abort());
   await page.addInitScript(
     ([key, value]) => {
@@ -67,7 +75,7 @@ async function bootSeededPage(page: Page, locale: string, width: number, path = 
     },
     [LOCALE_STORAGE_KEY, locale] as const,
   );
-  await page.setViewportSize({ width, height: 700 });
+  await page.setViewportSize({ width, height });
   await page.goto(path);
 }
 
@@ -188,6 +196,18 @@ for (const locale of locales) {
 // field-for-field, the list-ergonomics.spec.ts staging discipline): the
 // Files header needs filesEnabled TRUE plus a set to expand — impossible on
 // a fresh DB — and the log block needs runs to render rows.
+//
+// Phase-8 additions (08-03 Task 3): the sweep grows to /recovery — the
+// POPULATED guided-restore step 5 is the densest mobile surface phase 8
+// ships (restore-all row + the SSH advisory note + per-target rows with
+// their Badges + the verify row), so it joins the {de, fr} x {320, 360}
+// matrix with its read model staged populated (2 containers + 1 VM) and the
+// flow WALKED in the seeded locale to step 5 before the geometry contracts
+// run. After the matrix: the D-09 landscape boundary proof — the 48rem
+// chrome switch is WIDTH-ONLY ("min-width: 48rem"), so a 740px-wide
+// landscape phone gets the mobile chrome while 844x390 (>=768px CSS width)
+// gets the DESKTOP chrome; that is the user-resolved 05 decision, asserted
+// as the contract rather than reported as a leak.
 // ---------------------------------------------------------------------------
 const PHASE7_ROUTES = ["/vms", "/flash", "/config", "/receiver", "/fleet", "/settings"];
 
@@ -533,6 +553,113 @@ async function stageDashboardForSweep(page: Page): Promise<void> {
   );
 }
 
+// --- the populated /recovery domain for the step-5 sweep (08-03 Task 3) -------
+//
+// guided-restore.spec.ts's populated staging, compacted and DUPLICATED here
+// per the house rule (importing across spec files executes the other spec's
+// test() registrations — the per-spec staging duplication pattern this file
+// already follows with sweepSettingsBody vs its guided-restore twin).
+
+/** GET /api/containers row — the Container interface field-for-field. */
+function sweepContainerPayload(name: string) {
+  return {
+    name,
+    image: `registry.example/${name}:latest`,
+    state: "exited",
+    status: "",
+    ip: "",
+    installed: false,
+    includeInSchedule: true,
+    lastBackup: Math.floor(Date.now() / 1000) - 3600,
+    lastBackupStarted: null,
+    preHook: "",
+    postHook: "",
+    stopContainers: [],
+    excludes: [],
+    updateAfterBackup: false,
+    lastUpdateCheck: 0,
+    lastUpdateResult: "",
+    stack: "",
+    scheduleCadence: "",
+  };
+}
+
+/** GET /api/vms row — the VM interface field-for-field; the display name and
+ *  libvirt name deliberately differ (the sweep renders the display row, and
+ *  no restore is ever fired here to need the raw one). */
+function sweepVMPayload(display: string, libvirt: string) {
+  return {
+    name: display,
+    libvirtName: libvirt,
+    state: "shut off",
+    method: "graceful",
+    includeInSchedule: true,
+    lastBackup: Math.floor(Date.now() / 1000) - 7200,
+    lastBackupStarted: null,
+    scheduleCadence: "",
+  };
+}
+
+/** The populated Recovery read model: 2 containers + 1 VM + 0 file sets, the
+ *  probes and discovers answering populated, the advisory probes answering
+ *  their honest unconfigured/unwired shapes. /api/runs is staged empty (the
+ *  sweep never fires a restore — no restore POST route exists here, and none
+ *  is ever hit: the geometry contracts only read the rendered step 5). */
+async function stageRecoveryForSweep(page: Page): Promise<void> {
+  await page.route("**/api/settings", (route) => {
+    if (route.request().method() === "PUT") return route.fulfill({ json: { ok: true } });
+    return route.fulfill({ json: sweepSettingsBody() });
+  });
+  const repo = (domain: string) => `/mnt/user/backups/${domain}`;
+  const probe = (pattern: string, domain: string, discovered: number) =>
+    page.route(pattern, (route) => route.fulfill({ json: { ok: true, discovered, repo: repo(domain) } }));
+  await probe("**/api/discover?probe=true", "containers", 2);
+  await probe("**/api/vms/discover?probe=true", "vms", 1);
+  await probe("**/api/files/discover?probe=true", "files", 0);
+  await probe("**/api/discover", "containers", 2);
+  await probe("**/api/vms/discover", "vms", 1);
+  await probe("**/api/files/discover", "files", 0);
+  await page.route("**/api/containers", (route) =>
+    route.fulfill({
+      json: { ok: true, containers: [sweepContainerPayload("plex"), sweepContainerPayload("jellyfin")] },
+    }),
+  );
+  await page.route("**/api/vms", (route) =>
+    route.fulfill({ json: { ok: true, vms: [sweepVMPayload("win11-vm", "win11")] } }),
+  );
+  await page.route("**/api/files", (route) => route.fulfill({ json: { ok: true, fileSets: [] } }));
+  await page.route("**/api/runs", (route) => route.fulfill({ json: { ok: true, runs: [] } }));
+  await page.route("**/api/vm/ssh", (route) => route.fulfill({ json: { ok: false } }));
+  await page.route("**/api/encryption/detect", (route) =>
+    route.fulfill({
+      json: { ok: true, verdict: "unconfigured", applied: false, encryptionEnabled: false, repos: [] },
+    }),
+  );
+}
+
+// The localized walk labels (recovery.recheck / common.continue /
+// recovery.connectPreview / recovery.discover / recovery.mobile.stepOf — the
+// de table inline in i18n.ts, fr in locales/fr.ts). EXACT matching is
+// load-bearing on the German walk: "Prüfen" is a substring of "Verbinden &
+// prüfen", so the default substring role match would tap the wrong step's
+// control.
+const RECOVERY_WALK = {
+  de: {
+    check: "Prüfen",
+    cont: "Weiter",
+    connect: "Verbinden & prüfen",
+    discover: "Backups entdecken",
+    chip: (n: number) => `Schritt ${n} von 6`,
+  },
+  fr: {
+    check: "Vérifier",
+    cont: "Continuer",
+    connect: "Connexion et aperçu",
+    discover: "Découvrir les sauvegardes",
+    chip: (n: number) => `Étape ${n} sur 6`,
+  },
+} as const;
+
 for (const locale of locales) {
   for (const width of widths) {
     const tag = `${locale} @ ${width}px`;
@@ -597,5 +724,83 @@ for (const locale of locales) {
       await assertNoHorizontalPan(page, `${tag} /dashboard log`);
       await assertNothingClipped(page, `${tag} /dashboard log`);
     });
+
+    test(`narrow sweep ${tag}: the recovery flow step 5 never pans and clips nothing`, async ({ page }, testInfo) => {
+      test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "mobile-only: the sweep targets the mobile surfaces");
+      await stageRecoveryForSweep(page);
+      await bootSeededPage(page, locale, width, "/recovery");
+
+      // Walk to the populated step 5 in the SEEDED locale — every gate label
+      // and chip doubles as the locale-table liveness tell (the labels are
+      // pinned exact: de "Prüfen" is a substring of "Verbinden & prüfen").
+      const w = RECOVERY_WALK[locale];
+      const walkButton = (name: string) => page.getByRole("button", { name, exact: true });
+      await expect(page.getByText(w.chip(1))).toBeVisible();
+      await walkButton(w.check).tap();
+      await expect(walkButton(w.cont)).toBeVisible();
+      await walkButton(w.cont).tap();
+      await expect(page.getByText(w.chip(2))).toBeVisible();
+      await walkButton(w.cont).tap();
+      await expect(page.getByText(w.chip(3))).toBeVisible();
+      await walkButton(w.connect).tap();
+      await expect(walkButton(w.cont)).toBeVisible();
+      await walkButton(w.cont).tap();
+      await expect(page.getByText(w.chip(4))).toBeVisible();
+      await walkButton(w.discover).tap();
+      // Step 4's Continue only exists once the discover resolved (the same
+      // gate the en walk pins with the found-counts readout).
+      await expect(walkButton(w.cont)).toBeVisible();
+      await walkButton(w.cont).tap();
+      await expect(page.getByText(w.chip(5))).toBeVisible();
+
+      // The POPULATED branch is what got swept — the target names are data,
+      // not copy, so they prove the populated rows rendered in any locale
+      // (an empty-branch step 5 would pass the chip check and sweep the
+      // wrong surface).
+      await expect(page.getByText("plex").filter({ visible: true }).first()).toBeVisible();
+      await expect(page.getByText("win11-vm").filter({ visible: true }).first()).toBeVisible();
+
+      await assertNoHorizontalPan(page, `${tag} /recovery step 5`);
+      await assertNothingClipped(page, `${tag} /recovery step 5`);
+    });
   }
 }
+
+// ---------------------------------------------------------------------------
+// The D-09 landscape boundary (08-03 Task 3) — one proof, two viewports, the
+// seeded-locale boot reused with real landscape heights. The mobile-chrome
+// query is WIDTH-ONLY ("min-width: 48rem", the D-09 decision record): 740px
+// stays mobile, 844x390 — a modern phone in landscape, 844 CSS px wide —
+// crosses 48rem and gets the DESKTOP chrome, which the 05 research resolved
+// as CORRECT (a height-aware query would be a behavior change beyond this
+// milestone). Both run on the mobile projects only: the projects just supply
+// the base device context, and setViewportSize overrides it either way.
+// ---------------------------------------------------------------------------
+
+test("landscape 740x360: below 48rem the mobile chrome owns /recovery", async ({ page }, testInfo) => {
+  test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "mobile-only: the boundary pair rides the mobile projects");
+  await stageRecoveryForSweep(page);
+  await bootSeededPage(page, "en", 740, "/recovery", 360);
+
+  // Mobile chrome at a phone-landscape width: the wizard's step chip and the
+  // sticky step bar are on screen. The page's own h1 is NOT the needle here
+  // — it is shared chrome rendered ABOVE the max-md split (Recovery.tsx's
+  // page header), so it is visible in both chromes; the sticky bar is the
+  // mobile-only signature (its absence at >=48rem is the 844 half below).
+  await expect(page.getByText("Step 1 of 6")).toBeVisible();
+  await expect(page.locator("div.sticky.bottom-0.z-10.bg-carbon-sidebar")).toBeVisible();
+});
+
+test("landscape 844x390: at >=48rem the DESKTOP chrome owns /recovery (D-09)", async ({ page }, testInfo) => {
+  test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "mobile-only: the boundary pair rides the mobile projects");
+  await stageRecoveryForSweep(page);
+  await bootSeededPage(page, "en", 844, "/recovery", 390);
+
+  // 844 CSS px >= 768 (48rem): the desktop stacked stepper renders and NO
+  // mobile wizard chrome exists — the width-only switch did its job at a
+  // landscape height, exactly as resolved in 05 (D-09).
+  await expect(page.getByText("Step 1 of 6")).toHaveCount(0);
+  await expect(page.locator("div.sticky.bottom-0.z-10.bg-carbon-sidebar")).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 1, name: "Disaster recovery" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Can BombVault read your backups?" })).toBeVisible();
+});
