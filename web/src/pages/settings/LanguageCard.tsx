@@ -55,7 +55,7 @@ export function LanguageCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"];
 
   return (
     <Card title={t("settings.language")} hueIndex={hueIndex}>
-      <div className="inline-block">
+      <div className="inline-block max-md:block">
         {/* w-48 (GlimStone follow-up pass, live-review round — "widen the
             Language button, then match the Theme button to it"): was
             content-hugging (only as wide as the current flag+label pair),
@@ -70,7 +70,23 @@ export function LanguageCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"];
             `truncate`/`min-w-0` on
             the label span below keeps a genuinely long locale name (this
             list has 42) from overflowing the now-fixed width instead of
-            just growing the button the way it used to. */}
+            just growing the button the way it used to.
+
+            REVERSED below md (UI review lot 1, P2-10): a deliberate 192px
+            reads as an orphaned fixed width inside a full-width Card on a
+            phone — the control shrank from its surroundings instead of
+            sitting in them. So under the same breakpoint the trigger goes
+            full-width, spanning the Card body like every other full-bleed
+            mobile control; desktop >=48rem keeps the flush
+            trigger-over-listbox footprint untouched (every added class is
+            max-md:-scoped). Two pieces, because one alone silently no-ops:
+            the wrapper flips from `inline-block` to block below md as well —
+            an inline-block parent shrink-wraps its content, so a full-width
+            button inside it would collapse straight back to label width.
+            The mobile panel width follows automatically: DropdownListbox
+            sizes its portalled panel to THIS trigger's own measured width
+            (the mechanism the paragraph above already documents), so no
+            second width literal and no new key are needed. */}
         {/* Mobile hit-area extension (D-06 fix 1 / VERIFY-04, phase 8): this
             card-local raw button measures ~33px tall (py-1.5 + text-sm) —
             under the 44px floor — and it does not route through the shared
@@ -87,7 +103,7 @@ export function LanguageCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"];
           aria-haspopup="listbox"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className="flex items-center gap-2.5 w-48 rounded-control bg-carbon-surface2 px-3 py-1.5 text-sm text-carbon-text hover:bg-carbon-hover transition-colors max-md:relative max-md:after:absolute max-md:after:-inset-3 max-md:after:content-['']"
+          className="flex items-center gap-2.5 w-48 max-md:w-full rounded-control bg-carbon-surface2 px-3 py-1.5 text-sm text-carbon-text hover:bg-carbon-hover transition-colors max-md:relative max-md:after:absolute max-md:after:-inset-3 max-md:after:content-['']"
         >
           <Flag code={current.flag} />
           <span className="min-w-0 truncate text-start">{current.label}</span>

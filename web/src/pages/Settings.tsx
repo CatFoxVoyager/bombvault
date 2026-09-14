@@ -2643,19 +2643,27 @@ export function SettingsPage() {
           both data-platform attribute values) — never a literal radius,
           never `rounded-full` (which would pin the corners outside both
           engines; see the exception marker on the chip button).
-            Scroll, never wrap: `overflow-x-auto` + `shrink-0` +
-          `whitespace-nowrap` — seven de labels cannot fit a phone column,
-          and wrapping would turn the strip into two rows of chips (the
-          exact desktop regression #178 fixed, mobile edition). In-flow, not
-          sticky and never position:fixed: the phase 5 no-fixed contract
-          stands, and a pinned bar would need its own background and z-layer
-          to keep long tab content from showing through it — the desktop
-          strip scrolls away too, so parity here is simply the same
-          in-flow behaviour. */}
+            REVERSED to wrap below md (UI review lot 1, P1-3): measured at
+          390px the strip held 617px of content (scrollWidth) inside a 351px
+          client box — five of the seven sections were simply invisible,
+          with no signifier that anything sat off to the right. Mobile
+          discoverability beats the single-row aesthetic: the strip now
+          wraps onto as many rows as the seven chips need, each chip still
+          one line at its 44px floor (`shrink-0` + `whitespace-nowrap` stay —
+          the ROW wraps, the chips do not, so D-06 is untouched). #178's
+          ragged-wrap regression was about the DESKTOP strip, which has a
+          fixed-width stage and page-level siblings to look tidy beside;
+          this nav is the mobile-only half (`!isDesktop`-mounted, invisible
+          to every jsdom suite), so deliberate wrapping here reopens nothing
+          #178 fixed. In-flow, not sticky and never position:fixed: the
+          phase 5 no-fixed contract stands, and a pinned bar would need its
+          own background and z-layer to keep long tab content from showing
+          through it — a wrapped in-flow strip simply grows and pushes the
+          panels down. */}
       {!isDesktop && (
         <nav
           aria-label={t("settings.tabsNavigation")}
-          className="-mx-1 flex gap-2 overflow-x-auto px-1 py-1"
+          className="-mx-1 flex gap-2 overflow-x-auto px-1 py-1 max-md:flex-wrap"
         >
           {tabItems.map(({ id, label }) => (
             // bv-convention-exception: control-reads-engine-tokens --
