@@ -35,6 +35,7 @@ import { InfoBubble } from "../components/InfoBubble";
 import { RevealInput } from "../components/RevealInput";
 import { SelectField } from "../components/SelectField";
 import { useReveal } from "../lib/useReveal";
+import { useCloudCredSets } from "../lib/useCloudCredSets";
 import { useToast } from "../lib/toast";
 import { hueVars, rainbowAt } from "../lib/appearance";
 import { Button } from "../components/Button";
@@ -214,6 +215,14 @@ function PullDialog({
   const revealAppKey = useReveal();
   const [domain, setDomain] = useState<PullDomain>((initial?.domain as PullDomain) ?? "containers");
   const [cadence, setCadence] = useState(initial?.cadence ?? "");
+  // The source's own backend login, separate from its APP_KEY: the key opens the
+  // restic repository, this opens the storage the repository lies on. A pull
+  // deliberately lends the source NOTHING of ours (pull.go withholds the ambient
+  // credentials), so without a set chosen here an s3:, b2: or authenticated
+  // rest: source has no way in at all - and the refusal that follows names the
+  // APP_KEY, which is the wrong thing to go and re-check.
+  const [credsRef, setCredsRef] = useState(initial?.credsRef ?? "");
+  const credSets = useCloudCredSets();
   const [limitDownload, setLimitDownload] = useState(initial?.limitDownload ?? 0);
   const [enabled, setEnabled] = useState(initial?.enabled ?? true);
   const [saving, setSaving] = useState(false);
@@ -234,7 +243,7 @@ function PullDialog({
       name: name.trim(),
       repo: repo.trim(),
       appKey,
-      credsRef: initial?.credsRef ?? "",
+      credsRef,
       domain,
       cadence,
       limitDownload,
@@ -325,6 +334,26 @@ function PullDialog({
               dir="ltr"
               placeholder={editing ? "••••••••" : "64 hex"}
               wrapperClassName="w-full"
+              className={inputCls}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="flex items-center gap-1.5 text-xs text-carbon-textSub">
+              {t("offsite.targets.credsLabel")}
+              <InfoBubble tip={t("pull.credsHint")} />
+            </span>
+            <SelectField
+              value={credsRef}
+              onChange={setCredsRef}
+              label={t("offsite.targets.credsLabel")}
+              options={[
+                // "" is NOT "the shared default" here, the way it is on an
+                // off-site target. A pull never falls back to this box's own
+                // credentials, so the empty choice means the source needs none.
+                { value: "", label: t("pull.credsNone") },
+                ...credSets.map((c) => ({ value: c.id, label: c.name })),
+              ]}
               className={inputCls}
             />
           </div>

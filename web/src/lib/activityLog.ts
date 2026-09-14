@@ -111,7 +111,9 @@ const DOMAIN_KEYS: Record<string, string> = {
   everything: "activityLog.domainEverything",
 };
 
-const JOB_KEYS: Record<string, string> = {
+/** Exported for activityLog.jobReach.test.ts, which checks it against the job
+ *  names the Go scheduler emits. Nothing in the app reads it directly. */
+export const JOB_KEYS: Record<string, string> = {
   backup: "activityLog.jobBackup",
   offsite: "activityLog.jobOffsite",
   drill: "activityLog.jobDrill",
@@ -123,6 +125,13 @@ const JOB_KEYS: Record<string, string> = {
   // "fleet". An unmapped job renders as the bare English identifier.
   receiver: "activityLog.jobReceiver",
   fleet: "activityLog.jobFleet",
+  // And then it happened a third time, with the pull sweep (#227). Three times
+  // is not bad luck, it is a missing guard: this table is the only place that
+  // has to change when jobDomainFromName in internal/schedule/schedule.go grows
+  // a case, nothing in TypeScript can see that file, and the fallback is
+  // silent by design. activityLog.jobReach.test.ts now reads the Go source and
+  // fails when a job name has no entry here.
+  pull: "activityLog.jobPull",
 };
 
 /** Translates a domain literal ("containers"/"vms"/"flash"/"config"/"files");
@@ -133,8 +142,8 @@ export function domainLabel(resolveName: ResolveName, domain: string): string {
 }
 
 /** Translates a schedule job literal ("backup"/"offsite"/"drill"/"tamper"/
- *  "digest"/"watchdog"/"receiver"/"fleet"); an unknown literal falls back to the
- *  raw string, which is why an unmapped job shows up as bare English. */
+ *  "digest"/"watchdog"/"receiver"/"fleet"/"pull"); an unknown literal falls back
+ *  to the raw string, which is why an unmapped job shows up as bare English. */
 function jobLabel(resolveName: ResolveName, job: string): string {
   const key = JOB_KEYS[job];
   return key ? resolveName(key) : job;

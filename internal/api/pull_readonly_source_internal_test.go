@@ -38,6 +38,11 @@ type pullRecorder struct {
 	// calls records "Method repo" for every engine call, in order.
 	calls []string
 	snaps map[string][]restic.Snapshot
+	// copyMode is the mode the copy actually went out with. Recording it is the
+	// difference between proving the source side EXISTS and proving it carries
+	// the right password: a nil check passes just as happily when the two sides
+	// were swapped, which is the mistake this whole file is about.
+	copyMode *restic.Mode
 }
 
 func (e *pullRecorder) note(method, repo string) { e.calls = append(e.calls, method+" "+repo) }
@@ -65,6 +70,8 @@ func (e *pullRecorder) Copy(_ context.Context, dest, src string, _ []string, _ r
 	if m.From == nil {
 		e.note("Copy WITHOUT a source side", "")
 	}
+	mode := m
+	e.copyMode = &mode
 	return nil
 }
 
@@ -159,10 +166,34 @@ func TestPullNeverWritesToTheSource(t *testing.T) {
 		t.Fatal("no copy was attempted, so the source-side assertion above proved nothing")
 	}
 
-	// The far key must be the one that opens the source. If this ever flipped to
-	// our own, the pull would only ever work against our own repositories.
-	want := restickey.Derive(theirKey)
-	if want == restickey.Derive(ourKey) {
-		t.Fatal("fixture is wrong: the two keys derive the same password")
+	// The far key must be the one that opens the source, and our own must be the
+	// one that opens the destination. Asserting this on the VALUES is the point:
+	// the nil check above survives a swap of the two sides untouched, and a swap
+	// is exactly the mistake a file modelled on copyToOffsiteTarget invites.
+	theirPw := restickey.Derive(theirKey)
+	ourPw := restickey.Derive(ourKey)
+	if theirPw == ourPw {
+		t.Fatal("fixture is wrong: the two keys derive the same password, so nothing below can tell the sides apart")
+	}
+	if eng.copyMode == nil {
+		t.Fatal("no copy mode was recorded, so the two assertions below prove nothing")
+	}
+	if eng.copyMode.From == nil {
+		t.Fatal("the copy went out without a source side; the assertions below cannot run")
+	}
+	if got := eng.copyMode.From.Password; got != theirPw {
+		which := "some third value"
+		if got == ourPw {
+			which = "OUR OWN password, so the two sides are swapped"
+		}
+		t.Errorf("the copy carried the wrong password for the SOURCE: %s.\n"+
+			"It must be the password derived from the source instance's APP_KEY. restic passes it as\n"+
+			"RESTIC_FROM_PASSWORD, so the wrong value here makes a correctly typed foreign key fail with\n"+
+			"a decryption error that reads as \"wrong APP_KEY\".", which)
+	}
+	if eng.copyMode.Password != ourPw {
+		t.Error("the copy did not carry OUR password for the destination.\n" +
+			"The destination is this box's own repository; if the source's password reached it instead,\n" +
+			"the pull would write nothing and blame the local repository for it.")
 	}
 }
