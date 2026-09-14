@@ -234,3 +234,17 @@ func (s *Service) RunPulls(ctx context.Context) error {
 	}
 	return nil
 }
+
+// pullProbe opens a source read-only and discards the result. It is what the
+// Test button runs, and what create and update run before they persist: a
+// mistyped location or key is refused while the person who typed it is still
+// looking at the form, rather than becoming a scheduled job that fails every
+// night at four with a message nobody reads.
+func (s *Service) pullProbe(ctx context.Context, ps store.PullSource) error {
+	settings, err := s.store.GetSettings()
+	if err != nil {
+		return fmt.Errorf("read settings: %w", err)
+	}
+	_, _, err = s.pullOpen(ctx, ps, settings)
+	return err
+}

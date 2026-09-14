@@ -369,6 +369,20 @@ func (h *Handler) Router() http.Handler {
 	mux.HandleFunc("GET /api/receiver/repos/{id}/inventory", h.handleReceiverInventory)
 	mux.HandleFunc("POST /api/receiver/repos/{id}/check", h.handleReceiverCheck)
 
+	// Pull sources (#227): repositories belonging to OTHER instances that this
+	// box fetches snapshots out of. Session-protected like every other /api
+	// route, and gated behind the pullEnabled settings flag in the SPA.
+	//
+	// These are the only routes in the app that take a foreign repository as the
+	// SOURCE of data that lands on this disk, which is why every one of them goes
+	// through a read-only open before it writes anything down.
+	mux.HandleFunc("GET /api/pull/sources", h.handleListPullSources)
+	mux.HandleFunc("POST /api/pull/sources", h.handleCreatePullSource)
+	mux.HandleFunc("PUT /api/pull/sources/{id}", h.handleUpdatePullSource)
+	mux.HandleFunc("DELETE /api/pull/sources/{id}", h.handleDeletePullSource)
+	mux.HandleFunc("POST /api/pull/sources/{id}/test", h.handleTestPullSource)
+	mux.HandleFunc("POST /api/pull/sources/{id}/run", h.handleRunPullSource)
+
 	// Fleet view (read-only): the list of PEER BombVault instances this box
 	// polls for their protection status. Gated behind the fleetEnabled settings
 	// flag in the SPA; the endpoints stay session-protected like every other

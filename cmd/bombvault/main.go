@@ -424,6 +424,12 @@ func run() error {
 	scheduler.SetReceiverJob(func() error {
 		return svc.RunReceiverChecks(context.Background())
 	})
+	// The pull sweep (#227). Wired next to the receiver for the same reason it
+	// sits next to it in the scheduler: both are app-wide daily ticks that decide
+	// which per-row jobs are due, rather than jobs with a frequency of their own.
+	scheduler.SetPullJob(func() error {
+		return svc.RunPulls(context.Background())
+	})
 	// Fleet peer sweep: the daily poll of every enabled fleet peer's protection
 	// status (read-only, no notifications — each peer's own instance already
 	// alerts on its own overdue backups).
