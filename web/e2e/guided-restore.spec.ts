@@ -1,5 +1,6 @@
 // ---------------------------------------------------------------------------
-// Guided-restore tracer e2e — 08-01 Task 3 (plan actions 2-3).
+// Guided-restore e2e — the 08-01 tracer walk (Task 3) plus the 08-02
+// config-step choreography (the restore body Plan 02 landed inside the flow).
 //
 // The DOM twin (Recovery.mobile.dom.test.tsx) proves the double gate and the
 // gating chain in jsdom; this spec proves the PHONE presentation on the real
@@ -26,6 +27,12 @@
 // still carrying ?probe=true, #44), same full-object PUT, and NO new calls:
 // a mobile tap may not open a second fire path (D-02) onto new API surface
 // (D-12). The counts are also what make a stray double-fetch loud.
+//
+// Plan 02's config tests stage two more domains on the same discipline: the
+// restore POST (body parity — the frozen client posts {"snapshot":"latest"}
+// for a local repo) and /api/health (the down-then-up sequence
+// waitForAppBack's requireDownFirst default demands before it lets the
+// mid-flow reload fire, Pitfall 7).
 //
 // includeHidden:true semantics (destination-settings.spec.ts's rule): on a
 // phone viewport the desktop stepper is MOUNTED but display:none
@@ -160,7 +167,14 @@ type Call = { label: string; body?: unknown };
  * parity multiset below stays a closed set — nothing the page fires during
  * this spec should ever reach the real binary's write paths.
  */
-async function stageRecoveryDomain(page: Page): Promise<{ calls: Call[]; putBodies: unknown[] }> {
+async function stageRecoveryDomain(
+  page: Page,
+  // Live view, not a snapshot: the config choreography mutates this object
+  // when the staged restore POST is served, so the page's POST-reload remount
+  // genuinely reads the RESTORED values back (the reload re-entry below is
+  // asserted with the fixture actually flipped, not with the original one).
+  settingsOverrides: Record<string, unknown> = {},
+): Promise<{ calls: Call[]; putBodies: unknown[] }> {
   const calls: Call[] = [];
   const putBodies: unknown[] = [];
   const rec = (label: string) => calls.push({ label });
@@ -178,7 +192,7 @@ async function stageRecoveryDomain(page: Page): Promise<{ calls: Call[]; putBodi
       return route.fulfill({ json: { ok: true } });
     }
     rec("GET /api/settings");
-    return route.fulfill({ json: settingsBody() });
+    return route.fulfill({ json: settingsBody(settingsOverrides) });
   });
 
   // The readability probes (GET-like POSTs, #44's read-only check): ok with
@@ -316,7 +330,9 @@ test("mobile /recovery: the zero-target walk 1..6 with API parity on every step"
 
   await barButton(page, "Continue").tap();
   await expect(page.getByText(chip(2))).toBeVisible();
-  // Step 2's sanctioned skip (the full config body is Plan 02).
+  // Step 2's skip: the zero-target walk keeps the skip resolution (the
+  // restore body's confirm/restart choreography has its own tests below; skip
+  // fires no settings write, which this walk's exact PUT count also pins).
   await page.getByRole("button", { name: "Skip: I don't have a settings backup" }).tap();
   await expect(page.getByText(chip(3))).toBeVisible();
 
@@ -404,6 +420,186 @@ test("mobile /recovery: the zero-target walk 1..6 with API parity on every step"
   expect(put.encryptionEnabled).toBe(false);
 });
 
+// --- the config-step choreography (08-02, mobile projects) --------------------
+
+test("mobile /recovery: the config restore choreography - narration above a confirm-gated restore, POST parity, restart + reload re-entry", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    !MOBILE_PROJECTS.has(testInfo.project.name),
+    "mobile-only: the config step's phone choreography",
+  );
+  // Mutated by the staged restore handler so the POST-reload remount reads
+  // the restored values back (see stageRecoveryDomain's overrides param).
+  const settingsOverrides: Record<string, unknown> = {};
+  const { calls, putBodies } = await stageRecoveryDomain(page, settingsOverrides);
+
+  const restoreBodies: unknown[] = [];
+  let restoreStaged = false;
+  let healthDownSeen = false;
+  // Pins the recorded-call index where the confirm-triggered burst starts.
+  // The POST handler snapshots the slice AT SERVE TIME: restoreOwnConfig's
+  // sequential await chain has by then already recorded its baseline GET and
+  // full-object PUT, and the post-reload remount traffic has not happened yet
+  // (it lands after the reload, outside the slice).
+  let before = 0;
+  let parityLabels: string[] | null = null;
+
+  // The config restore endpoint: held ~600ms so the saving phase's busy title
+  // is observably on screen, then the success shape the handler branches on
+  // (staged + autoRestart -> the restart/reload path). On serve it also flips
+  // the settings fixture - the restored values the remount reads back.
+  await page.route("**/api/config/restore", async (route) => {
+    calls.push({ label: "POST /api/config/restore" });
+    restoreBodies.push(route.request().postDataJSON());
+    parityLabels = calls.slice(before).map((c) => c.label);
+    Object.assign(settingsOverrides, { configPath: "/mnt/user/restored/config" });
+    restoreStaged = true;
+    await new Promise((r) => setTimeout(r, 600));
+    return route.fulfill({ json: { ok: true, staged: true, autoRestart: true } });
+  });
+  // The health poll behind waitForAppBack (api.ts, frozen): 200 before the
+  // restore; after it exactly ONE 503 - the "seen down" its requireDownFirst
+  // default demands - then 200, which resolves the wait and fires the
+  // mid-flow window.location.reload() (Pitfall 7: the reload is CORRECT).
+  await page.route("**/api/health", (route) => {
+    if (!restoreStaged) return route.fulfill({ json: { ok: true, version: "e2e" } });
+    if (!healthDownSeen) {
+      healthDownSeen = true;
+      return route.fulfill({ status: 503, json: { ok: false, error: "restarting" } });
+    }
+    return route.fulfill({ json: { ok: true, version: "e2e" } });
+  });
+
+  await page.goto("/recovery");
+
+  // Walk to the config step (the same gates as the tracer walk).
+  await expect(page.getByText(chip(1))).toBeVisible();
+  await barButton(page, "Check").tap();
+  await expect(barButton(page, "Continue")).toBeVisible();
+  await barButton(page, "Continue").tap();
+  await expect(page.getByText(chip(2))).toBeVisible();
+
+  // D-03 narration: the chain renders read-only ABOVE the restore control.
+  // DOM order = reading order, the Config MobileRestoreSheet precedent -
+  // asserted on the real document (visible elements only: the mounted-hidden
+  // desktop half carries a same-named Restore button that must not qualify).
+  const narrationFirst = await page.evaluate(() => {
+    const visible = (el: Element) => el.offsetParent !== null;
+    const ol = Array.from(document.querySelectorAll("ol")).find(
+      (el) => visible(el) && (el.textContent ?? "").includes("restored from the repository"),
+    );
+    const restore = Array.from(document.querySelectorAll("button")).find(
+      (b) =>
+        visible(b) && (b.getAttribute("aria-label") ?? b.textContent ?? "").trim() === "Restore",
+    );
+    if (!ol || !restore) return false;
+    return !!(ol.compareDocumentPosition(restore) & Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+  expect(narrationFirst).toBe(true);
+
+  // Confirm gate, CANCEL path: the sheet presents with the destructive
+  // control on top and the safe cancel at the thumb-default bottom;
+  // cancelling dismisses it with zero restore calls on the wire.
+  const restoreCallCount = () =>
+    calls.filter((c) => c.label.startsWith("POST /api/config/restore")).length;
+  const restoreRow = page.getByRole("button", { name: "Restore", exact: true });
+  await restoreRow.tap();
+  const sheet = page.getByRole("dialog", { name: "Confirm" });
+  await expect(sheet).toBeVisible();
+  const destructiveFirst = await sheet.evaluate((el) => {
+    const buttons = Array.from(el.querySelectorAll("button"));
+    const confirm = buttons.find((b) => (b.textContent ?? "").trim() === "Confirm");
+    const cancel = buttons.find((b) => (b.textContent ?? "").trim() === "Cancel");
+    if (!confirm || !cancel) return false;
+    return !!(confirm.compareDocumentPosition(cancel) & Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+  expect(destructiveFirst).toBe(true);
+  await sheet.getByRole("button", { name: "Cancel", exact: true }).tap();
+  await expect(sheet).toHaveCount(0);
+  await expect(page.getByText(chip(2))).toBeVisible();
+  expect(restoreCallCount()).toBe(0);
+  expect(putBodies).toHaveLength(0);
+
+  // Confirm path: exactly the desktop handler's request burst, in order.
+  await restoreRow.tap();
+  await expect(sheet).toBeVisible();
+  before = calls.length;
+  await sheet.getByRole("button", { name: "Confirm", exact: true }).tap();
+
+  // Saving phase: the row goes dead while the staged restore is in flight.
+  // The busy phrase (configRestoring) is the app's tip-bubble copy: Button
+  // carries `title` via useTipBubble (aria-describedby + hover/focus bubble),
+  // never the accessible name, so the row's name stays "Restore". The
+  // disabled+tip case wraps the button in a hover-reachable span exactly so
+  // a dead control's bubble still opens - hover it and the phrase is on
+  // screen. The staged 600ms hold keeps this window observable (and the
+  // phrase stays up through the restarting phase, whose title is the same).
+  await expect(restoreRow).toBeDisabled();
+  await restoreRow.hover();
+  await expect(page.getByText("Restoring…").filter({ visible: true })).toBeVisible();
+
+  // Restarting phase: the auto-restart narration, then the reload.
+  await expect(mtext(page, /restarting to apply your settings/)).toBeVisible();
+
+  // Pitfall 7 IS the contract: the reload resets the flow to step 1 (step
+  // position is deliberately not preserved), and the remounted page reads
+  // the restored settings fixture.
+  await expect(page.getByText(chip(1))).toBeVisible({ timeout: 15_000 });
+
+  // Parity, captured at POST-serve time: exactly the desktop config restore's
+  // burst - baseline GET, FULL-object PUT, the one restore POST.
+  const parity = parityLabels ?? [];
+  expect(parity).toHaveLength(3);
+  expect([...parity].sort()).toEqual(
+    ["GET /api/settings", "POST /api/config/restore", "PUT /api/settings"].sort(),
+  );
+  expect(restoreBodies).toHaveLength(1);
+  // Local repo: the frozen client posts {"snapshot":"latest"} (source omitted).
+  expect(restoreBodies[0]).toEqual({ snapshot: "latest" });
+  // The PUT is the full-object merge on the re-fetched baseline (Pitfall 6):
+  // the typed path rides along, retention numbers ride along - never a patch.
+  expect(putBodies).toHaveLength(1);
+  const put = putBodies[0] as Record<string, unknown>;
+  expect(put.configPath).toBe("/mnt/user/backups/config");
+  expect(put.retentionKeepLast).toBe(7);
+});
+
+test("mobile /recovery: skip stays the sanctioned empty resolution - advance with zero settings writes", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    !MOBILE_PROJECTS.has(testInfo.project.name),
+    "mobile-only: the skip resolution is the no-backup path",
+  );
+  const { calls, putBodies } = await stageRecoveryDomain(page);
+  // The restore endpoint records too, so a skip that (wrongly) fired one
+  // would be loud here rather than silently swallowed.
+  await page.route("**/api/config/restore", (route) => {
+    calls.push({ label: "POST /api/config/restore" });
+    return route.fulfill({ json: { ok: false, error: "skip must not restore" } });
+  });
+  await page.goto("/recovery");
+
+  await expect(page.getByText(chip(1))).toBeVisible();
+  await barButton(page, "Check").tap();
+  await expect(barButton(page, "Continue")).toBeVisible();
+  await barButton(page, "Continue").tap();
+  await expect(page.getByText(chip(2))).toBeVisible();
+
+  const restoreCallsBefore = calls.filter((c) =>
+    c.label.startsWith("POST /api/config/restore"),
+  ).length;
+  const putsBefore = putBodies.length;
+  await page.getByRole("button", { name: "Skip: I don't have a settings backup" }).tap();
+  await expect(page.getByText(chip(3))).toBeVisible();
+  // Skip advances WITHOUT any settings write or restore call intercepted.
+  expect(calls.filter((c) => c.label.startsWith("POST /api/config/restore")).length).toBe(
+    restoreCallsBefore,
+  );
+  expect(putBodies.length).toBe(putsBefore);
+});
+
 // --- desktop leakage needles (desktop projects) --------------------------------
 
 test("desktop /recovery: no mobile chrome leaks at >=48rem, the stepper is present", async ({
@@ -424,6 +620,10 @@ test("desktop /recovery: no mobile chrome leaks at >=48rem, the stepper is prese
   // chip text and the bar class are genuinely mobile-only DOM signatures.
   await expect(page.getByText(chip(1))).toHaveCount(0);
   await expect(page.locator("div.sticky.bottom-0.z-10.bg-carbon-sidebar")).toHaveCount(0);
+  // Plan 02: the config chain narration is mobile-only chrome too - its
+  // unique signature (the chain title, rendered by no desktop card) is
+  // absent at >=48rem.
+  await expect(page.getByText("What happens when the config is restored")).toHaveCount(0);
 
   // The desktop stepper is present: the page heading and step 1's card.
   await expect(page.getByRole("heading", { level: 1, name: "Disaster recovery" })).toBeVisible();
