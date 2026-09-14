@@ -19,7 +19,12 @@
 //      (D-09: pickers as-today, unmodified primitives),
 //   4. dark mode flips from the stacked Theme card (the same well Selector
 //      the desktop card renders),
-//   5. desktop /settings (1280 and the 768 breakpoint boundary): the Selector
+//   5. the D-06 fix-1 touch-target backstop (08-04): every shared-Button
+//      instance in the stacked cards, the Language card's raw trigger, and
+//      the language listbox's option rows clear the 44px floor THROUGH the
+//      invisible ::after bleed (the hit geometry, not the frozen visual box),
+//      and the Notify entry row clears it on its own min-height,
+//   6. desktop /settings (1280 and the 768 breakpoint boundary): the Selector
 //      strip + tabbed shell markers present, the measured strip-width cap on
 //      the panels, and NONE of the mobile chrome.
 //
@@ -38,7 +43,7 @@
 // expectations below assert is what the 42-table i18n ships for the default
 // fallback the aborted display-prefs reconciliation lands on.
 // ---------------------------------------------------------------------------
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 // The two device projects from playwright.config.ts; everything else is a
 // desktop project (destination-config-receiver-fleet.spec.ts's branching
@@ -207,6 +212,59 @@ function chipStrip(page: Page) {
 // role query INSIDE the strip (its tabs) when it is hidden.
 function desktopStrip(page: Page) {
   return page.getByRole("tablist", { name: "Settings", includeHidden: true });
+}
+
+// --- the D-06 fix-1 touch-floor machinery (08-04) ------------------------------
+//
+// The bleed is invisible by design, and that is exactly why a plain
+// boundingBox() >= 44 assertion cannot prove it: an ::after pseudo-element is
+// NOT part of its originating element's DOM bounding box, so the box Playwright
+// measures is the FROZEN 32px visual — the same number before the fix, after
+// the fix, and if the bleed were silently dropped. list-ergonomics.spec.ts's
+// min-height floors stay plain bounding-box assertions because there the
+// VISUAL box is the hit box; for bleed controls the proof has to read the
+// rendered ::after's computed insets and grow the border box by them — the
+// geometry a finger actually gets (a pseudo-element hit-tests to its
+// originating button).
+type HitBox = {
+  name: string;
+  visual: { w: number; h: number };
+  hit: { w: number; h: number };
+  bled: boolean;
+};
+
+/** Hit boxes for the located buttons: visual border box, bleed-grown hit box,
+ *  and whether an absolutely-positioned ::after actually rendered on the
+ *  element (the regression tell for a dropped max-md: bleed class). */
+function hitBoxes(locator: Locator) {
+  return locator.evaluateAll((els) =>
+    els
+      .filter((el) => {
+        // The always-mounted desktop half is display:none at phone width and
+        // measures a zero box — it is not part of the mobile battery.
+        const r = el.getBoundingClientRect();
+        return r.width > 0 && r.height > 0;
+      })
+      .map((el) => {
+        const b = el as HTMLButtonElement;
+        const r = b.getBoundingClientRect();
+        const cs = getComputedStyle(b, "::after");
+        const px = (v: string) => (v.endsWith("px") ? parseFloat(v) : 0);
+        // Negative insets are the BLEED: the pseudo extends past the border
+        // box by |inset| on that side. Anything else (0, auto, non-px) grows
+        // nothing — which is the honest reading, not an assumption of 12px.
+        const grow = (v: string) => -Math.min(0, px(v));
+        return {
+          name: b.getAttribute("aria-label") ?? b.textContent?.trim() ?? b.className,
+          visual: { w: r.width, h: r.height },
+          hit: {
+            w: r.width + grow(cs.left) + grow(cs.right),
+            h: r.height + grow(cs.top) + grow(cs.bottom),
+          },
+          bled: cs.content !== "none" && cs.position === "absolute",
+        } satisfies HitBox;
+      }),
+  );
 }
 
 // One chip label -> one stacked-cards landmark, in TAB_ORDER order. Landmarks
@@ -393,6 +451,136 @@ test("mobile /settings: dark mode flips from the stacked Theme card", async ({
   await page.getByRole("tab", { name: "Dark" }).tap();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.getByRole("tab", { name: "Dark" })).toHaveAttribute("aria-selected", "true");
+});
+
+test("mobile /settings: the D-06 fix-1 controls clear the 44px touch floor via the bleed", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    !MOBILE_PROJECTS.has(testInfo.project.name),
+    "mobile-only: the D-06 fix-1 bleed is the phone hit geometry",
+  );
+  await stageSettingsDomain(page);
+  await page.goto("/settings");
+
+  const strip = chipStrip(page);
+  const chips = strip.getByRole("button");
+  await expect(chips).toHaveCount(7);
+
+  // --- Part 1: every shared-Button instance across ALL seven stacked tabs ---
+  //
+  // The sweep selector is `glim-btn:not(.glim-btn-chip)` because the chip
+  // variant is the one deliberately-EXCLUDED control of D-06 fix 1: it is the
+  // 18px remove glyph living INSIDE a pill (see Button.tsx's MOBILE_BLEED
+  // comment), where a bleed would swallow taps meant for the pill's own text;
+  // it rides its host row's floor instead. The chip strip's own buttons are
+  // raw buttons, not glim-btn, so they are neither swept nor double-counted.
+  // Zero-box entries are already filtered inside hitBoxes (the always-mounted
+  // desktop half measures 0 at phone width).
+  const seen: HitBox[] = [];
+  for (const [chipLabel, landmark] of TAB_LANDMARKS) {
+    await strip.getByRole("button", { name: chipLabel, exact: true }).tap();
+    if (chipLabel === "Notifications") {
+      await expect(page.getByRole("button", { name: "Notifications Never" })).toBeVisible();
+    } else {
+      await expect(cardHeading(page, landmark)).toBeVisible();
+    }
+    seen.push(
+      ...(await hitBoxes(page.locator("#bv-main button.glim-btn:not(.glim-btn-chip)"))),
+    );
+  }
+  // Self-guard: a broken locator would sweep nothing and the floor assertions
+  // below would pass vacuously — the battery must prove it measured real
+  // controls (seven tabs of card chrome measure dozens; 4 is the loud floor).
+  expect(
+    seen.length,
+    "the glim-btn sweep measured almost nothing across all seven tabs — the " +
+      "selector no longer matches the stacked cards' buttons, and every floor " +
+      "assertion below this one is running vacuously. Repoint the sweep " +
+      "deliberately.",
+  ).toBeGreaterThanOrEqual(4);
+
+  const shortfalls = seen
+    .filter((box) => box.hit.h < 44 || box.hit.w < 44)
+    .map((box) => `${box.name}: hit ${box.hit.w}x${box.hit.h} (visual ${box.visual.w}x${box.visual.h})`);
+  expect(
+    shortfalls,
+    "a control in the stacked cards falls under the 44px touch floor even " +
+      "with its bleed — D-06 fix 1's contract is a >=44px HIT box for every " +
+      "shared-Button instance on the phone surface. Either the bleed class " +
+      "was dropped at this site or the control needs the pattern applied.",
+  ).toEqual([]);
+
+  const unbled = seen.filter((box) => !box.bled).map((box) => box.name);
+  expect(
+    unbled,
+    "a visible glim-btn on mobile renders NO absolutely-positioned ::after — " +
+      "MOBILE_BLEED lives on the shared Button's className template, so a " +
+      "missing bleed means the template lost the classes or this instance " +
+      "overrides className in a way that drops them (the chip variant is the " +
+      "only sanctioned exclusion, and it is filtered out of this sweep).",
+  ).toEqual([]);
+
+  // --- Part 2: the Language card's raw trigger — visual stays frozen -------
+  //
+  // The raw trigger proves the FIX's shape, not just its floor: the visual box
+  // must stay UNDER 44 (the design language grows tap areas, never visual
+  // size — glim-btn's frozen 32px is the whole reason the bleed exists), while
+  // the hit box clears it on bleed alone.
+  await strip.getByRole("button", { name: "General", exact: true }).tap();
+  await expect(cardHeading(page, "Domains")).toBeVisible();
+  const trigger = page.getByRole("button", { name: /^Language: / });
+  await expect(trigger).toBeVisible();
+  const [triggerBox] = await hitBoxes(trigger);
+  expect(triggerBox, "the Language trigger resolved to nothing — its accessible name shape changed").toBeDefined();
+  expect(
+    triggerBox!.visual.h,
+    "the Language trigger's VISUAL box grew to the 44 floor — the fix grows " +
+      "the hit area through the invisible bleed, never the visible control; " +
+      "desktop byte-identity depends on the visual box staying frozen.",
+  ).toBeLessThan(44);
+  expect(
+    triggerBox!.hit.w >= 44 && triggerBox!.hit.h >= 44 && triggerBox!.bled,
+    "the Language trigger does not clear 44px through its bleed — the " +
+      "card-local max-md: bleed classes are gone or no longer render.",
+  ).toBe(true);
+
+  // --- Part 3: the listbox options inside the opened dropdown -------------
+  await trigger.tap();
+  const options = page.getByRole("option");
+  const optionBoxes = await hitBoxes(options);
+  expect(
+    optionBoxes.length,
+    "the language listbox rendered fewer than 2 options — the panel did not " +
+      "open (or the option role moved), so the option-floor assertion would " +
+      "run vacuously.",
+  ).toBeGreaterThanOrEqual(2);
+  const optionShortfalls = optionBoxes
+    .filter((box) => box.hit.h < 44 || box.hit.w < 44)
+    .map((box) => `${box.name}: hit ${box.hit.w}x${box.hit.h}`);
+  expect(
+    optionShortfalls,
+    "a language option falls under the 44px floor even with its bleed — " +
+      "the option rows carry the same card-local bleed as the trigger.",
+  ).toEqual([]);
+  await page.keyboard.press("Escape");
+  await expect(options).toHaveCount(0);
+
+  // --- Part 4: the Notify entry row — 44px on its own min-height ----------
+  //
+  // The entry row is the compliant control the battery proves needs NO fix:
+  // a plain boundingBox assertion (no bleed machinery) because its floor is
+  // the min-h-[2.75rem] class, not a pseudo-element.
+  await strip.getByRole("button", { name: "Notifications", exact: true }).tap();
+  const entryRow = page.getByRole("button", { name: "Notifications Never" });
+  await expect(entryRow).toBeVisible();
+  const rowBox = await entryRow.boundingBox();
+  expect(rowBox, "the Notify entry row produced no box").not.toBeNull();
+  expect(
+    rowBox!.height >= 44 && rowBox!.width >= 44,
+    `the Notify entry row measures ${rowBox!.width}x${rowBox!.height} — its ` +
+      "own min-height floor regressed (min-h-[2.75rem]).",
+  ).toBe(true);
 });
 
 for (const route of ["/settings"]) {
