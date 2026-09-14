@@ -397,7 +397,13 @@ Fresh-DB wipe runs as the webServer pre-command; `reuseExistingServer: false`; a
 | A3 | The guided-restore e2e can stage discover/settings/restore/runs routes at the Playwright route layer with acceptable fixture effort. The pattern is proven for VMs/flash/settings/runs domains; Recovery-specific discover staging is untried [ASSUMED] | Validation Architecture / Code Examples | Medium — executor may need more fixture work than a typical destination spec; choreography-over-outcomes assertion style mitigates |
 | A4 | Recommendation that the mobile block uses its own hue counter (or strictly-later nextHue calls) — the renumbering mechanism is code-verified, the fix is this research's recommendation, not a shipped pattern [ASSUMED] | Pitfall 1 | Low — a dom test assertion catches it immediately if ignored |
 
-## Open Questions
+## Open Questions (RESOLVED 2026-09-14)
+
+> All four resolved by the approved 08-UI-SPEC.md (2026-09-14) and locked into the phase plans:
+> 1. ForeignRestoreCard — desktop-only, stays inside the `max-md:hidden` wrapper with a why-comment + known-surface row in 08-UAT.md (08-01 Task 2 item 7; 08-05 checklist).
+> 2. RunDetailSheet restore entry — stays reveal-only; the stale SCRN-06/Phase 8 pointer is updated in the same commit the flow ships (08-03 Task 2).
+> 3. Optional verify beat — `checkDomain` per the RunDetailSheet precedent; `runDrill` remains the Settings drill surface (08-03 Task 1 item 4).
+> 4. UAT protocol — lives at `08-UAT.md` beside the phase artifacts (08-05).
 
 1. **Does the mobile flow include the ForeignRestoreCard ("restore from ANOTHER BombVault repo", Recovery.tsx:2599-2601)?**
    - What we know: it is part of the Recovery page but is a separate read-only-session card, not a numbered wizard step; D-02 says the mobile flow is 1:1 with "the desktop Recovery stepper's existing path" (the numbered steps); the SCRN-06/VERIFY-02 criteria never name foreign restore.

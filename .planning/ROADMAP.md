@@ -149,7 +149,26 @@ Plans:
   3. Every mobile string ships through the `t()` pipeline with 42-locale parity, and German and French pass narrow-viewport (320-360px) checks on the shell and key screens
   4. Every interactive control below the breakpoint is ≥44px and every hover-dependent affordance has a non-hover path; both themes are verified on mobile with four-status language carried by text labels (never color alone) and semantic tokens only — no hard-coded design-bible hex values
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 08-01-PLAN.md — Mobile guided-restore tracer: D-01 double gate + step chrome/gating in Recovery.tsx, steps 1/3/4/6 real, step-2 skip, step-5 empty branch, i18n pre-seed, tracer e2e + desktop-untouched battery
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 08-02-PLAN.md — Mobile config step: source picker, guard-chain narration, confirm-gated restore, skip path, configPhase restart narration
+- [ ] 08-04-PLAN.md — Carried D-06 review fixes: Settings 44px bleed, ActivityLog chip resolution, guard mobile-regions scope, touch-target e2e backstop
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 08-03-PLAN.md — Mobile review/restore step: ConfirmSheet-gated restores, optional checkDomain row, live progress + log, completion, RunDetailSheet stale-note update, narrow-viewport + 48rem landscape battery
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 08-05-PLAN.md — 08-UAT.md: real-device matrix with D-09 landscape math, BombVault-test redeploy runbook, inherited checklist (D-11 preparation, honest labeling)
+
 **UI hint**: yes
 
 ## Progress
@@ -165,4 +184,4 @@ Plans:
 | 5. Mobile Shell & Navigation Foundation | v1.1 | 6/6 | Complete    | 2026-09-12 |
 | 6. Maquette Screens | v1.1 | 7/7 | Complete    | 2026-09-12 |
 | 7. Remaining Destinations & Operational Parity | v1.1 | 8/8 | Complete    | 2026-09-14 |
-| 8. Guided Restore & Real-Device Verification | v1.1 | 0/TBD | Not started | - |
+| 8. Guided Restore & Real-Device Verification | v1.1 | 0/5 | Not started | - |
