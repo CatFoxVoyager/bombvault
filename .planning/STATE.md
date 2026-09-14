@@ -33,8 +33,8 @@ Phase: 8 (Guided Restore & Real-Device Verification) — EXECUTING
 Plan: 5 of 5
 Total Plans in Phase: 5
 Status: All 5 plans complete — awaiting orchestrator tail gate (full e2e once, D-10) and the D-11 device-session pause; VERIFY-02's device pass happens there, not in the plans
-Last activity: 2026-09-14 — 08-05 real-device UAT artifact complete
-Last Activity Description: Phase 8 execution complete — 08-UAT.md ready for the D-11 session
+Last activity: 2026-09-14 — Completed quick task 260914-j4p: Quickplan 1/3 review UI mobile — controles qui debordent sous 48rem (Selector equalWidth, ListToolbar chips, nav Settings, Language)
+Last Activity Description: UI-review fix lot 1/3 committed (P1-9, P1-2, P1-3, P2-10) — lots 2/3 and D-11 device session still pending
 
 ## Performance Metrics
 
@@ -210,6 +210,12 @@ None yet.
 - [Phase 7] Code review Info candidates routed to backlog v2: Flash Fab lacks the `!error` gate (IN-01); MobileZipSheet `loaded` gate is one-shot with no retry on a failed fetch (IN-02).
 - SCRN-05 per-file stats triade remains a recorded v2 data candidate (frozen-API substitutes shipped in its place).
 - Design bible reference: `design/mobile/README.md` + maquettes @0b64c7df (branch `mobile-design-concepts`).
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260914-j4p | Quickplan 1/3 review UI mobile: controles qui debordent sous 48rem (Selector equalWidth pin off mobile, ListToolbar chips wrap, Settings nav wrap, Language full-width) | 2026-09-14 | baa28f58 | [260914-j4p-quickplan-1-3-review-ui-mobile-controles](./quick/260914-j4p-quickplan-1-3-review-ui-mobile-controles/) |
 
 ## Deferred Items
 
