@@ -57,10 +57,27 @@ export function ListToolbar({
           className="h-11 w-full rounded-control bg-carbon-surface2 px-2 text-sm text-carbon-text glim-field-focus"
         />
         {children !== undefined && children !== null && (
-          /* Chips ride the existing filter primitives; horizontal overflow
-             scrolls INSIDE the row (never wrapping — a second row of chips
-             would eat the card list's first row on 320-360px phones). */
-          <div className="flex items-center gap-2 overflow-x-auto flex-nowrap">{children}</div>
+          /* Chips ride the existing filter primitives; the row scrolls
+             horizontally INSIDE the toolbar on desktop and WRAPS below md
+             (REVERSED — UI review lot 1, P1-2: on Containers at 390px, three
+             filter columns plus Sort measured 451px of chips inside 343px of
+             available column, so chips were clipped mid-word behind a native
+             scrollbar with no visual signifier that more content existed off
+             to the right). The old "never wrapping" ruling — a second row of
+             chips would eat the card list's first row on 320-360px phones —
+             is consciously traded away per the house "wraps, never scrolls"
+             rule (Selector.tsx's header): clipped, signaller-less overflow is
+             the worse failure, and a taller toolbar is the cheaper one. The
+             wrap is scoped to the mobile variant only; the base nowrap
+             utility stays so any hypothetical wide render is unchanged.
+             Consumers: Containers passes FilterControl + ChipFilter chips,
+             VMs passes ChipFilter chips, and Files passes no children at all,
+             so this row does not render there. The row growing taller is
+             accepted because the toolbar is sticky-in-flow, never
+             position:fixed — the phase 5 no-fixed contract is unaffected, and
+             an in-flow bar simply pushes the list down instead of covering
+             it. */
+          <div className="flex items-center gap-2 overflow-x-auto flex-nowrap max-md:flex-wrap">{children}</div>
         )}
       </div>
     </div>
