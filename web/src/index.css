@@ -2442,6 +2442,24 @@ body {
   100% { left: var(--glim-indet-to); }
 }
 
+/* A band of light travelling along a bar that is FILLING, as opposed to the
+   band above, which travels along a bar that does not know how far it is. Two
+   different sentences: "something is happening" and "this is moving".
+
+   It rides on the fill's own ::after rather than a second element, so the
+   markup does not change shape and no call site can forget to remove it. The
+   travel is in percent of the FILL, so a bar at 5% gets a short quick sweep and
+   one at 90% a long one - the sweep says how much ground there is, which is the
+   one thing a plain coloured rectangle cannot say.
+
+   RTL flips it by swapping the two ends, exactly like the band above. */
+:root { --glim-sheen-from: -60%; --glim-sheen-to: 160%; }
+[dir="rtl"] { --glim-sheen-from: 160%; --glim-sheen-to: -60%; }
+@keyframes glim-sheen {
+  0%   { transform: translateX(var(--glim-sheen-from)); }
+  100% { transform: translateX(var(--glim-sheen-to)); }
+}
+
 /* ---------------------------------------------------------------------------
    Motion — tasteful, Carbon-clean micro-interactions + the logo easter egg.
    All energetic motion lives under (prefers-reduced-motion: no-preference);
@@ -2506,7 +2524,20 @@ body {
      the keyframe reads and the curve it reads it through. */
   --motion-page-dist: 18px;              /* .glim-page-enter's translateY distance */
   --motion-page-scale: .96;
+  /* THE TILT, and it is how far this engine is allowed to answer "can the
+     animations be wilder": the same keyframe reading a bigger number, never a
+     second animation. A page that only slides up reads as a panel being
+     swapped; one that arrives slightly off-axis reads as something arriving.
+     Under a degree it is invisible and over four it is a gimmick that makes
+     the text shimmer as it lands, so the lively default sits at 1.2 and the
+     storm at 3. The quiet levels set 0 rather than omitting it: a rotation is
+     the first thing somebody who asked for less motion would notice. */
+  --motion-page-tilt: 1.2deg;
   --motion-page-dur: 320ms;
+  /* How long one pass of light takes along a filling bar. Shorter reads as
+     faster work, which is why it is a motion token rather than a constant: the
+     bar already says how far, and this says how busy. */
+  --motion-sheen-dur: 1500ms;
   /* A curve that overshoots and settles. The control point past 1 is what
      makes it spring rather than ease. */
   --motion-page-ease: cubic-bezier(.34, 1.56, .64, 1);
@@ -2603,6 +2634,8 @@ body {
      springs harder arrives at exactly the size wild does. GlimStone names .9
      for this level. */
   --motion-page-scale: .9;
+  --motion-page-tilt: 3deg;
+  --motion-sheen-dur: 900ms;
   --motion-page-dur: 620ms;
   --motion-page-ease: cubic-bezier(.22, 1.94, .45, 1);
 
@@ -2648,7 +2681,9 @@ body {
      for less movement asked for less movement, not for a faster bounce. */
   --motion-page-dist: 6px;
   --motion-page-scale: 1;
+  --motion-page-tilt: 0deg;
   --motion-page-dur: 180ms;
+  --motion-sheen-dur: 2400ms;
   --motion-page-ease: cubic-bezier(.2, .6, .2, 1);
 
   --motion-toast-slide-scale: .5;
@@ -2710,7 +2745,13 @@ body {
      (reduce) block already uses for the same reason. */
   --motion-page-dist: 0px;
   --motion-page-scale: 1;
+  --motion-page-tilt: 0deg;
   --motion-page-dur: 200ms;
+  /* Named rather than omitted, even though the rule further down takes the
+     band away entirely at this level: a dial every level answers is a dial
+     nobody has to go looking for, and the guard reads the block, not the
+     rule. */
+  --motion-sheen-dur: 0ms;
   --motion-page-ease: linear;
 
   --motion-toast-slide-scale: 0;
@@ -2843,7 +2884,10 @@ body {
 @keyframes glim-page-in {
   from {
     opacity: 0;
-    transform: translateY(var(--motion-page-dist, 8px)) scale(var(--motion-page-scale, 1));
+    transform:
+      translateY(var(--motion-page-dist, 8px))
+      scale(var(--motion-page-scale, 1))
+      rotate(var(--motion-page-tilt, 0deg));
   }
   /* End at `none`, not translateY(0): animation-fill-mode:both keeps the final
      keyframe, and any transform other than none makes .glim-page-enter a
@@ -3147,6 +3191,27 @@ body {
 .glim-modal-backdrop { background-color: var(--glim-scrim); }
 
 @media (prefers-reduced-motion: no-preference) {
+  /* The travelling light on a bar that is filling. `overflow: hidden` on the
+     fill keeps the band inside it, so the effect stops exactly at the edge the
+     number claims - a sweep running past the fill would be a bar lying about
+     its own progress.
+
+     THE QUIET LEVEL NAMES ITSELF, as everywhere else in this file: "off" takes
+     the band away entirely rather than slowing it to a crawl, because a light
+     sliding along a bar is exactly the decoration somebody switching motion
+     off is switching off. */
+  .glim-progress-fill { position: relative; overflow: hidden; }
+  .glim-progress-fill::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 45%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .38), transparent);
+    animation: glim-sheen var(--motion-sheen-dur, 1500ms) linear infinite;
+  }
+  :root[data-motion="off"] .glim-progress-fill::after { animation: none; opacity: 0; }
+
   /* Gentle sway on hover, only while the logo is idle (not mid-egg). */
   .glim-logo-btn:hover .glim-logo-idle { animation: glim-logo-sway 2.4s ease-in-out infinite; }
 
