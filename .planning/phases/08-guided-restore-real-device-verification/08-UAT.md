@@ -291,6 +291,19 @@ before step 2 is load-bearing.
 
 ## Session record (filled after the device session)
 
+**VERIFY-02 verdict (2026-09-15): PASS on the Android device — with the iPhone
+limitation explicitly assumed.** The operator dispositioned the unexecuted iPhone
+cells 1–4 as covered-by-Android: one real device exercised portrait AND landscape,
+the full 48rem derivation, safe-area, keyboard, themes, the complete guided restore
+(Procedure R, the milestone exit criterion), the visibility probe, and the whole
+inherited checklist. The iPhone-specific surfaces that remain unexercised (Safari
+WebKit rendering, iOS safe-area values, SE-class 375/667 px) are recorded here as an
+honest limitation of this session, not as a pass; a future iPhone pass can extend
+this file without reopening the milestone. No gap items filed from the device
+session; all device-reported issues were fixed and re-verified on device
+(260914-nsv, 260914-p9a, 260914-ugv — deploys `mobilefix-0aa38372`,
+`mobilefix-877600d5`, `mobilefix-2b08030b`).
+
 After the session: update the Status line at the top of this file (DRAFT → session
 held), fill every empty cell, and file any Notes-flagged failure as a gap item naming
 its cell/row of origin. VERIFY-02's verdict is whatever this file records AFTER the
