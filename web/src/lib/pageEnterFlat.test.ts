@@ -1,32 +1,33 @@
 // ---------------------------------------------------------------------------
 // The page entrance translates. It does not scale and it does not rotate.
 //
-// #228, and the second attempt at it. The first moved the DEFAULT from wild to
-// subtle, which meant a first-time visitor no longer met the bug - and left it
-// exactly where it was for anybody who chose wild, including the reporter,
-// whose stored choice a changed default never reaches. "Fixed by making it the
-// non-default" is mitigation; this file is the fix.
+// WHAT THIS FILE GUARDS, and what it does NOT claim.
 //
-// WHAT THE BUG ACTUALLY IS. `.glim-page-enter` sits on the route wrapper and
-// animated `translateY() scale() rotate()`. The cards and rows inside it
-// animate transforms of their own (`.glim-stagger-row`, `.glim-pulse`). A
-// scale or a rotation on an ancestor cannot be composited independently of its
-// subtree the way a translation can: the engine has to resample everything
-// underneath through the parent's matrix, so every animating descendant gets
-// its own layer inside a parent that is itself being resampled. On
-// Firefox/macOS the hued badges came out of uninitialised layer memory as
-// #38FF38, which is the green flash; Chromium got the colour right and showed
-// the same double resampling as the page trembling before it settled. Two
-// engines, two symptoms, one cause.
+// It guards an invariant: the page entrance translates, and does not scale or
+// rotate. That is worth holding on its own terms - a flatter entrance at the
+// top of the range, and one spatial dial instead of three.
 //
-// SO THE ENERGY MOVES INTO THE AXES THAT DO NOT NEST. Distance, duration and
-// curve already separate the levels: wild travels 18px against subtle's 6px,
-// for longer, on a spring that overshoots. That is a visibly livelier entrance
-// without asking the compositor to resample the page.
+// It is NOT a fix for #228, and this header said it was. The story was that a
+// scale or rotation on an ancestor forces the engine to resample the subtree
+// through the parent's matrix, that every animating descendant then holds a
+// layer inside a parent being resampled, and that the hued badges came out of
+// uninitialised layer memory as #38FF38. Removing both shipped as v8.10.1 with
+// the words "fixed at the cause". The reporter re-tested: wild is unchanged.
 //
-// The storm is included, and it is the one that most needed it: 3deg and .9
-// were the largest values in the file, and since the OS exemption it is also
-// the only level that animates for somebody who asked for less motion.
+// The mechanism is unconfirmed and the arithmetic argues against that version
+// of it. #38FF38 is rgb(56, 255, 56): R and B exactly equal, G clipped, which
+// is the shape of one wrong byte rather than of uninitialised memory. 56 sits
+// inside this app's dark-neutral band (38/53/57), the badge fill is
+// rgba(hue, 0.14) over one of those, and 0.86*38 + 0.14*G = 255 has no
+// solution - so that box is painted wrong rather than computed wrong. Whether
+// it happens in the page or in the compositor cannot be decided from source.
+//
+// What IS established: the trigger is inside this wrapper's subtree (the
+// sidebar is its sibling and never flashed), motion "off" stops it, and it
+// depends on intensity. What remains in the file: four transform animations
+// across two nesting levels, all on an overshoot curve.
+//
+// Keep the invariant. Do not let the next reader take the mechanism as settled.
 //
 // Node environment: this reads the stylesheet, it does not render.
 // ---------------------------------------------------------------------------

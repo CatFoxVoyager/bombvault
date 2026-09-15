@@ -2936,25 +2936,32 @@ body {
   to   { opacity: 1; transform: none; }
 }
 
-/* A TRANSLATION ONLY, and the scale and the tilt that used to be here are the
-   whole of #228.
-   A translation on an ancestor can be composited independently of its subtree.
-   A scale or a rotation cannot: the engine has to resample everything
-   underneath through the parent's matrix, so every descendant that is itself
-   animating - the staggered rows, a pulse - gets its own layer inside a parent
-   that is being resampled around it. On Firefox/macOS the hued badges then
-   came out of uninitialised layer memory as #38FF38, which is the green flash
-   in the report; Chromium got the colour right and showed the same double
-   resampling as the page trembling before it settled. Two engines, two
-   symptoms, one cause.
-   The first pass at #228 moved the DEFAULT down to subtle, where the scale is
-   1 and the tilt 0. That kept a first-time visitor away from it and left it
-   untouched for anybody who CHOSE wild - including the reporter, because a
-   changed default never reaches a stored choice. So the cause goes instead.
-   The levels stay as far apart as they were: distance, duration and curve do
-   that work already (18px against 6px, longer, on a spring that overshoots),
-   and none of the three asks the compositor to resample a page. Same reasoning
-   glim-card-in above has carried from the start, one level up. */
+/* A TRANSLATION ONLY. The scale and the tilt that used to sit here are gone,
+   and #228 is NOT fixed.
+   WHAT IS KNOWN. A reporter on Firefox/macOS 26 sees the hued badges flash a
+   flat #38FF38 on every page change, ~160ms, no intermediate frames, the badge
+   TEXT correct and the sidebar in the same frame correct. On Chromium there is
+   no green, but the page trembles before it settles. Setting motion to "off"
+   stops both. The trigger is therefore inside this wrapper's subtree, since the
+   sidebar is its sibling and never flashed, and it depends on intensity.
+   WHAT IS NOT KNOWN, and was asserted here as fact for one release: WHY. The
+   story was that a scale or rotation on an ancestor makes the engine resample
+   the subtree through the parent matrix, and that the badges then came out of
+   uninitialised layer memory. Removing both shipped as v8.10.1 with the words
+   "fixed at the cause", and the reporter re-tested: wild is unchanged. The
+   arithmetic argues against that story too. #38FF38 is rgb(56, 255, 56), with
+   R and B exactly equal and G clipped - the shape of one wrong byte rather than
+   of garbage - and 56 sits inside this app's own dark-neutral band (38/53/57).
+   The fill is rgba(hue, 0.14) over one of those, and 0.86*38 + 0.14*G = 255 has
+   no solution, so the value is not computed and then corrupted in flight; that
+   one box is simply painted wrong. Page or compositor cannot be decided from
+   source.
+   SO THIS COMMENT CLAIMS NOTHING. The translation stays because a flatter
+   entrance is defensible on its own terms, not because it is a repair. The
+   levels stay apart on distance, duration and curve (18px against 6px, longer,
+   on a spring that overshoots). Whoever picks this up next: nested transform
+   animations still exist here, four of them across two levels, all on an
+   overshoot curve - see the issue for the table. */
 @keyframes glim-page-in {
   from {
     opacity: 0;

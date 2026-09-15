@@ -104,14 +104,20 @@ const STORAGE_KEY = "bv-motion";
  *   - This WAS "wild", on the reasoning that motion intensity only ever makes
  *     already-shipped animations quicker/smaller/absent, so booting at the
  *     top meant nobody's experience changed just because the toggle appeared.
- *     #228 is what that argument missed: "wild" does not only make the old
- *     animations bigger, it tilts the whole route wrapper 1.2deg and scales
- *     it to .96 on every page change, while the cards inside stagger in on
- *     their own transforms. A reporter on Firefox/macOS read the result as
- *     the page trembling before it settled, with a green flash on top —
- *     nested transforms each get their own compositing layer, and on that
- *     engine the hued cards flashed #38FF38 out of uninitialised layer
- *     memory. Nobody had asked for that; it was just what shipped.
+ *     #228 is what that argument missed: at "wild" the whole route wrapper
+ *     animates on every page change while the cards inside stagger in on
+ *     their own transforms, and a reporter on Firefox/macOS 26 sees the hued
+ *     badges flash flat green while Chromium shows the page trembling before
+ *     it settles. Motion "off" stops both. Nobody had asked for that; it was
+ *     just what shipped, which is reason enough not to ship it by default.
+ *     WHY it happens is still unknown, and this comment used to say otherwise:
+ *     it named nested transforms and uninitialised layer memory as the
+ *     mechanism, v8.10.1 removed the scale and the tilt on that basis, and the
+ *     reporter re-tested with no change. Treat the flash as an observed
+ *     symptom whose mechanism is unconfirmed. Moving the default was defensible
+ *     on its own terms - the top of the range had stopped being polish - and
+ *     it was never a repair, because a changed default cannot reach a value
+ *     somebody already stored.
  *   - "subtle" over "off" because the axis is still additive polish a user
  *     dials rather than a compatibility fallback to opt into: "subtle" keeps
  *     the entrance (6px, no tilt, no scale), it only stops the app from
