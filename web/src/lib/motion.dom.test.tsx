@@ -7,11 +7,19 @@
 // `// @vitest-environment jsdom` docblock).
 //
 // Covers the full round-trip: applyMotionIntensity's validate-or-default-to-
-// "wild" contract, getMotionIntensity's read-back of a stored value (falling
-// back to "wild" on nothing-stored/corrupt/invalid), and
+// "subtle" contract, getMotionIntensity's read-back of a stored value
+// (falling back to "subtle" on nothing-stored/corrupt/invalid), and
 // setMotionIntensity's persist-then-apply behavior — the identical shape of
 // coverage shape.dom.test.tsx already has for its own sibling appearance
 // setting.
+//
+// The default moved from "wild" to "subtle" (#228). "wild" tilts the whole
+// route wrapper 1.2deg, scales it to .96 and travels 18px while the cards
+// inside stagger in on their own, and a reporter on Firefox/macOS read that
+// as the page trembling before it settled — with a green flash on top, since
+// the nested transforms each get their own compositing layer. Nobody had
+// chosen that: it was simply what shipped. "wild" stays one of the three
+// offered levels, it just is not the one you get without asking.
 // ---------------------------------------------------------------------------
 import { beforeEach, describe, expect, it } from "vitest";
 import {
@@ -47,20 +55,20 @@ describe("applyMotionIntensity", () => {
     expect(document.documentElement.getAttribute("data-motion")).toBe("wild");
   });
 
-  it('defaults to "wild" for undefined', () => {
+  it('defaults to "subtle" for undefined', () => {
     applyMotionIntensity(undefined);
-    expect(document.documentElement.getAttribute("data-motion")).toBe("wild");
+    expect(document.documentElement.getAttribute("data-motion")).toBe("subtle");
   });
 
-  it('defaults to "wild" for an invalid/unknown string', () => {
+  it('defaults to "subtle" for an invalid/unknown string', () => {
     applyMotionIntensity("turbo");
-    expect(document.documentElement.getAttribute("data-motion")).toBe("wild");
+    expect(document.documentElement.getAttribute("data-motion")).toBe("subtle");
   });
 });
 
 describe("getMotionIntensity", () => {
-  it('defaults to "wild" when nothing is stored', () => {
-    expect(getMotionIntensity()).toBe("wild");
+  it('defaults to "subtle" when nothing is stored', () => {
+    expect(getMotionIntensity()).toBe("subtle");
   });
 
   it("round-trips a validly stored intensity", () => {
@@ -68,22 +76,37 @@ describe("getMotionIntensity", () => {
     expect(getMotionIntensity()).toBe("subtle");
   });
 
-  it('falls back to "wild" for a corrupt/invalid stored value', () => {
+  it('falls back to "subtle" for a corrupt/invalid stored value', () => {
     localStorage.setItem(STORAGE_KEY, "not-a-motion-level");
-    expect(getMotionIntensity()).toBe("wild");
+    expect(getMotionIntensity()).toBe("subtle");
   });
 
-  // WHY THERE IS NO MIGRATION for the old spelling, pinned rather than
-  // asserted in a comment. "full" was this level's name before GSS 2.0.0 and
-  // is now simply not one of the four, so a value stored by an older visit
-  // fails validation and takes the default - and the default IS this same
-  // level under its new name. The fallback path and a migration path would
-  // land on the identical value, so the migration would be a no-op.
-  it('reads a pre-2.0.0 stored "full" back as "wild", so no migration is needed', () => {
+  // WHY THE MIGRATION EXISTS NOW, and why it did not before. "full" was this
+  // level's name before GSS 2.0.0 and is not one of the four, so a value
+  // stored by an older visit fails validation and takes the default. While
+  // the default WAS "wild", that landed on the same level under its new
+  // name and a migration would have been a no-op - which is exactly what
+  // the comment here used to say.
+  //
+  // Moving the default to "subtle" (#228) broke that coincidence. Without a
+  // migration, somebody who had deliberately picked the strong level before
+  // 2.0.0 would silently be moved down to a weaker one, and "we changed the
+  // default" would have quietly become "we changed your choice". The two are
+  // different promises, and only the first one was made.
+  it('migrates a pre-2.0.0 stored "full" to "wild" rather than dropping it to the default', () => {
     localStorage.setItem(STORAGE_KEY, "full");
     expect(getMotionIntensity()).toBe("wild");
-    applyMotionIntensity(localStorage.getItem(STORAGE_KEY) ?? undefined);
+    applyMotionIntensity(getMotionIntensity());
     expect(document.documentElement.getAttribute("data-motion")).toBe("wild");
+  });
+
+  // The migration reads, it does not rewrite: getMotionIntensity is called on
+  // every boot and a setter that writes from a getter turns one stale key into
+  // a write on every page load. setMotionIntensity is what persists.
+  it("leaves the stored string alone while migrating it on read", () => {
+    localStorage.setItem(STORAGE_KEY, "full");
+    getMotionIntensity();
+    expect(localStorage.getItem(STORAGE_KEY)).toBe("full");
   });
 });
 

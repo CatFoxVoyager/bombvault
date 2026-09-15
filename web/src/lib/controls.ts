@@ -73,8 +73,14 @@ const ATTRIBUTE: Record<ControlAxis, string> = {
 /**
  * DEFAULT is "textGlyph" for every axis: that is what the app looks like today
  * (buttons with a label, sidebar rows with icon plus text, tabs with text),
- * so nobody's interface changes merely because the setting now exists. Same
- * reasoning motion.ts gives for defaulting to "wild".
+ * so nobody's interface changes merely because the setting now exists.
+ *
+ * motion.ts started from that same "boot at the status quo" reasoning and has
+ * since moved away from it (#228): its top level does more than enlarge the
+ * old animations, it tilts and scales the whole page, so shipping it by
+ * default handed people something they had not asked for. The argument still
+ * holds here, because these three axes only ever hide a label or an icon —
+ * nothing moves, so there is no equivalent of that surprise.
  */
 const DEFAULT: LabelMode = "textGlyph";
 

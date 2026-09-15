@@ -86,7 +86,7 @@ export function stormTap(
 const STORAGE_KEY = "bv-motion";
 
 /**
- * DEFAULT is "wild", not shape.ts's kind of arbitrary-but-fixed pick and not
+ * DEFAULT is "subtle", not shape.ts's kind of arbitrary-but-fixed pick and not
  * theme.ts's "system" either — deliberately chosen, not just copied:
  *   - "system" (mirroring theme.ts) would be redundant here specifically,
  *     not wrong in general: prefers-reduced-motion is ALREADY read
@@ -95,17 +95,33 @@ const STORAGE_KEY = "bv-motion";
  *     just re-derive a signal the app already honours everywhere, for a
  *     control whose entire reason to exist is letting a user without OS-
  *     level reduced-motion still dial intensity as a STYLE preference.
- *   - "wild" over "off"/"subtle" because this axis is additive polish a
- *     user dials DOWN, not a compatibility fallback a user has to opt INTO
- *     — the same reasoning rainbow mode's own default (RAINBOW_OFF, an
- *     opt-in) does NOT apply here: rainbow changes what a list looks like
- *     (a real visual identity choice with no obviously-correct default),
- *     while motion intensity only ever makes existing, already-shipped
- *     animations quicker/smaller/absent — "wild" is simply what this app
- *     already looked like before this axis existed, so booting there means
- *     nobody's experience changes just because the toggle now exists.
+ *   - This WAS "wild", on the reasoning that motion intensity only ever makes
+ *     already-shipped animations quicker/smaller/absent, so booting at the
+ *     top meant nobody's experience changed just because the toggle appeared.
+ *     #228 is what that argument missed: "wild" does not only make the old
+ *     animations bigger, it tilts the whole route wrapper 1.2deg and scales
+ *     it to .96 on every page change, while the cards inside stagger in on
+ *     their own transforms. A reporter on Firefox/macOS read the result as
+ *     the page trembling before it settled, with a green flash on top —
+ *     nested transforms each get their own compositing layer, and on that
+ *     engine the hued cards flashed #38FF38 out of uninitialised layer
+ *     memory. Nobody had asked for that; it was just what shipped.
+ *   - "subtle" over "off" because the axis is still additive polish a user
+ *     dials rather than a compatibility fallback to opt into: "subtle" keeps
+ *     the entrance (6px, no tilt, no scale), it only stops the app from
+ *     moving in ways a first-time visitor has to go and switch off.
+ *     "wild" remains one of the three offered levels for anyone who wants it.
  */
-const DEFAULT: MotionIntensity = "wild";
+const DEFAULT: MotionIntensity = "subtle";
+
+/* The pre-2.0.0 spelling of "wild". While DEFAULT was "wild" this needed no
+   handling: an unrecognised "full" failed validation and fell to a default
+   that happened to be the very same level, so a migration would have been a
+   no-op (the old comment in motion.dom.test.tsx said exactly that). Moving
+   DEFAULT to "subtle" ends that coincidence, and without this line somebody
+   who deliberately chose the strong level before 2.0.0 would quietly be moved
+   down — turning "we changed the default" into "we changed your choice". */
+const LEGACY_ALIASES: Readonly<Record<string, MotionIntensity>> = { full: "wild" };
 
 /* ALL_INTENSITIES, not MOTION_INTENSITIES. A stored "storm" is accepted even
    though no picker offers it, or the gesture above would have produced a
@@ -115,10 +131,19 @@ function isMotionIntensity(v: unknown): v is MotionIntensity {
   return typeof v === "string" && (ALL_INTENSITIES as string[]).includes(v);
 }
 
-/** The stored preference, defaulting to "wild" when unset or corrupt. */
+/**
+ * The stored preference, defaulting to "subtle" when unset or corrupt, and
+ * translating a legacy spelling to the level it used to name.
+ *
+ * Reads, never writes: this runs on every boot, and persisting from a getter
+ * would turn one stale key into a write on every page load. setMotionIntensity
+ * is what stores; the old string simply keeps resolving correctly until then.
+ */
 export function getMotionIntensity(): MotionIntensity {
   const stored = localStorage.getItem(STORAGE_KEY);
-  return isMotionIntensity(stored) ? stored : DEFAULT;
+  if (isMotionIntensity(stored)) return stored;
+  if (stored !== null && stored in LEGACY_ALIASES) return LEGACY_ALIASES[stored];
+  return DEFAULT;
 }
 
 /**
