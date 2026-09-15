@@ -1,3 +1,8 @@
+---
+status: complete
+closed: 2026-09-15
+---
+
 # Phase 8 — Real-Device UAT (VERIFY-02 / D-11)
 
 **Status:** SESSION CLOSED (2026-09-14/15, Android device, builds `mobilefix-877600d5` →
