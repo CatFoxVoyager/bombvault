@@ -1,11 +1,12 @@
 # Phase 8 — Real-Device UAT (VERIFY-02 / D-11)
 
-**Status:** SESSION HELD (2026-09-14/15, Android device, builds `mobilefix-877600d5` →
+**Status:** SESSION CLOSED (2026-09-14/15, Android device, builds `mobilefix-877600d5` →
 `mobilefix-2b08030b`) — Android complete: cells 5+6 PASS (full portrait procedure,
 landscape derivation respected), Procedure R PASS (milestone exit criterion exercised
 on device), visibility probe PASS, inherited checklist 1–6 closed, sub-floor surfaces
 confirmed usable, both themes clean. iPhone cells 1–4 NOT EXECUTED (no iPhone hardware
-this session) — open for the operator's disposition at milestone close.
+this session) — dispositioned by the operator 2026-09-15: Android-only suffices;
+VERIFY-02 verdict PASS (see verdict paragraph below, commit 09de4f77).
 **Prepared:** 2026-09-14 by plan 08-05 (artifact-only plan — no code shipped)
 **Session timing:** AFTER the phase-8 automated plans land: the orchestrator runs the
 phase tail gate (full e2e suite once, D-10) with `execute-phase --no-transition`, and

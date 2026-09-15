@@ -1,21 +1,22 @@
 ---
 phase: 08-guided-restore-real-device-verification
 verified: 2026-09-14T16:38:00Z
-status: human_needed
-score: 3/5 must-haves fully verified (2 designed-pending the D-11 device session — by design, not gaps)
+status: passed
+score: 5/5 must-haves fully verified (D-11 device session closed the last two — see Post-Verification Update below)
 behavior_unverified: 0
 overrides_applied: 0
 human_verification:
   - test: "Execute the 08-UAT.md device session (D-11): six-cell matrix + inherited checklist on real hardware after the orchestrator tail gate"
     expected: "Every shell verdict derived from the single 48rem authority (notched landscape 844px desktop chrome = PASS); Procedure R (guided restore end-to-end) completes in every cell; WR-01 multi-row chip-hide and WR-02 Files save-bar-under-search behave as specified; UI-review fix 1 (Settings 44px bleed) comfortable at thumb pace; both themes readable on every surface; four-status badges carry text labels in both themes; sub-floor families (Selector tabs, ColorPickerSwatch, native selects) remain usable or file as v2 gap naming the cell"
     why_human: "No real hardware in the harness; Playwright documents no real-Safari emulation fidelity (08-UAT.md honest-labeling section). This is the designed D-11 milestone exit criterion, orchestrator-owned — producing 08-UAT.md does not satisfy it"
+    result: "EXECUTED 2026-09-15 — PASS. D-11 session on Android device (builds mobilefix-877600d5 → mobilefix-2b08030b): matrix cells 5+6 FULL CELL PASS, Procedure R PASS (milestone exit criterion), visibility probe PASS, inherited checklist 1–6 closed, WR-01/WR-02 as specified, both themes clean, four-status badges carry text labels, sub-floor surfaces confirmed usable. iPhone cells 1–4 dispositioned by the operator: Android-only suffices (VERIFY-02 verdict in 08-UAT.md, 09de4f77)."
 ---
 
 # Phase 8: Guided Restore & Real-Device Verification — Verification Report
 
 **Phase Goal:** The milestone's exit criteria are met — the guided restore flow runs end-to-end from a phone on proven primitives, and the whole mobile app passes the real-device, i18n, touch-target, and theme verification sweep on both platforms.
 **Verified:** 2026-09-14T16:38:00Z
-**Status:** human_needed — automated halves verified; the D-11 real-device session is the designed outstanding human checkpoint
+**Status:** passed — automated halves verified at initial report; the D-11 real-device session ran 2026-09-15 and passed (Post-Verification Update below; disposition iPhone consignée dans 08-UAT.md)
 **Re-verification:** No — initial verification
 
 ## Goal Achievement
