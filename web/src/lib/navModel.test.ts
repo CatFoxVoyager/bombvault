@@ -15,9 +15,12 @@ import type { Settings } from "./api";
 import { en } from "./i18n";
 import { barDestinations, destinations, moreDestinations } from "./navModel";
 
-// Only the six domain gates destinations() reads; every other Settings field
+// Only the domain gates destinations() reads; every other Settings field
 // is unused by the registry. `as Settings` matches this repo's own established
 // partial-fixture convention (Sidebar.tabColor.dom.test.tsx's `allOn` stub).
+// Upstream's resync collapsed the old /receiver + /fleet rows into ONE
+// /instances row gated by ANY of its three settings — receiver, fleet and
+// pull remain three gates, they now flip the same entry's `enabled`.
 const ALL_OFF = {
   vmsEnabled: false,
   flashEnabled: false,
@@ -25,6 +28,7 @@ const ALL_OFF = {
   configEnabled: false,
   receiverEnabled: false,
   fleetEnabled: false,
+  pullEnabled: false,
 } as Settings;
 
 const ALL_ON = {
@@ -35,10 +39,12 @@ const ALL_ON = {
   configEnabled: true,
   receiverEnabled: true,
   fleetEnabled: true,
+  pullEnabled: true,
 } as Settings;
 
-// The documented desktop Sidebar order — the order the extracted JSX used to
-// evaluate in (dashboard, recovery, containers, the six gated tabs, settings).
+// The documented desktop Sidebar order — dashboard, recovery, containers, the
+// gated tabs (instances last of them, gated by ANY of receiver/fleet/pull),
+// settings.
 const SIDEBAR_ORDER = [
   "/dashboard",
   "/recovery",
@@ -47,8 +53,7 @@ const SIDEBAR_ORDER = [
   "/flash",
   "/files",
   "/config",
-  "/receiver",
-  "/fleet",
+  "/instances",
   "/settings",
 ];
 
@@ -60,7 +65,7 @@ describe("destinations — the ONE ordered registry", () => {
     expect(destinations(ALL_ON)).toHaveLength(SIDEBAR_ORDER.length);
   });
 
-  it("returns the FULL ten-entry list in desktop Sidebar order, all enabled with every gate on", () => {
+  it("returns the FULL nine-entry list in desktop Sidebar order, all enabled with every gate on", () => {
     const dests = destinations(ALL_ON);
     expect(dests.map((d) => d.to)).toEqual(SIDEBAR_ORDER);
     expect(dests.every((d) => d.enabled)).toBe(true);
@@ -73,7 +78,7 @@ describe("destinations — the ONE ordered registry", () => {
 
   it("gates never pre-filter: with every domain off the full list still comes back, only `enabled` shrunken", () => {
     // Sidebar's nextHue() render counter consumes the FULL list and skips
-    // disabled entries itself, so the registry must always hand out all ten.
+    // disabled entries itself, so the registry must always hand out all nine.
     const dests = destinations(ALL_OFF);
     expect(dests.map((d) => d.to)).toEqual(SIDEBAR_ORDER);
     expect(dests.filter((d) => d.enabled).map((d) => d.to)).toEqual([
@@ -94,9 +99,13 @@ describe("destinations — the ONE ordered registry", () => {
     ]);
   });
 
-  it("every labelKey is a real nav.* key in the en table (labels are reused verbatim, never re-typed)", () => {
+  it("every labelKey is a real key in the en table (labels are reused verbatim, never re-typed)", () => {
+    // No namespace assertion any more: upstream's resync named the merged
+    // receiver/fleet/pull row with `instances.title` (its own page's key,
+    // outside the nav.* namespace). The contract that matters — the label is
+    // an EXISTING table key, never a re-typed string — is the lookup below,
+    // and the TranslationKey union already makes a bogus key a compile error.
     for (const d of destinations(ALL_ON)) {
-      expect(d.labelKey).toMatch(/^nav\./);
       expect(
         en[d.labelKey],
         `${d.to} carries labelKey "${d.labelKey}" which the en table does not define`
@@ -110,13 +119,17 @@ describe("destinations — the ONE ordered registry", () => {
 // This is what lets Sidebar's hue counter stay byte-identical across a gate
 // flip for every tab the flip does not touch.
 describe("destinations — each gate flips exactly its own entry", () => {
+  // All three instances gates flip the SAME /instances row (the row appears
+  // as soon as ANY of receiver/fleet/pull is on) — so each gate's flip must
+  // light up /instances and touch nothing else.
   const GATES = [
     ["vmsEnabled", "/vms"],
     ["flashEnabled", "/flash"],
     ["filesEnabled", "/files"],
     ["configEnabled", "/config"],
-    ["receiverEnabled", "/receiver"],
-    ["fleetEnabled", "/fleet"],
+    ["receiverEnabled", "/instances"],
+    ["fleetEnabled", "/instances"],
+    ["pullEnabled", "/instances"],
   ] as const;
 
   it.each(GATES)("%s toggles only %s", (field, route) => {
@@ -139,13 +152,14 @@ describe("destinations — each gate flips exactly its own entry", () => {
   it("bar and More derivations keep their relative order across a gate flip (filters of the ONE list)", () => {
     const beforeBar = barDestinations(ALL_OFF).map((d) => d.to);
     const afterBar = barDestinations({ ...ALL_OFF, fleetEnabled: true }).map((d) => d.to);
-    expect(afterBar).toEqual(beforeBar); // fleet is not a bar destination
+    expect(afterBar).toEqual(beforeBar); // instances is not a bar destination
     const beforeMore = moreDestinations(ALL_OFF).map((d) => d.to);
     const afterMore = moreDestinations({ ...ALL_OFF, fleetEnabled: true }).map((d) => d.to);
-    // The entries that existed before keep their exact relative order; fleet
-    // joins at its registry position (after Recovery, before nothing else).
+    // The entries that existed before keep their exact relative order; the
+    // instances row joins at its registry position (after Recovery, before
+    // nothing else).
     expect(afterMore.filter((r) => beforeMore.includes(r))).toEqual(beforeMore);
-    expect(afterMore).toEqual(["/recovery", "/fleet"]);
+    expect(afterMore).toEqual(["/recovery", "/instances"]);
   });
 });
 
@@ -173,7 +187,7 @@ describe("barDestinations — the bottom bar's slot list (SHELL-02)", () => {
 describe("moreDestinations — the More sheet's list (SHELL-03)", () => {
   it("Recovery-first sidebar order at full config, excluding every bar destination", () => {
     const more = moreDestinations(ALL_ON);
-    expect(more.map((d) => d.to)).toEqual(["/recovery", "/vms", "/flash", "/config", "/receiver", "/fleet"]);
+    expect(more.map((d) => d.to)).toEqual(["/recovery", "/vms", "/flash", "/config", "/instances"]);
     for (const bar of BAR_ROUTES) {
       expect(more.find((d) => d.to === bar), `${bar} must never appear in More`).toBeUndefined();
     }

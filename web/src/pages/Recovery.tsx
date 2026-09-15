@@ -2241,6 +2241,13 @@ export default function Recovery() {
                   )}
 
                   <div className="flex flex-wrap items-center gap-3 pt-1">
+                    <Button
+                      label={t("recovery.configSkip")}
+                      labelKey="recovery.configSkip"
+                      tone="neutral"
+                      onClick={() => setConfigSkipped(true)}
+                      disabled={configPhase === "saving" || configPhase === "restarting"}
+                    />
                     {/* jdp live-review: "Card 2: Button 'BV Einstellungen
                         wiederherstellen' soll nur 'Wiederherstellen' heissen."
                         Safe because this card's OWN heading already names the
@@ -2255,6 +2262,10 @@ export default function Recovery() {
                         `snapshots.restore` string, verbatim, so all 42 use the
                         wording the app already ships for this verb rather than a
                         fresh translation of it. */}
+                    {/* GlimStone 1.14.0 (buttonOrder.test.ts): the control that
+                        moves forward sits LAST in the source, so the pair
+                        mirrors with the page under RTL. This pair arrived the
+                        other way round and the guard caught it on the resync. */}
                     <Button
                       key={configShake}
                       label={t("recovery.configRestore")}
@@ -2265,13 +2276,6 @@ export default function Recovery() {
                       busy={(configPhase === "saving" || configPhase === "restarting")}
                       title={(configPhase === "saving" || configPhase === "restarting") ? t("recovery.configRestoring") : undefined}
                       className={configShake ? "glim-shake" : ""}
-                    />
-                    <Button
-                      label={t("recovery.configSkip")}
-                      labelKey="recovery.configSkip"
-                      tone="neutral"
-                      onClick={() => setConfigSkipped(true)}
-                      disabled={configPhase === "saving" || configPhase === "restarting"}
                     />
                   </div>
 

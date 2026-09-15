@@ -440,24 +440,26 @@ export function ActivityLog({
           toolbar is reachable. */}
       {!isDesktop && (
         <ListToolbar search={filterText} onSearch={setFilterText} placeholder="activityLog.filterPlaceholder">
-          <select
+          {/* GlimStone rule 18 (noNativeSelect.test.ts): a native control gets
+              replaced, not persuaded — the two mobile filters are SelectField,
+              the same control the desktop bar above carries. The trigger keeps
+              the exact className the native selects wore (h-11 touch floor
+              included; SelectField takes it over verbatim), and the accessible
+              name is the desktop bar's own label keys. */}
+          <SelectField
             value={filterDomain}
-            onChange={(e) => setFilterDomain(e.target.value as LogFilterDomain)}
+            onChange={(v) => setFilterDomain(v)}
+            label={t("activityLog.filterAllDomains")}
+            options={DOMAIN_OPTIONS.map((o) => ({ value: o.value, label: t(o.labelKey) }))}
             className="h-11 shrink-0 rounded-control bg-carbon-surface2 px-2 text-sm text-carbon-text glim-field-focus"
-          >
-            {DOMAIN_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
-            ))}
-          </select>
-          <select
+          />
+          <SelectField
             value={filterType}
-            onChange={(e) => setFilterType(e.target.value as LogFilterKind)}
+            onChange={(v) => setFilterType(v)}
+            label={t("activityLog.filterAllTypes")}
+            options={TYPE_OPTIONS.map((o) => ({ value: o.value, label: t(o.labelKey) }))}
             className="h-11 shrink-0 rounded-control bg-carbon-surface2 px-2 text-sm text-carbon-text glim-field-focus"
-          >
-            {TYPE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
-            ))}
-          </select>
+          />
           {dayFilter && (
             // D-06 fix 2 (phase 8): the mobile twin of the :418 desktop chip
             // goes TONAL — accentSoft/accentText, the active-selection chip

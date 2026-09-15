@@ -15,7 +15,7 @@
 // tab never burns a palette slot (the long-standing documented semantics —
 // see Sidebar.tsx's own header comment and the hueSeq/nextHue block comment
 // at the extraction site). A hue index precomputed in THIS list would be
-// frozen against the FULL ten-entry registry, so hiding a gated tab could no
+// frozen against the FULL nine-entry registry, so hiding a gated tab could no
 // longer shift later tabs into earlier slots — the exact visible-rank
 // behaviour Sidebar.tabColor.dom.test.tsx pins. Hue assignment therefore
 // stays a render-time concern of each consumer; this module hands out data
@@ -85,7 +85,7 @@ export interface NavDestination {
 
 /**
  * The FULL ordered navigation registry, in desktop Sidebar order: the three
- * always-on destinations, then the six domain tabs each gated by its settings
+ * always-on destinations, then the gated tabs each gated by its settings
  * field, then Settings (always on — Sidebar renders it in its footer group).
  *
  * `settings` is Sidebar's own prop type, `Settings | null`: null (or any
@@ -99,7 +99,7 @@ export function destinations(settings: Settings | null): NavDestination[] {
     // Always visible: disaster recovery is a core, non-expert flow.
     { to: "/recovery", labelKey: "nav.recovery", icon: IconRecovery, bar: false, enabled: true },
     { to: "/containers", labelKey: "nav.containers", icon: IconContainers, bar: true, enabled: true },
-    // The six domain tabs appear only once their domain is enabled — the gate
+    // The gated tabs appear only once their domain is enabled — the gate
     // computes `enabled`, it does not remove the entry (see this file's header).
     { to: "/vms", labelKey: "nav.vms", icon: IconVM, bar: false, enabled: settings?.vmsEnabled ?? false },
     { to: "/flash", labelKey: "nav.flash", icon: IconFlash, bar: false, enabled: settings?.flashEnabled ?? false },

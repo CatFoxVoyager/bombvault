@@ -101,7 +101,10 @@ export function FilterPopover({
            desktop branch below; the surface colour and its hover stay local
            because this trigger opens a popover and should not read as one of
            the page's actions. The 44px touch floor is TapPopover's. */
-        triggerClassName="glim-btn bg-carbon-surface2 font-medium text-carbon-text hover:bg-carbon-hover transition-colors"
+        /* hover:bg-carbon-hover sits BELOW the surface2 this trigger is filled
+           with (GlimStone rule 21 / hoverRamp.test.ts): surface2's own hover
+           tier is surface3. */
+        triggerClassName="glim-btn bg-carbon-surface2 font-medium text-carbon-text hover:bg-carbon-surface3 transition-colors"
         /* Same surface recipe as the desktop panel below (p-4, min-w, max-w,
            column layout) — only the positioning system changed. */
         panelClassName="flex flex-col gap-4 p-4 min-w-[16rem] max-w-[min(90vw,26rem)]"

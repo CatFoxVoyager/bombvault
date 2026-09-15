@@ -92,7 +92,7 @@ vi.mock("../lib/api", async (importOriginal) => {
     discover: vi.fn(async () => ({ ok: true, discovered: 0, repo: "/host/user/backups/containers" })),
     discoverVMs: vi.fn(async () => ({ ok: true, discovered: 0, repo: "/host/user/backups/vms" })),
     discoverFiles: vi.fn(async () => ({ ok: true, discovered: 0, repo: "/host/user/backups/files" })),
-    discoverAll: vi.fn(async () => ({ containers: 0, vms: 0, files: 0 })),
+    discoverAll: vi.fn(async () => ({ containers: 0, vms: 0, files: 0, skipped: [], skippedNeedsAction: false })),
     getSettings: vi.fn(async () => ({
       ok: true,
       settings: baseSettings(),
@@ -548,7 +548,7 @@ describe("mobile flow: chrome, gating, chip, Back, bar states", () => {
 
   it("the kit gate blocks step 5's Continue while a discovered target has no restore result", async () => {
     stubMatchMedia(false);
-    vi.mocked(discoverAll).mockResolvedValueOnce({ containers: 1, vms: 0, files: 0 });
+    vi.mocked(discoverAll).mockResolvedValueOnce({ containers: 1, vms: 0, files: 0, skipped: [], skippedNeedsAction: false });
     vi.mocked(listContainers).mockResolvedValueOnce({
       ok: true,
       containers: [containerPayload()],

@@ -217,8 +217,11 @@ export function BottomSheet({ open, onClose, title, children, fullHeight, footer
   if (!open) return null;
   return createPortal(
     <>
-      {/* The scrim: decoration, hidden from AT, the engine fade class plus the
-          same black/60 as ConfirmDialog's backdrop. The click closes only when
+      {/* The scrim: decoration, hidden from AT, the engine class ONLY —
+          .glim-modal-backdrop itself paints `var(--glim-scrim)` (index.css),
+          so the darkness lives in the one token every modal shares (the old
+          inline bg-black/60 beside it duplicated that value and the
+          modalBackdrop guard rejects exactly that). The click closes only when
           it landed on the scrim itself (target === currentTarget), so a click
           anywhere inside the panel bubbles through untouched —
           ConfirmDialog.tsx's exact guard. NOT `inert`: see the header
@@ -226,7 +229,7 @@ export function BottomSheet({ open, onClose, title, children, fullHeight, footer
           click would land on whatever is BEHIND it instead of here. */}
       <div
         aria-hidden="true"
-        className="glim-modal-backdrop fixed inset-0 z-50 bg-black/60"
+        className="glim-modal-backdrop fixed inset-0 z-50"
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose();
         }}

@@ -2819,7 +2819,11 @@ export function Dashboard() {
               BombVault
             </span>
           </div>
-          <h1 className="text-2xl max-md:text-xl font-semibold text-carbon-text">
+          {/* The house heading form, every tab identical (pageHeading guard):
+              no max-md shrink here even on mobile — a tab whose title is
+              smaller than its siblings' reads as less important than they
+              are, and every other tab's h1 is text-2xl at every width. */}
+          <h1 className="text-2xl font-semibold text-carbon-text">
             {t("dashboard.title")}
           </h1>
           {/* The 12px meta line under the 20px heading (SCRN-01): the subtitle
