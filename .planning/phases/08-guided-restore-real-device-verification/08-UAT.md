@@ -211,6 +211,19 @@ exists to prevent.
     Appearance, Quiet toasts), the Appearance card carrying the six quiet
     sub-sections (Theme → Corners → Animations → Platform → Labels → Colors).
     Operator verdict: "Tout est beau" — closes the REGROUP decision above.
+  - **One-line 360px compaction (Integrity rows + Selector segments) — PASS on
+    device (2026-09-15).** The operator reported both remaining wrapped surfaces
+    (« Deux problèmes ici » + « Ça se trouve sur deux lignes aussi »): the
+    IntegrityCard domain rows (drill + status rejected to a 2nd line) and the Labels
+    sub-section Selector strips (active segment isolated on a 2nd line). Direction
+    chosen: COMPACT mobile-only, both surfaces. After 260914-ugv (deployed as
+    `mobilefix-2b08030b`, health stamp `mobilefix-2b08030b` + sha256 `3288126b…`
+    verified), the operator confirms both surfaces now hold ONE line at ~360px —
+    Integrity domain rows (label + glyph buttons + drill + status) and Labels
+    Buttons/Sidebar/Tabs strips (4 segments). Operator verdict: "C'est bon".
+    Desktop byte-identical by construction (mobile mirror block + max-md: only);
+    the Selector wrap mechanism remains the documented fallback ("never scrolls",
+    round 8, untouched).
 
 ---
 
