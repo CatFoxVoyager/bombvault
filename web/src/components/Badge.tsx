@@ -1170,15 +1170,14 @@ export function Badge({
   // a genuine hueIndex on tone="active" buttons and was verified live with
   // getComputedStyle: each domain's own background-color matches that
   // domain's own RAINBOW[i], not a flat accent.
-  //   KNOWN LIMITATION carried over from index.css's own --accent-text
-  // comment, not newly introduced here: LIGHT theme's --accent-text is a
-  // STATIC #7a5c00 (not `var(--accent)`, unlike dark theme), and the
-  // [data-rainbow] .glim-hue rebind block never redeclares --accent-text —
-  // only --accent/--accent-soft/--color-accent* — so a hued tone="active"
-  // badge's BACKGROUND (bg-accentSoft -> --item-hue-soft) shifts per position
-  // in both themes, but its TEXT stays the flat, gold-calibrated
-  // --accent-text colour in light theme specifically. Real, but the same
-  // already-accepted class of gap index.css's own "warn/active read as the
+  //   THE LIMITATION THAT USED TO SIT HERE IS GONE, and it is worth saying so
+  // rather than deleting quietly, because the shape of it recurs: light
+  // theme's --accent-text was a STATIC gold that followed no accent, and the
+  // [data-rainbow] .glim-hue rebind never redeclared it, so a hued
+  // tone="active" badge shifted its BACKGROUND per position while its TEXT
+  // stayed gold. Both halves are fixed in index.css - the token is mixed from
+  // the accent now, and the rebind restates it for the position. What remains
+  // is the older, separate gap index.css's own "warn/active read as the
   // same amber" comment documents for this exact token — not a new hole this
   // change opens, and background-colour alone is enough for the position to
   // read as genuinely different per domain (verified live).

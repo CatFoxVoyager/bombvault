@@ -793,7 +793,14 @@
          `bg-carbon-*`/`bg-accentSoft`, never with `bg-accent`.
      Badge.tsx's file header already spells out the same distinction for its
      tone="heading" case. */
-  --accent-text:      var(--accent);
+  /* How far the accent is mixed toward black to become INK. The theme sets
+     only this number, and --accent-text below is the same one-line mix over it
+     in both themes, which is what keeps the rainbow block from needing a
+     light-theme twin: --ink-mix is inherited from the same element, so one
+     declaration is correct everywhere. 100% of a colour mixed with black is
+     that colour exactly. */
+  --ink-mix:          100%;
+  --accent-text:      color-mix(in srgb, var(--accent) var(--ink-mix), black);
   /* The ink that goes ON TOP of a solid --accent-text fill, which is a pairing
      exactly one control needs: the About card's mail button, whose hover
      surface is the colour of its own mark ([5921]). In this theme --accent-text
@@ -1103,59 +1110,36 @@
   --accent-contrast:  #161616;
   --accent-soft:      rgba(252, 196, 25, 0.14);
 
-  /* accent-text — spec-compliance fix (spec review of GlimStone form-engine
-     Phase 2 Task 7's Badge tone="active"/Recovery/ActivityLog/Sparkline/
-     RecentRunsList/FolderBrowser call sites): unlike --accent-soft just
-     above, this does NOT inherit the dark block's `var(--accent)` alias.
-     Measured live (standard WCAG relative-luminance formula), the flat
-     --accent (#FCC419) against this theme's real surfaces:
+  /* accent-text — why this theme cannot simply alias the accent, which is the
+     part of the old note that still holds. Measured live with the standard
+     WCAG relative-luminance formula, the flat --accent (#FCC419) against this
+     theme's real surfaces:
        1.61:1 on --carbon-surface (#ffffff) / 1.46:1 on --carbon-bg (#f4f4f4)
        1.50:1 on Badge's own accent-soft-tinted card background (~#fff7df)
-     — all badly under the 4.5:1 text / 3:1 non-text-indicator minimums, the
-     exact same failure --focus-ring above already solved once for this same
-     accent hue (flat gold has no contrast on a light surface, needs a
-     separate darker value here rather than reused verbatim). #7a5c00 — one
-     step darker than --focus-ring's own #8e6a00-family gold, chosen (not
-     reused verbatim) because the sites reading this token include PLAIN
-     TEXT at the stricter 4.5:1 bar, not just --focus-ring's 3:1
-     non-text-indicator bar — measures:
-       6.25:1 on #ffffff, 5.69:1 on #f4f4f4, 5.10:1 on --carbon-surface2
-       (#e8e8e8, the darkest surface any of these sites plausibly renders
-       on), and 5.84:1 / 5.35:1 / 4.88:1 against those same three surfaces
-       composited under --accent-soft (the Badge case)
-     — every real site clears both the 4.5:1 text and 3:1 non-text minimum
-     with real margin, worst case (surface2 under accent-soft) still 4.88:1.
-     Same simplification as --focus-ring below: a STATIC per-theme value, not
-     derived from whatever custom hex the user picked via Settings' native
-     colour input — that token doesn't re-derive for a custom accent either,
-     so this isn't new scope, it's the existing precedent applied
-     consistently.
+     — all badly under the 4.5:1 text and 3:1 non-text minimums, the same
+     failure --focus-ring above solved once for this same hue. The sites
+     reading this token include PLAIN TEXT, so it is held to 4.5:1 rather than
+     to --focus-ring's 3:1.
 
-     KNOWN CONSEQUENCE of that static choice, stated because the --focus-ring
-     precedent does NOT actually cover it: --focus-ring is a standalone
-     outline that never sits against an accent-derived background, whereas
-     this token is PAIRED with --accent-soft inside the same Badge — and
-     lib/accent.ts's applyAccent() DOES re-derive --accent-soft inline for a
-     custom accent while leaving this one alone. So in light theme with a
-     non-default accent, Badge's tone="active" renders a wash in the user's
-     hue behind text in this fixed gold (e.g. Blue accent -> #dff1fd wash +
-     #7a5c00 text, ~160° of hue mismatch). Contrast still passes in every
-     preset (5.40–5.79:1, measured), so this is an aesthetic defect, not an
-     accessibility one — accepted here because the alternative (deriving a
-     WCAG-safe darkened text colour from an arbitrary user hex at runtime) is
-     real new colour-math surface area in accent.ts, well past this
-     contrast-arithmetic fix. If a future task adds that derivation, this
-     token and --focus-ring should both move onto it together.
-
-     Note this also means the dark-theme "4 of 5 accent presets dodge the
-     warn/active collision" mitigation (see --status-warn-text's KNOWN
-     LIMITATION comment above) does NOT hold in light theme: a static
-     #7a5c00 collides with light's #8e6a00 warn on every preset. */
-  --accent-text: #7a5c00;
-  /* White on that gold, measured: 6.25:1, so the pairing clears 4.5:1 with
-     room. NOT --accent-contrast here: that one is computed against the user's
-     accent, which in this theme is not the colour being filled with. A light
-     accent would hand back black ink for a dark gold surface. */
+     What changed is HOW the darker value is arrived at. It used to be a fixed
+     #7a5c00, with the consequence written out here: applyAccent() re-derives
+     --accent-soft for a custom accent and left this one alone, so Badge's
+     tone="active" put a wash in the user's hue behind text in a fixed gold,
+     about 160 degrees of hue mismatch on a blue accent. The same static choice
+     also made the About card's mail button wear a gold mark above a hover in
+     the user's own colour. It is derived now, below. */
+  /* 45%, and the number is measured rather than borrowed. The design language
+     mixes at 55% for its own light theme, which on this app's grounds leaves
+     Sunflower at 4.49:1 on a card and 3.74:1 on surface2, under the 4.5 this
+     token needs because it also paints text. At 45% the worst of the eight
+     presets measures 5.13:1 on surface2, 6.15:1 on a card and 6.77:1 on white,
+     so every preset clears the bar on every light ground, and each one is
+     better than the fixed gold it replaces (5.69 / 4.74 / 6.25). */
+  --ink-mix: 45%;
+  /* White on that ink, worst preset 6.77:1. NOT --accent-contrast here: that
+     one is computed against the ACCENT, which in this theme is not the colour
+     being filled with, so a light accent would hand back black ink for a dark
+     surface. */
   --accent-text-contrast: #ffffff;
 
   /* NOT-YET-MIGRATED INVENTORY (complete as of this fix — the sites that
@@ -1349,7 +1333,7 @@
     /* Same reasoning as [data-theme="light"]'s --accent-text above — needs
        restating here for the identical no-explicit-attribute reason as
        --focus-ring above. */
-    --accent-text: #7a5c00;
+    --ink-mix: 45%;
     /* And its ink, for the same reason it exists one block up. */
     --accent-text-contrast: #ffffff;
     /* Same reasoning again for the off-site identity colour (#164): the bare
@@ -1888,6 +1872,15 @@ body {
   --accent: var(--item-hue);
   --accent-contrast: var(--item-hue-ink);
   --accent-soft: var(--item-hue-soft);
+  /* Restated rather than left to inherit, and that is not belt and braces: a
+     custom property whose value contains var() is substituted where it is
+     DECLARED, so the --accent-text written on :root already computed itself
+     against :root's accent and hands descendants that finished colour. Without
+     this line a hued subtree would take its position's colour on every fill
+     and keep the single accent on everything drawn as ink. One line and no
+     light-theme twin, because --ink-mix is inherited and already says which
+     theme this is. */
+  --accent-text: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
   --color-accent: var(--item-hue);
   --color-accentContrast: var(--item-hue-ink);
   --color-accentSoft: var(--item-hue-soft);
