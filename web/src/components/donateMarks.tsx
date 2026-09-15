@@ -177,6 +177,34 @@ export function IconBuyMeACoffee({ size = 16 }: { size?: number }): ReactNode {
 }
 
 /**
+ * The bare letterform, with the coin cut away (jdp, 2026-09-15: "der Glyph auf
+ * der Cryptocard soll nur das Bitcoin B sein ohne Kreis").
+ *
+ * It is the SAME drawing as the tile's, not a second one traced by hand. The
+ * brand's mark is a disc with the letter knocked out of it, written as one
+ * path: the disc first, then the letter wound against it, then the two
+ * counters wound back with the disc. Drop the first subpath and the nonzero
+ * fill rule does the rest - the letter fills, its counters stay open - which
+ * is why this is a slice of PATHS.btc.d above rather than an import. The
+ * leading move is absolute because the original's was relative to the disc
+ * that is now gone.
+ *
+ * The box is the house crop, the same rule gen_glyphs.py's cropped_box()
+ * applies to every imported glyph: a SQUARE viewBox tight to the measured ink
+ * and centred on it, so `xMidYMid meet` scales the drawing until its longer
+ * side fills the button's 16px and nothing is stretched. The ink is
+ * (5.804, 4.178) to (17.318, 19.378), measured off this path's own cubic
+ * extrema, so the square is 15.2 units starting at (3.961, 4.178). Without the
+ * crop the letter would arrive at two thirds of the marks beside it, because
+ * it occupies half of a box drawn for a disc.
+ */
+const BTC_LETTER_BOX = "3.961 4.178 15.2 15.2";
+const BTC_LETTER = PATHS.btc.d.slice(PATHS.btc.d.indexOf("m-6.35-4.613")).replace(
+  "m-6.35-4.613",
+  "M17.288 10.291"
+);
+
+/**
  * Bitcoin's mark, on the button that opens the crypto window.
  *
  * jdp asked for it by name (2026-09-10). It is the one symbol that reads as
@@ -187,7 +215,13 @@ export function IconBuyMeACoffee({ size = 16 }: { size?: number }): ReactNode {
  * mark, so nobody gets as far as an address believing Bitcoin is the only
  * option. This replaced a neutral wallet drawing, which was correct and said
  * nothing.
+ *
+ * THE BUTTON WEARS THE LETTER, THE TILE WEARS THE COIN, and the difference is
+ * not an inconsistency. Down in the grid the marks are what a donor scans to
+ * find the coin they hold, so each one is its brand's real logo, disc and all.
+ * Up here the mark sits in a row of ordinary buttons beside a coffee cup and a
+ * P, where a filled disc reads as a blob and the letter reads as Bitcoin.
  */
 export function IconBitcoin({ size = 16 }: { size?: number }): ReactNode {
-  return <CoinMark coin="btc" size={size} />;
+  return <Mark box={BTC_LETTER_BOX} d={BTC_LETTER} size={size} color={PATHS.btc.color} />;
 }

@@ -47,7 +47,11 @@ ACTION = [
     # glyphFor matched nothing for `about.coffeeButton` and `about.mail`, and
     # an unmatched key deliberately returns undefined rather than a stand-in.
     ("IconCoffee", "food-drink/coffee-takeaway-cup.svg", "Buy the author a coffee"),
-    ("IconMail", "mail/mail-send-email-message.svg", "Write to us"),
+    # An ENVELOPE, not a paper plane (jdp, 2026-09-15: "ein Briefumschlag als
+    # glyph"). `mail-send-email-message` is the set's send arrow, and it drew
+    # the same thing the button beside it already means: sending. A mail
+    # address is a place to write TO, so the mark is the letter, not the act.
+    ("IconMail", "mail/mail-send-envelope.svg", "Write to us"),
     # The five the reach guard found missing ([5127], jdp chose "draw them"
     # over reusing marks that already mean something else). Sign-in and
     # sign-out are a PAIR and have to read as one: the same door, the arrow

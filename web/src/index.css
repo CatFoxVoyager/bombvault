@@ -432,11 +432,28 @@
 }
 
 /* The label may be narrower than its stage; it must not stretch the button
-   past it either, so long text ellipsises rather than breaking a row. */
+   past it either, so long text ellipsises rather than breaking a row.
+
+   IT ALSO CARRIES ITS OWN LINE HEIGHT, and that line is the whole bug fix
+   ([5921]). `.glim-btn` sets `line-height: 1`, which is right for the BUTTON:
+   it is what lets a fixed-height control centre its contents without the line
+   box arguing about it. On the label it is a trap, because the two
+   declarations above make this box clip: at 0.875rem the line box is 14px
+   while the face needs about 18.6 (system-ui on Windows is Segoe UI, ascent
+   1.08em plus descent 0.25em), so the bottom 1.7px of every descender is cut
+   off. Reported on the About card's Crypto button - "bei der Crypto card ist
+   das P unten beschnitten" - and it was never that button's fault: every p, g,
+   y and j in the app was losing its tail the same way.
+
+   1.4 clears the tallest of the faces this stack can resolve to with room to
+   spare. Nothing moves: the button's height is its own, the label is centred
+   inside it either way, and the extra leading is split evenly above and below
+   the text. */
 .glim-btn-label {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.4;
 }
 
 /* ---------------------------------------------------------------------------
@@ -473,6 +490,10 @@
   padding: 0;
   margin-inline-start: 0;
   transform-origin: left center;
+  /* The same clipped descenders `.glim-btn-label` explains above, for the same
+     reason: this box hides its overflow too, and a label revealed on hover is
+     read exactly as closely as one that was always there. */
+  line-height: 1.4;
 }
 
 /* The ACTIVE one keeps its words, in every reactive strip ([467]).
@@ -773,6 +794,13 @@
      Badge.tsx's file header already spells out the same distinction for its
      tone="heading" case. */
   --accent-text:      var(--accent);
+  /* The ink that goes ON TOP of a solid --accent-text fill, which is a pairing
+     exactly one control needs: the About card's mail button, whose hover
+     surface is the colour of its own mark ([5921]). In this theme --accent-text
+     IS the accent, so its ink is the accent's ink and nothing new is computed.
+     The light block below has to state its own, because there the token is a
+     fixed gold that no longer follows the accent. */
+  --accent-text-contrast: var(--accent-contrast);
 
   /* Shape and type scale live once, on a bare :root above (theme-invariant —
      see the comment there). */
@@ -1124,6 +1152,11 @@
      LIMITATION comment above) does NOT hold in light theme: a static
      #7a5c00 collides with light's #8e6a00 warn on every preset. */
   --accent-text: #7a5c00;
+  /* White on that gold, measured: 6.25:1, so the pairing clears 4.5:1 with
+     room. NOT --accent-contrast here: that one is computed against the user's
+     accent, which in this theme is not the colour being filled with. A light
+     accent would hand back black ink for a dark gold surface. */
+  --accent-text-contrast: #ffffff;
 
   /* NOT-YET-MIGRATED INVENTORY (complete as of this fix — the sites that
      still paint flat --accent as text or as a non-text graphic and so still
@@ -1317,6 +1350,8 @@
        restating here for the identical no-explicit-attribute reason as
        --focus-ring above. */
     --accent-text: #7a5c00;
+    /* And its ink, for the same reason it exists one block up. */
+    --accent-text-contrast: #ffffff;
     /* Same reasoning again for the off-site identity colour (#164): the bare
        :root value is the dark blue-40, which measures 2.4:1 on this block's
        white surfaces. NOTE for the next reader: the --status-ok/fail/warn/
@@ -2285,13 +2320,31 @@ body {
    engine, so all three values are engine tokens: --accent-text is the token
    for accent-coloured GRAPHICS on an ordinary surface (it carries its own
    light-theme value to clear WCAG, which is the same job --brand-* does for
-   the four brands), and the hover pair is the ordinary accent pairing. This
-   one changes with the user's accent and with rainbow mode; a vendor's mark
-   may not. */
+   the four brands). This one changes with the user's accent and with rainbow
+   mode; a vendor's mark may not.
+
+   THE FILL IS THE MARK'S OWN COLOUR, not the flat accent ([5921]). It used to
+   be --accent, on the reading that the resting mark and the hover are the two
+   halves of one accent pairing, and in the dark theme they are: --accent-text
+   resolves to the accent there, so nobody could see the difference. In the
+   light theme they are not. That block pins --accent-text to a fixed gold,
+   deliberately (see its own comment: deriving a WCAG-safe dark shade from an
+   arbitrary user hex is colour maths this file does not do), so the button
+   carried a gold envelope that turned red, or blue, or whatever the accent
+   was, the moment a pointer touched it. Reported exactly that way: "der glyph
+   ist in meiner instanz orange aber der button wird rot bei mouseover, der
+   button soll die farbe des glyphes übernehmen".
+
+   The four brands above already work this way - Buy Me a Coffee's cup goes to
+   Buy Me a Coffee's yellow - so this is the row's own rule finally applied to
+   its fifth button, rather than a new idea. The ink comes with the fill, from
+   the token declared beside --accent-text in each theme block: white on the
+   light theme's gold, the accent's own contrast in the dark, where the fill is
+   the accent again. */
 .glim-brand-house {
   --brand: var(--accent-text);
-  --brand-fill: var(--accent);
-  --brand-ink: var(--accent-contrast);
+  --brand-fill: var(--accent-text);
+  --brand-ink: var(--accent-text-contrast);
 }
 
 /* Sidebar's Simple/Advanced view toggle (SidebarControls, its own
