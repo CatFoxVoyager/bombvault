@@ -662,6 +662,11 @@
   --mob-check-radius: 0px;
   /* Chips are pills in BOTH languages. */
   --mob-chip-radius: 999px;
+  /* IntegrityCard's domain-row buttons (device verdict D-11): the row's
+     mobile-only horizontal compaction. Shape-only token, so BOTH platform
+     blocks carry the same value — the both-attributes contract every var in
+     this set holds. Read only by the mirrored media block below. */
+  --mob-integrity-btn-pad-x: 0.25rem;
 }
 
 :root[data-platform="cupertino"] {
@@ -677,6 +682,9 @@
   /* Chips are pills in both languages. */
   --mob-chip-radius: 999px;
   --mob-fab-radius: 18px;
+  /* IntegrityCard's domain-row buttons — same value as material's block
+     above (shape-only token, see the why there). */
+  --mob-integrity-btn-pad-x: 0.25rem;
 }
 
 /* The --mob-* consumers. The consumption contract: these properties are read
@@ -724,6 +732,34 @@
      the var resolving at a live checkbox, not the normalized pixel. */
   input[type="checkbox"] {
     border-radius: var(--mob-check-radius);
+  }
+
+  /* INTEGRITY ROW BUTTONS (device verdict D-11, 2026-09-14, deployed build
+     mobilefix-877600d5): at ~360 CSS px the IntegrityCard domain row's own
+     wrap pushed the drill button and the idle status onto a second line,
+     against the row's founding intent (jdp, live review: "Die Buttons bei
+     Container, VMs, etc sollen alle in einer Zeile stehen"). The engine's
+     rest-state padding-inline (14px a side) is the row's dominant term once
+     the label mode is a hiding one and every button rests as a glyph, so the
+     compaction lands HERE — scoped to the modifier class IntegrityCard's
+     four row buttons (verify, unlock, prune, drill) carry and nothing else,
+     NOT a call-site utility: this rule is unlayered author CSS and outranks
+     the layered utility scale no matter the order or specificity (the
+     cascade-layers rule .glim-btn's own block already documents), which is
+     exactly why the knob lives behind a media condition instead of a
+     className token. A hiding label mode also means the glyph must never be
+     stripped at rest — a padding cut keeps the glyph (and the touch bleed
+     Button already ships below md) fully intact, while a text label on the
+     more verbose modes simply tightens its own box; the row's wrap stays as
+     the designed fallback for the configurations this guarantee is not
+     scoped to (verbose label modes, longer locales, transient captions).
+     Desktop >=48rem never resolves this block: the condition is mirrored
+     verbatim from the repo's compiled max-md variant output, same 1px flip.
+     Scoped to the four buttons' class, so `--mob-integrity-btn-pad-x` has
+     exactly one consumer — the same one-consumer discipline the title and
+     check tokens above hold. */
+  .glim-btn.mob-integrity-btn {
+    padding-inline: var(--mob-integrity-btn-pad-x);
   }
 }
 

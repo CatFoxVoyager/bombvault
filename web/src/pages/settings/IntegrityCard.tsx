@@ -449,6 +449,13 @@ export function IntegrityCard({
           const drill = lastDrill[domain];
           const tRes = tamper[domain];
           const tLast = lastTamper[domain];
+          // The idle "last recorded drill" caption, composed ONCE so the
+          // mobile width cap's tooltip can carry the SAME words the span
+          // renders — no new user-visible string, the same existing keys
+          // joined exactly the way the span prints them (D-11 compaction).
+          const lastStatus = drill
+            ? `${isOffsiteSource(drill.source) && drill.kind === "dr" ? t("drill.checkOffsiteDr") : t("drill.checkLocal")} · ${t("verify.last").replace("{time}", relativeTime(t, drill.at))} ${drill.ok ? "✓" : "✗"}`
+            : null;
           return (
             <div key={domain} className="flex flex-col gap-1">
               {/* Domain actions + the restore-verification drill on ONE row
@@ -461,9 +468,34 @@ export function IntegrityCard({
                   on it, so that spacer is gone along with the second row;
                   every button below keeps its exact behavior, disabled state
                   and inline busy/ok/fail feedback — this is a pure layout
-                  merge, no logic changed. */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm text-carbon-textSub w-24 shrink-0">{label}</span>
+                  merge, no logic changed.
+
+                  MOBILE (device verdict D-11, 2026-09-14, deployed build
+                  mobilefix-877600d5): at ~360 CSS px that same wrap pushed
+                  the drill button AND the idle status onto a second line —
+                  contradicting the "einer Zeile" intent on phones. The fix
+                  compacts the row below the 48rem breakpoint only (desktop
+                  is byte-identical): the row's gap, the label column (the
+                  tamper row's alignment spacer below mirrors it), the idle
+                  status (capped and ellipsised, its tooltip carrying the
+                  same words), and — via the engine's mirrored media block in
+                  index.css — the inline padding of the FOUR row buttons
+                  through the shared modifier class they all carry. The
+                  drill's glyph is deliberately NEVER hidden: the rendered
+                  label mode on the D-11 device is a hiding one (the action
+                  buttons rest as glyphs — that rest-state geometry is what
+                  the verdict's screenshot shows), so a glyph-less drill
+                  would render an empty box, the exact failure the Button
+                  engine forbids. The one-line guarantee is scoped to the
+                  rendered configuration the verdict observed (fr labels,
+                  hiding label mode, idle rows): the more verbose label
+                  modes, longer locales, and the transient busy/ok/fail
+                  captions — plus a stored failure's reason span, which
+                  desktop already lets wrap — all fall back to the wrap,
+                  which stays in place BY DESIGN ("never scrolls" is
+                  untouched; nothing here scrolls either). */}
+              <div className="flex items-center gap-2 flex-wrap max-md:gap-1">
+                <span className="text-sm text-carbon-textSub w-24 shrink-0 max-md:w-16 max-md:text-xs max-md:truncate">{label}</span>
                 {actions.map((a) => {
                   const k = `${domain}:${a.key}`;
                   return (
@@ -479,7 +511,7 @@ export function IntegrityCard({
                         disabled={state[k] === "busy"}
                         busy={state[k] === "busy"}
                         title={t(`integrity.${a.key}Hint`)}
-                        className={shake[k] ? "glim-shake" : ""}
+                        className={`mob-integrity-btn${shake[k] ? " glim-shake" : ""}`}
                       />
                       {state[k] === "ok" && (
                         <span className="inline-flex items-center gap-1 text-sm text-statusOk">
@@ -517,7 +549,7 @@ export function IntegrityCard({
                       ? kind === "dr" ? t("drill.runningDR") : t("verify.running")
                       : kind === "dr" ? t("drill.drNote") : t("verify.hint")
                   }
-                  className={shake[dKey] ? "glim-shake" : ""}
+                  className={`mob-integrity-btn${shake[dKey] ? " glim-shake" : ""}`}
                 />
                 {state[dKey] === "ok" && (
                   <span className="inline-flex items-center gap-1 text-sm text-statusOk">
@@ -537,12 +569,16 @@ export function IntegrityCard({
                 {state[dKey] !== "busy" && state[dKey] !== "ok" && state[dKey] !== "fail" && (
                   drill ? (
                     <>
-                      <span className="text-xs text-carbon-textMuted">
-                        {isOffsiteSource(drill.source) && drill.kind === "dr"
-                          ? t("drill.checkOffsiteDr")
-                          : t("drill.checkLocal")}
-                        {" · "}
-                        {t("verify.last").replace("{time}", relativeTime(t, drill.at))} {drill.ok ? "✓" : "✗"}
+                      {/* Capped + ellipsised below md only (D-11); the tooltip
+                          hands back the full sentence the cap hides. The stored
+                          FAILURE reason beside it stays uncapped on purpose:
+                          hiding failure detail would be worse than letting it
+                          wrap, which is what desktop already does. */}
+                      <span
+                        className="text-xs text-carbon-textMuted max-md:max-w-18 max-md:truncate"
+                        title={lastStatus ?? undefined}
+                      >
+                        {lastStatus}
                       </span>
                       {!drill.ok && drill.detail && (
                         <span className="text-xs text-statusFail wrap-break-word" title={drill.detail}>
@@ -551,7 +587,12 @@ export function IntegrityCard({
                       )}
                     </>
                   ) : (
-                    <span className="text-xs text-carbon-textMuted">{t("verify.never")}</span>
+                    <span
+                      className="text-xs text-carbon-textMuted max-md:max-w-18 max-md:truncate"
+                      title={t("verify.never")}
+                    >
+                      {t("verify.never")}
+                    </span>
                   )
                 )}
               </div>
@@ -562,8 +603,11 @@ export function IntegrityCard({
                   verdict rendering mirrors the wizard, incl. the glyph as its own
                   node so RTL locales place it correctly. */}
               {appendOnlyEligible[domain] && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="w-24 shrink-0" />
+                <div className="flex items-center gap-2 flex-wrap max-md:gap-1">
+                  {/* Alignment spacer for the label column above; its mobile
+                      width mirrors the label's own so the tamper button stays
+                      flush with the row's content edge under the compaction. */}
+                  <span className="w-24 shrink-0 max-md:w-16" />
                   <Button
                     key={shake[`${domain}:tamper`] || 0}
                     label={t("integrity.appendOnly")}
