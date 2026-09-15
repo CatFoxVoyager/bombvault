@@ -412,33 +412,29 @@ export function OffsiteTargetsSection({
         </label>
         <label className="flex flex-col gap-1">
           <span className="text-xs text-carbon-textSub">{t("offsite.targets.credsLabel")}</span>
-          <select
+          <SelectField
             value={draft.credsRef}
-            onChange={(e) => setDraft((d) => (d ? { ...d, credsRef: e.target.value } : d))}
+            onChange={(v) => setDraft((d) => (d ? { ...d, credsRef: v } : d))}
+            label={t("offsite.targets.credsLabel")}
+            options={[
+              { value: "", label: t("offsite.targets.credsDefault") },
+              ...credSets.map((c) => ({ value: c.id, label: c.name })),
+            ]}
             className={inputCls}
-          >
-            <option value="">{t("offsite.targets.credsDefault")}</option>
-            {credSets.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          />
         </label>
         <label className="flex flex-col gap-1">
           <span className="text-xs text-carbon-textSub">{t("cloud.storageClass.label")}</span>
-          <select
+          <SelectField
             value={draft.storageClass}
-            onChange={(e) => setDraft((d) => (d ? { ...d, storageClass: e.target.value } : d))}
+            onChange={(v) => setDraft((d) => (d ? { ...d, storageClass: v } : d))}
+            label={t("cloud.storageClass.label")}
+            options={[
+              { value: "", label: t("cloud.storageClass.default") },
+              ...STORAGE_CLASSES.map((sc) => ({ value: sc, label: sc })),
+            ]}
             className={inputCls}
-          >
-            <option value="">{t("cloud.storageClass.default")}</option>
-            {STORAGE_CLASSES.map((sc) => (
-              <option key={sc} value={sc}>
-                {sc}
-              </option>
-            ))}
-          </select>
+          />
         </label>
 
         {/* Append-only (immutable) toggle */}

@@ -1,7 +1,12 @@
-import type { ConfirmTone } from "../ConfirmDialog";
 import { Button } from "../Button";
 import { IconCancel } from "../glyphs";
 import { BottomSheet } from "./BottomSheet";
+
+// The tone union the desktop ConfirmDialog dropped (GlimStone 1.12.0: no
+// status colour on the commit button). The mobile sheet keeps it ON PURPOSE —
+// a destructive confirm surfaces as the danger Button here — so the type is
+// owned and exported HERE now; useConfirm imports it from this file.
+export type ConfirmTone = "fail" | "warn";
 
 // ---------------------------------------------------------------------------
 // ConfirmSheet — the MOBILE presentation half of useConfirm (PRIM-03, D-07).

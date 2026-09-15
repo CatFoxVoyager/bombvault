@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ConfirmDialog, type ConfirmTone } from "../components/ConfirmDialog";
-import { ConfirmSheet } from "../components/mobile/ConfirmSheet";
+import { ConfirmDialog } from "../components/ConfirmDialog";
+import { ConfirmSheet, type ConfirmTone } from "../components/mobile/ConfirmSheet";
 import { useT } from "./i18n";
 import { useIsDesktop } from "./useMediaQuery";
 
@@ -181,7 +181,9 @@ export function useConfirm() {
             confirmLabel={pending.confirmLabel ?? t("common.confirm")}
             cancelLabel={pending.cancelLabel ?? t("common.cancel")}
             closeLabel={t("common.close")}
-            tone={pending.tone ?? "fail"}
+            // No tone prop: GlimStone 1.12.0 removed it — the desktop commit
+            // button takes its siblings' colour. The mobile sheet branch below
+            // keeps the tone mapping (documented divergence).
             onConfirm={() => settle(true)}
             onCancel={() => settle(false)}
           />
