@@ -8,9 +8,10 @@
 // CONSUMERS: under cupertino the routed page's <h1> computes the HIG large
 // title (32px/700) and the check consumer resolves the circular 999px radius;
 // under material the same two consumers compute their existing expressions
-// (20px/600 — Dashboard's max-md:text-xl — and the square 0px). Computed
-// properties on consuming elements, not custom-property token reads: a token
-// with zero consumers would pass a token read with nothing shipped.
+// (24px/600 — the house heading form (text-2xl at every width, pageHeading
+// guard) — and the square 0px). Computed properties on consuming elements,
+// not custom-property token reads: a token with zero consumers would pass a
+// token read with nothing shipped.
 //
 // The checkbox consumer lives on /vms, not /settings: the plan's premise that
 // /settings renders native checkboxes is stale — every settings row has been
@@ -196,10 +197,13 @@ test("mobile material: the same consumers keep today's expressions", async ({ pa
 
   await page.goto("/dashboard");
   await expect(page.locator("html")).toHaveAttribute("data-platform", "material");
-  // Material inertness: the heading keeps its existing expression (Dashboard's
-  // max-md:text-xl below the breakpoint), NOT the 32px large title.
+  // Material inertness: the routed h1 does NOT take the cupertino large
+  // title (32px/700) — the heading keeps the house heading form instead:
+  // text-2xl at every width, identical on every tab, no mobile shrink.
+  // That form is deliberate (da7c8cda) and enforced by the pageHeading
+  // vitest guard (web/src/lib/pageHeading.test.ts).
   const h1 = page.locator("#bv-main h1");
-  await expect(h1).toHaveCSS("font-size", "20px");
+  await expect(h1).toHaveCSS("font-size", "24px");
   await expect(h1).toHaveCSS("font-weight", "600");
 
   // The check rule resolves its variable under BOTH attribute values:
