@@ -94,11 +94,17 @@ describe("motion tokens", () => {
     expect(missing).toEqual([]);
   });
 
-  it("the page tilt is zero wherever somebody asked for less movement", () => {
-    for (const level of ["subtle", "off"]) {
+  // The page tilt used to be checked here, as zero wherever somebody asked for
+  // less movement. There is no tilt at any level now, and no scale either:
+  // both were what made the page entrance nest transforms with the elements
+  // animating inside it, which is #228. lib/pageEnterFlat.test.ts is the guard
+  // that replaced this one, and it checks the stronger thing - that neither
+  // dial exists at all, rather than that the quiet levels neutralise it.
+  it("keeps the page's one spatial dial answered at every level", () => {
+    for (const level of ["subtle", "off", "storm"]) {
       const at = CSS.indexOf(`:root[data-motion="${level}"] {`);
       const body = CSS.slice(at, CSS.indexOf("\n}", at));
-      expect(body).toMatch(/--motion-page-tilt:\s*0deg/);
+      expect(body).toMatch(/--motion-page-dist:/);
     }
   });
 });

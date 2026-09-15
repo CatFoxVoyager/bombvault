@@ -2530,17 +2530,18 @@ body {
      The rule the language already states survives intact: the same keyframes
      at all three stages, never a forked animation. What changes is the number
      the keyframe reads and the curve it reads it through. */
-  --motion-page-dist: 18px;              /* .glim-page-enter's translateY distance */
-  --motion-page-scale: .96;
-  /* THE TILT, and it is how far this engine is allowed to answer "can the
-     animations be wilder": the same keyframe reading a bigger number, never a
-     second animation. A page that only slides up reads as a panel being
-     swapped; one that arrives slightly off-axis reads as something arriving.
-     Under a degree it is invisible and over four it is a gimmick that makes
-     the text shimmer as it lands, so the lively default sits at 1.2 and the
-     storm at 3. The quiet levels set 0 rather than omitting it: a rotation is
-     the first thing somebody who asked for less motion would notice. */
-  --motion-page-tilt: 1.2deg;
+  /* .glim-page-enter's translateY distance, and now the ONLY spatial dial it
+     has. A scale (.96 here, .9 at the storm) and a tilt (1.2deg, 3deg) used to
+     sit beside it, on the reasoning that "can the animations be wilder" is
+     best answered by the same keyframe reading bigger numbers. The reasoning
+     holds; those two numbers were the wrong ones to grow. Both make an
+     ancestor's transform something the engine cannot composite independently
+     of its subtree, and the page wrapper has animating descendants, so #228's
+     green flash and trembling both came out of that nesting. See
+     @keyframes glim-page-in for the full account and lib/pageEnterFlat.test.ts
+     for the guard. Distance, duration and curve keep the levels apart without
+     resampling anything. */
+  --motion-page-dist: 18px;
   --motion-page-dur: 320ms;
   /* How long one pass of light takes along a filling bar. Shorter reads as
      faster work, which is why it is a motion token rather than a constant: the
@@ -2660,13 +2661,12 @@ body {
      offered levels keep obeying the OS, which is what keeps that exemption
      from being a hole. See lib/stormOverridesOs.test.ts. */
   --motion-page-dist: 20px;
-  /* The scale belongs here as much as the distance, and leaving it out is the
-     quiet half of the trap this block's own comment describes: without it the
-     storm inherits .96 from the bare root, so a level that travels further and
-     springs harder arrives at exactly the size wild does. GlimStone names .9
-     for this level. */
-  --motion-page-scale: .9;
-  --motion-page-tilt: 3deg;
+  /* The scale (.9) and the tilt (3deg) used to sit here, and they were the
+     largest values in the file. They are gone at every level now, this one
+     included and this one first: since the OS exemption above, the storm is
+     the only level that still animates for somebody who asked their system for
+     less motion, so it is the last place that should be resampling a whole
+     page through an ancestor matrix. @keyframes glim-page-in has the account. */
   --motion-sheen-dur: 900ms;
   --motion-press-scale: .94;
   --motion-lift-dist: 4px;
@@ -2713,11 +2713,11 @@ body {
 :root[data-motion="subtle"] {
   /* Shorter AND smaller — "still present," per design-language.md's own
      phrasing for this state, not a near-off compromise. */
-  /* Smaller travel, no scale, and a curve that only eases. Somebody who asked
-     for less movement asked for less movement, not for a faster bounce. */
+  /* Smaller travel and a curve that only eases. Somebody who asked for less
+     movement asked for less movement, not for a faster bounce. The explicit
+     scale of 1 and tilt of 0 that used to stand here are gone with the dials
+     themselves: no level scales or rotates a page any more (#228). */
   --motion-page-dist: 6px;
-  --motion-page-scale: 1;
-  --motion-page-tilt: 0deg;
   --motion-page-dur: 180ms;
   --motion-sheen-dur: 2400ms;
   --motion-press-scale: .99;
@@ -2784,8 +2784,6 @@ body {
      glim-egg-fade-pulse for data-motion="off", the exact keyframe the
      (reduce) block already uses for the same reason. */
   --motion-page-dist: 0px;
-  --motion-page-scale: 1;
-  --motion-page-tilt: 0deg;
   --motion-page-dur: 200ms;
   /* Named rather than omitted, even though the rule further down takes the
      band away entirely at this level: a dial every level answers is a dial
@@ -2938,13 +2936,29 @@ body {
   to   { opacity: 1; transform: none; }
 }
 
+/* A TRANSLATION ONLY, and the scale and the tilt that used to be here are the
+   whole of #228.
+   A translation on an ancestor can be composited independently of its subtree.
+   A scale or a rotation cannot: the engine has to resample everything
+   underneath through the parent's matrix, so every descendant that is itself
+   animating - the staggered rows, a pulse - gets its own layer inside a parent
+   that is being resampled around it. On Firefox/macOS the hued badges then
+   came out of uninitialised layer memory as #38FF38, which is the green flash
+   in the report; Chromium got the colour right and showed the same double
+   resampling as the page trembling before it settled. Two engines, two
+   symptoms, one cause.
+   The first pass at #228 moved the DEFAULT down to subtle, where the scale is
+   1 and the tilt 0. That kept a first-time visitor away from it and left it
+   untouched for anybody who CHOSE wild - including the reporter, because a
+   changed default never reaches a stored choice. So the cause goes instead.
+   The levels stay as far apart as they were: distance, duration and curve do
+   that work already (18px against 6px, longer, on a spring that overshoots),
+   and none of the three asks the compositor to resample a page. Same reasoning
+   glim-card-in above has carried from the start, one level up. */
 @keyframes glim-page-in {
   from {
     opacity: 0;
-    transform:
-      translateY(var(--motion-page-dist, 8px))
-      scale(var(--motion-page-scale, 1))
-      rotate(var(--motion-page-tilt, 0deg));
+    transform: translateY(var(--motion-page-dist, 8px));
   }
   /* End at `none`, not translateY(0): animation-fill-mode:both keeps the final
      keyframe, and any transform other than none makes .glim-page-enter a
