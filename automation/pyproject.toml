@@ -1,0 +1,25 @@
+[project]
+name = "repo_ops"
+version = "0.1.0"
+description = "CrewAI repo-ops crew for BombVault: PR review, test audit, release notes preparation"
+authors = [{ name = "BombVault maintainers" }]
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "crewai>=1.15.21,<2.0.0",
+    # crewai 1.15 no longer pulls litellm itself; the LLM class needs it for
+    # every non-OpenAI-native provider routing (docs.crewai.com/learn/llm-connections).
+    "litellm>=1.0.0",
+]
+
+[project.scripts]
+repo_ops = "repo_ops.main:main"
+kickoff = "repo_ops.main:main"
+plot = "repo_ops.main:plot"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.crewai]
+type = "flow"
+project_id = "6a8b0dc9-580e-48fe-82d9-f98e5870e994"

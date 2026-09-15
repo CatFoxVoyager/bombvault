@@ -48,6 +48,11 @@ Thumbs.db
 # GSD planning artifacts stay local (never committed)
 .planning/
 
+# CrewAI repo-ops crew: its venv and generated reports stay local. A local
+# automation/.env would already be covered by the .env rules above.
+automation/.venv/
+automation/output/
+
 # Playwright harness (never commit artifacts or the built binary)
 web/test-results/
 web/playwright-report/

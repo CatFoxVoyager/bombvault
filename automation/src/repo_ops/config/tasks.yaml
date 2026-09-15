@@ -1,0 +1,39 @@
+review_task:
+  description: >
+    Review pull request {pr_number} of the BombVault repository. Fetch its
+    metadata and diff with the gh_pr_data tool; when you need surrounding
+    context, read repository files with read_repo_file. Review the change
+    against the house conventions you know, and judge substance over
+    style: a finding must cite what breaks, not taste.
+  expected_output: >
+    A markdown review with three sections: Summary (what the PR does, three
+    sentences max), Findings (each tagged P0 blocker, P1 important or P2
+    polish, with file:line references and a one-sentence reason each — if
+    there are none, say so explicitly), and Verdict (approve or request
+    changes).
+
+audit_task:
+  description: >
+    Audit the Go test coverage of the BombVault repository. Run
+    go_test_coverage and untested_packages, compare the results against the
+    package layout, and identify the highest-risk untested areas of the Go
+    backend. Skipped-on-Windows packages are not gaps. For web coverage
+    note only the layout: unit tests sit next to sources under web/src as
+    .test.ts/.dom.test.tsx, e2e specs live in web/e2e.
+  expected_output: >
+    A markdown report with three sections: coverage table per package
+    (straight from the tool output), packages with no test files, and the
+    five most valuable tests to add, each with one sentence of why.
+
+release_task:
+  description: >
+    Prepare release notes for version {version} of the BombVault
+    repository. Use release_commits to get the commits since the last tag,
+    read the most recent existing note with read_repo_file to match its
+    style, then call scaffold_release_notes for {version} and fill BOTH
+    scaffolded files with the SAME content (the embed-sync test requires
+    identical copies). Never tag, never push.
+  expected_output: >
+    A markdown report stating what was scaffolded and where, followed by
+    the full release notes text grouped user-facing first in the voice of
+    the previous notes.

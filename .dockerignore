@@ -2,6 +2,7 @@
 # The Dockerfile only needs: go.mod/go.sum, cmd/, internal/, web/ (source).
 .git
 .github
+automation
 **/node_modules
 web/dist
 docs
