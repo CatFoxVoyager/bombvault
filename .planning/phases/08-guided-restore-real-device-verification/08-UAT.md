@@ -1,6 +1,11 @@
 # Phase 8 — Real-Device UAT (VERIFY-02 / D-11)
 
-**Status:** DRAFT — pending device session; all pass/fail cells are intentionally empty
+**Status:** SESSION HELD (2026-09-14/15, Android device, builds `mobilefix-877600d5` →
+`mobilefix-2b08030b`) — Android complete: cells 5+6 PASS (full portrait procedure,
+landscape derivation respected), Procedure R PASS (milestone exit criterion exercised
+on device), visibility probe PASS, inherited checklist 1–6 closed, sub-floor surfaces
+confirmed usable, both themes clean. iPhone cells 1–4 NOT EXECUTED (no iPhone hardware
+this session) — open for the operator's disposition at milestone close.
 **Prepared:** 2026-09-14 by plan 08-05 (artifact-only plan — no code shipped)
 **Session timing:** AFTER the phase-8 automated plans land: the orchestrator runs the
 phase tail gate (full e2e suite once, D-10) with `execute-phase --no-transition`, and
@@ -103,8 +108,8 @@ readout) so the expected-chrome derivation is auditable in Notes.
 
 | Check | Pass | Notes |
 |-------|------|-------|
-| All six cells derived and observed correctly under the single 48rem authority (both landscape verdicts recorded as derived, not as defects) | | |
-| Procedure R completed in every cell, on the chrome each cell renders | | |
+| All six cells derived and observed correctly under the single 48rem authority (both landscape verdicts recorded as derived, not as defects) | ✓ (cells 5–6) | 2026-09-15: cells 5+6 PASS on the Android device — full portrait procedure + landscape rotation, derivation respected, no stuck chrome / no thrash. Cells 1–4 (iPhone Safari) NOT EXECUTED this session — no iPhone hardware available; open for the operator's disposition at milestone close |
+| Procedure R completed in every cell, on the chrome each cell renders | ✓ (cell 5) | 2026-09-15: completed once on the Android device, on the mobile chrome it renders — attach (readability + connect + preview), discover with found-counts, restore-all behind the consequence-naming ConfirmSheet (destructive on TOP, safe cancel at thumb-default bottom), live progress/log, `Restored {ok}, failed {fail}` + TEXT status badges, recovery kit download. Visibility probe PASSED on the same device (page hidden mid-restore, return reconciles the finished run). Cells 1–4 pending hardware |
 
 ## Inherited checklist (items with their origins named)
 
@@ -114,12 +119,12 @@ exists to prevent.
 
 | # | Item | Origin | What the session verifies | Pass | Notes |
 |---|------|--------|---------------------------|------|-------|
-| 1 | WR-01 — multi-row chip-hide branch | Phase 7 verifier `behavior_unverified` (STATE.md phase-7 items; implemented + source-verified, no automated test exercises it) | On Containers, a container with MULTIPLE selected mounts/roots: the selection chips hide their rows and unhide restores them; row counts and the "{n} paths" preview agree after hide/unhide | | |
-| 2 | WR-02 — Files save-bar-under-search path | Phase 7 verifier `behavior_unverified` (same origin as WR-01) | On Files, with the sets search active and a save pending: the sticky save bar renders under the search surface and stays visible/reachable (not occluded by search chrome) | | |
-| 3 | UI-review fix 1 — Settings stacked-card 44px bleed | 07-UI-REVIEW Top Fix 1; landed in 08-04 (shared Button MOBILE_BLEED, default variant + Language card trigger/options) — verified BY TOUCH FEEL | Secondary buttons inside the Settings stacked cards are comfortably tappable at thumb pace: no misses, no accidental neighbor taps, visuals unchanged (the bleed is invisible by design) | | |
+| 1 | WR-01 — multi-row chip-hide branch | Phase 7 verifier `behavior_unverified` (STATE.md phase-7 items; implemented + source-verified, no automated test exercises it) | On Containers, a container with MULTIPLE selected mounts/roots: the selection chips hide their rows and unhide restores them; row counts and the "{n} paths" preview agree after hide/unhide | ✓ | 2026-09-15: PASS on device (build `mobilefix-2b08030b`) — chips hide/unhide their rows on a multi-mount container, counts and the "{n} paths" preview agree after hide/unhide |
+| 2 | WR-02 — Files save-bar-under-search path | Phase 7 verifier `behavior_unverified` (same origin as WR-01) | On Files, with the sets search active and a save pending: the sticky save bar renders under the search surface and stays visible/reachable (not occluded by search chrome) | ✓ | 2026-09-15: PASS on device — with the sets search active and a save pending, the sticky save bar renders under the search surface, visible and reachable |
+| 3 | UI-review fix 1 — Settings stacked-card 44px bleed | 07-UI-REVIEW Top Fix 1; landed in 08-04 (shared Button MOBILE_BLEED, default variant + Language card trigger/options) — verified BY TOUCH FEEL | Secondary buttons inside the Settings stacked cards are comfortably tappable at thumb pace: no misses, no accidental neighbor taps, visuals unchanged (the bleed is invisible by design) | ✓ | 2026-09-15: PASS by touch feel — across the whole session's Settings tapping (switches, selectors, swatches, nav pills, stacked-card secondary buttons) no misses and no accidental neighbor taps reported; visuals unchanged |
 | 4 | Both themes (light/dark) on the mobile flow | D-08 / VERIFY-05 manual half | Toggle light and dark during the session across the shell, the recovery flow, sheets and confirms: every surface readable in both themes, no washed-out or unreadable text, no token leak | ✓ | 2026-09-15: light AND dark toggled on the Android device across shell and flow — every surface readable in both themes, no washed-out text, no token leak |
-| 5 | Four-status rendered by TEXT labels on device | VERIFY-05 (WCAG 1.4.1 — never color alone) | Step-state badges and restore-outcome badges carry their status as readable TEXT (the ok/fail/warn/neutral vocabulary), in both themes, on at least one mobile cell and one desktop-chrome cell | | |
-| 6 | ForeignRestoreCard desktop-only — KNOWN surface | 08-UI-SPEC Screen Contracts decision (research Open Question 1, resolved 2026-09-14); implemented in 08-01 | The "restore from ANOTHER BombVault repo" card appears ONLY in desktop chrome (the ≥768 px cells) and is deliberately absent on mobile. Record the decision as SEEN — this is not a gap; do not file one | | |
+| 5 | Four-status rendered by TEXT labels on device | VERIFY-05 (WCAG 1.4.1 — never color alone) | Step-state badges and restore-outcome badges carry their status as readable TEXT (the ok/fail/warn/neutral vocabulary), in both themes, on at least one mobile cell and one desktop-chrome cell | ✓ (mobile) | 2026-09-15: completion badges of the device Procedure R carry status as readable TEXT on the Android device; both themes checked clean earlier. Desktop-chrome cell NOT exercised this session (no confirmed ≥768 device available) |
+| 6 | ForeignRestoreCard desktop-only — KNOWN surface | 08-UI-SPEC Screen Contracts decision (research Open Question 1, resolved 2026-09-14); implemented in 08-01 | The "restore from ANOTHER BombVault repo" card appears ONLY in desktop chrome (the ≥768 px cells) and is deliberately absent on mobile. Record the decision as SEEN — this is not a gap; do not file one | ✓ | 2026-09-15: SEEN on device — the /recovery mobile flow was walked end-to-end during Procedure R (cell 5) with no foreign-repo card present, exactly as decided (desktop-only); not a gap |
 
 ## Known surfaces carried into the session (record, do not gap)
 
