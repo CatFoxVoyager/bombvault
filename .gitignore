@@ -40,6 +40,9 @@ web/dist/*
 Thumbs.db
 *conflicted copy*
 
+# GSD planning artifacts stay local (never committed)
+.planning/
+
 # Playwright harness (never commit artifacts or the built binary)
 web/test-results/
 web/playwright-report/
