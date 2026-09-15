@@ -29,7 +29,7 @@ import {
   setDisco,
   stopDisco,
 } from "./disco";
-import { getRainbow, rainbowState, setRainbow } from "./appearance";
+import { getRainbow, rainbowAt, rainbowState, setRainbow } from "./appearance";
 
 const STORAGE_KEY = "bv-disco";
 
@@ -123,9 +123,52 @@ describe("the tick", () => {
     applyStoredDisco();
     vi.advanceTimersByTime(DISCO_TICK_MS);
     setDisco(false);
+    // Read AFTER the switch-off, because switching off also hands the user
+    // their own rotation back (see the two tests below). What this one is
+    // about is that no further tick moves anything.
     const parked = rainbowState().seed;
     vi.advanceTimersByTime(DISCO_TICK_MS * 3);
     expect(rainbowState().seed).toBe(parked);
+  });
+
+  // The seed is only HALF of what makes a colour: rainbowColorAt() applies it
+  // as an offset `rotate ? seed : 0`, and `rotate` is a switch of its own that
+  // defaults to off. A tick that walks the seed and nothing else therefore
+  // renders identically forever for anybody who never found that switch -
+  // which is to say for almost everybody. Disco IS rotation over time, so it
+  // rotates; the tests above watch the seed and would all have stayed green.
+  it("moves the colours even when the user's own rotate switch is off", () => {
+    setRainbow({ on: true, rotate: false, seed: 0 });
+    const resting = rainbowAt(0);
+    setDisco(true);
+    vi.advanceTimersByTime(DISCO_TICK_MS);
+    expect(rainbowAt(0)).not.toBe(resting);
+  });
+
+  it("hands the rotate switch back when it stops, instead of leaving the palette turned", () => {
+    // Otherwise a stopped disco looks exactly like the rotate toggle having
+    // switched itself on: the palette sits at whatever offset the last tick
+    // left, and the switch in Settings says off.
+    setRainbow({ on: true, rotate: false, seed: 0 });
+    const resting = rainbowAt(0);
+    setDisco(true);
+    vi.advanceTimersByTime(DISCO_TICK_MS * 3);
+    setDisco(false);
+    expect(rainbowState().rotate).toBe(false);
+    expect(rainbowAt(0)).toBe(resting);
+  });
+
+  it("leaves a real rotate choice alone when it stops", () => {
+    // The restore reads the STORED state, so somebody who did find the
+    // rotate switch keeps it, seed and all.
+    setRainbow({ on: true, rotate: true, seed: 3 });
+    const chosen = rainbowAt(0);
+    setDisco(true);
+    vi.advanceTimersByTime(DISCO_TICK_MS * 2);
+    setDisco(false);
+    expect(rainbowState().rotate).toBe(true);
+    expect(rainbowState().seed).toBe(3);
+    expect(rainbowAt(0)).toBe(chosen);
   });
 
   it("marks the document so a reader can tell disco from plain rainbow", () => {

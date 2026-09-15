@@ -61,7 +61,7 @@ import { SelectField } from "../../components/SelectField";
 import { Card, ToggleRow, type SaveState } from "./shared";
 import { InfoBubble } from "../../components/InfoBubble";
 import { RevealInput } from "../../components/RevealInput";
-import { Selector } from "../../components/Selector";
+import { HUE_OFFSET, Selector } from "../../components/Selector";
 import { getNotify, setNotify, testNotify, type NotifyConfig } from "../../lib/api";
 import { tLtr } from "../../lib/ltrFragments";
 import { useAdvanced } from "../../lib/advanced";
@@ -446,6 +446,9 @@ export function NotifyCard({
             { id: "always", label: t("notify.onAlways") },
           ]}
           label={t("notify.on")}
+          // Its own start, so it does not repeat the tab strip's colours
+          // column for column one card above it.
+          hueOffset={HUE_OFFSET.notifyOn}
           select="one"
           // `cfg.on || "never"`, NOT bare `cfg.on` (caught live while
           // verifying the round-7 variant change above, on the running

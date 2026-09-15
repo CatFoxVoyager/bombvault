@@ -2,9 +2,11 @@
 // Disco: rainbow, but the colours keep walking.
 //
 // Rainbow hands every row in a list its own colour out of a set of eight, read
-// through `rainbowAt(index)`, which offsets that set by the state's `seed`.
-// Disco steps the seed once a second, so every hued element in the app moves
-// to the next colour together while nothing else changes.
+// through `rainbowAt(index)`, which rotates that set by the state's `seed` when
+// the state's `rotate` is on. Disco steps the seed once a second AND holds
+// `rotate` on while it runs - the second half is not optional, because `seed`
+// is only ever read as `rotate ? seed : 0`. So every hued element in the app
+// moves to the next colour together while nothing else changes.
 //
 // It animates NOTHING, deliberately. There are no keyframes here and no new
 // classes: a seed change re-renders the subscribers the colour engine already
@@ -21,7 +23,7 @@
 // call covers "storm" in index.css, which is why that level now sits outside
 // the (no-preference) block too.
 // ---------------------------------------------------------------------------
-import { applyRainbow, rainbowState } from "./appearance";
+import { applyRainbow, applyStoredRainbow, rainbowState } from "./appearance";
 import { save as saveDisplayPrefs } from "./displayPrefs";
 
 const STORAGE_KEY = "bv-disco";
@@ -49,8 +51,9 @@ export function getDisco(): boolean {
 
 let timer: ReturnType<typeof setInterval> | null = null;
 
-/** Stops the walk and leaves the colours wherever they are. Safe to call when
- *  nothing is running, which is what makes applyStoredDisco idempotent. */
+/** Stops the walk. Safe to call when nothing is running, which is what makes
+ *  applyStoredDisco idempotent; the caller decides whether the palette the
+ *  last tick left behind stays or gets handed back. */
 export function stopDisco(): void {
   if (timer !== null) {
     clearInterval(timer);
@@ -75,10 +78,10 @@ export function stopDisco(): void {
  * seed disco shows is therefore live-only, and the stored one is whatever they
  * actually chose.
  */
-export function applyStoredDisco(): void {
+export function applyStoredDisco(on: boolean = getDisco()): void {
+  const wasWalking = timer !== null;
   stopDisco();
 
-  const on = getDisco();
   const root = document.documentElement;
   if (on) root.setAttribute("data-disco", "on");
   else root.removeAttribute("data-disco");
@@ -86,12 +89,31 @@ export function applyStoredDisco(): void {
   // Rainbow off means there is nothing hued on screen, so a walking seed
   // would be invisible work. The switch stays on and starts walking by
   // itself once rainbow comes back, because main.tsx re-applies both.
-  if (!on || !rainbowState().on) return;
+  if (!on || !rainbowState().on) {
+    // A walk that just ended leaves the palette turned by however many steps
+    // it managed, and `rotate` forced on (see the tick below). Both are
+    // live-only, so re-reading the stored state hands the user back exactly
+    // the rotation they chose - without which a stopped disco looks like the
+    // rotate switch having turned itself on. Only after a real walk: at boot
+    // main.tsx has applied the stored rainbow one line earlier already.
+    if (wasWalking) applyStoredRainbow({ animate: false });
+    return;
+  }
 
   const palette = rainbowState().palette.length || 1;
   timer = setInterval(() => {
     const live = rainbowState();
-    applyRainbow({ ...live, seed: (live.seed + 1) % palette }, { animate: false });
+    // `rotate: true` is what makes this visible at all. The seed is not a
+    // colour, it is an OFFSET, and rainbowColorAt() applies it as
+    // `rotate ? seed : 0` - so on the default setup (rotate off, which is
+    // where almost everybody is, it has a switch of its own further down the
+    // rainbow card) a walking seed renders byte-identically forever. Disco is
+    // rotation over time, so it rotates, and it overrides that switch for as
+    // long as it runs; the stored value is untouched and comes back above.
+    applyRainbow(
+      { ...live, rotate: true, seed: (live.seed + 1) % palette },
+      { animate: false },
+    );
   }, DISCO_TICK_MS);
 }
 
@@ -101,10 +123,14 @@ export function setDisco(on: boolean): void {
     localStorage.setItem(STORAGE_KEY, on ? "true" : "false");
     saveDisplayPrefs();
   } catch {
-    // Storage disabled: this tab still behaves correctly, the choice just
-    // does not survive a reload. Same trade every sibling setting makes.
+    // Storage disabled, as in a private window. The choice cannot survive a
+    // reload there, which is the trade every sibling setting makes - but the
+    // apply below must not inherit the failure, which is why it is handed the
+    // intent rather than left to re-read a key the write never reached. A
+    // switch that reads ON while nothing walks is a worse outcome than a
+    // switch that forgets itself on reload.
   }
-  applyStoredDisco();
+  applyStoredDisco(on);
 }
 
 /**

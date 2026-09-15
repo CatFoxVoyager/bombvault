@@ -56,7 +56,11 @@ import { SHAPES, getShape, setShape, type Shape } from "../lib/shape";
 import { MOTION_INTENSITIES, getMotionIntensity, setMotionIntensity, stormTap, type MotionIntensity } from "../lib/motion";
 import { PLATFORMS, PLATFORM_STORAGE_KEY, applyPlatform, usePlatform, type Platform } from "../lib/platform";
 import { applyStoredDisco, discoTap, getDisco, setDisco } from "../lib/disco";
-import { Selector } from "../components/Selector";
+// HUE_OFFSET (not a literal) — upstream's shared offset table backs every hued
+// selector here, and hueOffsets.test.ts requires each to name an entry.
+// BottomSheet is ours: the phase 6 mobile sheets (More tab, per-card editors)
+// mount through it.
+import { HUE_OFFSET, Selector } from "../components/Selector";
 import { BottomSheet } from "../components/mobile/BottomSheet";
 import { IconAdd, IconBackupNow, IconDownload, IconTrash, IconCheckCircle, IconSync, IconGear, IconClose } from "../components/Sidebar";
 // The integrity row's own two verbs ([324]). They live in the ACTION set
@@ -2636,6 +2640,9 @@ export function SettingsPage() {
       <Selector
         items={tabItems}
         label={t("settings.title")}
+        // 0, which is also the default - stated anyway, because it is the one
+        // start every other selector in the tree has to avoid.
+        hueOffset={HUE_OFFSET.tabs}
         select="one"
         active={tab}
         onChange={switchTab}
@@ -4938,7 +4945,11 @@ export function SettingsPage() {
           grooved segmented control; see Selector.tsx's item 5b. */}
         {/* Corners sub-section — the shapeHint key stays alive on its bubble
             beside the caption (no new umbrella hint: the four original hint
-            keys keep exactly their old bubbles, quick 260914-p9a decision). */}
+            keys keep exactly their old bubbles, quick 260914-p9a decision).
+            Stays a sub-section of the merged Apparence Card (our D-11 device
+            verdict), NOT theirs' standalone Card with a hueIndex notch — but
+            it takes its rainbow start from upstream's shared HUE_OFFSET table
+            like every other hued selector (hueOffsets.test.ts). */}
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1">
             <span className="text-xs text-carbon-textSub">{t("settings.shape")}</span>
@@ -4964,8 +4975,9 @@ export function SettingsPage() {
             size="lg"
             variant="well"
             equalWidth
-            // 4; see the label rows below for the palette split.
-            hueOffset={4}
+            // 4; see the label rows below for the palette split. Table entry,
+            // not the bare literal (hueOffsets.test.ts).
+            hueOffset={HUE_OFFSET.shape}
           />
         </div>
 
@@ -5032,8 +5044,9 @@ export function SettingsPage() {
             equalWidth
             // 5: distinct from the tab strip (0), the label rows (1..3)
             // and the shape selector (4), so no two selectors on this page
-            // wear the same colour in the same column.
-            hueOffset={5}
+            // wear the same colour in the same column. Table entry, not the
+            // bare literal (hueOffsets.test.ts).
+            hueOffset={HUE_OFFSET.motion}
           />
         </div>
 
@@ -5074,9 +5087,11 @@ export function SettingsPage() {
             size="lg"
             variant="well"
             equalWidth
-            // 6: the next free slot in this page's palette split (tab strip 0,
-            // label rows 1..3, shape 4, motion 5) — same rule, same column.
-            hueOffset={6}
+            // Out of the shared table (hueOffsets.test.ts): 8 is the next free
+            // start after theme (6) and notifyOn (7) — the literal 6 this
+            // picker first shipped with collided with theme's once the table
+            // arrived in the resync.
+            hueOffset={HUE_OFFSET.platform}
           />
         </div>
 
@@ -5126,11 +5141,12 @@ export function SettingsPage() {
                   // gleichen feld die gleiche farbe haben"). Offsetting by the
                   // row index rather than by the row COUNT keeps neighbouring
                   // rows adjacent in the palette, so the block still reads as
-                  // one group instead of three unrelated strips.
-                  // 1..3; the shape and motion selectors take 4 and 5, and the
-                  // tab strip above keeps 0, so no two selectors on this page
-                  // start on the same palette colour.
-                  hueOffset={1 + axisIndex}
+                  // one group instead of three unrelated strips. Every other
+                  // start in the settings tree comes out of the same table
+                  // (1..3; shape and motion take the next slots, the tab strip
+                  // keeps 0 — no two selectors on this page start on the same
+                  // palette colour).
+                  hueOffset={HUE_OFFSET.labels + axisIndex}
                 />
               </div>
             ))}

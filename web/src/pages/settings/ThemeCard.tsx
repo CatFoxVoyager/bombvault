@@ -18,7 +18,13 @@
 // pointer to the Settings tab strip names Settings.tsx — the component no
 // longer lives there.
 import type { ResolvedTheme } from "../../lib/theme";
-import { Selector } from "../../components/Selector";
+// HUE_OFFSET (not a literal) — upstream's shared offset table now backs every
+// hued selector, and web/src/pages/settings/hueOffsets.test.ts requires every
+// hued selector in the Settings tree to name an entry in it. No `Card` import:
+// our D-11 body-only merge (header note) already moved this component INTO the
+// host Apparence Card in Settings.tsx, so this file renders a fragment and the
+// wrapper Card theirs adds never existed here.
+import { HUE_OFFSET, Selector } from "../../components/Selector";
 import { getResolvedTheme, getTheme, onSystemThemeChange, setTheme } from "../../lib/theme";
 import { useEffect, useState } from "react";
 import { useT } from "../../lib/i18n";
@@ -158,6 +164,9 @@ export function ThemeCard({ t }: { t: ReturnType<typeof useT>["t"] }) {
           { id: "dark", label: t("theme.dark"), icon: moonIcon },
         ]}
         label={t("settings.theme")}
+        // This card sits in the same tab as the shape, motion and label
+        // selectors, so it takes its own start out of the shared table.
+        hueOffset={HUE_OFFSET.theme}
         select="one"
         active={theme}
         onChange={(id) => selectTheme(id as ResolvedTheme)}

@@ -20,13 +20,19 @@ import { save as saveDisplayPrefs } from "./displayPrefs";
 // other GlimStone axis in this app already follows — see
 // apply-global-look-at-app-root for why these all stay client-side).
 //
-// This is a MANUAL preference that sits ALONGSIDE prefers-reduced-motion,
-// never in front of it: index.css keys data-motion's actual effect strictly
-// inside its own `@media (prefers-reduced-motion: no-preference)` block, so
-// an OS-level reduced-motion user is unaffected by whatever this attribute
-// says — that media query, not this file, is what enforces "OS wins." See
+// This is a MANUAL preference that sits ALONGSIDE prefers-reduced-motion
+// rather than in front of it, for the three levels the picker offers:
+// index.css keys their effect strictly inside its own `@media
+// (prefers-reduced-motion: no-preference)` block, so an OS-level
+// reduced-motion user is unaffected by whatever this attribute says — that
+// media query, not this file, is what enforces "OS wins."
+//
+// "storm" is the one exception, on jdp's call (2026-09-15): the (reduce) block
+// now names it per selector, exempting it from the gentler substitutes and
+// restoring the full animations there. It is reached by clicking the same
+// option five times, so nobody arrives at it without meaning to. See
 // index.css's own "Motion intensity" section header for the full cascade
-// design and the off/subtle/wild resolution table for every keyframe.
+// design and lib/stormOverridesOs.test.ts for the guard on that exemption.
 // ---------------------------------------------------------------------------
 
 export type MotionIntensity = "off" | "subtle" | "wild" | "storm";
@@ -132,6 +138,32 @@ function isMotionIntensity(v: unknown): v is MotionIntensity {
 }
 
 /**
+ * Any string turned into a level: the value itself when it is one, the level a
+ * legacy spelling used to name, or the default.
+ *
+ * ONE function rather than a check in each caller, because the two callers
+ * below make the same promise ("hand me whatever localStorage has") and they
+ * have to keep it identically. They did not, briefly: the alias table lived in
+ * the getter alone, so a stored "full" resolved to "wild" through
+ * getMotionIntensity and to "subtle" through applyMotionIntensity - the second
+ * being the documented "no need to validate first" path.
+ */
+function normalise(value: string | null | undefined): MotionIntensity {
+  if (isMotionIntensity(value)) return value;
+  // Validate what comes BACK, rather than asking `value in LEGACY_ALIASES`.
+  // `in` walks the prototype chain, so a "toString" or "constructor" finds
+  // Object.prototype's own and the lookup hands back a FUNCTION - which
+  // typechecks, the table being a Record<string, …>, and would be written onto
+  // data-motion verbatim. Running the alias through the same validator the
+  // value just went through costs one call and cannot be got round.
+  if (value !== null && value !== undefined) {
+    const alias = LEGACY_ALIASES[value];
+    if (isMotionIntensity(alias)) return alias;
+  }
+  return DEFAULT;
+}
+
+/**
  * The stored preference, defaulting to "subtle" when unset or corrupt, and
  * translating a legacy spelling to the level it used to name.
  *
@@ -140,18 +172,16 @@ function isMotionIntensity(v: unknown): v is MotionIntensity {
  * is what stores; the old string simply keeps resolving correctly until then.
  */
 export function getMotionIntensity(): MotionIntensity {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (isMotionIntensity(stored)) return stored;
-  if (stored !== null && stored in LEGACY_ALIASES) return LEGACY_ALIASES[stored];
-  return DEFAULT;
+  return normalise(localStorage.getItem(STORAGE_KEY));
 }
 
 /**
  * applyMotionIntensity sets the attribute index.css's motion tokens key off,
- * validating against ALL_INTENSITIES and falling back to "wild" for anything
+ * validating against ALL_INTENSITIES and falling back to DEFAULT for anything
  * else — matches shape.ts's own applyShape() exactly, so a caller can hand
  * this an unvalidated value (straight out of localStorage, say) without
- * checking it first.
+ * checking it first. Legacy spellings resolve here too, through the same
+ * normalise() the getter uses, so the two paths cannot drift apart.
  *
  * ALL_INTENSITIES and not MOTION_INTENSITIES, which is the same distinction
  * isMotionIntensity above is written for: what the picker LISTS is three
@@ -159,7 +189,7 @@ export function getMotionIntensity(): MotionIntensity {
  * picker's list here would throw a stored "storm" away on every boot.
  */
 export function applyMotionIntensity(intensity: MotionIntensity | string | undefined): void {
-  const m = isMotionIntensity(intensity) ? intensity : DEFAULT;
+  const m = normalise(intensity);
   document.documentElement.setAttribute("data-motion", m);
 }
 

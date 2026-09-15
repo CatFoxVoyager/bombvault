@@ -412,7 +412,10 @@ interface SelectorCommon {
    *  with the caller that knows the group, never in hidden module state that
    *  two independent trees could disagree about.
    *
-   *  Ignored when `hue` is false, since then no position is read at all. */
+   *  Ignored when `hue` is false, since then no position is read at all.
+   *
+   *  The settings tree's own sequence lives in HUE_OFFSET below, because
+   *  there the "group" spans several files. */
   hueOffset?: number;
   /** Page-tab treatment (no idle background) instead of the default
    *  toolbar-chip treatment (idle `bg-carbon-surface2` pill). See the file
@@ -478,6 +481,44 @@ interface SelectorCommon {
   disabled?: boolean;
   className?: string;
 }
+
+/**
+ * Where each selector in the settings tree starts reading the palette.
+ *
+ * `hueOffset`'s own doc says the sequence belongs to the caller that knows the
+ * group. In the settings tree that group spans five files: the tab strip lives
+ * in Settings.tsx, the theme picker in ThemeCard, the drill kind in
+ * IntegrityCard, and so on. A per-file judgement call there is how the
+ * collision jdp reported comes back - the offset's default is 0, which is
+ * right for a lone selector on a page and wrong for every selector added
+ * beside another one, and nobody writing a new card is thinking about the
+ * palette. So the sequence is a table, and pages/settings/hueOffsets.test.ts
+ * requires every hued selector in that tree to name an entry in it.
+ *
+ * The palette holds eight colours and the tree holds ten selectors (nine of
+ * upstream's plus the Platform sub-section's own picker), so
+ * exactly one start is shared: `drillKind` reuses the first label row's.
+ * That is arithmetic rather than oversight - the two are in different tabs
+ * (Integrity and Appearance) and cannot be on screen together, and the only
+ * hued selector the Integrity tab does show is the tab strip at 0.
+ */
+export const HUE_OFFSET = {
+  /** The Settings tab strip, which every tab shows. */
+  tabs: 0,
+  /** The three label-mode rows, +0..2 by axis, so neighbouring rows stay
+   *  adjacent in the palette and the block still reads as one group. */
+  labels: 1,
+  shape: 4,
+  motion: 5,
+  theme: 6,
+  notifyOn: 7,
+  /** The Platform sub-section's material/cupertino picker (PLAT-01, our
+   *  D-11 device pass). 8 is the next free start after theme (6) and
+   *  notifyOn (7) — the picker first shipped with the literal 6, which
+   *  collided with theme's once the shared table arrived. */
+  platform: 8,
+  drillKind: 1,
+} as const;
 
 export type SelectorProps =
   | (SelectorCommon & {
