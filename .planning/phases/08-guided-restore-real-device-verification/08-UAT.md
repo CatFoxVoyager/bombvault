@@ -129,6 +129,12 @@ exists to prevent.
   were deliberately left out of the 08-04 bleed fixes and named as D-11 real-device
   items. Confirm each remains USABLE on real hardware at thumb pace; if any proves
   unusable, file it as a v2 gap naming the cell where it failed.
+  **Device verdict (2026-09-15, build `mobilefix-2b08030b`): ALL THREE GROUPS USABLE
+  — confirmed at thumb pace, no gap filed.** Selector segments post-260914-ugv
+  (compact, one-line) confirmed comfortable; the 28px swatches (accent trigger +
+  popover palette + reset) confirmed reachable without neighbor misses; native
+  selects (Integrity Source/Drill type, Notifications) confirmed fine as closed
+  controls with the Android system picker.
 - **Config restore reloads the page mid-flow** (Pitfall 7) — a config restore ends in a
   page reload and the flow re-enters at step 1 with the restarting narration visible
   before it happens. Correct behavior; not a bug.
