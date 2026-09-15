@@ -132,3 +132,16 @@ No gaps. Every automated must-have is implemented, substantive, wired, and behav
 
 _Verified: 2026-09-14T16:38:00Z_
 _Verifier: Claude (gsd-verifier)_
+
+---
+
+## Post-Verification Update — D-11 device session (2026-09-15)
+
+The two truths marked DESIGNED-PENDING above were written before the D-11 human device session ran. That session has since executed and consigned its verdicts (record: `08-UAT.md`, commits `09de4f77` + recoup `3093daa8`):
+
+| Truth | Pending half at verification time | D-11 outcome | Verdict now |
+|-------|-----------------------------------|--------------|-------------|
+| VERIFY-02 | Real-device pass (portrait + landscape, guided restore on device) | Matrix cells 5+6 FULL CELL PASS (Android Chrome); Procedure R PASS (milestone exit criterion); landscapes ≥2 consigned | **SATISFIED** |
+| VERIFY-05 | Both themes on physical device | Checklist item 4 PASS — both themes legible on the physical display; four-status text verified on device (checklist item 5) | **SATISFIED** |
+
+**Updated score: 5/5 truths SATISFIED** — no pending halves remain; the milestone exit criterion closed as designed.
