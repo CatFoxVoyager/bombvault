@@ -76,7 +76,7 @@ jobs:
   # mobile-android/Chromium). Any desktop-layout or mobile-shell assertion
   # failure fails CI from here on. The web build runs BEFORE the Go build on
   # purpose — the binary embeds web/dist, so a stale build embeds a stale
-  # SPA (the house rule from CLAUDE.md). The job intentionally lands AFTER
+  # SPA (the house rule). The job intentionally lands AFTER
   # the specs exist: a zero-spec Playwright run fails its no-tests-found
   # guard, so the gate arms exactly when it has something to enforce.
   playwright:
