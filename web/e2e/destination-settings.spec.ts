@@ -271,7 +271,11 @@ function hitBoxes(locator: Locator) {
 // are default-mode (non-advanced) Card titles so the sweep needs no
 // advanced-mode staging: General's Domains card, Paths & Storage's Backup
 // Paths card, Schedules' Schedule options card, Off-site's Off-site retention
-// card, Notifications'/Integrity's/System's title cards.
+// card, Notifications'/Integrity's/System's title cards. System's marker is
+// the Dashboard widget card — its FIRST unconditional card — because the
+// resync absorbed upstream's [3559] move that relocated About BombVault off
+// System onto General (the footer of the first tab), which also took the
+// About card out of this sweep's per-tab spot-check.
 const TAB_LANDMARKS: Array<[string, string]> = [
   ["General", "Domains"],
   ["Paths & Storage", "Backup Paths"],
@@ -279,12 +283,12 @@ const TAB_LANDMARKS: Array<[string, string]> = [
   ["Off-site", "Off-site retention"],
   ["Notifications", "Notifications"],
   ["Integrity", "Integrity & maintenance"],
-  ["System", "About BombVault"],
+  ["System", "Dashboard widget"],
 ];
 
 // ---------------------------------------------------------------------------
 
-test("mobile /settings: the chip strip renders seven tonal chips, scrolls, and keeps the desktop strip mounted-hidden", async ({
+test("mobile /settings: the chip strip renders seven tonal chips, wraps, and keeps the desktop strip mounted-hidden", async ({
   page,
 }, testInfo) => {
   test.skip(
@@ -316,17 +320,28 @@ test("mobile /settings: the chip strip renders seven tonal chips, scrolls, and k
   // Default tab is General — the first stacked card set is already showing.
   await expect(cardHeading(page, "Domains")).toBeVisible();
 
-  // Horizontal scroll, never wrap: seven chips with real labels cannot fit a
-  // phone column, so the strip MUST overflow (scrollWidth > clientWidth).
+  // The strip wraps, it never pans: seven chips with real labels cannot fit a
+  // phone column on one row, and the Selector's flex-wrap contract (upstream
+  // round 8 dropped the flex-nowrap "well" that genuinely spilled a 7-tab
+  // strip past the page edge) stacks them into rows INSIDE the strip's own
+  // box instead — no horizontal overflow to scroll, strip-local or page-wide.
   const { scrollWidth, clientWidth } = await strip.evaluate((el) => ({
     scrollWidth: el.scrollWidth,
     clientWidth: el.clientWidth,
   }));
-  expect(scrollWidth).toBeGreaterThan(clientWidth);
+  expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
 
-  // No chip is clipped out of reach: scrolling the strip brings even the
-  // last TAB_ORDER chip fully inside the strip's own box.
-  await chips.last().scrollIntoViewIfNeeded();
+  // The wrap is real: chip tops span more than one row (the old flex-nowrap
+  // contract pinned this spread at <= 8px — exactly one row; wrapping is the
+  // whole point now), while the strip stays a strip, not an unbounded column.
+  const tops = await chips.evaluateAll((els) =>
+    els.map((el) => el.getBoundingClientRect().top),
+  );
+  const chipSpread = Math.max(...tops) - Math.min(...tops);
+  expect(chipSpread).toBeGreaterThan(16);
+
+  // No chip is clipped out of reach: wrapping keeps even the last TAB_ORDER
+  // chip fully inside the strip's own box, no scrolling required.
   const chipBox = await chips.last().boundingBox();
   const stripBox = await strip.boundingBox();
   expect(chipBox).not.toBeNull();

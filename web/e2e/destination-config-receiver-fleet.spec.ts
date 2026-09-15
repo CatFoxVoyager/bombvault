@@ -935,7 +935,7 @@ test("mobile /fleet: the token editor is write-only — blank input, blank-keeps
   expect(body.enabled).toBe(true);
 });
 
-test("mobile /fleet: gate-off shows the honest outline card and nothing else", async ({
+test("mobile /fleet: gate-off falls through to /instances, showing the tabs still enabled", async ({
   page,
 }, testInfo) => {
   test.skip(
@@ -945,23 +945,37 @@ test("mobile /fleet: gate-off shows the honest outline card and nothing else", a
   await stageFleetDomain(page, { settings: { fleetEnabled: false } });
   await page.goto("/fleet");
 
-  // The gate hint + the settings row that turns the fleet view back on…
+  // The resync collapsed /receiver + /fleet + /pull into one /instances page
+  // (each old route redirect-replaces, keeping the requested hash): a
+  // gate-off destination no longer owns a route with an honest outline card.
+  // /fleet#fleet lands on the merged page, whose tab state falls back to the
+  // first destination that IS on — here Receiver, this fixture's only other
+  // enabled tab — under the merged page's heading.
+  await expect(page).toHaveURL(/\/instances#fleet$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Instances" })).toBeVisible();
+
+  // One embedded panel renders, and it is NOT Fleet's face: no add-peer
+  // button, no peer cards, no gate hint — the old outline card left the
+  // codebase with the route it lived on.
+  await expect(page.locator(".glim-tab-slide")).toHaveCount(1);
   await expect(
     page.getByText("Watch the protection status of peer BombVault instances (read-only)"),
-  ).toBeVisible();
-  const settingsLink = page
-    .locator("#bv-main")
-    .getByRole("link", { name: "Settings" })
-    .filter({ visible: true });
-  await expect(settingsLink).toBeVisible();
-
-  // …and NOTHING else: no add entry, no peer cards, no desktop Add (hidden)
-  // leaking through as visible.
+  ).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Add peer" }).filter({ visible: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: /tower/ }).filter({ visible: true })).toHaveCount(0);
 
-  await settingsLink.tap();
-  await expect(page).toHaveURL(/\/settings$/);
+  // Switch EVERY instance destination off and the merged page renders its
+  // bare heading + subtitle only — no tab strip, no panel, nothing blank
+  // under a live heading.
+  await page.route("**/api/settings", (route) =>
+    route.fulfill({ json: settingsBody({ fleetEnabled: false, receiverEnabled: false }) }),
+  );
+  await page.reload();
+  await expect(page).toHaveURL(/\/instances/);
+  await expect(page.getByRole("heading", { level: 1, name: "Instances" })).toBeVisible();
+  await expect(page.getByText("Everything to do with another BombVault")).toBeVisible();
+  await expect(page.locator(".glim-tab-slide")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Add peer" }).filter({ visible: true })).toHaveCount(0);
 });
 
 // --- Desktop dual-direction guard (Task 3) -----------------------------------

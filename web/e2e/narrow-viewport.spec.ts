@@ -217,9 +217,14 @@ const PHASE7_ROUTES = ["/vms", "/flash", "/config", "/receiver", "/fleet", "/set
 const STRIP_LABEL = { de: "Einstellungsbereiche", fr: "Sections de paramètres" } as const;
 const GENERAL_TAB = { de: "Allgemein", fr: "Général" } as const;
 const LOG_TITLE = { de: "Aktivitätsprotokoll", fr: "Journal d'activité" } as const;
+// jdp's 2026-09-11 rename (absorbed by the resync) put the bare house verbs
+// on the set's edit/remove tiles — common.edit / common.delete, the words the
+// rest of the app already speaks — and demoted the long "Ordner-Set …" pair
+// to the dialog heading and the title tooltip. The sweep probes accessible
+// names, so it follows the verbs.
 const FILES_HEADER = {
-  de: { edit: "Ordner-Set bearbeiten", remove: "Set entfernen", backup: "Jetzt sichern", toggle: "Im Zeitplan einschließen" },
-  fr: { edit: "Modifier le jeu de dossiers", remove: "Retirer le jeu", backup: "Sauvegarder maintenant", toggle: "Inclure dans le planning" },
+  de: { edit: "Bearbeiten", remove: "Löschen", backup: "Jetzt sichern", toggle: "Im Zeitplan einschließen" },
+  fr: { edit: "Modifier", remove: "Supprimer", backup: "Sauvegarder maintenant", toggle: "Inclure dans le planning" },
 } as const;
 
 /** Let layout settle before any geometry read, in three steps: web-font swap
@@ -327,36 +332,31 @@ async function assertNothingClipped(page: Page, label: string): Promise<void> {
   expect(offenders, `${label}: controls clip the viewport edge`).toEqual([]);
 }
 
-/** Contract 3a: the Settings chip strip renders its always-on tab, keeps
- *  every chip on ONE row (top spread ≤ 8px) and stays a horizontal scroller
- *  (overflow-x engaged) — scrollable, never wrapping. */
+/** Contract 3a: the Settings chip strip renders its always-on tab and wraps
+ *  its chips into rows inside its own box — the Selector's flex-wrap
+ *  contract (upstream round 8 dropped the flex-nowrap "well" that genuinely
+ *  spilled a 7-tab strip past the page edge). The strip itself never
+ *  overflows horizontally, so nothing ever pans — page-wide (the sweep's
+ *  global assertions) or strip-local (here). */
 async function assertChipStrip(page: Page, label: string, navName: string, generalLabel: string): Promise<void> {
   const strip = page.getByRole("navigation", { name: navName });
   await expect(strip).toBeVisible();
   await expect(strip.getByText(generalLabel).first()).toBeVisible();
   await settle(page);
 
-  const stats = await strip.evaluate((el) => {
-    const kids = Array.from(el.querySelectorAll("button, a")).filter((k) => {
+  const stats = await strip.evaluate((el) => ({
+    chips: Array.from(el.querySelectorAll("button, a")).filter((k) => {
       const r = k.getBoundingClientRect();
       return r.width > 0 || r.height > 0;
-    });
-    const tops = kids.map((k) => k.getBoundingClientRect().top);
-    return {
-      chips: kids.length,
-      spread: tops.length ? Math.max(...tops) - Math.min(...tops) : 0,
-      overflowX: window.getComputedStyle(el).overflowX,
-    };
-  });
+    }).length,
+    scrollWidth: el.scrollWidth,
+    clientWidth: el.clientWidth,
+  }));
   expect(stats.chips, `${label}: the chip strip rendered no tabs`).toBeGreaterThan(0);
   expect(
-    ["auto", "scroll"],
-    `${label}: the chip strip must scroll horizontally (computed overflow-x: ${stats.overflowX})`,
-  ).toContain(stats.overflowX);
-  expect(
-    stats.spread,
-    `${label}: the chip strip wrapped to a second line (chip top spread ${stats.spread}px)`,
-  ).toBeLessThanOrEqual(8);
+    stats.scrollWidth,
+    `${label}: the chip strip overflowed horizontally (scrollWidth ${stats.scrollWidth} > clientWidth ${stats.clientWidth} — chips must wrap into rows, not pan)`,
+  ).toBeLessThanOrEqual(stats.clientWidth);
 }
 
 // --- staged read models (list-ergonomics.spec.ts's shapes, field-for-field) --

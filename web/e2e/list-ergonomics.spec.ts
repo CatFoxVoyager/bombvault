@@ -511,9 +511,12 @@ test.describe("with German labels", () => {
     await page.goto("/files");
 
     // Expand the set — the tap IS the disclosure (SCRN-04) — which renders the
-    // FULL FileSetRow below the card, header row included.
+    // FULL FileSetRow below the card, header row included. jdp's 2026-09-11
+    // rename put the bare house verb (common.edit) on the tile and demoted
+    // "Ordner-Set bearbeiten" to the dialog heading and tooltip, so the probe
+    // follows the tile's accessible name.
     await setCards(page).first().tap();
-    const edit = page.getByRole("button", { name: "Ordner-Set bearbeiten" }).filter({ visible: true });
+    const edit = page.getByRole("button", { name: "Bearbeiten" }).filter({ visible: true });
     await expect(edit).toBeVisible();
 
     // The carried-fix regression assertion: every header-row control sits fully
@@ -524,7 +527,10 @@ test.describe("with German labels", () => {
     // masked a real page-pan bug — the header action row's shrink-0 overflow —
     // fixed in Files.tsx alongside this spec).
     const viewportWidth = page.viewportSize()?.width ?? 360;
-    const controlNames = ["Ordner-Set bearbeiten", "Set entfernen", "Jetzt sichern"];
+    // Same rename as above: the tiles carry the bare verbs now (common.edit /
+    // common.delete); "Jetzt sichern" keeps its exact-match guard against the
+    // bulk bar's "Alle jetzt sichern".
+    const controlNames = ["Bearbeiten", "Löschen", "Jetzt sichern"];
     for (const name of controlNames) {
       const box = await page
         .getByRole("button", { name, exact: true })
@@ -680,10 +686,13 @@ test("the activity log reaches mobile below repo health, with the sticky toolbar
   expect(logY).toBeGreaterThan(storageY);
 
   // The sticky-in-flow toolbar with the log's own placeholder; the day chip
-  // and selects re-present the desktop bar's exact shared filter state.
+  // and the two filter comboboxes re-present the desktop bar's exact shared
+  // filter state. GlimStone rule 18 (noNativeSelect) replaced the bar's two
+  // native <select>s with SelectField, whose trigger is a role="combobox"
+  // button — the assertion follows the control, not the tag it used to wear.
   const search = card.getByPlaceholder("Filter… (e.g. plex, failed, off-site)").filter({ visible: true });
   await expect(search).toBeVisible();
-  await expect(card.locator("select").filter({ visible: true })).toHaveCount(2);
+  await expect(card.getByRole("combobox")).toHaveCount(2);
 
   // Flat rows for the three staged runs — and the desktop scrollbox is NOT
   // the mobile presentation (it stays mounted for the D-01 gate, but hidden).
@@ -703,10 +712,13 @@ test("log toolbar filters narrow the merged list; zero match shows the honest em
   await page.goto("/");
   await expect(logRows(page)).toHaveCount(3);
 
-  // The domain select is the desktop bar's control re-presented — same
-  // options, same shared state.
-  const domainSelect = logCard(page).locator("select").filter({ visible: true }).first();
-  await domainSelect.selectOption({ label: "Folders" });
+  // The domain filter is the desktop bar's control re-presented — same
+  // options, same shared state. SelectField opens a portal listbox on tap,
+  // so picking is trigger tap then option tap; the listbox renders outside
+  // the card, so the option resolves from the page, not the card.
+  const domainTrigger = logCard(page).getByRole("combobox").first();
+  await domainTrigger.tap();
+  await page.getByRole("option", { name: "Folders" }).tap();
   await expect(logRows(page)).toHaveCount(1);
 
   // Text search on top of the domain filter; zero match renders the EXISTING
