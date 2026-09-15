@@ -1777,11 +1777,25 @@ export function FileSetRow({
             same place the container card keeps its own `lastBackupText`. One
             fact, one place.
 
-            Same `ms-auto flex items-start gap-1.5 shrink-0` wrapper, and the
-            same gap-1.5 between adjacent 32px tiles that every icon-badge pair
-            in this app uses. Backup first because it is the thing somebody
-            comes to the card to do; edit and remove follow. */}
-        <div className="ms-auto flex items-start gap-1.5 shrink-0">
+            Same badge-row shape as the container card — ms-auto, items-start,
+            the house gap-1.5 between adjacent 32px tiles every icon-badge
+            pair in this app uses — but this wrapper deliberately DROPS the
+            trailing shrink-0 the container card's identical wrapper keeps,
+            re-porting the 06-UI-REVIEW carried fix (f5c14dfe, Rule 1): a
+            shrink-0 flex item renders at its max-content width even when
+            that is wider than the card column, so the wrapper's own
+            flex-wrap never engaged and the German/French text-mode buttons
+            overflowed 320/360px viewports. Resync merge 7c9ccb5a
+            reintroduced the shrink-0 and cost 5 mobile e2e failures
+            (narrow-viewport carried x4, list-ergonomics carried
+            06-UI-REVIEW x1); shrinkable + flex-wrap, the wrapper takes the
+            width it has and the buttons drop lines instead — the widest
+            single button (~123px "Löschen") always fits. min-width:auto
+            stays ON PURPOSE: a min-w-0 variant was mutation-checked out at
+            390px German and pushed a button out through the LEFT edge
+            (x=-3). Backup first because it is the thing somebody comes to
+            the card to do; edit and remove follow. */}
+        <div className="ms-auto flex items-start gap-1.5 flex-wrap">
           <FileSetBackupButton set={set} t={t} onBackedUp={onRefresh} running={running} onRunCorrelated={onRunCorrelated} />
           {/* Just the verb (jdp, 2026-09-11: "Odner-Set bearbeiten soll nur
               Bearbeiten heißen, Ordner-Set löschen nur Löschen"). These two sit
