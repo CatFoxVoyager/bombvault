@@ -62,6 +62,52 @@ function substitutes(): { selector: string; body: string }[] {
   return out;
 }
 
+/** The body of the `@media (prefers-reduced-motion: no-preference)` block that
+ *  holds the full animations, so the tests below can ask what "restored"
+ *  actually means instead of hard-coding a list that drifts. */
+function noPreferenceBlock(): string {
+  const needle = "@media (prefers-reduced-motion: no-preference)";
+  for (let i = css.indexOf(needle); i !== -1; i = css.indexOf(needle, i + 1)) {
+    const open = css.indexOf("{", i);
+    let depth = 0;
+    for (let j = open; j < css.length; j++) {
+      if (css[j] === "{") depth++;
+      else if (css[j] === "}") {
+        depth--;
+        if (depth === 0) {
+          const body = css.slice(open + 1, j);
+          if (body.includes(".glim-egg-boom")) return body;
+          i = j;
+          break;
+        }
+      }
+    }
+  }
+  throw new Error("no-preference block holding the egg not found");
+}
+
+/** Every animation name a block applies to the shatter egg's debris layers:
+ *  the fragment tiles, the flash/shockwave pseudo elements, the cloud puffs
+ *  and the sparks.
+ *
+ *  `gate` is not optional decoration. Collecting names alone would accept the
+ *  five rules with their gates INVERTED - the full explosion handed to the
+ *  reduced-motion user and nothing to the storm - because the names present in
+ *  the block would be exactly the same set. So a caller says which selector
+ *  shape may contribute. */
+function boomAnimations(body: string, gate?: RegExp): Set<string> {
+  const out = new Set<string>();
+  const clean = body.replace(/\/\*[\s\S]*?\*\//g, "");
+  for (const m of clean.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const selector = m[1];
+    if (!/\.glim-(frag|boom-fx|cloud|particle)\b/.test(selector)) continue;
+    if (gate && !gate.test(selector)) continue;
+    const anim = /animation:\s*([\w-]+)/.exec(m[2]);
+    if (anim?.[1]) out.add(anim[1]);
+  }
+  return out;
+}
+
 describe("the reduce block", () => {
   it("still carries substitutes rather than switching motion off", () => {
     // The premise. If a future pass turns this block into `animation: none`
@@ -108,6 +154,39 @@ describe("the reduce block", () => {
       expect(rule.body).not.toBe(sub);
     }
     expect(compared).toBeGreaterThan(3);
+  });
+
+  it("animates every layer it stops hiding, because their resting state is invisible", () => {
+    // The test above only compares selectors that appear on BOTH sides, so it
+    // cannot see a target that is exempted and then never restored. The
+    // shatter egg is exactly that case, and it is the worst-behaved one:
+    // `.glim-frag`, `.glim-cloud`, `.glim-particle` and both
+    // `.glim-boom-fx` pseudo elements each rest at `opacity: 0` and are only
+    // ever revealed BY their animation. Lifting `display: none` for the storm
+    // therefore does nothing on its own - the logo goes to `opacity: 0`
+    // (restored above) and the debris meant to replace it stays invisible, so
+    // the mark simply vanishes for the 1.4s Sidebar.tsx's timer runs. Worse
+    // than the gentle fade-pulse it displaced, and worse than the storm it
+    // promised. Un-hiding and animating are one change, not two.
+    const hidden = substitutes().filter((s) => /display:\s*none/.test(s.body));
+    expect(hidden.length).toBeGreaterThan(0);
+
+    // Derived from the no-preference block rather than listed here, so a new
+    // boom layer added there has to be answered here too.
+    const full = boomAnimations(noPreferenceBlock());
+    expect(full.size).toBeGreaterThan(2);
+
+    // Storm-gated only, so inverting the five gates fails here rather than
+    // reading as "the names are all present, carry on".
+    const restored = boomAnimations(reduceBlock(), /:root\[data-motion="storm"\]/);
+    const missing = [...full].filter((name) => !restored.has(name));
+    expect(missing).toEqual([]);
+
+    // And the other direction: no debris layer may be animated for everybody
+    // in here, which is what an inverted gate looks like. The reduced-motion
+    // user's substitute for the whole egg is the logo's quiet fade-pulse.
+    const ungated = boomAnimations(reduceBlock(), /^(?!.*\[data-motion=)/s);
+    expect([...ungated]).toEqual([]);
   });
 });
 

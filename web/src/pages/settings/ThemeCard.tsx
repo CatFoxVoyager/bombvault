@@ -6,7 +6,7 @@
 // stops here rather than continuing into SettingsPage itself.
 import type { ResolvedTheme } from "../../lib/theme";
 import { Card } from "../settings/shared";
-import { Selector } from "../../components/Selector";
+import { HUE_OFFSET, Selector } from "../../components/Selector";
 import { getResolvedTheme, getTheme, onSystemThemeChange, setTheme } from "../../lib/theme";
 import { useEffect, useState } from "react";
 import { useT } from "../../lib/i18n";
@@ -145,6 +145,9 @@ export function ThemeCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hu
           { id: "dark", label: t("theme.dark"), icon: moonIcon },
         ]}
         label={t("settings.theme")}
+        // This card sits in the same tab as the shape, motion and label
+        // selectors, so it takes its own start out of the shared table.
+        hueOffset={HUE_OFFSET.theme}
         select="one"
         active={theme}
         onChange={(id) => selectTheme(id as ResolvedTheme)}

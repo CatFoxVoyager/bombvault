@@ -54,7 +54,7 @@ import { RAINBOW, getRainbow, setRainbow, type RainbowState } from "../lib/appea
 import { SHAPES, getShape, setShape, type Shape } from "../lib/shape";
 import { MOTION_INTENSITIES, getMotionIntensity, setMotionIntensity, stormTap, type MotionIntensity } from "../lib/motion";
 import { applyStoredDisco, discoTap, getDisco, setDisco } from "../lib/disco";
-import { Selector } from "../components/Selector";
+import { HUE_OFFSET, Selector } from "../components/Selector";
 import { IconAdd, IconBackupNow, IconDownload, IconTrash, IconCheckCircle, IconSync, IconGear, IconClose } from "../components/Sidebar";
 // The integrity row's own two verbs ([324]). They live in the ACTION set
 // rather than the nav one, same split IconUpload already crosses.
@@ -2570,6 +2570,9 @@ export function SettingsPage() {
           ["system", t("settings.tab.system")],
         ] as const).map(([key, label]) => ({ id: key, label, icon: TAB_ICON[key], title: label }))}
         label={t("settings.title")}
+        // 0, which is also the default - stated anyway, because it is the one
+        // start every other selector in the tree has to avoid.
+        hueOffset={HUE_OFFSET.tabs}
         select="one"
         active={tab}
         onChange={(key) => {
@@ -4747,8 +4750,7 @@ export function SettingsPage() {
           size="lg"
           variant="well"
           equalWidth
-          // 4; see the label rows below for the palette split.
-          hueOffset={4}
+          hueOffset={HUE_OFFSET.shape}
         />
       </Card>
       )}
@@ -4809,10 +4811,7 @@ export function SettingsPage() {
           size="lg"
           variant="well"
           equalWidth
-          // 5: distinct from the tab strip (0), the label rows (1..3)
-          // and the shape selector (4), so no two selectors on this page
-          // wear the same colour in the same column.
-          hueOffset={5}
+          hueOffset={HUE_OFFSET.motion}
         />
       </Card>
       )}
@@ -4857,11 +4856,9 @@ export function SettingsPage() {
                 // gleichen feld die gleiche farbe haben"). Offsetting by the
                 // row index rather than by the row COUNT keeps neighbouring
                 // rows adjacent in the palette, so the block still reads as
-                // one group instead of three unrelated strips.
-                // 1..3; the shape and motion selectors take 4 and 5, and the
-                // tab strip above keeps 0, so no two selectors on this page
-                // start on the same palette colour.
-                hueOffset={1 + axisIndex}
+                // one group instead of three unrelated strips. Every other
+                // start in the settings tree comes out of the same table.
+                hueOffset={HUE_OFFSET.labels + axisIndex}
               />
             </div>
           ))}

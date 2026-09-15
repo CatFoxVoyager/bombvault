@@ -2475,20 +2475,28 @@ body {
    after all. See design-language.md's own updated Motion Intensity section
    for the full course-correction writeup.
 
-   This is a MANUAL, additive dial that sits ALONGSIDE prefers-reduced-motion,
-   never in front of it — OS accessibility signal always wins. That is
-   enforced structurally, not by a specificity fight: every token below is
-   only ever CONSUMED by rules living inside THIS section's own existing
-   `@media (prefers-reduced-motion: no-preference)` block further down. The
-   `@media (prefers-reduced-motion: reduce)` block at the very end of this
-   section is completely untouched by this axis — still unconditional,
-   still hard-coded — so a browser reporting OS-level reduced motion never
-   even evaluates a data-motion selector for these properties; it simply
+   This is a MANUAL, additive dial that sits ALONGSIDE prefers-reduced-motion
+   rather than in front of it: for each of the three OFFERED levels the OS
+   signal always wins, and that is enforced structurally rather than by a
+   specificity fight, because every token below is only ever CONSUMED by rules
+   living inside THIS section's own `@media (prefers-reduced-motion:
+   no-preference)` block further down. A browser reporting OS-level reduced
+   motion never even evaluates a data-motion selector for those properties; it
    never reaches that media query at all. A user who manually picks "off"
-   without OS-level reduced motion gets the SAME numbers that block already
-   uses (see each token's own comment below for exactly which value it
+   without OS-level reduced motion gets the SAME numbers the (reduce) block
+   already uses (see each token's own comment below for exactly which value it
    mirrors) — "off" is defined as "the manual equivalent of what OS-level
    reduced motion already does," not a second, separately-tuned recipe.
+
+   ONE EXCEPTION, and it is a deliberate one (jdp, 2026-09-15): the hidden
+   fourth level. The (reduce) block at the end of this section used to be
+   untouched by this axis; it now names `storm` per selector, exempting it from
+   the gentler substitutes and restoring the full animations there. Storm is
+   reached by clicking the same option five times, so arriving there is a
+   statement of intent rather than a default somebody inherited — see that
+   block's own header for why the exemption lives there and not here, and
+   lib/stormOverridesOs.test.ts for what holds it in place. The three offered
+   levels are unaffected: they still obey the operating system everywhere.
 
    Tokens, not per-state duplicated rules: "subtle" and "off" reuse the
    IDENTICAL keyframes as "wild", just parameterized to smaller numbers —
@@ -2640,12 +2648,17 @@ body {
      about twice its duration, on a curve that overshoots further and takes
      longer to settle.
 
-     It sits INSIDE the same (prefers-reduced-motion: no-preference) gate as
-     the other three rather than beside it, so a machine whose owner asked the
-     operating system for less motion never evaluates a data-motion selector at
-     all. That is the one way a hidden "more animation" switch could genuinely
-     do harm, and it is closed by where this block sits rather than by a
-     check. */
+     This token block sits outside any motion media query, like the other
+     three levels' blocks: it only declares numbers, and numbers are harmless
+     until a rule consumes them. Which rules consume them is the actual
+     accessibility question, and the answer for this level alone is "both
+     blocks" (jdp, 2026-09-15). The (reduce) block at the end of this section
+     now exempts `storm` from its gentler substitutes and restores the full
+     animations for it, so a machine whose owner asked the operating system for
+     less motion DOES animate at this level — deliberately, because five
+     clicks on the same option is not a default anybody inherited. The three
+     offered levels keep obeying the OS, which is what keeps that exemption
+     from being a hole. See lib/stormOverridesOs.test.ts. */
   --motion-page-dist: 20px;
   /* The scale belongs here as much as the distance, and leaving it out is the
      quiet half of the trap this block's own comment describes: without it the
@@ -3512,6 +3525,28 @@ body {
      here. Guarded by lib/stormOverridesOs.test.ts. */
   :root[data-motion="storm"] .glim-egg-wobble { animation: glim-egg-shake 240ms ease-in-out infinite; }
   :root[data-motion="storm"] .glim-egg-boom .glim-logo-img { opacity: 0; }
+  /* The debris, and it has to be ALL of it. Lifting `display: none` above
+     un-hides the fragment grid and the boom overlay, but every layer inside
+     them rests at `opacity: 0` and is only ever revealed BY its animation
+     (see .glim-frag / .glim-boom-fx::before / .glim-cloud / .glim-particle
+     further up). Without these five rules the line above would hide the logo
+     and put nothing in its place: the mark would just vanish for the 1.4s
+     Sidebar.tsx's boom timer runs - quieter than the fade-pulse it replaced,
+     which is the exact failure the restore is here to prevent. */
+  :root[data-motion="storm"] .glim-egg-boom .glim-frag {
+    animation: glim-frag-fly 950ms cubic-bezier(.22, .61, .3, 1) forwards;
+    animation-delay: var(--delay, 0ms);
+  }
+  :root[data-motion="storm"] .glim-boom-fx::before { animation: glim-egg-flash 160ms ease-out forwards; }
+  :root[data-motion="storm"] .glim-boom-fx::after  { animation: glim-egg-shock 620ms ease-out forwards; }
+  :root[data-motion="storm"] .glim-cloud {
+    animation: glim-cloud-billow 840ms cubic-bezier(.2, .6, .3, 1) forwards;
+    animation-delay: var(--delay, 0ms);
+  }
+  :root[data-motion="storm"] .glim-particle {
+    animation: glim-spark-fly 820ms cubic-bezier(.2, .6, .3, 1) forwards;
+    animation-delay: var(--delay, 0ms);
+  }
   :root[data-motion="storm"] .glim-page-enter {
     animation: glim-page-in var(--motion-page-dur, 320ms) var(--motion-page-ease, cubic-bezier(.2, .6, .2, 1)) both;
   }

@@ -12,8 +12,21 @@ import Recovery from "../pages/Recovery";
 import { GlyphSheet } from "../pages/Glyphs";
 import { I18nProvider } from "../lib/i18n";
 import { ToastProvider } from "../lib/toast";
+import { useRainbow } from "../lib/useRainbow";
 
 export function AppRouter() {
+  // The colour engine, subscribed once at the top. A hue arrives as an inline
+  // style computed during render (hueVars() bakes the hex and its four derived
+  // tints, which is why it cannot be a CSS var reference), so an element only
+  // changes colour when its component renders again - and about a dozen hue
+  // consumers never subscribe on their own. That was invisible while rainbow
+  // was only ever edited on the Settings page, because every other page
+  // mounted fresh afterwards. Disco writes once a second while the user is
+  // looking at some other page, and without this line the sidebar and the
+  // selectors would walk while the cards beside them sat still. One
+  // subscription here repaints everything below it. See
+  // app/rootRepaintsOnHue.test.ts.
+  useRainbow();
   return (
     <I18nProvider>
       {/* Inside I18nProvider — the toast dismiss button's aria-label needs a

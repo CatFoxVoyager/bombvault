@@ -108,6 +108,36 @@ describe("getMotionIntensity", () => {
     getMotionIntensity();
     expect(localStorage.getItem(STORAGE_KEY)).toBe("full");
   });
+
+  // The alias table is looked up by a string that came out of storage, and
+  // `key in obj` walks the prototype chain: "toString" and "constructor" are
+  // both "in" any object literal. Read through `in`, either one resolves to a
+  // FUNCTION that TypeScript then hands back as a MotionIntensity, and the
+  // boot code writes it straight onto data-motion. Only the table's own keys
+  // may answer.
+  it("does not treat an inherited Object key as a legacy level", () => {
+    for (const key of ["toString", "constructor", "hasOwnProperty", "__proto__"]) {
+      localStorage.setItem(STORAGE_KEY, key);
+      expect(getMotionIntensity()).toBe("subtle");
+    }
+  });
+
+  // applyMotionIntensity documents itself as safe to hand a raw localStorage
+  // value, so it has to resolve the legacy spelling too. It did not while the
+  // alias table lived in the getter alone: the same string meant "wild" on one
+  // path and "subtle" on the other, and the differing path was the documented
+  // one.
+  it("resolves a legacy spelling on the apply path too, not only the getter", () => {
+    applyMotionIntensity("full");
+    expect(document.documentElement.getAttribute("data-motion")).toBe("wild");
+  });
+
+  it("still falls back to the default on the apply path for real junk", () => {
+    applyMotionIntensity("toString");
+    expect(document.documentElement.getAttribute("data-motion")).toBe("subtle");
+    applyMotionIntensity(undefined);
+    expect(document.documentElement.getAttribute("data-motion")).toBe("subtle");
+  });
 });
 
 describe("setMotionIntensity", () => {
