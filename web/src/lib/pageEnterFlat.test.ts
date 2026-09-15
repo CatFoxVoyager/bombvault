@@ -69,7 +69,7 @@ describe("the page entrance", () => {
     // Without this the file passes on a keyframe that lost its transform
     // altogether, which is a different change nobody asked for.
     expect(body).toMatch(/translateY\(/);
-    expect(body).toMatch(/--motion-page-dist/);
+    expect(body).toMatch(/--motion-page-travel/);
   });
 
   it("does not scale", () => {

@@ -42,7 +42,7 @@ const LIVELY = ["wild", "storm"];
 /**
  * Declaring a level's own numbers is not the same as gating an animation on it.
  *
- * `:root[data-motion="storm"] { --motion-page-dist: 34px }` is how a level SAYS
+ * `:root[data-motion="storm"] { --motion-page-travel: 34px }` is how a level SAYS
  * what it is, and there is no other way to write it. What the rule forbids is a
  * level standing in front of something else - `[data-motion="wild"] .thing` -
  * because that is where "above wild" and "attribute absent" fall out. So the

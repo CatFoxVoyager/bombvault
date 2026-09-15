@@ -48,7 +48,7 @@ function tokensOf(selector: string): Set<string> {
  * against three full ones and passed every level.
  */
 function livelyDefaults(): Set<string> {
-  const marker = CSS.indexOf("--motion-page-dist:");
+  const marker = CSS.indexOf("--motion-page-travel:");
   const at = CSS.lastIndexOf(":root {", marker);
   return tokensOf2(at);
 }
@@ -104,7 +104,7 @@ describe("motion tokens", () => {
     for (const level of ["subtle", "off", "storm"]) {
       const at = CSS.indexOf(`:root[data-motion="${level}"] {`);
       const body = CSS.slice(at, CSS.indexOf("\n}", at));
-      expect(body).toMatch(/--motion-page-dist:/);
+      expect(body).toMatch(/--motion-page-travel:/);
     }
   });
 });

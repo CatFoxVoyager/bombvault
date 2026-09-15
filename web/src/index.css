@@ -2541,7 +2541,7 @@ body {
      @keyframes glim-page-in for the full account and lib/pageEnterFlat.test.ts
      for the guard. Distance, duration and curve keep the levels apart without
      resampling anything. */
-  --motion-page-dist: 18px;
+  --motion-page-travel: 18px;
   --motion-page-dur: 320ms;
   /* How long one pass of light takes along a filling bar. Shorter reads as
      faster work, which is why it is a motion token rather than a constant: the
@@ -2627,7 +2627,7 @@ body {
 
   --motion-content-dur: 220ms;
 
-  --motion-tab-dist: 18px;
+  --motion-tab-travel: 18px;
   --motion-tab-dur: 220ms;
 }
 
@@ -2660,7 +2660,7 @@ body {
      clicks on the same option is not a default anybody inherited. The three
      offered levels keep obeying the OS, which is what keeps that exemption
      from being a hole. See lib/stormOverridesOs.test.ts. */
-  --motion-page-dist: 20px;
+  --motion-page-travel: 20px;
   /* The scale (.9) and the tilt (3deg) used to sit here, and they were the
      largest values in the file. They are gone at every level now, this one
      included and this one first: since the OS exemption above, the storm is
@@ -2706,7 +2706,7 @@ body {
 
   --motion-content-dur: 380ms;
 
-  --motion-tab-dist: 34px;
+  --motion-tab-travel: 34px;
   --motion-tab-dur: 380ms;
 }
 
@@ -2717,7 +2717,7 @@ body {
      movement asked for less movement, not for a faster bounce. The explicit
      scale of 1 and tilt of 0 that used to stand here are gone with the dials
      themselves: no level scales or rotates a page any more (#228). */
-  --motion-page-dist: 6px;
+  --motion-page-travel: 6px;
   --motion-page-dur: 180ms;
   --motion-sheen-dur: 2400ms;
   --motion-press-scale: .99;
@@ -2752,7 +2752,7 @@ body {
 
   --motion-content-dur: 120ms;
 
-  --motion-tab-dist: 10px;
+  --motion-tab-travel: 10px;
   --motion-tab-dur: 130ms;
 }
 
@@ -2762,7 +2762,7 @@ body {
      section, for the same element — see this token block's own file-header
      paragraph above for why "off" borrows those numbers rather than
      inventing its own.
-       --motion-page-dist: 0 makes glim-page-in a PURE opacity fade —
+       --motion-page-travel: 0 makes glim-page-in a PURE opacity fade —
      translateY(0) is a no-op transform, so this is numerically identical to
      glim-fade-in already, with no keyframe swap needed to match that block's
      own `glim-fade-in 200ms ease`.
@@ -2783,7 +2783,7 @@ body {
      itself (see its own rule below) swaps animation-name entirely to
      glim-egg-fade-pulse for data-motion="off", the exact keyframe the
      (reduce) block already uses for the same reason. */
-  --motion-page-dist: 0px;
+  --motion-page-travel: 0px;
   --motion-page-dur: 200ms;
   /* Named rather than omitted, even though the rule further down takes the
      band away entirely at this level: a dial every level answers is a dial
@@ -2835,7 +2835,7 @@ body {
 
   --motion-content-dur: 0ms;
 
-  --motion-tab-dist: 0px;
+  --motion-tab-travel: 0px;
   --motion-tab-dur: 0ms;
 }
 
@@ -2921,7 +2921,7 @@ body {
   50%      { opacity: .55; }
 }
 
-/* Route/page enter (Item 7c). `translateY(var(--motion-page-dist))`, not a
+/* Route/page enter (Item 7c). `translateY(var(--motion-page-travel))`, not a
    hard-coded number - the motion-engine tokens above parameterize the travel,
    the scale and the curve per stage without needing a second keyframe. The
    scale is what makes the top stage read as a page arriving rather than
@@ -2965,7 +2965,7 @@ body {
 @keyframes glim-page-in {
   from {
     opacity: 0;
-    transform: translateY(var(--motion-page-dist, 8px));
+    transform: translateY(var(--motion-page-travel, 8px));
   }
   /* End at `none`, not translateY(0): animation-fill-mode:both keeps the final
      keyframe, and any transform other than none makes .glim-page-enter a
@@ -3162,7 +3162,7 @@ body {
 :root { --tab-dir-sign: 1; }
 [dir="rtl"] { --tab-dir-sign: -1; }
 @keyframes glim-tab-slide {
-  from { opacity: 0; transform: translateX(calc(var(--tab-dir, 1) * var(--tab-dir-sign, 1) * var(--motion-tab-dist, 18px))); }
+  from { opacity: 0; transform: translateX(calc(var(--tab-dir, 1) * var(--tab-dir-sign, 1) * var(--motion-tab-travel, 18px))); }
   to   { opacity: 1; transform: none; }
 }
 
