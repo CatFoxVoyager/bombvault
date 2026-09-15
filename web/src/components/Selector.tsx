@@ -523,6 +523,37 @@ function segmentPadding(size: SelectorSize, hasGlyph: boolean): string {
 // one the moment a real "sm"/"md" pinned consumer exists, not before.
 export const MIN_PINNED_WIDTH = 200;
 
+// MOBILE_COMPACT — the segment-level below-md compaction (device verdict
+// D-11, 2026-09-14, deployed build mobilefix-877600d5): on the Labels
+// sub-section of the merged Apparence card (Settings General, three "lg"
+// well equalWidth pickers — Buttons / Sidebar / Tabs), the fourth segment of
+// each strip ("Réactif" in the operator's fr locale) was rejected ALONE onto
+// a second line at ~360 CSS px, the same device pass that caught the
+// IntegrityCard row. The fix lives IN THE COMPONENT, not at any call site
+// (the shared-control rule — a look this shared belongs to the one control
+// every strip renders through), and joins every segment's class list, both
+// variants, both scales, so all strips compact below the 48rem breakpoint
+// and desktop stays byte-identical. The targeted properties (the lg scale's
+// text and inline padding) are plain utilities, so the mobile variants win
+// the utilities layer outright; the segments' HEIGHT is engine-owned
+// (`.glim-seg` / the equalWidth fixed heights) and deliberately untouched —
+// this is horizontal compaction only, the touch target these pickers already
+// render at (measured 37.6px on the device, accepted sub-floor) does not
+// move. The track's 0.2rem groove is likewise untouched: that value is
+// established for its ring-visibility role (round 7's thinner ring shipped
+// unreadable) and scale separation comes from the segments, never the
+// groove. The strips' own wrap stays exactly as it is — the "never scrolls"
+// ruling (round 8) keeps wrapping as the designed fallback, and the
+// one-line guarantee is scoped to the rendered configuration the verdict
+// observed (fr labels): longer locales may still wrap, by design, and never
+// scroll. Side effect accepted on the smaller scales below md (their inline
+// padding tightens by a step or two; their text is already the compact
+// size): the component is the unit of fix, one list joined once, so no call
+// site can drift out of the compaction. jsdom cannot resolve media queries,
+// so this file's suites assert the segments' structural classes only —
+// presence of the compaction is proven by the plan's grep gate.
+const MOBILE_COMPACT = "max-md:text-xs max-md:px-1";
+
 // ---------------------------------------------------------------------------
 // Pure, DOM-free navigation math — exported and unit-tested directly (see
 // Selector.test.ts) without jsdom, matching this repo's established
@@ -978,6 +1009,9 @@ export function Selector(props: SelectorProps) {
         const itemDisabled = disabledFlags[i];
         const cls = [
           "inline-flex min-w-0 max-w-full items-center font-medium",
+          // Below-md compaction, every variant and scale alike (why: the
+          // MOBILE_COMPACT const's own comment above).
+          MOBILE_COMPACT,
           // CORRECTED (jdp, live-review — "the shape picker's own well
           // track/segments don't reshape"): this used to read "well segments
           // carry no radius of their own", copying TrickWork's
