@@ -770,9 +770,10 @@
      stays untouched. Unlayered author CSS, so it outranks the layered
      text-* utilities. Deliberately NO material twin: material keeps every
      page's existing heading expression — a material rule forcing the token
-     would silently restyle the pages that render larger headings today
-     (Dashboard's max-md:text-xl is exactly such a case; UI-SPEC Typography:
-     page headings unchanged under material). */
+     would silently restyle exactly the headings the house form holds uniform
+     (every routed tab carries text-2xl font-semibold text-carbon-text at
+     every width — pageHeading guard; UI-SPEC Typography: page headings
+     unchanged under material). */
   :root[data-platform="cupertino"] main#bv-main h1.text-2xl {
     font-size: var(--mob-title-size);
     font-weight: var(--mob-title-weight);
