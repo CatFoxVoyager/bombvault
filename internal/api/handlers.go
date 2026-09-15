@@ -136,7 +136,60 @@ var credentialRe = regexp.MustCompile(`[\w.+%-]+:[^\s/@"']+@`)
 // real "@" — producing "[redacted]@storage.example.com:8000[path]" instead,
 // which hides the password exactly as well while keeping the hostname an
 // operator with multiple off-site targets needs to diagnose a failure.
+
+// repoLocationRe matches a restic REMOTE repository location where it appears
+// INSIDE a sentence.
+//
+// It exists because the path scrubber was destroying the one thing a failure
+// message about a repository has to carry: which repository. On
+// "Fatal: create repository at s3:http://192.168.1.50:8333/bucket failed" the
+// path regex eats "//192.168.1.50" and then "/bucket" and leaves
+// "s3:http:[path]:8333[path]" - reported as issue #206 by an operator whose S3
+// host was rebooting, who accepted the failure and objected to not being able to
+// tell WHICH repository it was about. With named repositories (#204) an install
+// has several, so that stopped being cosmetic.
+//
+// A remote location is not a filesystem path: its host, port and bucket are the
+// operator's own storage layout, which errRepoPathGuidance already argues is
+// never a credential and never a secret. The credential in one is the userinfo,
+// scrubbed structurally by repoUserinfoRe rather than as path noise.
+//
+// See internal/restic/restic.go for the full reasoning; this package keeps its
+// own copy for the same reason it keeps its own copy of the path and credential
+// regexes.
+var repoLocationRe = regexp.MustCompile(`\b(?:rclone|sftp|rest|s3|b2|azure|gs|swift):[^\s"']+`)
+
+// repoUserinfoRe matches the "user:password@" of a remote repository location,
+// anchored to the location's own structure rather than to generic word shapes.
+//
+// The generic credential regex cannot do this job, and the difference is a real
+// leak rather than a nicety. Its password body excludes "/", because outside a
+// repo location it has nothing to anchor on and a greedy body would swallow half
+// a sentence. That was survivable only because the path regex ran FIRST and
+// chewed the rest of such a password into path noise, leaving its front half
+// exposed. Stop path-scrubbing inside the location and that same password would
+// survive WHOLE - so the exemption brings its own scrubber, and this one can be
+// greedy safely: it is bounded by the scheme on the left and the "@" on the
+// right, and its body excludes whitespace and quotes, so it can never cross out
+// of the location it started in.
+var repoUserinfoRe = regexp.MustCompile(`\b(rclone|sftp|rest|s3|b2|azure|gs|swift):((?:[A-Za-z0-9+.-]+:)?//)?[^@\s"']*@`)
+
 func scrubSecrets(s string) string {
+	var b strings.Builder
+	last := 0
+	for _, m := range repoLocationRe.FindAllStringIndex(s, -1) {
+		b.WriteString(scrubOutsideARepoLocation(s[last:m[0]]))
+		b.WriteString(repoUserinfoRe.ReplaceAllString(s[m[0]:m[1]], "${1}:${2}[redacted]@"))
+		last = m[1]
+	}
+	b.WriteString(scrubOutsideARepoLocation(s[last:]))
+	return b.String()
+}
+
+// scrubOutsideARepoLocation is the original scrubbing, applied to the parts of a
+// message that are NOT a remote repository location: paths first, then
+// URL-embedded credentials, for the reason the doc comment above gives.
+func scrubOutsideARepoLocation(s string) string {
 	s = absPathRe.ReplaceAllString(s, "[path]")
 	return credentialRe.ReplaceAllString(s, "[redacted]@")
 }
@@ -212,6 +265,14 @@ func scrubBypassMessage(err error) (string, bool) {
 		// Same deal again: the ZFS dataset/pool names ARE the message, and
 		// necessarily contain "/" — see errZvolRebaseFailed.
 		return err.Error(), true
+	case errors.Is(err, errRestPathUser):
+		// This one is here for a different reason than its neighbours: the
+		// message holds no path-shaped content at all (two htpasswd-user words,
+		// built by restPathUserMismatch, never a secret). It bypasses because it
+		// has to reach the operator INSTEAD OF restAuthHint's generic two-cause
+		// list further down, which would otherwise replace a message naming the
+		// exact difference with one listing the possibilities.
+		return err.Error(), true
 	}
 	return "", false
 }
@@ -267,12 +328,41 @@ func scrubError(err error) string {
 // it. Caught by the test, not by reading the line back.
 var restStatus401 = regexp.MustCompile(`(^|[^0-9])401([^0-9]|$)`)
 
+// isAuthRefusal reports whether a lowercased restic message is a rejection
+// rather than any other failure. Shared with restPathUserMismatch so the two
+// cannot drift on what counts as a 401.
+func isAuthRefusal(low string) bool {
+	return restStatus401.MatchString(low) || strings.Contains(low, "unauthorized")
+}
+
+// isRestBackendMessage reports whether a lowercased restic message came from the
+// REST backend.
+//
+// It takes TWO markers, and the second one is the whole point. The first version
+// asked only for "rest:" in the message, on the assumption that a failure names
+// the repository it failed on. The message a BombVault user actually sees does
+// not: runError builds it from the most informative stderr line, which for a
+// refused rest-server is
+//
+//	restic cat failed: Fatal: unable to open config file: unexpected HTTP response (401): 401 Unauthorized
+//
+// restic prints the URL underneath that, on its "Is there a repository at the
+// following location?" line, which lastReason deliberately steps over as
+// boilerplate. So the hint written for issue #194 never fired on the one path
+// that issue is about, and the reporter got the bare 401 again in v8.6.x. Every
+// case in the first test carried a URL because they were composed by hand rather
+// than taken from the running program.
+//
+// "unexpected HTTP response" is restic's own REST-backend phrasing (backend/rest
+// formats exactly that string). S3, sftp and the local backend word their
+// failures differently, so this stays as narrow as the "rest:" marker was.
+func isRestBackendMessage(low string) bool {
+	return strings.Contains(low, "rest:") || strings.Contains(low, "unexpected http response")
+}
+
 func restAuthHint(msg string) string {
 	low := strings.ToLower(msg)
-	if !restStatus401.MatchString(low) && !strings.Contains(low, "unauthorized") {
-		return ""
-	}
-	if !strings.Contains(low, "rest:") {
+	if !isAuthRefusal(low) || !isRestBackendMessage(low) {
 		return ""
 	}
 	return "the rest-server rejected these credentials (401). Two things cause almost every one of these. " +
@@ -473,6 +563,10 @@ type containerView struct {
 	// "" means it follows the containers domain schedule. Only takes effect when the
 	// perItemSchedules setting is on.
 	ScheduleCadence string `json:"scheduleCadence"`
+	// Repo is the container's optional per-item repository override (#204): the
+	// ID of a named repository from Settings, "" for the Containers domain
+	// repository. The interface needs it to show what the picker currently says.
+	Repo string `json:"repo"`
 	// LastUpdateCheck / LastUpdateResult: when the post-backup update check last
 	// completed (unix seconds, 0 = never) and its outcome ('' | 'up-to-date' |
 	// 'updated' | 'failed') — so "checked, up to date" is visible without a
@@ -528,6 +622,7 @@ func (h *Handler) handleListContainers(w http.ResponseWriter, r *http.Request) {
 			v.LastUpdateResult = t.LastUpdateResult
 			v.BackupOrder = t.BackupOrder
 			v.ScheduleCadence = t.ScheduleCadence
+			v.Repo = t.Repo
 			if run, _ := h.store.LastSuccessfulBackup(t.ID); run != nil {
 				v.LastBackup = run.FinishedAt
 				v.LastBackupStarted = &run.StartedAt
@@ -565,6 +660,7 @@ func (h *Handler) handleListContainers(w http.ResponseWriter, r *http.Request) {
 			Installed:         false,
 			IncludeInSchedule: t.IncludeInSchedule,
 			ScheduleCadence:   t.ScheduleCadence,
+			Repo:              t.Repo,
 		}
 		if t.Definition != "" {
 			var def containerDefinition
@@ -705,17 +801,40 @@ func (h *Handler) handleDiscover(w http.ResponseWriter, r *http.Request) {
 	// to prove the repo/APP_KEY, but write no targets — so a readiness check never
 	// resurrects orphan entries. The default (no probe) is the real rebuild (#44).
 	probe := r.URL.Query().Get("probe") == "true"
-	n, err := h.svc.Discover(r.Context(), probe)
+	n, skipped, err := h.svc.Discover(r.Context(), probe)
 	if err != nil {
-		writeJSON(w, http.StatusOK, failEnvelope(err))
+		// The failure envelope carries the partial result too. The pass searches
+		// the named repositories BEFORE the domain's own, so when the domain's own
+		// is what failed, everything already found is real - and the screen that
+		// asks this question is the one somebody opens after losing their
+		// configuration. "Could not open the domain repository" and "…and nothing
+		// was rebuilt" are two different answers.
+		body := failEnvelope(err)
+		body["discovered"] = n
+		body["skipped"] = skipNames(skipped)
+		body["skippedNeedsAction"] = len(actionableSkips(skipped)) > 0
+		writeJSON(w, http.StatusOK, body)
 		return
 	}
 	// `repo` names the folder this pass actually read (#196): the wizard asks
 	// for an off-site repository a step earlier and then reads the PRIMARY
 	// path, and an empty answer about an unnamed folder is unreadable.
+	//
+	// `skipped` names the repositories it could NOT read. Discovery was the one
+	// domain-wide operation with no such report, so "0 found" after a /config
+	// loss looked identical whether the repositories were empty or unreachable -
+	// in the one screen whose entire job is to tell somebody their backups are
+	// still there.
 	writeJSON(w, http.StatusOK, okEnvelope(map[string]any{
 		"discovered": n,
 		"repo":       h.svc.DiscoverSource("containers"),
+		"skipped":    skipNames(skipped),
+		// What to SAY and what to FLAG are two lists. A repository switched off on
+		// purpose belongs in the sentence - after a /config loss the operator has
+		// every reason to know it was not searched - but it is not a fault, so it
+		// must not hold the readability pill amber forever and swallow the
+		// save-success toast behind it. See repoSkip.Note.
+		"skippedNeedsAction": len(actionableSkips(skipped)) > 0,
 	}))
 }
 
@@ -723,9 +842,19 @@ func (h *Handler) handleDiscover(w http.ResponseWriter, r *http.Request) {
 // deleted from the host (or lost with the database) becomes restorable again.
 func (h *Handler) handleDiscoverVMs(w http.ResponseWriter, r *http.Request) {
 	probe := r.URL.Query().Get("probe") == "true" // read-only readiness check, see handleDiscover (#44)
-	n, err := h.svc.DiscoverVMs(r.Context(), probe)
+	n, skipped, err := h.svc.DiscoverVMs(r.Context(), probe)
 	if err != nil {
-		writeJSON(w, http.StatusOK, failEnvelope(err))
+		// The failure envelope carries the partial result too. The pass searches
+		// the named repositories BEFORE the domain's own, so when the domain's own
+		// is what failed, everything already found is real - and the screen that
+		// asks this question is the one somebody opens after losing their
+		// configuration. "Could not open the domain repository" and "…and nothing
+		// was rebuilt" are two different answers.
+		body := failEnvelope(err)
+		body["discovered"] = n
+		body["skipped"] = skipNames(skipped)
+		body["skippedNeedsAction"] = len(actionableSkips(skipped)) > 0
+		writeJSON(w, http.StatusOK, body)
 		return
 	}
 	// `repo` names the folder this pass actually read (#196): the wizard asks
@@ -734,6 +863,13 @@ func (h *Handler) handleDiscoverVMs(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, okEnvelope(map[string]any{
 		"discovered": n,
 		"repo":       h.svc.DiscoverSource("vms"),
+		"skipped":    skipNames(skipped),
+		// What to SAY and what to FLAG are two lists. A repository switched off on
+		// purpose belongs in the sentence - after a /config loss the operator has
+		// every reason to know it was not searched - but it is not a fault, so it
+		// must not hold the readability pill amber forever and swallow the
+		// save-success toast behind it. See repoSkip.Note.
+		"skippedNeedsAction": len(actionableSkips(skipped)) > 0,
 	}))
 }
 
@@ -932,6 +1068,31 @@ func (h *Handler) handleRestoreCancel(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "cancelled": cancelled})
 }
 
+// handleBackupCancel cancels an in-flight BACKUP by its progress key
+// (POST /api/backup/cancel {key}), the counterpart of handleRestoreCancel
+// above (#200).
+//
+// Deliberately a second route rather than a shared one that switches on the
+// key's prefix. The two are not the same operation: a cancelled backup is safe
+// and leaves nothing half-written, a cancelled restore leaves a container gone
+// and its appdata partial. Keeping them apart is what stops a caller reaching
+// the destructive one by getting a prefix wrong, which is the same reasoning
+// the Service uses for keeping two cancel maps.
+//
+// Cancelling a key that is not running is an idempotent success
+// (cancelled:false): a browser tab that still shows the button for a backup
+// that finished a second ago must not produce an error.
+func (h *Handler) handleBackupCancel(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		Key string `json:"key"`
+	}
+	if !decodeBody(w, r, &body) {
+		return
+	}
+	cancelled := h.svc.CancelBackupRun(body.Key)
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "cancelled": cancelled})
+}
+
 // handleRestoreStack restores every backed-up member of a compose stack STOPPED,
 // then (optionally) starts them in dependency order. POST /api/stacks/{project}/restore
 // The {project} is a compose project name, which is laxer than a container name
@@ -1098,6 +1259,59 @@ func (h *Handler) handleTagSnapshot(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, okEnvelope(nil))
 }
 
+// applyItemRepo applies a per-item repository choice (#204) for one item, and
+// reports whether the request may continue. It writes its own failure envelope.
+//
+// One function for containers, VMs and folder sets because the rules are the
+// same in all three and the consequence of getting them wrong is the same: a
+// repository that moves is indistinguishable from one that works, until somebody
+// goes looking for a snapshot that is in the other place.
+//
+//   - unchanged is a no-op, so a form that re-sends the current value never
+//     trips the has-backups refusal below;
+//   - the choice is validated here rather than at the next backup;
+//   - an item that ALREADY has backups keeps its repository: the snapshots
+//     written so far stay where they are and nothing moves them, so pointing
+//     the item elsewhere would split its history across two places with no
+//     sign of it on screen.
+func (h *Handler) applyItemRepo(w http.ResponseWriter, want string, current func() (string, error), hasBackups func() (bool, error), set func(string) error) bool {
+	want = strings.TrimSpace(want)
+	now, err := current()
+	if err != nil {
+		writeJSON(w, http.StatusOK, failEnvelope(err))
+		return false
+	}
+	if want == strings.TrimSpace(now) {
+		return true
+	}
+	if err := h.svc.validateItemRepoID(want); err != nil {
+		writeJSON(w, http.StatusOK, failEnvelope(err))
+		return false
+	}
+	// The has-backups refusal. It was described here and in two other places and
+	// implemented for the file set only, so a container or VM with forty
+	// snapshots could be re-pointed through the API with ok:true - the review
+	// proved it by doing it. The interface's own lock is not a substitute: an
+	// item rebuilt by Discover after a /config loss has snapshots in the repo and
+	// no run rows, so lastBackup is null and the control stands open on exactly
+	// the item that must not move.
+	had, bErr := hasBackups()
+	if bErr != nil {
+		writeJSON(w, http.StatusOK, failEnvelope(bErr))
+		return false
+	}
+	if had {
+		writeJSON(w, http.StatusOK, map[string]any{"ok": false,
+			"error": "cannot change the repository of an item that already has backups; they stay in the repository they were written to and nothing moves them. Delete its backups first"})
+		return false
+	}
+	if err := set(want); err != nil {
+		writeJSON(w, http.StatusOK, failEnvelope(err))
+		return false
+	}
+	return true
+}
+
 func (h *Handler) handlePatchContainer(w http.ResponseWriter, r *http.Request) {
 	name, ok := h.nameParam(w, r)
 	if !ok {
@@ -1133,6 +1347,12 @@ func (h *Handler) handlePatchContainer(w http.ResponseWriter, r *http.Request) {
 		ExcludeCaches     map[string]bool `json:"excludeCaches"`
 		UpdateAfterBackup *bool           `json:"updateAfterBackup"`
 		ScheduleCadence   *string         `json:"scheduleCadence"`
+		// Repo is this item's OWN repository (#204): the ID of a named
+		// repository from Settings, or "" to put it back on the domain's. A
+		// pointer for the same reason as the fields above - a form that does
+		// not know about it must not clear it by omitting it, and clearing it
+		// MOVES where the next backup lands.
+		Repo *string `json:"repo"`
 	}
 	if !decodeBody(w, r, &body) {
 		return
@@ -1147,6 +1367,22 @@ func (h *Handler) handlePatchContainer(w http.ResponseWriter, r *http.Request) {
 		pre, post := strOr(body.PreHook), strOr(body.PostHook)
 		if err := h.svc.SetContainerHooks(r.Context(), name, pre, post); err != nil {
 			writeJSON(w, http.StatusOK, failEnvelope(err))
+			return
+		}
+	}
+	if body.Repo != nil {
+		if !h.applyItemRepo(w, *body.Repo, func() (string, error) {
+			// A container that has never been backed up has no target row, and
+			// that is not an error here: it simply has no override yet. Reading
+			// it as one refused the very case somebody most wants - choosing the
+			// destination BEFORE the first run puts data in the wrong place.
+			tg, tErr := h.store.GetTargetByContainer(name)
+			if tErr != nil {
+				return "", nil
+			}
+			return tg.Repo, nil
+		}, func() (bool, error) { return h.svc.containerHasBackups(r.Context(), name) },
+			func(id string) error { return h.store.SetTargetRepo(name, id) }) {
 			return
 		}
 	}
@@ -1546,6 +1782,10 @@ type settingsView struct {
 	// instances this box polls for their protection status). Default false
 	// (opt-in), like ReceiverEnabled; the sidebar gates its tab on it.
 	FleetEnabled bool `json:"fleetEnabled"`
+	// PullEnabled gates fetching another instance's backups INTO this box's own
+	// repository (#227). Default false (opt-in) like the two flags above, and the
+	// only one of the three that writes data here rather than reading.
+	PullEnabled bool `json:"pullEnabled"`
 	// InstanceName is this instance's own display name, reported to polling
 	// fleet peers so a peer's Fleet page can label this box. Not a secret.
 	InstanceName string `json:"instanceName"`
@@ -1672,6 +1912,7 @@ func toView(s store.Settings) settingsView {
 		RestartHealthTimeoutSec:     s.RestartHealthTimeoutSec,
 		PerItemSchedules:            s.PerItemSchedules,
 		FleetEnabled:                s.FleetEnabled,
+		PullEnabled:                 s.PullEnabled,
 		InstanceName:                s.InstanceName,
 		FleetToken:                  "", // secret — never echoed; FleetTokenSet reports presence
 		FleetTokenSet:               s.FleetToken != "",
@@ -1802,6 +2043,62 @@ func rejectEveryNSchedules(v settingsView) string {
 	return ""
 }
 
+// rejectSettingsPathOnNamedRepo refuses a settings save that MOVES a domain's
+// own repository (or an off-site destination) onto a location an existing named
+// repository already occupies. Returns a user-facing sentence, or "".
+//
+// Only the fields this save CHANGES are checked, against `cur`. That scoping is
+// not a nicety: the SPA sends the whole settings object from every card, so an
+// install that upgraded carrying a standing collision - legal to create on the
+// previous build, which had neither this guard nor its counterpart - had every
+// settings save refused, from every card, over a path the operator was not
+// touching and a repository they may not remember. The guard is here to stop
+// somebody CREATING that state, and a state that already exists is not created
+// by saving a notification address.
+//
+// A store read that fails does NOT drop the guard: an unanswerable question is
+// not a yes, and the save can be repeated.
+func (h *Handler) rejectSettingsPathOnNamedRepo(v settingsView, cur store.Settings) string {
+	rows, err := h.store.ListNamedRepos()
+	if err != nil {
+		return "could not check this path against the repositories you set up; try again"
+	}
+	if len(rows) == 0 {
+		return ""
+	}
+	for _, f := range []struct{ label, loc, was string }{
+		{"Containers", v.ContainersPath, cur.ContainersPath},
+		{"VMs", v.VMsPath, cur.VMsPath},
+		{"Flash", v.FlashPath, cur.FlashPath},
+		{"Config", v.ConfigPath, cur.ConfigPath},
+		{"Folders", v.FilesPath, cur.FilesPath},
+		{"Containers off-site", v.ContainersOffsite, cur.ContainersOffsite},
+		{"VMs off-site", v.VMsOffsite, cur.VMsOffsite},
+		{"Flash off-site", v.FlashOffsite, cur.FlashOffsite},
+		{"Config off-site", v.ConfigOffsite, cur.ConfigOffsite},
+		{"Folders off-site", v.FilesOffsite, cur.FilesOffsite},
+	} {
+		if strings.TrimSpace(f.loc) == "" {
+			continue
+		}
+		if sameRepoLocation(strings.TrimSpace(f.loc), strings.TrimSpace(f.was)) {
+			continue // unchanged by this save
+		}
+		loc, rErr := h.svc.resolveRepo(f.loc)
+		if rErr != nil {
+			continue // rejectInvalidSettingsPaths already refused what cannot resolve
+		}
+		for _, r := range rows {
+			other, oErr := h.svc.resolveRepo(r.Repo)
+			if oErr != nil || !sameRepoLocation(other, loc) {
+				continue
+			}
+			return fmt.Sprintf("the %s path is the repository %q you set up under Repositories; pick a different folder, or remove that repository first", f.label, r.Name)
+		}
+	}
+	return ""
+}
+
 // rejectInvalidSettingsPaths validates every repo location a settings row
 // carries: the restore folder is always local, a remote backend (rclone:/s3:/
 // rest:/sftp:/b2:) is accepted verbatim, an unprefixed remote-looking value is
@@ -1874,6 +2171,25 @@ func (h *Handler) handlePutSettings(w http.ResponseWriter, r *http.Request) {
 	// Repo locations and the restore folder — the same guard the import path
 	// applies, so a value one path refuses cannot arrive through the other.
 	if msg := rejectInvalidSettingsPaths(v, h.cfg.HostMountRoot); msg != "" {
+		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": msg})
+		return
+	}
+	// The RECIPROCAL of the named-repository refusal. validateNamedRepo stops a
+	// named repository being created on a domain's own path, but the collision
+	// has two directions: moving a DOMAIN's path onto an existing named
+	// repository produces the identical state - a row that then answers for the
+	// domain, with its own (empty) credentials and an append-only flag the domain
+	// never set - and the one-directional guard let it through.
+	//
+	// Scoped to what this save CHANGES, against the stored row: the SPA posts the
+	// whole settings object from every card, so an unscoped check let one standing
+	// collision refuse every save on the page.
+	cur, curErr := h.store.GetSettings()
+	if curErr != nil {
+		writeJSON(w, http.StatusOK, failEnvelope(curErr))
+		return
+	}
+	if msg := h.rejectSettingsPathOnNamedRepo(v, cur); msg != "" {
 		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": msg})
 		return
 	}
@@ -2039,6 +2355,7 @@ func (h *Handler) handlePutSettings(w http.ResponseWriter, r *http.Request) {
 		cur.RestartHealthTimeoutSec = clampHealthTimeoutSec(v.RestartHealthTimeoutSec)
 		cur.PerItemSchedules = v.PerItemSchedules
 		cur.FleetEnabled = v.FleetEnabled
+		cur.PullEnabled = v.PullEnabled
 		cur.InstanceName = strings.TrimSpace(v.InstanceName)
 		cur.EverythingSchedule = v.EverythingSchedule
 		// Blank keeps the stored command, same contract as the three tokens
@@ -2303,11 +2620,19 @@ func (h *Handler) handleUnlock(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"ok": false, "error": "unknown domain"})
 		return
 	}
-	if err := h.svc.UnlockDomain(r.Context(), domain, sourceParam(r)); err != nil {
-		writeJSON(w, http.StatusOK, failEnvelope(err))
+	skipped, err := h.svc.UnlockDomain(r.Context(), domain, sourceParam(r))
+	if err != nil {
+		// The skip list rides along on BOTH paths. A repository that only got the
+		// stale-lock clear is a Note - it never becomes the error - so on the
+		// success path this is its only channel, and on the failure path the
+		// operator needs both halves: what went wrong, and which other repository
+		// got the weaker treatment.
+		body := failEnvelope(err)
+		body["skipped"] = skipped
+		writeJSON(w, http.StatusOK, body)
 		return
 	}
-	writeJSON(w, http.StatusOK, okEnvelope(nil))
+	writeJSON(w, http.StatusOK, okEnvelope(map[string]any{"skipped": skipped}))
 }
 
 // handlePrune reclaims repository space freed by forgotten snapshots
@@ -3647,6 +3972,7 @@ func (h *Handler) handleSetPassword(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	epoch := ""
 	if _, err := h.store.MutateSettings(func(s *store.Settings) error {
 		s.AuthPasswordHash = hash
 		if hash == "" {
@@ -3658,14 +3984,69 @@ func (h *Handler) handleSetPassword(w http.ResponseWriter, r *http.Request) {
 			s.TOTPSecret = ""
 			s.TOTPRecovery = ""
 		}
+		// SETTING A PASSWORD ENDS EVERY OTHER SESSION, and that is a deliberate
+		// widening of what this route used to do (GlimStone 2.1.0, rule 22).
+		//
+		// The Security card used to carry a separate "sign out everywhere"
+		// button, and the card lost it: a card configures, the shell operates,
+		// and a form with unsaved fields in it should not end with the two
+		// controls that throw the form away. Deleting a button must not delete
+		// the CAPABILITY, though, and this was the only way to revoke the
+		// outstanding seven-day tokens - they are stateless and bound to this
+		// epoch, so nothing else can reach them.
+		//
+		// Moving it here is not a workaround for the removal. It is what
+		// somebody changing a password out of suspicion already believed was
+		// happening: a password that may have leaked is worth nothing while the
+		// sessions minted under it stay alive. Rotating on the FIRST set costs
+		// nothing (no other session exists yet), so this needs no branch.
+		//
+		// The caller keeps working because the cookie minted below is minted
+		// from THIS value rather than the old one - see the token line further
+		// down, which signs hash and epoch together.
+		next, err := newSessionEpoch()
+		if err != nil {
+			return err
+		}
+		s.SessionEpoch = next
+		epoch = next
 		return nil
 	}); err != nil {
 		writeJSON(w, http.StatusOK, failEnvelope(err))
 		return
 	}
 
+	// Setting a password SIGNS THE OPERATOR IN. Without this the instance locks
+	// itself behind the operator in the same breath: the request that turns the
+	// login on is the last one this browser is allowed to make, because authGate
+	// now demands a session cookie nobody has issued yet. Every control that
+	// writes anything then answers 401 until the page is reloaded and the
+	// password typed a second time - which is how the second factor became
+	// unreachable right after it became relevant, the one moment somebody is
+	// most likely to want it.
+	//
+	// It grants nothing that was not already granted: this route is only
+	// reachable without a session while the login is OFF, so whoever calls it
+	// already had unauthenticated access to the whole API. Once the login is on,
+	// authGate holds the route like any other, and a password CHANGE is made by
+	// a session that already exists.
+	//
+	// The token signs the NEW hash, so it has to be minted after the write.
+	// Clearing the password sends the cookie away instead: the session it
+	// authenticated no longer means anything, and leaving it in the browser
+	// leaves a token signed against a hash that is gone.
+	if hash == "" {
+		http.SetCookie(w, h.newSessionCookie("", -1))
+	} else {
+		tok := secret.NewSessionToken(h.cfg.AppKey, hash, epoch, sessionTTL)
+		http.SetCookie(w, h.newSessionCookie(tok, int(sessionTTL.Seconds())))
+	}
+
 	writeJSON(w, http.StatusOK, okEnvelope(map[string]any{
 		"enabled": hash != "",
+		// The caller is signed in as of this answer, so the Security card can
+		// show the sign-out controls without a round trip or a reload.
+		"authed": hash != "",
 	}))
 }
 
@@ -3861,7 +4242,8 @@ func (h *Handler) authGate(next http.Handler) http.Handler {
 		if err != nil {
 			log.Printf("api: authGate: GetSettings: %v", err)
 			switch r.URL.Path {
-			case "/api/auth", "/api/login", "/api/health", "/metrics", "/widget", "/api/widget/data", "/api/fleet/status", "/api/fleet/mesh-offer":
+			case "/api/auth", "/api/login", "/api/health", "/metrics", "/widget", "/api/widget/data", "/api/fleet/status", "/api/fleet/mesh-offer",
+				"/api/auth/passkeys", "/api/auth/passkey/login/begin", "/api/auth/passkey/login/finish":
 				next.ServeHTTP(w, r)
 			default:
 				writeJSON(w, http.StatusServiceUnavailable, map[string]any{
@@ -3885,7 +4267,13 @@ func (h *Handler) authGate(next http.Handler) http.Handler {
 		// and the self-gating mesh-offer inbox (same reasoning, and the same
 		// fleet token — see the doc comment above).
 		switch r.URL.Path {
-		case "/api/auth", "/api/login", "/api/health", "/metrics", "/widget", "/api/widget/data", "/api/fleet/status", "/api/fleet/mesh-offer":
+		case "/api/auth", "/api/login", "/api/health", "/metrics", "/widget", "/api/widget/data", "/api/fleet/status", "/api/fleet/mesh-offer",
+			// The passkey status and the two login halves, beside /api/login for
+			// the same reason: they are how somebody who is not signed in signs in.
+			// The status answers an unauthenticated caller with counts and whether
+			// this address can carry a passkey at all, never with a credential; the
+			// list of registered keys is gated inside the handler on a session.
+			"/api/auth/passkeys", "/api/auth/passkey/login/begin", "/api/auth/passkey/login/finish":
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -4134,9 +4522,28 @@ func (h *Handler) handlePatchVM(w http.ResponseWriter, r *http.Request) {
 		Method            *string `json:"method"`
 		IncludeInSchedule *bool   `json:"includeInSchedule"`
 		ScheduleCadence   *string `json:"scheduleCadence"`
+		// Repo is this item's OWN repository (#204): the ID of a named
+		// repository from Settings, or "" to put it back on the domain's. A
+		// pointer for the same reason as the fields above - a form that does
+		// not know about it must not clear it by omitting it, and clearing it
+		// MOVES where the next backup lands.
+		Repo *string `json:"repo"`
 	}
 	if !decodeBody(w, r, &body) {
 		return
+	}
+	if body.Repo != nil {
+		if !h.applyItemRepo(w, *body.Repo, func() (string, error) {
+			// Same as the container twin: no row yet means no override yet.
+			vm, vErr := h.store.GetVMTargetByName(name)
+			if vErr != nil {
+				return "", nil
+			}
+			return vm.Repo, nil
+		}, func() (bool, error) { return h.svc.vmHasBackups(r.Context(), name) },
+			func(id string) error { return h.store.SetVMRepo(name, id) }) {
+			return
+		}
 	}
 	if body.Method != nil {
 		if err := h.svc.SetVMMethod(r.Context(), name, *body.Method); err != nil {
@@ -4337,7 +4744,21 @@ func (h *Handler) handleBrowse(w http.ResponseWriter, r *http.Request) {
 	// most filesystems), but sort explicitly to guarantee it. The sort runs on
 	// the FILTERED slice, then truncation takes the lexically-first page — so
 	// a capped listing is a deterministic prefix of the full sorted one.
-	sort.Slice(dirs, func(i, j int) bool { return dirs[i].Name < dirs[j].Name })
+	//
+	// Hidden entries sort AFTER the rest when they are included at all. A dot
+	// sorts before every digit and letter, so without this they would take the
+	// front of the page and push exactly as many real folders off the end of a
+	// capped listing - the selection tree would then be missing rows for
+	// ORDINARY folders, which is the same defect the hidden opt-in was added to
+	// remove, just pointed the other way. This keeps a hidden-inclusive listing
+	// a superset of the plain one for the first maxBrowseEntries entries.
+	sort.Slice(dirs, func(i, j int) bool {
+		hi, hj := strings.HasPrefix(dirs[i].Name, "."), strings.HasPrefix(dirs[j].Name, ".")
+		if hi != hj {
+			return hj
+		}
+		return dirs[i].Name < dirs[j].Name
+	})
 
 	truncated := false
 	if len(dirs) > maxBrowseEntries {
@@ -4442,7 +4863,7 @@ func (h *Handler) handleListFileSets(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleCreateFileSet creates a file set. POST /api/files/sets
-// body {name, path, excludes, enabled} — path is required here (only
+// body {name, path, excludes, enabled, repo}. Path is required here (only
 // DiscoverFileSets may store a path-less set) and, like the name, is fully
 // validated before the row is written.
 func (h *Handler) handleCreateFileSet(w http.ResponseWriter, r *http.Request) {
@@ -4451,6 +4872,13 @@ func (h *Handler) handleCreateFileSet(w http.ResponseWriter, r *http.Request) {
 		Path     string   `json:"path"`
 		Excludes []string `json:"excludes"`
 		Enabled  *bool    `json:"enabled"`
+		// The named repository (#204) this set writes to, "" for the domain's
+		// own. Accepted at CREATE, not only on the later PATCH: the new-set
+		// dialog shows the picker, so a choice made there has to arrive. Without
+		// it the set was created on the domain repository and the picker's
+		// answer was thrown away silently - the field even read back correctly
+		// afterwards, because it re-rendered from the same discarded state.
+		Repo string `json:"repo"`
 	}
 	if !decodeBody(w, r, &body) {
 		return
@@ -4464,12 +4892,19 @@ func (h *Handler) handleCreateFileSet(w http.ResponseWriter, r *http.Request) {
 		Path:     strings.TrimSpace(body.Path),
 		Excludes: body.Excludes,
 		Enabled:  enabled,
+		Repo:     strings.TrimSpace(body.Repo),
 	}
 	if fs.Path == "" {
 		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": "path is required"})
 		return
 	}
 	if err := h.svc.validateFileSet(fs); err != nil {
+		writeJSON(w, http.StatusOK, failEnvelope(err))
+		return
+	}
+	// The same check the PATCH path applies: the repository has to exist and be
+	// switched on, refused here rather than at the first backup.
+	if err := h.svc.validateItemRepoID(fs.Repo); err != nil {
 		writeJSON(w, http.StatusOK, failEnvelope(err))
 		return
 	}
@@ -4483,6 +4918,9 @@ func (h *Handler) handleCreateFileSet(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, failEnvelope(err))
 		return
 	}
+	// The repository rides along in the INSERT (see CreateFileSet), so there is no
+	// window in which the set exists on the domain repository while the caller
+	// believes it is on the chosen one.
 	writeJSON(w, http.StatusOK, okEnvelope(map[string]any{"id": created.ID}))
 }
 
@@ -4513,6 +4951,11 @@ func (h *Handler) handlePatchFileSet(w http.ResponseWriter, r *http.Request) {
 		// must never clear a selection by omitting it. [] decodes non-nil and
 		// is refused downstream (D-06), never silently stored.
 		SelectedPaths *[]string `json:"selectedPaths"`
+		// The set's OWN repository (#204); empty puts it back on the Folders
+		// domain repository. A pointer for the same reason as the two fields
+		// above: a form that does not know about it must not clear it by
+		// omitting it, and clearing it MOVES where the next backup lands.
+		Repo *string `json:"repo"`
 	}
 	if !decodeBody(w, r, &body) {
 		return
@@ -4556,6 +4999,41 @@ func (h *Handler) handlePatchFileSet(w http.ResponseWriter, r *http.Request) {
 		if hasBackups {
 			writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": "cannot rename a file set that already has backups; create a new set instead"})
 			return
+		}
+	}
+	// The repository override (#204), applied here and NOT through UpdateFileSet
+	// (the store setter is separate on purpose).
+	//
+	// Refused once the set has backups, for the same reason a rename is refused
+	// twelve lines up and with more at stake: its snapshots live in the repo it
+	// used, nothing re-homes them, and afterwards the set would look healthy
+	// while its history sat in a repository nothing points at any more. Unlike a
+	// rename, the damage is invisible - a backup to the new repo succeeds, so
+	// nothing ever reports an error.
+	if body.Repo != nil {
+		want := strings.TrimSpace(*body.Repo)
+		if want != strings.TrimSpace(fs.Repo) {
+			hasBackups, bErr := h.svc.fileSetHasBackups(r.Context(), id)
+			if bErr != nil {
+				writeJSON(w, http.StatusOK, failEnvelope(bErr))
+				return
+			}
+			if hasBackups {
+				writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": "cannot change the repository of a file set that already has backups; delete its backups first, or create a new set"})
+				return
+			}
+			// Checked once here so an unusable choice is refused at the
+			// boundary rather than at the next backup, where it would surface as
+			// a restic error in a run record nobody is watching.
+			if vErr := h.svc.validateItemRepoID(want); vErr != nil {
+				writeJSON(w, http.StatusOK, failEnvelope(vErr))
+				return
+			}
+			if sErr := h.store.SetFileSetRepo(id, want); sErr != nil {
+				writeJSON(w, http.StatusOK, failEnvelope(sErr))
+				return
+			}
+			fs.Repo = want
 		}
 	}
 	// Selection handling (Phase 4 plan 02; review WR-01). A path change moves
@@ -4825,9 +5303,19 @@ func (h *Handler) handleRestoreFileSetFiles(w http.ResponseWriter, r *http.Reque
 // sets lost with the database become restorable again. POST /api/files/discover
 func (h *Handler) handleDiscoverFiles(w http.ResponseWriter, r *http.Request) {
 	probe := r.URL.Query().Get("probe") == "true" // read-only readiness check, see handleDiscover (#44)
-	n, err := h.svc.DiscoverFileSets(r.Context(), probe)
+	n, skipped, err := h.svc.DiscoverFileSets(r.Context(), probe)
 	if err != nil {
-		writeJSON(w, http.StatusOK, failEnvelope(err))
+		// The failure envelope carries the partial result too. The pass searches
+		// the named repositories BEFORE the domain's own, so when the domain's own
+		// is what failed, everything already found is real - and the screen that
+		// asks this question is the one somebody opens after losing their
+		// configuration. "Could not open the domain repository" and "…and nothing
+		// was rebuilt" are two different answers.
+		body := failEnvelope(err)
+		body["discovered"] = n
+		body["skipped"] = skipNames(skipped)
+		body["skippedNeedsAction"] = len(actionableSkips(skipped)) > 0
+		writeJSON(w, http.StatusOK, body)
 		return
 	}
 	// `repo` names the folder this pass actually read (#196): the wizard asks
@@ -4836,6 +5324,13 @@ func (h *Handler) handleDiscoverFiles(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, okEnvelope(map[string]any{
 		"discovered": n,
 		"repo":       h.svc.DiscoverSource("files"),
+		"skipped":    skipNames(skipped),
+		// What to SAY and what to FLAG are two lists. A repository switched off on
+		// purpose belongs in the sentence - after a /config loss the operator has
+		// every reason to know it was not searched - but it is not a fault, so it
+		// must not hold the readability pill amber forever and swallow the
+		// save-success toast behind it. See repoSkip.Note.
+		"skippedNeedsAction": len(actionableSkips(skipped)) > 0,
 	}))
 }
 

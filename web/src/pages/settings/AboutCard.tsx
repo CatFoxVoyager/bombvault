@@ -6,11 +6,15 @@
 // individually defensible: the result is one number in two type sizes twelve
 // pixels apart. The footer is gone in the same commit that adds this.
 //
-// jdp asked for it in the System tab specifically, which is a departure from
-// the spec's "end of Settings" — and the right one for a tabbed Settings page.
-// "The end of Settings" assumes a single scrolling page; here it would mean
-// either repeating the card on all seven tabs or picking one, and System is
-// where a version number belongs among the host integration and the export.
+// It stands at the END OF THE GENERAL TAB. The language says "the end of
+// Settings", which assumes a single scrolling page; on a tabbed one that means
+// either repeating the card on all seven tabs or picking one. It was System
+// until [3559], on the reading that a version number belongs among the host
+// integration and the export. That was defensible and wrong: System holds
+// things somebody comes here to OPERATE, while General is the first tab in the
+// strip, so this is the last card of the first thing anybody opens. The sibling
+// apps already had it there, so the move also ends a three-way disagreement
+// about one standard card.
 //
 // What the spec asks for, and what each part is doing:
 //
@@ -30,55 +34,52 @@
 // control, and this card has no control to explain.
 import { useEffect, useState } from "react";
 import { Button } from "../../components/Button";
-import { IconGithub } from "../../components/glyphs";
+import { CryptoDonateDialog } from "../../components/CryptoDonateDialog";
+import { IconBitcoin, IconBuyMeACoffee, IconPayPal } from "../../components/donateMarks";
+import { IconGithub, IconMail } from "../../components/glyphs";
 import { getHealth } from "../../lib/api";
+import { GLIMSTONE_VERSION } from "../../lib/glimstoneVersion";
 import { useT } from "../../lib/i18n";
 import { Card } from "./shared";
 
 /**
- * The GlimStone release this interface is built against.
+ * The GlimStone release this interface is built against, re-exported from the
+ * copied file that owns it.
  *
- * Bumped by hand when index.css / lib/appearance.ts / lib/controls.ts are
- * re-copied from a newer release; check that repo's CHANGELOG before moving
- * it. Raised 1.2.0 -> 1.6.0 in [362] after an audit found it four releases
- * behind while the engines themselves had been kept current - a number that
- * had come to say the opposite of what it is for. 1.7.0 in [411], the release
- * this app's own number field was built from.
+ * The number USED TO LIVE HERE, and GlimStone 1.8.0 moved it out for a reason
+ * this card proved twice over. A constant beside the card is a second place:
+ * the engines were re-copied and the number was not, so the card said 1.7.5
+ * while the files were newer, and 1.7.5 had never been cut as a release at all,
+ * because the language folded 1.7.1 through 1.7.10 into 1.8.0. Every version on
+ * this card is a link to its own tag's release page, so the string was not just
+ * stale, it opened a 404 (measured: v1.7.5 answers 404, v1.8.0 answers 200).
  *
- * BACK to 1.6.0 in [552], and the reason is the rule this card is built on.
- * -------------------------------------------------------------------------
- * Every version here links to ITS OWN tag's release page. 1.7.0 through 1.7.3
- * were four same-day versions in GlimStone's changelog that were never cut as
- * releases; GlimStone has since folded all four into the 1.6.0 that actually
- * ships (its own commit puts it as "The version on screen must be a published
- * release, not a tag"). So this card was linking to
- * /releases/tag/v1.7.2 - measured, HTTP 404, while v1.6.0 answers 200.
- *
- * The failure is worth naming because nothing local could catch it: the string
- * was accurate about a CHANGELOG heading and wrong about the world, and a
- * version number is only as good as the page it opens. Read the RELEASE list
- * when moving this, not the changelog - `gh release list` is the check.
- *
- * 1.7.5 now, and the check above was run before writing it: all six tags from
- * v1.7.0 to v1.7.5 answer 200 on their own release page, so what was a
- * changelog heading in [552] is a published release today. The engines moved
- * with the number rather than after it, which is the whole point of this
- * string: the second button height, the transition duration the motion switch
- * reaches, the wheel on the number field, the stepper wrapper that stopped
- * stretching, and the confirmation dialog's four changes are all in this
- * build. The class prefix moved too, in a sweep of its own right after: the
- * forty classes and fourteen keyframes this app had under `bv-` are `glim-`
- * now, the same names the language uses. What deliberately did NOT move are the
- * browser storage keys, which also begin with `bv-` and are not classes at all
- * (`bv-theme`, `bv-lang`, `bv-accent`, the filters); renaming those would have
- * silently reset every user's language, colour and filters, and broken the
- * display-prefs round trip with the server, which names the same keys in Go.
+ * So it comes from lib/glimstoneVersion.ts now, which is a copy of the design
+ * language's own version.ts and travels with the other copied files. Read the
+ * RELEASE list before moving it, never the changelog: `gh release list` is the
+ * check, and it is what caught this.
  */
-export const GLIMSTONE_VERSION = "1.7.5";
+export { GLIMSTONE_VERSION };
 const REPO = "https://github.com/junkerderprovinz/bombvault";
 const GLIMSTONE_REPO = "https://github.com/junkerderprovinz/glimstone";
 /** The handle from .github/FUNDING.yml, so one place in the product knows it. */
 const COFFEE = "https://buymeacoffee.com/junkerderprovinz";
+/**
+ * The PayPal.Me page.
+ *
+ * The card's own rule, applied to a route rather than to a sentence: never
+ * offer a control that reaches nowhere. This sat empty until the page existed,
+ * because a PayPal.Me name is created once and cannot be renamed afterwards
+ * without asking their support, so it had to be chosen deliberately rather
+ * than guessed at here. It exists now, under the workshop's own name rather
+ * than a product's: one page serves every tool, the same way hello@ below
+ * serves every tool's mail.
+ *
+ * Typed as `string` rather than inferred, so the button's gate below stays a
+ * runtime check on a value this file expects to change, and not a comparison
+ * the compiler folds away.
+ */
+const PAYPAL: string = "https://paypal.me/hallelujadesign";
 /** The workshop's own mailbox, shared by every tool in it: the subject carries
  *  the product name, so one inbox can tell them apart. */
 const MAIL = "hello@halleluja.design";
@@ -137,9 +138,32 @@ function VersionLink({ label, version, repo }: { label: string; version: string;
   );
 }
 
+/**
+ * The class pair that makes one of this card's buttons wear a brand.
+ *
+ * jdp, 2026-09-11: "alle button in der über card sollen ein farbiges logo
+ * haben und bei mousover farbig werden".
+ *
+ * Two classes and NO colour at this call site, deliberately. index.css owns
+ * every value: `.glim-brand-btn` spends them (mark at rest, brand fill on
+ * hover) and `.glim-brand-<name>` supplies them. Three per brand, and only one
+ * of the three is a token - the mark's resting colour, which is adjusted per
+ * theme because a published brand colour fails on one of our two button
+ * grounds every time. The other two are literals: a brand's true colour as
+ * the hover surface, and the ink measured against it.
+ *
+ * Passing them as inline style would have meant hex in this file and a new
+ * `style` prop on Button, which computes its own for the colour engine. A
+ * class costs neither.
+ */
+function brand(name: string): string {
+  return `glim-brand-btn glim-brand-${name}`;
+}
+
 export function AboutCard({ hueIndex }: { hueIndex?: number }) {
   const { t } = useT();
   const [version, setVersion] = useState<string | null>(null);
+  const [cryptoOpen, setCryptoOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -169,23 +193,74 @@ export function AboutCard({ hueIndex }: { hueIndex?: number }) {
           Each sentence sits directly above the thing it asks for. Three
           sentences stacked over one row of buttons reads as a form; a sentence
           with its own button under it reads as one offer. */}
-      <p className="max-w-2xl text-sm text-carbon-textSub">{t("about.body")}</p>
+      {/* No reading-width cap on the card's own prose. It carried max-w-2xl
+          (42rem) until 1.8.1, which is a defensible typographic width in the
+          abstract and looked wrong here for a concrete reason: it is the ONLY
+          capped text on its page. Every other card lets its sentences run the
+          card, so three paragraphs stopping two thirds of the way across read
+          as hand-set line breaks rather than as a measure. Reported exactly
+          that way ("in der übercard sind künstliche Zeilenumbrüche") and
+          measured before believing it: 672px of text in a 1244px card.
 
-      <p className="max-w-2xl text-sm text-carbon-textSub">{t("about.coffee")}</p>
+          The rule that follows, and it is the reusable half: a reading width
+          is a property of a PAGE, never of one card on it. Cap all the prose
+          or none of it. */}
+      <p className="text-sm text-carbon-textSub">{t("about.body")}</p>
+
+      <p className="text-sm text-carbon-textSub">{t("about.coffee")}</p>
+      {/* Two ways to give, and they are two because they reach different
+          people. The coffee takes a card, Apple Pay or Google Pay; the crypto
+          window takes what somebody already holds in a wallet and shows no
+          name at either end. Both sit under the one sentence that asks, which
+          is the card's own rule: a sentence directly above the thing it asks
+          for. */}
       <div className="flex flex-wrap items-center gap-2">
+        {/* Both marks are passed here rather than resolved from the label key,
+            which is the house rule for a BRAND (see the GitHub button below).
+            A pattern on "coffee" would put another company's cup on anything
+            that mentions coffee, and one on "crypto" would put the Bitcoin
+            symbol on settings that have nothing to do with it. jdp asked for
+            both by name (2026-09-10). */}
         <Button
           label={t("about.coffeeButton")}
           labelKey="about.coffeeButton"
+          glyph={<IconBuyMeACoffee />}
           tone="neutral"
+          className={brand("coffee")}
           onClick={() => window.open(COFFEE, "_blank", "noopener,noreferrer")}
         />
+        {/* Hosted page first, wallet last: coffee, then PayPal, then the crypto
+            window (GlimStone 1.10.0). It reads as a ramp rather than an
+            alphabet - the routes most people already hold an account for, then
+            the one that needs none and shows no name at either end. The order
+            is the language's, not this app's, because three apps picking three
+            orders is what a shared card exists to prevent. */}
+        {PAYPAL !== "" && (
+          <Button
+            label={t("about.paypal")}
+            labelKey="about.paypal"
+            glyph={<IconPayPal />}
+            tone="neutral"
+            className={brand("paypal")}
+            onClick={() => window.open(PAYPAL, "_blank", "noopener,noreferrer")}
+          />
+        )}
+        <Button
+          label={t("about.crypto")}
+          labelKey="about.crypto"
+          glyph={<IconBitcoin />}
+          tone="neutral"
+          className={brand("bitcoin")}
+          onClick={() => setCryptoOpen(true)}
+        />
       </div>
+      {cryptoOpen && <CryptoDonateDialog onClose={() => setCryptoOpen(false)} />}
 
       {/* One extra step of space above this line, and only above this one
           (jdp, 2026-09-06). The card holds two offers, and without the break
           the coffee button sits as close to the next sentence as to the one it
           belongs to, so the eye pairs it with the wrong text. */}
-      <p className="mt-2 max-w-2xl text-sm text-carbon-textSub">{t("about.report")}</p>
+      <p className="mt-2 text-sm text-carbon-textSub">{t("about.report")}</p>
 
       {/* Two buttons again, and the sentence names both routes again.
           The mail button had been removed ([501]) for one reason: it pointed at
@@ -208,16 +283,32 @@ export function AboutCard({ hueIndex }: { hueIndex?: number }) {
           labelKey="about.repo"
           glyph={<IconGithub />}
           tone="neutral"
+          className={brand("github")}
           onClick={() => window.open(REPO, "_blank", "noopener,noreferrer")}
         />
         {/* Subject only, never a body: a prefilled body reads as a form to fill
             in, and this is meant to be a message somebody writes. The product
             name rides in the subject so a mail arrives already saying which of
-            the workshop's tools it is about — one inbox serves them all. */}
+            the workshop's tools it is about — one inbox serves them all.
+
+            The only button on this card with no brand behind it, and the only
+            one that follows the COLOUR ENGINE. It reaches the workshop rather
+            than a third party, so it wears the app's own accent: the mark takes
+            --accent-text (the token that exists precisely for accent-coloured
+            graphics on an ordinary surface) and the hover takes the accent
+            itself. That also means it is the one button here that changes with
+            the user's accent and with rainbow mode, which the four brands may
+            not - a vendor's mark is not ours to repaint.
+
+            An envelope, passed explicitly like every other mark on this card.
+            It had no glyph at all until now, which made it the odd one out in
+            a row where jdp asked for all of them to carry one. */}
         <Button
           label={t("about.mail")}
           labelKey="about.mail"
+          glyph={<IconMail />}
           tone="neutral"
+          className={brand("house")}
           onClick={() =>
             window.open(
               `mailto:${MAIL}?subject=${encodeURIComponent(`BombVault ${t("about.mailSubject")}`)}`,

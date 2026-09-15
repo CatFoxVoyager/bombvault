@@ -102,8 +102,46 @@ func NormalizeSelection(entries []string) []string {
 			includes = append(includes, bare)
 		}
 	}
-	includes = PruneMaximal(dedupe(includes))
-	excludes = PruneMaximal(dedupe(excludes))
+	includes = dedupe(includes)
+	excludes = dedupe(excludes)
+	// Resolve include-vs-exclusion contradictions BEFORE pruning, or pruning
+	// resolves them silently and wrongly. PruneMaximal only ever compares within
+	// one class, so an include lying below an exclusion that itself lies below
+	// another include was dropped as "redundant" while the exclusion between
+	// them survived - and the backup then carved that branch out of the argv.
+	// The stored form no longer held the information, so nothing could heal it:
+	// the folder was in no snapshot, and the UI had said Saved.
+	//
+	// The flat encoding cannot express "back up this branch EXCEPT that folder,
+	// but keep this one inside it": a restic --exclude swallows everything below
+	// it, with no way to punch a hole back through. So one of the two has to
+	// go, and it is the exclusion - the same resolution the tree's own checkbox
+	// performs when it is clicked on an excluded node (applyToggle deletes every
+	// COVERING exclusion), so the two routes to the same intent agree. Choosing
+	// the other way would mean answering "back up this folder" by not backing it
+	// up, and for a backup tool capturing too much is the safer error.
+	//
+	// Only exclusions with an include strictly BELOW them are affected. An
+	// orphan exclusion with no include under it keeps its storage role as the
+	// explicitly-deselected carrier (encoding Q3), and when includes is empty
+	// nothing can lie below anything, so that carrier is untouched by
+	// construction.
+	kept := make([]string, 0, len(excludes))
+	for _, e := range excludes {
+		contradicted := false
+		for _, i := range includes {
+			if isStrictDescendant(i, e) {
+				contradicted = true
+				break
+			}
+		}
+		if !contradicted {
+			kept = append(kept, e)
+		}
+	}
+	excludes = kept
+	includes = PruneMaximal(includes)
+	excludes = PruneMaximal(excludes)
 	sort.Strings(includes)
 	sort.Strings(excludes)
 	out = append(out, includes...)
@@ -175,13 +213,13 @@ func includesOnly(entries []string) []string {
 // Survivors keep stored (input) order, so the derived argv tail is
 // deterministic. Never nil: the caller appends the result unconditionally.
 //
-// Glob semantics (threat T-01-05-01, accepted): restic patterns are globs.
-// Stored selection entries are path-validated at save time (TrimSpace,
-// SplitExclusion, toContainerPath prefix check) but may technically hold glob
-// metacharacters, so a derived pattern carries glob semantics — the same
-// semantics user-written exclude patterns already have on this authenticated,
-// single-admin surface; the blast radius is the user's own backup scope,
-// bounded by the positional roots.
+// Glob semantics: restic patterns ARE globs, and these patterns are DERIVED
+// from a folder the user clicked - so they are escaped before they leave here
+// (escapeGlobLiteral). The old reasoning, that a derived pattern simply carries
+// the same glob semantics user-WRITTEN exclude patterns already have, held only
+// for patterns somebody typed on purpose. Nobody types a folder name meaning it
+// as a pattern, and measured against real restic a raw one goes wrong three
+// different ways - see escapeGlobLiteral for what was measured.
 func excludedBranches(entries []string) []string {
 	out := make([]string, 0, len(entries))
 	var includes []string
@@ -197,12 +235,65 @@ func excludedBranches(entries []string) []string {
 		}
 		for _, inc := range includes {
 			if isStrictDescendant(bare, inc) {
-				out = append(out, bare)
+				out = append(out, escapeGlobLiteral(bare))
 				break
 			}
 		}
 	}
 	return out
+}
+
+// escapeGlobLiteral turns a real path into a restic --exclude pattern that
+// matches THAT path and nothing else, by backslash-escaping the characters
+// restic reads as glob syntax.
+//
+// It exists because these patterns are derived from a folder the user ticked
+// off in the tree, not written by anyone as a pattern. Measured against the
+// restic in the shipped image, an unescaped one goes wrong three ways, each
+// worse than the last:
+//
+//   - it can miss its own folder. "Inception (2010) [1080p]" excluded by its
+//     own name stayed IN the snapshot: "[1080p]" is a one-character class, so
+//     the pattern cannot match the seven literal characters it came from. The
+//     branch the UI and the stored "!" entry both call excluded is backed up on
+//     every run.
+//   - it can hit folders the user never deselected. Deselecting "Season [01]"
+//     dropped the siblings "Season 0" and "Season 1" from the snapshot while
+//     "Season [01]" itself stayed in it - the exact inverse of what was asked
+//     for, and silent. "star*name" likewise took "starXname" with it, and
+//     "q?mark" took "qYmark".
+//   - it can break the backup outright. A name with an unmatched bracket
+//     ("Movies [2024") is an invalid pattern, and restic refuses the whole run
+//     with "Fatal: --exclude: invalid pattern(s) provided" - so the item stops
+//     being backed up from the moment that checkbox is clicked.
+//
+// Escaping fixed all three in the same measurement: "\[1080p\]" excluded
+// exactly its own folder, "star\*name" left "starXname" alone, "q\?mark" left
+// "qYmark" alone. TestEscapeGlobLiteral pins the mapping and
+// TestDerivedExcludePatternsAreLiteral in internal/restic pins the behaviour
+// against the real engine.
+//
+// The backslash escapes itself. That one is reasoned rather than measured (the
+// shell layers between here and the engine kept collapsing a doubled backslash
+// before restic saw it), but leaving it alone is provably wrong: the pattern
+// "back\slash" reads "\s" as an escaped "s" and does not match the folder
+// "back\slash", which was measured. A backslash in a folder name on Unraid is
+// rare enough that either way is a corner; escaping is the one that follows the
+// rule the other four follow.
+//
+// Only for MACHINE-DERIVED patterns. The exclusions editor's own user-written
+// patterns are globs on purpose and never pass through here.
+func escapeGlobLiteral(p string) string {
+	var b strings.Builder
+	b.Grow(len(p))
+	for _, r := range p {
+		switch r {
+		case '\\', '*', '?', '[', ']':
+			b.WriteByte('\\')
+		}
+		b.WriteRune(r)
+	}
+	return b.String()
 }
 
 // fileSetPositionals compiles a stored FILE SET selection into the restic
@@ -270,11 +361,22 @@ func fileSetPositionals(selected []string, src string) []string {
 //	         equals or lies strictly below some stored path p is restored
 //	         as-is: a snapshot path inside a stored root is exactly what the
 //	         user backed up, and is a valid selector;
-//	pass 2 — every stored path p not already covered by pass 1 falls back to
-//	         the LONGEST snapshot path q that is a strict ancestor of p
-//	         (restoring q's subtree covers p) — longest, never
-//	         first-component (RESTORE-01), appended only if not already
-//	         present; a stored path matching neither clause lands in skipped.
+//	pass 2 — every stored path p not already covered by pass 1 is restored AS
+//	         ITSELF, provided the snapshot recorded some ancestor of it. It used
+//	         to fall back to that ancestor instead, which widened the restore to
+//	         every sibling under it - see the long note at the pass itself; a
+//	         stored path with no recorded ancestor lands in skipped.
+//
+// THE THIRD RETURN IS NOT OPTIONAL. Every pass-2 result also lands in narrowed,
+// and the caller MUST check those against the snapshot's actual tree before
+// using them. A recorded ANCESTOR proves only that p lies under a backed-up
+// root, never that p is IN the snapshot: the branch may have been carved out by
+// a --exclude at backup time (this very package derives those), or the folder
+// may not have existed yet. Handing restic a selector that is not in the tree
+// fails the restore, and that failure lands mid-loop AFTER the container has
+// been stopped and removed - the exact failure mode this function exists to
+// prevent (RESTORE-01). Pass-1 results need no check: they come from the
+// snapshot's own recorded Paths.
 //
 // skipped is reported to the caller (scrubbed log + run-record note); a skip
 // never aborts the restore — only an empty intersection does, and that check
@@ -284,9 +386,10 @@ func fileSetPositionals(selected []string, src string) []string {
 // File Sets reuse it in Phase 4 (01-CONTEXT.md restore Q1/D-13). The
 // strict-prefix primitive is isStrictDescendant — the same segment-aligned
 // shape as internal/paths.Resolve (paths.go:44-48), so /a never matches /ab.
-func mapRestorePaths(stored, snapshotPaths []string) (mapped, skipped []string) {
+func mapRestorePaths(stored, snapshotPaths []string) (mapped, skipped, narrowed []string) {
 	mapped = make([]string, 0, len(snapshotPaths))
 	skipped = make([]string, 0, len(stored))
+	narrowed = make([]string, 0, len(stored))
 	covered := make(map[string]bool, len(stored)) // stored paths pass 1 already satisfied
 	for _, q := range snapshotPaths {
 		for _, p := range stored {
@@ -301,30 +404,52 @@ func mapRestorePaths(stored, snapshotPaths []string) (mapped, skipped []string) 
 		if covered[p] {
 			continue
 		}
-		best := ""
+		// p is not itself a recorded path. If the snapshot recorded an ANCESTOR
+		// of it, p still lives inside that snapshot and can be restored - but
+		// the thing to restore is p, NOT the ancestor.
+		//
+		// This used to map to the ancestor, and that was three of the review's
+		// four data-loss findings in one line. Restoring /host/user/appdata
+		// because the user selected /host/user/appdata/plex/Library hands back
+		// every sibling under appdata as well: branches the user DESELECTED,
+		// which therefore were never backed up, which means their live contents
+		// get overwritten with whatever that old snapshot happens to hold. The
+		// wider the recorded root, the worse it is, and the worst case is the
+		// whole share.
+		//
+		// Narrowing is possible because restic's "<id>:<path>" selector
+		// addresses any directory INSIDE a snapshot, not only the paths the
+		// snapshot recorded. That is not an assumption: TestRestoreSubtree-
+		// BelowRecordedPath in internal/restic pins it against real restic, and
+		// it was proven by hand on Linux first (a snapshot recording only .../src
+		// restored .../src/keep and left the deselected sibling behind).
+		//
+		// A path with no recorded ancestor is skipped exactly as before: there
+		// is nothing in this snapshot it could come from.
+		hasAncestor := false
 		for _, q := range snapshotPaths {
-			// Strict ancestors of p form a prefix chain, so "longest" is also a
-			// tiebreak-free total order — first-strictly-longer always wins.
-			if isStrictDescendant(p, q) && len(q) > len(best) {
-				best = q
+			if isStrictDescendant(p, q) {
+				hasAncestor = true
+				break
 			}
 		}
-		if best == "" {
+		if !hasAncestor {
 			skipped = append(skipped, p)
 			continue
 		}
 		seen := false
 		for _, m := range mapped {
-			if m == best {
+			if m == p {
 				seen = true
 				break
 			}
 		}
 		if !seen {
-			mapped = append(mapped, best)
+			mapped = append(mapped, p)
+			narrowed = append(narrowed, p)
 		}
 	}
-	return mapped, skipped
+	return mapped, skipped, narrowed
 }
 
 // dedupe removes exact duplicates, preserving first-occurrence order.

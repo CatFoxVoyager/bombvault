@@ -565,8 +565,16 @@ export function ToggleRow({
       style={hueOn ? (hueVars(rainbowAt(hueIndex)) as CSSProperties) : undefined}
     >
       <div className="flex flex-col gap-0.5">
-        <span className={`flex items-center gap-1.5 text-sm text-carbon-text${dim}`}>
-          {label}
+        {/* The dimming goes on the LABEL, never on the row that holds the
+            bubble. `opacity` applies to a whole subtree and a child cannot be
+            less transparent than its parent, so an "(i)" inside the dimmed span
+            rendered at 50% too - and the bubble is the one thing on a disabled
+            row somebody actually needs to read, because it says WHY the row is
+            disabled. The accent card had found and fixed this for itself; here
+            it was still true for every ToggleRow in the app that carries both a
+            hint and a disabled state. */}
+        <span className="flex items-center gap-1.5 text-sm">
+          <span className={`text-carbon-text${dim}`}>{label}</span>
           {hint && <InfoBubble tip={hint} />}
         </span>
       </div>

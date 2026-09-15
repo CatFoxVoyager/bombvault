@@ -53,7 +53,6 @@ import {
   IconFlash,
   IconGear,
   IconRecovery,
-  IconReceiver,
   IconVM,
 } from "../components/navGlyphs";
 
@@ -106,8 +105,15 @@ export function destinations(settings: Settings | null): NavDestination[] {
     { to: "/flash", labelKey: "nav.flash", icon: IconFlash, bar: false, enabled: settings?.flashEnabled ?? false },
     { to: "/files", labelKey: "nav.files", icon: IconFiles, bar: true, enabled: settings?.filesEnabled ?? false },
     { to: "/config", labelKey: "nav.config", icon: IconConfig, bar: false, enabled: settings?.configEnabled ?? false },
-    { to: "/receiver", labelKey: "nav.receiver", icon: IconReceiver, bar: false, enabled: settings?.receiverEnabled ?? false },
-    { to: "/fleet", labelKey: "nav.fleet", icon: IconFleet, bar: false, enabled: settings?.fleetEnabled ?? false },
+    // Everything about ANOTHER instance lives behind one row now (upstream
+    // jdp: "ein eintrag aber der name gefällt mir nicht. sollen wir ihn nicht
+    // besser instanzen nennen"). Receiver, Fleet and Pull are still three
+    // separate objects with three separate tables - see Instances.tsx for why
+    // merging THEM would be wrong - but they were three rows answering one
+    // question, and two of them wore the same glyph. The row appears as soon
+    // as ANY of the three is switched on; the page then shows only the tabs
+    // whose own setting is on.
+    { to: "/instances", labelKey: "instances.title", icon: IconFleet, bar: false, enabled: settings?.receiverEnabled || settings?.fleetEnabled || settings?.pullEnabled || false },
     { to: "/settings", labelKey: "nav.settings", icon: IconGear, bar: true, enabled: true },
   ];
 }

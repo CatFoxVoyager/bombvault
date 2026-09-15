@@ -127,7 +127,7 @@ export function FilterPopover({
            padding, gap, radius and font size from the tokens; only the surface
            colour and its hover stay local, because this trigger opens a
            popover and should not read as one of the page's actions. */
-        className="glim-btn bg-carbon-surface2 font-medium text-carbon-text hover:bg-carbon-hover transition-colors"
+        className="glim-btn bg-carbon-surface2 font-medium text-carbon-text hover:bg-carbon-surface3 transition-colors"
       >
         {trigger}
       </button>

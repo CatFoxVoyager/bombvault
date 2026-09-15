@@ -259,9 +259,14 @@ const INTERACTIVE_TAGS = new Set([
 // nothing about WHY and is invisible to anyone auditing the conventions), each
 // rule honours one marker comment placed directly above the offending element:
 //
-//     {/* bv-convention-exception: no-status-color-on-control --
-//         ConfirmDialog's own destructive-variant button IS the status
-//         surface; the dialog exists to state the severity. */}
+//     {/* bv-convention-exception: control-reads-engine-tokens --
+//         the heat-map cell is a chart mark, not a control; its colour IS the
+//         datum and cannot come from the engine. */}
+//
+// The example above is a real one (pages/Dashboard.tsx's heat map). It used to
+// name ConfirmDialog's commit button, which was the one sanctioned status
+// colour in the app until GlimStone 1.12.0 removed the red from it; an example
+// that points at an exception nobody may use any more teaches the wrong thing.
 //
 // The reason text is mandatory (>= 12 characters) — a marker with no reason is
 // not accepted and the rule still fires. Every exception in the app is one

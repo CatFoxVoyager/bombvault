@@ -699,13 +699,16 @@ describe("Selector — glyph mode names its segments (#178)", () => {
   ];
 
   afterEach(() => {
-    // This axis is stored, so it would otherwise leak into every later file.
+    // Both axes are stored, so either would otherwise leak into every later
+    // file. "buttons" joined the list when a strip stopped always obeying
+    // "tabs" - see the axis test at the end of this block.
     setLabelMode("tabs", "textGlyph");
+    setLabelMode("buttons", "textGlyph");
     localStorage.clear();
   });
 
   it("falls back to the label when a hidden segment carries no tip of its own", () => {
-    setLabelMode("tabs", "glyph");
+    setLabelMode("buttons", "glyph");
     render(<Selector items={PLAIN} label="Test strip" active="a" onChange={() => {}} />);
     const alpha = screen.getByRole("tab", { name: "Alpha" });
     expect(alpha.querySelector("span.truncate")).toBeNull();
@@ -714,7 +717,7 @@ describe("Selector — glyph mode names its segments (#178)", () => {
   });
 
   it("lets an explicit tip win outright rather than joining it to the label", () => {
-    setLabelMode("tabs", "glyph");
+    setLabelMode("buttons", "glyph");
     render(<Selector items={WITH_TIPS} label="Path mode" active="local" onChange={() => {}} />);
     fireEvent.mouseEnter(screen.getByRole("tab", { name: "Local" }));
     // These tips are already written as the fuller sentence that REPLACES the
@@ -747,8 +750,36 @@ describe("Selector — glyph mode names its segments (#178)", () => {
     expect(document.querySelector(".glim-bubble")?.textContent).toBe("Pick a target folder first");
   });
 
-  it("joins `title` to the name once the label is hidden, keeping both", () => {
+  // A strip follows the axis its SIZE says it is: `lg` is the page-level tab
+  // strip and obeys "tabs", every other stage is a control in a form row and
+  // obeys "buttons".
+  //
+  // Reported (jdp, 2026-09-11: "die button Graceful, live-snapshot, lokal und
+  // offsite sind nicht richtig in der beschriftungsengine"). Every strip in
+  // the app used to read "tabs", so somebody who set Buttons to glyph-only
+  // watched the buttons change while the source toggle and the VM method
+  // switch beside them stayed put - obeying a setting nobody had touched.
+  //
+  // Both directions are asserted. One alone would pass on a component that
+  // simply reads the wrong axis for everything.
+  it("reads the buttons axis for a form-row strip, and only that one", () => {
     setLabelMode("tabs", "glyph");
+    render(<Selector items={PLAIN} label="Test strip" active="a" onChange={() => {}} />);
+    // Tabs is hiding labels and this strip does not care: its words stay.
+    expect(screen.getByRole("tab", { name: "Alpha" }).querySelector("span.truncate")).not.toBeNull();
+  });
+
+  it("reads the tabs axis for a page-level strip, and only that one", () => {
+    setLabelMode("buttons", "glyph");
+    render(
+      <Selector items={PLAIN} label="Test strip" size="lg" active="a" onChange={() => {}} />
+    );
+    // Buttons is hiding labels and the tab strip does not care.
+    expect(screen.getByRole("tab", { name: "Alpha" }).querySelector("span.truncate")).not.toBeNull();
+  });
+
+  it("joins `title` to the name once the label is hidden, keeping both", () => {
+    setLabelMode("buttons", "glyph");
     render(
       <Selector
         items={[{ id: "a", label: "Alpha", icon: <span />, title: "Busy right now" }]}
@@ -781,6 +812,69 @@ describe("Selector — glyph mode names its segments (#178)", () => {
       // Text mode is unchanged from the native balloon it replaced: the title
       // stands alone and still does its truncation job.
       expect(document.querySelector(".glim-bubble")?.textContent).toBe("Allgemein");
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// hueOffset: two selectors stacked above each other must not wear the same
+// colours.
+//
+// A segment's colour comes from its POSITION, rainbowAt(i), which is what
+// makes a rainbow list readable: position three is the same colour wherever
+// you look. Stack three selectors with the same number of segments, though,
+// and every column repeats down the page, so the second selector tells you
+// nothing the first one did not (jdp, 2026-09-15, with a screenshot of the
+// three label-mode selectors all wearing the same orange in column two).
+//
+// hueOffset shifts where a selector starts reading the palette. Default 0, so
+// nothing changes for the single selectors that make up most call sites.
+// ---------------------------------------------------------------------------
+describe("Selector — hueOffset", () => {
+  const styleOf = (name: string) =>
+    screen.getByRole("tab", { name }).getAttribute("style") ?? "";
+
+  it("gives the same position a different colour than an unshifted selector", () => {
+    applyRainbow({ on: true });
+    const { unmount } = render(
+      <Selector items={ITEMS} label="First" active={ITEMS[0].id} onChange={() => {}} />,
+    );
+    const plain = ITEMS.map((it) => styleOf(it.label));
+    unmount();
+
+    render(
+      <Selector items={ITEMS} label="Second" active={ITEMS[0].id} onChange={() => {}} hueOffset={1} />,
+    );
+    const shifted = ITEMS.map((it) => styleOf(it.label));
+
+    expect(shifted).not.toEqual(plain);
+    // Shifted by exactly one: position i now wears what position i+1 wore.
+    for (let i = 0; i < ITEMS.length - 1; i++) {
+      expect(shifted[i]).toBe(plain[i + 1]);
+    }
+  });
+
+  it("defaults to no shift, so existing call sites are untouched", () => {
+    applyRainbow({ on: true });
+    const { unmount } = render(
+      <Selector items={ITEMS} label="Implicit" active={ITEMS[0].id} onChange={() => {}} />,
+    );
+    const implicit = ITEMS.map((it) => styleOf(it.label));
+    unmount();
+
+    render(
+      <Selector items={ITEMS} label="Explicit" active={ITEMS[0].id} onChange={() => {}} hueOffset={0} />,
+    );
+    expect(ITEMS.map((it) => styleOf(it.label))).toEqual(implicit);
+  });
+
+  it("is ignored when the selector is not hued at all", () => {
+    applyRainbow({ on: true });
+    render(
+      <Selector items={ITEMS} label="Flat" active={ITEMS[0].id} onChange={() => {}} hue={false} hueOffset={3} />,
+    );
+    for (const it of ITEMS) {
+      expect(styleOf(it.label)).not.toContain("--item-hue");
     }
   });
 });

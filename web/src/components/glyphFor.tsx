@@ -20,6 +20,7 @@ import {
   IconCancel,
   IconClearSelection,
   IconCoffee,
+  IconCompare,
   IconEye,
   IconForward,
   IconInfo,
@@ -32,6 +33,10 @@ import {
   IconSave,
   IconSearch,
   IconSelectAll,
+  IconShieldOff,
+  IconShieldOn,
+  IconSignIn,
+  IconSignOut,
   IconStop,
   IconUnlock,
   IconUpload,
@@ -58,8 +63,12 @@ type Rule = [RegExp, () => ReactNode];
 const RULES: Rule[] = [
   // Backups and restores, the app's own verbs, before anything generic.
   [/backupNow|backupAll|backupSelected|runNow|backupOrder\.save/i, () => <IconBackupNow />],
-  [/restore/i, () => <IconRestore />],
-  [/replicate|sync|refreshStatus/i, () => <IconSync />],
+  // "restor" rather than "restore", so the participle comes along: a button
+  // that says "Restoring..." while a run is in flight is the same verb, and it
+  // was the one losing its mark at exactly the moment somebody is watching.
+  // Recreating a container from a snapshot is that verb too, under another name.
+  [/restor|recreate|rebuild/i, () => <IconRestore />],
+  [/replicate|sync|refreshStatus|pollNow/i, () => <IconSync />],
 
   // Destructive and corrective actions.
   [/\.(delete|remove)|removeExclusion|assistRemove|forget/i, () => <IconTrash />],
@@ -67,13 +76,16 @@ const RULES: Rule[] = [
   [/unlock/i, () => <IconUnlock />],
 
   // Creation and editing.
-  [/\.add|addSet|addPreset|addTarget|addTag|credSets\.add|registryAdd/i, () => <IconAdd />],
+  [/\.add|addSet|addPreset|addTarget|addTag|credSets\.add|registryAdd|passkeyAdd|passkeyCreate/i, () => <IconAdd />],
   [/edit|rename|editSet/i, () => <IconPencil />],
   [/save|apply|confirm(?!Password)/i, () => <IconSave />],
 
   // Selection.
-  [/clearSelection|clearDayFilter|clearOrder|reset/i, () => <IconClearSelection />],
-  [/selectAll|selectEvery/i, () => <IconSelectAll />],
+  // "Exclude all" and "Include all" are the selection pair under another name,
+  // and they sit side by side on the Containers and VMs pages: one of them
+  // wearing a mark while the other printed a word was the visible half of this.
+  [/clearSelection|clearDayFilter|clearOrder|reset|excludeAll|assistExclude/i, () => <IconClearSelection />],
+  [/selectAll|selectEvery|includeAll/i, () => <IconSelectAll />],
 
   // Navigation and dialogs.
   [/cancel|skip|decline/i, () => <IconCancel />],
@@ -91,17 +103,34 @@ const RULES: Rule[] = [
   [/connect|pair|link|reconnect/i, () => <IconLink />],
 
   // Probing and inspection.
-  [/test|verify|check|drill/i, () => <IconCheckCircle />],
+  // The tamper test sits in the same row as verify and drill and does the same
+  // kind of thing: it proves a claim. "accept" and "resolveAll" are the other
+  // shape of the same mark, somebody agreeing to what is on screen.
+  [/test|verify|check|drill|appendOnly|tamper|accept|approve|resolveAll|\.stored$/i, () => <IconCheckCircle />],
   [/scan|discover|browse|search/i, () => <IconSearch />],
   [/show|reveal|preview|view/i, () => <IconEye />],
   [/hint|info|explain|examples/i, () => <IconInfo />],
 
   // Transfer.
-  [/download|export/i, () => <IconDownload />],
-  [/upload|send|offer|push/i, () => <IconUpload />],
+  // "pull" joins the transfer family rather than earning a mark of its own:
+  // fetching another instance's snapshots into this one IS a download, and the
+  // language's own rule is that a reader learns one shape per VERB faster than
+  // one shape per feature.
+  [/download|export|pullNow|pullFrom/i, () => <IconDownload />],
+  [/upload|send|offer|push|proposeButton/i, () => <IconUpload />],
   [/copy/i, () => <IconCopy />],
 
   // Secrets.
+  // Getting in and out, and the protection that guards it. These sit ABOVE the
+  // credentials rule because a key is the app's mark for a SECRET, and signing
+  // in is not a secret - it is a door. They sit above the power rule for the
+  // same reason in the other direction: the power mark belongs to a machine
+  // being shut down, not to a protection being switched off.
+  [/signIn|logIn\b/i, () => <IconSignIn />],
+  [/logout|signOut/i, () => <IconSignOut />],
+  [/twoFactorEnable|totpEnable/i, () => <IconShieldOn />],
+  [/twoFactorDisable|totpDisable/i, () => <IconShieldOff />],
+  [/compare|diff\b/i, () => <IconCompare />],
   [/credential|password|secret|token|key\b/i, () => <IconKey />],
 
   // Lifecycle.
@@ -125,24 +154,29 @@ const RULES: Rule[] = [
   // switches — without swallowing every key that merely mentions locality.
   [/\.local$|Local$/i, () => <IconLocal />],
 
-  // The About card's two non-brand offers. Both are nouns rather than verbs,
-  // which is why nothing above them matched: this table is built around what a
-  // button DOES, and "coffee" and "mail" are what it is ABOUT. They earn their
-  // own rules rather than an explicit glyph at the call site because the
-  // meanings are general — any future "write to us" wears the same envelope.
+  // Giving and writing in, as MEANINGS. Both are nouns rather than verbs, which
+  // is why nothing above them matched: this table is built around what a button
+  // DOES, and "coffee" and "mail" are what it is ABOUT. They earn rules rather
+  // than an explicit glyph because the meanings are general — any future "write
+  // to us" wears the same envelope.
   //
-  // The third button on that card, the repository one, is deliberately NOT
-  // here: it wears GitHub's own mark, and a brand mark must never be reachable
-  // by pattern (a rule keyed on "repo" would put GitHub's logo on repository
-  // settings that have nothing to do with GitHub). It is passed explicitly at
-  // its one call site. See gen_glyphs.py's IconGithub entry for the full rule.
+  // NONE of the About card's four buttons resolves through here any more, and
+  // that is the point rather than an oversight: every one of them goes to a
+  // named company, so each carries that company's own mark, passed explicitly
+  // at the call site (GitHub, Buy Me a Coffee, Bitcoin). A brand must never be
+  // reachable by pattern — a rule keyed on "repo" would put GitHub's logo on
+  // repository settings that have nothing to do with GitHub, and one keyed on
+  // "coffee" would put another company's cup on anything that mentions coffee.
+  // These two rules stay for the generic sites: a plain cup for a donation
+  // route that is nobody's brand, and an envelope for any address at all. See
+  // gen_glyphs.py's IconGithub entry for the full reasoning.
   [/coffee|donate|sponsor/i, () => <IconCoffee />],
   [/\.mail|contact|writeToUs/i, () => <IconMail />],
 
   // Places and configuration, last because they are the vaguest.
   [/folder|path|directory/i, () => <IconFolder />],
   [/settings|config|setup|wizard|options/i, () => <IconGear />],
-  [/refresh|reload/i, () => <IconRefresh />],
+  [/refresh|reload|retry|tryAgain/i, () => <IconRefresh />],
 ];
 
 /**

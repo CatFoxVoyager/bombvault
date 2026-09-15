@@ -3,8 +3,8 @@
 // Sidebar — what the rail does once the "sidebar" axis is set to glyphs, which
 // is where jdp's two standing decisions for this round land:
 //
-//   1. THE RAIL NARROWS, AND ONLY IN THIS MODE. Glyph mode drops to 6rem with
-//      the smaller mark (#178, manilx: "When using only buttons in sidebar it
+//   1. THE RAIL NARROWS, AND ONLY IN THIS MODE. Glyph mode drops to the house
+//      width (`--rail-narrow`, 85px) with the smaller mark (#178, manilx: "When using only buttons in sidebar it
 //      should shrink in width"); text and text+glyph need the words' width,
 //      and REACTIVE keeps 224px because its words slide back inside the row
 //      and its active row keeps them permanently, so a narrow rail would clip
@@ -88,10 +88,13 @@ describe("glyph mode is the only mode that narrows the rail", () => {
     return el;
   }
 
-  it("drops the rail to 6rem and the mark to 48px in glyph mode", () => {
+  it("drops the rail to the house width and the mark to 48px in glyph mode", () => {
     setLabelMode("sidebar", "glyph");
     renderSidebar();
-    expect(rail().className).toContain("w-24");
+    // The class names the TOKEN rather than a number, which is the point of the
+    // change: 85px is the house's width for a glyph-only rail, not this app's
+    // own sum of mark plus row padding (which gave 96 here and 64 next door).
+    expect(rail().className).toContain("w-(--rail-narrow)");
     expect(rail().className).not.toContain("w-56");
     // The mark's own box, and the size the shatter tiles read for their
     // background: both have to move, or the tiles slice an image scaled to a
@@ -107,7 +110,7 @@ describe("glyph mode is the only mode that narrows the rail", () => {
       setLabelMode("sidebar", mode);
       renderSidebar();
       expect(rail().className, mode).toContain("w-56");
-      expect(rail().className, mode).not.toContain("w-24");
+      expect(rail().className, mode).not.toContain("w-(--rail-narrow)");
       const mark = document.querySelector<HTMLElement>(".glim-logo-mark");
       expect(mark?.className, mode).toContain("h-16 w-16");
       expect(mark?.parentElement?.style.getPropertyValue("--egg-mark"), mode).toBe("64px");

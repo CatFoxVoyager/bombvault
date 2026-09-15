@@ -112,6 +112,46 @@ type Mode struct {
 	// this knob — and the zero value is a no-op, so argv stays byte-identical
 	// for every item with no root enabled.
 	ExcludeCaches bool
+	// From carries the SOURCE repository's own credentials for `restic copy`.
+	//
+	// Nil means what every caller before the pull meant: the source is this
+	// instance's own repository under another address, so it shares the
+	// destination's password and encryption flag. Off-site replication is
+	// exactly that shape, and nil keeps its argv and environment byte-identical.
+	//
+	// A CROSS-INSTANCE PULL IS THE CASE WHERE ALL OF THAT IS FALSE, and it is
+	// the reason this field exists. Two BombVaults never share a password: each
+	// derives its repository password from its OWN APP_KEY. Without a source
+	// side, Copy hands restic the DESTINATION's password as
+	// RESTIC_FROM_PASSWORD, restic answers with a decryption failure, and the
+	// message it produces is the one both foreign.go and receiver.go already
+	// print for a genuinely wrong key. So the failure does not look like a bug,
+	// it looks like the operator mistyping a key they typed correctly, which is
+	// the worst shape a defect can take on this surface.
+	From *From
+}
+
+// From is the source half of a `restic copy`: which password opens the
+// repository being copied FROM, as opposed to the one being copied INTO.
+type From struct {
+	// Encrypted mirrors Mode.Encrypted for the source. It is separate because
+	// the two ends genuinely differ: a plain local repository can be pulled into
+	// an encrypted one and the other way round.
+	Encrypted bool
+	// Password is the source repository's password. Passed as
+	// RESTIC_FROM_PASSWORD, never in argv, exactly like Mode.Password.
+	Password string
+}
+
+// fromSide returns the source's credentials, falling back to the destination's
+// when no source side was given. One place decides the fallback, so a caller
+// that predates the pull cannot accidentally get a different answer than it did
+// before, and a caller that sets From cannot accidentally be ignored.
+func (m Mode) fromSide() From {
+	if m.From != nil {
+		return *m.From
+	}
+	return From{Encrypted: m.Encrypted, Password: m.Password}
 }
 
 // AllowedStorageClasses is the whitelist of S3 storage classes BombVault will emit
@@ -189,14 +229,26 @@ type Snapshot struct {
 // for a `restic copy` run before actually running one (see
 // api.copyToOffsiteTarget's "snapshot k of N" progress display — issue #159).
 //
-// This is a DISPLAY-ONLY estimate, never used to scope the real copy call: the
-// actual `restic copy` invocation always leaves snapshotIDs nil/unbounded so
-// restic's own dedup (cmd_copy.go's collectAllSnapshots + similarSnapshots, a
-// stricter check that also compares full snapshot metadata) is the sole
-// authority on what actually gets copied. A wrong estimate here can only make
-// the "of N" number briefly off — for example if a destination snapshot's
-// Original was mutated by something outside restic/BombVault, an extremely
-// unlikely edge case — it can never cause a snapshot to be silently skipped.
+// It also scopes the real copy call for a SHARED named repository (#204), where
+// the copy must carry only the snapshots of the domain being replicated.
+//
+// WHERE THE LIMIT IS, stated precisely because the next change will be built on
+// it. This matches on identity ALONE (Original, else the id). restic's own
+// cmd_copy does the same lookup and then ALSO requires similarSnapshots - time,
+// hostname, tree, paths and TAGS - before it calls a snapshot already present.
+// So this filter's "already there" set is a SUPERSET of restic's, which means it
+// can under-supply where restic would have copied: a snapshot re-tagged after it
+// was replicated keeps the same Original, matches the existing copy here, and is
+// left out, so the destination's tags never catch up.
+//
+// Nothing is lost by it - the tree is identical, and this package's only tag
+// writer is BombVault's own TagSnapshot - but it is a real narrowing of what
+// used to be a guarantee, and a caller that assumes "can only ever over-supply"
+// would be assuming something no longer true. A source whose ids cannot be read
+// is still handed over whole.
+//
+// The domain's OWN repository is still copied with snapshotIDs nil: everything
+// in it belongs to that domain, so there is nothing to narrow.
 //
 // The identity check mirrors restic's own: a destination snapshot represents
 // the SAME snapshot as a source one when the destination's Original (or, for
@@ -487,8 +539,18 @@ func CopyArgs(destRepo, srcRepo string, snapshotIDs []string, lim Limits, m Mode
 	args = append(args, retryLockFlags()...)
 	args = append(args, limitFlags(lim)...)
 	args = append(args, "copy", "--from-repo", srcRepo)
+	// The two ends answer separately. `--insecure-no-password` is about the
+	// DESTINATION and `--from-insecure-no-password` about the SOURCE, and a pull
+	// is precisely the case where they differ: an unencrypted local repository
+	// can be filled from an encrypted foreign one, or the other way round.
+	// Before the pull both were decided by m.Encrypted alone, which was correct
+	// only because every caller copied between two repositories of this same
+	// instance.
 	if !m.Encrypted {
-		args = append(args, insecureFlag, "--from-insecure-no-password")
+		args = append(args, insecureFlag)
+	}
+	if !m.fromSide().Encrypted {
+		args = append(args, "--from-insecure-no-password")
 	}
 	if len(snapshotIDs) > 0 {
 		args = append(args, "--")
@@ -504,9 +566,16 @@ func CopyArgs(destRepo, srcRepo string, snapshotIDs []string, lim Limits, m Mode
 // directly in target — restic does NOT recreate subtreePath's absolute path
 // components under target. (A bare `restore <id> --target X --include /` DOES nest
 // the whole absolute /host/user/… path under X, which is issue #62.) subtreePath
-// must be one of the snapshot's own backed-up paths; callers take it from the
-// SNAPSHOT's Paths (not a recomputed value), so the selector can't miss after a
-// HostMountRoot change. The selector goes after -- (arg-injection guard); callers
+// must be a node that EXISTS in the snapshot's tree. That is not the same as
+// "one of its recorded Paths", and the difference matters: the selector reaches
+// any directory inside the snapshot, above or below a recorded root
+// (TestRestoreSubtreeBelowRecordedPath and TestRestoreCommonAncestorOfRecordedRoots
+// measure both against the real engine). What it cannot do is reach a path that
+// is not in the tree, and a recorded ANCESTOR is no proof of that - a --exclude
+// at backup time leaves holes. Callers therefore take the selector from the
+// SNAPSHOT (never a recomputed value, so it cannot miss after a HostMountRoot
+// change) and check anything they DERIVED before handing it over; see
+// pathsPresentInSnapshot. The selector goes after -- (arg-injection guard); callers
 // also validate the id.
 func RestoreSubtreeToArgs(repo, snapshotID, subtreePath, target string, m Mode) []string {
 	args := repoFlag(repo)
@@ -1463,9 +1532,60 @@ var credentialRe = regexp.MustCompile(`[\w.+%-]+:[^\s/@"']+@`)
 // hostname an operator with multiple off-site targets needs to diagnose a
 // failure.
 func scrubSecrets(s string) string {
+	var b strings.Builder
+	last := 0
+	for _, m := range repoLocationRe.FindAllStringIndex(s, -1) {
+		b.WriteString(scrubOutsideARepoLocation(s[last:m[0]]))
+		b.WriteString(repoUserinfoRe.ReplaceAllString(s[m[0]:m[1]], "${1}:${2}[redacted]@"))
+		last = m[1]
+	}
+	b.WriteString(scrubOutsideARepoLocation(s[last:]))
+	return b.String()
+}
+
+// scrubOutsideARepoLocation is the original scrubbing, applied to the parts of a
+// message that are NOT a remote repository location: paths first, then
+// URL-embedded credentials, for the reason the doc comment above gives.
+func scrubOutsideARepoLocation(s string) string {
 	s = reasonPathRe.ReplaceAllString(s, "[path]")
 	return credentialRe.ReplaceAllString(s, "[redacted]@")
 }
+
+// repoLocationRe matches a restic REMOTE repository location where it appears
+// INSIDE a sentence, rather than as a whole configured value (remoteRepoRe, the
+// anchored twin above, answers that question).
+//
+// It exists because the path scrubber was destroying the one thing a failure
+// message about a repository has to carry: which repository. On
+// "Fatal: create repository at s3:http://192.168.1.50:8333/bucket failed",
+// reasonPathRe eats "//192.168.1.50" and then "/bucket" and leaves
+// "s3:http:[path]:8333[path]" - reported as issue #206 by an operator whose S3
+// host was rebooting, who accepted the failure and objected to not being able to
+// tell WHICH repository it was about. With named repositories (#204) an install
+// has several, so that stopped being cosmetic.
+//
+// A remote location is not a filesystem path. Its host, port and bucket are the
+// operator's own storage layout, which errRepoPathGuidance in package api
+// already argues is never a credential and never a secret. The credential in one
+// is the userinfo, and that is scrubbed structurally below rather than as path
+// noise.
+var repoLocationRe = regexp.MustCompile(`\b(?:rclone|sftp|rest|s3|b2|azure|gs|swift):[^\s"']+`)
+
+// repoUserinfoRe matches the "user:password@" of a remote repository location,
+// anchored to the location's own structure instead of to generic word shapes.
+//
+// credentialRe cannot do this job here, and the difference is a real leak rather
+// than a nicety. Its password body excludes "/", because outside a repo location
+// it has nothing to anchor on and a greedy body would swallow half a sentence.
+// That was survivable only because reasonPathRe ran FIRST and chewed the rest of
+// the password into path noise - the doc comment on scrubSecrets records exactly
+// that, and records that it leaves the front half ("wJalrXUtnFEMI") sitting in
+// the output. Stop path-scrubbing inside the location, and that same password
+// would now survive WHOLE. So the exemption below has to bring its own scrubber,
+// and this one can be greedy safely: it is bounded by the scheme on the left and
+// by the "@" on the right, and its body excludes whitespace and quotes, so it
+// can never cross out of the location it started in.
+var repoUserinfoRe = regexp.MustCompile(`\b(rclone|sftp|rest|s3|b2|azure|gs|swift):((?:[A-Za-z0-9+.-]+:)?//)?[^@\s"']*@`)
 
 // lastReason returns the most informative line of stderr, with absolute paths
 // scrubbed and the length capped — a concise failure cause for the UI.
@@ -1836,8 +1956,12 @@ func (r Restic) Copy(ctx context.Context, destRepo, srcRepo string, snapshotIDs 
 	cmd := exec.CommandContext(ctx, r.bin(), args...) //nolint:gosec // G204: argv from typed builders; repos are operator-configured
 	configureProcGroup(cmd)
 	env := r.authEnv(m)
-	if m.Encrypted {
-		env = append(env, "RESTIC_FROM_PASSWORD="+m.Password)
+	// authEnv has already put the DESTINATION's password in RESTIC_PASSWORD.
+	// This is the source's, and it is a different secret whenever the source is
+	// another instance's repository. See Mode.From for what goes wrong silently
+	// when the two are conflated.
+	if from := m.fromSide(); from.Encrypted {
+		env = append(env, "RESTIC_FROM_PASSWORD="+from.Password)
 	}
 	if sink := progress.CopySinkFrom(ctx); sink != nil {
 		// Same reasoning as r.run(): restic only emits its periodic progress when

@@ -300,6 +300,7 @@ import { hueVars, rainbowAt } from "../lib/appearance";
 import { useRainbow } from "../lib/useRainbow";
 import { useLabelMode } from "../lib/useLabelMode";
 import { useIsDesktop } from "../lib/useMediaQuery";
+import type { ControlAxis } from "../lib/controls";
 import { hidesLabel, labelWidth } from "../lib/controls";
 import { useTipBubble } from "../lib/useTipBubble";
 
@@ -367,6 +368,28 @@ interface SelectorCommon {
    *  Badge.tsx's own header comment for why a fourth ad-hoc size never gets
    *  to exist here. */
   size?: SelectorSize;
+  /** Take the BUTTON box (`--btn-h`) rather than letting padding decide, for a
+   *  strip that stands in a row beside a real Button.
+   *
+   *  The same outcome `segmentPadding` already gives a segment that carries a
+   *  glyph, and for the same underlying reason: a padding-derived box is sized
+   *  by its text, and a text-sized box does not match the thing next to it. A
+   *  glyph was simply the first reason anybody hit. Standing beside a button is
+   *  the second, and it is the one this flag names.
+   *
+   *  Measured on the folder card's restore row, which is where jdp reported it
+   *  (2026-09-11: "soll das nicht besser ein horizontaler selektor sein oder
+   *  zumindest alle buttons gleiche höhe?" - it already WAS a horizontal
+   *  selector, so the question was really the second half): the three segments
+   *  came out 24px against the restore button's 32px beside them, and the
+   *  square glyph-mode button read as too tall because it was the only thing
+   *  in the row at its proper height.
+   *
+   *  Opt-in rather than automatic. A strip cannot see what sits next to it, and
+   *  making every `md` strip 32px would grow the weekday pills and the heatmap
+   *  toggle, which are dense on purpose - `segmentPadding`'s own note says so.
+   *  Default false, set it where the row actually holds a button. */
+  buttonHeight?: boolean;
   /** Rainbow position per item, default true. See the file header for the rule
    *  and for the ONE live opt-out: Recovery.tsx's StepDisclosure, a SINGLE-item
    *  expander chip whose "position in the list" is therefore always 0 and
@@ -374,6 +397,23 @@ interface SelectorCommon {
    *  for, never a taste call. Dashboard.tsx's heatmap toggle was named here
    *  until d68d8995 removed its opt-out; it passes no `hue` at all now. */
   hue?: boolean;
+  /** Where this selector starts reading the rainbow palette. Default 0.
+   *
+   *  A segment's colour comes from its position, which is what makes a
+   *  rainbow list readable: position three looks the same wherever you meet
+   *  it. Stack several selectors of the same width, though, and every column
+   *  repeats straight down the page, so the second and third tell you nothing
+   *  the first did not (jdp, 2026-09-15, on the three label-mode selectors in
+   *  Settings all wearing the same orange in column two).
+   *
+   *  A caller that renders a group of selectors passes each one a different
+   *  offset, in the same explicit spirit as `hueIndex` on Card/ToggleRow and
+   *  the `nextHue()` counters in Dashboard and Sidebar: the sequence lives
+   *  with the caller that knows the group, never in hidden module state that
+   *  two independent trees could disagree about.
+   *
+   *  Ignored when `hue` is false, since then no position is read at all. */
+  hueOffset?: number;
   /** Page-tab treatment (no idle background) instead of the default
    *  toolbar-chip treatment (idle `bg-carbon-surface2` pill). See the file
    *  header for which of the twelve call sites uses which. Ignored under
@@ -486,9 +526,17 @@ const SIZE: Record<
  *
  * Text-only chips are deliberately left alone. The weekday pills and the
  * heatmap toggle are dense on purpose and nobody has ever called them short.
+ *
+ * ...unless the strip STANDS BESIDE A BUTTON, which is the `buttonHeight` flag
+ * and the second reason for the same box. A glyph was the first reason anybody
+ * hit, so the rule got written down as "a glyph needs the box a button has";
+ * the rule underneath it is that a control matches what it sits next to, and a
+ * text-only strip in a row with a real Button needs it just as much. See the
+ * prop's own doc for the measurement that made this a second parameter rather
+ * than a wider default.
  */
-function segmentPadding(size: SelectorSize, hasGlyph: boolean): string {
-  return hasGlyph ? SIZE[size].glyphPadding : SIZE[size].padding;
+function segmentPadding(size: SelectorSize, hasGlyph: boolean, buttonHeight: boolean): string {
+  return hasGlyph || buttonHeight ? SIZE[size].glyphPadding : SIZE[size].padding;
 }
 
 // MIN_PINNED_WIDTH — the one standardized floor every `pinWidth` segment (both
@@ -638,6 +686,8 @@ interface SelectorTabProps {
   style?: CSSProperties;
   onSelect: () => void;
   registerRef: (el: HTMLButtonElement | null) => void;
+  /** Which labelling axis this strip obeys - see `labelAxis` at the strip. */
+  axis: ControlAxis;
 }
 
 function SelectorTab({
@@ -650,11 +700,17 @@ function SelectorTab({
   style,
   onSelect,
   registerRef,
+  axis,
 }: SelectorTabProps) {
-  // #178: how much of a segment is shown follows the "tabs" axis, the same
-  // shared setting the Settings tab strip and every other horizontal selector
-  // obey, so the app has one answer rather than one per strip.
-  const labelMode = useLabelMode("tabs");
+  // #178: how much of a segment is shown follows the axis the STRIP resolved -
+  // see `labelAxis` there. It used to be hard-coded to "tabs" for every strip
+  // in the app, which is what jdp reported (2026-09-11: "die button Graceful,
+  // live-snapshot, lokal und offsite sind nicht richtig in der
+  // beschriftungsengine"): those four are form-row controls standing beside
+  // buttons, so somebody who sets Buttons to glyph-only watches the buttons
+  // change and these stay put, because they were quietly obeying the Tabs
+  // setting instead.
+  const labelMode = useLabelMode(axis);
 
   // Whether this segment's own words are off the screen right now — either
   // because the call site pinned it to its glyph (`iconOnly`) or because the
@@ -753,7 +809,9 @@ export function Selector(props: SelectorProps) {
     items,
     label,
     size = "md",
+    buttonHeight = false,
     hue = true,
+    hueOffset = 0,
     plain = false,
     variant = "chip",
     equalWidth = false,
@@ -800,11 +858,28 @@ export function Selector(props: SelectorProps) {
   // pipeline, three call sites that pass it. No `stretch` alias any more
   // either: the "chip"-only guard existed to stop `equalWidth` engaging on a
   // "track" segment, and there is no "track" to protect.
+  // WHICH AXIS THIS STRIP OBEYS, resolved once and handed to every segment.
+  //
+  // `lg` is the page-level scale and nothing else: the Settings tab strip and
+  // the Theme/Shape/Motion/Labels pickers, per SIZE's own note above. Those
+  // ARE tabs, so they follow the Tabs setting. Every other stage is a control
+  // in a form row - the source toggle, the VM method switch, the weekday
+  // pills, the disclosure triggers - and those follow the Buttons setting,
+  // because that is what they stand beside and what a reader is changing when
+  // they change it.
+  //
+  // Derived from the size rather than asked for at the call site, because the
+  // split already exists there and a second, hand-set flag would be a second
+  // place to get it wrong. It is the same line `.glim-seg` (lg, rail height)
+  // and `.glim-seg-btn` (the rest, button height) already draw in the
+  // stylesheet.
+  const labelAxis: ControlAxis = size === "lg" ? "tabs" : "buttons";
   // The strip needs the axis too, not just each segment: whether to pin is a
   // decision about the whole row. Below 48rem the decision is NO (header item
-  // 5d — the pin is a desktop-scale width), so `isDesktop` gates the whole
-  // expression and the measured pipeline never runs on a phone.
-  const labelModeForStrip = useLabelMode("tabs");
+  // 5d — the pin is a desktop-scale width), so the `isDesktop` gate further
+  // down fences the whole expression and the measured pipeline never runs on
+  // a phone.
+  const labelModeForStrip = useLabelMode(labelAxis);
 
   //   A STRIP WHOSE LABELS ARE OFF SCREEN DOES NOT PIN AT ALL. The pinned
   // width is measured from TEXT and floored at MIN_PINNED_WIDTH (200px) — for
@@ -1089,8 +1164,8 @@ export function Selector(props: SelectorProps) {
               : plain
                 ? "text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text"
                 : raised
-                  ? "bg-carbon-surface3 text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text"
-                  : "bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text",
+                  ? "bg-carbon-surface3 text-carbon-textSub hover:bg-carbon-hoverRaised hover:text-carbon-text"
+                  : "bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-surface3 hover:text-carbon-text",
           // No gap while a reactive segment is closed: the collapsed label is
           // still a flex item, so the gap would sit beside a zero-width box and
           // push the glyph off centre. The label brings its own margin when it
@@ -1165,10 +1240,10 @@ export function Selector(props: SelectorProps) {
           well && equalWidth
             ? `flex-none justify-center text-center h-[var(--badge-md)] ${SIZE[size].padding}`
             : equalWidth
-              ? `flex-none justify-center text-center ${segmentPadding(size, !!item.icon)}`
+              ? `flex-none justify-center text-center ${segmentPadding(size, !!item.icon, buttonHeight)}`
               : item.iconOnly
                 ? "justify-center h-8 w-8 p-0"
-                : segmentPadding(size, !!item.icon),
+                : segmentPadding(size, !!item.icon, buttonHeight),
         ]
           .filter(Boolean)
           .join(" ");
@@ -1178,7 +1253,7 @@ export function Selector(props: SelectorProps) {
         // both are optional and independent, so this stays undefined
         // whenever neither applies rather than always allocating an object.
         const hueStyle = hue
-          ? (hueVars(rainbowAt(i)) as CSSProperties)
+          ? (hueVars(rainbowAt(i + hueOffset)) as CSSProperties)
           : undefined;
         const widthStyle: CSSProperties | undefined =
           segmentWidth
@@ -1193,6 +1268,7 @@ export function Selector(props: SelectorProps) {
           <SelectorTab
             key={item.id}
             item={item}
+            axis={labelAxis}
             many={many}
             on={on}
             disabled={itemDisabled}

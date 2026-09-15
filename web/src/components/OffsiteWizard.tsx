@@ -10,9 +10,12 @@ import {
   primaryRemoteTamperTest,
   listOffsiteTargets,
   updateOffsiteTarget,
+  getCloud,
 } from "../lib/api";
 import type { OffsiteTarget } from "../lib/api";
 import { useCloudCredSets } from "../lib/useCloudCredSets";
+import { restPathUserMismatch } from "../lib/restRepo";
+import { SelectField } from "./SelectField";
 import { useT } from "../lib/i18n";
 import { InfoBubble } from "./InfoBubble";
 import { NumberField } from "./NumberField";
@@ -109,7 +112,7 @@ function CopyBlock({ text, t }: { text: string; t: T }) {
   async function copy() {
     try {
       await navigator.clipboard.writeText(text);
-      push(t("vm.ssh.copied"), "success");
+      push(t("common.copied"), "success");
     } catch {
       // clipboard unavailable (non-HTTPS) — the text is selectable in the box
       push(t("vm.ssh.copyFailed"), "fail");
@@ -121,8 +124,8 @@ function CopyBlock({ text, t }: { text: string; t: T }) {
         {text}
       </pre>
       <Button
-        label={t("vm.ssh.copy")}
-        labelKey="vm.ssh.copy"
+        label={t("common.copy")}
+        labelKey="common.copy"
         tone="neutral"
         onClick={() => void copy()}
         className="shrink-0"
@@ -304,6 +307,21 @@ export function OffsiteWizard({
   // Primary: the safety row is created on demand by the PUT, so the only thing
   // to wait for is the initial read that tells us the current value.
   const canPickCredSet = primary ? primaryLoaded : primaryTarget !== null;
+
+  // The username these credentials will actually sign in with: the named set's
+  // when one is chosen, the shared one otherwise. Both are needed, because the
+  // mistake this catches (#194) is just as easy to make in either.
+  const [sharedRestUser, setSharedRestUser] = useState("");
+  useEffect(() => {
+    let alive = true;
+    void getCloud()
+      .then((r) => { if (alive) setSharedRestUser(r.restUser ?? ""); })
+      .catch(() => { /* The hint is a courtesy; a failed read just means no hint. */ });
+    return () => { alive = false; };
+  }, []);
+  // Said while the field is being filled in, rather than after a connection
+  // test comes back 401 (which now says the same thing, one round later).
+  const userMismatch = restPathUserMismatch(repoURL, selectedCredSet ? selectedCredSet.restUser : sharedRestUser);
 
   // Step 3 — connection test verdict. GlimStone follow-up pass (v8.0.0): the
   // ok/uninit/fail verdict below is now a toast, the exact same migration
@@ -854,6 +872,22 @@ export function OffsiteWizard({
               <span className="text-xs text-carbon-textMuted">
                 {withLtrFragments(t("offsite.repoLocalHint"), REPO_LOCAL_HINT_LTR_FRAGMENTS)}
               </span>
+              {/* The 401 this catches costs days, and it is one character wide
+                  (#194: a credential set signing in as "bombvault_containers"
+                  against a URL beginning "bombvault-containers"). Both words
+                  are on this page already; nothing put them next to each other.
+                    Not a block and not a refusal: a server running without
+                  --private-repos is free to disagree, and the field keeps
+                  saving either way. It is stated in the status colour rather
+                  than the muted one because it is the difference between a
+                  destination that works and one that answers 401. */}
+              {userMismatch && (
+                <span className="text-xs text-statusWarn">
+                  {t("offsite.wizard.repoUserMismatch")
+                    .replace("{segment}", userMismatch.segment)
+                    .replace("{user}", userMismatch.user)}
+                </span>
+              )}
             </label>
             {/* The off-site schedule is edited in Settings › Schedules now; the wizard
                 saves only the repo URL so it can never clobber that cadence.
@@ -887,19 +921,16 @@ export function OffsiteWizard({
                 moves to aria-label so the control still announces itself. */}
             {canPickCredSet && (
               <label className="flex flex-col gap-1">
-                <select
-                  aria-label={t("offsite.targets.credsLabel")}
+                <SelectField
+                  label={t("offsite.targets.credsLabel")}
                   value={credsRef}
-                  onChange={(e) => void (primary ? pickPrimaryCredSet(e.target.value) : pickCredSet(e.target.value))}
+                  onChange={(v) => void (primary ? pickPrimaryCredSet(v) : pickCredSet(v))}
+                  options={[
+                    { value: "", label: t("offsite.targets.credsDefault") },
+                    ...credSets.map((c) => ({ value: c.id, label: c.name })),
+                  ]}
                   className={inputCls}
-                >
-                  <option value="">{t("offsite.targets.credsDefault")}</option>
-                  {credSets.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                />
               </label>
             )}
             {/* One place to CHOOSE credentials (this dropdown), one place to
@@ -998,7 +1029,17 @@ export function OffsiteWizard({
             standard in the app (see tamperShake's own doc comment, and
             IntegrityCard's runTamperFor in Settings.tsx, the exact site whose
             comment names this failure case as the standard's target). */}
+        {/* The test is ABSENT while the immutable switch above is off
+            (GlimStone 1.10.0), rather than sitting there greyed: a control
+            disabled because of a decision taken four rows up offers something
+            nobody can take. The `busy` half stays, because that is this button
+            reporting on its own run.
+
+            The else-branch below is the third case and was already built that
+            way: on a backend that cannot be tested at all, there is no control
+            and a sentence says why. */}
         {urlBackend === "rest" ? (
+          immutable ? (
           <div className="flex items-center gap-3 flex-wrap">
             <Badge
               key={tamperShake}
@@ -1007,7 +1048,7 @@ export function OffsiteWizard({
               size="small"
               hueIndex={hueIndex}
               onClick={() => void runTamper()}
-              disabled={tamperState === "busy" || !immutable}
+              disabled={tamperState === "busy"}
               className={tamperShake ? "glim-shake" : undefined}
             >
               {tamperState === "busy" ? t("offsite.tamperTesting") : t("offsite.tamperTestNow")}
@@ -1019,6 +1060,7 @@ export function OffsiteWizard({
               </span>
             )}
           </div>
+          ) : null
         ) : (
           <span className="text-xs text-carbon-textMuted">{t("offsite.tamperUnverifiable")}</span>
         )}

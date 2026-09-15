@@ -47,13 +47,15 @@ export function RestoreCancelButton({
     const msg = inPlace
       ? t("restore.cancelConfirmInPlace").replace(/\{name\}/g, name)
       : t("restore.cancelConfirmSafe");
-    // inPlace keeps the hard (fault-red) tone — the target is left partially
-    // restored and must be restored again; the light warning (restore-to-a-
-    // folder, non-destructive) downgrades to warn (amber) so the dialog's
-    // own visual weight still tracks the same hard/light distinction the
-    // message copy already carries, unchanged, from before this mechanism
-    // swap (GlimStone form-engine Task 7).
-    if (!(await confirm(msg, { tone: inPlace ? "fail" : "warn" }))) return;
+    // The hard/light distinction lives entirely in the MESSAGE, and it always
+    // did: restore.cancelConfirmInPlace says the target is left partially
+    // restored and has to be restored again, restore.cancelConfirmSafe says
+    // nothing was touched. The dialog used to colour itself to match, red
+    // against amber, and GlimStone 1.12.0 took that away - what warns is the
+    // question, and a colour cannot say more than the sentence above it.
+    // `inPlace` is still what picks the sentence, which is the part that
+    // carried the meaning all along.
+    if (!(await confirm(msg))) return;
     setCancelling(true);
     try {
       await cancelRestore(cancelKey);

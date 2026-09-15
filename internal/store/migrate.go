@@ -47,6 +47,24 @@ func columnPresent(table, column string) func(*sql.Tx) (bool, error) {
 	}
 }
 
+// tablePresent reports whether a table exists. The CREATE TABLE bodies already
+// carry IF NOT EXISTS, so this guard is not what keeps them safe to re-run; it
+// is what lets such a migration be RECORDED as satisfied on a database that got
+// the table under a different number, which is the same service columnPresent
+// does for the ADD COLUMN bodies.
+func tablePresent(table string) func(*sql.Tx) (bool, error) {
+	return func(tx *sql.Tx) (bool, error) {
+		var n int
+		err := tx.QueryRow(
+			`SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = ?`, table,
+		).Scan(&n)
+		if err != nil {
+			return false, fmt.Errorf("probe table %s: %w", table, err)
+		}
+		return n > 0, nil
+	}
+}
+
 // ADDING A MIGRATION — and the one rule that got broken here:
 //
 // Take the next unused number, append at the end, never edit a body that has
@@ -1304,14 +1322,47 @@ ALTER TABLE settings ADD COLUMN totp_recovery TEXT    NOT NULL DEFAULT '';`,
 		sql:              "ALTER TABLE file_sets ADD COLUMN schedule_cadence TEXT NOT NULL DEFAULT '';",
 	},
 	{
+		// Passkeys (WebAuthn). One row per registered credential; see the Passkey
+		// type for what each column is and why the relying-party id is one of
+		// them.
+		//
+		// credential_id is UNIQUE because it is the handle a login answer arrives
+		// under: two rows for one authenticator would make "which key signed
+		// this" ambiguous, and the clone detection would then compare the counter
+		// against whichever row the lookup happened to find.
+		//
+		// No foreign key to anything: a passkey belongs to the instance, not to a
+		// user record, because this application has exactly one operator.
+		version: 100, name: "passkeys",
+		alreadySatisfied: tablePresent("passkeys"),
+		sql: `
+CREATE TABLE IF NOT EXISTS passkeys (
+	id            TEXT PRIMARY KEY,
+	name          TEXT    NOT NULL DEFAULT '',
+	credential_id BLOB    NOT NULL,
+	public_key    BLOB    NOT NULL,
+	aaguid        BLOB    NOT NULL DEFAULT x'',
+	sign_count    INTEGER NOT NULL DEFAULT 0,
+	transports    TEXT    NOT NULL DEFAULT '',
+	rp_id         TEXT    NOT NULL DEFAULT '',
+	backed_up     INTEGER NOT NULL DEFAULT 0,
+	created_at    INTEGER NOT NULL DEFAULT 0,
+	last_used_at  INTEGER NOT NULL DEFAULT 0
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_passkeys_credential ON passkeys(credential_id);
+CREATE INDEX IF NOT EXISTS idx_passkeys_rp ON passkeys(rp_id);`,
+	},
+	{
 		// Per-root CACHEDIR.TAG toggle (RESTIC-01, D-07): a JSON map of
 		// backup-root host path → bool, the same JSON-column shape excludes uses.
 		// '{}' = no root opted in. Owned by SetExcludeCaches (never reset by
 		// Upsert). Only the boolean UNION of the values ever reaches restic argv
 		// (the constant --exclude-caches flag) — the keys are UI state, never
 		// emitted.
-		version: 100, name: "target_exclude_caches",
-		sql: "ALTER TABLE targets ADD COLUMN exclude_caches TEXT NOT NULL DEFAULT '{}';",
+		version:          101,
+		name:             "target_exclude_caches",
+		alreadySatisfied: columnPresent("targets", "exclude_caches"),
+		sql:              "ALTER TABLE targets ADD COLUMN exclude_caches TEXT NOT NULL DEFAULT '{}';",
 	},
 	{
 		// The file set's tree selection (Phase 4 file-sets parity, D-03): the
@@ -1336,8 +1387,177 @@ ALTER TABLE settings ADD COLUMN totp_recovery TEXT    NOT NULL DEFAULT '';`,
 		// This package treats the column as an opaque TEXT blob; normalization
 		// and compilation of the entries live in the API tier
 		// (internal/api/selection.go), which owns the meaning of "!".
-		version: 101, name: "file_set_selected_paths",
-		sql: "ALTER TABLE file_sets ADD COLUMN selected_paths TEXT;",
+		version:          102,
+		name:             "file_set_selected_paths",
+		alreadySatisfied: columnPresent("file_sets", "selected_paths"),
+		sql:              "ALTER TABLE file_sets ADD COLUMN selected_paths TEXT;",
+	},
+	{
+		// A file set's OPTIONAL own repository (#204). Empty is the only value
+		// every existing row can have and the only one that means anything by
+		// default: "use the Folders domain repository", which is what every set
+		// did before this column existed.
+		//
+		// NOT NULL DEFAULT '' rather than nullable, unlike selected_paths above.
+		// The difference is what the two columns mean when unset. An unset
+		// selection has to be distinguishable from a deliberately empty one, so
+		// it needs NULL. An unset repository has exactly one reading - follow the
+		// domain - so a plain empty string carries the whole meaning, and every
+		// reader gets a string it can compare without a nil check.
+		//
+		// The column held a repository LOCATION when this migration was written -
+		// the first cut of #204 - and holds a NAMED REPOSITORY'S ID today; see
+		// migration 106, which converts the one into the other. The migration
+		// itself is unchanged either way: it adds an empty TEXT column, and
+		// "empty" means the same thing in both shapes ("use the Folders domain
+		// repository").
+		version: 103, name: "file_set_repo",
+		alreadySatisfied: columnPresent("file_sets", "repo"),
+		sql:              "ALTER TABLE file_sets ADD COLUMN repo TEXT NOT NULL DEFAULT '';",
+	},
+	{
+		// The same per-item repository override for containers (#204, which asks
+		// for "a VM or folder" and gets all three, because a container has the
+		// same reason: one large, rarely-changing item that only wants an
+		// off-site copy should not have to travel through the domain repository
+		// first).
+		//
+		// The column holds a NAMED REPOSITORY'S ID, not a location. Locations are
+		// written once in Settings and picked here, which is the difference
+		// between configuring ten containers and typing a B2 bucket path ten
+		// times. Empty means "use the Containers domain repository", exactly as
+		// before.
+		version:          104,
+		name:             "target_repo",
+		alreadySatisfied: columnPresent("targets", "repo"),
+		sql:              "ALTER TABLE targets ADD COLUMN repo TEXT NOT NULL DEFAULT '';",
+	},
+	{
+		// The VM half of the same override (#204's own wording: "a VM or folder").
+		version:          105,
+		name:             "vm_repo",
+		alreadySatisfied: columnPresent("vms", "repo"),
+		sql:              "ALTER TABLE vms ADD COLUMN repo TEXT NOT NULL DEFAULT '';",
+	},
+	{
+		// file_sets.repo changed MEANING inside this feature. Migration 103 gave
+		// it to the first cut of #204, which wrote a free-text LOCATION into it
+		// ("backups/cold", "b2:bucket/docs") and resolved it directly. The shape
+		// that shipped stores a named repository's ID instead.
+		//
+		// A left-over location is not merely stale, it is a trap with no way
+		// out: the resolution looks the value up as an id, finds nothing, and
+		// refuses - correctly, because a dangling override must never fall back
+		// silently. So every backup, restore and snapshot listing for that set
+		// fails; and the repair is refused too, because the set HAS backups and
+		// the picker is frozen for exactly that reason. The set would need a
+		// hand edit of the database.
+		//
+		// Clearing it puts the set back on the Folders repository, which is
+		// where it was before anyone typed a location, and which is a state the
+		// interface can explain and the user can change. Only values that are
+		// not a known repository row are touched, so an id written by the
+		// shipped shape survives untouched.
+		//
+		// Only a machine that ran a build of this branch can have such a value;
+		// on every other database the statement matches nothing.
+		version: 106,
+		name:    "file_set_repo_is_an_id",
+		sql: `UPDATE file_sets SET repo = ''
+		      WHERE repo != ''
+		        AND repo NOT IN (SELECT id FROM offsite_targets WHERE role = 'repo');`,
+	},
+	{
+		// RENUMBERING RECOVERY for the contested 100 (see the NUMBERING HAZARD note
+		// above v90; this is the same shape as v92, for the same reason, a second
+		// time).
+		//
+		// The collision: main published `100 = passkeys` through :latest, while
+		// this branch had independently taken `100 = target_exclude_caches`. The
+		// branch's six are renumbered to 101..106 above, so a :latest database
+		// takes all of them normally. The other direction is the one that needs
+		// this step: a database born under a BUILD OF THIS BRANCH already has the
+		// row `version = 100`, and Migrate skips a recorded version before it ever
+		// asks alreadySatisfied - so on such a database the passkeys table would
+		// never be created, and every passkey route would fail against a missing
+		// table forever.
+		//
+		// A fresh number nobody has recorded, and a body that is idempotent in
+		// plain SQL, so it runs exactly once on every database whichever numbering
+		// it was born under and does nothing where the table already exists. No
+		// alreadySatisfied guard on purpose: CREATE TABLE IF NOT EXISTS already
+		// says it, and a guard would only hide whether this ever fired.
+		//
+		// Keep this idempotent, and keep it a recovery step rather than a place to
+		// put new schema work: new work gets its own number and runs
+		// unconditionally.
+		version: 107,
+		name:    "passkeys_renumbering_recovery",
+		sql: `
+CREATE TABLE IF NOT EXISTS passkeys (
+	id            TEXT PRIMARY KEY,
+	name          TEXT    NOT NULL DEFAULT '',
+	credential_id BLOB    NOT NULL,
+	public_key    BLOB    NOT NULL,
+	aaguid        BLOB    NOT NULL DEFAULT x'',
+	sign_count    INTEGER NOT NULL DEFAULT 0,
+	transports    TEXT    NOT NULL DEFAULT '',
+	rp_id         TEXT    NOT NULL DEFAULT '',
+	backed_up     INTEGER NOT NULL DEFAULT 0,
+	created_at    INTEGER NOT NULL DEFAULT 0,
+	last_used_at  INTEGER NOT NULL DEFAULT 0
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_passkeys_credential ON passkeys(credential_id);
+CREATE INDEX IF NOT EXISTS idx_passkeys_rp ON passkeys(rp_id);`,
+	},
+	{
+		// Pull sources (#227): a repository belonging to ANOTHER BombVault that
+		// this box fetches snapshots out of, into its own repository, on its own
+		// schedule. The mirror image of off-site replication, which pushes.
+		//
+		// Shaped on received_repos (version 76) rather than on offsite_targets,
+		// and the reason is the one column offsite_targets does not have: a
+		// FOREIGN APP_KEY. A pull source is another instance's repository, so its
+		// restic password is derived from THAT instance's key, which has to be
+		// stored encrypted at rest exactly as the receiver stores the sending
+		// side's. An off-site target is our own repository under another address
+		// and needs no such field.
+		//
+		// domain says which of this box's repositories the snapshots land in.
+		// Empty means every domain the source holds, which is the common case:
+		// somebody pulling a neighbour's box usually wants all of it.
+		version: 108,
+		name:    "pull_sources",
+		sql: `
+CREATE TABLE IF NOT EXISTS pull_sources (
+  id               TEXT    PRIMARY KEY,
+  name             TEXT    NOT NULL DEFAULT '',
+  repo             TEXT    NOT NULL DEFAULT '',
+  app_key_enc      BLOB    NOT NULL DEFAULT x'',
+  creds_ref        TEXT    NOT NULL DEFAULT '',
+  domain           TEXT    NOT NULL DEFAULT '',
+  cadence          TEXT    NOT NULL DEFAULT 'off',
+  limit_download   INTEGER NOT NULL DEFAULT 0,
+  limit_upload     INTEGER NOT NULL DEFAULT 0,
+  last_pull_at     INTEGER NOT NULL DEFAULT 0,
+  last_pull_ok     INTEGER,                       -- nullable: NULL = never pulled
+  last_pull_error  TEXT    NOT NULL DEFAULT '',
+  snapshots_pulled INTEGER NOT NULL DEFAULT 0,
+  enabled          INTEGER NOT NULL DEFAULT 1,
+  created_at       INTEGER NOT NULL DEFAULT 0,
+  sort_order       INTEGER NOT NULL DEFAULT 0
+);
+
+ALTER TABLE settings ADD COLUMN pull_enabled INTEGER NOT NULL DEFAULT 0;`,
+		// The column is exactly what this body adds, so its presence is the same
+		// fact as "this body already ran here, under some number". That case is
+		// real rather than theoretical: a database born under the branch
+		// numbering carries rows for versions this body never wrote, and without
+		// the guard the ALTER aborts the whole upgrade with "duplicate column
+		// name". The CREATE above is already idempotent, and it cannot be true
+		// that the column exists while the table does not, because one body
+		// writes both.
+		alreadySatisfied: columnPresent("settings", "pull_enabled"),
 	},
 }
 

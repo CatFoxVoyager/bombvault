@@ -50,6 +50,11 @@ export interface Container {
    *  the containers domain schedule for this container. "" means it follows the
    *  domain schedule. Only takes effect when the perItemSchedules setting is on. */
   scheduleCadence?: string;
+  /** Optional per-item repository override (#204): the ID of a named repository
+   *  from Settings, "" for the domain's own. A location is written down once in
+   *  Settings and picked here, so the same bucket path is never typed into ten
+   *  items and can be corrected in one place. */
+  repo?: string;
 }
 
 export interface ListContainersResponse {
@@ -116,6 +121,8 @@ export interface Settings {
   /** Fleet view (read-only monitoring of peer BombVault instances' protection
    *  status). Gates the Fleet tab like the other domain enables. Default false. */
   fleetEnabled: boolean;
+  /** Fetching another instance's backups into this box's own repository (#227). */
+  pullEnabled: boolean;
   containersPath: string;
   vmsPath: string;
   flashPath: string;
@@ -317,6 +324,11 @@ export interface ImportSettingsSummary {
   exportedAt: string;
   appVersion: string;
   offsiteTargets: number;
+  /** How many named repositories (#204) the file carries. Applying it replaces
+   *  the ones this instance has - EXCEPT a repository still in use here and
+   *  absent from the file, which is kept, and a location that would move an
+   *  in-use repository, which is declined. The server logs both. */
+  namedRepos: number;
   credentials: {
     present: boolean;
     cloud: boolean;
@@ -541,6 +553,11 @@ export interface TOTPConfirmResponse extends OkEnvelope {
 export interface SetPasswordResponse extends OkEnvelope {
   /** Whether auth is now enabled after the change. */
   enabled?: boolean;
+  /** Whether THIS browser is signed in as of this answer. Setting a password
+   *  issues the session cookie in the same response, so the page does not have
+   *  to be reloaded and the password typed again before anything else works -
+   *  the second factor above all, which is unreachable without a session. */
+  authed?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -712,6 +729,24 @@ export function cancelRestore(key: string): Promise<{ ok: boolean; cancelled: bo
 }
 
 /**
+ * POST /api/backup/cancel {key} — stop a backup that is running, by its progress
+ * key ("files:<name>" / "container:<name>" / "vm:<name>" / "flash" / "config").
+ * A key that is not running answers {ok:true,cancelled:false} and changes
+ * nothing, so a stale button cannot produce an error.
+ *
+ * Safe in a way the restore counterpart is not: restic writes its snapshot last,
+ * so an aborted backup leaves unreferenced data and no snapshot, collected by
+ * the next prune, and nothing on the host is touched. The run is recorded as
+ * "cancelled" rather than "failed" and fires no failure alert.
+ */
+export function cancelBackup(key: string): Promise<{ ok: boolean; cancelled: boolean }> {
+  return fetchJSON("/api/backup/cancel", {
+    method: "POST",
+    body: JSON.stringify({ key }),
+  });
+}
+
+/**
  * POST /api/stacks/{project}/restore — restore every backed-up container in a
  * compose stack from its latest backup, left stopped; when startAfter is true they
  * are then started in dependency order.
@@ -842,6 +877,26 @@ export function tagSnapshot(
 }
 
 /** PATCH /api/containers/{name} — set pre/post-backup hook commands. */
+/** PATCH /api/containers/{name} with just `repo` (#204): point this container at
+ *  a named repository, or "" to put it back on the Containers domain repository.
+ *  Refused once the container has backups - they stay in the repository they
+ *  were written to and nothing re-homes them. */
+export function setContainerRepo(name: string, repo: string): Promise<OkEnvelope> {
+  return fetchJSON(`/api/containers/${encodeURIComponent(name)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ repo }),
+  });
+}
+
+/** PATCH /api/vms/{name} with just `repo` (#204); same contract as the container
+ *  twin above. */
+export function setVMRepo(name: string, repo: string): Promise<OkEnvelope> {
+  return fetchJSON(`/api/vms/${encodeURIComponent(name)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ repo }),
+  });
+}
+
 export function setContainerHooks(
   name: string,
   preHook: string,
@@ -1173,18 +1228,43 @@ export function suggestContainerExcludes(
 }
 
 /**
+ * The answer shape all three domain discovers share.
+ *
+ * `skipped` names the repositories the pass could NOT search: a named repository
+ * (#204) that is switched off, whose location does not resolve, or that was a
+ * working repository and is now unreachable. Without it "3 found" and "0 found"
+ * look the same whether everything was read or half the domain was never opened,
+ * which is precisely the answer somebody rebuilding a lost /config must not get.
+ * The server has emitted it since the named-repository work; declaring it here is
+ * what lets the UI say so.
+ *
+ * `skippedNeedsAction` is the other half, and the two are deliberately separate:
+ * `skipped` is what to SAY, this is what to FLAG. A repository switched off on
+ * purpose is a first-class state, so it belongs in the sentence and must not
+ * hold a readability pill amber forever - which is exactly what one list did,
+ * because nothing downstream could tell a deliberate exclusion from a share that
+ * failed to mount.
+ */
+export type DiscoverEnvelope = OkEnvelope & {
+  discovered?: number;
+  repo?: string;
+  skipped?: string[];
+  skippedNeedsAction?: boolean;
+};
+
+/**
  * Rebuild the target list from the backup storage (disaster recovery after a fresh
  * install). `probe` makes it READ-ONLY: it opens + decrypts the repo to prove it is
  * readable with the current APP_KEY and returns the same count, but writes no
  * targets — used by the Recovery readiness check so merely testing readability
  * never resurrects orphan entries (#44). The default rebuilds the targets.
  */
-export function discover(probe = false): Promise<OkEnvelope & { discovered?: number; repo?: string }> {
+export function discover(probe = false): Promise<DiscoverEnvelope> {
   return fetchJSON(`/api/discover${probe ? "?probe=true" : ""}`, { method: "POST" });
 }
 
 /** Rebuild the VM target list from backup storage. `probe` = read-only readiness check (see discover, #44). */
-export function discoverVMs(probe = false): Promise<OkEnvelope & { discovered?: number; repo?: string }> {
+export function discoverVMs(probe = false): Promise<DiscoverEnvelope> {
   return fetchJSON(`/api/vms/discover${probe ? "?probe=true" : ""}`, { method: "POST" });
 }
 
@@ -1200,14 +1280,28 @@ export function discoverVMs(probe = false): Promise<OkEnvelope & { discovered?: 
  * fails, its (scrubbed) message is surfaced as `error` — the caller shows the
  * real failure instead of a misleading "nothing to recover".
  */
-export async function discoverAll(): Promise<{ containers: number; vms: number; files: number; error?: string }> {
+export async function discoverAll(): Promise<{
+  containers: number;
+  vms: number;
+  files: number;
+  error?: string;
+  skipped: string[];
+  skippedNeedsAction: boolean;
+}> {
   const [c, v, f] = await Promise.all([discover(), discoverVMs(), discoverFiles()]);
   const failed = [c, v, f].find((r) => !r.ok);
+  // De-duplicated: the same named repository is searched by all three domains, so
+  // one unmounted share would otherwise be named three times in one sentence.
+  const skipped = [...new Set([c, v, f].flatMap((r) => r.skipped ?? []))];
   return {
     containers: c.discovered ?? 0,
     vms: v.discovered ?? 0,
     files: f.discovered ?? 0,
     ...(failed ? { error: failed.error ?? "discover failed" } : {}),
+    skipped,
+    // ANY domain that hit something actionable. The sentence lists all three
+    // domains' skips together, so the flag has to be the union too.
+    skippedNeedsAction: [c, v, f].some((r) => r.skippedNeedsAction === true),
   };
 }
 
@@ -1623,11 +1717,21 @@ export function getDrills(
   );
 }
 
-/** POST /api/unlock/{domain} — clear stale repository locks (restic unlock). */
+/**
+ * POST /api/unlock/{domain} — clear stale repository locks (restic unlock).
+ *
+ * `skipped` names the repositories that got something less than the full clear,
+ * and it comes back on the success path too. A repository shared with another
+ * domain can only have its STALE locks removed - forcing there would yank the
+ * lock out from under that domain's running backup - so the button can honestly
+ * succeed and still have left a live lock in place. That is the one case this
+ * button exists for, so it has to be said out loud rather than inferred from a
+ * green tick.
+ */
 export function unlockDomain(
   domain: "containers" | "vms" | "flash" | "files",
   source?: string
-): Promise<OkEnvelope> {
+): Promise<OkEnvelope & { skipped?: string[] }> {
   return fetchJSON(`/api/unlock/${domain}${srcParam(source)}`, { method: "POST" });
 }
 
@@ -1848,7 +1952,63 @@ export interface OffsiteTarget {
   sortOrder: number;
 }
 
-/**
+/** A named repository (#204): a location written down once in Settings and then
+ *  PICKED by individual containers, VMs and folder sets, instead of typed into
+ *  each of them.
+ *
+ *  `repo` is the location AS STORED, never resolved - a resolved path can carry
+ *  host detail the browser has no business knowing, and the picker only needs to
+ *  identify the place. `inUse` is how many items point here; the interface uses
+ *  it to explain why a repository cannot be deleted BEFORE the attempt. */
+export interface NamedRepo {
+  id: string;
+  name: string;
+  repo: string;
+  credsRef: string;
+  storageClass: string;
+  limitUpload: number;
+  limitDownload: number;
+  /** Append-only: nothing on this box may delete from it, so prune and snapshot
+   *  delete refuse rather than repack it. */
+  immutable: boolean;
+  enabled: boolean;
+  inUse: number;
+}
+
+/** GET /api/repos — every named repository, in picker order. */
+export function listRepos(): Promise<OkEnvelope & { repos?: NamedRepo[] }> {
+  return fetchJSON("/api/repos");
+}
+
+/** POST /api/repos — create one (the id is minted server-side). */
+export function createRepo(
+  body: Partial<Omit<NamedRepo, "id" | "inUse">>
+): Promise<OkEnvelope & { repo?: NamedRepo }> {
+  return fetchJSON("/api/repos", { method: "POST", body: JSON.stringify(body) });
+}
+
+/** PATCH /api/repos/{id} — change one. Only the fields sent are applied.
+ *
+ *  The LOCATION of a repository that is in use is refused: the backups already
+ *  written stay where they are, so the next one would succeed into an empty
+ *  repository, which looks exactly like a working backup. Name, limits and the
+ *  on/off switch stay editable, because none of those move any data. */
+export function updateRepo(
+  id: string,
+  body: Partial<Omit<NamedRepo, "id" | "inUse">>
+): Promise<OkEnvelope & { repo?: NamedRepo }> {
+  return fetchJSON(`/api/repos/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+/** DELETE /api/repos/{id} — refused while anything still points here. */
+export function deleteRepo(id: string): Promise<OkEnvelope> {
+  return fetchJSON(`/api/repos/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+/*
  * GET /api/offsite/targets?domain=<d> — the off-site targets for one domain in a
  * stable order (sortOrder, then createdAt). Omit `domain` to list every target.
  * An unknown domain answers HTTP 400.
@@ -2021,9 +2181,15 @@ export function getStats(
  * Lists the immediate subdirectories of <HostMountRoot>/<path>.
  * Pass an empty string (or omit) to list the mount root itself.
  */
-export function browse(path: string = ""): Promise<BrowseResponse> {
-  const qs = path ? `?path=${encodeURIComponent(path)}` : "";
-  return fetchJSON(`/api/browse${qs}`);
+export function browse(path: string = "", hidden: boolean = false): Promise<BrowseResponse> {
+  const params = new URLSearchParams();
+  if (path) params.set("path", path);
+  // The server's additive opt-in (BROWSE-04): only the literal "1" turns hidden
+  // entries on, and the parameter is left off entirely otherwise so the request
+  // shape for every existing caller is unchanged.
+  if (hidden) params.set("hidden", "1");
+  const qs = params.toString();
+  return fetchJSON(`/api/browse${qs ? `?${qs}` : ""}`);
 }
 
 /** Response from POST /api/browse/mkdir. */
@@ -2074,6 +2240,9 @@ export interface VM {
    *  the VMs domain schedule for this VM. "" means it follows the domain schedule.
    *  Only takes effect when the perItemSchedules setting is on. */
   scheduleCadence?: string;
+  /** Optional per-item repository override (#204): the ID of a named
+   *  repository from Settings, "" for the VMs domain repository. */
+  repo?: string;
 }
 
 export interface ListVMsResponse {
@@ -2276,6 +2445,15 @@ export interface FileSetView {
   /** This set's per-item schedule override (#199); "" follows the Folders
    *  domain schedule. Only acted on while perItemSchedules is on. */
   scheduleCadence?: string;
+  /** This set's OWN repository (#204); "" means it follows the Folders domain
+   *  repository. Either a relative subpath under the host mount root or a raw
+   *  restic remote ("b2:...", "s3:...", "sftp:...", "rest:...", "rclone:..."). */
+  repo?: string;
+  /** Where this set's backups actually land, already resolved on the server:
+   *  the override if there is one, otherwise the domain path. Read-only - the
+   *  interface never computes this itself, so a card can never disagree with
+   *  the backup about where a set goes. */
+  repoEffective?: string;
   /** What actually happens to this set, resolved on the server from the same
    *  four settings the scheduler reads (#199). The interface only formats it,
    *  so the sentence it shows cannot disagree with the job that runs. */
@@ -2338,12 +2516,18 @@ export function getFileSetPreset(): Promise<FileSetPresetResponse> {
   return fetchJSON("/api/files/sets/preset");
 }
 
-/** POST /api/files/sets — create a file set (path required; validated server-side). */
+/** POST /api/files/sets — create a file set (path required; validated
+ *  server-side). repo picks the named repository (#204) the set writes to. */
 export function createFileSet(set: {
   name: string;
   path: string;
   excludes: string[];
   enabled?: boolean;
+  /** The named repository (#204) the set writes to, "" for the domain's own.
+   *  The create dialog shows the picker, so the choice has to travel with the
+   *  create - it used to be dropped here and the set landed on the domain
+   *  repository with nothing on screen saying so. */
+  repo?: string;
 }): Promise<OkEnvelope & { id?: string }> {
   return fetchJSON("/api/files/sets", {
     method: "POST",
@@ -2368,6 +2552,13 @@ export function patchFileSet(
      *  server with code "empty-selection" (a set cannot mean "back up
      *  nothing"; remove the set instead), and the stored selection is kept. */
     selectedPaths?: string[];
+    /** This set's own repository (#204). Sent alone by the repository editor.
+     *  An empty string clears the override and puts the set back on the Folders
+     *  domain repository. The server refuses a change once the set HAS backups:
+     *  its snapshots live in the repo it used, nothing re-homes them, and a
+     *  later backup to a new repo would succeed while the history sat in a
+     *  repository nothing points at any more. */
+    repo?: string;
   }
 ): Promise<OkEnvelope> {
   return fetchJSON(`/api/files/sets/${encodeURIComponent(id)}`, {
@@ -2472,7 +2663,7 @@ export function restoreFileSetFiles(
 /** Rebuild the file-set list from the fileset: tags in backup storage. `probe` =
  *  read-only readiness check (see discover, #44). Discovered sets arrive DISABLED
  *  with an empty path (tags alone don't carry it) — set a folder before backing up. */
-export function discoverFiles(probe = false): Promise<OkEnvelope & { discovered?: number; repo?: string }> {
+export function discoverFiles(probe = false): Promise<DiscoverEnvelope> {
   return fetchJSON(`/api/files/discover${probe ? "?probe=true" : ""}`, { method: "POST" });
 }
 
@@ -2763,6 +2954,96 @@ export interface ReceiverCheckResult {
   at: number;
 }
 
+/* ---------------------------------------------------------------------------
+ * Pull sources (#227): repositories belonging to OTHER instances that this box
+ * fetches snapshots out of. The mirror image of off-site replication.
+ * ------------------------------------------------------------------------- */
+
+/** A configured pull source. The stored APP_KEY is never returned, only whether
+ *  one is there. */
+export interface PullSourceView {
+  id: string;
+  name: string;
+  repo: string;
+  credsRef: string;
+  /** Which local repository the pulled snapshots land in. */
+  domain: string;
+  cadence: string;
+  limitDownload: number;
+  limitUpload: number;
+  lastPullAt: number;
+  /** null = never pulled. */
+  lastPullOk: boolean | null;
+  lastPullError: string;
+  snapshotsPulled: number;
+  enabled: boolean;
+  createdAt: number;
+  sortOrder: number;
+  /** A source key is stored; the key itself is NEVER returned. */
+  hasAppKey: boolean;
+}
+
+/** The create/update request body. On PUT an empty appKey keeps the stored key,
+ *  so editing a name cannot silently disarm a source. */
+export interface PullSourceInput {
+  name: string;
+  repo: string;
+  appKey: string;
+  credsRef: string;
+  domain: string;
+  cadence: string;
+  limitDownload: number;
+  limitUpload: number;
+  enabled: boolean;
+  sortOrder: number;
+}
+
+/** GET /api/pull/sources - every configured source. */
+export function listPullSources(): Promise<OkEnvelope & { sources?: PullSourceView[] }> {
+  return fetchJSON("/api/pull/sources");
+}
+
+/** POST /api/pull/sources - register a source. The server opens it read-only
+ *  before it saves anything, so a mistyped location or key is refused here
+ *  rather than at four in the morning. */
+export function createPullSource(in_: PullSourceInput): Promise<OkEnvelope & { source?: PullSourceView }> {
+  return fetchJSON("/api/pull/sources", {
+    method: "POST",
+    body: JSON.stringify(in_),
+  });
+}
+
+/** PUT /api/pull/sources/{id} - update a source (an empty appKey keeps the
+ *  stored one). */
+export function updatePullSource(
+  id: string,
+  in_: PullSourceInput
+): Promise<OkEnvelope & { source?: PullSourceView }> {
+  return fetchJSON(`/api/pull/sources/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    body: JSON.stringify(in_),
+  });
+}
+
+/** DELETE /api/pull/sources/{id} - drop the row only. Neither repository is
+ *  touched: the source belongs to somebody else, and what was already pulled
+ *  belongs to this box and stays. */
+export function deletePullSource(id: string): Promise<OkEnvelope> {
+  return fetchJSON(`/api/pull/sources/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+/** POST /api/pull/sources/{id}/test - open the source read-only and report
+ *  whether it answers, without pulling anything. */
+export function testPullSource(id: string): Promise<OkEnvelope> {
+  return fetchJSON(`/api/pull/sources/${encodeURIComponent(id)}/test`, { method: "POST" });
+}
+
+/** POST /api/pull/sources/{id}/run - pull now. Answers with how many snapshots
+ *  the copy was asked to carry. */
+export function runPullSource(id: string): Promise<OkEnvelope & { snapshots?: number }> {
+  return fetchJSON(`/api/pull/sources/${encodeURIComponent(id)}/run`, { method: "POST" });
+}
+
 /** GET /api/receiver/repos — every registered received repo with live status. */
 export function listReceivedRepos(): Promise<OkEnvelope & { repos?: ReceivedRepoStatus[] }> {
   return fetchJSON("/api/receiver/repos");
@@ -3017,13 +3298,21 @@ export function login(password: string, code?: string): Promise<LoginResponse> {
 }
 
 /** POST /api/logout — clears the bv_session cookie. Client-side only: the
- *  stateless token stays valid until expiry; logoutAll is the revocation path. */
+ *  stateless token stays valid until expiry. Revocation is a different thing
+ *  and lives elsewhere now: setting a password rotates the session epoch. */
 export function logout(): Promise<OkEnvelope> {
   return fetchJSON("/api/logout", { method: "POST" });
 }
 
 /** POST /api/logout-all — rotate the server-side session epoch, invalidating
- *  EVERY outstanding session cookie (all browsers/devices), then clear ours. */
+ *  EVERY outstanding session cookie (all browsers/devices), then clear ours.
+ *
+ *  NOTHING IN THE UI CALLS THIS ANY MORE, and it is kept on purpose. The button
+ *  that did was removed with the Security card's sign-out row (GlimStone 2.1.0,
+ *  rule 22), and the capability moved into setAuthPassword: the server rotates
+ *  the epoch on every password write. The route stays registered, so this
+ *  wrapper is what a future caller reaches for instead of re-deriving the path,
+ *  and deleting it would leave a live endpoint with no client at all. */
 export function logoutAll(): Promise<OkEnvelope> {
   return fetchJSON("/api/logout-all", { method: "POST" });
 }
@@ -3060,4 +3349,200 @@ export function disableTOTP(code: string): Promise<OkEnvelope> {
     method: "POST",
     body: JSON.stringify({ code }),
   });
+}
+
+// ---------------------------------------------------------------------------
+// Passkeys (WebAuthn)
+//
+// WHAT THE BROWSER NEEDS AND THE WIRE CANNOT CARRY. navigator.credentials wants
+// ArrayBuffers for the challenge, the user handle and every credential id; JSON
+// has no such type, so the server sends base64url and these helpers convert at
+// the boundary in both directions. Getting that encoding wrong is the classic
+// way a WebAuthn integration fails with an unhelpful "NotAllowedError", so the
+// conversion lives in one place rather than at each call site.
+//
+// WHY THE FEATURE CAN BE UNAVAILABLE. A passkey is bound to a DOMAIN, and the
+// browser refuses the whole exchange on an origin that is a bare IP address or
+// whose certificate it does not trust. BombVault's default installation is
+// exactly that, so passkeyStatus answers `supported: false` with the reason,
+// and the interface says it rather than offering a button that cannot work.
+// ---------------------------------------------------------------------------
+
+/** One registered credential, as the list shows it. */
+export interface PasskeyView {
+  id: string;
+  name: string;
+  /** The address this key is bound to. A key registered through a proxy does
+   *  not exist over the IP, which is why the list names it. */
+  rpId: string;
+  /** Whether this key can answer on the address currently open. */
+  usableHere: boolean;
+  /** The authenticator says the key is synced to a cloud keychain. One that is
+   *  not dies with the device. */
+  backedUp: boolean;
+  createdAt: number;
+  lastUsedAt: number;
+  transports: string;
+}
+
+export interface PasskeyStatusResponse extends OkEnvelope {
+  /** Whether THIS address can carry a passkey at all. */
+  supported?: boolean;
+  /** Why not, when it cannot. A whole sentence, ready to show. */
+  reason?: string;
+  /** The relying-party id derived from the address, "" when there is none. */
+  rpId?: string;
+  /** How many keys are registered in total, and how many on this address. */
+  total?: number;
+  here?: number;
+  /** Only present for a signed-in caller (or when no login is set up). */
+  passkeys?: PasskeyView[];
+}
+
+/** GET /api/auth/passkeys - public, like GET /api/auth: the login screen has to
+ *  know whether to offer the button before anybody is signed in. */
+export function passkeyStatus(): Promise<PasskeyStatusResponse> {
+  return fetchJSON("/api/auth/passkeys");
+}
+
+interface CeremonyResponse extends OkEnvelope {
+  ceremonyId?: string;
+  options?: Record<string, unknown>;
+}
+
+// base64url, the encoding WebAuthn uses everywhere: "+/" become "-_" and the
+// padding is dropped. atob/btoa speak standard base64 only, hence the swap.
+function b64urlToBytes(s: string): Uint8Array {
+  const pad = s.length % 4 === 0 ? "" : "=".repeat(4 - (s.length % 4));
+  const bin = atob(s.replace(/-/g, "+").replace(/_/g, "/") + pad);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+function bytesToB64url(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+/** Whether this browser can do WebAuthn at all. An old browser, or any page the
+ *  browser does not consider a secure context, has no PublicKeyCredential. */
+export function passkeysAvailableInBrowser(): boolean {
+  return typeof window !== "undefined" && "PublicKeyCredential" in window;
+}
+
+// The server sends the options object exactly as the standard defines it, with
+// the binary fields base64url-encoded. These two walk the known fields rather
+// than the whole object: an unknown extension the server adds later should ride
+// through untouched instead of being mangled by a blanket conversion.
+function decodeCreationOptions(o: Record<string, unknown>): PublicKeyCredentialCreationOptions {
+  const out = { ...o } as Record<string, unknown>;
+  out.challenge = b64urlToBytes(o.challenge as string);
+  const user = o.user as { id: string; name: string; displayName: string };
+  out.user = { ...user, id: b64urlToBytes(user.id) };
+  const exclude = o.excludeCredentials as { id: string }[] | undefined;
+  if (exclude) {
+    out.excludeCredentials = exclude.map((c) => ({ ...c, id: b64urlToBytes(c.id) }));
+  }
+  return out as unknown as PublicKeyCredentialCreationOptions;
+}
+
+function decodeRequestOptions(o: Record<string, unknown>): PublicKeyCredentialRequestOptions {
+  const out = { ...o } as Record<string, unknown>;
+  out.challenge = b64urlToBytes(o.challenge as string);
+  const allow = o.allowCredentials as { id: string }[] | undefined;
+  if (allow) {
+    out.allowCredentials = allow.map((c) => ({ ...c, id: b64urlToBytes(c.id) }));
+  }
+  return out as unknown as PublicKeyCredentialRequestOptions;
+}
+
+/** Register a new passkey: begin, prompt the authenticator, finish.
+ *
+ *  One function rather than three exported halves, because the steps are one
+ *  operation from the operator's side and splitting them only invites a caller
+ *  to do the middle one differently. */
+export async function registerPasskey(name: string): Promise<OkEnvelope & { passkey?: PasskeyView }> {
+  const begin: CeremonyResponse = await fetchJSON("/api/auth/passkey/register/begin", {
+    method: "POST",
+    body: "{}",
+  });
+  if (!begin.ok || !begin.options || !begin.ceremonyId) return begin;
+
+  const cred = (await navigator.credentials.create({
+    publicKey: decodeCreationOptions(begin.options),
+  })) as PublicKeyCredential | null;
+  if (!cred) return { ok: false, error: "no passkey was created" };
+
+  const att = cred.response as AuthenticatorAttestationResponse;
+  return fetchJSON("/api/auth/passkey/register/finish", {
+    method: "POST",
+    body: JSON.stringify({
+      ceremonyId: begin.ceremonyId,
+      name,
+      credential: {
+        id: cred.id,
+        rawId: bytesToB64url(cred.rawId),
+        type: cred.type,
+        // The transports the authenticator reports are stored and handed back at
+        // login so the browser raises the right prompt (a phone over Bluetooth
+        // rather than a USB key).
+        transports: att.getTransports ? att.getTransports() : [],
+        response: {
+          clientDataJSON: bytesToB64url(att.clientDataJSON),
+          attestationObject: bytesToB64url(att.attestationObject),
+        },
+      },
+    }),
+  });
+}
+
+/** Sign in with a passkey. Sets the session cookie on success, exactly as the
+ *  password login does. */
+export async function loginWithPasskey(): Promise<OkEnvelope> {
+  const begin: CeremonyResponse = await fetchJSON("/api/auth/passkey/login/begin", {
+    method: "POST",
+    body: "{}",
+  });
+  if (!begin.ok || !begin.options || !begin.ceremonyId) return begin;
+
+  const cred = (await navigator.credentials.get({
+    publicKey: decodeRequestOptions(begin.options),
+  })) as PublicKeyCredential | null;
+  if (!cred) return { ok: false, error: "no passkey was used" };
+
+  const asr = cred.response as AuthenticatorAssertionResponse;
+  return fetchJSON("/api/auth/passkey/login/finish", {
+    method: "POST",
+    body: JSON.stringify({
+      ceremonyId: begin.ceremonyId,
+      credential: {
+        id: cred.id,
+        rawId: bytesToB64url(cred.rawId),
+        type: cred.type,
+        response: {
+          clientDataJSON: bytesToB64url(asr.clientDataJSON),
+          authenticatorData: bytesToB64url(asr.authenticatorData),
+          signature: bytesToB64url(asr.signature),
+          userHandle: asr.userHandle ? bytesToB64url(asr.userHandle) : null,
+        },
+      },
+    }),
+  });
+}
+
+/** PATCH /api/auth/passkeys/{id} - rename one. */
+export function renamePasskey(id: string, name: string): Promise<OkEnvelope> {
+  return fetchJSON(`/api/auth/passkeys/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ name }),
+  });
+}
+
+/** DELETE /api/auth/passkeys/{id} - remove one. The password always remains, so
+ *  removing every passkey never locks anybody out. */
+export function deletePasskey(id: string): Promise<OkEnvelope> {
+  return fetchJSON(`/api/auth/passkeys/${encodeURIComponent(id)}`, { method: "DELETE" });
 }

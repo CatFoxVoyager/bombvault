@@ -16,8 +16,9 @@ import { listRuns, getScheduleNext } from "../lib/api";
 import type { Run, ScheduleNext } from "../lib/api";
 import { useProgress } from "../lib/progress";
 import { useT } from "../lib/i18n";
+import { SelectField } from "./SelectField";
 import type { TranslationKey } from "../lib/i18n";
-import { buildLogLines, filterLogLines, formatLogDate } from "../lib/activityLog";
+import { buildLogLines, domainLabel, filterLogLines, formatLogDate, LOG_FILTER_DOMAINS, LOG_FILTER_KINDS } from "../lib/activityLog";
 import type { LogFilterDomain, LogFilterKind, LogStatus, ResolveName } from "../lib/activityLog";
 import { useIsDesktop } from "../lib/useMediaQuery";
 import { useLoadMore } from "../lib/useLoadMore";
@@ -391,24 +392,20 @@ export function ActivityLog({
           aria-label={t("activityLog.filterPlaceholder")}
           className="flex-1 min-w-[10rem] rounded-control bg-carbon-surface2 px-2 py-1 text-xs text-carbon-text placeholder:text-carbon-textMuted glim-field-focus"
         />
-        <select
+        <SelectField
           value={filterDomain}
-          onChange={(e) => setFilterDomain(e.target.value as LogFilterDomain)}
+          onChange={(v) => setFilterDomain(v as LogFilterDomain)}
+          label={t("activityLog.filterAllDomains")}
+          options={LOG_FILTER_DOMAINS.map((o) => ({ value: o.value, label: t(o.key as TranslationKey) }))}
           className="rounded-control bg-carbon-surface2 px-2 py-1 text-xs text-carbon-text glim-field-focus"
-        >
-          {DOMAIN_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
-          ))}
-        </select>
-        <select
+        />
+        <SelectField
           value={filterType}
-          onChange={(e) => setFilterType(e.target.value as LogFilterKind)}
+          onChange={(v) => setFilterType(v as LogFilterKind)}
+          label={t("activityLog.filterAllTypes")}
+          options={LOG_FILTER_KINDS.map((o) => ({ value: o.value, label: t(o.key as TranslationKey) }))}
           className="rounded-control bg-carbon-surface2 px-2 py-1 text-xs text-carbon-text glim-field-focus"
-        >
-          {TYPE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
-          ))}
-        </select>
+        />
         {/* Heatmap day-filter chip — a filled pill (accent, no border, same
             language as the heatmap's active domain toggle) showing which day
             the Dashboard heatmap narrowed the log to; its × hands the clear
@@ -507,6 +504,18 @@ export function ActivityLog({
               <span className={`shrink-0 w-4 text-center ${colorFor(l.status)}`} aria-label={t(glyphLabelKey(l.status))}>
                 {glyphFor(l.status)}
               </span>
+              {/* Which domain the line belongs to. The line used to carry the
+                  NAME alone, and a container and a folder set may well share
+                  one: a user chasing a running backup read "Backing up HomeDVR"
+                  on the dashboard, went to the Folders page and found the set of
+                  that name sitting idle with no Stop button, because it was the
+                  CONTAINER that was running ([#200]). The domain was in the data
+                  all along - it drives the filter above - just never on the
+                  line. The idle "next up" line has no domain of its own and is
+                  exempt, the same way the filters exempt it. */}
+              {!l.idle && (
+                <span className="shrink-0 text-carbon-textMuted">{domainLabel(resolveName, l.domain)}</span>
+              )}
               <span className={`flex-1 min-w-0 wrap-break-word ${colorFor(l.status)}`}>{l.text}</span>
             </div>
           ))}

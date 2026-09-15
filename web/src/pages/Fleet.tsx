@@ -30,13 +30,15 @@ import {
   proposeMeshOffer,
   getSettings,
 } from "../lib/api";
+import { IconDisclosure } from "../components/IconDisclosure";
 import type { FleetPeer, FleetPeerInput, DomainStatus, MeshOffer, DeploySnippetData } from "../lib/api";
 import { credSetsChanged } from "../lib/useCloudCredSets";
 import { offsiteTargetsChanged } from "../lib/useOffsiteTargets";
 import { useT, type TranslationKey } from "../lib/i18n";
 import { useIsDesktop } from "../lib/useMediaQuery";
 import { useConfirm } from "../lib/useConfirm";
-import { PAGE_SHELL } from "../lib/pageShell";
+import { PAGE_SHELL, PAGE_SHELL_TABBED } from "../lib/pageShell";
+import { SelectField } from "../components/SelectField";
 import { relativeTime } from "../lib/reltime";
 import { EmptyStateIcon } from "../components/EmptyStateIcon";
 import { IconFleet } from "../components/Sidebar";
@@ -73,7 +75,7 @@ function CopyBlock({ text, t }: { text: string; t: T }) {
   const [shake, setShake] = useState(0);
   async function copy() {
     if (await copyText(text)) {
-      push(t("vm.ssh.copied"), "success");
+      push(t("common.copied"), "success");
     } else {
       // "failures always surface" (design-language.md) — copyText() only
       // returns false when BOTH the Clipboard API and the execCommand
@@ -90,8 +92,8 @@ function CopyBlock({ text, t }: { text: string; t: T }) {
       </pre>
       <Button
         key={shake}
-        label={t("vm.ssh.copy")}
-        labelKey="vm.ssh.copy"
+        label={t("common.copy")}
+        labelKey="common.copy"
         tone="neutral"
         onClick={() => void copy()}
         className={`shrink-0 rounded-control px-3 py-2 text-xs text-carbon-text${
@@ -271,27 +273,14 @@ function MeshOfferRow({ offer, t, onChanged }: { offer: MeshOffer; t: T; onChang
         <div className="flex items-center gap-2 flex-wrap">
           <label className="flex items-center gap-1.5 text-xs text-carbon-textSub">
             {t("fleet.mesh.applyTo")}
-            <select
+            <SelectField
               value={domain}
-              onChange={(e) => setDomain(e.target.value)}
+              onChange={setDomain}
+              label={t("fleet.mesh.applyTo")}
+              options={MESH_DOMAINS.map((d) => ({ value: d, label: t(domainLabelKey(d)) }))}
               className="rounded-control bg-carbon-surface3 text-carbon-text text-xs px-2 py-1 glim-field-focus-well"
-            >
-              {MESH_DOMAINS.map((d) => (
-                <option key={d} value={d}>{t(domainLabelKey(d))}</option>
-              ))}
-            </select>
+            />
           </label>
-          <Button
-            key={shakeAccept}
-            label={t("fleet.mesh.accept")}
-            labelKey="fleet.mesh.accept"
-            tone="accent"
-            onClick={() => void handleAccept()}
-            disabled={busy}
-            className={`inline-flex items-center rounded-control bg-accent px-3 py-1.5 text-xs font-medium text-accentContrast hover:opacity-90 transition-opacity disabled:opacity-50${
-              shakeAccept ? " glim-shake" : ""
-            }`}
-          />
           <Button
             key={shakeDecline}
             label={t("fleet.mesh.decline")}
@@ -301,6 +290,17 @@ function MeshOfferRow({ offer, t, onChanged }: { offer: MeshOffer; t: T; onChang
             disabled={busy}
             className={`inline-flex items-center rounded-control px-3 py-1.5 text-xs text-carbon-text disabled:opacity-50${
               shakeDecline ? " glim-shake" : ""
+            }`}
+          />
+          <Button
+            key={shakeAccept}
+            label={t("fleet.mesh.accept")}
+            labelKey="fleet.mesh.accept"
+            tone="accent"
+            onClick={() => void handleAccept()}
+            disabled={busy}
+            className={`inline-flex items-center rounded-control bg-accent px-3 py-1.5 text-xs font-medium text-accentContrast hover:opacity-90 transition-opacity disabled:opacity-50${
+              shakeAccept ? " glim-shake" : ""
             }`}
           />
         </div>
@@ -370,7 +370,7 @@ function ProposeMeshDialog({ peer, t, onClose }: { peer: FleetPeer; t: T; onClos
   // `overflow-y-auto` on this backdrop still covers content that grows toward
   // the cap.
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4" onClick={onClose}>
+    <div className="glim-modal-backdrop fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4" onClick={onClose}>
       {/* GlimStone follow-up pass ("half-overlap card notch"): non-scrolling
           `relative` shell wraps the scrollable dialog box, same split as
           Receiver.tsx's ReceiverDialog — see that call site's comment. */}
@@ -392,11 +392,13 @@ function ProposeMeshDialog({ peer, t, onClose }: { peer: FleetPeer; t: T; onClos
           <>
             <div className="flex flex-col gap-1.5">
               <label className="text-xs text-carbon-textSub">{t("fleet.mesh.domain")}</label>
-              <select value={domain} onChange={(e) => setDomain(e.target.value)} className={inputCls}>
-                {MESH_DOMAINS.map((d) => (
-                  <option key={d} value={d}>{t(domainLabelKey(d))}</option>
-                ))}
-              </select>
+              <SelectField
+                value={domain}
+                onChange={setDomain}
+                label={t("fleet.mesh.domain")}
+                options={MESH_DOMAINS.map((d) => ({ value: d, label: t(domainLabelKey(d)) }))}
+                className={inputCls}
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-xs text-carbon-textSub">{t("fleet.mesh.baseUrl")}</label>
@@ -655,11 +657,7 @@ function FleetPeerCard({
             labelKey="fleet.details"
             tone="neutral"
             onClick={() => toggleDetails()}
-            glyph={
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={`transition-transform ${open ? "rotate-90" : "rtl:rotate-180"}`}>
-                <path fill="currentColor" d="M4 1.3 8.5 6 4 10.7Z" />
-              </svg>
-            }
+            glyph={<IconDisclosure open={open} />}
           />
           <Button
             label={t("fleet.edit")}
@@ -804,7 +802,7 @@ function FleetDialog({
   // comment for the full writeup.
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4"
+      className="glim-modal-backdrop fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4"
       onClick={onClose}
     >
       {/* GlimStone follow-up pass ("half-overlap card notch"): non-scrolling
@@ -906,7 +904,11 @@ function FleetDialog({
 // Fleet page
 // ---------------------------------------------------------------------------
 
-export function Fleet() {
+/** `embedded` is the Instances page rendering this as one of its tabs: the
+ *  outer shell and the <h1> belong to that page then, because a tab panel
+ *  that repeats the strip's own label reads as two headings for one thing.
+ *  Everything else, the subtitle included, is the same page either way. */
+export function Fleet({ embedded = false }: { embedded?: boolean } = {}) {
   const { t } = useT();
   // D-01 double gate (the Containers/VMs/Flash/Config/Receiver
   // mount-discipline precedent): the desktop JSX below is always rendered and
@@ -999,10 +1001,10 @@ export function Fleet() {
     // max-w-5xl (1024px) → the shared 1152px. This page's heading is a single
     // bare h1+p row, so the one flat shell gap still governs every gap on it.
     // See lib/pageShell.ts for the full before/after table.
-    <div className={PAGE_SHELL}>
+    <div className={embedded ? PAGE_SHELL_TABBED : PAGE_SHELL}>
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold text-carbon-text">{t("fleet.title")}</h1>
+          {!embedded && <h1 className="text-2xl font-semibold text-carbon-text">{t("fleet.title")}</h1>}
           <p className="mt-1 text-sm text-carbon-textSub">{t("fleet.subtitle")}</p>
         </div>
         {!showEmptyState && (

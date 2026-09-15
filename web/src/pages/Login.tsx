@@ -1,5 +1,10 @@
-import { useState } from "react";
-import { login } from "../lib/api";
+import { useEffect, useState } from "react";
+import {
+  login,
+  loginWithPasskey,
+  passkeyStatus,
+  passkeysAvailableInBrowser,
+} from "../lib/api";
 import { useT } from "../lib/i18n";
 import { RevealInput } from "../components/RevealInput";
 import { Button } from "../components/Button";
@@ -61,6 +66,45 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     }
   }
 
+  // Whether to offer the passkey button at all. Three things have to be true:
+  // the browser can do WebAuthn, this ADDRESS can carry a passkey (a bare IP
+  // cannot, see internal/api/passkeys.go), and a key is actually registered for
+  // it. Anything less and the button would open a prompt that cannot succeed,
+  // which is worse than no button: it teaches people that passkeys are broken.
+  const [passkeyOffer, setPasskeyOffer] = useState(false);
+  const [passkeyBusy, setPasskeyBusy] = useState(false);
+  useEffect(() => {
+    if (!passkeysAvailableInBrowser()) return;
+    let live = true;
+    void passkeyStatus()
+      .then((s) => {
+        if (live) setPasskeyOffer(s.ok && s.supported === true && (s.here ?? 0) > 0);
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  async function signInWithPasskey() {
+    setPasskeyBusy(true);
+    setError(null);
+    try {
+      const res = await loginWithPasskey();
+      if (res.ok) {
+        onLogin();
+        return;
+      }
+      setError(res.error ?? t("auth.passkeySignInFailed"));
+    } catch (err) {
+      // A cancelled prompt lands here too. Its own message says more than any
+      // sentence written in advance could.
+      setError(err instanceof Error ? err.message : t("auth.passkeySignInFailed"));
+    } finally {
+      setPasskeyBusy(false);
+    }
+  }
+
   const submitDisabled = busy || password === "" || (needCode && code.trim() === "");
 
   return (
@@ -74,10 +118,36 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     // every orientation; they resolve to 0 on desktop.
     <div className="flex items-center justify-center min-h-dvh bg-carbon-background pl-[var(--safe-area-left)] pr-[var(--safe-area-right)] pb-[var(--safe-area-bottom)]">
       <div className="w-full max-w-sm rounded-card bg-carbon-surface p-8 flex flex-col gap-6 shadow-lg">
-        {/* Title */}
-        <h1 className="text-2xl font-semibold text-carbon-text text-center">
-          {t("auth.loginTitle")}
-        </h1>
+        {/* Mark + title. The login screen is the one surface that carries no
+            rail, so without this it is an unlabelled password box on a plain
+            background: nothing on it says which instance is being unlocked, and
+            on a box running several of these that is a real question.
+            Two theme-specific marks, switched by the `dark:` variant exactly as
+            the rail does it - the dark mark on the light surface, the light one
+            on the dark surface. Decorative beside a heading that already names
+            the product, so it is hidden from assistive technology rather than
+            read out twice. */}
+        <div className="flex flex-col items-center gap-3">
+          <span className="flex h-16 w-16 items-center justify-center">
+            <img
+              src="/logo.svg"
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+              className="h-16 w-16 object-contain block dark:hidden"
+            />
+            <img
+              src="/logo-light.svg"
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+              className="h-16 w-16 object-contain hidden dark:block"
+            />
+          </span>
+          <h1 className="text-2xl font-semibold text-carbon-text text-center">
+            {t("auth.loginTitle")}
+          </h1>
+        </div>
 
         <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
           {/* Password field */}
@@ -145,6 +215,23 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             busy={busy}
             title={busy ? t("auth.signingIn") : undefined}
           />
+
+          {/* The passkey, UNDER the password and not instead of it. The password
+              is the way in that always works; the passkey is the convenient one,
+              and only on an address that can carry it. Hidden entirely when it
+              cannot rather than shown disabled: a disabled control on a login
+              screen reads as "you are locked out". */}
+          {passkeyOffer && !needCode && (
+            <Button
+              label={t("auth.signInWithPasskey")}
+              labelKey="auth.signInWithPasskey"
+              tone="neutral"
+              type="button"
+              onClick={() => void signInWithPasskey()}
+              disabled={busy || passkeyBusy}
+              busy={passkeyBusy}
+            />
+          )}
         </form>
       </div>
     </div>

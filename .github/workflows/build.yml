@@ -90,7 +90,7 @@ jobs:
           exit-code: "0"
       - name: Upload Trivy results to the Security tab
         if: ${{ github.event_name != 'pull_request' }}
-        uses: github/codeql-action/upload-sarif@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4
+        uses: github/codeql-action/upload-sarif@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4
         with:
           sarif_file: trivy-results.sarif
           category: trivy
@@ -105,7 +105,7 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4
+      - uses: docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a # v4
       - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
 
       # Push only on main / manual runs, never from pull requests.
@@ -126,6 +126,33 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # Is the tag being built the newest release in this repo?
+      #
+      # `latest` moves only for a tag build (see the metadata block below), and
+      # only for the highest version. Both halves are needed and they guard
+      # different accidents: gating on tags stops an unreleased merge from
+      # reaching everybody who pulls `latest`, and gating on "newest" stops a
+      # re-cut of an older version from dragging `latest` backwards, which is
+      # exactly what happened on 2026-09-02 with v8.3.0.
+      #
+      # checkout gives no tags by default, so they are fetched here rather than
+      # assumed. `sort -V` orders versions, not strings, so v8.10.0 beats v8.9.0.
+      - name: Is this the newest release tag?
+        id: newest
+        if: github.ref_type == 'tag'
+        run: |
+          git fetch --tags --force --quiet
+          newest=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' | sort -V | tail -1)
+          echo "this tag: ${GITHUB_REF_NAME}"
+          echo "newest:   ${newest}"
+          if [ "$newest" = "${GITHUB_REF_NAME}" ]; then
+            echo "is_newest=true" >> "$GITHUB_OUTPUT"
+            echo "-> this build moves :latest"
+          else
+            echo "is_newest=false" >> "$GITHUB_OUTPUT"
+            echo "-> this build leaves :latest where it is"
+          fi
+
       - name: Docker metadata (tags + labels)
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
@@ -133,30 +160,35 @@ jobs:
           images: |
             ${{ env.IMAGE }}
             name=docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }},enable=${{ vars.DOCKERHUB_USERNAME != '' }}
-          # `latest` is pushed by BRANCH builds only, never by a tag build.
+          # `latest` MEANS "the newest released version", and nothing else.
           #
-          # It used to say enable={{is_default_branch}}, which reads like it
-          # means that and does not: metadata-action counts a tag on the default
-          # branch as the default branch, so EVERY tag build pushed `latest`.
-          # Harmless while tags only ever move forward. Not harmless the day an
-          # older version is re-cut: on 2026-09-02 a re-cut of v8.3.0, long after
-          # v8.4.0 shipped, moved `latest` back onto 8.3.0 for everyone pulling
-          # it. Gating on ref_type makes the tag list say what the comment says.
+          # It used to mean "the tip of main", which is not the same thing and
+          # was not meant to be: the comment here even argued that main is at or
+          # ahead of the newest tag whenever a release is cut, so latest tracks
+          # the newest code. That is true and it is the problem. On 2026-09-14 a
+          # 23-commit merge to main put an unreleased build in front of everyone
+          # pulling `latest` before a release existed, and the first bug report
+          # against it arrived before the release notes did.
           #
-          # main is at or ahead of the newest tag whenever a release is cut (the
-          # release-notes commit lands there first), so `latest` still tracks the
-          # newest code without help from the tag build.
+          # So: a tag build sets `latest`, and only when that tag is the newest
+          # release (see the step above). Gating on the tag alone would bring
+          # back the older accident in the other direction - on 2026-09-02 a
+          # re-cut of v8.3.0, long after v8.4.0 shipped, moved `latest` back onto
+          # 8.3.0 - which is why both halves are there.
+          #
+          # `edge` is where the tip of main goes now. Still pullable, still
+          # built, still smoke-tested; just nobody gets it without asking.
           #
           # STILL SHARP, deliberately: {{major}} and {{major}}.{{minor}} below
           # are moved by whichever tag built last, so re-cutting an old version
-          # drags `8` back with it. That is correct for a normal forward release
-          # and wrong only while folding, which is rare enough to handle by hand.
+          # drags `8` back with it. Correct for a normal forward release and
+          # wrong only while folding, which is rare enough to handle by hand.
           # After folding, re-run the NEWEST tag's build and check that
-          # latest/8/8.<minor> all resolve to the same digest as the newest
-          # version before calling it done.
+          # latest/8/8.<minor> all resolve to the same digest.
           tags: |
             type=sha,format=short
-            type=raw,value=latest,enable=${{ github.ref_type == 'branch' && github.ref_name == github.event.repository.default_branch }}
+            type=raw,value=edge,enable=${{ github.ref_type == 'branch' && github.ref_name == github.event.repository.default_branch }}
+            type=raw,value=latest,enable=${{ github.ref_type == 'tag' && steps.newest.outputs.is_newest == 'true' }}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}

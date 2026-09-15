@@ -15,8 +15,10 @@ import { loadErrorMessage } from "../lib/errors";
 import { useConfirm } from "../lib/useConfirm";
 import { useToast } from "../lib/toast";
 import { Button } from "./Button";
+import { SelectField } from "./SelectField";
 import { InfoBubble } from "./InfoBubble";
 import { IconRestore, IconTrash } from "./Sidebar";
+import { IconDisclosure } from "./IconDisclosure";
 
 type T = ReturnType<typeof useT>["t"];
 
@@ -505,30 +507,32 @@ function CompareSnapshots({
         labelKey="snapshot.compare"
         tone="neutral"
         onClick={() => setOpen((p) => !p)}
-        glyph={
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={`transition-transform ${open ? "rotate-90" : "rtl:rotate-180"}`}>
-            <path fill="currentColor" d="M4 1.3 8.5 6 4 10.7Z" />
-          </svg>
-        }
+        glyph={<IconDisclosure open={open} />}
       />
       {open && (
         <div className="mt-2 rounded-card bg-carbon-surface2 p-2 flex flex-col gap-2">
           <p className="text-caption text-carbon-textMuted">{t("snapshot.pickTwo")}</p>
           <div className="flex items-center gap-2 flex-wrap">
-            <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loading} className={selectCls}>
-              {snapshots.map((s) => (
-                <option key={s.id} value={s.id}>{snapLabel(s)}</option>
-              ))}
-            </select>
+            <SelectField
+              value={from}
+              onChange={setFrom}
+              label={t("snapshot.compareFrom")}
+              options={snapshots.map((s) => ({ value: s.id, label: snapLabel(s) }))}
+              disabled={loading}
+              className={selectCls}
+            />
             {/* Compare-direction arrow: implies reading order (from → to), so
                 it mirrors under RTL — an inline-block wrapper so scaleX(-1)
                 flips the glyph shape itself, not the layout position. */}
             <span className="inline-block text-xs text-carbon-textMuted rtl:-scale-x-100">→</span>
-            <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loading} className={selectCls}>
-              {snapshots.map((s) => (
-                <option key={s.id} value={s.id}>{snapLabel(s)}</option>
-              ))}
-            </select>
+            <SelectField
+              value={to}
+              onChange={setTo}
+              label={t("snapshot.compareTo")}
+              options={snapshots.map((s) => ({ value: s.id, label: snapLabel(s) }))}
+              disabled={loading}
+              className={selectCls}
+            />
             <Button
               key={shake}
               label={t("snapshot.compare")}

@@ -51,13 +51,13 @@ describe("TwoFactorCard", () => {
   it("says nothing can be set up before a password exists", () => {
     render(<TwoFactorCard passwordSet={false} enabled={false} onChanged={vi.fn()} />);
     expect(screen.getByText(/set a login password first/i)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /turn on/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /set up/i })).toBeNull();
   });
 
   it("shows the QR code and the typed-out secret after setup", async () => {
     setupTOTP.mockResolvedValue({ ok: true, secret: "GEZDGNBVGY3TQOJQ", uri: URI });
     render(<TwoFactorCard passwordSet enabled={false} onChanged={vi.fn()} />);
-    await click(/turn on/i);
+    await click(/set up/i);
     await waitFor(() => expect(screen.getByText("GEZDGNBVGY3TQOJQ")).toBeTruthy());
     // The QR itself, for a phone that can scan, AND the secret, for one that
     // cannot. Either one alone leaves somebody stuck.
@@ -67,7 +67,7 @@ describe("TwoFactorCard", () => {
   it("does not claim the factor is on while the enrolment is unfinished", async () => {
     setupTOTP.mockResolvedValue({ ok: true, secret: "GEZDGNBVGY3TQOJQ", uri: URI });
     render(<TwoFactorCard passwordSet enabled={false} onChanged={vi.fn()} />);
-    await click(/turn on/i);
+    await click(/set up/i);
     await waitFor(() => expect(screen.getByText("GEZDGNBVGY3TQOJQ")).toBeTruthy());
     // `enabled` is still false: the status line follows the server, not the step.
     expect(screen.getByText(/^Off\./)).toBeTruthy();
@@ -79,7 +79,7 @@ describe("TwoFactorCard", () => {
     const onChanged = vi.fn();
     render(<TwoFactorCard passwordSet enabled={false} onChanged={onChanged} />);
 
-    await click(/turn on/i);
+    await click(/set up/i);
     await waitFor(() => expect(document.getElementById("bv-totp-confirm")).not.toBeNull());
     fireEvent.change(document.getElementById("bv-totp-confirm")!, { target: { value: "123456" } });
     await click(/confirm/i);
@@ -95,7 +95,7 @@ describe("TwoFactorCard", () => {
   it("refuses to confirm with an empty code", async () => {
     setupTOTP.mockResolvedValue({ ok: true, secret: "GEZDGNBVGY3TQOJQ", uri: URI });
     render(<TwoFactorCard passwordSet enabled={false} onChanged={vi.fn()} />);
-    await click(/turn on/i);
+    await click(/set up/i);
     await waitFor(() => expect(document.getElementById("bv-totp-confirm")).not.toBeNull());
     const confirm = screen.getByRole("button", { name: /confirm/i }) as HTMLButtonElement;
     expect(confirm.disabled).toBe(true);
@@ -121,7 +121,7 @@ describe("TwoFactorCard", () => {
   it("reports the server's own refusal rather than a generic failure", async () => {
     setupTOTP.mockResolvedValue({ ok: false, error: "two-factor authentication is already on" });
     render(<TwoFactorCard passwordSet enabled={false} onChanged={vi.fn()} />);
-    await click(/turn on/i);
+    await click(/set up/i);
     await waitFor(() =>
       expect(push).toHaveBeenCalledWith("two-factor authentication is already on", "fail"),
     );

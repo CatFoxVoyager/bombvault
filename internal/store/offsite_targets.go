@@ -88,6 +88,22 @@ type OffsiteTarget struct {
 const (
 	RoleOffsite = "offsite" // a replication destination (the default)
 	RolePrimary = "primary" // safety settings for a domain's own remote primary
+	// RoleRepo is a NAMED REPOSITORY (#204): a location written down once and
+	// then PICKED by individual containers, VMs and folder sets, instead of
+	// being typed into each of them.
+	//
+	// Same table for the same reason "primary" is here: the shape a named
+	// repository needs is exactly what this struct already carries - a location,
+	// a credential set, an S3 storage class, bandwidth limits, an enabled flag -
+	// and every existing consumer of those fields works on such a row unchanged.
+	// Every query in this file filters on an explicit role, so these rows are
+	// invisible to the replication loop and the off-site CRUD by construction.
+	//
+	// Domain is deliberately EMPTY on a repo row. A location is a place; which
+	// items send their backups there is the items' business, and scoping a
+	// repository to one domain would mean writing the same B2 bucket down three
+	// times to use it from a container, a VM and a folder set.
+	RoleRepo = "repo"
 )
 
 // UpsertOffsiteTarget inserts or updates an off-site target by id. An empty ID
@@ -195,6 +211,116 @@ func (r *Repo) OffsiteTargetsForDomain(domain string) ([]OffsiteTarget, error) {
 		out = append(out, t)
 	}
 	return out, rows.Err()
+}
+
+// ListNamedRepos returns the NAMED REPOSITORIES (role = RoleRepo), ordered the
+// way the picker shows them. Never nil.
+func (r *Repo) ListNamedRepos() ([]OffsiteTarget, error) {
+	rows, err := r.db.Query(`SELECT `+offsiteTargetCols+`
+		FROM offsite_targets WHERE role = ? ORDER BY sort_order, name, created_at`, RoleRepo)
+	if err != nil {
+		return nil, fmt.Errorf("ListNamedRepos: %w", err)
+	}
+	defer rows.Close() //nolint:errcheck // rows.Close on a completed query is always nil for SQLite
+	out := make([]OffsiteTarget, 0)
+	for rows.Next() {
+		t, err := scanOffsiteTarget(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, t)
+	}
+	return out, rows.Err()
+}
+
+// GetNamedRepo returns one named repository by id, or sql.ErrNoRows. Scoped to
+// the role, so an off-site target's id can never be resolved through here.
+func (r *Repo) GetNamedRepo(id string) (OffsiteTarget, error) {
+	row := r.db.QueryRow(`SELECT `+offsiteTargetCols+`
+		FROM offsite_targets WHERE id = ? AND role = ?`, id, RoleRepo)
+	return scanOffsiteTarget(row)
+}
+
+// itemsUsingNamedRepoQ is the in-use count, written once and run against either
+// the database or an open transaction, so the guarded writes below cannot drift
+// from the count the interface shows.
+const itemsUsingNamedRepoQ = `
+		SELECT (SELECT COUNT(*) FROM targets   WHERE repo = ?)
+		     + (SELECT COUNT(*) FROM vms       WHERE repo = ?)
+		     + (SELECT COUNT(*) FROM file_sets WHERE repo = ?)`
+
+// DeleteNamedRepoIfUnused deletes a named repository ONLY while nothing points
+// at it, counting and deleting in ONE transaction. It returns the count it saw:
+// 0 means the row is gone, anything else means nothing was written.
+//
+// The count and the delete were two separate statements, which left a window:
+// an item pointed at the repository between them was silently put back on its
+// domain repository, and its next backup landed there looking exactly like a
+// working backup. The window is small and a single operator will rarely hit it -
+// but the whole point of the refusal is that this particular mistake is
+// invisible afterwards, so it must not have a race that reproduces it.
+func (r *Repo) DeleteNamedRepoIfUnused(id string) (int, error) {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return 0, fmt.Errorf("DeleteNamedRepoIfUnused: %w", err)
+	}
+	defer tx.Rollback() //nolint:errcheck // rollback after a successful commit is a no-op
+	var n int
+	if err := tx.QueryRow(itemsUsingNamedRepoQ, id, id, id).Scan(&n); err != nil {
+		return 0, fmt.Errorf("DeleteNamedRepoIfUnused count: %w", err)
+	}
+	if n > 0 {
+		return n, nil
+	}
+	if _, err := tx.Exec(`DELETE FROM offsite_targets WHERE id = ? AND role = ?`, id, RoleRepo); err != nil {
+		return 0, fmt.Errorf("DeleteNamedRepoIfUnused: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, fmt.Errorf("DeleteNamedRepoIfUnused commit: %w", err)
+	}
+	return 0, nil
+}
+
+// SetNamedRepoLocationIfUnused moves a named repository's location ONLY while
+// nothing points at it, in one transaction, for the same reason
+// DeleteNamedRepoIfUnused does it that way: everything already written stays
+// where it is, so a move under a live item makes its next backup succeed into
+// an empty repository. Returns the in-use count it saw; 0 means the move was
+// written.
+func (r *Repo) SetNamedRepoLocationIfUnused(id, location string) (int, error) {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return 0, fmt.Errorf("SetNamedRepoLocationIfUnused: %w", err)
+	}
+	defer tx.Rollback() //nolint:errcheck // rollback after a successful commit is a no-op
+	var n int
+	if err := tx.QueryRow(itemsUsingNamedRepoQ, id, id, id).Scan(&n); err != nil {
+		return 0, fmt.Errorf("SetNamedRepoLocationIfUnused count: %w", err)
+	}
+	if n > 0 {
+		return n, nil
+	}
+	if _, err := tx.Exec(`UPDATE offsite_targets SET repo = ? WHERE id = ? AND role = ?`, location, id, RoleRepo); err != nil {
+		return 0, fmt.Errorf("SetNamedRepoLocationIfUnused: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, fmt.Errorf("SetNamedRepoLocationIfUnused commit: %w", err)
+	}
+	return 0, nil
+}
+
+// ItemsUsingNamedRepo counts the containers, VMs and file sets that currently
+// point at this named repository. Used for DISPLAY (the "n in use" badge) and to
+// explain a refusal before it happens; the refusals themselves are enforced by
+// DeleteNamedRepoIfUnused / SetNamedRepoLocationIfUnused, which re-count inside
+// their own transaction so the answer cannot go stale between the two calls.
+func (r *Repo) ItemsUsingNamedRepo(id string) (int, error) {
+	var n int
+	err := r.db.QueryRow(itemsUsingNamedRepoQ, id, id, id).Scan(&n)
+	if err != nil {
+		return 0, fmt.Errorf("ItemsUsingNamedRepo: %w", err)
+	}
+	return n, nil
 }
 
 // GetOffsiteTarget returns the off-site REPLICATION DESTINATION (role =

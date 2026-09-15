@@ -31,7 +31,7 @@ import type {
 import { useT } from "../lib/i18n";
 import { useIsDesktop } from "../lib/useMediaQuery";
 import { useConfirm } from "../lib/useConfirm";
-import { PAGE_SHELL } from "../lib/pageShell";
+import { PAGE_SHELL, PAGE_SHELL_TABBED } from "../lib/pageShell";
 import { relativeTime } from "../lib/reltime";
 import { humanBytes } from "../lib/forecast";
 import { EmptyStateIcon } from "../components/EmptyStateIcon";
@@ -51,6 +51,7 @@ import { StickyActionBar } from "../components/mobile/StickyActionBar";
 
 import { Toggle } from "../components/Toggle";
 import { ToggleRow } from "./settings/shared";
+import { IconDisclosure } from "../components/IconDisclosure";
 type T = ReturnType<typeof useT>["t"];
 
 // The sending APP_KEY shape guard mirrors the backend foreignKeyRe (64 lowercase
@@ -339,6 +340,7 @@ function ReceivedRepoCard({
             labelKey="receiver.details"
             tone="neutral"
             onClick={() => setOpen((v) => !v)}
+            glyph={<IconDisclosure open={open} />}
           />
           <Button
             label={t("receiver.edit")}
@@ -493,7 +495,7 @@ function ReceiverDialog({
   // `overflow-y-auto` still covers content that grows toward the cap.
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4"
+      className="glim-modal-backdrop fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4"
       onClick={onClose}
     >
       {/* GlimStone follow-up pass ("half-overlap card notch"): the dialog box
@@ -649,7 +651,11 @@ function ReceiverDialog({
 // Receiver page
 // ---------------------------------------------------------------------------
 
-export function Receiver() {
+/** `embedded` is the Instances page rendering this as one of its tabs: the
+ *  outer shell and the <h1> belong to that page then, because a tab panel
+ *  that repeats the strip's own label reads as two headings for one thing.
+ *  Everything else, the subtitle included, is the same page either way. */
+export function Receiver({ embedded = false }: { embedded?: boolean } = {}) {
   const { t } = useT();
   // D-01 double gate (the Containers/VMs/Flash/Config mount-discipline
   // precedent): the desktop JSX below is always rendered and carries
@@ -709,11 +715,11 @@ export function Receiver() {
     // changes, max-w-5xl (1024px) → the shared 1152px. This page's heading is
     // a single bare h1+p row, so the one flat shell gap still governs every
     // gap on it. See lib/pageShell.ts for the full before/after table.
-    <div className={PAGE_SHELL}>
+    <div className={embedded ? PAGE_SHELL_TABBED : PAGE_SHELL}>
       {/* Heading + Add */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold text-carbon-text">{t("receiver.title")}</h1>
+          {!embedded && <h1 className="text-2xl font-semibold text-carbon-text">{t("receiver.title")}</h1>}
           <p className="mt-1 text-sm text-carbon-textSub">{t("receiver.subtitle")}</p>
         </div>
         {!showEmptyState && (

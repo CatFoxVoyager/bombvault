@@ -12,7 +12,7 @@ import (
 // is deliberately unexported like the rest of this file's primitives.
 func TestMapRestorePaths(t *testing.T) {
 	t.Run("descendant clause: a snapshot path strictly below a stored path restores as-is", func(t *testing.T) {
-		gotMapped, gotSkipped := mapRestorePaths([]string{"/a/b"}, []string{"/a/b/c"})
+		gotMapped, gotSkipped, _ := mapRestorePaths([]string{"/a/b"}, []string{"/a/b/c"})
 		wantMapped := []string{"/a/b/c"}
 		if !reflect.DeepEqual(gotMapped, wantMapped) {
 			t.Fatalf("mapped = %v, want %v", gotMapped, wantMapped)
@@ -22,10 +22,18 @@ func TestMapRestorePaths(t *testing.T) {
 		}
 	})
 
-	t.Run("longest prefix ancestor wins, never the first component", func(t *testing.T) {
-		// Both /a and /a/b are ancestors of /a/b/c; the LONGEST (/a/b) must win.
-		gotMapped, gotSkipped := mapRestorePaths([]string{"/a/b/c"}, []string{"/a", "/a/b"})
-		wantMapped := []string{"/a/b"}
+	t.Run("a stored path below a recorded root restores ITSELF, not the root", func(t *testing.T) {
+		// Used to assert /a/b here: the mapping answered "you selected /a/b/c
+		// but the snapshot records /a and /a/b" by restoring the longest
+		// ANCESTOR. That hands back every sibling under it, including branches
+		// the user deselected and that were therefore never backed up, so their
+		// live contents get overwritten with old snapshot data. Restic's
+		// "<id>:<path>" selector reaches any directory inside a snapshot, not
+		// only its recorded paths (TestRestoreSubtreeBelowRecordedPath in
+		// internal/restic pins that against the real engine), so the answer is
+		// the selected path itself.
+		gotMapped, gotSkipped, _ := mapRestorePaths([]string{"/a/b/c"}, []string{"/a", "/a/b"})
+		wantMapped := []string{"/a/b/c"}
 		if !reflect.DeepEqual(gotMapped, wantMapped) {
 			t.Fatalf("mapped = %v, want %v", gotMapped, wantMapped)
 		}
@@ -35,7 +43,7 @@ func TestMapRestorePaths(t *testing.T) {
 	})
 
 	t.Run("exact equality matches before any prefix logic", func(t *testing.T) {
-		gotMapped, gotSkipped := mapRestorePaths([]string{"/x"}, []string{"/x"})
+		gotMapped, gotSkipped, _ := mapRestorePaths([]string{"/x"}, []string{"/x"})
 		wantMapped := []string{"/x"}
 		if !reflect.DeepEqual(gotMapped, wantMapped) {
 			t.Fatalf("mapped = %v, want %v", gotMapped, wantMapped)
@@ -46,7 +54,7 @@ func TestMapRestorePaths(t *testing.T) {
 	})
 
 	t.Run("stored path absent from the snapshot is skipped, not mapped", func(t *testing.T) {
-		gotMapped, gotSkipped := mapRestorePaths([]string{"/gone"}, []string{"/other"})
+		gotMapped, gotSkipped, _ := mapRestorePaths([]string{"/gone"}, []string{"/other"})
 		if len(gotMapped) != 0 {
 			t.Fatalf("mapped = %v, want empty", gotMapped)
 		}
@@ -59,7 +67,7 @@ func TestMapRestorePaths(t *testing.T) {
 	t.Run("prefix test is segment-aligned: /a is not an ancestor of /ab", func(t *testing.T) {
 		// The strict-prefix primitive appends "/" — a bare string-prefix match
 		// would wrongly restore /a (covering /ab) here.
-		gotMapped, gotSkipped := mapRestorePaths([]string{"/ab"}, []string{"/a"})
+		gotMapped, gotSkipped, _ := mapRestorePaths([]string{"/ab"}, []string{"/a"})
 		if len(gotMapped) != 0 {
 			t.Fatalf("mapped = %v, want empty", gotMapped)
 		}
@@ -70,7 +78,7 @@ func TestMapRestorePaths(t *testing.T) {
 	})
 
 	t.Run("pass 1 keeps snapshot Paths order; unmapped stored paths skip in stored order", func(t *testing.T) {
-		gotMapped, gotSkipped := mapRestorePaths(
+		gotMapped, gotSkipped, _ := mapRestorePaths(
 			[]string{"/sel", "/gone1", "/gone2"},
 			[]string{"/zzz/under", "/sel/sub", "/aaa/under"},
 		)
@@ -87,14 +95,16 @@ func TestMapRestorePaths(t *testing.T) {
 		}
 	})
 
-	t.Run("mixed: descendant clause covers one stored path, ancestor fallback covers another", func(t *testing.T) {
-		gotMapped, gotSkipped := mapRestorePaths(
+	t.Run("mixed: pass 1 covers one stored path, pass 2 maps the other to itself", func(t *testing.T) {
+		gotMapped, gotSkipped, _ := mapRestorePaths(
 			[]string{"/sel/deep", "/other"},
 			[]string{"/other/kid", "/sel"},
 		)
-		// /other/kid is below stored /other (pass 1); /sel/deep falls back to its
-		// ancestor /sel (pass 2 — /sel itself is NOT below /sel/deep).
-		wantMapped := []string{"/other/kid", "/sel"}
+		// /other/kid is below stored /other (pass 1). /sel/deep has no recorded
+		// path below it, but /sel is recorded ABOVE it, so pass 2 restores
+		// /sel/deep itself - not /sel, which would drag in every other branch
+		// under /sel.
+		wantMapped := []string{"/other/kid", "/sel/deep"}
 		if !reflect.DeepEqual(gotMapped, wantMapped) {
 			t.Fatalf("mapped = %v, want %v", gotMapped, wantMapped)
 		}
@@ -103,14 +113,17 @@ func TestMapRestorePaths(t *testing.T) {
 		}
 	})
 
-	t.Run("ancestor fallback result already present in mapped is not duplicated", func(t *testing.T) {
-		gotMapped, gotSkipped := mapRestorePaths(
+	t.Run("two selected siblings restore as two paths, not as their shared parent", func(t *testing.T) {
+		gotMapped, gotSkipped, _ := mapRestorePaths(
 			[]string{"/sel/a", "/sel/b"},
 			[]string{"/sel"},
 		)
-		// Both stored paths fall back to the same ancestor /sel — it must appear
-		// exactly once (restoring it twice would restore the subtree twice).
-		wantMapped := []string{"/sel"}
+		// This is the data-loss shape in miniature, and it used to assert
+		// [/sel]. The user picked a and b. If /sel also holds c - deselected,
+		// never backed up, and alive on disk - restoring /sel overwrites c with
+		// whatever the snapshot happens to hold for it. Each selected path is
+		// restored on its own instead.
+		wantMapped := []string{"/sel/a", "/sel/b"}
 		if !reflect.DeepEqual(gotMapped, wantMapped) {
 			t.Fatalf("mapped = %v, want %v", gotMapped, wantMapped)
 		}

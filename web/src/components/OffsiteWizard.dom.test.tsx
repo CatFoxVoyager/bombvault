@@ -168,11 +168,17 @@ afterEach(() => {
 it("writes the chosen credential set onto this domain's primary destination", async () => {
   await renderWizard();
 
-  const select = screen.getByLabelText(/Credentials|Zugangsdaten/) as HTMLSelectElement;
-  expect(select.value).toBe(""); // shared by default, as before
+  // The picker is the app's own listbox now, not a native <select> (#3425):
+  // it opens, and an option is picked, rather than a value being written into
+  // the element. Same question, one interaction further.
+  const picker = screen.getByRole("combobox", { name: /Credentials|Zugangsdaten/ });
+  expect(picker.textContent).toContain("Shared");
 
   await act(async () => {
-    fireEvent.change(select, { target: { value: "set-a" } });
+    fireEvent.click(picker);
+  });
+  await act(async () => {
+    fireEvent.click(screen.getByRole("option", { name: "Backblaze" }));
   });
 
   expect(updateTargetCalls).toEqual([{ id: "tgt-primary", credsRef: "set-a" }]);
@@ -237,9 +243,11 @@ it("re-reads the destination after saving the repository", async () => {
 it("offers the credential selector for an S3 destination, not just a REST one", async () => {
   await renderWizard("s3:https://s3.eu-central-1.example/bucket");
 
-  const select = screen.getByLabelText(/Credentials|Zugangsdaten/) as HTMLSelectElement;
-  expect(select).toBeTruthy();
-  expect([...select.options].map((o) => o.textContent)).toContain("Backblaze");
+  const picker = screen.getByRole("combobox", { name: /Credentials|Zugangsdaten/ });
+  expect(picker).toBeTruthy();
+  // Every option is carried in the trigger (that is what keeps its width from
+  // moving), so the set is offered here whether the list is open or not.
+  expect(picker.textContent).toContain("Backblaze");
 
   // The REST-only fields must stay away: S3 keys live in the credential set or
   // the shared cloud credentials, never in this block (#131).
@@ -281,4 +289,34 @@ it("renders for the self-backup domain instead of blanking the page", async () =
   // Reaching step 3 at all means the first render survived: this is exactly
   // where the crash used to happen, on inferBackend(settings[repoKey]).
   expect(screen.getByLabelText(/Credentials|Zugangsdaten/)).toBeTruthy();
+});
+
+// ---------------------------------------------------------------------------
+// #194: the 401 that is one character wide.
+//
+// A rest-server with --private-repos hands each htpasswd user only the tree
+// under its own name, so the URL's first path segment IS the user. The
+// reporter's credential set signed in as "bombvault_containers" while his URL
+// began "bombvault-containers", and nothing on this page ever put the two words
+// side by side. Both were already in front of it.
+// ---------------------------------------------------------------------------
+
+it("says so when the URL's user segment is not the user it signs in as", async () => {
+  // The mocked shared credentials sign in as "bombvault" (see getCloud above).
+  await renderWizard("rest:http://192.168.20.199:8000/bombvault-containers/containers");
+
+  const hint = screen.getByText(/bombvault-containers/);
+  expect(hint.textContent).toContain("bombvault-containers");
+  expect(hint.textContent).toContain("bombvault");
+});
+
+it("stays quiet when the two agree, and when there is no user segment", async () => {
+  await renderWizard("rest:http://192.168.20.199:8000/bombvault/containers");
+  expect(screen.queryByText(/--private-repos/)).toBeNull();
+  cleanup();
+
+  // One segment is an ordinary path on a server without --private-repos, where
+  // a 401 means a wrong password: a hint here would be a wrong steer.
+  await renderWizard("rest:http://192.168.20.199:8000/containers");
+  expect(screen.queryByText(/--private-repos/)).toBeNull();
 });

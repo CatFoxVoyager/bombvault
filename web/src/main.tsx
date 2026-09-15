@@ -10,6 +10,7 @@ import { applyStoredAccent } from "./lib/accent";
 import { applyStoredRainbow } from "./lib/appearance";
 import { applyStoredShape, armShapeTransitions } from "./lib/shape";
 import { applyStoredMotionIntensity } from "./lib/motion";
+import { applyStoredDisco } from "./lib/disco";
 import { applyStoredLabelModes } from "./lib/controls";
 import { applyStoredPlatform } from "./lib/platform";
 import { ADOPTED_EVENT, sync as syncDisplayPrefs } from "./lib/displayPrefs";
@@ -22,6 +23,9 @@ applyStoredRainbow();
 applyStoredShape();
 applyStoredMotionIntensity();
 applyStoredLabelModes();
+// After the rainbow: the walk only starts when there are hued elements to
+// walk, so it reads the rainbow state this line just set.
+applyStoredDisco();
 applyStoredPlatform();
 
 // Every axis above reads localStorage exactly once, which is all a page needs
@@ -29,13 +33,19 @@ applyStoredPlatform();
 // different look a moment from now, the values in localStorage change and
 // nobody is looking, so each one has to be applied again — the same calls, in
 // the same order (#191). Registered BEFORE the sync that can fire it.
+// `{ animate: false }` on the rainbow (#228): this is the same look arriving
+// late, not somebody flipping a mode. Animated, it walked every hued element
+// from the flat accent to its own rainbow hue across the whole page a moment
+// after paint, which is what "the screen flashes green when switching options"
+// was. The value still lands here; only the excursion is skipped.
 window.addEventListener(ADOPTED_EVENT, () => {
   applyStoredTheme();
   applyStoredAccent();
-  applyStoredRainbow();
+  applyStoredRainbow({ animate: false });
   applyStoredShape();
   applyStoredMotionIntensity();
   applyStoredLabelModes();
+  applyStoredDisco();
   applyStoredPlatform();
 });
 

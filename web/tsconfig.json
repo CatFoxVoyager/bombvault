@@ -23,5 +23,12 @@
   // Vitest test files are excluded from the tsc program (vitest transpiles
   // them itself via esbuild); keeps `tsc --noEmit` identical to before the
   // test suite existed.
-  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
+  //
+  // *.testsupport.ts is the same category one step over: a helper that only
+  // tests import, living beside them so it is found by reading rather than by
+  // searching. It reads the source tree with node:fs like they do, and the app
+  // program has no node types on purpose - the app never touches a filesystem.
+  // The suffix exists so this stays a RULE instead of a filename in a list that
+  // grows one entry per helper.
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.testsupport.ts"]
 }

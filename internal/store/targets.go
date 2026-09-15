@@ -18,6 +18,11 @@ type Target struct {
 	// container's recreate recipe (inspect + template XML) so restore works even
 	// after the container has been deleted from the host.
 	Definition string
+	// Repo is this container's OPTIONAL per-item repository override (#204): the
+	// ID of a named repository from Settings, or "" for the Containers domain
+	// repository. Owned by SetTargetRepo, never by Upsert - see that method for
+	// why a repository must not move as a side effect.
+	Repo string
 	// PreHook / PostHook are optional shell commands run inside the container via
 	// `sh -c` before/after a backup. Owned by SetHooks (never reset by Upsert).
 	PreHook  string
@@ -154,7 +159,7 @@ func (r *Repo) UpsertTarget(t Target) (Target, error) {
 // GetTargetByContainer returns the target for the named container.
 func (r *Repo) GetTargetByContainer(name string) (Target, error) {
 	row := r.db.QueryRow(`
-		SELECT id, container_name, appdata_paths, include_in_schedule, created_at, definition, pre_hook, post_hook, selected_paths, stop_containers, excludes, exclude_caches, update_after_backup, last_update_check, last_update_result, backup_order, schedule_cadence
+		SELECT id, container_name, appdata_paths, include_in_schedule, created_at, definition, pre_hook, post_hook, selected_paths, stop_containers, excludes, exclude_caches, update_after_backup, last_update_check, last_update_result, backup_order, schedule_cadence, repo
 		FROM targets WHERE container_name = ?`, name)
 	return scanTarget(row)
 }
@@ -162,7 +167,7 @@ func (r *Repo) GetTargetByContainer(name string) (Target, error) {
 // ListTargets returns all known targets.
 func (r *Repo) ListTargets() ([]Target, error) {
 	rows, err := r.db.Query(`
-		SELECT id, container_name, appdata_paths, include_in_schedule, created_at, definition, pre_hook, post_hook, selected_paths, stop_containers, excludes, exclude_caches, update_after_backup, last_update_check, last_update_result, backup_order, schedule_cadence
+		SELECT id, container_name, appdata_paths, include_in_schedule, created_at, definition, pre_hook, post_hook, selected_paths, stop_containers, excludes, exclude_caches, update_after_backup, last_update_check, last_update_result, backup_order, schedule_cadence, repo
 		FROM targets ORDER BY container_name`)
 	if err != nil {
 		return nil, fmt.Errorf("ListTargets: %w", err)
@@ -204,7 +209,7 @@ func (r *Repo) ListTargetsScheduleOrder() ([]Target, error) {
 	// there is and drifts to the end of the queue for good — quietly, since the
 	// ordering is a preference rather than an error.
 	rows, err := r.db.Query(`
-		SELECT t.id, t.container_name, t.appdata_paths, t.include_in_schedule, t.created_at, t.definition, t.pre_hook, t.post_hook, t.selected_paths, t.stop_containers, t.excludes, t.exclude_caches, t.update_after_backup, t.last_update_check, t.last_update_result, t.backup_order, t.schedule_cadence
+		SELECT t.id, t.container_name, t.appdata_paths, t.include_in_schedule, t.created_at, t.definition, t.pre_hook, t.post_hook, t.selected_paths, t.stop_containers, t.excludes, t.exclude_caches, t.update_after_backup, t.last_update_check, t.last_update_result, t.backup_order, t.schedule_cadence, t.repo
 		FROM targets t
 		LEFT JOIN (
 			SELECT target_id, MAX(finished_at) AS last_ok
@@ -297,6 +302,42 @@ func (r *Repo) SetUpdateCheck(containerName string, at int64, result string) err
 	}
 	if n, _ := res.RowsAffected(); n == 0 {
 		return fmt.Errorf("SetUpdateCheck: container %q not found", containerName)
+	}
+	return nil
+}
+
+// SetTargetRepo writes a container's per-item repository override (#204): the ID of
+// a named repository from Settings, or "" to put it back on the Containers domain
+// repository.
+//
+// Its own statement rather than a field on Upsert, for the same reason
+// SetFileSetRepo is: the destination of an item's backups must never move as a
+// SIDE EFFECT of some other edit. A form that did not know about the field would
+// clear the override and send the next backup somewhere else - and unlike a
+// cleared schedule, which announces itself the next time a run does not happen,
+// a moved repository looks exactly like a working one until somebody goes
+// looking for a snapshot that is in the other repo.
+//
+// An ID, not a location. Locations are written down once in Settings and picked
+// here, which is the whole difference between configuring ten items and typing
+// the same bucket path ten times.
+// A container with no stored target row yet gets one, exactly as SetBackupPaths
+// does. That row only appears on the first backup or the first setting, so
+// without this a container that has never been backed up could not be pointed at
+// a repository at all - which is precisely when somebody would want to, BEFORE
+// the first run puts data in the wrong place. Found by clicking it.
+func (r *Repo) SetTargetRepo(containerName, repo string) error {
+	res, err := r.db.Exec(`UPDATE targets SET repo = ? WHERE container_name = ?`, repo, containerName)
+	if err != nil {
+		return fmt.Errorf("SetTargetRepo: %w", err)
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		if _, err := r.UpsertTarget(Target{ContainerName: containerName}); err != nil {
+			return fmt.Errorf("SetTargetRepo create target: %w", err)
+		}
+		if _, err := r.db.Exec(`UPDATE targets SET repo = ? WHERE container_name = ?`, repo, containerName); err != nil {
+			return fmt.Errorf("SetTargetRepo: %w", err)
+		}
 	}
 	return nil
 }
@@ -580,7 +621,7 @@ func scanTarget(s scanner) (Target, error) {
 	var t Target
 	var pathsJSON, selJSON, stopJSON, exJSON, ecJSON string
 	var include, updateAfter int
-	err := s.Scan(&t.ID, &t.ContainerName, &pathsJSON, &include, &t.CreatedAt, &t.Definition, &t.PreHook, &t.PostHook, &selJSON, &stopJSON, &exJSON, &ecJSON, &updateAfter, &t.LastUpdateCheck, &t.LastUpdateResult, &t.BackupOrder, &t.ScheduleCadence)
+	err := s.Scan(&t.ID, &t.ContainerName, &pathsJSON, &include, &t.CreatedAt, &t.Definition, &t.PreHook, &t.PostHook, &selJSON, &stopJSON, &exJSON, &ecJSON, &updateAfter, &t.LastUpdateCheck, &t.LastUpdateResult, &t.BackupOrder, &t.ScheduleCadence, &t.Repo)
 	if err != nil {
 		return Target{}, fmt.Errorf("scanTarget: %w", err)
 	}

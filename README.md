@@ -20,36 +20,46 @@
 <br>
 
 <p align="center">
-Your Unraid data, <b>sealed in a vault</b>. Drop a backup. Detonate a restore.<br>
-BombVault backs up Docker containers, KVM VMs, appdata, the Unraid flash config — and even itself —
-and restores everything with a single click. Containers <b>automatically reappear in the
-Docker tab</b>, VMs <b>automatically in the VM tab</b> — no manual reinstall, no
-reconfiguration, no drama.<br>
+Your Unraid server, <b>sealed in a vault</b>. Drop a backup. Detonate a restore.<br>
 <br>
-<b>Your data, locked in. Loss, locked out.</b> Data loss doesn't stand a chance.<br>
-Powered by <a href="https://restic.net">restic</a> — deduplicated, incremental, always encrypted.<br>
+Containers, VMs, appdata, the flash drive and any folder you point it at. BombVault also backs up
+<b>itself</b>, because a backup tool that cannot save its own skin is a hobby project. One click puts
+it all back: containers reappear in the <b>Docker tab</b>, VMs in the <b>VM tab</b>, already configured.
+No reinstall, no rebuild, no evening lost.<br>
 <br>
-<b>Status:</b> one-click <b>Docker container</b>, <b>KVM/libvirt VM</b>, <b>Unraid flash</b>, <b>app configuration</b> and <b>files/folders</b> backup &amp; restore are all live (VMs over SSH — no libvirt mount), with <b>off-site repos</b> (SMB/NFS/rclone/SSH-sftp), <b>per-source retention</b>, <b>file-level restore</b>, <b>integrity checks</b>, <b>pre/post-backup hooks</b>, a <b>protection-status dashboard</b> with <b>restore-verification drills</b>, <b>immutable/append-only off-site</b> with <b>tamper verification</b> (ransomware-resistant), <b>live restore progress + cancel</b>, <b>restore from another BombVault repo</b> (one-time, read-only), a read-only <b>fleet view</b> over your other BombVault boxes, <b>self-healing maintenance</b> (orphaned-lock auto-recovery), a whole-server <b>"Backup Everything"</b> pass (every domain in one run, with global pre/post commands for a dead-man's-switch ping), and <b>notifications</b> (webhook / Matrix / email / Apprise / Healthchecks / Unraid-native / Prometheus), each channel with its own on/off switch.
+Built on <a href="https://restic.net">restic</a>, so every snapshot is deduplicated, incremental and
+encrypted before it leaves the box. Off-site copies can be <b>append-only</b>, which is a polite way of
+saying ransomware is welcome to knock.
 </p>
 
 <br>
 
 <p align="center">
-  <a href="https://junkerderprovinz.github.io/bombvault/"><img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/button-docs.png" alt="Documentation" width="220"></a>
+  <a href="https://junkerderprovinz.github.io/bombvault/"><img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/download-buttons/docs.svg" alt="Read the documentation" width="195"></a>
+  &nbsp;
+  <a href="https://github.com/junkerderprovinz/bombvault/pkgs/container/bombvault"><img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/download-buttons/docker-image.svg" alt="The container image on ghcr.io" width="195"></a>
+  &nbsp;
+  <a href="https://github.com/junkerderprovinz/bombvault/releases/latest"><img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/download-buttons/source-zip.svg" alt="Download the source archive for this release" width="195"></a>
 </p>
 
 <br>
 
 <p align="center">
-Maintained solo, in whatever spare time there is. Questions via the <a href="https://forums.unraid.net/topic/199509-support-junkerderprovinz-bombvault/">support thread</a>, bugs, ideas and feature requests via <a href="https://github.com/junkerderprovinz/bombvault/issues">GitHub issues</a>. If it's useful to you, a coffee is always welcome.
+One knight's job: I build it, keep it running, work through the issues and add what people ask for, until nothing is missing. No accounts, no telemetry, no ads. No trial, no tier, no asterisk. Nothing readable ever leaves your own walls.
+</p>
+
+<p align="center">
+If it has earned a place on your computer or server, a donation covers what it costs: the domain, the server, and the evenings that go into it. It also makes this knight's heart beat a little faster. Three ways below, whichever suits you.
 </p>
 
 <br>
 
 <p align="center">
-  <a href="https://buymeacoffee.com/junkerderprovinz">
-    <img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/button-buy-me-a-coffee.svg" alt="Buy me a coffee" width="220">
-  </a>
+  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/button-buy-me-a-coffee-live.svg" alt="Buy me a coffee" width="160"></a>
+  &nbsp;
+  <a href="https://paypal.me/hallelujadesign"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/button-paypal-live.svg" alt="PayPal" width="160"></a>
+  &nbsp;
+  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/button-crypto-live.svg" alt="Donate with crypto" width="160"></a>
 </p>
 
 <br>
@@ -158,11 +168,11 @@ Unraid's usual backup answer is [**Appdata.Backup**](https://github.com/Commifre
 
 | What | What is saved |
 |---|---|
-| **Docker containers** | Appdata directory + container definition (image, env vars, ports, labels, volumes) |
+| **Docker containers** | Appdata directory + container definition (image, env vars, ports, labels, volumes). The whole appdata directory by default; open **Choose folders** on the container to tick exactly which folders the backup covers, with a live count of the paths the next run hands restic, a reviewable list of what you left out, and a per-root **Skip cache folders** switch (`CACHEDIR.TAG`) |
 | **KVM / libvirt VMs** | VM disk image(s) + XML definition + UEFI NVRAM (graceful-shutdown or live-snapshot, over SSH). Live snapshots **fall back to a graceful backup automatically** if the snapshot can't be created, so a VM backup never just errors out. **ZFS zvol-backed disks** are covered too: each is streamed with `zfs send` over the same SSH link and kept under its own snapshot history, so a VM whose disks are zvols (TrueNAS Scale's default) is backed up as one VM rather than half of one. A guest's **vTPM state** is saved next to the NVRAM whenever the domain XML names its path, so a Secure-Boot guest comes back able to unseal its own disk. That is the passthrough case, a real TPM chip. An **emulated vTPM**, which is what TrueNAS provisions for Windows 11 and Secure Boot guests, does not publish its state path in the domain XML at all, so its state is **not** captured: keep that guest's recovery key to hand before you restore it. BombVault reports "no TPM path found" instead of guessing a path ([the full reasoning](docs/vm-backup-ssh-setup.md)) |
 | **Unraid flash** | The whole USB flash (`/boot`) — OS, license, array config, shares, network + plugin config. Restore is a one-click **`.zip` download** (never overwrites the live flash) |
 | **App configuration** | BombVault's own `/config` — its settings database, off-site credentials (`rclone.conf`) and libvirt SSH keypair, snapshotted with SQLite `VACUUM INTO` so a WAL-mode database is never captured mid-write. No container stop. Restore is from the **Recovery** tab, staged and applied by a self-restart so the live database is never overwritten under an open handle |
-| **Files & folders** | Named **file sets** — any folder on the server (a share, your documents, a photo library), each with optional per-set **exclude patterns**. Full parity with the other domains: schedules, retention, off-site copy, integrity checks and restore drills. Sources just need to be visible under the container's `/mnt` mapping — the Unraid template's default Host Data mount (all of `/mnt`) already covers shares, cache and pool paths |
+| **Files & folders** | Named **file sets** — any folder on the server (a share, your documents, a photo library), each with optional per-set **exclude patterns**. Full parity with the other domains: schedules, retention, off-site copy, integrity checks and restore drills. Sources just need to be visible under the container's `/mnt` mapping — the Unraid template's default Host Data mount (all of `/mnt`) already covers shares, cache and pool paths. A set can be narrowed with the same **Choose folders** tree, and can point at a repository of its own instead of the Folders one |
 
 <details>
 <summary><b>Restore (the good part)</b></summary>
@@ -191,6 +201,7 @@ Unraid's usual backup answer is [**Appdata.Backup**](https://github.com/Commifre
 - Incremental, deduplicated backups via restic — even large VM disks don't balloon the repo.
 - Destinations: a **local path**, or **off-site** — SMB/CIFS & NFS (mount the share on Unraid and point a Backup Path at it), **native restic backends** without rclone (`s3:…`, `rest:http://host:8000/repo`, `b2:…`, `sftp:user@host:/repo`) with their credentials stored encrypted under Settings → Off-site → Cloud credentials, or **rclone** (any of its remotes) via Settings → Off-site (`rclone:<remote>:<bucket>/path`). All credentials are stored encrypted.
 - **Multiple S3/restic-REST targets with different credentials.** The Shared cloud credentials apply everywhere by default, but **any** destination can instead pick a named **credential set** (Settings → Off-site → Additional credential sets) — so, say, a Hetzner S3 bucket and a local Garage server can run side by side, each with its own access key. That includes a domain's primary off-site destination, its additional ones, and a **primary backup path** that is itself a remote repository, whatever the backend: the selector is offered for S3 and rclone as well as restic-REST.
+- **Named repositories — one item can go somewhere else.** Write your backup locations down once under **Settings → Storage → Repositories** (a local path or any restic remote, with its own credential set), then pick one on a single container, VM or folder set instead of its domain's repository — so one large, static folder can go straight to a B2 bucket or a NAS share while everything else stays local. A row shows how many items point at it, and a repository that is in use cannot be moved or deleted, because nothing ever re-homes a backup that has already been written. An item you leave alone follows its domain exactly as before.
 - **SSH targets need nothing installed on the far side** — `sftp:` only requires an SSH server, so a bare Raspberry Pi (no Docker, no restic) works as an off-site destination. BombVault connects with its own persistent SSH keypair: add the public key shown under **Settings → System → VM Backup over SSH** (also at `/config/ssh/id_ed25519.pub`) to the target user's `~/.ssh/authorized_keys`, then use `sftp:user@host:/path/to/repo`. Host keys are pinned automatically on first contact.
 - **Off-site copy (local + remote):** keep the fast local backup *and* add an off-site replica. Set a second repo per domain on the **Settings → Off-site** tab; BombVault replicates new snapshots there with `restic copy` (best-effort — an off-site hiccup never fails the local backup). The local repo stays primary. Each domain has its own **off-site schedule** (edited alongside every other schedule on the **Settings → Schedules** tab): leave it blank to replicate after every local backup, or set a cadence (e.g. `weekly Sun 03:00`) to ship off-site less often than you back up locally — plus a **Replicate now** button for on-demand runs. While a replication is in flight, an **off-site replication indicator** shows which domain is running (on its page and the Dashboard); it is an active indicator, not a percentage bar, since `restic copy` exposes no machine-readable progress.
 - Configurable **retention**: keep-last / daily / weekly / monthly, pruned automatically after each backup. Set it **per source** — the **local** policy sits on Settings → Paths & Storage next to the backup paths it prunes, the **off-site** policy on Settings → Off-site, so you can keep off-site copies longer as an archive. Leave the off-site policy all-zero to never auto-trim off-site snapshots.
@@ -237,6 +248,7 @@ Unraid's usual backup answer is [**Appdata.Backup**](https://github.com/Commifre
 <details>
 <summary><b>Other</b></summary>
 
+- **Stop a backup that is running** — every card that can start a backup carries a **Cancel backup** button beside its progress bar while the run is active: containers, VMs, flash, config and folder sets. The run it stops is recorded as *cancelled*, not failed. Interrupting a backup is safe, because restic writes its snapshot last, so an aborted run leaves unreferenced data and no snapshot. A restore keeps its own control, with its own warning about a half-restored target.
 - **Back up many at once** — multi-select containers and hit **Back up selected**. The batch runs **server-side**, so it keeps going even if you close the tab, lose the connection, or back up the very container your browser is running in. Each container shows its own progress bar plus an overall batch indicator. BombVault never backs up (and so never stops) its own container.
 - Snapshot browser with a restore-point list; **delete individual backups** you no longer want, and a **collapsible folder tree** for file-level restore.
 - Repository maintenance per domain (Settings → Integrity & maintenance): **Verify** (`restic check`), **Unlock** (clear a stale lock left by an interrupted run), and **Prune** — when a retention policy is set, Prune **applies it** (collapses snapshots per your keep-last/daily/weekly/monthly rules and reclaims space), so you can enforce a newly-changed policy on demand instead of waiting for the next backup; with no policy set it stays a plain space-reclaim.
@@ -293,7 +305,11 @@ Restore is the star: after copying data back from the restic snapshot, BombVault
 BombVault has **optional built-in password protection** (Settings → System → Security): set a password
 to require login, clear it to disable. It is **off by default** for trusted-LAN use. Sessions are
 signed (HMAC, derived from `APP_KEY`) and changing the password invalidates them; logins are
-rate-limited to slow guessing. Regardless,
+rate-limited to slow guessing. Once a password is set you can add a **second factor** (TOTP) and
+**passkeys** (WebAuthn) on their own cards — both alongside the password, never instead of it, so
+removing every passkey locks nobody out. Passkeys need a real domain name and a certificate the
+browser trusts: the default `https://[IP]:3443` is exactly the case WebAuthn refuses, and BombVault
+says so on the card rather than offering a button that fails. Regardless,
 run BombVault **only on a trusted, non-exposed network** — never publish it directly to the
 internet; for remote access put it behind a reverse proxy that adds authentication and TLS.
 Responses carry baseline security headers (CSP, `nosniff`, `X-Frame-Options`, `Referrer-Policy`).
@@ -415,6 +431,8 @@ golangci-lint run ./...        # lint
 go run ./cmd/bombvault         # serves https://localhost:3443 (self-signed cert)
 ```
 
+The frontend build is not optional for `go run`: the repo tracks only an empty marker under `web/dist`, so without `npm --prefix web run build` the binary embeds nothing and the UI answers `500 SPA index not found`. That message is the expected result, not a fault.
+
 Real Docker, libvirt and Unraid behavior cannot be tested in CI (no KVM, no Unraid on runners). Use the **host integration check** (`/spike` in the web UI) to validate mounts, restic and the VM SSH connection on your actual Unraid host before submitting a PR.
 
 <br>
@@ -442,10 +460,14 @@ BombVault is free software under the **GNU Affero General Public License v3.0** 
 
 Questions? Check the [support thread](https://forums.unraid.net/topic/199509-support-junkerderprovinz-bombvault/). Bugs, ideas or feature requests? Please [open a GitHub issue](https://github.com/junkerderprovinz/bombvault/issues).
 
-This is a one-person project. I put a lot of time and effort into building and maintaining it, in whatever free time I have. If it's helped you, I'd genuinely appreciate the support: you're welcome to buy me a coffee.
+One knight's job: I build it, keep it running, work through the issues and add what people ask for, until nothing is missing. No accounts, no telemetry, no ads. No trial, no tier, no asterisk. Nothing readable ever leaves your own walls.
+
+If it has earned a place on your computer or server, a donation covers what it costs: the domain, the server, and the evenings that go into it. It also makes this knight's heart beat a little faster. Three ways below, whichever suits you.
 
 <p align="center">
-  <a href="https://buymeacoffee.com/junkerderprovinz">
-    <img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/button-buy-me-a-coffee.svg" alt="Buy me a coffee" width="220">
-  </a>
+  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/button-buy-me-a-coffee-live.svg" alt="Buy me a coffee" width="160"></a>
+  &nbsp;
+  <a href="https://paypal.me/hallelujadesign"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/button-paypal-live.svg" alt="PayPal" width="160"></a>
+  &nbsp;
+  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/button-crypto-live.svg" alt="Donate with crypto" width="160"></a>
 </p>

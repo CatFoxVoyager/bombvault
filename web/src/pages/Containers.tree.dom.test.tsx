@@ -26,6 +26,8 @@ import type { BrowseResponse, ContainerMountsResponse, MountInfo } from "../lib/
 const browseCalls: string[] = [];
 const patches: { name: string; paths: string[]; opts?: { selectionSource?: string } }[] = [];
 let mountsReply: ContainerMountsResponse;
+// Whether each browse call opted into hidden entries, parallel to browseCalls.
+const browseHidden: boolean[] = [];
 let browseReplies: (BrowseResponse | Promise<BrowseResponse>)[] = [];
 // Same deferred-reply machinery the SelectionTree dom harness uses: a pending
 // promise pins a save in flight so the queue's serialize/drain behavior (and
@@ -48,8 +50,9 @@ vi.mock("../lib/api", async (importOriginal) => {
       mountsCalls += 1;
       return Promise.resolve(mountsReply);
     },
-    browse: (path: string) => {
+    browse: (path: string, hidden?: boolean) => {
       browseCalls.push(path);
+      browseHidden.push(hidden === true);
       const reply = browseReplies.shift() ?? { ok: true, dirs: [], status: "ok", truncated: false };
       return Promise.resolve(reply);
     },
@@ -82,6 +85,7 @@ const HOST_ROOT = "/mnt";
 const MOUNT = "/mnt/user/appdata/plex";
 const SUB_INCLUDE = "/mnt/user/appdata/plex/Media";
 const STANDALONE = "/mnt/user/backups";
+const SECOND_MOUNT = "/mnt/user/appdata/sonarr";
 
 function mountsResponse(overrides?: Partial<ContainerMountsResponse>): ContainerMountsResponse {
   return {
@@ -139,6 +143,7 @@ beforeEach(() => {
   localStorage.clear();
   localStorage.setItem("bv-lang", "en");
   browseCalls.length = 0;
+  browseHidden.length = 0;
   patches.length = 0;
   browseReplies = [];
   patchReplies = [];
@@ -193,6 +198,232 @@ describe("FoldersEditor tree integration (INTEG-01, D-02, D-04, D-05)", () => {
         "At least one folder must stay selected. To back up none of this container, turn off Include in schedule. To return to automatic detection, use Reset selection.",
       ),
     ).toBeTruthy();
+  });
+
+  it("removing the LAST custom row is blocked by the same floor as the checkbox (no exclusions-only save)", async () => {
+    // The end state the Remove chip used to reach silently: zero includes plus
+    // one left-over exclusion. That list is not EMPTY, so the server's
+    // empty-selection guard passes it, it gets stored, and from then on every
+    // backup of this container succeeds while capturing nothing - the first one
+    // overwriting AppdataPaths, the last record of where the data was. Through
+    // the checkbox the identical state is refused; through this chip it was not.
+    mountsReply = mountsResponse({
+      mounts: [{ source: MOUNT, dest: "/config", selected: false, isAppdata: false, reachable: true }],
+      excluded: [`${MOUNT}/transcoding`],
+      custom: [{ path: STANDALONE, exists: true }],
+    });
+    await renderEditor();
+
+    const row = screen.getByRole("treeitem", { name: /user\/backups/ });
+    await act(async () => {
+      fireEvent.click(within(row).getByRole("button", { name: "Remove" }));
+    });
+
+    expect(patches).toEqual([]); // blocked before any PATCH was built
+    // The row is still there, and the refusal says why.
+    expect(screen.getByRole("treeitem", { name: /user\/backups/ })).toBeTruthy();
+    expect(
+      screen.getByText(
+        "At least one folder must stay selected. To back up none of this container, turn off Include in schedule. To return to automatic detection, use Reset selection.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("a failed save whose revert would empty the selection falls back to server truth instead of saving an exclusions-only list", async () => {
+    // The sideways route through the floor. The second toggle was checked
+    // against a mirror still carrying the first toggle's optimistic include;
+    // when that save fails and the include is taken back, the revert lands on
+    // zero includes - and the chained drain then PATCHes exactly the
+    // exclusions-only list the floor exists to prevent. The user would see a
+    // fail toast followed by a green "Saved".
+    mountsReply = mountsResponse({
+      mounts: [
+        { source: MOUNT, dest: "/config", selected: true, isAppdata: false, reachable: true },
+        { source: SECOND_MOUNT, dest: "/media", selected: false, isAppdata: false, reachable: true },
+      ],
+      excluded: [`${MOUNT}/transcoding`],
+    });
+    // The first PATCH is held pending so the second toggle can land while it is
+    // in flight; it then fails. A second request must never be built.
+    await renderEditor();
+    let failFirst!: (r: { ok: boolean; error?: string }) => void;
+    patchReplies = [new Promise((res) => (failFirst = res))];
+
+    const second = within(screen.getByRole("treeitem", { name: /user\/appdata\/sonarr/ })).getByRole("checkbox", { hidden: true });
+    await act(async () => {
+      fireEvent.click(second); // tick the second mount -> save in flight
+    });
+    const first = within(screen.getByRole("treeitem", { name: /user\/appdata\/plex/ })).getByRole("checkbox", { hidden: true });
+    await act(async () => {
+      fireEvent.click(first); // untick the first WHILE that save is in flight
+    });
+    await act(async () => {
+      failFirst({ ok: false, error: "boom" });
+    });
+
+    // The queue still drains the stacked toggle - that is by design, latest
+    // mirror wins. What matters is WHAT it sends: server truth, never the
+    // exclusions-only list. Before the fix the second entry was
+    // ["!/mnt/user/appdata/plex/transcoding"] alone.
+    expect(patches.length).toBe(2);
+    expect(patches[0].paths).toEqual([MOUNT, SECOND_MOUNT, `!${MOUNT}/transcoding`]);
+    expect(patches[1].paths).toEqual([MOUNT, `!${MOUNT}/transcoding`]);
+    // Back on server truth, and the refused newer toggle says so.
+    expect(screen.getByRole("treeitem", { name: /user\/appdata\/plex/ }).getAttribute("aria-checked")).toBe("mixed");
+    expect(screen.getByRole("treeitem", { name: /user\/appdata\/sonarr/ }).getAttribute("aria-checked")).toBe("false");
+    expect(
+      screen.getByText(
+        "At least one folder must stay selected. To back up none of this container, turn off Include in schedule. To return to automatic detection, use Reset selection.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("removing a custom root takes its CACHEDIR.TAG entry with it", async () => {
+    // Nothing prunes that map - not the server's setter, not the selection
+    // save - and the switch only renders for a root that still has a row. The
+    // entry therefore stayed ON with no control left to turn it off: every
+    // later backup ran with --exclude-caches, skipping every tagged directory
+    // under the roots that DID remain, while every switch on screen read off.
+    mountsReply = mountsResponse({
+      custom: [{ path: STANDALONE, exists: true }],
+      excludeCaches: { [STANDALONE]: true, [MOUNT]: false },
+    });
+    await renderEditor();
+
+    const row = screen.getByRole("treeitem", { name: /user\/backups/ });
+    await act(async () => {
+      fireEvent.click(within(row).getByRole("button", { name: "Remove" }));
+    });
+
+    // Two drains, serialized by the same one-deep queue as everything else:
+    // the shrunken selection, then the map without the removed root. The second
+    // one is scheduled from the FIRST one's success branch, so a failed removal
+    // never takes the CACHEDIR entry with it. Only the paths half toasts, a
+    // caches-only save is quiet by design.
+    expect(patchBodies.length).toBe(2);
+    expect(patchBodies[0].body.backupPaths).toEqual([MOUNT]);
+    expect(patchBodies[0].body.excludeCaches).toBeUndefined();
+    expect(patchBodies[1].body.excludeCaches).toEqual({ [MOUNT]: false });
+    expect(maxConcurrentPatches).toBe(1);
+  });
+
+  it("a FAILED removal leaves the CACHEDIR entry alone", async () => {
+    // The cleanup used to be scheduled next to the removal rather than after
+    // it, so it went out as its own PATCH and landed even when the removal in
+    // front of it had failed. A structural save is never reverted, so nothing
+    // undid it: the row came back on the next reload with its switch silently
+    // flipped off, untouched by the user.
+    mountsReply = mountsResponse({
+      custom: [{ path: STANDALONE, exists: true }],
+      excludeCaches: { [STANDALONE]: true, [MOUNT]: true },
+    });
+    patchReplies = [{ ok: false, error: "boom" }];
+    await renderEditor();
+
+    const row = screen.getByRole("treeitem", { name: /user\/backups/ });
+    await act(async () => {
+      fireEvent.click(within(row).getByRole("button", { name: "Remove" }));
+    });
+
+    // Exactly one request, the one that failed. No caches PATCH behind it.
+    expect(patchBodies.length).toBe(1);
+    expect(patchBodies[0].body.excludeCaches).toBeUndefined();
+  });
+
+  it("a vanished sub-include under a reachable mount keeps its own row and its warning", async () => {
+    // The mount would normally absorb a sub-include and let the tree present
+    // it instead - but the tree builds its children from browse listings, and a
+    // folder that is no longer on disk appears in none. It had no row, no
+    // child and no warning anywhere while the mount row still counted it. At
+    // run time it is dropped from the positionals and the backup is recorded a
+    // success; the empty-backup guard only speaks up once EVERY include is
+    // gone.
+    mountsReply = mountsResponse({
+      custom: [{ path: `${MOUNT}/Library`, exists: false }],
+    });
+    await renderEditor();
+
+    const row = screen.getByRole("treeitem", { name: /Library/ });
+    expect(within(row).getByText("no data folder detected (nothing to back up here)")).toBeTruthy();
+  });
+
+  it("adding a folder inside an excluded branch clears the covering exclusion instead of saving a no-op", async () => {
+    // Add used to pass the exclusions through untouched, so the server pruned
+    // the redundant include, kept the exclusion, and the backup argv still
+    // carried --exclude for the branch - which swallows the added folder. The
+    // stored selection came out byte-identical to before the click while the UI
+    // toasted Saved and the row count went up by one. The tree's own checkbox
+    // on an excluded node does the opposite (it clears the covering exclusion),
+    // and the two routes now agree.
+    mountsReply = mountsResponse({ excluded: [`${MOUNT}/transcoding`] });
+    await renderEditor();
+
+    const input = screen.getByPlaceholderText("user/appdata");
+    await act(async () => {
+      fireEvent.change(input, { target: { value: "user/appdata/plex/transcoding/keepme" } });
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Add" }));
+    });
+
+    // The exclusion is gone. No own include is added: the mount above already
+    // covers the path, and a redundant descendant include is what the server
+    // prunes (which is how the no-op arose in the first place).
+    expect(patches).toEqual([
+      { name: "tree", paths: [MOUNT], opts: { selectionSource: "tree" } },
+    ]);
+  });
+
+  it("adding a folder that is the PARENT of an existing include really saves it", async () => {
+    // The narrow version of the guard skipped this one: classifyNode answers
+    // "mixed" when an include sits strictly BELOW the added path, and that is
+    // the opposite of redundant - nothing covers it from above, so the server
+    // keeps the parent and prunes the child. Skipping it sent the list out
+    // unchanged, cleared the input, added a row and toasted Saved, while the
+    // folder was never backed up.
+    mountsReply = mountsResponse({
+      custom: [{ path: `${STANDALONE}/daily`, exists: true }],
+    });
+    await renderEditor();
+
+    const input = screen.getByPlaceholderText("user/appdata");
+    await act(async () => {
+      fireEvent.change(input, { target: { value: "user/backups" } });
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Add" }));
+    });
+
+    // The parent goes out. The server prunes the child as redundant, which is
+    // exactly the right direction.
+    expect(patches).toEqual([
+      {
+        name: "tree",
+        paths: [MOUNT, STANDALONE, `${STANDALONE}/daily`],
+        opts: { selectionSource: "tree" },
+      },
+    ]);
+  });
+
+  it("adding a folder already covered by an included mount changes nothing and keeps the staged pick", async () => {
+    // Same silent-prune shape without any exclusion involved: the duplicate
+    // guard only compared against the custom list and the exact includes, so a
+    // path under an included mount passed it, counted toward the mount's path
+    // total, and vanished on the next reload.
+    await renderEditor();
+
+    const input = screen.getByPlaceholderText("user/appdata");
+    await act(async () => {
+      fireEvent.change(input, { target: { value: "user/appdata/plex/Media" } });
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Add" }));
+    });
+
+    expect(patches).toEqual([]);
+    // The pick stays in the field - that is the feedback, same as a literal
+    // duplicate.
+    expect((input as HTMLInputElement).value).toBe("user/appdata/plex/Media");
   });
 
   it("absorbs a stored sub-include into its mount: mixed root, checked child, no duplicate custom row", async () => {
@@ -258,6 +489,41 @@ describe("FoldersEditor tree integration (INTEG-01, D-02, D-04, D-05)", () => {
     expect(browseCalls).toEqual(["user/backups", "user/appdata/plex"]);
     expect(screen.getByRole("treeitem", { name: /^docs$/ })).toBeTruthy();
     expect(screen.getByRole("treeitem", { name: /^Media$/ })).toBeTruthy();
+  });
+
+  it("browses WITH the hidden opt-in, so dot-directories have a row to tick", async () => {
+    // Without it the server filters every dot-prefixed directory out of the
+    // listing and the 200 envelope carries no hint that it did, so the tree has
+    // neither a row nor anything to warn from. Ticking children is a whitelist,
+    // so a folder with no row is simply left out of the backup - and in appdata
+    // the dot-directories are the ones that matter (.storage holds Home
+    // Assistant's config, auth and device registry).
+    browseReplies = [
+      {
+        ok: true,
+        status: "ok",
+        truncated: false,
+        dirs: [
+          { name: ".storage", path: "user/appdata/plex/.storage" },
+          { name: "Media", path: "user/appdata/plex/Media" },
+        ],
+      },
+    ];
+    await renderEditor();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("treeitem", { name: /user\/appdata\/plex/ }));
+    });
+
+    expect(browseCalls).toEqual(["user/appdata/plex"]);
+    expect(browseHidden).toEqual([true]);
+    // And the row is really there to be ticked.
+    const dot = screen.getByRole("treeitem", { name: /\.storage/ });
+    await act(async () => {
+      fireEvent.click(within(dot).getByRole("checkbox", { hidden: true }));
+    });
+    expect(patches).toEqual([
+      { name: "tree", paths: [MOUNT, `!${MOUNT}/.storage`], opts: { selectionSource: "tree" } },
+    ]);
   });
 
   it("restores expansion from the localStorage key and listings from the cache on section reopen, without refetch", async () => {
@@ -607,10 +873,13 @@ describe("Reset selection, narrowing note, guard and hint copy (INTEG-04 D-05, S
     });
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByText(RESET_CONFIRM_EN)).toBeTruthy();
-    // Fail tone: the confirm control is the destructive treatment (Pitfall 2's
-    // companion — the dialog itself carries the weight, not the trigger).
+    // No status colour on the commit button (GlimStone 1.12.0). The window
+    // carries the weight in WORDS - the sentence above names every consequence
+    // - and the button looks like its sibling on purpose. It used to be
+    // bg-statusFailSolid, and this assertion is what that change had to walk
+    // through, which is the point of pinning it the other way round now.
     const confirmBtn = within(dialog).getByRole("button", { name: "Confirm" });
-    expect(confirmBtn.className).toContain("bg-statusFailSolid");
+    expect(confirmBtn.className).not.toContain("bg-statusFailSolid");
 
     // The server's post-reset state: auto-detected default, exclusions gone,
     // custom row gone, caches map CLEARED (the reset PATCH below is what

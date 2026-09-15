@@ -10,11 +10,17 @@
 //   Tabler Icons - https://tabler.io/icons (MIT)
 //   Material Design Icons - https://pictogrammers.com/library/mdi/ (Apache 2.0)
 //   Simple Icons - https://simpleicons.org (CC0)
+//   IconSave from Vecteezy - https://www.vecteezy.com
 //
 // Only the FREE 1000-icon subset is used (github.com/webalys-hq/streamline-vectors,
 // core/solid), which is CC BY 4.0 and explicitly redistributable. The larger
 // 5771-icon set sold on streamlinehq.com is a different product whose licence
 // forbids redistribution, which is exactly what a public repository does.
+//
+// The save mark comes from Vecteezy under its Free License, which is not one of
+// the public-licence families above and asks for something specific: attribute
+// the author by adding Vecteezy.com to the design and linking to vecteezy.com
+// where possible. The line above is that attribution, and it is not optional.
 //
 // One glyph comes from Font Awesome Free instead: the off-site cloud
 // (scripts/cloud-path.txt, their `cloud` solid). Font Awesome Free splits its
@@ -206,6 +212,51 @@ export function IconMail() {
   );
 }
 
+/** Sign in. */
+export function IconSignIn() {
+  return (
+    <G>
+      <path fill="currentColor" fillRule="evenodd" d="M0 1.5C0 0.671573 0.671573 0 1.5 0h7c0.82843 0 1.5 0.671573 1.5 1.5v3.24998h-0.51563c-0.0888 -0.70641 -0.54957 -1.32045 -1.219 -1.59774 -0.74735 -0.30956 -1.60759 -0.13845 -2.17958 0.43354l-2 2c-0.78105 0.78105 -0.78105 2.04738 0 2.82843l2 1.99999c0.57199 0.572 1.43223 0.7431 2.17958 0.4336 0.66944 -0.2773 1.13022 -0.8914 1.219 -1.59782H10V12.5c0 0.8284 -0.67157 1.5 -1.5 1.5h-7C0.671573 14 0 13.3284 0 12.5v-11Zm7.78701 2.80711c0.28026 0.11609 0.46299 0.38957 0.46299 0.69291v1H13c0.5523 0 1 0.44772 1 1 0 0.55229 -0.4477 1 -1 1H8.25v1c0 0.30335 -0.18273 0.57683 -0.46299 0.69291 -0.28025 0.11609 -0.60284 0.05192 -0.81734 -0.16258l-2 -2c-0.29289 -0.29289 -0.29289 -0.76777 0 -1.06066l2 -2c0.2145 -0.2145 0.53709 -0.27866 0.81734 -0.16258Z" clipRule="evenodd" strokeWidth="1"></path>
+    </G>
+  );
+}
+
+/** Sign out. */
+export function IconSignOut() {
+  return (
+    <G>
+      <path fill="currentColor" fillRule="evenodd" d="M0 1.5C0 0.671573 0.671573 0 1.5 0h7c0.82843 0 1.5 0.671573 1.5 1.5v1.93863c-0.40264 0.32239 -0.66907 0.7919 -0.73437 1.31135H5.75c-1.24264 0 -2.25 1.00735 -2.25 2.25 0 1.24264 1.00736 2.25 2.25 2.25h3.51563c0.06528 0.51946 0.33172 0.98902 0.73437 1.31142V12.5c0 0.8284 -0.67157 1.5 -1.5 1.5h-7C0.671573 14 0 13.3284 0 12.5v-11Zm10.963 2.80711c-0.2803 0.11609 -0.463 0.38957 -0.463 0.69291v1H5.75c-0.55228 0 -1 0.44772 -1 1 0 0.55229 0.44772 1 1 1h4.75v1c0 0.30335 0.1827 0.57683 0.463 0.69291 0.2802 0.11609 0.6028 0.05192 0.8173 -0.16258l2 -2c0.2929 -0.29289 0.2929 -0.76777 0 -1.06066l-2 -2c-0.2145 -0.2145 -0.5371 -0.27866 -0.8173 -0.16258Z" clipRule="evenodd" strokeWidth="1"></path>
+    </G>
+  );
+}
+
+/** A protection is on. */
+export function IconShieldOn() {
+  return (
+    <G>
+      <path fill="currentColor" fillRule="evenodd" d="M0 1.5C0 0.677 0.68 0 1.5 0h11c0.82 0 1.5 0.678 1.5 1.5v2.853c0 4.136 -2.51 8.006 -6.411 9.528a1.62 1.62 0 0 1 -0.596 0.12 1.625 1.625 0 0 1 -0.582 -0.12C2.51 12.359 0 8.489 0 4.353V1.5Zm10.56 3.008a0.75 0.75 0 1 0 -1.12 -0.996L5.898 7.496 4.45 6.41a0.75 0.75 0 1 0 -0.9 1.2l2 1.5a0.75 0.75 0 0 0 1.01 -0.102l4 -4.5Z" clipRule="evenodd" strokeWidth="1"></path>
+    </G>
+  );
+}
+
+/** A protection is off. */
+export function IconShieldOff() {
+  return (
+    <G>
+      <path fill="currentColor" fillRule="evenodd" d="M14 4.927a9.399 9.399 0 0 1 -6.635 8.984 1.242 1.242 0 0 1 -0.73 0A9.399 9.399 0 0 1 0 4.927V1.5A1.5 1.5 0 0 1 1.5 0h11A1.5 1.5 0 0 1 14 1.5v3.427ZM5.6 2.908a0.5 0.5 0 0 1 0.5 -0.5h1.8a0.5 0.5 0 0 1 0.5 0.5v1.7h1.698a0.5 0.5 0 0 1 0.5 0.5v1.798a0.5 0.5 0 0 1 -0.5 0.5H8.4v1.699a0.5 0.5 0 0 1 -0.5 0.5H6.1a0.5 0.5 0 0 1 -0.5 -0.5V7.406H3.901a0.5 0.5 0 0 1 -0.5 -0.5V5.107a0.5 0.5 0 0 1 0.5 -0.5h1.7V2.908Z" clipRule="evenodd" strokeWidth="1"></path>
+    </G>
+  );
+}
+
+/** Compare two things. */
+export function IconCompare() {
+  return (
+    <G>
+      <path fill="currentColor" fillRule="evenodd" d="M6.5 1C5.67157 1 5 1.67157 5 2.5v4C5 7.32843 5.67157 8 6.5 8h6c0.8284 0 1.5 -0.67157 1.5 -1.5v-4c0 -0.82843 -0.6716 -1.5 -1.5 -1.5h-6ZM3.25015 3.00085c0.41422 0 0.75 0.33579 0.75 0.75v5c0 0.13808 0.11193 0.25 0.25 0.25h7.00005c0.4142 0 0.75 0.33579 0.75 0.75 0 0.41425 -0.3358 0.75005 -0.75 0.75005H4.25015c-0.9665 0 -1.75 -0.78355 -1.75 -1.75005v-5c0 -0.41421 0.33579 -0.75 0.75 -0.75ZM0.75 5.50024c0.41421 0 0.75 0.33579 0.75 0.75v4.99996c0 0.1381 0.11193 0.25 0.25 0.25h7c0.41421 0 0.75 0.3358 0.75 0.75 0 0.4143 -0.33579 0.75 -0.75 0.75h-7c-0.966498 0 -1.75 -0.7835 -1.75 -1.75V6.25024c0 -0.41421 0.335786 -0.75 0.75 -0.75Z" clipRule="evenodd" strokeWidth="1"></path>
+    </G>
+  );
+}
+
 /**
  * Cancel or dismiss.
  *
@@ -235,12 +286,12 @@ export function IconSave() {
     <svg
       width="16"
       height="16"
-      viewBox="0 32 448 448"
+      viewBox="61.8 62.4 368.7 368.7"
       fill="currentColor"
       className="shrink-0"
       aria-hidden="true"
     >
-      <path d="M433.941 129.941l-83.882-83.882A48 48 0 0 0 316.118 32H48C21.49 32 0 53.49 0 80v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V163.882a48 48 0 0 0-14.059-33.941zM224 416c-35.346 0-64-28.654-64-64 0-35.346 28.654-64 64-64s64 28.654 64 64c0 35.346-28.654 64-64 64zm96-304.52V212c0 6.627-5.373 12-12 12H76c-6.627 0-12-5.373-12-12V108c0-6.627 5.373-12 12-12h228.52c3.183 0 6.235 1.264 8.485 3.515l3.48 3.48A11.996 11.996 0 0 1 320 111.48z" />
+      <path fillRule="evenodd" d="M267.8,79.6v86.4c0,1.7.7,3.2,1.8,4.3,1.1,1.1,2.6,1.8,4.3,1.8h34.4c1.7,0,3.2-.7,4.3-1.8,1.1-1.1,1.8-2.6,1.8-4.3v-86.4c0-1.7-.7-3.2-1.8-4.3-1.1-1.1-2.6-1.8-4.3-1.8h-34.4c-1.7,0-3.2.7-4.3,1.8-1.1,1.1-1.8,2.6-1.8,4.3Z" /><path fillRule="evenodd" d="M77.3,431.1h337.8c8.5,0,15.4-6.9,15.4-15.4V108.7l-46.3-46.3h-51.8v120.7h-172.5V62.4h-82.7c-8.5,0-15.4,6.9-15.4,15.4v337.8c0,8.5,6.9,15.4,15.4,15.4h0ZM152.1,265.2h188.4c7.8,0,14.1,6.4,14.1,14.1v108.4c0,7.8-6.4,14.1-14.1,14.1h-188.4c-7.8,0-14.1-6.4-14.1-14.1v-108.4c0-7.8,6.4-14.1,14.1-14.1Z" />
     </svg>
   );
 }

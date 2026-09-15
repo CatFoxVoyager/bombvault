@@ -885,7 +885,59 @@ var (
 // "user:pass@" credentials from s, in that order (path first — see
 // restic.go's scrubSecrets doc comment for why credentials-first would
 // destroy the hostname instead).
+
+// repoLocationRe matches a restic REMOTE repository location where it appears
+// INSIDE a sentence.
+//
+// It exists because the path scrubber was destroying the one thing a failure
+// message about a repository has to carry: which repository. On
+// "Fatal: create repository at s3:http://192.168.1.50:8333/bucket failed" the
+// path regex eats "//192.168.1.50" and then "/bucket" and leaves
+// "s3:http:[path]:8333[path]" - reported as issue #206 by an operator whose S3
+// host was rebooting, who accepted the failure and objected to not being able to
+// tell WHICH repository it was about. With named repositories (#204) an install
+// has several, so that stopped being cosmetic.
+//
+// A remote location is not a filesystem path: its host, port and bucket are the
+// operator's own storage layout, which errRepoPathGuidance already argues is
+// never a credential and never a secret. The credential in one is the userinfo,
+// scrubbed structurally by runErrRepoUserinfoRe rather than as path noise.
+//
+// See internal/restic/restic.go for the full reasoning; this package keeps its
+// own copy for the same reason it keeps its own copy of the path and credential
+// regexes.
+var runErrRepoLocationRe = regexp.MustCompile(`\b(?:rclone|sftp|rest|s3|b2|azure|gs|swift):[^\s"']+`)
+
+// runErrRepoUserinfoRe matches the "user:password@" of a remote repository location,
+// anchored to the location's own structure rather than to generic word shapes.
+//
+// The generic credential regex cannot do this job, and the difference is a real
+// leak rather than a nicety. Its password body excludes "/", because outside a
+// repo location it has nothing to anchor on and a greedy body would swallow half
+// a sentence. That was survivable only because the path regex ran FIRST and
+// chewed the rest of such a password into path noise, leaving its front half
+// exposed. Stop path-scrubbing inside the location and that same password would
+// survive WHOLE - so the exemption brings its own scrubber, and this one can be
+// greedy safely: it is bounded by the scheme on the left and the "@" on the
+// right, and its body excludes whitespace and quotes, so it can never cross out
+// of the location it started in.
+var runErrRepoUserinfoRe = regexp.MustCompile(`\b(rclone|sftp|rest|s3|b2|azure|gs|swift):((?:[A-Za-z0-9+.-]+:)?//)?[^@\s"']*@`)
+
 func scrubRunErr(s string) string {
+	var b strings.Builder
+	last := 0
+	for _, m := range runErrRepoLocationRe.FindAllStringIndex(s, -1) {
+		b.WriteString(scrubRunErrOutsideARepoLocation(s[last:m[0]]))
+		b.WriteString(runErrRepoUserinfoRe.ReplaceAllString(s[m[0]:m[1]], "${1}:${2}[redacted]@"))
+		last = m[1]
+	}
+	b.WriteString(scrubRunErrOutsideARepoLocation(s[last:]))
+	return b.String()
+}
+
+// scrubRunErrOutsideARepoLocation is the original scrubbing, applied to the
+// parts of a message that are NOT a remote repository location.
+func scrubRunErrOutsideARepoLocation(s string) string {
 	s = runErrPathRe.ReplaceAllString(s, "[path]")
 	return runErrCredentialRe.ReplaceAllString(s, "[redacted]@")
 }

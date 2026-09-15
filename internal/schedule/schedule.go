@@ -554,6 +554,13 @@ const WatchdogCadence = "daily 09:00"
 // minute.
 const ReceiverCadence = "daily 09:15"
 
+// PullCadence is the fixed daily cadence of the pull sweep: the tick that asks
+// which sources are due, not how often any of them runs. Each source carries its
+// own cadence, which the sweep gates on per row, exactly as the receiver gates
+// its per-repo integrity checks. 09:30 keeps it clear of the watchdog and the
+// receiver so the three currency passes do not land in the same minute.
+const PullCadence = "daily 09:30"
+
 // FleetCadence is the fixed daily cadence of the fleet peer sweep (polling
 // every enabled peer's protection status). Not user-configurable, like the
 // watchdog/receiver: a Fleet page reflects the cached result of the last sweep
@@ -861,6 +868,7 @@ type Scheduler struct {
 	digestFn          func() error                            // nil until SetDigestJob wires the weekly digest notification
 	watchdogFn        func() error                            // nil until SetWatchdogJob wires the overdue-backup watchdog
 	receiverFn        func() error                            // nil until SetReceiverJob wires the receiver watch (dead-mans-switch + integrity checks)
+	pullFn            func() error                            // nil until SetPullJob wires the pull sweep (#227)
 	fleetFn           func() error                            // nil until SetFleetJob wires the fleet peer sweep
 	everythingFn      func() error                            // nil until SetEverythingJob wires the "Backup Everything" pass
 	// hcRunStart / hcRunFinish aggregate the Healthchecks ping across a scheduled
@@ -959,6 +967,8 @@ func jobDomainFromName(name string) (job, domain string) {
 		return "watchdog", "" // one app-wide overdue check per fire
 	case "receiver":
 		return "receiver", "" // one app-wide received-repo watch per fire
+	case "pull":
+		return "pull", "" // one app-wide pull sweep per fire
 	case "fleet":
 		// One app-wide peer sweep per fire, same shape as the four above. Without
 		// this it fell through to the "backup" default and GET /api/schedule/next
@@ -1285,6 +1295,14 @@ func (s *Scheduler) SetWatchdogJob(watchdogFn func() error) {
 // the receiver schedule is a no-op (logged). Call before Reload.
 func (s *Scheduler) SetReceiverJob(receiverFn func() error) {
 	s.receiverFn = receiverFn
+}
+
+// SetPullJob wires the daily pull sweep so its fixed schedule (PullCadence)
+// actually runs. pullFn walks every enabled pull source and fetches the ones
+// whose own cadence says they are due. Until this is called the pull schedule is
+// a no-op (logged). Call before Reload.
+func (s *Scheduler) SetPullJob(pullFn func() error) {
+	s.pullFn = pullFn
 }
 
 // SetFleetJob wires the daily fleet peer sweep so its fixed schedule
@@ -1738,6 +1756,27 @@ func (s *Scheduler) ReloadWithDueChecks(
 				}
 				if err := s.receiverFn(); err != nil {
 					log.Printf("schedule: receiver job: %v", err)
+				}
+			},
+		})
+	}
+
+	// Pull sweep: ONE app-wide pass per fire on the fixed PullCadence, fetching
+	// every enabled source whose own cadence says it is due. Gated on
+	// PullEnabled (default off) like the two above, and for a stronger reason
+	// than either: this is the only one of the three app-wide sweeps that writes
+	// data into this box's repositories.
+	if settings.PullEnabled {
+		domains = append(domains, domainSpec{
+			cadence: PullCadence,
+			name:    "pull",
+			fn: func() {
+				if s.pullFn == nil {
+					log.Print("schedule: pull job skipped - pull not wired (SetPullJob)")
+					return
+				}
+				if err := s.pullFn(); err != nil {
+					log.Printf("schedule: pull job: %v", err)
 				}
 			},
 		})

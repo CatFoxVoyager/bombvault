@@ -19,7 +19,7 @@ ARG BUILDPLATFORM
 
 # ---- Stage 1: web (build the React SPA → web/dist) --------------------------
 # Arch-independent JS output: build once on the native runner platform.
-FROM --platform=$BUILDPLATFORM node:24-slim@sha256:3638d9a6fe4030bd716be989438248074489337ba3275657f93595428be4fc03 AS web
+FROM --platform=$BUILDPLATFORM node:24-slim@sha256:2fe369e969550cde8e867afc3fe370b260140cab4a23d467074295b42163d553 AS web
 WORKDIR /src
 COPY web/ ./web/
 RUN npm --prefix web ci --no-audit --no-fund
@@ -27,7 +27,7 @@ RUN npm --prefix web run build
 
 # ---- Stage 2: build (cross-compile the static Go binary) --------------------
 # Runs natively on BUILDPLATFORM and cross-compiles via GOOS/GOARCH (set below).
-FROM --platform=$BUILDPLATFORM golang:1.26-bookworm@sha256:6ef6e30f0ea5c384f6d111cf856e024e3086bbdcb1779da3f3b3fbba0aea53d2 AS build
+FROM --platform=$BUILDPLATFORM golang:1.27-bookworm@sha256:648f440f42a0958804efb24df176f806f9d353b41f1c0627f666428e40310f6b AS build
 WORKDIR /src
 
 # Module graph first so `go mod download` is cached across source changes.
@@ -52,7 +52,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build -ldflags "-s -w -X github.com/junkerderprovinz/bombvault/internal/api.Version=${VERSION}" -o /out/bombvault ./cmd/bombvault
 
 # ---- Stage 3: runtime (lean Debian + restic from upstream release) ----------
-FROM debian:stable-slim@sha256:1710bde34461551a19a47c787885ec9ad7058d9a5bead2affb8d088fa2f8502b AS runtime
+FROM debian:stable-slim@sha256:04634311a8d5fc442b6eb06d792293c4f3e2268652ca7634e00ce8ef5cc0a28a AS runtime
 
 LABEL org.opencontainers.image.title="bombvault" \
       org.opencontainers.image.description="Backup & disaster recovery for Docker containers and KVM/libvirt VMs, powered by restic." \

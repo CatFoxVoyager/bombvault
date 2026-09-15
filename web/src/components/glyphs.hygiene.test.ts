@@ -12,54 +12,18 @@
 // literal that could beat its tone" — a property of the code, checkable in one
 // pass over the tree.
 // ---------------------------------------------------------------------------
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { buttonTags as scanButtonTags, walkTsx } from "./buttonTags.testsupport";
 
 const SRC = join(__dirname, "..");
 
-function walk(dir: string, out: string[] = []): string[] {
-  for (const entry of readdirSync(dir)) {
-    const full = join(dir, entry);
-    if (statSync(full).isDirectory()) walk(full, out);
-    else if (/\.tsx$/.test(entry) && !/\.test\.tsx$/.test(entry)) out.push(full);
-  }
-  return out;
-}
-
-/** Every `<Button …>` opening tag in the tree, with its file and line. */
-function buttonTags(): { file: string; line: number; props: string }[] {
-  const out: { file: string; line: number; props: string }[] = [];
-  for (const file of walk(SRC)) {
-    const s = readFileSync(file, "utf8");
-    const re = /<Button\b/g;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(s))) {
-      // Scan to the '>' that closes the opening tag, ignoring any inside the
-      // braces of a prop value — a naive indexOf('>') stops at the first arrow
-      // function and reports a fraction of the props.
-      let depth = 0;
-      let i = re.lastIndex;
-      let end = -1;
-      for (; i < s.length; i++) {
-        const c = s[i];
-        if (c === "{") depth++;
-        else if (c === "}") depth--;
-        else if (c === ">" && depth === 0) {
-          end = i;
-          break;
-        }
-      }
-      if (end < 0) continue;
-      out.push({
-        file: file.slice(SRC.length + 1).replace(/\\/g, "/"),
-        line: s.slice(0, m.index).split("\n").length,
-        props: s.slice(re.lastIndex, end),
-      });
-    }
-  }
-  return out;
-}
+// Der Tag-Parser liegt seit [5126] in buttonTags.testsupport.ts, weil die
+// Reichweiten-Wache nebenan ihn auch braucht. Zwei Kopien haetten zwei
+// verschiedene Baeume geprueft, waehrend beide gruen melden.
+const buttonTags = () => scanButtonTags(SRC);
+const walk = (dir: string) => walkTsx(dir);
 
 describe("glyph sizing", () => {
   // [331]: the crop test next door proves the viewBox is computed correctly
@@ -298,8 +262,19 @@ describe("buttons", () => {
         for (let j = i - 1; j >= 0 && above.length < 3; j--) {
           if (lines[j].trim()) above.unshift(lines[j]);
         }
-        const shell = /className=[`"]([^`"]*\brelative\b[^`"]*\bmax-w-[^`"]*)/.exec(above.join("\n"));
+        const joined = above.join("\n");
+        const shell = /className=[`"]([^`"]*\brelative\b[^`"]*\bmax-w-[^`"]*)/.exec(joined);
         if (!shell || /\bp[xl]?-\d/.test(shell[1])) continue;
+        // A wrapper BETWEEN the shell and the heading that already insets it.
+        // Then the heading is not flush with the card edge and this rule has
+        // nothing to say about it — it is the ordinary dialog header row, the
+        // shape ConfirmDialog has always had. Without this the test reads the
+        // next `p-N rounded-card` it can find below the heading, which is only
+        // the heading's own box when nothing sits between them: a window whose
+        // first content block happens to be a padded card gets reported for
+        // markup that is correct. Found when one grew a QR panel directly under
+        // its header ([3554]).
+        if (/\bpx-\d/.test(joined.slice(shell.index + shell[0].length))) continue;
         const box = /\bp-(\d+)\b/.exec(
           lines.slice(i, i + 16).filter((l) => /rounded-card|bg-carbon-surface/.test(l)).join("\n")
         );

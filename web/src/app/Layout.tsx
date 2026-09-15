@@ -213,6 +213,14 @@ export function Layout() {
     void syncDisplayPrefs();
   }, [authGate]);
 
+  // The delegated <select> wheel listener that used to sit here is GONE, and
+  // that is the end of a story rather than a deletion: this app has no native
+  // <select> left (#3425), so it had nothing to attach to. The rule it served
+  // (rule 14, a closed picker answers the wheel) is now SelectField's own, and
+  // the reason it cannot come back is lib/noNativeSelect.test.ts, which fails
+  // the build over a native one. A listener kept "just in case" against a case
+  // a test already forbids is dead code with an alibi.
+
   // Live-refresh when settings change elsewhere (e.g. enabling a domain on the
   // Settings page) so a newly-enabled tab appears immediately — no page reload.
   useEffect(() => {
@@ -284,45 +292,71 @@ export function Layout() {
     return <LoginPage onLogin={checkAuth} />;
   }
 
-  // The scroller — identical in both chrome branches on purpose: per-page
-  // content (the Outlet subtree) must never know which chrome is mounted
-  // around it, so `main` keeps the exact class contract it has always had and
-  // gains only the `bv-main` id, the stable scroll target both chrome surfaces
-  // address (tap-on-active). Carrying the id in BOTH branches is the point:
-  // a page cannot tell, and a resize across the breakpoint re-attaches to the
-  // same id either way.
-  const scroller = (
-    <main id="bv-main" className="flex-1 flex flex-col overflow-y-auto p-4 md:p-6 min-w-0">
-      {/* Padding shrinks to p-4 BELOW the md breakpoint only (plan 06-02
-          Task 3): the desktop 24px gutter is half a 360px phone's width
-          wasted on air around the same Cards, so narrow viewports get 16px
-          and every viewport at/above Tailwind's md (48rem — the ONE
-          breakpoint, useMediaQuery's DESKTOP_QUERY) keeps the exact p-6 the
-          desktop shell has always rendered. Byte-identical desktop is the
-          D-07/06-02 hard guarantee; this is the mobile-only half of that
-          swap. */}
-      {/* `flex flex-col` added here (sticky-footer page-shell fix, jdp live
-          review — "die Versionsnummer soll unterhalb der untersten Card
-          stehen, nicht die Cards durchfahren lassen"): `main` is the actual
-          scrollable viewport (overflow-y-auto, sized to exactly the shell
-          height minus its own padding — p-4 below md, p-6 at/above — via the
-          flex-stretch above) — a
-          page that wants its own footer to sit flush with the BOTTOM of this
-          box when its content is short, while still scrolling normally
-          underneath it when content is tall, needs `main`'s direct child to
-          become a flex item it can measure/fill against. Harmless for every
-          OTHER route: a page that doesn't opt into filling that height (see
-          `glim-page-enter` below) just renders at its own natural height with
-          invisible blank flex space below it — no visible change. */}
-      {/* `flex-1 flex flex-col` added (same fix as above): makes this
-          per-route wrapper fill `main`'s available height (a definite size,
-          since it's now a flex item of a sized flex column) AND pass a flex
-          column context down to whichever page Outlet renders — Settings.tsx
-          is the one page that currently uses this to push its own
-          AboutFooter to the bottom of the column instead of leaving it
-          fixed to the viewport (see AboutFooter's own header comment for
-          the full before/after). Every other page ignores the extra
-          height exactly as described above. */}
+  // The page gutter lives on the FRAME that holds the rail and the content,
+  // rather than on either of them (GlimStone 1.8.0, "the rail is a card, not a
+  // wall"). One number then produces three gaps that used to be two settings:
+  // around the rail, around the content, and between them. The rail used to be
+  // welded to the window edge while every card beside it floated, which made
+  // the one element that was neither read as window chrome rather than as part
+  // of the app.
+  //
+  // THE NUMBER IS 1rem, AND IT IS THE HOUSE'S, NOT THIS APP'S (GlimStone's
+  // `--page-gutter`; `p-4` is that number, and it is what the sibling app
+  // writes too). It shipped here as 1.5rem, which is what the content padding
+  // happened to be, and side by side the difference was the whole impression:
+  // the rail sat further from the edge and, at 0.5rem off the top and the
+  // bottom each, visibly shorter than the same 14rem rail there (jdp: "die
+  // sidebar in BV hat größere abstände zum fensterrand und ist kleiner als in
+  // AL. Sie soll aber exakt wie in AL sein"). A gutter that is picked per app
+  // is not a gutter, it is a coincidence, so the language names the number now.
+  //
+  // Measured side by side at 1440x900 after the change, both live: rail at
+  // x=16, y=16, 224x868, radius 16, no shadow, 16 to the content. Identical.
+  //
+  // DESKTOP ONLY. The mobile shell stacks the scroller over its bottom bar
+  // (SHELL-02) and the phone carries its own 16px gutter on `main` instead
+  // (plan 06-02 Task 3: the desktop 24px gutter is half a 360px phone's width
+  // wasted on air around the same Cards).
+  //
+  // The scroller — per-page content (the Outlet subtree) must never know which
+  // chrome is mounted around it, so each branch keeps its own `main` contract
+  // and both carry the `bv-main` id, the stable scroll target the bottom bar
+  // addresses (tap-on-active). A page cannot tell, and a resize across the
+  // breakpoint re-attaches to the same id either way.
+  //
+  // `flex flex-col` on the per-route wrapper (sticky-footer page-shell fix,
+  // jdp live review — "die Versionsnummer soll unterhalb der untersten Card
+  // stehen, nicht die Cards durchfahren lassen"): the wrapper fills `main`'s
+  // available height (a definite size, since it's now a flex item of a sized
+  // flex column) AND passes a flex column context down to whichever page
+  // Outlet renders — Settings.tsx is the one page that currently uses this to
+  // push its own AboutFooter to the bottom of the column instead of leaving
+  // it fixed to the viewport (see AboutFooter's own header comment for the
+  // full before/after). Harmless for every OTHER route: a page that doesn't
+  // opt into filling that height just renders at its own natural height with
+  // invisible blank flex space below it — no visible change.
+  const scroller = isDesktop ? (
+    // Desktop: the frame owns the gutter (`gap-4 p-4` on the shell root below)
+    // and the page's own 1.5rem padding lives on the per-route wrapper —
+    // NO padding at the BOTTOM, and that is the point: the rail ends flush
+    // with the frame's own gutter, so 1.5rem of padding inside the scroll
+    // container stopped the last card 24 measured pixels short of it. At
+    // the end of a scroll the two columns have to end on one line, and a
+    // gutter that only one of them has is what makes it read as unfinished.
+    // The frame's p-4 still keeps both off the window edge.
+    <main id="bv-main" className="flex-1 flex flex-col overflow-y-auto min-w-0">
+      <div key={location.pathname} className="glim-page-enter flex-1 flex flex-col p-6 pb-0">
+        {/* …which leaves the LAST element sitting on the container's edge.
+            That is what flush means, and it is only true at the very end of
+            the scroll: everywhere else the content simply continues. */}
+        <Outlet />
+      </div>
+    </main>
+  ) : (
+    // Mobile: `main` carries the 16px gutter itself and the per-route wrapper
+    // stays padding-free — the byte-form of the phone shell (D-07/06-02 hard
+    // guarantee on the desktop branch, this is the mobile half of that swap).
+    <main id="bv-main" className="flex-1 flex flex-col overflow-y-auto p-4 min-w-0">
       <div key={location.pathname} className="glim-page-enter flex-1 flex flex-col">
         <Outlet />
       </div>
@@ -334,21 +368,23 @@ export function Layout() {
   // replaced kept the LARGEST viewport height and stranded bottom-docked
   // content under expanded browser chrome. On desktop dvh equals the viewport
   // height, so the desktop shell renders unchanged. The flex DIRECTION is the
-  // chrome switch's other half: desktop is the historical row (rail | main);
+  // chrome switch's other half: desktop is the historical row (rail | main)
+  // plus the house gutter (`gap-4 p-4`, the GlimStone 1.8.0 frame above);
   // mobile stacks the scroller over its normal-flow bottom bar (SHELL-02 —
   // the bar is a flex SIBLING of `main`, never a fixed overlay, so the
   // browser reserves its height and the scroller ends above it by
   // construction).
   return (
-    <div ref={shellRef} className={`flex h-dvh overflow-hidden bg-carbon-background ${isDesktop ? "" : "flex-col"}`}>
+    <div ref={shellRef} className={`flex h-dvh overflow-hidden bg-carbon-background ${isDesktop ? "gap-4 p-4" : "flex-col"}`}>
       {/* THE ONE CHROME SWITCH — exactly one chrome surface renders at a time.
-          The desktop branch is today's tree verbatim (same Sidebar, same
-          scroller, same classes); the mobile branch is the same scroller with
-          the bottom bar as its flex sibling BELOW it. The hidden surface is
-          NOT RENDERED at all, never CSS-hidden: a display:none Sidebar would
-          still run its subscriptions, dialogs and label engine below the
-          breakpoint. What'sNewDialog renders outside the switch — it is a
-          fixed-position dialog and belongs to both shells. */}
+          The desktop branch is upstream's desktop tree verbatim (same Sidebar,
+          same frame gutter, same wrapper padding); the mobile branch is the
+          same scroller with the bottom bar as its flex sibling BELOW it. The
+          hidden surface is NOT RENDERED at all, never CSS-hidden: a
+          display:none Sidebar would still run its subscriptions, dialogs and
+          label engine below the breakpoint. What'sNewDialog renders outside
+          the switch — it is a fixed-position dialog and belongs to both
+          shells. */}
       {isDesktop ? (
         <>
           <Sidebar settings={settings} authEnabled={authEnabled} />

@@ -235,6 +235,10 @@ export function SettingsPortabilityCard({
                 <dd dir="ltr" className="font-mono text-start">{preview.offsiteTargets}</dd>
               </div>
               <div className="flex justify-between gap-3">
+                <dt className="text-carbon-textMuted">{t("settingsIO.previewNamedRepos")}</dt>
+                <dd dir="ltr" className="font-mono text-start">{preview.namedRepos ?? 0}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
                 <dt className="text-carbon-textMuted">{t("settingsIO.previewCredentials")}</dt>
                 <dd className="text-end">
                   {preview.credentials.present
@@ -258,6 +262,15 @@ export function SettingsPortabilityCard({
             </div>
             <div className="flex items-center gap-3">
               <Button
+                label={t("settingsIO.cancel")}
+          labelKey="settingsIO.cancel"
+                tone="neutral"
+                onClick={resetImport}
+                disabled={busy}
+                className={`rounded-control px-4 py-1.5 text-sm text-carbon-text transition-colors disabled:opacity-50${hueOn ? " glim-hue" : ""}`}
+                hueIndex={hueIndex}
+              />
+              <Button
                 key={shake.import || 0}
                 label={t("settingsIO.confirmButton")}
                 labelKey="settingsIO.confirmButton"
@@ -267,15 +280,6 @@ export function SettingsPortabilityCard({
                 busy={importBusy === "applying"}
                 title={importBusy === "applying" ? t("settingsIO.importing") : undefined}
                 className={shake.import ? "glim-shake" : ""}
-              />
-              <Button
-                label={t("settingsIO.cancel")}
-          labelKey="settingsIO.cancel"
-                tone="neutral"
-                onClick={resetImport}
-                disabled={busy}
-                className={`rounded-control px-4 py-1.5 text-sm text-carbon-text transition-colors disabled:opacity-50${hueOn ? " glim-hue" : ""}`}
-                hueIndex={hueIndex}
               />
             </div>
           </div>

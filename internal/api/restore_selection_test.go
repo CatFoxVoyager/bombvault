@@ -57,11 +57,21 @@ func TestRestoreSelectionChange(t *testing.T) {
 		t.Fatalf("seed target: %v", err)
 	}
 
-	eng := &fakeResticEngine{snaps: []restic.Snapshot{{
-		ID:    "aaaa1111",
-		Tags:  []string{"container:plex", "p1"},
-		Paths: []string{"/host/user/user/appdata/plex"},
-	}}}
+	eng := &fakeResticEngine{
+		snaps: []restic.Snapshot{{
+			ID:    "aaaa1111",
+			Tags:  []string{"container:plex", "p1"},
+			Paths: []string{"/host/user/user/appdata/plex"},
+		}},
+		// What the snapshot actually CONTAINS. A recorded root says the backup
+		// covered /plex; only the listing says whether /plex/config is really
+		// in there, and a narrowed selector is checked against it before the
+		// container is torn down.
+		lsEntries: []restic.FileEntry{
+			{Path: "/host/user/user/appdata/plex", Type: "dir"},
+			{Path: "/host/user/user/appdata/plex/config", Type: "dir"},
+		},
+	}
 	d := &fakeServiceDocker{}
 	svc := api.NewService(cfg, st, d, fakeVirsh{}, eng)
 
@@ -69,11 +79,17 @@ func TestRestoreSelectionChange(t *testing.T) {
 		t.Fatalf("restore of an older snapshot after the selection changed must complete: %v", err)
 	}
 
-	// The engine must be handed the MAPPED SNAPSHOT-PATH form: the longest
-	// ancestor of the stored path that the snapshot actually recorded. The
-	// stored path itself would miss — restic restore <id>:<path> selectors must
-	// come from the snapshot's Paths (restic.go RestoreSubtreeToArgs doc).
-	want := "aaaa1111:/host/user/user/appdata/plex"
+	// The engine is handed the STORED path, even though the snapshot recorded
+	// only its parent. This used to assert ".../plex" - the recorded ancestor -
+	// on the belief that a "<id>:<path>" selector has to name one of the
+	// snapshot's own Paths. It does not: TestRestoreSubtreeBelowRecordedPath in
+	// internal/restic proves against real restic that the selector reaches any
+	// directory inside the snapshot. And the wide form was not merely
+	// unnecessary, it was destructive: the user had narrowed the selection to
+	// plex/config, so everything else under plex was deliberately left out of
+	// the backup - and restoring ".../plex" writes the old snapshot's contents
+	// over exactly those live, never-backed-up folders.
+	want := "aaaa1111:/host/user/user/appdata/plex/config"
 	if len(eng.restored) != 1 || !strings.HasSuffix(eng.restored[0], want) {
 		t.Fatalf("restored = %v, want exactly one call ending in %q", eng.restored, want)
 	}
@@ -91,7 +107,7 @@ func TestRestoreSelectionChange(t *testing.T) {
 // the shared setup of the RESTORE-01 integration cases below. Stored paths are
 // Linux-absolute under the host mount root; fakes do no real FS access, so a
 // fixed Linux root is fine (same reasoning as TestRestoreSelectionChange).
-func restoreScaffold(t *testing.T, storedPaths []string, snaps []restic.Snapshot) (*store.Repo, *fakeServiceDocker, *fakeResticEngine, *api.Service) {
+func restoreScaffold(t *testing.T, storedPaths []string, snaps []restic.Snapshot, lsEntries ...restic.FileEntry) (*store.Repo, *fakeServiceDocker, *fakeResticEngine, *api.Service) {
 	t.Helper()
 	dir := t.TempDir()
 	cfg := config.Config{
@@ -123,7 +139,7 @@ func restoreScaffold(t *testing.T, storedPaths []string, snaps []restic.Snapshot
 	}); err != nil {
 		t.Fatalf("seed target: %v", err)
 	}
-	eng := &fakeResticEngine{snaps: snaps}
+	eng := &fakeResticEngine{snaps: snaps, lsEntries: lsEntries}
 	d := &fakeServiceDocker{}
 	svc := api.NewService(cfg, st, d, fakeVirsh{}, eng)
 	return st, d, eng, svc
@@ -170,14 +186,19 @@ func TestRestoreSelectionChangePerPathSkip(t *testing.T) {
 			ID:    "aaaa1111",
 			Tags:  []string{"container:plex", "p1"},
 			Paths: []string{"/host/user/user/appdata/plex"},
-		}})
+		}},
+		restic.FileEntry{Path: "/host/user/user/appdata/plex", Type: "dir"},
+		restic.FileEntry{Path: "/host/user/user/appdata/plex/config", Type: "dir"})
 
 	if err := svc.Restore(context.Background(), "plex", "aaaa1111", true, "", false); err != nil {
 		t.Fatalf("restore with one unmapped stored path must complete (per-path skip, never a global abort): %v", err)
 	}
 
-	// The plex subtree restores from its snapshot path; the orphan is skipped.
-	want := "aaaa1111:/host/user/user/appdata/plex"
+	// The selected path restores as itself (the snapshot recorded its parent,
+	// which is enough to reach it); the orphan is skipped. Used to assert the
+	// parent ".../plex" - see TestRestoreSelectionChange for why that was the
+	// data-loss shape.
+	want := "aaaa1111:/host/user/user/appdata/plex/config"
 	if len(eng.restored) != 1 || !strings.HasSuffix(eng.restored[0], want) {
 		t.Fatalf("restored = %v, want exactly one call ending in %q", eng.restored, want)
 	}
@@ -219,14 +240,16 @@ func TestRestoreSelectionChangeSkipOrder(t *testing.T) {
 			ID:    "aaaa1111",
 			Tags:  []string{"container:plex", "p1"},
 			Paths: []string{"/host/user/user/appdata/plex"},
-		}})
+		}},
+		restic.FileEntry{Path: "/host/user/user/appdata/plex", Type: "dir"},
+		restic.FileEntry{Path: "/host/user/user/appdata/plex/config", Type: "dir"})
 
 	if err := svc.Restore(context.Background(), "plex", "aaaa1111", true, "", false); err != nil {
 		t.Fatalf("restore with multiple unmapped stored paths must complete: %v", err)
 	}
 
-	// One subtree restore covers the mapped path; both orphans are skipped.
-	want := "aaaa1111:/host/user/user/appdata/plex"
+	// One restore for the one mapped path, as itself; both orphans are skipped.
+	want := "aaaa1111:/host/user/user/appdata/plex/config"
 	if len(eng.restored) != 1 || !strings.HasSuffix(eng.restored[0], want) {
 		t.Fatalf("restored = %v, want exactly one call ending in %q", eng.restored, want)
 	}
@@ -284,13 +307,24 @@ func TestRestoreEmptyIntersection(t *testing.T) {
 }
 
 // TestRestoreSelectionChangeExplicitSnapshotID is RESTORE-01 case (d): a
-// restore BY EXPLICIT SNAPSHOT ID maps against THAT snapshot's recorded Paths
-// — not the newest snapshot's, not the first in the listing. The newer
-// snapshot happens to match the stored list exactly; requesting the older one
-// must still produce the OLDER snapshot's wider path form.
+// restore BY EXPLICIT SNAPSHOT ID maps against THAT snapshot's recorded Paths,
+// not the newest snapshot's and not the first in the listing.
+//
+// The two snapshots have to DISAGREE about the outcome or the test proves
+// nothing. They used to disagree on the path shape (wide ancestor vs exact
+// match), which stopped being a difference once the mapping narrowed - both
+// snapshots now answer ".../plex/config" for that one stored path, so the
+// assertion would have passed no matter which snapshot was consulted. The
+// second stored folder restores that: the older snapshot recorded the parent
+// and so can reach BOTH, while the newer one recorded only config and has
+// nothing for transcode. Two restores means the older snapshot was used; one
+// would mean the newer.
 func TestRestoreSelectionChangeExplicitSnapshotID(t *testing.T) {
 	_, _, eng, svc := restoreScaffold(t,
-		[]string{"/host/user/user/appdata/plex/config"},
+		[]string{
+			"/host/user/user/appdata/plex/config",
+			"/host/user/user/appdata/plex/transcode",
+		},
 		[]restic.Snapshot{
 			{
 				ID:    "bbbb2222",
@@ -302,16 +336,111 @@ func TestRestoreSelectionChangeExplicitSnapshotID(t *testing.T) {
 				Tags:  []string{"container:plex", "p1"},
 				Paths: []string{"/host/user/user/appdata/plex"},
 			},
-		})
+		},
+		restic.FileEntry{Path: "/host/user/user/appdata/plex", Type: "dir"},
+		restic.FileEntry{Path: "/host/user/user/appdata/plex/config", Type: "dir"},
+		restic.FileEntry{Path: "/host/user/user/appdata/plex/transcode", Type: "dir"})
 
 	if err := svc.Restore(context.Background(), "plex", "aaaa1111", true, "", false); err != nil {
 		t.Fatalf("restore of the explicit older snapshot: %v", err)
 	}
 
-	// Mapped against the CHOSEN (older) snapshot: its ancestor path, with the
-	// requested id — NOT bbbb2222's exact-match path.
-	want := "aaaa1111:/host/user/user/appdata/plex"
-	if len(eng.restored) != 1 || !strings.HasSuffix(eng.restored[0], want) {
-		t.Fatalf("restored = %v, want exactly one call ending in %q (mapping against the explicitly chosen snapshot)", eng.restored, want)
+	want := []string{
+		"aaaa1111:/host/user/user/appdata/plex/config",
+		"aaaa1111:/host/user/user/appdata/plex/transcode",
 	}
+	if len(eng.restored) != len(want) {
+		t.Fatalf("restored = %v, want %d calls (one per stored path, mapped against the explicitly chosen snapshot)", eng.restored, len(want))
+	}
+	for i, w := range want {
+		if !strings.HasSuffix(eng.restored[i], w) {
+			t.Fatalf("restored[%d] = %q, want a call ending in %q", i, eng.restored[i], w)
+		}
+	}
+}
+
+// TestRestoreNarrowedPathMissingFromSnapshot pins the failure the narrowing
+// introduced and the verification round caught.
+//
+// Pass 2 answers "you selected /plex/config and the snapshot recorded /plex" by
+// restoring /plex/config itself. A recorded ANCESTOR only proves the path lies
+// under a backed-up root though, never that it is IN the snapshot: the branch
+// may have been carved out by a --exclude when that backup ran (this codebase
+// derives exactly such excludes from the selection), or the folder may not have
+// existed yet. The selector then misses, and on this route the miss lands after
+// the container has been stopped and removed - which is the precise failure
+// mapRestorePaths exists to prevent.
+//
+// So a narrowed path is checked against the snapshot's real tree in the
+// synchronous prepare phase. A path that is not in it becomes an ordinary
+// per-path skip, never a widening back to the ancestor: widening is what caused
+// the data loss in the first place.
+func TestRestoreNarrowedPathMissingFromSnapshot(t *testing.T) {
+	t.Run("absent narrowed path is skipped and the run still completes", func(t *testing.T) {
+		st, d, eng, svc := restoreScaffold(t,
+			[]string{
+				"/host/user/user/appdata/plex/config",
+				"/host/user/user/appdata/plex/transcode", // carved out when this snapshot ran
+			},
+			[]restic.Snapshot{{
+				ID:    "aaaa1111",
+				Tags:  []string{"container:plex", "p1"},
+				Paths: []string{"/host/user/user/appdata/plex"},
+			}},
+			// transcode is deliberately NOT in the listing: the recorded root
+			// has a hole where the exclusion was.
+			restic.FileEntry{Path: "/host/user/user/appdata/plex", Type: "dir"},
+			restic.FileEntry{Path: "/host/user/user/appdata/plex/config", Type: "dir"})
+
+		if err := svc.Restore(context.Background(), "plex", "aaaa1111", true, "", false); err != nil {
+			t.Fatalf("a narrowed path missing from the snapshot must be skipped, not fatal: %v", err)
+		}
+		waitForBackupDone(t, svc)
+
+		want := "aaaa1111:/host/user/user/appdata/plex/config"
+		if len(eng.restored) != 1 || !strings.HasSuffix(eng.restored[0], want) {
+			t.Fatalf("restored = %v, want exactly one call ending in %q (transcode is not in this snapshot)", eng.restored, want)
+		}
+		if d.createdIn.Config.Image == "" {
+			t.Fatal("the container must still be recreated")
+		}
+		row := restoreRunRow(t, st)
+		if row.Status != "success" {
+			t.Fatalf("run status = %q, want success", row.Status)
+		}
+		if !strings.Contains(row.Error, "1 stored path") {
+			t.Fatalf("run error note = %q, want it to report the one skip", row.Error)
+		}
+	})
+
+	t.Run("every narrowed path absent aborts BEFORE the container is torn down", func(t *testing.T) {
+		_, d, eng, svc := restoreScaffold(t,
+			[]string{"/host/user/user/appdata/plex/transcode"},
+			[]restic.Snapshot{{
+				ID:    "aaaa1111",
+				Tags:  []string{"container:plex", "p1"},
+				Paths: []string{"/host/user/user/appdata/plex"},
+			}},
+			restic.FileEntry{Path: "/host/user/user/appdata/plex", Type: "dir"},
+			restic.FileEntry{Path: "/host/user/user/appdata/plex/config", Type: "dir"})
+
+		err := svc.Restore(context.Background(), "plex", "aaaa1111", true, "", false)
+		if err == nil {
+			t.Fatal("nothing left to restore must abort, not run")
+		}
+		if !strings.Contains(err.Error(), "nothing to restore") {
+			t.Fatalf("error = %v, want the explicit nothing-to-restore shape", err)
+		}
+		// The whole point: the refusal is synchronous, so the container is still
+		// there. Before the check, restic was handed a selector that is not in
+		// the snapshot and failed AFTER this teardown.
+		for _, c := range d.calls {
+			if strings.HasPrefix(c, "stop:") || strings.HasPrefix(c, "remove:") {
+				t.Fatalf("must abort before teardown, but docker calls include %q (all: %v)", c, d.calls)
+			}
+		}
+		if len(eng.restored) != 0 {
+			t.Fatalf("no restic restore may run, got %v", eng.restored)
+		}
+	})
 }

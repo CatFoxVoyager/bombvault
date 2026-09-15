@@ -16,7 +16,7 @@
  *    are pinned value-for-value by i18n.parity/quality gates against en;
  *    this file is the anchor they all ultimately hang from.
  * 3. The wording is load-bearing, not decorative: the empty-selection copy
- *    orients to the card's "Remove set" action (D-06 - the Files tree has no
+ *    orients to the card's "Delete folder set" action (D-06 - the Files tree has no
  *    Reset and no auto-detection fallback, so unlike the folders.* keys the
  *    refusal must name the real exit), and the path-change copy discloses
  *    the PATCH-time clear rule from plan 04-02 (A3) before it happens.
@@ -37,9 +37,9 @@ describe("files selection-tree copy contract (UI-SPEC source of truth)", () => {
     );
   });
 
-  it("files.emptySelectionBlocked refuses the last untick and orients to Remove set (D-06)", () => {
+  it("files.emptySelectionBlocked refuses the last untick and orients to Delete folder set (D-06)", () => {
     expect(en["files.emptySelectionBlocked"]).toBe(
-      "A set needs at least one folder, so the last tick cannot be removed. Use Remove set if you no longer want this set.",
+      "A set needs at least one folder, so the last tick cannot be removed. Use Delete folder set if you no longer want this set.",
     );
     // The refusal must name the actual exit action; it is the card's own
     // delete control, so the copy embeds the en files.deleteSet label.

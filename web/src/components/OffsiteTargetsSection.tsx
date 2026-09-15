@@ -10,6 +10,8 @@ import {
 import { useCloudCredSets } from "../lib/useCloudCredSets";
 import { offsiteTargetsChanged, subscribeOffsiteTargets, type OffsiteDomain } from "../lib/useOffsiteTargets";
 import { useT } from "../lib/i18n";
+import { STORAGE_CLASSES } from "../lib/storageClasses";
+import { SelectField } from "./SelectField";
 import { Toggle } from "./Toggle";
 import { NumberField } from "./NumberField";
 import { Badge, type BadgeSize } from "./Badge";
@@ -72,15 +74,6 @@ type T = ReturnType<typeof useT>["t"];
 // "idle"/"saving".
 type SaveState = "idle" | "saving";
 
-// The restore-readable storage-class whitelist (mirrors CloudCard); "" renders as
-// the provider-default option.
-const STORAGE_CLASSES = [
-  "STANDARD",
-  "STANDARD_IA",
-  "ONEZONE_IA",
-  "INTELLIGENT_TIERING",
-  "GLACIER_IR",
-] as const;
 
 // A blank draft for a new additional target. sortOrder is assigned at save time so
 // it never shadows the primary (sortOrder 0).
@@ -606,6 +599,12 @@ export function OffsiteTargetsSection({
 
           <div className="flex items-center gap-3 flex-wrap">
             <Button
+              label={t("offsite.targets.cancel")}
+          labelKey="offsite.targets.cancel"
+              tone="neutral"
+              onClick={closeEditor}
+            />
+            <Button
               key={saveShake}
               label={t("offsite.targets.save")}
               labelKey="offsite.targets.save"
@@ -615,12 +614,6 @@ export function OffsiteTargetsSection({
               busy={saveState === "saving"}
               title={saveState === "saving" ? t("common.saving") : undefined}
               className={saveShake ? "glim-shake" : ""}
-            />
-            <Button
-              label={t("offsite.targets.cancel")}
-          labelKey="offsite.targets.cancel"
-              tone="neutral"
-              onClick={closeEditor}
             />
           </div>
         </div>

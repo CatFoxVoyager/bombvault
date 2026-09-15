@@ -56,6 +56,12 @@ type Handler struct {
 	// counter this replaces. See loginClientKey's doc comment (handlers.go)
 	// for the full reasoning and why trusting a forwarded-for header to fix
 	// that isn't safe here.
+	// In-flight WebAuthn ceremonies (see internal/api/passkeys.go). A challenge
+	// is worthless once answered or expired, so it lives here rather than in the
+	// database; the cost is that a restart cancels a half-finished registration.
+	passkeyMu         sync.Mutex
+	passkeyCeremonies map[string]passkeyCeremony
+
 	loginMu    sync.Mutex
 	loginFails map[string][]time.Time
 	// loginSweepCalls counts loginThrottled calls since the last full sweep of
@@ -128,6 +134,23 @@ func (h *Handler) Router() http.Handler {
 	mux.HandleFunc("POST /api/auth/totp/setup", h.handleTOTPSetup)
 	mux.HandleFunc("POST /api/auth/totp/confirm", h.handleTOTPConfirm)
 	mux.HandleFunc("POST /api/auth/totp/disable", h.handleTOTPDisable)
+	// Passkeys. The STATUS and the two LOGIN halves are allow-listed in authGate
+	// beside /api/login, for the same reason: they are how somebody who is not
+	// signed in signs in, and the login screen has to know whether to offer the
+	// button before it can. They tell an unauthenticated caller only that this
+	// instance has passkeys and whether this address can carry one; the list of
+	// registered keys is gated inside the handler on a valid session.
+	//
+	// Registering, renaming and removing sit BEHIND the gate like the second
+	// factor: adding a way into the instance is something only somebody already
+	// inside does.
+	mux.HandleFunc("GET /api/auth/passkeys", h.handlePasskeyStatus)
+	mux.HandleFunc("POST /api/auth/passkey/login/begin", h.handlePasskeyLoginBegin)
+	mux.HandleFunc("POST /api/auth/passkey/login/finish", h.handlePasskeyLoginFinish)
+	mux.HandleFunc("POST /api/auth/passkey/register/begin", h.handlePasskeyRegisterBegin)
+	mux.HandleFunc("POST /api/auth/passkey/register/finish", h.handlePasskeyRegisterFinish)
+	mux.HandleFunc("PATCH /api/auth/passkeys/{id}", h.handleRenamePasskey)
+	mux.HandleFunc("DELETE /api/auth/passkeys/{id}", h.handleDeletePasskey)
 
 	// Opt-in Prometheus scrape endpoint. NOT under /api so it never collides with
 	// the JSON routes; it bypasses the session authGate (allow-listed there) and
@@ -172,6 +195,7 @@ func (h *Handler) Router() http.Handler {
 	mux.HandleFunc("GET /api/containers/{name}/snapshots", h.handleSnapshots)
 	mux.HandleFunc("POST /api/containers/{name}/restore", h.handleRestore)
 	mux.HandleFunc("POST /api/restore/cancel", h.handleRestoreCancel)
+	mux.HandleFunc("POST /api/backup/cancel", h.handleBackupCancel)
 	mux.HandleFunc("POST /api/stacks/{project}/restore", h.handleRestoreStack)
 	mux.HandleFunc("GET /api/containers/{name}/mounts", h.handleContainerMounts)
 	mux.HandleFunc("POST /api/containers/{name}/excludes/preview", h.handleExcludesPreview)
@@ -220,6 +244,14 @@ func (h *Handler) Router() http.Handler {
 	mux.HandleFunc("DELETE /api/snapshots/{domain}/{id}", h.handleDeleteSnapshot)
 	// Off-site target CRUD (multi-off-site). The literal "targets" segment is more
 	// specific than "{domain}", so these never collide with the per-domain routes.
+	// Named repositories (#204): the locations an individual container, VM or
+	// folder set can be pointed at instead of its domain's own. Written down
+	// once here, picked per item, so ten containers are not ten typed bucket
+	// paths. See internal/api/named_repos_crud.go.
+	mux.HandleFunc("GET /api/repos", h.handleListNamedRepos)
+	mux.HandleFunc("POST /api/repos", h.handleCreateNamedRepo)
+	mux.HandleFunc("PATCH /api/repos/{id}", h.handleUpdateNamedRepo)
+	mux.HandleFunc("DELETE /api/repos/{id}", h.handleDeleteNamedRepo)
 	mux.HandleFunc("GET /api/offsite/targets", h.handleListOffsiteTargets)
 	mux.HandleFunc("POST /api/offsite/targets", h.handleCreateOffsiteTarget)
 	mux.HandleFunc("PUT /api/offsite/targets/{id}", h.handleUpdateOffsiteTarget)
@@ -336,6 +368,20 @@ func (h *Handler) Router() http.Handler {
 	mux.HandleFunc("DELETE /api/receiver/repos/{id}", h.handleDeleteReceiverRepo)
 	mux.HandleFunc("GET /api/receiver/repos/{id}/inventory", h.handleReceiverInventory)
 	mux.HandleFunc("POST /api/receiver/repos/{id}/check", h.handleReceiverCheck)
+
+	// Pull sources (#227): repositories belonging to OTHER instances that this
+	// box fetches snapshots out of. Session-protected like every other /api
+	// route, and gated behind the pullEnabled settings flag in the SPA.
+	//
+	// These are the only routes in the app that take a foreign repository as the
+	// SOURCE of data that lands on this disk, which is why every one of them goes
+	// through a read-only open before it writes anything down.
+	mux.HandleFunc("GET /api/pull/sources", h.handleListPullSources)
+	mux.HandleFunc("POST /api/pull/sources", h.handleCreatePullSource)
+	mux.HandleFunc("PUT /api/pull/sources/{id}", h.handleUpdatePullSource)
+	mux.HandleFunc("DELETE /api/pull/sources/{id}", h.handleDeletePullSource)
+	mux.HandleFunc("POST /api/pull/sources/{id}/test", h.handleTestPullSource)
+	mux.HandleFunc("POST /api/pull/sources/{id}/run", h.handleRunPullSource)
 
 	// Fleet view (read-only): the list of PEER BombVault instances this box
 	// polls for their protection status. Gated behind the fleetEnabled settings

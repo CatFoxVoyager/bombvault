@@ -60,7 +60,11 @@ export function ProgressBar({ percent, active, indeterminate, label, inline }: P
         />
       ) : (
         <div
-          className="h-full transition-[width] duration-300 ease-out"
+          // `glim-progress-fill` carries the travelling band of light (index.css,
+          // inside the reduced-motion gate). Only while the bar is still filling:
+          // at 100 the work is done, and a light still sweeping a finished bar
+          // says the opposite of what the number says.
+          className={`h-full transition-[width] duration-300 ease-out${clamped < 100 ? " glim-progress-fill" : ""}`}
           style={{ width: `${clamped}%`, background: "var(--accent)" }}
         />
       )}

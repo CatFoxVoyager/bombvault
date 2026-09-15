@@ -440,7 +440,7 @@ describe("FileSetFoldersEditor live-save pipeline (T-04-11 queue, D-06 refusal, 
     // set (the files domain has no Reset; D-06).
     expect(
       screen.getByText(
-        "A set needs at least one folder, so the last tick cannot be removed. Use Remove set if you no longer want this set.",
+        "A set needs at least one folder, so the last tick cannot be removed. Use Delete folder set if you no longer want this set.",
       ),
     ).toBeTruthy();
     // Re-query: the shake nonce remounts the row (keyed Fragment), so the
@@ -484,7 +484,7 @@ describe("FileSetFoldersEditor live-save pipeline (T-04-11 queue, D-06 refusal, 
     expect(screen.getByText("selection refused")).toBeTruthy();
     expect(
       screen.getByText(
-        "A set needs at least one folder, so the last tick cannot be removed. Use Remove set if you no longer want this set.",
+        "A set needs at least one folder, so the last tick cannot be removed. Use Delete folder set if you no longer want this set.",
       ),
     ).toBeTruthy();
     // The revert re-derives from the LIVE mirror by set-difference inverse of

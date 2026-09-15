@@ -8,7 +8,7 @@
 // FolderBrowser path picker and an excludes textarea (one pattern per line).
 // ---------------------------------------------------------------------------
 
-import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import {
   listFileSets,
@@ -30,6 +30,7 @@ import {
 import type { BrowseResponse, FileSetView, Snapshot, FileEntry, FileSetPresetResponse, Run } from "../lib/api";
 import { applyToggle, browseRelToHost, splitFlatSet, toFlatList } from "../lib/selectionTree";
 import { SelectionTree } from "../components/SelectionTree";
+import { RepoPicker } from "../components/RepoPicker";
 import { StickyActionBar } from "../components/mobile/StickyActionBar";
 import { RunDetailSheet } from "../components/mobile/RunDetailSheet";
 import { ListToolbar } from "../components/mobile/ListToolbar";
@@ -42,6 +43,7 @@ import { EffectiveScheduleLine } from "../components/EffectiveScheduleLine";
 import { FolderBrowser } from "../components/FolderBrowser";
 import { DEFAULT_RESTORE_FOLDER } from "../components/RestorePanel";
 import { SnapshotFileTree } from "../components/SnapshotFileTree";
+import { BackupCancelButton } from "../components/BackupCancelButton";
 import { ProgressBar } from "../components/ProgressBar";
 import { RecentRunsList } from "../components/RecentRunsList";
 import { RestoreProgress } from "../components/restore/RestoreProgress";
@@ -71,6 +73,7 @@ import { IconRestore } from "../components/Sidebar";
 // Type-only (erased at build): the Save bar's published live state is the SAME
 // shape Containers.tsx's FoldersEditor publishes — one contract, no fork.
 import type { SaveBarState } from "./Containers";
+import { IconDisclosure } from "../components/IconDisclosure";
 
 type T = ReturnType<typeof useT>["t"];
 
@@ -250,9 +253,21 @@ function FileSetBackupButton({
         busy={isPending}
         title={stateTip}
       />
-      {blockedByOther && (
-        <span className="text-xs text-carbon-textMuted text-end">{t(busyPhraseKey(running?.phase))}</span>
-      )}
+      {/* The "something else is running" note does NOT live here any more
+          (jdp, 2026-09-11: "eine sicherung läuft... text bitte über den text
+          von letztes backup"). It hung directly under the badge corner, which
+          put a status line at the top of the card and the fact it qualifies -
+          the last backup - at the bottom. FileSetRow renders it above that
+          line now.
+
+          Worth noting what the sibling does, because it is the reason this was
+          drift rather than a choice: components/BackupButton.tsx, the container
+          card's own, renders NO visible note at all and puts the same phrase in
+          `title`, per #178's "the button's name is stable, only exceptional
+          states get a tooltip". This button keeps its tooltip too (`stateTip`
+          above), so the phrase is in both places for the same reason it is on
+          the container card - the text below is the card talking, the tooltip
+          is the button talking. */}
       {state.phase === "success" && (
         <span className="inline-flex items-center gap-1 text-xs text-statusOk">
           <CheckDraw />
@@ -436,6 +451,7 @@ function FileSetRestoreControl({
   restoreFolder,
   otherActive,
   t,
+  trailing,
 }: {
   set: FileSetView;
   snapshotId: string;
@@ -444,6 +460,14 @@ function FileSetRestoreControl({
   restoreFolder: string;
   otherActive: { active: boolean; phase?: string };
   t: T;
+  /** Rendered at the end of the destination row, after the Restore button.
+   *
+   *  The snapshot's delete badge, in practice: everything a snapshot DOES sits
+   *  in one row (jdp, 2026-09-11: "der löschen button in die gleiche zeile der
+   *  anderen buttons"). A prop rather than the caller wrapping this component,
+   *  because the row it joins is this component's own flex line - a wrapper
+   *  outside it would land on the next one. */
+  trailing?: ReactNode;
 }) {
   // A path-less discovered set can only restore into a chosen folder — the
   // server refuses an in-place restore when it doesn't know the original path.
@@ -508,11 +532,21 @@ function FileSetRestoreControl({
             brand-new key to land in every locale in the same pass — not
             worth doing for a screen-reader-only group name that "Restore"
             already names clearly enough in context. */}
+        {/* buttonHeight, because the Restore button sits in this same row
+            (jdp, 2026-09-11, on this exact strip: "soll das nicht besser ein
+            horizontaler selektor sein oder zumindest alle buttons gleiche
+            höhe?"). It already was a horizontal selector, so the answer is the
+            second half. Measured on the running build before changing
+            anything: these three segments came out 24px and the button beside
+            them 32px, which is why the square glyph-mode button read as too
+            tall - it was the only control in the row at the height the house
+            gives a button. */}
         <Selector
           items={destItems}
           label={t("snapshots.restore")}
           select="one"
           active={dest}
+          buttonHeight
           onChange={(id) => setDest(id as RestoreDest)}
           disabled={isPending}
         />
@@ -535,6 +569,15 @@ function FileSetRestoreControl({
             {t(busyPhraseKey(otherActive.phase))}
           </span>
         )}
+        {/* `ms-auto` on the wrapper, so whatever the caller puts here is pushed
+            to the row's far end (jdp, 2026-09-11: "Der löschen button in den
+            Backupzeilen soll ganz rechts sein"). Sitting straight after the
+            Restore button, the delete badge read as a third step in the same
+            sequence; at the far edge it reads as what it is - the one control
+            on the row that is not part of restoring. Applied here rather than
+            by the caller because `ms-auto` only means anything inside THIS
+            flex row. */}
+        {trailing && <span className="ms-auto flex items-center">{trailing}</span>}
       </div>
       {/* Target folder picker for the non-destructive whole-set extract */}
       {dest === "folder" && (
@@ -635,18 +678,27 @@ function FileSetSnapshotRow({
     // a list of unchanged density, rather than a list that grew. Config.tsx's
     // ConfigSnapshotRow carries the same pairing.
     <div className="flex flex-col gap-1 py-1.5 border-b border-carbon-border last:border-0">
-      <div className="flex items-center gap-3 text-sm">
-        <span dir="ltr" className="font-mono text-start text-carbon-text text-xs w-20 shrink-0">
+      {/* Identity FIRST, then when it was taken, on the line under it (jdp,
+          2026-09-11: "datum und uhrzeit unter die backup kennung"). They were
+          side by side in one row with the delete button, which made a snapshot
+          read as three unrelated columns; stacked, the date is plainly a
+          property OF the id above it. The id keeps its own mono face and the
+          date the muted caption tone, so the two stay told apart without a
+          fixed column width holding them.
+
+          The `w-20` on the id is gone with the row it was measured for, and so
+          is the `ps-24` indent that used to align the action row under it. */}
+      <div className="flex flex-col">
+        <span dir="ltr" className="font-mono text-start text-carbon-text text-xs">
           {snap.id.slice(0, 8)}
         </span>
-        <span className="text-carbon-textMuted text-xs flex-1">
+        <span className="text-carbon-textMuted text-xs">
           {new Date(snap.time).toLocaleString()}
+          {snap.tags && snap.tags.length > 0 && (
+            <span className="hidden sm:inline">{` · ${snap.tags.join(", ")}`}</span>
+          )}
         </span>
-        {snap.tags && snap.tags.length > 0 && (
-          <span className="text-carbon-textMuted text-xs hidden sm:block">
-            {snap.tags.join(", ")}
-          </span>
-        )}
+      </div>
         {/* Whole-area sweep finding, not part of jdp's two named buttons: this
             per-snapshot delete was the LAST surviving copy of the exact defect
             already fixed in components/RestorePanel.tsx and pages/Config.tsx —
@@ -667,19 +719,14 @@ function FileSetSnapshotRow({
             (t("snapshots.deleteConfirm")), which is untouched. The "…"
             in-flight label has nowhere to live on an icon-only badge, so
             `deleting` shows as `disabled`, exactly like RestorePanel's. */}
-        <Button
-          key={shake}
-          label={t("snapshots.delete")}
-          labelKey="snapshots.delete"
-          glyph={<IconTrash />}
-          tone="accent"
-          onClick={() => void handleDelete()}
-          disabled={deleting || busy}
-          className={`shrink-0${shake ? " glim-shake" : ""}`}
-        />
-      </div>
-      {/* Restore control, indented under the id column to match the row. */}
-      <div className="ps-24">
+      {/* The delete badge moved DOWN into the action row (jdp, 2026-09-11:
+          "der löschen button in die gleiche zeile der anderen buttons"). It
+          used to sit alone at the far end of the identity line, which put the
+          one destructive control on this row as far as possible from the two
+          controls it belongs with, and left it as the only reason that line
+          was a flex row at all. Everything a snapshot DOES is now in one row;
+          the line above only says which snapshot. */}
+      <div>
         <FileSetRestoreControl
           set={set}
           snapshotId={snap.id}
@@ -688,6 +735,18 @@ function FileSetSnapshotRow({
           restoreFolder={restoreFolder}
           otherActive={running}
           t={t}
+          trailing={
+            <Button
+              key={shake}
+              label={t("snapshots.delete")}
+              labelKey="snapshots.delete"
+              glyph={<IconTrash />}
+              tone="accent"
+              onClick={() => void handleDelete()}
+              disabled={deleting || busy}
+              className={`shrink-0${shake ? " glim-shake" : ""}`}
+            />
+          }
         />
       </div>
       {confirmDialog}
@@ -701,6 +760,7 @@ function FileSetRestorePanel({
   restoreFolder,
   t,
   onSetsChanged,
+  trailing,
 }: {
   set: FileSetView;
   hostMountRoot: string;
@@ -708,6 +768,17 @@ function FileSetRestorePanel({
   t: T;
   /** Delete-all forgets the whole set — the parent must reload the list. */
   onSetsChanged: () => void;
+  /** Always-visible summary shown at the far end of the trigger's own row,
+   *  never inside the panel it opens.
+   *
+   *  This is the container card's shape, adopted here (jdp, 2026-09-11: "kannst
+   *  du die buttons und toggle in den ordner cards genauso anordnen wie in den
+   *  container cards?"). There, "Letztes Backup: …" shares the disclosure
+   *  row rather than occupying the card's top-right corner, and the corner
+   *  carries the action badges instead. A prop rather than a second row,
+   *  because the trigger row already exists and this text is one line of
+   *  summary, not a section of its own. */
+  trailing?: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [source, setSource] = useState<RepoSource>("local");
@@ -784,12 +855,20 @@ function FileSetRestorePanel({
 
   return (
     <div className="mt-1">
-      <Button
-        label={t("snapshots.title")}
-        labelKey="snapshots.title"
-        tone="neutral"
-        onClick={() => setOpen((prev) => !prev)}
-      />
+      {/* Trigger left, summary flush right — the container card's own
+          disclosure row, class for class (`flex items-center gap-2 flex-wrap`
+          plus `ms-auto shrink-0` on the text), so the two cards line up
+          instead of each arranging the same two things its own way. */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Button
+          label={t("snapshots.title")}
+          labelKey="snapshots.title"
+          tone="neutral"
+          onClick={() => setOpen((prev) => !prev)}
+          glyph={<IconDisclosure open={open} />}
+        />
+        {trailing}
+      </div>
 
       {open && (
         <div className="mt-2 rounded-card bg-carbon-background px-3 py-1">
@@ -839,17 +918,40 @@ function FileSetRestorePanel({
                 // shared confirm dialog. `glim-shake` survives: behaviour,
                 // not colour. bombvault/no-status-color-on-control now fails
                 // the build if this comes back.
-                <Badge
+                // A BUTTON, at the ordinary button size, with the glyph its own
+                // key already earns (jdp, 2026-09-11: "der alle backups löschen
+                // button in der ordner card soll auch normale button größe inkl
+                // glyph sein"). It was a `size="small"` Badge, which is the one
+                // shape this action may not have: Containers.tsx's identical
+                // "Alle Backups löschen" is a full Button and says why in its
+                // own comment - a labelled action that also carries an
+                // in-flight label, not a row-action glyph pair. Two cards
+                // offering the same destructive action in two different sizes
+                // is exactly the drift that comment was written to stop.
+                //
+                // The glyph is not passed: `labelKey` is `snapshots.deleteAll`
+                // and glyphFor's `/\.(delete|remove)/` rule resolves the trash
+                // for it, the same way the container card gets its own. Passing
+                // one here would be a second opinion about a symbol the table
+                // already owns.
+                //
+                // The label is STABLE and the in-flight wording moves to
+                // `title`, which is Button's own documented contract: a label
+                // that changes to "Wird gelöscht…" mid-action resizes the
+                // control at the one moment somebody is watching it. `busy`
+                // carries the spinner instead. Same three props as the
+                // container card, in the same order.
+                <Button
                   key={shakeDeleteAll}
-                  as="button"
+                  label={t("snapshots.deleteAll")}
+                  labelKey="snapshots.deleteAll"
+                  tone="neutral"
                   onClick={() => void handleDeleteAll()}
                   disabled={deletingAll || loading}
-                  tone="neutral"
-                  size="small"
+                  busy={deletingAll}
+                  title={deletingAll ? t("snapshots.deletingAll") : undefined}
                   className={`ms-auto${shakeDeleteAll ? " glim-shake" : ""}`}
-                >
-                  {deletingAll ? t("snapshots.deletingAll") : t("snapshots.deleteAll")}
-                </Badge>
+                />
               )}
           </div>
           <RecentRunsList name={set.name} domain="files" t={t} />
@@ -914,6 +1016,14 @@ export function FileSetDialog({
     (initial?.excludes ?? presetSeed?.excludes ?? []).join("\n")
   );
   const [enabled, setEnabled] = useState(initial?.enabled ?? true);
+  // #204. Empty is the normal value and means "use the Folders repository";
+  // a create starts empty because a brand-new set has nothing to move.
+  const [repo, setRepo] = useState(initial?.repo ?? "");
+  // A set with backups cannot change repository - its snapshots live where
+  // they were written and nothing re-homes them. Disabled HERE as well as
+  // refused on the server, so the reason is read before the attempt rather
+  // than after it.
+  const repoLocked = Boolean(initial) && (initial?.lastBackup ?? 0) > 0;
   const [saving, setSaving] = useState(false);
   // GlimStone standing rule (jdp, live review, emphatic, system-wide): shake
   // the Save button alongside the toast on a failed save.
@@ -934,8 +1044,25 @@ export function FileSetDialog({
       .filter((line) => line !== "");
     try {
       const res = initial
-        ? await patchFileSet(initial.id, { name: name.trim(), path: path.trim(), excludes, enabled })
-        : await createFileSet({ name: name.trim(), path: path.trim(), excludes, enabled });
+        ? await patchFileSet(initial.id, {
+            name: name.trim(),
+            path: path.trim(),
+            excludes,
+            enabled,
+            // Only sent when it actually differs: the server refuses a CHANGE
+            // once the set has backups, and sending the unchanged value would
+            // turn every ordinary save of such a set into a refusal.
+            ...(repo.trim() !== (initial.repo ?? "").trim() ? { repo: repo.trim() } : {}),
+          })
+        : await createFileSet({
+            name: name.trim(),
+            path: path.trim(),
+            excludes,
+            enabled,
+            // A new set has no backups, so the picker is live here and its
+            // answer travels with the create.
+            repo: repo.trim(),
+          });
       if (res.ok) {
         push(t("settings.saved"), "success");
         onSaved();
@@ -976,7 +1103,7 @@ export function FileSetDialog({
   // in this app is `items-center` and there is no remaining copy to find.
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4"
+      className="glim-modal-backdrop fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4"
       onClick={onClose}
     >
       {/* GlimStone follow-up pass ("half-overlap card notch"): non-scrolling
@@ -1051,6 +1178,22 @@ export function FileSetDialog({
             rechtsbuendig sein, der text linksbuendig". Fixed at the shared
             component rather than by hand-matching classes here, the same reason
             IncludeToggle.tsx gives for its own switch to ToggleRow. */}
+        {/* #204: this set's own repository. Empty = the Folders repository,
+            which is what every set did before this existed.
+            A PICKER, not a text field: the locations live in Settings and are
+            chosen here, so the same bucket path is never typed into ten items
+            and can be corrected in one place. The explanation rides in an info
+            bubble beside the label, the house shape for it. */}
+        <RepoPicker
+          value={repo}
+          onChange={setRepo}
+          locked={repoLocked}
+          labelKey="files.repo"
+          hintKey="files.repoHint"
+          defaultLabelKey="files.repoPlaceholder"
+          lockedKey="files.repoLocked"
+        />
+
         <ToggleRow checked={enabled} onChange={setEnabled} label={t("files.enabled")} />
 
         <div className="flex items-center justify-end gap-2 pt-1">
@@ -1091,7 +1234,7 @@ export function FileSetDialog({
 // GET /api/browse with hostMountRoot as the browse prefix, and NO container
 // surfaces: no CACHEDIR switch (optional props skip the sub-row), no custom
 // rows, no dest←source arrow, no Reset (the files domain has no
-// auto-detection fallback; D-06's exit is Remove set, named by the refusal
+// auto-detection fallback; D-06's exit is Delete folder set, named by the refusal
 // copy).
 //
 // The genuinely new decision is the NULL mirror seed (UI-SPEC item 9): a set
@@ -1312,6 +1455,16 @@ export function FileSetFoldersEditor({
     for (const p of desc.pre.includes) if (!desc.sent.includes.has(p)) inc.add(p);
     for (const p of desc.sent.exclusions) if (!desc.pre.exclusions.has(p)) exc.delete(p);
     for (const p of desc.pre.exclusions) if (!desc.sent.exclusions.has(p)) exc.add(p);
+    // The same zero-include floor the container editor has. A toggle stacked
+    // behind this save was checked against a mirror that still carried this
+    // attempt's optimistic include; taking it back can leave none. The server
+    // refuses an include-less set outright, so unlike the container case this
+    // is not data loss - it is a tree that shows nothing ticked while the
+    // stored selection is still the old one, plus a fail toast. Falling back to
+    // this attempt's pre-state is server truth: the save never landed.
+    if (inc.size === 0) {
+      for (const p of desc.pre.includes) inc.add(p);
+    }
     applyMirror(inc, exc);
     setRowShake((s) => ({ ...s, [desc.node]: (s[desc.node] ?? 0) + 1 }));
   }
@@ -1321,7 +1474,7 @@ export function FileSetFoldersEditor({
   // is the ONLY mutation path (T-02-10; no second selection implementation
   // exists here). D-06's client half runs BEFORE anything else: a toggle that
   // would leave ZERO includes for the set never PATCHes — the refusal copy
-  // orients to Remove set (the files domain has no Reset and no
+  // orients to Delete folder set (the files domain has no Reset and no
   // auto-detection fallback to return to).
   function onToggle(hostPath: string): void {
     const pre = { includes: mirrorRef.current.inc, exclusions: mirrorRef.current.exc };
@@ -1466,7 +1619,7 @@ export function FileSetFoldersEditor({
             shakeCounts={rowShake}
             blockedPath={blockedPath}
             // D-06 copy routing: the refusal orients to THIS card's exit
-            // ("Remove set"), not the folders page's "Reset" (UI-SPEC copy
+            // ("Delete folder set"), not the folders page's "Reset" (UI-SPEC copy
             // table; the files domain has no Reset and no auto-detect).
             blockedMessage={t("files.emptySelectionBlocked")}
           />
@@ -1610,142 +1763,131 @@ export function FileSetRow({
           )}
         </div>
 
-        {/* Last backup */}
-        <div className="text-end shrink-0">
-          <p className="text-xs text-carbon-textMuted">{t("containers.lastBackup")}</p>
-          <p className="text-xs text-carbon-textSub">
-            {set.lastBackup ? formatTs(set.lastBackup) : t("containers.never")}
-          </p>
+        {/* Action badges, top-right — the corner "Letztes Backup" used to
+            occupy (jdp, 2026-09-11: "kannst du die buttons und toggle in den
+            ordner cards genauso anordnen wie in den container cards?"). That is
+            exactly the move the container card already made, in the same words
+            from the same reviewer ("Jetzt sichern und Export sollen
+            quadratische Badges mit Glyph sein, die sollen rechts oben in der
+            Ecke sein wo jetzt Letztes Backup steht"), and this card was the one
+            left behind: it kept the badges scattered along a middle row while
+            the corner held text.
+
+            The date is not lost, it moves down beside the Backups trigger, the
+            same place the container card keeps its own `lastBackupText`. One
+            fact, one place.
+
+            Same `ms-auto flex items-start gap-1.5 shrink-0` wrapper, and the
+            same gap-1.5 between adjacent 32px tiles that every icon-badge pair
+            in this app uses. Backup first because it is the thing somebody
+            comes to the card to do; edit and remove follow. */}
+        <div className="ms-auto flex items-start gap-1.5 shrink-0">
+          <FileSetBackupButton set={set} t={t} onBackedUp={onRefresh} running={running} onRunCorrelated={onRunCorrelated} />
+          {/* Just the verb (jdp, 2026-09-11: "Odner-Set bearbeiten soll nur
+              Bearbeiten heißen, Ordner-Set löschen nur Löschen"). These two sit
+              INSIDE the card of the set they act on, so naming the set again on
+              the badge repeats what the heading two lines up already says - and
+              in reactive mode that repetition is the whole word that appears
+              under the pointer.
+
+              New `common.edit` / `common.delete` rather than editing
+              files.editSet: that key is ALSO the edit dialog's own heading
+              (see FileSetDialog), where "Bearbeiten" alone would stop saying
+              what is being edited. Two call sites, two jobs, two keys.
+
+              The words are not new translations - they are lifted from what
+              the app already says for these verbs (offsite.targets.edit and
+              snapshots.delete), so the house key cannot drift from the rest.
+              `common.delete` still matches glyphFor's `/\.(delete|remove)/`,
+              so the trash resolves the same way. */}
+          <Button
+            label={t("common.edit")}
+            labelKey="common.edit"
+            glyph={<IconPencil />}
+            tone="accent"
+            title={t("files.editSet")}
+            onClick={onEdit}
+          />
+          <Button
+            key={shake}
+            label={t("common.delete")}
+            labelKey="common.delete"
+            glyph={<IconTrash />}
+            // P2-14 (390px review): below 48rem the remove action leaves the
+            // primary-CTA colour for the shared `danger` tone — an irreversible
+            // delete must not wear the accent Save and Back up now wear. The
+            // desktop ruling (jdp's "keine Sonderfarbe") still stands >=48rem,
+            // and jsdom answers desktop, so the suites see plain accent.
+            tone={isDesktop ? "accent" : "danger"}
+            title={t("files.deleteSet")}
+            onClick={() => void handleRemove()}
+            disabled={removing}
+            className={shake ? "glim-shake" : ""}
+          />
         </div>
       </div>
 
-      {/* #199: the consequence of the toggle right below, in words. This tab is
-          where a set is created and where the include switch is flipped, so it
-          is the second place a reader can walk away with the wrong belief about
-          whether the folder is protected. Same component, same server-computed
-          sentence as the Schedules card. */}
-      <EffectiveScheduleLine effective={set.effectiveSchedule} />
+      {/* Actions row — the schedule toggle, flush right and nothing else.
+          The container card's own equivalent row is a single `ms-auto flex
+          flex-col items-end` stack of toggle rows, and it says why: once the
+          action badges moved into the top-right corner, this row was free to
+          become one flush-right column. The folder card now has the same two
+          moves behind it, so it gets the same row.
 
-      {/* Actions row */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-4 flex-wrap">
+          The edit and remove badges that used to sit here are in that corner
+          now, next to the backup badge. They are actions, not settings, and a
+          row that mixed a switch with two action tiles read as one group of
+          four unrelated controls. */}
+      <div className="flex items-start">
+        <div className="ms-auto flex flex-col items-end gap-2">
           {/* No wrapping `<label>`/`<span>` anymore: FileSetEnabledToggle now
               renders the full ToggleRow itself (label included, text-first),
               the identical shape Containers.tsx's IncludeToggle call site
               already uses — see that component's own comment. */}
           <FileSetEnabledToggle id={set.id} initial={set.enabled} />
-          {/* Edit + remove, both square icon badges (jdp's Ordnertab ruling:
-              "Ordnertab: die Buttons 'Ordnerset bearbeiten' und 'Set
-              entfernen' sollen quadratische Badges mit Glyphen sein. In die
-              Farbmodi integriert. Keine Sonderfarbe fuer den Entfernen-Badge."
-              — the no-second-colour clause was ruled on the desktop tab and
-              still holds there; below 48rem the remove badge's tone
-              deliberately leaves the hue, see the colour paragraph). Both were
-              plain text `<button>`s: edit a flat `bg-carbon-surface2` grey,
-              remove a `bg-statusFailBg`/`text-statusFail` red.
-                `tone="active"` + `size="icon"` + `shape="square"` + `tip` is
-              the app's whole icon-badge recipe in one line — icon-only +
-              active resolves to the solid `bg-accent`/`text-accentContrast`
-              pair (Badge's own `isIconOnly && tone==="active"` branch), and no
-              `hueIndex` is passed because this card's own root element carries
-              `.glim-hue` with this set's list-position hue: the ordinary CSS
-              custom-property cascade already resolves --accent/--accent-contrast
-              to THIS row's rainbow position, exactly like RestorePanel's
-              restore/delete pair and Containers' Export badge. `size="icon"`
-              is the app's one square-icon-badge size (32px) — see Badge.tsx's
-              "ONE SIZE FOR SQUARE ICON BADGES" block; not a number measured
-              against these two buttons' own old text footprint.
-                Colour is now SPLIT BY WIDTH (P2-14, 390px review, 2026-09-14).
-              On desktop the ruling above still stands — the remove badge is
-              the same in-hue solid accent as the edit badge next to it, no
-              special colour of its own, and equally no grey-neutral exemption
-              (`neutral` is one of the tones Badge deliberately keeps out of
-              the rainbow, so it would have left this badge flat grey beside a
-              hued sibling — the "anders eingefärbt" defect jdp already
-              reported on RestorePanel's delete and Config's snapshot rows).
-              Below 48rem the phone renders the remove action in the shared
-              Button `danger` tone (Button.tsx's tone table — the solid
-              fail/background pairing ConfirmDialog worked out and the
-              component adopted): an irreversible "remove this set" must not
-              wear the primary-CTA colour it shares with Save and Back up now.
-              The flip rides this row's `useIsDesktop` gate, so jsdom suites
-              keep seeing the desktop accent and >=48rem stays byte-identical.
-              Nothing about the action becomes ambiguous in either branch: the
-              destructive meaning is still carried by IconTrash and by the tip
-              bubble (t("files.deleteSet") — "Set entfernen"), and handleRemove
-              still routes through the existing useConfirm dialog
-              (t("files.deleteSetConfirm")) before anything is removed — that
-              confirmation is untouched. The tone swap changes no geometry:
-              same badge size, mobile 44px bleed intact.
-                The `removing` in-flight state used to swap the label to
-              "Prüfe…"; an icon-only badge has no label to swap, so it surfaces
-              as `disabled` alone, matching every other icon badge in the app
-              (RestorePanel's delete does exactly this). `glim-shake` on failure
-              survives on className — behaviour, not colour.
-                Glyphs: IconTrash verbatim (the app's one trash can), and
-              IconPencil — which is Dashboard's own customize pencil, moved into
-              Sidebar.tsx's shared set rather than a second pencil being drawn
-              here; see that component's comment.
-                The pair sits in its own `gap-1.5` wrapper rather than
-              inheriting this row's `gap-4`: 16px between two adjacent 32px
-              glyph tiles reads as two unrelated controls, and every other
-              icon-badge pair in this app already sits at gap-1.5 (Containers.tsx's
-              BackupButton/Export pair in the card's top-right corner is the
-              reference). The row's own gap-4 still separates this pair from the
-              schedule toggle beside it, which is a different kind of control.
-                flex-wrap (carried 06-UI-REVIEW fix, landed by 07-06): without
-              it the pair is one unbreakable min-content block and the 360px
-              de/fr narrow viewport overflows the row — the pair now drops
-              under the toggle instead of pushing the backup button past the
-              viewport edge. No visual change when space allows. */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <Button
-              label={t("files.editSet")}
-              labelKey="files.editSet"
-              glyph={<IconPencil />}
-              tone="accent"
-              onClick={onEdit}
-            />
-            <Button
-              key={shake}
-              label={t("files.deleteSet")}
-              labelKey="files.deleteSet"
-              glyph={<IconTrash />}
-              tone={isDesktop ? "accent" : "danger"}
-              onClick={() => void handleRemove()}
-              disabled={removing}
-              className={shake ? "glim-shake" : ""}
-            />
-          </div>
-        </div>
-        {/* ms-auto column (carried 06-UI-REVIEW fix, 07-06): the column keeps
-            the default min-width:auto ON PURPOSE — it must carry the backup
-            button's min-content, so a tight flex line WRAPS the whole column
-            onto its own (ms-auto right-aligned) line instead of squeezing it.
-            An earlier min-w-0 variant was mutation-checked out: a squeezed
-            column with `items-end` is unsafe cross-end alignment and pushes
-            the button out through the column's LEFT edge (measured x=-3 at
-            390px German — the exact clip this fix exists to forbid). With
-            min-width:auto the button never sits in a column narrower than its
-            own longest word, so a squeeze wraps text, never clips a control. */}
-        <div className="ms-auto flex flex-col items-end">
-          <FileSetBackupButton
-            set={set}
-            t={t}
-            onBackedUp={onRefresh}
-            running={running}
-            onRunCorrelated={onRunCorrelated}
-          />
         </div>
       </div>
 
-      {/* Backups / Restore disclosure */}
+      {/* #199: the consequence of the toggle right ABOVE, in words. This tab is
+          where a set is created and where the include switch is flipped, so it
+          is the second place a reader can walk away with the wrong belief about
+          whether the folder is protected. Same component, same server-computed
+          sentence as the Schedules card.
+
+          It sat between the badge corner and the toggle until now, which put a
+          sentence between the switch and the badges it belongs under. jdp asked
+          for the toggle directly beneath the buttons (2026-09-11: "der toggle
+          im zeitplan einschließen bitte direkt unter die oberen buttons"), so
+          the line moves below the switch it describes. It reads better there
+          anyway: a consequence after the control, not before it. */}
+      <EffectiveScheduleLine effective={set.effectiveSchedule} />
+
+      {/* Backups / Restore disclosure, with the last-backup date on its own
+          row — the container card's shape. See `trailing`'s own doc. */}
       <FileSetRestorePanel
         set={set}
         hostMountRoot={hostMountRoot}
         restoreFolder={restoreFolder}
         t={t}
         onSetsChanged={onRefresh}
+        trailing={
+          // A column, so the running note sits ON TOP of the date it qualifies
+          // (jdp, 2026-09-11). The two belong together: one says the card is
+          // busy right now, the other says when it last was not. Only ever one
+          // line tall at rest - the note renders only while something else is
+          // actually running, and `text-end` keeps both flush with the card's
+          // right edge whether or not it is there.
+          <span className="ms-auto shrink-0 flex flex-col items-end text-xs whitespace-nowrap">
+            {running.active && !progress?.active && (
+              <span className="text-carbon-textMuted">{t(busyPhraseKey(running.phase))}</span>
+            )}
+            <span className="text-carbon-textMuted">
+              {`${t("containers.lastBackup")}: ${
+                set.lastBackup ? formatTs(set.lastBackup) : t("containers.never")
+              }`}
+            </span>
+          </span>
+        }
       />
 
       {/* Choose folders — the Phase 2 SelectionTree over this set's own root
@@ -1774,6 +1916,21 @@ export function FileSetRow({
           active={progress.active}
           label={progress.phase === "restore" ? t("common.restoring") : t("common.backingUp")}
         />
+      )}
+      {/* Stop a backup that is running (#200). Beside the bar that shows it,
+          because that bar is the only place this card admits something is
+          happening at all, and a control for stopping a thing belongs where the
+          thing is visible.
+            Only while a BACKUP is actually running: the restore has its own
+          cancel inside the Backups panel above, with its own confirmation about
+          a half-restored target, and two cancel buttons on one card that mean
+          different things is worse than none. `progress.active` gates it so a
+          finished run's last frame does not leave a button that can only ever
+          answer "nothing to cancel". */}
+      {progress && progress.active && progress.phase !== "restore" && (
+        <div className="flex justify-end">
+          <BackupCancelButton cancelKey={`files:${set.name}`} name={set.name} t={t} />
+        </div>
       )}
       {confirmDialog}
     </div>
@@ -2056,13 +2213,26 @@ export function Files() {
     setDiscovering(true);
     try {
       const res = await discoverFiles();
+      // Both paths reload the list and name what was left out. A failed pass no
+      // longer means nothing happened: the named repositories are searched
+      // before the domain's own, so when the domain's own is what failed, the
+      // rows already found are real and already written - and this page does no
+      // polling, so without the reload the operator reads a true red error over
+      // an unchanged, empty list.
+      if (res.skipped?.length) {
+        // A pass that could not open every repository says so. "+0" and "+3" look
+        // identical whether everything was read or a named repository was switched
+        // off, unresolvable or on a share that did not mount, and the second case
+        // is the one somebody has to act on.
+        push(t("common.discoverSkipped").replace("{list}", res.skipped.join(", ")), "warn");
+      }
       if (res.ok) {
         push(`+${res.discovered ?? 0}`, "success");
-        await loadSets();
       } else {
         push(res.error ?? t("common.discoverFailed"), "fail");
         setShakeDiscover((n) => n + 1);
       }
+      await loadSets();
     } catch (err) {
       push(err instanceof Error ? err.message : t("common.discoverFailed"), "fail");
       setShakeDiscover((n) => n + 1);

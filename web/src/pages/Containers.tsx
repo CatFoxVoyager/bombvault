@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from "react";
-import { listContainers, deleteBackups, backupAll, restore, restoreStack, discover, setContainerHooks, getContainerMounts, setContainerTargets, setStopContainers, setContainerExcludes, previewContainerExcludes, suggestContainerExcludes, exportContainer, setIncludeAll, setUpdateAfterBackup, getBackupOrder, setBackupOrder, ApiError, type ContainerTargetsBody, type ContainerMountsResponse } from "../lib/api";
+import { listContainers, deleteBackups, backupAll, restore, restoreStack, discover, setContainerHooks, getContainerMounts, setContainerRepo, setContainerTargets, setStopContainers, setContainerExcludes, previewContainerExcludes, suggestContainerExcludes, exportContainer, setIncludeAll, setUpdateAfterBackup, getBackupOrder, setBackupOrder, ApiError, type ContainerTargetsBody, type ContainerMountsResponse } from "../lib/api";
 import type { Container, ExcludeSuggestion, MountInfo, CustomPath, ContainerOrder, BrowseResponse, Run } from "../lib/api";
-import { applyToggle, browseRelToHost, partitionCustomPaths, toFlatList } from "../lib/selectionTree";
+import { applyToggle, browseRelToHost, classifyNode, isAtOrUnder, partitionCustomPaths, toFlatList } from "../lib/selectionTree";
 import { useIsCoarsePointer, useIsDesktop } from "../lib/useMediaQuery";
 import { SelectionTree } from "../components/SelectionTree";
 import { StickyActionBar } from "../components/mobile/StickyActionBar";
 import { RunDetailSheet } from "../components/mobile/RunDetailSheet";
 import { ListToolbar } from "../components/mobile/ListToolbar";
 import { useLoadMore } from "../lib/useLoadMore";
+import { RepoPicker } from "../components/RepoPicker";
 import { FolderBrowser } from "../components/FolderBrowser";
 import { humanBytes } from "../lib/forecast";
 import { FilterPopover } from "../components/FilterPopover";
@@ -31,6 +32,7 @@ import { Badge, type BadgeTone } from "../components/Badge";
 import { Button } from "../components/Button";
 import { groupStage } from "../lib/controls";
 import { ToggleRow } from "./settings/shared";
+import { BackupCancelButton } from "../components/BackupCancelButton";
 import { ProgressBar } from "../components/ProgressBar";
 import { tLtr, withLtrFragments, withLtrPlaceholder, EXCLUDES_HINT_LTR_FRAGMENTS } from "../lib/ltrFragments";
 import { useProgress, anyActive, busyPhraseKey } from "../lib/progress";
@@ -751,6 +753,10 @@ type SaveDesc =
       structural: boolean;
       source?: "tree";
       reset?: true;
+      /** Host path of a custom root this save REMOVES. Its CACHEDIR.TAG entry
+       *  is dropped only once the removal has actually landed - see the ok
+       *  branch in attemptSave. */
+      removedRoot?: string;
     }
   | {
       cls: "caches";
@@ -786,11 +792,17 @@ export function FoldersEditor({
   onSaveState,
   flushRef,
   treeViewportClassName,
+  repo = "",
 }: {
   name: string;
   stack: string;
   open: boolean;
   t: T;
+  /** This container's own repository (#204), "" for the Containers domain
+   *  repository. It lives in this section because "where do the backups go" is
+   *  the same question as "which folders go into them", and the two answers
+   *  belong beside each other. */
+  repo?: string;
   /** Unix seconds of the container's last successful backup, null when none
    *  exists (Container.lastBackup verbatim). The D-02 narrowing gate: a
    *  narrowing selection only warns when there is at least one prior
@@ -835,6 +847,13 @@ export function FoldersEditor({
   // The folder picker works in paths relative to the host mount (like File Sets);
   // browseValue stages one pick before it is translated to a host path and added.
   const [browseValue, setBrowseValue] = useState("");
+  // The picker's own optimistic state (#204). Seeded from the prop and put back
+  // on a failed save, so the control never shows a destination the server did
+  // not accept - the one thing a repository field must not do.
+  const [repoChoice, setRepoChoice] = useState(repo);
+  useEffect(() => {
+    setRepoChoice(repo);
+  }, [repo]);
   const [hostMountRoot, setHostMountRoot] = useState("/host/user");
   const [hostSourceRoot, setHostSourceRoot] = useState("/mnt");
   const { push } = useToast();
@@ -1100,6 +1119,16 @@ export function FoldersEditor({
         // state change IS the feedback, the live-save house shape).
         if (owed.has("paths")) {
           push(t("folders.saved"), "success");
+          // The removal landed, so its now-orphaned CACHEDIR.TAG entry can go.
+          // It drains as its own caches-class save, which is quiet by design.
+          const gone = pathsDesc?.removedRoot;
+          if (gone !== undefined && cachesRef.current[gone] !== undefined) {
+            const wasOn = cachesRef.current[gone] ?? false;
+            const nextCaches = { ...cachesRef.current };
+            delete nextCaches[gone];
+            applyCaches(nextCaches);
+            scheduleSave({ cls: "caches", node: gone, caches: { path: gone, pre: wasOn, next: false } });
+          }
           if (pathsDesc?.reset) {
             // Non-optimistic success: nothing was ever emptied locally, so
             // the served auto-detected state (mounts re-selected, remembered
@@ -1202,6 +1231,25 @@ export function FoldersEditor({
     for (const p of desc.pre.includes) if (!desc.sent.includes.has(p)) inc.add(p);
     for (const p of desc.sent.exclusions) if (!desc.pre.exclusions.has(p)) exc.delete(p);
     for (const p of desc.pre.exclusions) if (!desc.sent.exclusions.has(p)) exc.add(p);
+    // The D-04 floor again, because a revert can walk through it sideways. A
+    // toggle stacked behind this save was checked against a mirror that still
+    // carried this attempt's optimistic include; once that include is taken
+    // back, the newer toggle's own removal can leave ZERO includes. The
+    // chained drain then PATCHes that exclusions-only list under the "tree"
+    // source, the server stores it (a non-empty list passes the empty-selection
+    // guard), and every later backup succeeds capturing nothing while the first
+    // one overwrites the last record of where the data was. The user sees a
+    // fail toast followed by a green Saved.
+    //
+    // Fall back to this attempt's pre-state: the failed save never reached the
+    // server, so that IS server truth, and the newer toggle is refused exactly
+    // as the floor would have refused it had it been evaluated against the
+    // truth instead of against an optimistic mirror. Same warn line as a
+    // blocked click, so the refusal is not silent.
+    if (inc.size === 0) {
+      for (const p of desc.pre.includes) inc.add(p);
+      setBlockedPath(desc.node);
+    }
     applyMirror(inc, exc);
     setRowShake((s) => ({ ...s, [desc.node]: (s[desc.node] ?? 0) + 1 }));
   }
@@ -1281,6 +1329,12 @@ export function FoldersEditor({
     // too. An already-absolute path still passes through untranslated
     // (cleaned only), the established manual-fallback precedent.
     const p = browseRelToHost(raw, hostSourceRoot);
+    // Already covered by an ancestor include: adding it changes nothing. The
+    // server prunes a redundant descendant include (PruneMaximal), so the row
+    // would count toward the mount's path total, survive until the next reload,
+    // and then quietly disappear. Treated exactly like the literal duplicate
+    // below - the staged pick stays in the input, which is the feedback.
+    if (classifyNode(p, mirrorRef.current.inc, mirrorRef.current.exc) === "checked") return;
     if (custom.some((c) => c.path === p) || includes.has(p)) {
       // Duplicate: leave the staged pick IN the input (review WR-04). This
       // guard used to run AFTER setBrowseValue(""), so adding an
@@ -1296,14 +1350,38 @@ export function FoldersEditor({
     const nextCustom = [...custom, { path: p, exists: true }];
     const pre = { includes: mirrorRef.current.inc, exclusions: mirrorRef.current.exc };
     const nextIncludes = new Set(pre.includes);
-    nextIncludes.add(p);
+    const nextExclusions = new Set(pre.exclusions);
+    // A folder inside an already-excluded branch has to clear that exclusion
+    // first, the same rule applyToggle applies when the tree's own checkbox is
+    // clicked on an excluded node. Adding it while the exclusion stands saved a
+    // no-op: the server pruned the redundant include, kept the exclusion, and
+    // the backup argv still carried --exclude for the branch, which swallows
+    // the folder - while the row counted toward the mount's path total and the
+    // UI toasted Saved. The flat encoding has no way to say "exclude this
+    // branch except this one folder" (an --exclude swallows everything below
+    // it), so the only honest reading of "add this folder" is the one the tree
+    // already uses: drop the exclusions that COVER it, deeper ones stay.
+    for (const e of pre.exclusions) {
+      if (isAtOrUnder(p, e)) nextExclusions.delete(e);
+    }
+    // Add the include unless an ancestor already covers the path, in which case
+    // it is the redundant entry the server prunes.
+    //
+    // "unchecked" alone was too narrow, and that was a regression: classifyNode
+    // also answers "mixed" when an include sits STRICTLY BELOW p. Adding a
+    // folder that happens to be the parent of an existing include is the
+    // opposite of redundant - nothing covers p from above, so PruneMaximal
+    // would keep p and swallow the child. Skipping it sent the list out
+    // unchanged, cleared the input, added a row and toasted Saved, while the
+    // folder was never backed up.
+    if (classifyNode(p, nextIncludes, nextExclusions) !== "checked") nextIncludes.add(p);
     setCustom(nextCustom);
-    applyMirror(nextIncludes, pre.exclusions);
+    applyMirror(nextIncludes, nextExclusions);
     scheduleSave({
       cls: "paths",
       node: p,
       pre,
-      sent: { includes: nextIncludes, exclusions: pre.exclusions },
+      sent: { includes: nextIncludes, exclusions: nextExclusions },
       structural: true,
       source: "tree",
     });
@@ -1316,8 +1394,37 @@ export function FoldersEditor({
     const pre = { includes: mirrorRef.current.inc, exclusions: mirrorRef.current.exc };
     const nextIncludes = new Set(pre.includes);
     nextIncludes.delete(path);
+    // The D-04 floor applies to the Remove chip too. It used to live only in
+    // onToggle, so the identical end state - zero includes, one dormant
+    // exclusion left over - was refused through the checkbox and waved through
+    // here: the save goes out as an exclusions-only list, which the server
+    // stores because it is not EMPTY, and from then on backups report success
+    // while capturing nothing and the first run overwrites AppdataPaths, the
+    // last record of where the data was. Blocking it keeps the one honest route
+    // to backing nothing up the one the warn line names: leave the container
+    // out of the schedule.
+    if (nextIncludes.size === 0) {
+      setBlockedPath(path);
+      setRowShake((s) => ({ ...s, [path]: (s[path] ?? 0) + 1 }));
+      return;
+    }
+    setBlockedPath(null);
     setCustom(nextCustom);
     applyMirror(nextIncludes, pre.exclusions);
+    // The removed root's CACHEDIR.TAG entry goes with it, but only AFTER the
+    // removal has actually landed. Nothing prunes that map - not the server's
+    // setter, not SetBackupPaths - and the switch renders only for a root that
+    // still has a row, so an orphan stayed ON with no control left to turn it
+    // off: every backup kept running with --exclude-caches, skipping every
+    // tagged directory under the roots that DID remain, while every switch on
+    // screen read off.
+    //
+    // Tying it to the save's SUCCESS is the point. Scheduling it here as its own
+    // class sent it as a second PATCH - the first scheduleSave starts its drain
+    // synchronously, so a second class can never join it - and that second PATCH
+    // landed even when the removal before it had failed. A structural save is
+    // deliberately never reverted, so nothing undid it: the row came back on the
+    // next reload with its switch silently flipped off.
     scheduleSave({
       cls: "paths",
       node: path,
@@ -1325,6 +1432,7 @@ export function FoldersEditor({
       sent: { includes: nextIncludes, exclusions: pre.exclusions },
       structural: true,
       source: "tree",
+      removedRoot: cachesRef.current[path] !== undefined ? path : undefined,
     });
   }
 
@@ -1451,7 +1559,16 @@ export function FoldersEditor({
     mounts.filter((m) => m.reachable).map((m) => m.source),
   );
   const standaloneSet = new Set(standaloneCustom);
-  const customRows = custom.filter((c) => standaloneSet.has(c.path));
+  // A VANISHED sub-include keeps its row even when its mount would absorb it.
+  // Absorption assumes the tree can show the path instead, and the tree builds
+  // its children from browse listings - a folder that is no longer on disk is in
+  // no listing, so it had no row, no child, and no warning anywhere, while the
+  // mount row still counted it in its "{n} paths" line. Before the tree it
+  // showed the issue-#115 "no data folder detected" warning. At run time the
+  // path is dropped from the positionals and the backup is recorded a success,
+  // and the empty-backup guard only speaks up once EVERY include has gone, so
+  // this row is the only place the partial case can surface.
+  const customRows = custom.filter((c) => standaloneSet.has(c.path) || !c.exists);
 
   if (!open) return null;
 
@@ -1470,6 +1587,30 @@ export function FoldersEditor({
       {loading && <p className="text-xs text-carbon-textMuted">{t("common.loadingBackups")}</p>}
       {!loading && mounts.length === 0 && custom.length === 0 && (
         <p className="text-xs text-carbon-textMuted">{t("folders.empty")}</p>
+      )}
+      {/* Where this container's backups go (#204). Above the tree, because a
+          reader who has not decided the destination cannot judge the selection
+          under it. Locked once the container has backups: they stay in the
+          repository they were written to and nothing re-homes them. */}
+      {!loading && (
+        <RepoPicker
+          value={repoChoice}
+          onChange={(next) => {
+            const before = repoChoice;
+            setRepoChoice(next);
+            void setContainerRepo(name, next).then((r) => {
+              if (r.ok) {
+                push(t("folders.saved"), "success");
+                return;
+              }
+              // Same discipline as every other save on this panel: the server's
+              // own words, and the control goes back to what is actually stored.
+              push(r.error ?? t("settings.error"), "fail");
+              setRepoChoice(before);
+            });
+          }}
+          locked={lastBackup !== null}
+        />
       )}
       {/* D-02: the mount rows and custom rows ARE the tree's level-1 items —
           rendered by SelectionTree with lazy children under each, per-node
@@ -1796,6 +1937,7 @@ function MobileContainerDetail({
           open
           t={t}
           lastBackup={container.lastBackup}
+          repo={container.repo ?? ""}
           treeViewportClassName="h-auto"
           onSaveState={onSaveState}
           flushRef={flushRef}
@@ -1977,7 +2119,7 @@ function StopContainersEditor({
           aria-haspopup="listbox"
           aria-expanded={pickerOpen}
           onClick={() => setPickerOpen((v) => !v)}
-          className="flex items-center gap-2 w-64 max-w-full rounded-control bg-carbon-surface2 px-3 py-1.5 text-xs text-carbon-text hover:bg-carbon-hover transition-colors text-start"
+          className="flex items-center gap-2 w-64 max-w-full rounded-control bg-carbon-surface2 px-3 py-1.5 text-xs text-carbon-text hover:bg-carbon-surface3 transition-colors text-start"
         >
           <span className="min-w-0 flex-1 truncate">{t("stophook.title")}</span>
           <svg width="10" height="10" viewBox="0 0 12 12" fill="none" className={`shrink-0 transition-transform ${pickerOpen ? "rotate-90" : "rtl:rotate-180"}`}>
@@ -2783,11 +2925,21 @@ function ContainerRow({
           `flex-wrap` this row already needs for the chips themselves. */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 flex-wrap">
+          {/* buttonHeight, so this row's triggers are the same size as the
+              folder card's (jdp, 2026-09-11: "auf der container cards und der
+              ordner cards sind diese buttons unterschiedlich groß"). Measured:
+              these chips were 24px and the folder card's own Backups trigger
+              32px, because one card expresses its disclosure as a Selector and
+              the other as a Button. Both are the same THING - the control that
+              opens a section of the card - so both take the height the house
+              gives a button, and the two cards stop disagreeing about how big
+              "Backups" is. */}
           <Selector
             items={sectionItems}
             label={t("containers.sectionsLabel")}
             select="many"
             active={openSections}
+            buttonHeight
             onChange={toggleSection}
           />
           <span className="ms-auto shrink-0 text-xs text-carbon-textMuted whitespace-nowrap">
@@ -2810,6 +2962,7 @@ function ContainerRow({
             open={openSections.has("folders")}
             t={t}
             lastBackup={container.lastBackup}
+            repo={container.repo ?? ""}
           />
           <StopContainersEditor
             name={container.name}
@@ -2834,6 +2987,21 @@ function ContainerRow({
         </Advanced>
         <RestorePanel name={container.name} t={t} installed={installed} open={openSections.has("backups")} />
       </div>
+
+      {/* Stop a backup that is running (#200). The same control the Folders
+          page has carried since v8.7.0, and the reason it is here now: the
+          answer given on that issue promised it for any running backup, while
+          only folder sets actually had it - the server has accepted the key for
+          every domain all along. Gated exactly as it is there: not on a RESTORE,
+          which has its own control inside the Backups panel with its own warning
+          about a half-restored target, and only while the run is active, so a
+          finished run's last frame does not leave a button that can only answer
+          "nothing to cancel". */}
+      {progress && progress.active && progress.phase !== "restore" && (
+        <div className="flex justify-end">
+          <BackupCancelButton cancelKey={`container:${container.name}`} name={container.name} t={t} />
+        </div>
+      )}
 
       {/* Live backup/restore progress, pinned to the card's bottom edge */}
       {progress && (
@@ -3518,16 +3686,6 @@ function BackupOrderPanel({
             </ol>
             <div className="flex items-center gap-3 flex-wrap">
               <Button
-                key={shakeSave}
-                label={t("backupOrder.save")}
-                labelKey="backupOrder.save"
-                tone="accent"
-                onClick={() => void persist(names, "save")}
-                disabled={saveState === "saving"}
-                busy={saveState === "saving"}
-                className={shakeSave ? "glim-shake" : ""}
-              />
-              <Button
                 key={shakeReset}
         label={t("backupOrder.reset")}
           labelKey="backupOrder.reset"
@@ -3537,6 +3695,16 @@ function BackupOrderPanel({
                 className={`inline-flex items-center rounded-control px-3 py-1.5 text-xs font-medium text-carbon-textSub hover:text-carbon-text transition-colors disabled:opacity-50${
                   shakeReset ? " glim-shake" : ""
                 }`}
+              />
+              <Button
+                key={shakeSave}
+                label={t("backupOrder.save")}
+                labelKey="backupOrder.save"
+                tone="accent"
+                onClick={() => void persist(names, "save")}
+                disabled={saveState === "saving"}
+                busy={saveState === "saving"}
+                className={shakeSave ? "glim-shake" : ""}
               />
             </div>
           </>
@@ -3917,13 +4085,26 @@ export function Containers() {
     setDiscovering(true);
     try {
       const res = await discover();
+      // Both paths reload the list and name what was left out. A failed pass no
+      // longer means nothing happened: the named repositories are searched
+      // before the domain's own, so when the domain's own is what failed, the
+      // rows already found are real and already written - and this page does no
+      // polling, so without the reload the operator reads a true red error over
+      // an unchanged, empty list.
+      if (res.skipped?.length) {
+        // A pass that could not open every repository says so. "+0" and "+3" look
+        // identical whether everything was read or a named repository was switched
+        // off, unresolvable or on a share that did not mount, and the second case
+        // is the one somebody has to act on.
+        push(t("common.discoverSkipped").replace("{list}", res.skipped.join(", ")), "warn");
+      }
       if (res.ok) {
         push(`+${res.discovered ?? 0}`, "success");
-        await loadContainers();
       } else {
         push(res.error ?? t("common.discoverFailed"), "fail");
         setShakeDiscover((n) => n + 1);
       }
+      await loadContainers();
     } catch (err) {
       push(err instanceof Error ? err.message : t("common.discoverFailed"), "fail");
       setShakeDiscover((n) => n + 1);

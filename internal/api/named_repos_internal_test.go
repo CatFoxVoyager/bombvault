@@ -1,0 +1,312 @@
+package api
+
+import (
+	"os"
+	"regexp"
+	"strings"
+	"testing"
+
+	"github.com/junkerderprovinz/bombvault/internal/config"
+	"github.com/junkerderprovinz/bombvault/internal/store"
+)
+
+// TestNamedRepoRoleIsInvisibleToTheOffsiteQueries is the load-bearing claim
+// behind putting named repositories (#204) in offsite_targets at all: a third
+// role is free because every query in that file filters on an explicit one.
+//
+// If it were not true, the replication loop would start copying backups INTO
+// what is meant to be a primary location, and the off-site CRUD would offer it
+// as a destination. That is why this is pinned rather than argued.
+func TestNamedRepoRoleIsInvisibleToTheOffsiteQueries(t *testing.T) {
+	st := newTestStore(t)
+
+	named, err := st.UpsertOffsiteTarget(store.OffsiteTarget{
+		Role: store.RoleRepo, Name: "Cold storage", Repo: "b2:bucket/cold", Enabled: true,
+	})
+	if err != nil {
+		t.Fatalf("create named repo: %v", err)
+	}
+	// A real off-site destination beside it, so the queries have something to
+	// return and "empty" cannot pass for "filtered".
+	if _, err := st.UpsertOffsiteTarget(store.OffsiteTarget{
+		Domain: "containers", Name: "Offsite", Repo: "b2:bucket/offsite", Enabled: true,
+	}); err != nil {
+		t.Fatalf("create offsite target: %v", err)
+	}
+
+	all, err := st.ListOffsiteTargets()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1 || all[0].Name != "Offsite" {
+		t.Fatalf("ListOffsiteTargets = %v, want only the replication destination", all)
+	}
+	forDomain, err := st.OffsiteTargetsForDomain("containers")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(forDomain) != 1 || forDomain[0].Name != "Offsite" {
+		t.Fatalf("OffsiteTargetsForDomain = %v, want only the replication destination", forDomain)
+	}
+	if _, found, _ := st.GetOffsiteTarget(named.ID); found {
+		t.Fatal("a named repository must not be reachable through GetOffsiteTarget")
+	}
+
+	// And the other way round: the named-repo queries see only their own rows.
+	repos, err := st.ListNamedRepos()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(repos) != 1 || repos[0].ID != named.ID {
+		t.Fatalf("ListNamedRepos = %v, want only the named repository", repos)
+	}
+}
+
+// TestItemRepoPathRefusesRatherThanFallingBack pins the decision that matters
+// most here. An override that cannot be resolved is an ERROR; it never quietly
+// becomes the domain repository.
+//
+// A fallback would send the next backup somewhere else and look exactly like a
+// working backup - the run is green, the snapshot exists, it is simply in the
+// wrong place, and nobody finds out until they go looking for a snapshot that
+// is not where they expect it.
+func TestItemRepoPathRefusesRatherThanFallingBack(t *testing.T) {
+	dir := t.TempDir()
+	st := newTestStore(t)
+	svc := NewService(config.Config{
+		AppKey:        strings.Repeat("a", 64),
+		DataDir:       dir,
+		HostMountRoot: dir,
+	}, st, nil, nil, nil)
+
+	settings, err := st.GetSettings()
+	if err != nil {
+		t.Fatal(err)
+	}
+	settings.ContainersPath = "backups/containers"
+	if err := st.UpdateSettings(settings); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Run("no override takes the domain repository", func(t *testing.T) {
+		got, err := svc.containerRepoPath(settings, store.Target{})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if !strings.HasSuffix(got, "backups/containers") {
+			t.Fatalf("repo = %q, want the domain repository", got)
+		}
+	})
+
+	t.Run("an id that does not exist is an error, not the domain repository", func(t *testing.T) {
+		_, err := svc.containerRepoPath(settings, store.Target{Repo: "ffffffffffffffffffffffffffffffff"})
+		if err == nil {
+			t.Fatal("a dangling override must fail loudly; falling back would look like a working backup")
+		}
+		if !strings.Contains(err.Error(), "no longer exists") {
+			t.Fatalf("error = %v, want it to say the repository is gone", err)
+		}
+	})
+
+	t.Run("a switched-off repository is an error too", func(t *testing.T) {
+		off, err := st.UpsertOffsiteTarget(store.OffsiteTarget{
+			Role: store.RoleRepo, Name: "Paused", Repo: "backups/paused", Enabled: false,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := svc.containerRepoPath(settings, store.Target{Repo: off.ID}); err == nil {
+			t.Fatal("a switched-off repository must fail rather than divert the backup")
+		}
+	})
+
+	t.Run("a live override resolves to its own location", func(t *testing.T) {
+		on, err := st.UpsertOffsiteTarget(store.OffsiteTarget{
+			Role: store.RoleRepo, Name: "Cold", Repo: "backups/cold", Enabled: true,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		got, err := svc.containerRepoPath(settings, store.Target{Repo: on.ID})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if !strings.HasSuffix(got, "backups/cold") {
+			t.Fatalf("repo = %q, want the named repository's own location", got)
+		}
+	})
+}
+
+// TestDomainReposInUseCoversEveryItemsRepository pins what the dashboard reads.
+// A container pointed at a named repository keeps its snapshots there, so an
+// overview that only read the domain repository would report it as never backed
+// up - the most alarming thing a backup tool can say, and wrong.
+func TestDomainReposInUseCoversEveryItemsRepository(t *testing.T) {
+	dir := t.TempDir()
+	st := newTestStore(t)
+	svc := NewService(config.Config{
+		AppKey:        strings.Repeat("a", 64),
+		DataDir:       dir,
+		HostMountRoot: dir,
+	}, st, nil, nil, nil)
+
+	settings, err := st.GetSettings()
+	if err != nil {
+		t.Fatal(err)
+	}
+	settings.ContainersPath = "backups/containers"
+	if err := st.UpdateSettings(settings); err != nil {
+		t.Fatal(err)
+	}
+
+	used, err := st.UpsertOffsiteTarget(store.OffsiteTarget{
+		Role: store.RoleRepo, Name: "Cold", Repo: "backups/cold", Enabled: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// A second one that NOTHING points at: it must not be scanned, or every
+	// overview pays for repositories nobody uses.
+	if _, err := st.UpsertOffsiteTarget(store.OffsiteTarget{
+		Role: store.RoleRepo, Name: "Unused", Repo: "backups/unused", Enabled: true,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := st.UpsertTarget(store.Target{ContainerName: "plex"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := st.SetTargetRepo("plex", used.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	repos, skipped, err := svc.domainReposInUse(settings, "containers")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(skipped) != 0 {
+		t.Fatalf("skipped = %v, want nothing skipped: both repositories are on and resolve", skipped)
+	}
+	if len(repos) != 2 {
+		t.Fatalf("repos = %v, want the domain repository and the one in use", repos)
+	}
+	if !strings.HasSuffix(repos[0].Loc, "backups/containers") {
+		t.Fatalf("repos[0] = %q, want the domain repository first", repos[0].Loc)
+	}
+	if !strings.HasSuffix(repos[1].Loc, "backups/cold") {
+		t.Fatalf("repos[1] = %q, want the repository the container points at", repos[1].Loc)
+	}
+}
+
+// TestRepoCanBeChosenBeforeTheFirstBackup pins the case that only showed up
+// when the picker was actually clicked.
+//
+// A container or VM gets its stored row on its FIRST backup. The repository
+// setters updated an existing row and reported "no such target" otherwise, so
+// choosing a destination failed for exactly the item that most needs it: one
+// that has never run, where the point is to decide where the data goes BEFORE
+// the first run puts it somewhere else. Everything compiled and every test was
+// green; the save just silently bounced.
+func TestRepoCanBeChosenBeforeTheFirstBackup(t *testing.T) {
+	st := newTestStore(t)
+	named, err := st.UpsertOffsiteTarget(store.OffsiteTarget{
+		Role: store.RoleRepo, Name: "Cold", Repo: "backups/cold", Enabled: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Run("container with no target row yet", func(t *testing.T) {
+		if err := st.SetTargetRepo("never-backed-up", named.ID); err != nil {
+			t.Fatalf("choosing a repository before the first backup must work: %v", err)
+		}
+		tg, err := st.GetTargetByContainer("never-backed-up")
+		if err != nil {
+			t.Fatalf("the row must exist afterwards: %v", err)
+		}
+		if tg.Repo != named.ID {
+			t.Fatalf("stored repo = %q, want %q", tg.Repo, named.ID)
+		}
+	})
+
+	t.Run("VM with no row yet", func(t *testing.T) {
+		if err := st.SetVMRepo("fresh-vm", named.ID); err != nil {
+			t.Fatalf("choosing a repository before the first backup must work: %v", err)
+		}
+		vm, err := st.GetVMTargetByName("fresh-vm")
+		if err != nil {
+			t.Fatalf("the row must exist afterwards: %v", err)
+		}
+		if vm.Repo != named.ID {
+			t.Fatalf("stored repo = %q, want %q", vm.Repo, named.ID)
+		}
+	})
+}
+
+// TestContainerViewCarriesTheRepoOnBothBranches pins a gap that cost a build.
+//
+// The container list assembles its view in TWO places: one for containers Docker
+// reports, one for stored targets Docker no longer knows about. Only the second
+// carried the new field, so the picker on a LIVE container always read back "the
+// domain repository" no matter what was stored - the save landed, the interface
+// said it had not, and clicking it was the only way to find out.
+//
+// A source scan because the two branches sit forty lines apart in one function
+// and are edited for different reasons; a behavioural test would have to build a
+// fake Docker to reach the first one.
+func TestContainerViewCarriesTheRepoOnBothBranches(t *testing.T) {
+	raw, err := os.ReadFile("handlers.go")
+	if err != nil {
+		t.Fatalf("read handlers.go: %v", err)
+	}
+	src := string(raw)
+	// Matched with the run of spaces left OPEN. A struct literal's field values
+	// are aligned by gofmt, so pinning the exact column would make this guard
+	// fail the day somebody adds a longer field name beside it - a failure about
+	// nothing, in a test whose whole job is to be believed when it speaks.
+	for _, want := range []*regexp.Regexp{
+		regexp.MustCompile(`v\.Repo\s*=\s*t\.Repo`), // the live-container merge
+		regexp.MustCompile(`Repo:\s+t\.Repo,`),      // the not-installed literal
+	} {
+		if !want.MatchString(src) {
+			t.Errorf("the container view no longer carries the per-item repository on one of its two branches (%s).\n"+
+				"The picker then reads back the domain repository for an item that is not on it, which is the\n"+
+				"exact misreading the control exists to prevent.", want)
+		}
+	}
+}
+
+// TestRepoRefusedOnceAnItemHasBackups pins the refusal that three comments
+// described and no code performed.
+//
+// The review proved the gap by driving the real handler: a container with a
+// successful run was re-pointed from one repository to another, answer ok:true,
+// stored value the new one. The consequence is a split history - the snapshots
+// already written stay where they are, the interface then shows only the new
+// half, and the old half is never pruned and unreachable except through restic
+// by hand.
+//
+// The interface's own lock is not a substitute, which is why this lives on the
+// server: an item rebuilt by Discover after a /config loss has real snapshots
+// and no run rows, so its lastBackup is null and the picker stands open on
+// exactly the item that must not move. The file-set twin documents that case as
+// its own reason for looking past the runs table.
+func TestRepoRefusedOnceAnItemHasBackups(t *testing.T) {
+	raw, err := os.ReadFile("handlers.go")
+	if err != nil {
+		t.Fatalf("read handlers.go: %v", err)
+	}
+	src := string(raw)
+	if !strings.Contains(src, "had, bErr := hasBackups()") {
+		t.Error("applyItemRepo no longer refuses an item that already has backups")
+	}
+	for _, want := range []string{
+		"h.svc.containerHasBackups(r.Context(), name)",
+		"h.svc.vmHasBackups(r.Context(), name)",
+	} {
+		if !strings.Contains(src, want) {
+			t.Errorf("one of the two domains no longer passes its has-backups check (%s).\n"+
+				"Its doc comment claims the refusal either way, which is how the gap survived\n"+
+				"three commits and two reviews.", want)
+		}
+	}
+}

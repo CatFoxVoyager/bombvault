@@ -154,8 +154,8 @@ export function TwoFactorCard({
                 {step.secret}
               </code>
               <Button
-                label={t("vm.ssh.copy")}
-                labelKey="vm.ssh.copy"
+                label={t("common.copy")}
+                labelKey="common.copy"
                 tone="neutral"
                 glyph={<IconCopy />}
                 onClick={() => void copyText(step.secret)}
@@ -179,15 +179,6 @@ export function TwoFactorCard({
           </div>
           <div className="flex items-center gap-3">
             <Button
-              label={t("auth.twoFactorConfirm")}
-              labelKey="auth.twoFactorConfirm"
-              tone="accent"
-              onClick={() => void confirm()}
-              disabled={busy || code.trim() === ""}
-              busy={busy}
-              hueIndex={hueIndex}
-            />
-            <Button
               label={t("common.cancel")}
               labelKey="common.cancel"
               tone="neutral"
@@ -195,6 +186,15 @@ export function TwoFactorCard({
                 setStep({ kind: "idle" });
                 setCode("");
               }}
+              hueIndex={hueIndex}
+            />
+            <Button
+              label={t("auth.twoFactorConfirm")}
+              labelKey="auth.twoFactorConfirm"
+              tone="accent"
+              onClick={() => void confirm()}
+              disabled={busy || code.trim() === ""}
+              busy={busy}
               hueIndex={hueIndex}
             />
           </div>
@@ -213,8 +213,8 @@ export function TwoFactorCard({
           </ul>
           <div className="flex items-center gap-3">
             <Button
-              label={t("vm.ssh.copy")}
-              labelKey="vm.ssh.copy"
+              label={t("common.copy")}
+              labelKey="common.copy"
               tone="neutral"
               glyph={<IconCopy />}
               onClick={() => void copyText(step.codes.join("\n"))}
@@ -264,15 +264,6 @@ export function TwoFactorCard({
               />
               <div className="flex items-center gap-3">
                 <Button
-                  label={t("auth.twoFactorDisable")}
-                  labelKey="auth.twoFactorDisable"
-                  tone="accent"
-                  onClick={() => void disable()}
-                  disabled={busy || code.trim() === ""}
-                  busy={busy}
-                  hueIndex={hueIndex}
-                />
-                <Button
                   label={t("common.cancel")}
                   labelKey="common.cancel"
                   tone="neutral"
@@ -280,6 +271,15 @@ export function TwoFactorCard({
                     setDisarming(false);
                     setCode("");
                   }}
+                  hueIndex={hueIndex}
+                />
+                <Button
+                  label={t("auth.twoFactorDisable")}
+                  labelKey="auth.twoFactorDisable"
+                  tone="accent"
+                  onClick={() => void disable()}
+                  disabled={busy || code.trim() === ""}
+                  busy={busy}
                   hueIndex={hueIndex}
                 />
               </div>

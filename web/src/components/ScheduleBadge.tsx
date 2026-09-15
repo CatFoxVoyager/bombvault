@@ -1,5 +1,6 @@
 import { useT } from "../lib/i18n";
 import { Badge, type BadgeTone } from "./Badge";
+import { InfoBubble } from "./InfoBubble";
 
 // ---------------------------------------------------------------------------
 // Resolved-schedule badge (the green "Täglich um 02:00" chip above a cadence
@@ -100,6 +101,7 @@ export function ScheduleBadge({
 export function ScheduleRow({
   schedule,
   enabled,
+  hint,
 }: {
   /** The stored cadence string ("" / "off" = not scheduled). */
   schedule: string;
@@ -114,6 +116,14 @@ export function ScheduleRow({
    *  would be a new warning-coloured state nobody asked for, and rule 5 keeps
    *  status colours out of any redesign. */
   enabled?: boolean;
+  /** Why this row shows a value its own editor below cannot change. The
+   *  editor under a synced schedule stays visible and dimmed rather than
+   *  disappearing, because the value it shows STILL ACTS - it is simply
+   *  owned elsewhere, and GlimStone 1.16.0 asks such a control to say who is
+   *  in charge. Pass the sentence naming that owner (the three synced domain
+   *  Cards pass `jobs.syncSchedulesHint`, which also says how to take charge
+   *  back); omit it wherever the editor below is the owner. */
+  hint?: string;
 }) {
   const { t } = useT();
   const status = enabled === false ? "off" : scheduleStatus(schedule);
@@ -124,6 +134,7 @@ export function ScheduleRow({
         status={status}
         label={status === "off" ? t("jobs.notScheduled") : cadenceLabel(schedule, t)}
       />
+      {hint && <InfoBubble tip={hint} />}
     </div>
   );
 }

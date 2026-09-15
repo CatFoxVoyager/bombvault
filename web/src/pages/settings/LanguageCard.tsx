@@ -9,6 +9,7 @@ import { DropdownListbox } from "../../components/DropdownListbox";
 import { Flag } from "../../components/Sidebar";
 import { useRef, useState } from "react";
 import { useT } from "../../lib/i18n";
+import { stepIndex } from "../../lib/selectScroll";
 
 // ---------------------------------------------------------------------------
 // Language Card (GlimStone follow-up pass, live-review point 9) — the app's
@@ -103,7 +104,7 @@ export function LanguageCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"];
           aria-haspopup="listbox"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className="flex items-center gap-2.5 w-48 max-md:w-full rounded-control bg-carbon-surface2 px-3 py-1.5 text-sm text-carbon-text hover:bg-carbon-hover transition-colors max-md:relative max-md:after:absolute max-md:after:-inset-3 max-md:after:content-['']"
+          className="flex items-center gap-2.5 w-48 max-md:w-full rounded-control bg-carbon-surface2 px-3 py-1.5 text-sm text-carbon-text hover:bg-carbon-surface3 transition-colors max-md:relative max-md:after:absolute max-md:after:-inset-3 max-md:after:content-['']"
         >
           <Flag code={current.flag} />
           <span className="min-w-0 truncate text-start">{current.label}</span>
@@ -113,6 +114,17 @@ export function LanguageCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"];
           onClose={() => setOpen(false)}
           triggerRef={ref}
           label={t("language.label")}
+          // The wheel on the closed trigger, clamped at both ends (GlimStone
+          // 1.8.0). The language picker is the rule's own example of a value
+          // people reach for and should not have to open a list of 42 to
+          // change, and this app has no native <select> left here for the
+          // platform behaviour to ride on.
+          wheelStep={(delta) => {
+            const at = languages.findIndex((l) => l.code === lang);
+            const next = stepIndex(languages.length, at < 0 ? 0 : at, delta);
+            const picked = languages[next];
+            if (picked && picked.code !== lang) setLanguage(picked.code);
+          }}
         >
           {languages.map((l) => (
             /* Same D-06 fix-1 bleed as the trigger above: option rows measure

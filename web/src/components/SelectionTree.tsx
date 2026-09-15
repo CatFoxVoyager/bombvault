@@ -37,8 +37,17 @@ import { Toggle } from "./Toggle";
 // dies with the page). Rejections and refused reads (ok:false) are removed
 // from the cache so a retry genuinely refetches instead of replaying the
 // failure. Browse is called with the browse-relative path (hostSourceRoot
-// prefix swapped); the hidden-visibility opt-in is deliberately NOT sent
-// (BROWSE-04 consistency with FolderBrowser).
+// prefix swapped), WITH the hidden-visibility opt-in.
+//
+// That opt-in is the one place this tree parts company with FolderBrowser, and
+// it has to: a picker that hides dot-directories merely makes them awkward to
+// reach, but a SELECTION tree that hides them makes them impossible to tick or
+// untick, and what the tree shows is what gets backed up. Every include the
+// user sets by ticking children is a whitelist, so a folder with no row is
+// simply left out - and in appdata the dot-directories are the ones that
+// matter: Home Assistant keeps its config, auth and device registry in
+// .storage. That state had no signal on screen beyond the mount's own
+// indeterminate checkbox.
 //
 // Selection is expressed ONLY via aria-checked on the treeitem
 // ("true"/"mixed"/"false"), never aria-selected (APG: never mix). The mixed
@@ -114,7 +123,7 @@ export interface SelectionTreeProps {
   blockedPath?: string | null;
   /** Copy for the blocked warn line. Optional since Phase 4 (INTEG-02): the
    *  Files page reuses this tree, and its refusal copy orients to that
-   *  domain's own exit ("Remove set", D-06) — reusing the folders wording
+   *  domain's own exit ("Delete folder set", D-06) — reusing the folders wording
    *  ("Use Reset") would name an action the card does not have (UI-SPEC
    *  copy table). Absent keeps the folders key, byte-identical for the
    *  container callers. */
@@ -220,7 +229,7 @@ export function SelectionTree({
     (hostPath: string) => {
       let promise = browseCache.get(hostPath);
       if (!promise) {
-        promise = browse(hostToBrowseRel(hostPath, hostSourceRoot));
+        promise = browse(hostToBrowseRel(hostPath, hostSourceRoot), true);
         browseCache.set(hostPath, promise);
         // A rejected fetch must not be memoized: the next expand retries.
         promise.catch(() => browseCache.delete(hostPath));

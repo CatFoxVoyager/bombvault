@@ -13,6 +13,7 @@
   --color-carbon-textMuted: var(--carbon-text-muted);
   --color-carbon-border: var(--carbon-border);
   --color-carbon-hover: var(--carbon-hover);
+  --color-carbon-hoverRaised: var(--carbon-hover-raised);
 
   /* accent = the raw accent, used as a SOLID fill; accentContrast = the
      computed black/white ink that goes ON that solid fill; accentSoft = a
@@ -44,6 +45,7 @@
   --color-statusWarn: var(--status-warn-text);
   --color-statusWarnBg: var(--status-warn-bg);
   --color-statusWarnBgStrong: var(--status-warn-bg-strong);
+  --color-statusWarnBgSoft: var(--status-warn-bg-soft);
   --color-statusWarnBorder: var(--status-warn-border);
   --color-statusWarnBorderStrong: var(--status-warn-border-strong);
   --color-statusWarnSolid: var(--status-warn-solid);
@@ -179,8 +181,8 @@
      survive someone changing the sidebar.
 
      200px is the rail's own `w-56` (224px) minus its `p-3` on both sides. The
-     rail narrows to 6rem in glyph mode and this token deliberately does not
-     follow it: what a settings tab matches is the rail's row box, not whichever
+     rail narrows to `--rail-narrow` (85px) in glyph mode and this token
+     deliberately does not follow it: what a settings tab matches is the rail's row box, not whichever
      label mode the rail happens to be in, and the tabs have their own axis.
      43px is what its `py-2.5` plus a 15px line box came to. Both were
      padding-derived and are stated here so a tab can be given the same box
@@ -424,6 +426,48 @@
   height: 1.375rem;
 }
 
+/* The row action's square (GlimStone 1.8.0, the "icon" variant).
+   ---------------------------------------------------------------------------
+   It takes no width stage, for the same reason a chip does not: it is sized by
+   its glyph rather than by a label it never prints. It DOES take the button
+   height and the tone table, because unlike a chip it stands on the page rather
+   than inside a pill.
+
+   IT IS APPLIED ONLY WHILE THE MODE PAINTS NO WORDS. The class does not ride on
+   every row action in every mode: in text-plus-glyph a row of these printed no
+   word while the buttons beside them did, so the row visibly disagreed with the
+   one setting that governs it. A named exemption is still an exemption once you
+   are looking at the row. See `ButtonVariant` in components/Button.tsx. */
+.glim-btn-icon {
+  width: var(--btn-h);
+  min-width: 0;
+  padding-inline: 0;
+}
+
+/* A row action promoted to a key control stays square, at the other height.
+   Written as its own rule rather than as `width: inherit` guesswork: the two
+   numbers are the two named heights, and a square control has to name both. */
+.glim-btn-icon.glim-btn-key {
+  width: var(--btn-h-key);
+}
+
+/* A glyph ALONE IN A SQUARE is half its box, which is a different question from
+   the 20px above. 20px answers "how big beside 14px text", where a mark and its
+   words have to read as one control. A square glyph-only button has no words to
+   match, so the only proportion available is how much of the frame the ink
+   fills, and 20px in a 32px box is 62% of it, which reads as chunky. Half is
+   the proportion this house already had without writing it down: an icon badge
+   is a 32px tile carrying a 16px drawing. */
+.glim-btn-icon .glim-btn-glyph > svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.glim-btn-icon.glim-btn-key .glim-btn-glyph > svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
 /* Reactive controls carry no gap at rest, and this is the reason the glyph
    looked off-centre (jdp's screenshot): the collapsed label is still a flex
    item, so the container's `gap` reserved 8px beside a zero-width box and
@@ -500,7 +544,7 @@
    width stages already reserve every label's own width in every mode, which is
    the whole reason words can appear here without moving the page.
 
-   ANY STATE ADDED HERE MUST ALSO BE ADDED to the `full` motion block's
+   ANY STATE ADDED HERE MUST ALSO BE ADDED to the lively-motion block's
    transform reset further down — this rule hands back width, opacity and
    margin, that one hands back the resting `translateX`/`scaleX`. Adding a
    state to one list and not the other leaves the label revealed but still
@@ -547,12 +591,18 @@
       margin-inline-start 160ms cubic-bezier(0.22, 0.61, 0.36, 1);
   }
 
-  /* Full: jdp said it may be wild here. The box springs open past its target
+  /* Wild: jdp said it may be wild here. The box springs open past its target
      and settles (the overshoot lives in the easing curve, so the label's own
      width does the bouncing and nothing else has to move), while the text
      itself slides in from the left and unsquashes — it starts slightly
-     compressed and scales back to 1 as it lands. */
-  :root[data-motion="full"] .glim-label-reactive {
+     compressed and scales back to 1 as it lands.
+
+     THE SELECTOR NAMES THE QUIET LEVELS AND NOT THE LIVELY ONE, on purpose.
+     Written as `[data-motion="wild"]` it would exclude `storm`, which is a
+     level with MORE motion getting none of this. This form covers wild, storm
+     and the attribute being absent, and goes on covering whatever is added
+     above. */
+  :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-label-reactive {
     transition:
       max-width 320ms cubic-bezier(0.34, 1.56, 0.64, 1),
       opacity 180ms ease-out,
@@ -566,7 +616,7 @@
      -------------------------------------------------------------------------
      The reveal above hands the active label its width, its opacity and its
      `margin-inline-start`. It does not hand back the resting TRANSFORM, and in
-     `full` motion that transform is `translateX(-0.4rem) scaleX(0.82)`. So the
+     the lively levels that transform is `translateX(-0.4rem) scaleX(0.82)`. So the
      active tab's words sat 6.4px left of where its 8px margin put them —
      measured gap glyph-to-text 1.6px, not 8 — and squashed to 82% besides.
      jdp: "Der Text der im aktiven Tab bleibt rutscht zu nah an den glyph".
@@ -577,11 +627,14 @@
      reset are two lists that must always name the same states, and nothing in
      the file made them move together. They are adjacent and cross-referenced
      now, which is the cheapest guard available short of merging them — and they
-     cannot merge, because one is inside the reduced-motion gate and one is not. */
-  :root[data-motion="full"] .glim-reactive.glim-active .glim-label-reactive,
-  :root[data-motion="full"] .glim-reactive:hover .glim-label-reactive,
-  :root[data-motion="full"] .glim-reactive:focus-visible .glim-label-reactive,
-  :root[data-motion="full"] .glim-reactive:focus-within .glim-label-reactive {
+     cannot merge, because one is inside the reduced-motion gate and one is not.
+
+     The quiet levels are named here too, and not the lively one - see the rule
+     just above for why, and for the level it would otherwise leave behind. */
+  :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-reactive.glim-active .glim-label-reactive,
+  :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-reactive:hover .glim-label-reactive,
+  :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-reactive:focus-visible .glim-label-reactive,
+  :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-reactive:focus-within .glim-label-reactive {
     transform: translateX(0) scaleX(1);
   }
 }
@@ -604,6 +657,16 @@
   --radius-card:      1rem;
   --radius-control:   0.625rem;
   --radius-pill:      9999px;
+
+  /* The navigation rail's width in glyph mode, where it prints no words
+     (GlimStone's `--rail-narrow`). A NUMBER, not this app's own calculation:
+     it used to be derived from the 48px mark plus the rows' `px-3.5`, which
+     landed on 96px here and 64px in the sibling, and two rails of different
+     widths doing the same job is what a shared language exists to prevent. The
+     mark fits the rail now, not the rail the mark; at 85px the 48px mark still
+     sits centred with room on both sides. The wide rail needs no token, being
+     Tailwind's own `w-56`. */
+  --rail-narrow:      85px;
 
   --text-heading: 1.25rem;  /* 20px */
   --text-body:    0.875rem; /* 14px */
@@ -792,6 +855,38 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
+  /* XRP's mark is the one brand colour that cannot be a literal: it is
+     near-black, and every other coin's colour reads on both grounds. The
+     brand publishes a white variant for exactly this case, so the dark theme
+     takes it. See donateMarks.tsx's PATHS. */
+  --coin-xrp: #ffffff;
+
+  /* The About card's brand marks, at REST, on a neutral button.
+     ------------------------------------------------------------------------
+     These are the brand colours ADJUSTED to be visible, not the brand colours
+     themselves - the hover fill below is where the true ones live. Measured
+     before choosing them, because the problem is not obvious until you do: a
+     brand colour is designed against white or against its own fill, and every
+     one of these fails on one of our two button grounds. On the light theme's
+     #d1d1d1, Bitcoin's #F7931A reads 1.5:1 and Buy Me a Coffee's #FFDD00
+     reads 1.14:1; on the dark theme's #525252, PayPal's #003087 and GitHub's
+     #181717 fail just as badly at the other end. A graphic needs 3:1.
+
+     So each mark gets the value that clears it on the ground it actually sits
+     on, per theme: the warm brands deepen for the light theme, the dark ones
+     lighten for the dark theme. Same treatment XRP already gets in the crypto
+     window, and the same reasoning --accent-text carries for the accent.
+     Measured after choosing: 5.7, 3.3, 3.1 and 7.7 to one on the dark ground,
+     3.2, 3.2, 8.7 and 11.9 on the light one.
+
+     The mail button is not here on purpose: it reaches the workshop rather
+     than a third party, so it wears the app's own accent and follows the
+     colour engine, which none of the brands may do. */
+  --brand-coffee:  #ffdd00;
+  --brand-bitcoin: #f7931a;
+  --brand-paypal:  #4fb5f0;
+  --brand-github:  #ffffff;
+
   --carbon-bg:        #161616;
   --carbon-surface:   #262626;
   --carbon-surface2:  #393939;
@@ -801,6 +896,16 @@
   --carbon-text-muted:#8d8d8d;
   --carbon-border:    #393939;
   --carbon-hover:     #353535;
+
+  /* The third tier of the hover ramp (GlimStone 1.8.0, rule 21). Hover moves UP
+     the surface ramp, and the ramp used to stop at --carbon-surface3: a control
+     FILLED with surface3 (the neutral button, a raised segment) had nowhere to
+     go and reached back down to --carbon-hover, which is 29 units darker here.
+     It dimmed at the one moment somebody was looking straight at it. One step
+     further from the surface, which is lighter on dark and darker on light, so
+     a brightness() filter is not the substitute: one value can only move one
+     way and the two themes need opposite directions. */
+  --carbon-hover-raised: #6f6f6f;
 
   /* Sidebar background — matches --carbon-surface (#262626), one step up from the
      content (--carbon-bg #161616) so the nav rail still reads as a distinct column.
@@ -862,6 +967,11 @@
      from reference's light block. */
   --elevation: 0 1px 2px rgba(0, 0, 0, .40), 0 18px 40px -24px rgba(0, 0, 0, .85);
   --hairline: inset 0 1px 0 rgba(255, 255, 255, .045);
+  /* The scrim behind a floating window (GlimStone 1.11.0). A token rather than
+     a literal in .glim-modal-backdrop, because a value the rule describes and
+     nothing holds is a value nobody can change in one place - which is the
+     shape the brand colours were in before they grew tokens. */
+  --glim-scrim: rgba(0, 0, 0, .65);
   --focus-ring: rgba(252, 196, 25, .55);
 
   /* Self-reference-free fallback target for [data-rainbow] .glim-hue's
@@ -950,6 +1060,12 @@
   --status-warn-text:         #f1c21b;  /* yellow-30 */
   --status-warn-bg:           #2a2a1c;
   --status-warn-bg-strong:    #3a2f1c;  /* emphasised warn chip (Files) */
+  /* The quiet end, for a paragraph that explains rather than warns: the
+     passkey card's refusal is a whole sentence of body text, and the full
+     warn wash behind prose reads as an alert. GlimStone 1.15.0 carries this
+     as --status-warn-bg-soft after the passkey card asked for the utility
+     before the value existed anywhere - the box had a radius and no fill. */
+  --status-warn-bg-soft:      #23231a;
   --status-warn-border:       #4a4a2a;
   --status-warn-border-strong:#5a4a2a;
   --status-warn-solid:        #f1c21b;
@@ -1088,6 +1204,19 @@
 }
 
 [data-theme="light"] {
+  /* XRP's own near-black, which is right on a light ground. */
+  --coin-xrp: #23292f;
+
+  /* The About card's brand marks on a LIGHT button (#d1d1d1) — see the dark
+     block's own note for the measurements and for why these are adjusted
+     rather than literal. The two cool brands can be their true colours here,
+     because a light ground is what those were drawn against; the two warm ones
+     are deepened until they clear 3:1, which yellow on light grey never does
+     at its published value (1.14:1, effectively a ghost). */
+  --brand-coffee:  #8a6d00;
+  --brand-bitcoin: #a85d00;
+  --brand-paypal:  #003087;
+  --brand-github:  #181717;
   color-scheme: light;
 
   /* GlimStone form-engine #1 — corrected against reference/tokens.css's
@@ -1111,6 +1240,8 @@
   --carbon-text-muted:#6f6f6f;
   --carbon-border:    #d1d1d1;
   --carbon-hover:     #e0e0e0;
+  /* Rule 21's third tier, one step DARKER here (see the dark block). */
+  --carbon-hover-raised: #c6c6c6;
 
   /* Sidebar background (light theme) — the raised surface tone, matching
      reference/tokens.css (was incorrectly the page-ground tone). */
@@ -1261,6 +1392,7 @@
   /* Elevation/hairline — neutral, copied verbatim from reference/tokens.css. */
   --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
   --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
+  --glim-scrim: rgba(0, 0, 0, .55);
 
   /* Status colors (#105) — Carbon light-theme counterparts. Text tones keep
      ≥4.5:1 on white/#f4f4f4 and on their own chip tints; solids keep ≥3:1 as
@@ -1282,6 +1414,7 @@
   --status-warn-text:         #8e6a00;  /* yellow-60 — dark enough for light bgs */
   --status-warn-bg:           #fcf4d6;  /* yellow-10 */
   --status-warn-bg-strong:    #fcf4d6;
+  --status-warn-bg-soft:      #fdf9ec;
   --status-warn-border:       #fddc69;  /* yellow-20 */
   --status-warn-border-strong:#fddc69;
   --status-warn-solid:        #b28600;  /* yellow-50 — #f1c21b is <3:1 on light */
@@ -1334,6 +1467,7 @@
     --carbon-surface2:  #e8e8e8;
     --carbon-surface3:  #d1d1d1;
     --carbon-hover:     #e0e0e0;
+    --carbon-hover-raised: #c6c6c6;
     --carbon-border:    #d1d1d1;
     --carbon-text:      #161616;
     --carbon-text-sub:  #525252;
@@ -1342,6 +1476,10 @@
 
     --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
     --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
+    /* Restated here for the same reason --focus-ring is: :root:not([data-theme])
+       inherits nothing from [data-theme="light"], so without this line a system
+       light theme with no attribute set takes the dark .65. */
+    --glim-scrim: rgba(0, 0, 0, .55);
 
     /* Same WCAG-driven light-theme value as [data-theme="light"] above —
        needs restating here too, since :root:not([data-theme]) doesn't
@@ -2139,6 +2277,206 @@ body {
   color: inherit;
 }
 
+/* The crypto window's coin tiles (CryptoDonateDialog).
+   ---------------------------------------------------------------------------
+   Seven of the eight marks are a brand colour that reads on any ground, which
+   is what a brand colour is for, and they are literals in donateMarks.tsx.
+   XRP is the exception: its mark is a shape with no colour of its own, so it
+   is drawn in --coin-xrp, which the theme sets to white on the dark ground and
+   #23292f on the light one.
+
+   A token switched by THEME is right until a tile stops matching its theme,
+   and two states here do exactly that. Both are handled by moving the token,
+   never by giving the mark a second fill: the mark stays one drawing that
+   takes one colour, and the surface that changed is the thing that says which.
+
+   Written as :not(.glim-active):hover and .glim-active so the two never both
+   apply - the selected tile is not re-lit by a hover over itself. */
+
+/* Selected: the tile is FILLED with the accent, so EVERY mark drops its brand
+   colour and takes the ink that fill was paired with.
+
+   This is the same rule .glim-hue-icon states above ("the active item is
+   FILLED with the hue already, so an icon painted the same colour on top of it
+   would vanish into its own background"), and the brand colours do not earn an
+   exception: the accent is the user's to choose and rainbow mode gives every
+   tile a different one, so a fixed brand colour on that fill is a contrast
+   nobody can predict. Measured on the default accent before this rule existed:
+   Bitcoin's #F7931A on #FCC419 is 1.45:1, against the 3:1 a graphic needs. It
+   read as an empty yellow tile.
+
+   Nothing is lost by it. A brand colour earns its place while somebody is
+   SCANNING eight tiles for the coin they hold, and the selected tile is the
+   one they have stopped scanning - it is filled edge to edge with the accent,
+   which is a louder answer than any logo colour.
+
+   `fill` as a CSS property, which beats the `fill` attribute donateMarks.tsx
+   writes, so the marks stay one drawing with one colour and this stays the
+   one place that says what happens on a filled tile. currentColor picks up
+   `text-accentContrast` from the button itself. */
+.glim-coin-tile.glim-active svg {
+  fill: currentColor;
+}
+
+/* Hovered on the dark theme: the tile goes WHITE (KnightLoader's browser-tile
+   hover, adopted here), which is the one dark-theme surface a white mark
+   cannot sit on. It takes the light theme's value, which is XRP's own dark
+   colour rather than a grey picked to fit. */
+[data-theme="dark"] .glim-coin-tile:not(.glim-active):hover {
+  --coin-xrp: #23292f;
+}
+
+/* Reactive LABELS on a coin tile: the vertical twin of `.glim-btn.glim-reactive`.
+   ---------------------------------------------------------------------------
+   That rule drops a reactive button's `gap` at rest for a reason this tile has
+   in the other axis: a collapsed label is still a flex item, so the container's
+   gap reserves space beside a zero-width box and pushes the glyph off centre.
+   On a button the axis is horizontal and the gap comes back as the label's own
+   `margin-inline-start`. This tile is a COLUMN, so the same trade has to be
+   made block-wise - the shared reveal rule hands back an inline margin, which
+   in a column direction means nothing.
+
+   Only in reactive mode: in every other mode the tile keeps its ordinary
+   `gap-2`, because the ticker is really there. */
+.glim-coin-tile.glim-reactive {
+  gap: 0;
+}
+
+/* ...and the label gives up its LINE BOX as well, which the horizontal case
+   never had to think about. Dropping the gap alone leaves a zero-WIDTH span
+   that is still a full text line tall, so the mark sits above the middle of a
+   square tile - measured at 8px before this rule. At rest a reactive tile has
+   to look exactly like glyph mode, because looking like glyph mode until you
+   point at it is the whole of what reactive means. */
+.glim-coin-tile.glim-reactive .glim-label-reactive {
+  max-height: 0;
+}
+.glim-coin-tile.glim-reactive.glim-active .glim-label-reactive,
+.glim-coin-tile.glim-reactive:hover .glim-label-reactive,
+.glim-coin-tile.glim-reactive:focus-visible .glim-label-reactive,
+.glim-coin-tile.glim-reactive:focus-within .glim-label-reactive {
+  /* The line box and the `gap-2` the tile gives up above, both handed back by
+     the label itself, so the spacing is unchanged once the word is out. */
+  max-height: 1.5em;
+  margin-block-start: 0.5rem;
+}
+
+/* Reactive mode: the tile answers the pointer in its OWN palette position.
+   ---------------------------------------------------------------------------
+   Reported missing (jdp, 2026-09-11: "die kryptokacheln sind nicht im
+   reaktiven modus"), and the reason is worth writing down because it is not a
+   forgotten class. The tiles carry `.glim-hue` and always have, so
+   [data-rainbow="reactive"] .glim-hue above DOES rebind --accent under the
+   pointer exactly as it does everywhere else. Nothing showed, because nothing
+   on an unselected tile ever READS --accent: its rest is `bg-carbon-surface2`
+   and its hover is `bg-carbon-surface3` (white on the dark theme). A control
+   can be wired to the engine and still be invisible to it if no property of
+   its own is spending the token.
+
+   So the hover takes the fill the SELECTED tile already uses, which also makes
+   the mode legible: in reactive mode the tile you are pointing at looks like
+   the tile you would get by clicking. The plain rainbow and the flat accent
+   keep the white/surface3 hover from KnightLoader - reactive is the one mode
+   whose whole idea is that colour arrives under the pointer.
+
+   Deliberately NOT scoped to :not(.glim-active): the selected tile already
+   carries this exact fill, so the rule is a no-op there rather than a state
+   that needs excluding.
+
+   The mark drops its brand colour here for the same reason it does on the
+   selected tile, and the comment there is the full argument: a fixed brand
+   colour on a fill the engine chooses is a contrast nobody can predict. */
+[data-rainbow="reactive"] .glim-coin-tile:hover {
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+}
+[data-rainbow="reactive"] .glim-coin-tile:hover svg {
+  fill: currentColor;
+}
+
+/* The About card's brand buttons (AboutCard).
+   ---------------------------------------------------------------------------
+   jdp, 2026-09-11: "alle button in der über card sollen ein farbiges logo
+   haben und bei mousover farbig werden". Two states, one rule between them.
+
+   AT REST the button is ordinary neutral chrome and only the MARK is
+   coloured, in --brand: the adjusted, per-theme value defined beside the
+   palette, because a brand's published colour fails on one of our two button
+   grounds every time.
+
+   ON HOVER the button becomes the brand — and here it is the TRUE colour,
+   --brand-fill, because the mark is no longer a small graphic on a grey
+   button, it IS the surface, which is the one ground every brand colour was
+   drawn for. Everything on it flips to --brand-ink, the mark included: the
+   same rule the crypto tiles follow, that a fixed colour on a fill somebody
+   else chose is a contrast nobody can predict. Set as CSS `fill`, which beats
+   the `fill` attribute donateMarks.tsx writes, so all five marks obey one rule
+   instead of four obeying it and Bitcoin's opting out.
+
+   The mail button carries no brand: it reaches the workshop rather than a
+   third party, so its call site passes the accent tokens and it follows the
+   user's accent and the rainbow, which the four brands deliberately do not.
+
+   The `svg path` half of each selector is not belt-and-braces, it is the half
+   that works for two of the five. A `fill` set on the <svg> only reaches paths
+   that declare none of their own, which is how donateMarks draws its marks;
+   glyphs.tsx writes `fill="currentColor"` on the PATH, and a presentation
+   attribute there beats an inherited value from the parent. Found live rather
+   than reasoned about: the mail glyph came out #161616, the button's own ink,
+   while GitHub's beside it took the token correctly. Every mark here is a
+   single-colour drawing, so painting both levels is safe. */
+.glim-brand-btn .glim-btn-glyph svg,
+.glim-brand-btn .glim-btn-glyph svg path {
+  fill: var(--brand);
+  transition: fill 120ms;
+}
+.glim-brand-btn:hover:not(:disabled) {
+  background-color: var(--brand-fill);
+  color: var(--brand-ink);
+}
+.glim-brand-btn:hover:not(:disabled) .glim-btn-glyph svg,
+.glim-brand-btn:hover:not(:disabled) .glim-btn-glyph svg path {
+  fill: currentColor;
+}
+
+/* One block per brand: the adjusted resting mark (a token, because it changes
+   with the theme), then the true colour and its measured ink, which do not. */
+.glim-brand-coffee {
+  --brand: var(--brand-coffee);
+  --brand-fill: #ffdd00;
+  /* Buy Me a Coffee's own near-black, the ink their button uses. 13.8:1. */
+  --brand-ink: #0d0c22;
+}
+.glim-brand-bitcoin {
+  --brand: var(--brand-bitcoin);
+  --brand-fill: #f7931a;
+  --brand-ink: #161616; /* 7.9:1 */
+}
+.glim-brand-paypal {
+  --brand: var(--brand-paypal);
+  --brand-fill: #003087;
+  --brand-ink: #ffffff; /* 13.4:1 */
+}
+.glim-brand-github {
+  --brand: var(--brand-github);
+  --brand-fill: #181717;
+  --brand-ink: #ffffff; /* 18.3:1 */
+}
+
+/* The house's own button: the mail route, which reaches the workshop rather
+   than a third party. It is the one button in that row that follows the colour
+   engine, so all three values are engine tokens: --accent-text is the token
+   for accent-coloured GRAPHICS on an ordinary surface (it carries its own
+   light-theme value to clear WCAG, which is the same job --brand-* does for
+   the four brands), and the hover pair is the ordinary accent pairing. This
+   one changes with the user's accent and with rainbow mode; a vendor's mark
+   may not. */
+.glim-brand-house {
+  --brand: var(--accent-text);
+  --brand-fill: var(--accent);
+  --brand-ink: var(--accent-contrast);
+}
+
 /* Sidebar's Simple/Advanced view toggle (SidebarControls, its own
    call-site marker, NOT Sidebar.tsx's main-nav NavItem any more) — the SAME
    3-state tab-strip rule as .glim-hue-icon above (idle colourless only in
@@ -2287,13 +2625,31 @@ body {
   100% { left: var(--glim-indet-to); }
 }
 
+/* A band of light travelling along a bar that is FILLING, as opposed to the
+   band above, which travels along a bar that does not know how far it is. Two
+   different sentences: "something is happening" and "this is moving".
+
+   It rides on the fill's own ::after rather than a second element, so the
+   markup does not change shape and no call site can forget to remove it. The
+   travel is in percent of the FILL, so a bar at 5% gets a short quick sweep and
+   one at 90% a long one - the sweep says how much ground there is, which is the
+   one thing a plain coloured rectangle cannot say.
+
+   RTL flips it by swapping the two ends, exactly like the band above. */
+:root { --glim-sheen-from: -60%; --glim-sheen-to: 160%; }
+[dir="rtl"] { --glim-sheen-from: 160%; --glim-sheen-to: -60%; }
+@keyframes glim-sheen {
+  0%   { transform: translateX(var(--glim-sheen-from)); }
+  100% { transform: translateX(var(--glim-sheen-to)); }
+}
+
 /* ---------------------------------------------------------------------------
    Motion — tasteful, Carbon-clean micro-interactions + the logo easter egg.
    All energetic motion lives under (prefers-reduced-motion: no-preference);
    reduced-motion users get a quiet fade fallback instead (never a violent shake).
    The Tailwind-driven nav hover/press transforms are motion-safe-gated inline.
 
-   GlimStone motion-engine (data-motion="off"|"subtle"|"full" — lib/motion.ts
+   GlimStone motion-engine (data-motion="off"|"subtle"|"wild" — lib/motion.ts
    is the JS half: read/write/persist which of the three is chosen, stamp the
    attribute on <html>, the exact shape/pattern as the shape engine's own
    data-shape above). A DELIBERATE reversal of this file's — and design-
@@ -2318,10 +2674,10 @@ body {
    reduced motion already does," not a second, separately-tuned recipe.
 
    Tokens, not per-state duplicated rules: "subtle" and "off" reuse the
-   IDENTICAL keyframes as "full", just parameterized to smaller numbers —
+   IDENTICAL keyframes as "wild", just parameterized to smaller numbers —
    the same technique this file already uses for --glim-toast-slide (per
    [dir]) and --glim-indet-from/--glim-indet-to (per [dir]) rather than forking
-   the keyframe itself. Declared on a bare :root FIRST as the full-intensity
+   the keyframe itself. Declared on a bare :root FIRST as the wild-intensity
    values (byte-identical to what this app already shipped before this axis
    existed), so anything that runs before main.tsx's
    applyStoredMotionIntensity() paints (or a page that never runs JS at all)
@@ -2335,9 +2691,58 @@ body {
    axis. A future pass adding new keyframes should read these vars too,
    not reinvent a second scheme. */
 :root {
-  --motion-page-dist: 8px;               /* .glim-page-enter's translateY distance */
+  /* THE DISTANCE AND THE CURVE, per stage, and they are the half that was
+     missing (GlimStone 1.10.0). Every DURATION was a token here and every
+     TRAVEL was a literal, so the top stage and "subtle" ran the same short
+     slide at two speeds - a difference somebody has to be told about rather
+     than one they can see. A setting whose top end is only "the same thing,
+     slower to finish" earns a quiet name; one that travels further and
+     overshoots earns a livelier one. The animation changed first and the name
+     followed it, in that order, because the fix for a label promising more
+     than it delivers is either a quieter label or a livelier animation, and
+     only one of the two makes the product better.
+
+     The rule the language already states survives intact: the same keyframes
+     at all three stages, never a forked animation. What changes is the number
+     the keyframe reads and the curve it reads it through. */
+  --motion-page-dist: 18px;              /* .glim-page-enter's translateY distance */
+  --motion-page-scale: .96;
+  /* THE TILT, and it is how far this engine is allowed to answer "can the
+     animations be wilder": the same keyframe reading a bigger number, never a
+     second animation. A page that only slides up reads as a panel being
+     swapped; one that arrives slightly off-axis reads as something arriving.
+     Under a degree it is invisible and over four it is a gimmick that makes
+     the text shimmer as it lands, so the lively default sits at 1.2 and the
+     storm at 3. The quiet levels set 0 rather than omitting it: a rotation is
+     the first thing somebody who asked for less motion would notice. */
+  --motion-page-tilt: 1.2deg;
   --motion-page-dur: 320ms;
-  --motion-page-ease: cubic-bezier(.2, .6, .2, 1);
+  /* How long one pass of light takes along a filling bar. Shorter reads as
+     faster work, which is why it is a motion token rather than a constant: the
+     bar already says how far, and this says how busy. */
+  --motion-sheen-dur: 1500ms;
+
+  /* FOUR MORE DIALS, and they exist at every level rather than only at the
+     lively end - a quiet level is a smaller number, never a missing animation.
+     That is the difference between "less movement" and "a dead interface", and
+     it is the whole reason these are tokens and not media queries.
+
+     press  - how far a button sinks under the finger. The one animation that
+              answers EVERY click in the app, so it is the one a person feels
+              most often and notices least.
+     lift   - how far a button rises to meet the pointer.
+     spin   - one turn of a busy ring. Slower does not read as calmer here, it
+              reads as a slower machine, so the spread is deliberately narrow.
+     card   - how far a card rises as it arrives. Ends at `none`, like the page
+              entrance, so no card becomes a containing block for a fixed
+              child once it has landed. */
+  --motion-press-scale: .97;
+  --motion-lift-dist: 2px;
+  --motion-spin-dur: 800ms;
+  --motion-card-dist: 10px;
+  /* A curve that overshoots and settles. The control point past 1 is what
+     makes it spring rather than ease. */
+  --motion-page-ease: cubic-bezier(.34, 1.56, .64, 1);
 
   --motion-toast-slide-scale: 1;          /* multiplies --glim-toast-slide/-rtl below */
   --motion-toast-dur: 220ms;
@@ -2351,12 +2756,12 @@ body {
   /* Round 2 (seven more animations plugged into this SAME engine, from day
      one rather than a later retrofit — see this file's own git history for
      the exact failure mode this avoids): every token below follows the
-     identical "declare full-intensity on bare :root first, override in
+     identical "declare wild-intensity on bare :root first, override in
      [data-motion=subtle]/[data-motion=off], consume only inside the
      (prefers-reduced-motion: no-preference) block further down" shape the
      five originals above already established. Each one is introduced at its
      own consuming rule further down this file, not here — this block is
-     only ever the OFF/SUBTLE/FULL numbers, kept together so the whole dial
+     only ever the OFF/SUBTLE/WILD numbers, kept together so the whole dial
      is readable in one place.
 
      1) Shape-morph (--motion-shape-*): border-radius transition duration
@@ -2400,11 +2805,96 @@ body {
   --motion-tab-dur: 220ms;
 }
 
+:root[data-motion="storm"] {
+  /* THE HIDDEN FOURTH, GSS 1.17.0.
+
+     Not in the picker. Set the motion to the top level, then click that same
+     option five more times - the gesture of pressing a button that is already
+     pressed because you wanted more of it, which is exactly who this level is
+     for. lib/motion.ts's stormTap() is the whole mechanism, and the rule it
+     carries is the part worth copying: an easter egg that changes BEHAVIOUR
+     must be switchable back off and must not quietly become a permanent entry
+     in a settings list.
+
+     Same twelve tokens as every other level, consumed by the same keyframes.
+     A level is a different NUMBER, never a different animation, so this block
+     is the entire cost - which is the whole argument for the token shape the
+     three levels above already use. Roughly double the travel of "wild" and
+     about twice its duration, on a curve that overshoots further and takes
+     longer to settle.
+
+     It sits INSIDE the same (prefers-reduced-motion: no-preference) gate as
+     the other three rather than beside it, so a machine whose owner asked the
+     operating system for less motion never evaluates a data-motion selector at
+     all. That is the one way a hidden "more animation" switch could genuinely
+     do harm, and it is closed by where this block sits rather than by a
+     check. */
+  --motion-page-dist: 20px;
+  /* The scale belongs here as much as the distance, and leaving it out is the
+     quiet half of the trap this block's own comment describes: without it the
+     storm inherits .96 from the bare root, so a level that travels further and
+     springs harder arrives at exactly the size wild does. GlimStone names .9
+     for this level. */
+  --motion-page-scale: .9;
+  --motion-page-tilt: 3deg;
+  --motion-sheen-dur: 900ms;
+  --motion-press-scale: .94;
+  --motion-lift-dist: 4px;
+  --motion-spin-dur: 560ms;
+  --motion-card-dist: 18px;
+  --motion-page-dur: 620ms;
+  --motion-page-ease: cubic-bezier(.22, 1.94, .45, 1);
+
+  --motion-toast-slide-scale: 1.9;
+  --motion-toast-dur: 420ms;
+  --motion-toast-ease: cubic-bezier(.22, 1.94, .45, 1);
+
+  --motion-fade-dur: 200ms;
+
+  --motion-shake-scale: 1.9;
+  --motion-shake-dur: 520ms;
+
+  --motion-shape-dur: 460ms;
+  --motion-shape-ease: cubic-bezier(.22, 1.94, .45, 1);
+
+  --motion-pulse-scale: 1.9;
+  --motion-pulse-dur: 700ms;
+
+  --motion-stagger-step: 55ms;
+  /* The cap earns its keep here more than anywhere else: at 55ms a step, a
+     fifty-row list would otherwise stagger for nearly three seconds. */
+  --motion-stagger-cap: 700ms;
+  --motion-stagger-dur: 420ms;
+
+  /* Stated rather than inherited, and deliberately NOT the spring: a wipe is a
+     colour transition across the whole page, and a curve that overshoots a
+     colour lands on a hue nobody picked. */
+  --motion-wipe-dur: 560ms;
+  --motion-wipe-ease: ease;
+
+  --motion-check-dur: 620ms;
+
+  --motion-content-dur: 380ms;
+
+  --motion-tab-dist: 34px;
+  --motion-tab-dur: 380ms;
+}
+
 :root[data-motion="subtle"] {
   /* Shorter AND smaller — "still present," per design-language.md's own
      phrasing for this state, not a near-off compromise. */
-  --motion-page-dist: 4px;
+  /* Smaller travel, no scale, and a curve that only eases. Somebody who asked
+     for less movement asked for less movement, not for a faster bounce. */
+  --motion-page-dist: 6px;
+  --motion-page-scale: 1;
+  --motion-page-tilt: 0deg;
   --motion-page-dur: 180ms;
+  --motion-sheen-dur: 2400ms;
+  --motion-press-scale: .99;
+  --motion-lift-dist: 1px;
+  --motion-spin-dur: 1000ms;
+  --motion-card-dist: 4px;
+  --motion-page-ease: cubic-bezier(.2, .6, .2, 1);
 
   --motion-toast-slide-scale: .5;
   --motion-toast-dur: 140ms;
@@ -2464,8 +2954,22 @@ body {
      glim-egg-fade-pulse for data-motion="off", the exact keyframe the
      (reduce) block already uses for the same reason. */
   --motion-page-dist: 0px;
+  --motion-page-scale: 1;
+  --motion-page-tilt: 0deg;
   --motion-page-dur: 200ms;
-  --motion-page-ease: ease;
+  /* Named rather than omitted, even though the rule further down takes the
+     band away entirely at this level: a dial every level answers is a dial
+     nobody has to go looking for, and the guard reads the block, not the
+     rule. */
+  --motion-sheen-dur: 0ms;
+  /* Off is 1, 0 and 0 rather than "no rule": the same declarations resolve,
+     they just resolve to no movement. A level that removed the rules instead
+     would need every one of them added back by hand the day a rule changes. */
+  --motion-press-scale: 1;
+  --motion-lift-dist: 0px;
+  --motion-spin-dur: 1200ms;
+  --motion-card-dist: 0px;
+  --motion-page-ease: linear;
 
   --motion-toast-slide-scale: 0;
   --motion-toast-dur: 160ms;
@@ -2519,6 +3023,8 @@ body {
    nothing to preserve. `subtle` does not, so a component that deliberately
    times something itself keeps its number. */
 :root { --motion-control-dur: 150ms; }
+:root[data-motion="storm"] { --motion-control-dur: 300ms; }
+:root[data-motion="storm"] { --motion-control-dur: 300ms; }
 :root[data-motion="subtle"] { --motion-control-dur: 80ms; }
 :root[data-motion="off"] { --motion-control-dur: 0s; }
 :root[data-motion="off"] * { transition-duration: 0s !important; }
@@ -2588,11 +3094,28 @@ body {
 }
 
 /* Route/page enter (Item 7c). `translateY(var(--motion-page-dist))`, not a
-   hard-coded 8px — the motion-engine token above (GlimStone motion-engine
-   section, further up this file) parameterizes the distance per
-   off/subtle/full without needing a second keyframe. */
+   hard-coded number - the motion-engine tokens above parameterize the travel,
+   the scale and the curve per stage without needing a second keyframe. The
+   scale is what makes the top stage read as a page arriving rather than
+   sliding: at 1 it is the same motion the quiet stage already had. */
+/* A card arriving. Same shape as the page entrance one step down: a rise and a
+   fade, ending at `none` for the same containing-block reason that keyframe's
+   own comment sets out at length. No scale and no tilt - a card is a smaller
+   object than a page, and at card size both read as a wobble rather than as an
+   arrival. */
+@keyframes glim-card-in {
+  from { opacity: 0; transform: translateY(var(--motion-card-dist, 0px)); }
+  to   { opacity: 1; transform: none; }
+}
+
 @keyframes glim-page-in {
-  from { opacity: 0; transform: translateY(var(--motion-page-dist, 8px)); }
+  from {
+    opacity: 0;
+    transform:
+      translateY(var(--motion-page-dist, 8px))
+      scale(var(--motion-page-scale, 1))
+      rotate(var(--motion-page-tilt, 0deg));
+  }
   /* End at `none`, not translateY(0): animation-fill-mode:both keeps the final
      keyframe, and any transform other than none makes .glim-page-enter a
      containing block for position:fixed descendants — which anchored in-page
@@ -2632,11 +3155,11 @@ body {
    Unconditional +12px meant an RTL toast slid in from further LEFT than
    its LEFT-anchored resting place — i.e. from the page's interior toward
    the edge, not from off-canvas toward the edge like every other toast. */
-:root { --glim-toast-slide: 12px; }
-[dir="rtl"] { --glim-toast-slide: -12px; }
+:root { --glim-toast-slide: 24px; }
+[dir="rtl"] { --glim-toast-slide: -24px; }
 /* `calc(... * var(--motion-toast-slide-scale))`, not the bare
    --glim-toast-slide above — the motion-engine token (further up this
-   file) scales the slide distance per off/subtle/full (0 / .5 / 1) on top
+   file) scales the slide distance per off/subtle/wild (0 / .5 / 1) on top
    of the RTL-aware base distance, without needing a second keyframe or a
    second [dir] pair. */
 @keyframes glim-toast-in {
@@ -2668,7 +3191,7 @@ body {
 
    `calc(var(--motion-shake-scale) * ...)` on every step, not bare px —
    the motion-engine token (further up this file) scales the whole
-   oscillation per off/subtle/full (0 / .5 / 1) without a second keyframe.
+   oscillation per off/subtle/wild (0 / .5 / 1) without a second keyframe.
    The scale-0 case is never actually reached in practice: data-motion="off"
    swaps `.glim-shake`'s animation-name entirely to glim-egg-fade-pulse below
    (a 0-amplitude shake is invisible, not a "rejected" signal) — the token
@@ -2684,7 +3207,7 @@ body {
 
 /* ---------------------------------------------------------------------------
    Round 2 — seven more motion-engine animations, each plugging into the
-   off/subtle/full tokens declared above from the start (design-language.md's
+   off/subtle/wild tokens declared above from the start (design-language.md's
    own "a guard applied once is a guard missing twice" convention applied to
    motion this time: every one of these reads its numbers from a token, none
    hard-codes a literal the engine can't reach).
@@ -2885,7 +3408,68 @@ body {
    somehow never runs that block) falls back to. */
 .glim-check-draw { stroke-dasharray: 1; stroke-dashoffset: 0; }
 
+/* The scrim behind a floating window, painted UNCONDITIONALLY (GlimStone
+   1.11.0). It sits out here rather than in the motion block below on purpose:
+   darkening the page behind a window is not motion, it is what says the window
+   is in front. While it lived inside the no-preference block, anybody whose
+   system asks for reduced motion got a perfectly transparent backdrop and a
+   dialog floating on an undimmed page. The fade in is the part that is motion,
+   and that one stays gated. */
+.glim-modal-backdrop { background-color: var(--glim-scrim); }
+
 @media (prefers-reduced-motion: no-preference) {
+  /* THE PRESS. Every button in the app sinks a little under the finger, which
+     is the one piece of motion a person triggers deliberately and dozens of
+     times a session. `:active` only, so a keyboard user sees it on space/enter
+     too, and it composes with whatever transform a button already carries
+     because nothing else sets one on .glim-btn.
+
+     `transition` rather than an animation: a press has no duration of its own,
+     it lasts exactly as long as the finger is down. */
+  .glim-btn { transition: opacity 120ms, background-color 120ms, transform var(--motion-control-dur, 150ms); }
+  .glim-btn:active { transform: scale(var(--motion-press-scale, 1)); }
+
+  /* THE LIFT, the press's other half: the button comes up to meet the pointer
+     before it goes down under it. Deliberately on buttons rather than cards -
+     a card holds bubbles and popovers, and a card carrying a transform while
+     hovered becomes the containing block for anything fixed inside it, which
+     is the trap the page keyframe below documents at length. */
+  .glim-btn:hover:not(:active) { transform: translateY(calc(-1 * var(--motion-lift-dist, 0px))); }
+
+  /* THE BUSY RING. Tailwind's own `animate-spin` runs at a fixed second; this
+     hands it the dial so a machine that is working looks busier at the lively
+     levels and calmer at the quiet ones. It is an override of a utility class
+     on purpose and only inside this gate: at "off" the duration is long rather
+     than zero, because a spinner frozen mid-turn reads as a hang. */
+  .animate-spin { animation-duration: var(--motion-spin-dur, 1000ms); }
+
+  /* THE CARD ARRIVING. No class and no JavaScript: a CSS animation runs when
+     the element is created and never again, so every card plays this once on
+     mount - a fresh page, a tab change, a card appearing because a switch was
+     turned on - and never on a re-render. */
+  .glim-notch-card { animation: glim-card-in var(--motion-page-dur, 320ms) var(--motion-page-ease, ease) both; }
+
+  /* The travelling light on a bar that is filling. `overflow: hidden` on the
+     fill keeps the band inside it, so the effect stops exactly at the edge the
+     number claims - a sweep running past the fill would be a bar lying about
+     its own progress.
+
+     THE QUIET LEVEL NAMES ITSELF, as everywhere else in this file: "off" takes
+     the band away entirely rather than slowing it to a crawl, because a light
+     sliding along a bar is exactly the decoration somebody switching motion
+     off is switching off. */
+  .glim-progress-fill { position: relative; overflow: hidden; }
+  .glim-progress-fill::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 45%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .38), transparent);
+    animation: glim-sheen var(--motion-sheen-dur, 1500ms) linear infinite;
+  }
+  :root[data-motion="off"] .glim-progress-fill::after { animation: none; opacity: 0; }
+
   /* Gentle sway on hover, only while the logo is idle (not mid-egg). */
   .glim-logo-btn:hover .glim-logo-idle { animation: glim-logo-sway 2.4s ease-in-out infinite; }
 
@@ -2911,7 +3495,7 @@ body {
   }
 
   /* Duration/easing/distance all read the GlimStone motion-engine tokens
-     (data-motion="off"|"subtle"|"full" — declared at the top of this
+     (data-motion="off"|"subtle"|"wild"|"storm" — declared at the top of this
      section) instead of a literal 320ms/8px: this animation now runs at a
      different intensity depending on that attribute, WITHOUT this rule
      itself needing to fork into three copies — see the token block's own
@@ -2919,7 +3503,7 @@ body {
   .glim-page-enter { animation: glim-page-in var(--motion-page-dur, 320ms) var(--motion-page-ease, cubic-bezier(.2, .6, .2, 1)) both; }
 
   /* Info bubble entrance (GlimStone form-engine #3). Motion-engine retrofit:
-     duration reads --motion-fade-dur (110/70/0ms for full/subtle/off) — at
+     duration reads --motion-fade-dur (240/110/70/0ms for storm/wild/subtle/off) — at
      "off" this completes instantly, the same "nothing to see" outcome the
      (reduce) block below already gives this element by never mentioning it
      at all (see that token's own comment above for why). */
@@ -2928,7 +3512,7 @@ body {
   /* Toast entrance (GlimStone form-engine #9) — slides in from the trailing
      edge (translateX) + fades. Motion-engine retrofit: duration/easing read
      the --motion-toast-* tokens, and the keyframe's own translateX now
-     scales by --motion-toast-slide-scale (1/.5/0 for full/subtle/off) — at
+     scales by --motion-toast-slide-scale (1.5/1/.5/0 for storm/wild/subtle/off) — at
      "off" this is a pure fade, matching the (reduce) block's own swap to
      glim-fade-in below. */
   .glim-toast { animation: glim-toast-in var(--motion-toast-dur, 220ms) var(--motion-toast-ease, cubic-bezier(.2, .6, .2, 1)) both; }
@@ -2939,12 +3523,36 @@ body {
      deliberately rather than silently: a future pass giving this axis
      broader coverage should read this comment before assuming it was
      missed by accident. */
-  .glim-modal-backdrop { animation: glim-fade-in 200ms ease both; }
+  /* The darkness itself lives here now, not at the call sites (jdp,
+     2026-09-10: "wenn man es öffnet dunkelt es den Hintergrund zu wenig ab.
+     haben wir das schon standardisiert?").
+     Half-standardised is what it was: this class carried the fade and every
+     one of the nine backdrops in the app then repeated `bg-black/60` as a
+     literal beside it. Standardised by copy-paste, which is the kind that
+     holds right up to the first time somebody wants to change the value and
+     has to find all nine.
+     Dark enough that the window is plainly in front, light enough that the
+     page behind it is still recognisably there, which is what tells a reader
+     they are on top of something rather than somewhere new.
+
+     The VALUE moved out again in GlimStone 1.11.0, to --glim-scrim, .65 on the
+     dark theme and .55 on the light one: a literal here was one place rather
+     than nine, which was the fix, but still a value the rule describes and
+     nothing holds.
+
+     And the COLOUR no longer lives in this block. It used to sit inside
+     @media (prefers-reduced-motion: no-preference) together with the fade,
+     which meant somebody who asks their system for less motion got a fully
+     TRANSPARENT scrim: no darkening at all, because the only rule that painted
+     it was gated on an animation preference. Only the animation is gated now. */
+  .glim-modal-backdrop {
+    animation: glim-fade-in 200ms ease both;
+  }
   .glim-modal-card { animation: glim-modal-in 260ms cubic-bezier(.2, .6, .2, 1) both; }
 
   /* Generic error-feedback shake (#142) — see glim-shake's own keyframe
      comment above for the reusability contract. Motion-engine retrofit:
-     duration reads --motion-shake-dur (360/220ms for full/subtle) and the
+     duration reads --motion-shake-dur (720/360/220ms for storm/wild/subtle) and the
      keyframe's own amplitude scales by --motion-shake-scale — but "off"
      needs more than a smaller number: a 0-amplitude shake is invisible, not
      a "rejected" signal, so data-motion="off" swaps the animation-name
@@ -3037,29 +3645,65 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* THE ONE EXEMPTION, and where it sits.
+     Every substitute below now excludes `storm`, and storm gets the full
+     animation back at the end of this block. jdp's call (2026-09-15): the
+     three offered levels keep obeying the operating system, because a person
+     who set reduced motion did not go looking for any of them. Storm is
+     different in kind - it is reached by clicking the same option five times,
+     so arriving there is a statement of intent, not a default somebody
+     inherited.
+     This block is the right place for that exemption, not the 225-line
+     (no-preference) one. What that block holds is the press, the hover lift,
+     the spinner: micro-interactions nobody unlocks a storm for. What THIS
+     block holds is the gentler stand-ins for exactly the things that make the
+     storm a storm - the shatter, the page entrance, the shake - so gating
+     them per selector reaches the whole effect while leaving the
+     accessibility rule intact everywhere it still applies. */
+
   /* No violent shatter or explosion — just a quiet fade-pulse of the logo; the
      cloud, fragments and sparks stay hidden so reduced-motion users get something
      gentle instead of a shattering blast. */
-  .glim-egg-wobble { animation: glim-egg-fade-pulse 900ms ease-in-out; }
-  .glim-egg-boom .glim-logo-img { animation: glim-egg-fade-pulse 600ms ease-in-out; }
-  .glim-frag-grid, .glim-boom-fx { display: none; }
-  .glim-page-enter { animation: glim-fade-in 200ms ease both; }
+  :root:not([data-motion="storm"]) .glim-egg-wobble { animation: glim-egg-fade-pulse 900ms ease-in-out; }
+  :root:not([data-motion="storm"]) .glim-egg-boom .glim-logo-img { animation: glim-egg-fade-pulse 600ms ease-in-out; }
+  :root:not([data-motion="storm"]) .glim-frag-grid,
+  :root:not([data-motion="storm"]) .glim-boom-fx { display: none; }
+  :root:not([data-motion="storm"]) .glim-page-enter { animation: glim-fade-in 200ms ease both; }
 
   /* Reduced motion: the modal only fades — no slide or scale. */
-  .glim-modal-backdrop { animation: glim-fade-in 150ms ease both; }
-  .glim-modal-card { animation: glim-fade-in 150ms ease both; }
+  :root:not([data-motion="storm"]) .glim-modal-backdrop { animation: glim-fade-in 150ms ease both; }
+  :root:not([data-motion="storm"]) .glim-modal-card { animation: glim-fade-in 150ms ease both; }
 
   /* Reduced motion: the toast drops its translateX slide and just fades in
      (reusing glim-fade-in, per reference/tokens.css's own reduced-motion
      pairing) — it still needs to arrive legibly, just without the motion
      component (design-language.md's motion engine section). */
-  .glim-toast { animation: glim-fade-in 160ms ease both; }
+  :root:not([data-motion="storm"]) .glim-toast { animation: glim-fade-in 160ms ease both; }
 
   /* Reduced motion: no lateral shake — reuses the egg wobble's own quiet
      fade-pulse (glim-egg-fade-pulse is already a generic opacity pulse despite
      its name; the failure still needs to register, just without the
      side-to-side motion component). */
-  .glim-shake { animation: glim-egg-fade-pulse 300ms ease-in-out; }
+  :root:not([data-motion="storm"]) .glim-shake { animation: glim-egg-fade-pulse 300ms ease-in-out; }
+
+  /* And the storm, restored. Exempting without restoring would leave these
+     elements with no animation at all here, since the full rules live in the
+     (no-preference) block this media query replaces - quieter than the
+     substitute it removed, which is the opposite of the point. Values are the
+     (no-preference) block's own, token-driven, so storm's numbers keep coming
+     from its :root[data-motion="storm"] token set rather than being repeated
+     here. Guarded by lib/stormOverridesOs.test.ts. */
+  :root[data-motion="storm"] .glim-egg-wobble { animation: glim-egg-shake 240ms ease-in-out infinite; }
+  :root[data-motion="storm"] .glim-egg-boom .glim-logo-img { opacity: 0; }
+  :root[data-motion="storm"] .glim-page-enter {
+    animation: glim-page-in var(--motion-page-dur, 320ms) var(--motion-page-ease, cubic-bezier(.2, .6, .2, 1)) both;
+  }
+  :root[data-motion="storm"] .glim-modal-backdrop { animation: glim-fade-in 200ms ease both; }
+  :root[data-motion="storm"] .glim-modal-card { animation: glim-modal-in 260ms cubic-bezier(.2, .6, .2, 1) both; }
+  :root[data-motion="storm"] .glim-toast {
+    animation: glim-toast-in var(--motion-toast-dur, 220ms) var(--motion-toast-ease, cubic-bezier(.2, .6, .2, 1)) both;
+  }
+  :root[data-motion="storm"] .glim-shake { animation: glim-shake var(--motion-shake-dur, 360ms) ease-in-out; }
 }
 
 /* The native number spinner is gone ([411]).

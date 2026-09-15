@@ -17,7 +17,15 @@ import { render, screen, cleanup, waitFor, fireEvent, act } from "@testing-libra
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const login = vi.fn();
-vi.mock("../lib/api", () => ({ login: (...a: unknown[]) => login(...a) }));
+// The login screen also asks whether to offer a passkey. These tests are about
+// the password and the second factor, so the passkey half is mocked away:
+// passkeysAvailableInBrowser() false means the status is never even fetched.
+vi.mock("../lib/api", () => ({
+  login: (...a: unknown[]) => login(...a),
+  loginWithPasskey: vi.fn(),
+  passkeyStatus: vi.fn(),
+  passkeysAvailableInBrowser: () => false,
+}));
 
 import { LoginPage } from "./Login";
 

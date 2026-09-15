@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
-import { listVMs, backupVMNow, restoreVM, listVMSnapshots, setVMInclude, setVMIncludeAll, setVMMethod, deleteSnapshot, deleteBackupsVM, forgetVM, discoverVMs, exportVM, getVmBackupOrder, setVmBackupOrder, getScheduleNext, setVMScheduleCadence, getSettings } from "../lib/api";
+import { listVMs, backupVMNow, restoreVM, listVMSnapshots, setVMInclude, setVMIncludeAll, setVMMethod, deleteSnapshot, deleteBackupsVM, forgetVM, discoverVMs, exportVM, getVmBackupOrder, setVmBackupOrder, getScheduleNext, setVMScheduleCadence, setVMRepo, getSettings } from "../lib/api";
 import { SourceToggle, type RepoSource } from "../components/SourceToggle";
 import { FilterPopover } from "../components/FilterPopover";
 import { IconTipButton } from "../components/IconTipButton";
@@ -11,6 +11,7 @@ import { useT, stateLabel } from "../lib/i18n";
 import { PAGE_SHELL } from "../lib/pageShell";
 import { useDragReorder } from "../lib/useDragReorder";
 import { Advanced, useAdvanced } from "../lib/advanced";
+import { BackupCancelButton } from "../components/BackupCancelButton";
 import { ProgressBar } from "../components/ProgressBar";
 import { RestoreAction } from "../components/restore/RestoreAction";
 import { RecentRunsList } from "../components/RecentRunsList";
@@ -45,6 +46,7 @@ import { MobileSectionLabel } from "../components/mobile/MobileSectionLabel";
 import { Fab } from "../components/mobile/Fab";
 import { CadenceBuilder, EXACT_CADENCE_MODES } from "../components/CadenceBuilder";
 import { ScheduleBadge, scheduleStatus, cadenceLabel } from "../components/ScheduleBadge";
+import { RepoPicker } from "../components/RepoPicker";
 
 type T = ReturnType<typeof useT>["t"];
 
@@ -828,17 +830,24 @@ function VMRestorePanel({
                 // VMs' own "Eintrag entfernen" button took in that sweep.
                 // The label and the confirm dialog carry the meaning;
                 // `glim-shake` survives untouched.
-                <Badge
+                // A BUTTON now, same as the folder card and the container card.
+                // jdp reported this on the FOLDER card; it is fixed here in the
+                // same round because it is the same control - byte-identical
+                // props, same key, same shake - and a fix that lands on one of
+                // two identical call sites is how the two started disagreeing
+                // in the first place. See Files.tsx's copy for the full
+                // reasoning on the glyph and on why the label stays stable.
+                <Button
                   key={shakeDeleteAll}
-                  as="button"
+                  label={t("snapshots.deleteAll")}
+                  labelKey="snapshots.deleteAll"
+                  tone="neutral"
                   onClick={() => void handleDeleteAll()}
                   disabled={deletingAll || loading}
-                  tone="neutral"
-                  size="small"
+                  busy={deletingAll}
+                  title={deletingAll ? t("snapshots.deletingAll") : undefined}
                   className={`ms-auto${shakeDeleteAll ? " glim-shake" : ""}`}
-                >
-                  {deletingAll ? t("snapshots.deletingAll") : t("snapshots.deleteAll")}
-                </Badge>
+                />
               )}
           </div>
           <RecentRunsList name={name} domain="vm" t={t} />
@@ -914,6 +923,14 @@ export function VMRow({
   // rows converging instead of drifting again the moment VMs grow a second
   // expandable section.
   const [openSections, setOpenSections] = useState<Set<string>>(() => new Set());
+  const { push } = useToast();
+  // The repository picker's optimistic state (#204): seeded from the row and put
+  // back on a failed save, so the control never shows a destination the server
+  // did not accept.
+  const [repoChoice, setRepoChoice] = useState(vm.repo ?? "");
+  useEffect(() => {
+    setRepoChoice(vm.repo ?? "");
+  }, [vm.repo]);
   function toggleSection(id: string) {
     setOpenSections((prev) => {
       const next = new Set(prev);
@@ -1047,17 +1064,51 @@ export function VMRow({
           row, same place, one item instead of five. */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 flex-wrap">
+          {/* buttonHeight, same as the container card's own trigger row and
+              the folder card's Backups button. jdp asked whether the VM tab
+              has the same size mismatch (2026-09-11); it does, because it is
+              the same control in the same row - answered from the source
+              rather than from the screen, since the tab is gated behind VM
+              backup being enabled. Fixed in the same pass, so the three cards
+              never ship disagreeing about how big "Backups" is. */}
           <Selector
             items={[{ id: "backups", label: t("snapshots.title") }]}
             label={t("containers.sectionsLabel")}
             select="many"
             active={openSections}
+            buttonHeight
             onChange={toggleSection}
           />
           <span className="ms-auto shrink-0 text-xs text-carbon-textMuted whitespace-nowrap">
             {lastBackupText}
           </span>
         </div>
+
+        {/* Where this VM's backups go (#204). Inline rather than behind a
+            section chip: a VM card has no folder tree to sit above, and the
+            destination is a one-line answer. Advanced only, like the other
+            per-item controls on this card - a basic view does not offer a
+            second repository to choose between. Locked once the VM has
+            backups: they stay in the repository they were written to and
+            nothing re-homes them. */}
+        <Advanced>
+          <RepoPicker
+            value={repoChoice}
+            onChange={(next) => {
+              const before = repoChoice;
+              setRepoChoice(next);
+              void setVMRepo(vm.libvirtName, next).then((r) => {
+                if (r.ok) {
+                  push(t("folders.saved"), "success");
+                  return;
+                }
+                push(r.error ?? t("settings.error"), "fail");
+                setRepoChoice(before);
+              });
+            }}
+            locked={vm.lastBackup != null}
+          />
+        </Advanced>
 
         <VMRestorePanel
           name={vm.libvirtName}
@@ -1066,6 +1117,21 @@ export function VMRow({
           open={openSections.has("backups")}
         />
       </div>
+
+      {/* Stop a backup that is running (#200). The same control the Folders
+          page has carried since v8.7.0, and the reason it is here now: the
+          answer given on that issue promised it for any running backup, while
+          only folder sets actually had it - the server has accepted the key for
+          every domain all along. Gated exactly as it is there: not on a RESTORE,
+          which has its own control inside the Backups panel with its own warning
+          about a half-restored target, and only while the run is active, so a
+          finished run's last frame does not leave a button that can only answer
+          "nothing to cancel". */}
+      {progress && progress.active && progress.phase !== "restore" && (
+        <div className="flex justify-end">
+          <BackupCancelButton cancelKey={`vm:${vm.libvirtName}`} name={vm.name} t={t} />
+        </div>
+      )}
 
       {/* Live backup/restore progress, pinned to the card's bottom edge */}
       {progress && (
@@ -1509,16 +1575,6 @@ function VMBackupOrderPanel({
             </ol>
             <div className="flex items-center gap-3 flex-wrap">
               <Button
-                key={shakeSave}
-                label={t("backupOrder.save")}
-                labelKey="backupOrder.save"
-                tone="accent"
-                onClick={() => void persist(names, "save")}
-                disabled={saveState === "saving"}
-                busy={saveState === "saving"}
-                className={shakeSave ? "glim-shake" : ""}
-              />
-              <Button
                 key={shakeReset}
                 label={t("backupOrder.reset")}
           labelKey="backupOrder.reset"
@@ -1528,6 +1584,16 @@ function VMBackupOrderPanel({
                 className={`inline-flex items-center rounded-control px-3 py-1.5 text-xs font-medium text-carbon-textSub hover:text-carbon-text transition-colors disabled:opacity-50${
                   shakeReset ? " glim-shake" : ""
                 }`}
+              />
+              <Button
+                key={shakeSave}
+                label={t("backupOrder.save")}
+                labelKey="backupOrder.save"
+                tone="accent"
+                onClick={() => void persist(names, "save")}
+                disabled={saveState === "saving"}
+                busy={saveState === "saving"}
+                className={shakeSave ? "glim-shake" : ""}
               />
             </div>
           </>
@@ -1590,13 +1656,26 @@ export function VMs() {
     setDiscovering(true);
     try {
       const res = await discoverVMs();
+      // Both paths reload the list and name what was left out. A failed pass no
+      // longer means nothing happened: the named repositories are searched
+      // before the domain's own, so when the domain's own is what failed, the
+      // rows already found are real and already written - and this page does no
+      // polling, so without the reload the operator reads a true red error over
+      // an unchanged, empty list.
+      if (res.skipped?.length) {
+        // A pass that could not open every repository says so. "+0" and "+3" look
+        // identical whether everything was read or a named repository was switched
+        // off, unresolvable or on a share that did not mount, and the second case
+        // is the one somebody has to act on.
+        push(t("common.discoverSkipped").replace("{list}", res.skipped.join(", ")), "warn");
+      }
       if (res.ok) {
         push(`+${res.discovered ?? 0}`, "success");
-        await loadVMs();
       } else {
         push(res.error ?? t("common.discoverFailed"), "fail");
         setShakeDiscover((n) => n + 1);
       }
+      await loadVMs();
     } catch (err) {
       push(err instanceof Error ? err.message : t("common.discoverFailed"), "fail");
       setShakeDiscover((n) => n + 1);

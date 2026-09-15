@@ -1,10 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { ApiError, backupEverythingNow, downloadRecoveryKit, getAuth, getSettings, importSettingsApply, listContainers, listFileSets, listVMs, logout, logoutAll, patchFileSet, putSettings, replicateOffsite, setAuthPassword, setScheduleCadence, setVMScheduleCadence, testOffsite } from "../lib/api";
+import { ApiError, backupEverythingNow, downloadRecoveryKit, getAuth, getSettings, importSettingsApply, listContainers, listFileSets, listVMs, patchFileSet, putSettings, replicateOffsite, setAuthPassword, setScheduleCadence, setVMScheduleCadence, testOffsite } from "../lib/api";
 import { useOffsiteTargets, type OffsiteDomain } from "../lib/useOffsiteTargets";
 import { FolderBrowser } from "../components/FolderBrowser";
 import { AccentCard, IconResetArrow } from "./settings/AccentCard";
+import { PasskeyCard } from "./settings/PasskeyCard";
 import { TwoFactorCard } from "./settings/TwoFactorCard";
 import { LanguageCard } from "./settings/LanguageCard";
+import { ReposCard } from "./settings/ReposCard";
 import { ThemeCard } from "./settings/ThemeCard";
 import { RestoreChecksSection } from "./settings/RestoreChecksSection";
 import { RcloneCard } from "./settings/RcloneCard";
@@ -51,8 +53,9 @@ import { SpikePanel } from "../components/SpikePanel";
 import { ColorPickerSwatch } from "../components/ColorPickerPopover";
 import { RAINBOW, getRainbow, setRainbow, type RainbowState } from "../lib/appearance";
 import { SHAPES, getShape, setShape, type Shape } from "../lib/shape";
-import { MOTION_INTENSITIES, getMotionIntensity, setMotionIntensity, type MotionIntensity } from "../lib/motion";
+import { MOTION_INTENSITIES, getMotionIntensity, setMotionIntensity, stormTap, type MotionIntensity } from "../lib/motion";
 import { PLATFORMS, PLATFORM_STORAGE_KEY, applyPlatform, usePlatform, type Platform } from "../lib/platform";
+import { applyStoredDisco, discoTap, getDisco, setDisco } from "../lib/disco";
 import { Selector } from "../components/Selector";
 import { BottomSheet } from "../components/mobile/BottomSheet";
 import { IconAdd, IconBackupNow, IconDownload, IconTrash, IconCheckCircle, IconSync, IconGear, IconClose } from "../components/Sidebar";
@@ -411,7 +414,10 @@ function VMsSection({
     // See ContainersSection's own comment above — `title` restored, same
     // Task 3 `hueIndex` threaded into CadenceBuilder below.
     <Card title={t("jobs.vmsSection")} hint={t("jobs.vmIncludeHint")} hueIndex={hueIndex}>
-      <ScheduleRow schedule={schedule} />
+      {/* The editor below stays visible and dimmed while the Containers
+          schedule owns this domain, because the cadence it shows still runs -
+          so the row says who owns it (see ScheduleRow's own `hint` doc). */}
+      <ScheduleRow schedule={schedule} hint={syncSchedules ? t("jobs.syncSchedulesHint") : undefined} />
       <div className="rounded-card bg-carbon-surface2 p-4">
         <CadenceBuilder
           label={t("jobs.vmsSection")}
@@ -480,7 +486,8 @@ function FlashSection({
     // than explaining a list). Same Task 3 `hueIndex` threaded into
     // CadenceBuilder below.
     <Card title={t("jobs.flashSection")} hint={tLtr(t, "jobs.flashScheduleHint")} hueIndex={hueIndex}>
-      <ScheduleRow schedule={schedule} />
+      {/* Same synced-owner bubble as VMsSection above. */}
+      <ScheduleRow schedule={schedule} hint={syncSchedules ? t("jobs.syncSchedulesHint") : undefined} />
       <div className="rounded-card bg-carbon-surface2 p-4">
         <CadenceBuilder
           label={t("jobs.flashSection")}
@@ -589,7 +596,8 @@ function FilesSection({
     // See ContainersSection's own comment above — `title` restored, same
     // Task 3 `hueIndex` threaded into CadenceBuilder below.
     <Card title={t("jobs.filesSection")} hint={t("jobs.filesIncludeHint")} hueIndex={hueIndex}>
-      <ScheduleRow schedule={schedule} />
+      {/* Same synced-owner bubble as VMsSection above. */}
+      <ScheduleRow schedule={schedule} hint={syncSchedules ? t("jobs.syncSchedulesHint") : undefined} />
       <div className="rounded-card bg-carbon-surface2 p-4">
         <CadenceBuilder
           label={t("jobs.filesSection")}
@@ -1289,7 +1297,6 @@ export function SettingsPage() {
 
   // Auth state for the Security card.
   const [authEnabled, setAuthEnabled] = useState(false);
-  const [authAuthed, setAuthAuthed] = useState(false);
   // The second factor's state, and the minimum the SERVER enforces. The
   // minimum is read rather than hard-coded so the field and the server can
   // never disagree about the number they both quote to the user.
@@ -1363,6 +1370,21 @@ export function SettingsPage() {
   // setPlatformLocal twin would be a second source of truth for a value the
   // choke point already owns (lib/platform.ts's recorded decision).
   const platform = usePlatform();
+  // GSS 1.17.0's hidden fourth level. Both of these are deliberately COMPONENT
+  // state: `stormFound` must not survive leaving this page (an egg that
+  // changes behaviour has to be switchable back off, never a permanent picker
+  // entry), and the click counter has nothing to remember past the gesture.
+  const [stormFound, setStormFound] = useState(false);
+  const stormClicks = useRef({ taps: 0 });
+  // Disco, the colour engine's own hidden mode, with the same two-part shape
+  // the storm above uses: `discoFound` is component state so a found egg is
+  // not a permanent row, and the counter has nothing to remember once the
+  // gesture completes. Unlike the storm's, this counter carries a timestamp,
+  // because its gesture is five turn-ONs of Rainbow Mode and somebody merely
+  // comparing the mode on and off would otherwise unlock it by accident.
+  const [discoFound, setDiscoFound] = useState(false);
+  const [disco, setDiscoLocal] = useState<boolean>(() => getDisco());
+  const discoClicks = useRef({ taps: 0, last: 0 });
   // #178: the three label modes, mirrored into local state so the selectors
   // show the current choice; the controls themselves read through
   // useLabelMode, which the labelModeChanged() call below wakes.
@@ -1380,6 +1402,19 @@ export function SettingsPage() {
   const [rainbow, setRainbowLocal] = useState<RainbowState>(() => getRainbow());
   function updateRainbow(patch: Partial<RainbowState>) {
     setRainbowLocal(setRainbow(patch));
+    // The disco walk reads the rainbow state, so a rainbow change has to
+    // re-decide whether it runs: switching rainbow off parks it, switching
+    // rainbow back on resumes it without touching the disco switch itself.
+    applyStoredDisco();
+  }
+
+  /** Rainbow Mode's own onChange, which doubles as the disco unlock gesture:
+   *  five turn-ons inside disco.ts's window. Only turn-ons count, so the
+   *  gesture ends with rainbow on, which is the one state where a walking
+   *  palette is visible at all. */
+  function rainbowToggled(on: boolean) {
+    updateRainbow({ on });
+    if (discoTap(discoClicks.current, on, { now: Date.now() })) setDiscoFound(true);
   }
 
   // Per-section save state
@@ -1435,6 +1470,7 @@ export function SettingsPage() {
     | "filesEnabled"
     | "configEnabled"
     | "receiverEnabled"
+    | "pullEnabled"
     | "fleetEnabled";
   const [domainToggleBusy, setDomainToggleBusy] = useState<Partial<Record<DomainToggleKey, boolean>>>({});
   const [domainToggleShake, setDomainToggleShake] = useState<Partial<Record<DomainToggleKey, number>>>({});
@@ -1608,7 +1644,6 @@ export function SettingsPage() {
     getAuth()
       .then((res) => {
         setAuthEnabled(res.enabled);
-        setAuthAuthed(res.authed);
         setTotpEnabled(res.totp ?? false);
         setRecoveryLeft(res.recoveryCodesLeft);
         if (res.minPasswordLen) setMinPasswordLen(res.minPasswordLen);
@@ -2349,6 +2384,11 @@ export function SettingsPage() {
       const res = await setAuthPassword(pwNew);
       if (res.ok) {
         setAuthEnabled(res.enabled ?? false);
+        // The same response carries the session, so the card can go straight to
+        // its signed-in state. Without this the second factor sat one reload
+        // away: the enable button was there, and the request behind it answered
+        // 401 because the login it had just switched on had issued nobody a
+        // session yet.
         setPwSaveState("idle");
         push(pwNew === "" ? t("auth.passwordCleared") : t("auth.passwordSaved"), "success");
         setPwNew("");
@@ -2365,22 +2405,6 @@ export function SettingsPage() {
     }
   }
 
-  async function handleLogout() {
-    await logout().catch(() => undefined);
-    // Reload so the auth gate re-checks and shows the login screen.
-    window.location.reload();
-  }
-
-  async function handleLogoutAll() {
-    // Rotates the server-side session epoch, revoking EVERY outstanding session
-    // cookie (all browsers/devices) — not just clearing this one.
-    await logoutAll().catch(() => undefined);
-    // Reload so the auth gate re-checks and shows the login screen. Reached via
-    // globalThis (cf. downloadRecoveryKit in api.ts): runtime-identical to bare
-    // window, but immune to the broken DOM lib resolution.
-    const g = globalThis as unknown as { location: { reload(): void } };
-    g.location.reload();
-  }
 
   // Tamper-test schedule eligibility (#109): mirrors immutableOffsiteDomains in
   // internal/schedule/schedule.go — the scheduler only wires the scheduled
@@ -3190,8 +3214,30 @@ export function SettingsPage() {
           pulseNonce={fieldPulse.fleetEnabled}
           hueIndex={6}
         />
+        {/* Pull (#227). Last of the three and the only one that WRITES: the two
+            above watch, this one fetches another instance's backups into this
+            box's own repository. Its hint says so rather than leaving it to be
+            discovered. */}
+        <ToggleRow
+          label={t("settings.pullEnabled")}
+          hint={t("settings.pullEnabledHint")}
+          checked={settings.pullEnabled}
+          onChange={(v) => void toggleDomainEnabled("pullEnabled", v)}
+          disabled={domainToggleBusy.pullEnabled}
+          shakeNonce={domainToggleShake.pullEnabled}
+          pulseNonce={fieldPulse.pullEnabled}
+          hueIndex={7}
+        />
       </Card>
       )}
+
+      {/* ------------------------------------------------------------------ */}
+      {/* STORAGE — Named repositories (#204)                                */}
+      {/* ------------------------------------------------------------------ */}
+      {/* Above the domain paths on purpose: these are the places an INDIVIDUAL
+          container, VM or folder set can be pointed at instead of the domain
+          path below, so the more specific answer is read first. */}
+      {tab === "storage" && <ReposCard hueIndex={nextHue()} />}
 
       {/* ------------------------------------------------------------------ */}
       {/* STORAGE — Backup paths                                             */}
@@ -3654,7 +3700,7 @@ export function SettingsPage() {
             min={0}
             value={settings.resticCacheMaxMB}
             onChange={(e) => {
-              // Structural cast (cf. handleLogoutAll): runtime-identical to
+              // Structural cast (cf. downloadRecoveryKit in api.ts): runtime-identical to
               // e.target.value, but immune to the broken DOM lib resolution.
               const raw = (e.target as unknown as { value: string }).value;
               const n = Math.max(0, parseInt(raw, 10) || 0);
@@ -4427,11 +4473,16 @@ export function SettingsPage() {
                 the same reason — the on/off is a separate toggle here, not
                 the cadence string's own "off" mode. */}
             <ScheduleRow schedule={settings.digestSchedule} enabled={settings.digestEnabled} />
+            {/* The editor goes with the toggle above, exactly as in
+                RestoreChecksSection (GlimStone 1.10.0): an editor greyed
+                because a switch ELSEWHERE is off offers an edit nobody can
+                make. The badge above stays either way, so switching the
+                report off still shows what would have run. */}
+            {settings.digestEnabled && (
             <div className="rounded-card bg-carbon-surface2 p-4">
               <CadenceBuilder
                 label={t("settings.schedule")}
                 value={settings.digestSchedule}
-                disabled={!settings.digestEnabled}
                 onChange={(v) => {
                   setSettings((prev) => (prev ? { ...prev, digestSchedule: v } : prev));
                   debouncedSave("digestSchedule", () =>
@@ -4441,6 +4492,7 @@ export function SettingsPage() {
                 hueIndex={hueIdx}
               />
             </div>
+            )}
           </Card>
         );
       })()}
@@ -4592,8 +4644,10 @@ export function SettingsPage() {
       {/* ------------------------------------------------------------------ */}
       {/* Button-size/colour-engine sweep (jdp, live review — "Die vielen
           Buttons sind unterschiedlich groß und nicht alle im
-          Regenbogenmodus"): the Save/Logout/Logout-everywhere buttons below
-          had no tie to this Card's own hue at all. IIFE captures `hueIdx`
+          Regenbogenmodus"): the buttons below had no tie to this Card's own
+          hue at all. (It used to name three - Save, Logout and
+          Logout-everywhere; the two sign-out buttons are gone, see the note
+          where they stood.) IIFE captures `hueIdx`
           once and reuses it for both the Card's own heading notch and every
           button inside it — the same "one Card, several hue-aware children
           share ONE position" shape the schedulesChecks/Spike Cards above
@@ -4671,27 +4725,17 @@ export function SettingsPage() {
           </div>
         </div>
 
-        {/* Logout buttons — only shown when currently signed in. Plain sign-out
-            clears THIS browser's cookie; "sign out everywhere" rotates the
-            server-side session epoch, revoking every outstanding session. */}
-        {authEnabled && authAuthed && (
-          <div className="pt-2 border-t border-carbon-border flex items-center gap-3">
-            <Button
-              label={t("auth.logout")}
-              labelKey="auth.logout"
-              tone="neutral"
-              onClick={() => void handleLogout()}
-              hueIndex={hueIdx}
-            />
-            <Button
-              label={t("settings.logoutAll")}
-              labelKey="settings.logoutAll"
-              tone="neutral"
-              onClick={() => void handleLogoutAll()}
-              hueIndex={hueIdx}
-            />
-          </div>
-        )}
+        {/* No sign-out here, and no "sign out everywhere" either (GlimStone
+            2.1.0, rule 22: a settings card CONFIGURES, the shell OPERATES).
+            Both used to sit along this card's bottom edge, which put the two
+            controls that throw a half-filled password form away directly under
+            the field somebody was typing in - and the plain one duplicated the
+            sidebar's own sign-out, where everybody looks for it anyway.
+              Removing a button must not remove what it could do, so the
+            "everywhere" half moved into the action that already implies it:
+            handleSetPassword rotates the session epoch now, which ends every
+            other session exactly when somebody changes a password because they
+            fear it leaked. See its comment in internal/api/handlers.go. */}
       </Card>
         );
       })()}
@@ -4719,6 +4763,14 @@ export function SettingsPage() {
           hueIndex={nextHue()}
         />
       )}
+
+      {/* ------------------------------------------------------------------ */}
+      {/* SYSTEM — passkeys. Its own Card beside the second factor because it  */}
+      {/* is a different decision: the factor makes the password stronger,     */}
+      {/* a passkey replaces typing it. And unlike the factor it is not always */}
+      {/* available, so the card's first job is explaining when it is not.     */}
+      {/* ------------------------------------------------------------------ */}
+      {tab === "system" && <PasskeyCard passwordSet={authEnabled} hueIndex={nextHue()} />}
 
       {/* ------------------------------------------------------------------ */}
       {/* GENERAL — Language (GlimStone follow-up pass, live-review point 9). */}
@@ -4912,6 +4964,8 @@ export function SettingsPage() {
             size="lg"
             variant="well"
             equalWidth
+            // 4; see the label rows below for the palette split.
+            hueOffset={4}
           />
         </div>
 
@@ -4948,21 +5002,38 @@ export function SettingsPage() {
           </div>
           {/* No "don't stretch" wrapper div, same as the Theme/Shape Selectors
               right above — `variant="well"` hugs its own segments now. */}
+          {/* THE FOURTH SEGMENT IS NOT ALWAYS THERE, GSS 1.17.0's hidden level.
+              It is offered while it is CHOSEN - a picker that hid the value it
+              is currently showing would be lying about the interface - and
+              otherwise only for as long as this screen stays open, which is why
+              `stormFound` is component state and never storage. Pick something
+              else and leave, and it is gone until the gesture is made again. */}
           <Selector
-            items={MOTION_INTENSITIES.map((m) => ({
-              id: m,
-              label: t(`settings.motion.${m}` as TranslationKey),
-            }))}
+            items={[...MOTION_INTENSITIES, ...(stormFound || motion === "storm" ? (["storm"] as const) : [])].map(
+              (m) => ({
+                id: m,
+                label: t(`settings.motion.${m}` as TranslationKey),
+              }),
+            )}
             label={t("settings.motion")}
             select="one"
             active={motion}
             onChange={(id) => {
-              setMotionLocal(id as MotionIntensity);
-              setMotionIntensity(id as MotionIntensity);
+              // The gesture first, because it fires on the level ALREADY chosen
+              // and therefore on a click that changes nothing else.
+              const storm = stormTap(stormClicks.current, id, motion);
+              if (storm) setStormFound(true);
+              const next = (storm ?? id) as MotionIntensity;
+              setMotionLocal(next);
+              setMotionIntensity(next);
             }}
             size="lg"
             variant="well"
             equalWidth
+            // 5: distinct from the tab strip (0), the label rows (1..3)
+            // and the shape selector (4), so no two selectors on this page
+            // wear the same colour in the same column.
+            hueOffset={5}
           />
         </div>
 
@@ -5003,6 +5074,9 @@ export function SettingsPage() {
             size="lg"
             variant="well"
             equalWidth
+            // 6: the next free slot in this page's palette split (tab strip 0,
+            // label rows 1..3, shape 4, motion 5) — same rule, same column.
+            hueOffset={6}
           />
         </div>
 
@@ -5024,7 +5098,7 @@ export function SettingsPage() {
           appearance dials kept in this browser rather than server settings,
           and they read as a pair. */}
           <div className="flex flex-col gap-4">
-            {CONTROL_AXES.map((axis) => (
+            {CONTROL_AXES.map((axis, axisIndex) => (
               <div key={axis} className="flex flex-col gap-1">
                 <span className="text-xs text-carbon-textSub">
                   {t(`settings.labels.${axis}` as TranslationKey)}
@@ -5047,6 +5121,16 @@ export function SettingsPage() {
                   size="lg"
                   variant="well"
                   equalWidth
+                  // Each of the three rows starts one colour further along the
+                  // palette (jdp, 2026-09-15: "nicht jeder selektor soll am
+                  // gleichen feld die gleiche farbe haben"). Offsetting by the
+                  // row index rather than by the row COUNT keeps neighbouring
+                  // rows adjacent in the palette, so the block still reads as
+                  // one group instead of three unrelated strips.
+                  // 1..3; the shape and motion selectors take 4 and 5, and the
+                  // tab strip above keeps 0, so no two selectors on this page
+                  // start on the same palette colour.
+                  hueOffset={1 + axisIndex}
                 />
               </div>
             ))}
@@ -5153,21 +5237,50 @@ export function SettingsPage() {
             // abstract "handed out by position" phrasing jdp found unclear).
             hint={t("settings.rainbowHint")}
             checked={rainbow.on}
-            onChange={(v) => updateRainbow({ on: v })}
+            onChange={rainbowToggled}
             hueIndex={0}
           />
 
-          {/* Dimmed via each control's OWN `disabled` — ToggleRow dims its
-              switch AND its caption together (rule 15, and the exact fix
-              this branch's own ToggleRow carries from Phase 1 Task 4 — see
-              its own header comment above). "Switched off, not hidden":
-              these stay visible and reachable even while off, so nobody has
-              to guess what the mode does. */}
+          {/* Everything below hangs off the rainbow being ON, so while it is
+              off none of it is here at all (GlimStone 1.10.0). It used to be
+              dimmed, under the reasoning "switched off, not hidden": leave it
+              visible so nobody has to guess what the mode does. The language
+              answers that directly - a palette editor under a rainbow that is
+              not running is eight swatches nobody can open beside a reset
+              nobody can press, and the switch above already says what the mode
+              is. The "not hidden" rule protects the switch for the MODE, not
+              its sub-controls.
+
+              The accent row two cards up is deliberately NOT this case and
+              keeps its dimming: its value still paints every control the
+              rainbow does not reach, so it is a setting that is partly
+              overridden rather than one with nothing behind it. GlimStone
+              1.16.0 states the test - does the control still do anything. */}
+          {rainbow.on && (
+          <>
+          {/* Disco, once found. Shown while it is ON as well as while found,
+              for the reason the storm's own picker entry is: a switch that
+              hid the value it is currently showing would be lying, and
+              somebody who reloads with disco running needs a way to stop it.
+              Sits first inside the rainbow's sub-controls because it changes
+              what the whole set of them does, rather than one more property
+              of it. */}
+          {(discoFound || disco) && (
+            <ToggleRow
+              label={t("settings.disco")}
+              hint={t("settings.discoHint")}
+              checked={disco}
+              onChange={(v) => {
+                setDisco(v);
+                setDiscoLocal(v);
+              }}
+              hueIndex={0}
+            />
+          )}
           <ToggleRow
             label={t("settings.rainbowReactive")}
             hint={t("settings.rainbowReactiveHint")}
             checked={rainbow.reactive}
-            disabled={!rainbow.on}
             onChange={(v) => updateRainbow({ reactive: v })}
             hueIndex={1}
           />
@@ -5175,7 +5288,6 @@ export function SettingsPage() {
             label={t("settings.rainbowRotate")}
             hint={t("settings.rainbowRotateHint")}
             checked={rainbow.rotate}
-            disabled={!rainbow.on}
             onChange={(v) =>
               // Turning rotation on draws a fresh offset immediately, so
               // the switch does something visible instead of silently
@@ -5229,7 +5341,6 @@ export function SettingsPage() {
                 key={i}
                 hex={hex}
                 index={i}
-                disabled={!rainbow.on}
                 t={t}
                 onChange={(v) => {
                   const next = rainbow.palette.slice();
@@ -5336,13 +5447,15 @@ export function SettingsPage() {
               tone="neutral"
               tip={t("settings.rainbowPaletteReset")}
               onClick={() => updateRainbow({ palette: RAINBOW })}
-              disabled={!rainbow.on || paletteIsDefault}
+              disabled={paletteIsDefault}
               className="border-2 border-carbon-border"
             >
               <IconResetArrow />
             </Badge>
             </div>
           </div>
+          </>
+          )}
         </div>
           </div>
         </div>
@@ -5402,15 +5515,24 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* SYSTEM — About                                                      */}
-      {/* Both versions, each linking to its own release, and the two routes  */}
-      {/* for saying something about them. Replaces the old version footer    */}
-      {/* rather than joining it ([363]) — shipping both is the failure the   */}
-      {/* design language names by name: one number in two type sizes twelve  */}
-      {/* pixels apart. jdp asked for the System tab specifically, which is   */}
-      {/* the right reading of "the end of Settings" on a tabbed page.        */}
+      {/* GENERAL — About                                                     */}
+      {/* Both versions, each linking to its own release, the ways to give,   */}
+      {/* and the two routes for saying something. Replaces the old version   */}
+      {/* footer rather than joining it ([363]) — shipping both is the        */}
+      {/* failure the design language names by name: one number in two type   */}
+      {/* sizes twelve pixels apart.                                          */}
+      {/*                                                                     */}
+      {/* It stood on SYSTEM until [3559], which was a defensible reading of  */}
+      {/* the language's "end of Settings" and the wrong one on a tabbed      */}
+      {/* page. System is where the host integration and the export live —    */}
+      {/* things somebody comes here to operate. General is the first tab in  */}
+      {/* the strip, so this is the last card of the first thing anybody      */}
+      {/* opens, which is where a version number and an invitation to give    */}
+      {/* are actually found. The sibling apps already had it there, so this  */}
+      {/* also ends a three-way disagreement about one standard card.         */}
+      {/* Stays LAST in its tab either way: the card is a footer.             */}
       {/* ------------------------------------------------------------------ */}
-      {tab === "system" && (
+      {tab === "general" && (
         <AboutCard hueIndex={nextHue()} />
       )}
       </div>

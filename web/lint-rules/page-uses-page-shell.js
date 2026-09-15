@@ -14,7 +14,12 @@
 //
 //   1. The page component's root must be `className={PAGE_SHELL}`. Checked on
 //      the component the file is named for, so a NEW page in src/pages is
-//      covered the moment it is created.
+//      covered the moment it is created. A page that ALSO renders as a tab
+//      panel of another page may write a ternary between the two shells
+//      pageShell.ts exports (`embedded ? PAGE_SHELL_TABBED : PAGE_SHELL`) —
+//      both arms must be shared constants and one must be this file's required
+//      shell, so the choice is still between the app's two widths and never a
+//      third one of the page's own.
 //   2. Nothing anywhere in src/pages may hand-roll the shell as literal
 //      classes — a `className` that pairs a `max-w-*` cap with `flex-col` and
 //      a `gap-*` IS a page shell, whatever it is called. That is the exact
@@ -188,13 +193,35 @@ export default {
       return out;
     }
 
+    // The two shells lib/pageShell.ts exports. Kept as a list here rather than
+    // read from that file because the rule must work on a single file's AST,
+    // and a page that names one of these is by definition not hand-rolling the
+    // width and gap this rule exists to stop.
+    const SHARED_SHELLS = ["PAGE_SHELL", "PAGE_SHELL_TABBED"];
+
     function usesShell(returnStatement) {
       const arg = returnStatement.argument;
       if (!arg || arg.type !== "JSXElement") return false;
       const attr = getAttr(arg, "className");
       const v = attr?.value;
       if (!v || v.type !== "JSXExpressionContainer") return false;
-      return v.expression.type === "Identifier" && v.expression.name === requiredShell;
+      const e = v.expression;
+      if (e.type === "Identifier") return e.name === requiredShell;
+      // `embedded ? PAGE_SHELL_TABBED : PAGE_SHELL` — a page that also renders
+      // as a tab panel of another page (Receiver, Fleet and Pull inside
+      // Instances). Both arms must name a SHARED shell and one of them must be
+      // the shell this file is required to use, so the page still cannot drift
+      // to its own width: it can only pick between the two the app already has.
+      // A ternary with a literal in either arm is still a violation, which is
+      // the case worth keeping strict.
+      if (e.type === "ConditionalExpression") {
+        const arms = [e.consequent, e.alternate];
+        return (
+          arms.every((a) => a.type === "Identifier" && SHARED_SHELLS.includes(a.name)) &&
+          arms.some((a) => a.name === requiredShell)
+        );
+      }
+      return false;
     }
 
     return {

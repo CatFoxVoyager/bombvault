@@ -9,8 +9,10 @@ import { useRainbow } from "../lib/useRainbow";
 // Only the footer/controls glyphs are still referenced directly in this file:
 // the nav destinations' route + label + icon data now comes from the ONE
 // registry (lib/navModel.ts — SHELL-03), which this rail renders instead of
-// hand-typing. The glyph re-export block below is untouched; dozens of files
-// import IconTrash and friends FROM here and none of them can see this change.
+// hand-typing. IconReceiver is no longer rendered here (the three instance
+// rows became one, merged upstream — navModel's single /instances entry);
+// the glyph re-export block below is untouched; dozens of files import
+// IconTrash and friends FROM here and none of them can see this change.
 import { IconPower, IconViewAdvanced, IconViewSimple } from "./navGlyphs";
 import { destinations, type NavDestination } from "../lib/navModel";
 import { useLabelMode } from "../lib/useLabelMode";
@@ -289,8 +291,7 @@ function NavItem({ to, label, icon, hueIndex }: NavItem) {
         // `justify-center` — the glyph centres in whatever column it is given.
         // That started as the answer to the rail-width question (the rail kept
         // its 224px and the glyphs centred in it) and it is still what the
-        // narrowed 6rem rail needs, since the row is wider than the glyph in
-        // both. Without it the glyphs sat hard left with 178px of empty rail
+        // narrowed rail needs, since the row is wider than the glyph in both. Without it the glyphs sat hard left with 178px of empty rail
         // beside each one.
         className={({ isActive }) =>
           `${navBase} ${showLabel ? "" : "justify-center"}${reactive ? " glim-reactive" : ""} glim-hue glim-hue-icon ${isActive ? `${navActive} glim-active` : navInactive}`
@@ -325,9 +326,15 @@ function NavItem({ to, label, icon, hueIndex }: NavItem) {
 // glyph mode, and a tooltip only where the words are gone.
 //
 // Signing out clears this browser's cookie and reloads, which is what puts the
-// login screen back up. Settings keeps its own sign-out (and the "everywhere"
-// variant that rotates the session epoch); this one is the reach-for-it copy,
-// so it does the plain thing only.
+// login screen back up.
+//
+// THIS IS THE ONLY SIGN-OUT IN THE APP NOW. The Security card used to carry a
+// second one plus an "everywhere" variant; both are gone (GlimStone 2.1.0,
+// rule 22: a settings card configures, the shell operates). So the duplicate
+// this comment used to point at no longer exists, and the "everywhere" half
+// did not simply vanish either - rotating the session epoch moved into
+// changing the password, where somebody who fears their password leaked
+// already expects it to happen.
 function SidebarSignOut({ hueIndex }: { hueIndex: number }) {
   const { t } = useT();
   const labelMode = useLabelMode("sidebar");
@@ -471,6 +478,8 @@ function SidebarControls({ hueIndex }: { hueIndex: number }) {
 export function Sidebar({ settings, authEnabled }: SidebarProps) {
   const { t } = useT();
   const navigate = useNavigate();
+  // Per-domain gates live in the registry itself (navModel destinations()):
+  // this rail no longer computes any of them inline.
 
   // #178: the logo row lives IN the rail, so it follows the rail's own axis
   // like every other row does. jdp's call after seeing the centred glyph
@@ -565,12 +574,16 @@ export function Sidebar({ settings, authEnabled }: SidebarProps) {
     //   - REACTIVE cannot narrow, because its words slide back INSIDE the row
     //     (`--reactive-chars` on a `max-width` transition) and because the
     //     ACTIVE row keeps its words permanently (`.glim-reactive.glim-active`).
-    //     A 96px rail would clip the one row that must always stay readable,
+    //     A narrow rail would clip the one row that must always stay readable,
     //     and the alternative, expanding the whole rail on hover, either shoves
     //     the page sideways or turns into the tooltip reactive mode exists to
     //     avoid.
-    // 6rem holds the 48px mark plus the row's own `px-3.5`, with the glyph
-    // column still centred in it.
+    // The narrow width is `--rail-narrow`, the house's 85px, and no longer this
+    // app's own sum. It used to be 6rem, worked out from the 48px mark plus the
+    // row's `px-3.5`; the sibling worked out 64px the same way from its own
+    // mark, and the two rails then did the same job at different widths. The
+    // mark fits the rail now: 48px still sits centred at 85 with room on both
+    // sides. See GlimStone's own bullet for the reversal.
     // `data-testid="desktop-sidebar"` — the phase-5 Playwright harness's
     // desktop-untouched spec locates the rail by this testid (asserting it is
     // visible at >= 48rem and the mobile bar is absent). A hook, not a
@@ -578,7 +591,7 @@ export function Sidebar({ settings, authEnabled }: SidebarProps) {
     // untouched.
     <aside
       data-testid="desktop-sidebar"
-      className={`flex flex-col ${railNarrow ? "w-24" : "w-56"} shrink-0 h-full bg-carbon-sidebar`}
+      className={`flex flex-col ${railNarrow ? "w-(--rail-narrow)" : "w-56"} shrink-0 h-full overflow-hidden rounded-card bg-carbon-sidebar`}
     >
       {/* Logo + wordmark → Dashboard. Two theme-specific marks auto-switch via the
           `dark:` variant (dark mark on the light surface, light mark on the dark
@@ -597,9 +610,9 @@ export function Sidebar({ settings, authEnabled }: SidebarProps) {
         className={`glim-logo-btn flex items-center ${railLabels ? "gap-2.5 px-4 text-start" : "justify-center px-0"}${railReactive ? " glim-reactive" : ""} py-5 w-full cursor-pointer select-none hover:opacity-90 transition-opacity`}
       >
         {/* The narrow rail gets the smaller mark, which is the second logo the
-            rail-width question always needed: 64px in a 96px column leaves 16px
-            of air either side and reads as a mark wedged into a gap. 48px sits
-            in it. `--egg-mark` carries the size into CSS, because the shatter
+            rail-width question always needed: the big 64px mark in an 85px column
+            leaves ten and a half pixels either side and reads as a mark wedged
+            into a gap. 48px sits in it, with 18.5 on each side (measured). `--egg-mark` carries the size into CSS, because the shatter
             tiles paint slices of a background sized to the WHOLE mark while each
             tile is a sixth of it, so a hard-coded 64px there would cut the wrong
             slices as soon as the mark changed size. */}
@@ -747,7 +760,9 @@ export function Sidebar({ settings, authEnabled }: SidebarProps) {
                   in this block's opening comment, byte-identical to the old
                   inline `{flag && <NavItem .../>}` sequence. "Always visible:
                   disaster recovery is a core, non-expert flow" and the
-                  per-domain gate notes moved with the list into navModel.ts. */}
+                  per-domain gate notes moved with the list into navModel.ts,
+                  including the single /instances row (the upstream merge of
+                  Receiver+Fleet+Pull — its combined gate lives on the entry). */}
               {mainList.map((d) => (d.enabled ? renderEntry(d) : null))}
             </nav>
 

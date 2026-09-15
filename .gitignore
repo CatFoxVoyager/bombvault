@@ -11,11 +11,16 @@ tsconfig.tsbuildinfo
 # MkDocs build output (the Docs workflow builds and deploys it fresh)
 /site/
 
-# Keep the embedded-SPA placeholder so `//go:embed all:web/dist` compiles
-# before the Vite build exists; real build artifacts under web/dist stay ignored.
+# Keep web/dist as a DIRECTORY so `//go:embed all:dist` in web/embed.go compiles
+# before the Vite build exists. Only the marker is tracked; every build artefact
+# under web/dist stays ignored, index.html included. It used to be index.html
+# itself that was tracked, which meant a real Vite output with 113 commits of
+# history sat in the repo pointing at two chunks that were never in it: a fresh
+# clone rendered a white page with two 404s, and every frontend build showed the
+# file as modified.
 !web/dist/
 web/dist/*
-!web/dist/index.html
+!web/dist/.gitkeep
 
 # Env & secrets
 .env
@@ -49,3 +54,9 @@ web/playwright-report/
 .playwright-data/
 /bombvault
 /bombvault.exe
+
+# Assistant scratch files never belong in a public repo (jdp, standing rule:
+# no reference to any assistant, anywhere). The repo guide that used to live
+# in CLAUDE.md is in the project vault note instead.
+CLAUDE.md
+.claude/

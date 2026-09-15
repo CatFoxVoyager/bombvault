@@ -90,7 +90,7 @@ func TestCopyToOffsiteTargetMakesDestinationReadable(t *testing.T) {
 	svc.cfg.HostMountRoot = root
 
 	target := store.OffsiteTarget{ID: "t1", Domain: "containers", Repo: "remotes/nas/bombvault", Enabled: true}
-	if err := svc.copyToOffsiteTarget(context.Background(), "containers", settings, target, filepath.Join(root, "local"), false, time.Now().Unix(), nil); err != nil {
+	if err := svc.copyToOffsiteTarget(context.Background(), "containers", settings, target, []domainRepoRef{ownRef(filepath.Join(root, "local"))}, nil, false, time.Now().Unix(), nil); err != nil {
 		t.Fatalf("copyToOffsiteTarget: %v", err)
 	}
 
@@ -142,7 +142,7 @@ func TestMakeOffsiteRepoReadableSkipsRemote(t *testing.T) {
 		if !restic.IsRemoteRepo(repo) {
 			t.Fatalf("%q must be recognised as a remote repo", repo)
 		}
-		makeOffsiteRepoReadable(repo) // must not panic, must not touch the filesystem
+		makeOffsiteRepoReadable(repo, t.TempDir()) // must not panic, must not touch the filesystem
 	}
 }
 
@@ -150,7 +150,7 @@ func TestMakeOffsiteRepoReadableSkipsRemote(t *testing.T) {
 // not mounted (#55) — must be a silent no-op, never a panic or a stray mkdir.
 func TestMakeOffsiteRepoReadableToleratesMissingPath(t *testing.T) {
 	missing := filepath.Join(t.TempDir(), "never-mounted")
-	makeOffsiteRepoReadable(missing)
+	makeOffsiteRepoReadable(missing, t.TempDir())
 	if _, err := os.Stat(missing); !os.IsNotExist(err) {
 		t.Fatalf("relax pass must not create the destination, stat err = %v", err)
 	}

@@ -1612,7 +1612,7 @@ func TestDeleteBackupsFileSetPrimaryImmutableRefused(t *testing.T) {
 func TestUnlockDomainOffsiteImmutableAllowed(t *testing.T) {
 	svc, eng := newImmutableOffsiteSvc(t)
 
-	if err := svc.UnlockDomain(context.Background(), "containers", "offsite"); err != nil {
+	if _, err := svc.UnlockDomain(context.Background(), "containers", "offsite"); err != nil {
 		t.Fatalf("unlock on an immutable off-site repo must stay allowed: %v", err)
 	}
 	if len(eng.unlockedRepos) != 1 {
@@ -4326,7 +4326,7 @@ func TestDiscoverRebuildsTargetsFromStorage(t *testing.T) {
 	// dryRun=true first: a readability probe must report the same count WITHOUT
 	// writing any target (#44 — the Recovery readiness check must not resurrect
 	// orphan entries).
-	if pn, pErr := svc.Discover(context.Background(), true); pErr != nil {
+	if pn, _, pErr := svc.Discover(context.Background(), true); pErr != nil {
 		t.Fatalf("discover probe: %v", pErr)
 	} else if pn != 1 {
 		t.Fatalf("probe discovered = %d, want 1", pn)
@@ -4335,7 +4335,7 @@ func TestDiscoverRebuildsTargetsFromStorage(t *testing.T) {
 		t.Fatalf("probe (dryRun) must NOT create the plex target, but it exists")
 	}
 
-	n, err := svc.Discover(context.Background(), false)
+	n, _, err := svc.Discover(context.Background(), false)
 	if err != nil {
 		t.Fatalf("discover: %v", err)
 	}
@@ -4371,22 +4371,81 @@ func marshalDefinition(inspect model.Inspect, templateXML string, appdata ...str
 // ---------------------------------------------------------------------------
 
 type fakeResticEngine struct {
-	inited          []string
-	backedUp        []string
-	lastPaths       []string
-	lastTags        []string
-	lastExcludes    []string
-	lastMode        restic.Mode
-	restored        []string
-	restoreErrPath  string // when set, RestoreInclude fails on this include path
-	restoreErr      error  // when set, every RestoreInclude/RestorePath returns it (e.g. context.Canceled)
-	forgotten       []string
-	prunedRepos     []string
-	forgetTags      []string // identity tags passed to ForgetPolicy (issue #91)
-	checked         []string
-	copied          []string
-	copyErr         error
-	snaps           []restic.Snapshot
+	inited         []string
+	backedUp       []string
+	lastPaths      []string
+	lastTags       []string
+	lastExcludes   []string
+	lastMode       restic.Mode
+	restored       []string
+	restoreErrPath string // when set, RestoreInclude fails on this include path
+	restoreErr     error  // when set, every RestoreInclude/RestorePath returns it (e.g. context.Canceled)
+	forgotten      []string
+	// forgotRepos is the repository of every Forget call, parallel to the ids it
+	// carried. Without it the fake discards the one argument that says WHERE the
+	// delete landed, so every assertion around it is an assertion about the fake:
+	// rewriting DeleteSnapshot to forget from the wrong repository of a
+	// two-repository domain left the whole suite green.
+	forgotRepos []string
+	forgotModes []restic.Mode
+	prunedRepos []string
+	forgetTags  []string // identity tags passed to ForgetPolicy (issue #91)
+	checked     []string
+	// The MODE each maintenance call was made with, parallel to the repo slices
+	// above. Without these a test can only see WHICH repositories an operation
+	// reached, not whether each was addressed with its own credentials, storage
+	// class and caps - and hoisting one mode out of the loop is exactly the
+	// regression the per-repository rewrite exists to prevent.
+	checkedModes   []restic.Mode
+	checkDataModes []restic.Mode
+	unlockedModes  []restic.Mode
+	prunedModes    []restic.Mode
+	copied         []string
+	// copiedIDs is the snapshotIDs argument of every Copy call, parallel to
+	// copied. nil means "the whole repository", which is what the domain's own
+	// repository gets and what a named one must never get.
+	copiedIDs [][]string
+	copyErr   error
+	// onSnapshots, when set, runs on every Snapshots call with the call count, so
+	// a test can mutate the store between two listings inside one operation.
+	onSnapshots func(call int)
+	// copyErrFor fails the copy of ONE source, which is the only way to build the
+	// shape the off-site gate turns on: two sources, one of them failing. With a
+	// single global copyErr every Copy fails or none does, and "did every source
+	// fail" and "did anything land" agree in both directions - so the gate that
+	// distinguishes them cannot be tested at all.
+	copyErrFor map[string]error
+	// copiedModes is the mode of every Copy CALL, in call order. Not parallel to
+	// `copied`, which counts the calls that SUCCEEDED - and under the blockCopy
+	// fixture this is appended before the wait while copied is incremented after
+	// it, so the two are not even the same length mid-test.
+	copiedModes []restic.Mode
+	snaps       []restic.Snapshot
+	// snapsByRepo overrides snaps for a specific repository; anything not listed
+	// falls back to snaps.
+	snapsByRepo map[string][]restic.Snapshot
+	// listedRepos is every repository Snapshots was asked about, in order. A test
+	// that wants to know WHICH repositories a pass looked in - discovery, above
+	// all - cannot read that from a per-repository return map.
+	listedRepos []string
+	// listedModes is the mode every Snapshots call was made with, parallel to
+	// listedRepos. Every reader used to name its mode parameter `_`, which made
+	// the whole "each repository is addressed with the mode built for IT" question
+	// invisible to the suite - and it stayed invisible long enough for one reader
+	// (the container restore) to be missed by the very sweep that converted its VM
+	// twin.
+	//
+	// It covers the restore too, and a separate restoredModes was added here and
+	// then removed for claiming otherwise: prepareRestoreIn builds ONE mode, uses
+	// it for the snapshot listing and hands the same one to the plan, so
+	// RestoreInclude cannot be called with a different mode than the listing that
+	// preceded it. A second recorder for one value is not a second instrument.
+	listedModes []restic.Mode
+	// snapsErrFor makes the listing of ONE repository fail, permanently, so a test
+	// can tell "this repository could not be opened" apart from "it is empty".
+	// snapshotsErr fails once and then succeeds, which exercises the stale-unlock
+	// retry and cannot express an unreadable repository.
+	snapsErrFor     map[string]error
 	lsEntries       []restic.FileEntry
 	lsErr           error // when set, the FIRST Ls call fails (exercises the stale-unlock retry, #129)
 	lsCalls         int
@@ -4642,20 +4701,44 @@ func (f *fakeResticEngine) DumpZip(_ context.Context, repo, snapshotID, subfolde
 	return zw.Close()
 }
 
-func (f *fakeResticEngine) Snapshots(ctx context.Context, _ string, _ restic.Mode) ([]restic.Snapshot, error) {
+func (f *fakeResticEngine) Snapshots(ctx context.Context, repo string, m restic.Mode) ([]restic.Snapshot, error) {
 	_, hasDeadline := ctx.Deadline()
 	f.snapshotsCtxDeadline = append(f.snapshotsCtxDeadline, hasDeadline)
 	f.snapshotsCalls++
+	// onSnapshots lets a test change the WORLD between two listings of the same
+	// call - the only way to build a race from the outside. DeleteBackups lists
+	// once before the domain lock and once inside it, and an operator can turn
+	// append-only on in between; nothing else in this fake can express that.
+	if f.onSnapshots != nil {
+		f.onSnapshots(f.snapshotsCalls)
+	}
+	f.listedRepos = append(f.listedRepos, repo)
+	f.listedModes = append(f.listedModes, m)
 	if f.snapshotsErr != nil {
 		e := f.snapshotsErr
 		f.snapshotsErr = nil // fail once, then succeed (exercises the stale-unlock retry)
 		return nil, e
 	}
+	// PER REPOSITORY where the test says so. Returning one list for every
+	// repository makes a destination look like it already holds the source's
+	// snapshots, which silently turns "copy what is pending" into "copy
+	// nothing" - a fake that cannot tell two repositories apart cannot be used
+	// to test anything that distinguishes them.
+	if e, ok := f.snapsErrFor[repo]; ok && e != nil {
+		return nil, e
+	}
+	if f.snapsByRepo != nil {
+		if v, ok := f.snapsByRepo[repo]; ok {
+			return v, nil
+		}
+	}
 	return f.snaps, nil
 }
 
-func (f *fakeResticEngine) Forget(_ context.Context, _ string, snapshotIDs []string, prune bool, _ restic.Mode) error {
+func (f *fakeResticEngine) Forget(_ context.Context, repo string, snapshotIDs []string, prune bool, m restic.Mode) error {
 	f.forgotten = append(f.forgotten, snapshotIDs...)
+	f.forgotRepos = append(f.forgotRepos, repo)
+	f.forgotModes = append(f.forgotModes, m)
 	f.forgetPruned = prune
 	return nil
 }
@@ -4773,27 +4856,31 @@ func (f *fakeResticEngine) RestoreSubtreeInclude(_ context.Context, repo, snapsh
 	return nil
 }
 
-func (f *fakeResticEngine) Check(_ context.Context, repo string, _ restic.Mode) error {
+func (f *fakeResticEngine) Check(_ context.Context, repo string, m restic.Mode) error {
 	f.checked = append(f.checked, repo)
+	f.checkedModes = append(f.checkedModes, m)
 	return f.checkErr
 }
 
-func (f *fakeResticEngine) CheckData(_ context.Context, repo string, subsetPercent int, _ restic.Mode) error {
+func (f *fakeResticEngine) CheckData(_ context.Context, repo string, subsetPercent int, m restic.Mode) error {
 	f.checkDataRepos = append(f.checkDataRepos, repo)
+	f.checkDataModes = append(f.checkDataModes, m)
 	f.checkDataPct = append(f.checkDataPct, subsetPercent)
 	f.callLog = append(f.callLog, "CheckData")
 	return f.checkDataErr
 }
 
-func (f *fakeResticEngine) Unlock(_ context.Context, repo string, removeAll bool, _ restic.Mode) error {
+func (f *fakeResticEngine) Unlock(_ context.Context, repo string, removeAll bool, m restic.Mode) error {
 	f.unlockedRepos = append(f.unlockedRepos, repo)
+	f.unlockedModes = append(f.unlockedModes, m)
 	f.unlockRemoveAll = append(f.unlockRemoveAll, removeAll)
 	f.callLog = append(f.callLog, "Unlock")
 	return f.unlockErr
 }
 
-func (f *fakeResticEngine) Prune(_ context.Context, repo string, _ restic.Mode) error {
+func (f *fakeResticEngine) Prune(_ context.Context, repo string, m restic.Mode) error {
 	f.manualPruned = append(f.manualPruned, repo)
+	f.prunedModes = append(f.prunedModes, m)
 	return f.pruneErr
 }
 
@@ -4802,14 +4889,27 @@ func (f *fakeResticEngine) CacheCleanup(context.Context) error {
 	return nil
 }
 
-func (f *fakeResticEngine) Copy(_ context.Context, destRepo, srcRepo string, _ []string, _ restic.Limits, _ restic.Mode) error {
+func (f *fakeResticEngine) Copy(_ context.Context, destRepo, srcRepo string, snapshotIDs []string, _ restic.Limits, m restic.Mode) error {
 	if f.copyPanic {
 		panic("boom during copy")
 	}
+	f.copiedModes = append(f.copiedModes, m)
 	if f.blockCopy != nil {
 		<-f.blockCopy
 	}
 	f.copied = append(f.copied, srcRepo+"->"+destRepo)
+	// The snapshot ids are RECORDED, not discarded.
+	//
+	// Discarding them is why the two worst off-site defects of the fifth review
+	// round passed the whole suite green: whether a copy is narrowed to this
+	// domain's snapshots, or drags another domain's into this destination for
+	// its retention to age, is decided entirely by this argument - and no test
+	// could see it. A fake that throws away the thing under test turns every
+	// assertion around it into an assertion about the fake.
+	f.copiedIDs = append(f.copiedIDs, snapshotIDs)
+	if e, ok := f.copyErrFor[srcRepo]; ok && e != nil {
+		return e
+	}
 	return f.copyErr
 }
 
@@ -4890,7 +4990,7 @@ func initRepoSvcWithStore(t *testing.T, eng *fakeResticEngine) (*api.Service, *s
 func TestUnlockDomainRemovesAllLocks(t *testing.T) {
 	eng := &fakeResticEngine{}
 	svc := initRepoSvc(t, eng)
-	if err := svc.UnlockDomain(context.Background(), "containers", ""); err != nil {
+	if _, err := svc.UnlockDomain(context.Background(), "containers", ""); err != nil {
 		t.Fatalf("UnlockDomain: %v", err)
 	}
 	if len(eng.unlockedRepos) != 1 || len(eng.unlockRemoveAll) != 1 || !eng.unlockRemoveAll[0] {
@@ -4909,7 +5009,7 @@ func TestUnlockDomainNoRepoYet(t *testing.T) {
 		t.Fatal(err)
 	}
 	svc := api.NewService(cfg, st, &fakeServiceDocker{}, fakeVirsh{}, eng)
-	if err := svc.UnlockDomain(context.Background(), "containers", ""); err == nil {
+	if _, err := svc.UnlockDomain(context.Background(), "containers", ""); err == nil {
 		t.Fatal("expected a friendly error when the repo does not exist yet")
 	}
 	if len(eng.unlockedRepos) != 0 {
@@ -6038,7 +6138,7 @@ func TestDiscoverVMsRebuildsTargetFromStorage(t *testing.T) {
 
 	// dryRun=true first: the readability probe reports the count but must NOT
 	// recreate the VM target (#44).
-	if pn, pErr := svc.DiscoverVMs(context.Background(), true); pErr != nil {
+	if pn, _, pErr := svc.DiscoverVMs(context.Background(), true); pErr != nil {
 		t.Fatalf("DiscoverVMs probe: %v", pErr)
 	} else if pn != 1 {
 		t.Fatalf("probe discovered = %d, want 1", pn)
@@ -6047,7 +6147,7 @@ func TestDiscoverVMsRebuildsTargetFromStorage(t *testing.T) {
 		t.Fatalf("probe (dryRun) must NOT create the Tailscale VM target, but it exists")
 	}
 
-	n, err := svc.DiscoverVMs(context.Background(), false)
+	n, _, err := svc.DiscoverVMs(context.Background(), false)
 	if err != nil {
 		t.Fatalf("DiscoverVMs: %v", err)
 	}

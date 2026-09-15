@@ -6,8 +6,7 @@ import { VMs } from "../pages/VMs";
 import { Flash } from "../pages/Flash";
 import { Config } from "../pages/Config";
 import { Files } from "../pages/Files";
-import { Receiver } from "../pages/Receiver";
-import { Fleet } from "../pages/Fleet";
+import { Instances } from "../pages/Instances";
 import { SettingsPage } from "../pages/Settings";
 import Recovery from "../pages/Recovery";
 import { GlyphSheet } from "../pages/Glyphs";
@@ -30,8 +29,15 @@ export function AppRouter() {
               <Route path="/flash" element={<Flash />} />
               <Route path="/config" element={<Config />} />
               <Route path="/files" element={<Files />} />
-              <Route path="/receiver" element={<Receiver />} />
-              <Route path="/fleet" element={<Fleet />} />
+              {/* Receiver, Fleet and Pull became three tabs of one page (jdp:
+                  "die sind doch fast das gleiche"). The three old paths stay as
+                  redirects: they are in bookmarks, in the release notes and in
+                  at least one support answer, and a dead link is a worse
+                  outcome than a hash. Same treatment /jobs got below. */}
+              <Route path="/instances" element={<Instances />} />
+              <Route path="/receiver" element={<Navigate to="/instances#receiver" replace />} />
+              <Route path="/pull" element={<Navigate to="/instances#pull" replace />} />
+              <Route path="/fleet" element={<Navigate to="/instances#fleet" replace />} />
               <Route path="/recovery" element={<Recovery />} />
               {/* The Plans page was retired into Settings › Schedules; keep /jobs
                   as a redirect so old links/bookmarks land on the Schedules tab. */}

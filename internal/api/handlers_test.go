@@ -2199,6 +2199,85 @@ func TestRestoreFileSetToFolder(t *testing.T) {
 	}
 }
 
+// TestRestoreFileSetToFolderMultiRoot is the multi-root half of the same
+// contract, and it is the one that was missing: a set whose selection is two
+// sub-folders records TWO paths in its snapshot, and the to-folder restore has
+// to bring back BOTH.
+//
+// It used to extract Paths[0] alone. One restic call ran, keep-b never reached
+// the target, no error surfaced, and the run was written success - the operator
+// saw files in the folder and believed the set had come back. The same read
+// drives the cross-instance route, where a target folder is mandatory, so after
+// a host loss there was no route at all to the second root.
+//
+// The restore root is now the node covering every recorded path, so one call
+// still does it. That is safe because a snapshot tree holds only what was
+// backed up: TestRestoreCommonAncestorOfRecordedRoots in internal/restic proves
+// against the real engine that the ancestor yields exactly the recorded roots
+// and leaves a never-backed-up sibling alone.
+func TestRestoreFileSetToFolderMultiRoot(t *testing.T) {
+	eng := &fakeResticEngine{snaps: []restic.Snapshot{
+		{ID: "deadbeef12345678", Time: "2026-07-14T00:00:00Z", Tags: []string{"fileset:docs"}, Paths: []string{
+			"/host/olduser/data/docs/keep-a",
+			"/host/olduser/data/docs/keep-b",
+		}},
+	}}
+	h, _, svc, dir := newFilesTestRouter(t, eng)
+	_, m := doJSON(t, h, http.MethodPost, "/api/files/sets", `{"name":"docs","path":"data/docs"}`)
+	id, _ := m["id"].(string)
+
+	w, m := doJSON(t, h, http.MethodPost, "/api/files/sets/"+id+"/restore", `{"snapshotId":"deadbeef12345678","targetPath":"restore-here/docs"}`)
+	if w.Code != http.StatusOK || m["ok"] != true || m["started"] != true {
+		t.Fatalf("expected ok/started, got %d %v", w.Code, m)
+	}
+	waitForBackupDone(t, svc)
+
+	// One call, rooted at the shared parent: keep-a and keep-b both land in the
+	// target, each under its own name. Asserting "/host/olduser/data/docs/keep-a"
+	// here would be re-pinning the defect.
+	repo := dir + "/backups/files"
+	want := repo + ":deadbeef12345678:/host/olduser/data/docs->" + dir + "/restore-here/docs"
+	if len(eng.restored) != 1 || eng.restored[0] != want {
+		t.Fatalf("restored = %v, want [%s]", eng.restored, want)
+	}
+}
+
+// TestRestoreFileSetFilesUnderSecondRecordedRoot pins the other side of the same
+// Paths[0] read: the SELECTIVE restore's containment guard.
+//
+// The file picker lists the whole snapshot, so a file under the second recorded
+// root is visible and tickable. Restoring it to a folder was then refused with
+// "selected path is outside the file set snapshot" - about a file that is
+// plainly inside the snapshot. On the cross-instance route, where a target
+// folder is the only option, that refusal was terminal: the data sat in the
+// repository with no route to it. The guard now measures against the node that
+// covers every recorded path.
+func TestRestoreFileSetFilesUnderSecondRecordedRoot(t *testing.T) {
+	eng := &fakeResticEngine{snaps: []restic.Snapshot{
+		{ID: "deadbeef12345678", Time: "2026-07-14T00:00:00Z", Tags: []string{"fileset:docs"}, Paths: []string{
+			"/host/user/data/docs/keep-a",
+			"/host/user/data/docs/keep-b",
+		}},
+	}}
+	h, _, svc, _ := newFilesTestRouter(t, eng)
+	_, m := doJSON(t, h, http.MethodPost, "/api/files/sets", `{"name":"docs","path":"data/docs"}`)
+	id, _ := m["id"].(string)
+
+	// A file under keep-b, the SECOND recorded root.
+	w, m := doJSON(t, h, http.MethodPost, "/api/files/sets/"+id+"/restore-files",
+		`{"snapshotId":"deadbeef12345678","paths":["/host/user/data/docs/keep-b/report.pdf"],"targetPath":"restore-here/docs","confirm":true}`)
+	if w.Code != http.StatusOK || m["ok"] != true || m["started"] != true {
+		t.Fatalf("a file under the second recorded root must restore, got %d %v", w.Code, m)
+	}
+	waitForBackupDone(t, svc)
+	if len(eng.restored) != 1 {
+		t.Fatalf("restored = %v, want exactly one call", eng.restored)
+	}
+	if !strings.Contains(eng.restored[0], "keep-b") {
+		t.Fatalf("restored = %v, want the call to name the selected file under keep-b", eng.restored)
+	}
+}
+
 // TestRestoreFileSetMetadataOnlyIsSuccessWithWarning pins issue #62's "restore
 // failed" half: when restic extracted all data but could not set ownership/
 // metadata on the /mnt/user (FUSE) target (restic.ErrRestoreMetadataOnly), the run

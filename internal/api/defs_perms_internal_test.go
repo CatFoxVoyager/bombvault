@@ -79,7 +79,7 @@ func TestMakeRepoReadableRelaxesTree(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	makeRepoReadable(repo)
+	makeRepoReadable(repo, t.TempDir())
 
 	if perm := statPerm(t, sub); perm&0o055 != 0o055 {
 		t.Fatalf("dir perm %o must gain group+other traverse (rx)", perm)
@@ -107,7 +107,7 @@ func TestMakeRepoReadablePreservesSetgid(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	makeRepoReadable(repo)
+	makeRepoReadable(repo, t.TempDir())
 
 	fi, err := os.Stat(sub)
 	if err != nil {

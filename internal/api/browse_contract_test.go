@@ -214,13 +214,21 @@ func TestBrowseHidden(t *testing.T) {
 		t.Fatalf("default listing = %v, want %v", got, wantDefault)
 	}
 
-	// hidden=1 at the root: dot-dirs included, everything else identical and
-	// identically sorted (lexical order includes the dot-dirs first).
+	// hidden=1 at the root: dot-dirs included, everything else identical, and
+	// the dot-dirs sort LAST.
+	//
+	// They used to sort first, because a dot precedes every digit and letter.
+	// That is fine until the 500-entry cap bites: the dot-dirs would take the
+	// front of the page and push exactly as many ordinary folders off the end,
+	// and a folder with no row cannot be ticked in the selection tree - the same
+	// defect the hidden opt-in exists to remove, pointed the other way. Sorting
+	// them last keeps a hidden-inclusive listing a superset of the plain one for
+	// the whole first page.
 	_, hid := doJSON(t, h, http.MethodGet, "/api/browse?hidden=1", "")
 	if hid["ok"] != true {
 		t.Fatalf("expected ok:true, got %v", hid)
 	}
-	wantHidden := []string{".cache", ".hidden", "appdata", "emptydir", "media", "my.dir"}
+	wantHidden := []string{"appdata", "emptydir", "media", "my.dir", ".cache", ".hidden"}
 	if got := browseNames(hid); !equalStrings(got, wantHidden) {
 		t.Fatalf("hidden=1 listing = %v, want %v", got, wantHidden)
 	}

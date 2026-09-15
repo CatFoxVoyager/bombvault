@@ -30,6 +30,23 @@ type FileSet struct {
 	// did. Owned by SetFileSetScheduleCadence, never by UpdateFileSet, so an
 	// ordinary edit of the name or path cannot silently drop a cadence.
 	ScheduleCadence string
+	// Repo is this set's OPTIONAL own restic repository (#204). Empty means
+	// "use the Folders domain repository" (Settings.FilesPath), which is what
+	// every set did before this field existed.
+	//
+	// A concrete value is the ID of a NAMED REPOSITORY - a row in
+	// offsite_targets with role = RoleRepo - not a location. It started out as
+	// a free-text location (migration 103) and became an id inside the same
+	// feature, because typing the same bucket path into ten containers is
+	// miserable and correcting it later means finding all ten; migration 106
+	// clears any value that is not the id of an existing named repository. The
+	// id is turned into a location by the API tier (itemRepoPath), never here.
+	//
+	// Owned by SetFileSetRepo, never by UpdateFileSet, for the same reason
+	// ScheduleCadence is: a save from the edit dialog must not be able to
+	// silently move a set's backups to another repository as a side effect of
+	// renaming it.
+	Repo string
 	// SelectedPaths is the set's OPTIONAL tree selection (Phase 4 file-sets
 	// parity, D-03/D-05): the same flat encoding as the containers' flat
 	// backupPaths set — bare mount-root-space absolute paths are included
@@ -64,10 +81,16 @@ func (r *Repo) CreateFileSet(fs FileSet) (FileSet, error) {
 		return FileSet{}, fmt.Errorf("CreateFileSet marshal excludes: %w", err)
 	}
 
+	// repo is listed here, unlike in UpdateFileSet. The ownership rule that keeps
+	// it out of the UPDATE is about an EDIT silently moving a set's backups; a
+	// CREATE has nothing to overwrite, and splitting it into an insert plus a
+	// setter left a window where the set existed on the domain repository while
+	// the caller believed it was on the chosen one. Same shape, same fix, as
+	// UpdateFileSetClearingSelection in this file.
 	_, err = r.db.Exec(`
-		INSERT INTO file_sets (id, name, path, excludes, enabled, created_at)
-		VALUES (?, ?, ?, ?, ?, ?)`,
-		fs.ID, fs.Name, fs.Path, string(exJSON), boolInt(fs.Enabled), fs.CreatedAt,
+		INSERT INTO file_sets (id, name, path, excludes, enabled, created_at, repo)
+		VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		fs.ID, fs.Name, fs.Path, string(exJSON), boolInt(fs.Enabled), fs.CreatedAt, fs.Repo,
 	)
 	if err != nil {
 		return FileSet{}, fmt.Errorf("CreateFileSet: %w", err)
@@ -140,7 +163,7 @@ func (r *Repo) UpdateFileSetClearingSelection(fs FileSet) error {
 // ListFileSets returns all file sets ordered by name.
 func (r *Repo) ListFileSets() ([]FileSet, error) {
 	rows, err := r.db.Query(`
-		SELECT id, name, path, excludes, enabled, schedule_cadence, selected_paths, created_at
+		SELECT id, name, path, excludes, enabled, schedule_cadence, selected_paths, repo, created_at
 		FROM file_sets ORDER BY name`)
 	if err != nil {
 		return nil, fmt.Errorf("ListFileSets: %w", err)
@@ -161,7 +184,7 @@ func (r *Repo) ListFileSets() ([]FileSet, error) {
 // GetFileSet returns the file set with the given id.
 func (r *Repo) GetFileSet(id string) (FileSet, error) {
 	row := r.db.QueryRow(`
-		SELECT id, name, path, excludes, enabled, schedule_cadence, selected_paths, created_at
+		SELECT id, name, path, excludes, enabled, schedule_cadence, selected_paths, repo, created_at
 		FROM file_sets WHERE id = ?`, id)
 	return scanFileSet(row)
 }
@@ -169,7 +192,7 @@ func (r *Repo) GetFileSet(id string) (FileSet, error) {
 // GetFileSetByName returns the file set with the given (unique) name.
 func (r *Repo) GetFileSetByName(name string) (FileSet, error) {
 	row := r.db.QueryRow(`
-		SELECT id, name, path, excludes, enabled, schedule_cadence, selected_paths, created_at
+		SELECT id, name, path, excludes, enabled, schedule_cadence, selected_paths, repo, created_at
 		FROM file_sets WHERE name = ?`, name)
 	return scanFileSet(row)
 }
@@ -205,6 +228,34 @@ func (r *Repo) SetFileSetScheduleCadence(id, cadence string) error {
 	}
 	if n, _ := res.RowsAffected(); n == 0 {
 		return fmt.Errorf("SetFileSetScheduleCadence: no file set %q", id)
+	}
+	return nil
+}
+
+// SetFileSetRepo writes a file set's per-item repository override (#204).
+// An empty string clears it, putting the set back on the Folders domain
+// repository (Settings.FilesPath).
+//
+// Its own statement rather than a field on UpdateFileSet, for exactly the
+// reason SetFileSetScheduleCadence is: the destination of a set's backups must
+// never move as a SIDE EFFECT of a rename or a path edit. A form that did not
+// know about the field would otherwise clear the override and silently send the
+// next backup somewhere else - and unlike a cleared schedule, which announces
+// itself the next time a run does not happen, a moved repository looks exactly
+// like a working one until somebody goes looking for a snapshot that is in the
+// other repo.
+//
+// repo is the ID of a named repository (a RoleRepo row in offsite_targets), not
+// a location. The value is stored verbatim: whether that id exists and is
+// switched on is the API tier's question (validateItemRepoID, itemRepoPath),
+// not this package's.
+func (r *Repo) SetFileSetRepo(id, repo string) error {
+	res, err := r.db.Exec(`UPDATE file_sets SET repo = ? WHERE id = ?`, repo, id)
+	if err != nil {
+		return fmt.Errorf("SetFileSetRepo: %w", err)
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return fmt.Errorf("SetFileSetRepo: no file set %q", id)
 	}
 	return nil
 }
@@ -262,7 +313,7 @@ func scanFileSet(s scanner) (FileSet, error) {
 	var fs FileSet
 	var exJSON string
 	var enabled int
-	// selected_paths is the table's only nullable column (v101): NULL is the
+	// selected_paths is the table's only nullable column (v102): NULL is the
 	// COMMON state (every row created before the tree existed, and every
 	// CreateFileSet INSERT omits the column), so it scans into *string —
 	// scanning a plain string would fail every legacy row and take down
@@ -270,7 +321,7 @@ func scanFileSet(s scanner) (FileSet, error) {
 	// written value decodes as JSON below. Same nullable-scan precedent as
 	// received_repos.last_check_ok (migrate.go v76).
 	var selJSON *string
-	err := s.Scan(&fs.ID, &fs.Name, &fs.Path, &exJSON, &enabled, &fs.ScheduleCadence, &selJSON, &fs.CreatedAt)
+	err := s.Scan(&fs.ID, &fs.Name, &fs.Path, &exJSON, &enabled, &fs.ScheduleCadence, &selJSON, &fs.Repo, &fs.CreatedAt)
 	if err != nil {
 		return FileSet{}, fmt.Errorf("scanFileSet: %w", err)
 	}

@@ -6,6 +6,7 @@ import { listRuns, getSpike, listContainers, listVMs, getSettings, getStatus, ge
 import type { Run, SpikeCheck, Container, Settings, DomainStatus, HistoryDay, DayStat, RepoStat, StorageForecast, ScheduleNext } from "../lib/api";
 import { ErrorDetailPanel } from "../components/ErrorDetailPanel";
 import { useT } from "../lib/i18n";
+import { SelectField } from "../components/SelectField";
 import { isOwnReason, runReason } from "../lib/runReason";
 // Run kind/target labels + status chips live in lib/runDisplay (06-04 Task 1)
 // so the mobile RunDetailSheet renders the exact same vocabulary — verbatim
@@ -1050,16 +1051,16 @@ function RunsCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hueIndex?:
           {/* Day filter */}
           <div className="flex items-center gap-2 mb-2">
             <label className="text-xs text-carbon-textMuted">{t("run.filterDay")}</label>
-            <select
+            <SelectField
               value={day}
-              onChange={(e) => setDay(e.target.value)}
+              onChange={setDay}
+              label={t("run.filterDay")}
+              options={[
+                { value: "all", label: t("run.allDays") },
+                ...days.map((d) => ({ value: d, label: d })),
+              ]}
               className="rounded-control bg-carbon-surface2 px-2 py-1 text-xs text-carbon-text glim-field-focus"
-            >
-              <option value="all">{t("run.allDays")}</option>
-              {days.map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
+            />
           </div>
           {/* Scrollable list — all runs in the window (filtered by day) */}
           <div className="divide-y divide-carbon-border max-h-128 overflow-y-auto pe-2">
@@ -2869,7 +2870,7 @@ export function Dashboard() {
           className={`max-md:hidden shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-control motion-safe:transition-colors ${
             editing
               ? "bg-accent text-accentContrast"
-              : "bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text"
+              : "bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-surface3 hover:text-carbon-text"
           }`}
         >
           {/* FILLED pencil (design-language.md "Icon glyphs", rule 218 —

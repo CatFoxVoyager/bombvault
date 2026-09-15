@@ -233,6 +233,11 @@ type Settings struct {
 	// instances this box polls for their protection status). Default false
 	// (opt-in), exactly like ReceiverEnabled.
 	FleetEnabled bool
+	// PullEnabled gates fetching snapshots OUT of another instance's repository
+	// into this one (#227). Default false (opt-in), like the two above, and for a
+	// stronger reason than either: this is the only one of the three that writes
+	// data to this box's own repository, so nobody gets it by upgrading.
+	PullEnabled bool
 	// RestartHealthWait gates the health-gated ordered restart of the "stop other
 	// containers during backup" set (#119). The depends_on ORDERING is always
 	// applied; this flag governs only whether the restart also WAITS for each
@@ -336,7 +341,7 @@ func getSettings(q settingsQuerier) (Settings, error) {
 		       reconcile_unraid_update_status,
 		       per_item_schedules,
 		       cloud_cred_sets,
-		       fleet_enabled, instance_name, fleet_token,
+		       fleet_enabled, pull_enabled, instance_name, fleet_token,
 		       everything_schedule, everything_pre_hook, everything_post_hook,
 		       backup_cores, display_prefs,
 		       totp_secret, totp_enabled, totp_recovery
@@ -348,7 +353,7 @@ func getSettings(q settingsQuerier) (Settings, error) {
 	var flashZipExportEnabled, pruneImageAfterUpdate, digestEnabled int
 	var catchUpMissed, watchdogEnabled, exportEncryptEnabled, receiverEnabled int
 	var restartHealthWait, reconcileUnraidUpdateStatus, perItemSchedules int
-	var fleetEnabled, totpEnabled int
+	var fleetEnabled, pullEnabled, totpEnabled int
 	err := row.Scan(
 		&encEnabled, &contEnabled, &vmsEnabled, &flashEnabled, &configEnabled, &filesEnabled,
 		&s.ContainersPath, &s.VMsPath, &s.FlashPath, &s.ConfigPath, &s.FilesPath, &s.RestoreFolder,
@@ -375,7 +380,7 @@ func getSettings(q settingsQuerier) (Settings, error) {
 		&reconcileUnraidUpdateStatus,
 		&perItemSchedules,
 		&s.CloudCredSets,
-		&fleetEnabled, &s.InstanceName, &s.FleetToken,
+		&fleetEnabled, &pullEnabled, &s.InstanceName, &s.FleetToken,
 		&s.EverythingSchedule, &s.EverythingPreHook, &s.EverythingPostHook,
 		&s.BackupCores, &s.DisplayPrefs,
 		&s.TOTPSecret, &totpEnabled, &s.TOTPRecovery,
@@ -413,6 +418,7 @@ func getSettings(q settingsQuerier) (Settings, error) {
 	s.ReconcileUnraidUpdateStatus = reconcileUnraidUpdateStatus != 0
 	s.PerItemSchedules = perItemSchedules != 0
 	s.FleetEnabled = fleetEnabled != 0
+	s.PullEnabled = pullEnabled != 0
 	return s, nil
 }
 
@@ -567,6 +573,7 @@ func updateSettings(e settingsExecer, s Settings) error {
 		  per_item_schedules           = ?,
 		  cloud_cred_sets              = ?,
 		  fleet_enabled                = ?,
+		  pull_enabled                 = ?,
 		  instance_name                = ?,
 		  fleet_token                  = ?,
 		  everything_schedule          = ?,
@@ -609,6 +616,7 @@ func updateSettings(e settingsExecer, s Settings) error {
 		boolInt(s.PerItemSchedules),
 		s.CloudCredSets,
 		boolInt(s.FleetEnabled),
+		boolInt(s.PullEnabled),
 		s.InstanceName,
 		s.FleetToken,
 		s.EverythingSchedule,
