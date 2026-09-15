@@ -16,8 +16,8 @@ const hr: Partial<Translations> = {
 
   // Mode toggle
   "about.title": "O aplikaciji BombVault",
-  "about.body": "Jedan vitez, jedan pohod: slobodni, lijepi alati otvorenog koda kakvih u obliku koji sam želio nije bilo. Grade se dok ništa ne bude nedostajalo. Nikakvih računa, nikakve telemetrije, nikakvih oglasa. Nikakvog probnog roka, nikakvih pretplata, nikakve zvjezdice u sitnom tisku. Ništa čitljivo nikada ne napušta tvoje zidine. Kovano večerima i vikendima, sa srcem i tvrdoglavošću.",
-  "about.coffee": "Ako ti BombVault koristi, donacija pokriva ono što košta održavanje: domenu, poslužitelj i večeri koje u njega odlaze. A i srce ovog viteza kuca malo brže. Dolje su tri puta, uzmi onaj koji ti odgovara.",
+  "about.body": "Jedan vitez, jedan pohod: uredni alati otvorenog koda kojih u obliku kakav sam želio nije bilo, građeni dok ništa ne nedostaje. Sve besplatno, bez računa, bez telemetrije, bez reklama i bez plaćenih razina. Nigdje nijedne zvjezdice. Ništa čitljivo nikada ne napušta tvoje zidove. Kovano navečer i vikendima, sa srcem i tvrdoglavošću.",
+  "about.coffee": "Ako je BombVault zaslužio mjesto na tvom poslužitelju ili računalu, baci novčić svom vitezu: pomaže pokriti troškove i održava projekt na životu. I srce ovog viteza kuca malo brže. Ispod su tri puta, uzmi onaj koji ti odgovara.",
   "about.coffeeButton": "Počasti me kavom",
   "about.crypto": "Kripto",
   "about.paypal": "PayPal",
@@ -29,7 +29,7 @@ const hr: Partial<Translations> = {
   "about.report": "Problemi, želje ili prijedlozi? Slobodno otvori problem na GitHubu ili pošalji e-poruku.",
   "about.repo": "GitHub",
   "about.mailSubject": "Povratna informacija",
-  "about.mail": "Pošalji e-poruku",
+  "about.mail": "E-pošta",
 
   // Mode toggle
   "mode.simpleView": "Jednostavan prikaz",

@@ -16,8 +16,8 @@ const id: Partial<Translations> = {
 
   // Mode toggle
   "about.title": "Tentang BombVault",
-  "about.body": "Satu ksatria, satu perang salib: perkakas bebas, enak dipandang dan sumber terbuka, yang tidak ada dalam bentuk yang saya inginkan. Dibangun sampai tidak ada yang kurang. Tanpa akun, tanpa telemetri, tanpa iklan. Tanpa masa coba, tanpa paket berbayar, tanpa catatan kecil bertanda bintang. Tidak ada yang terbaca pernah meninggalkan tembokmu sendiri. Ditempa pada malam hari dan akhir pekan, dengan hati dan kekeraskepalaan.",
-  "about.coffee": "Kalau BombVault berguna bagimu, donasi menutup biaya untuk tetap menyalakannya: domain, server, dan malam-malam yang tercurah ke dalamnya. Lagi pula, jantung ksatria ini jadi berdetak sedikit lebih cepat. Ada tiga jalan di bawah, ambil yang cocok untukmu.",
+  "about.body": "Satu ksatria, satu perjalanan: perkakas sumber terbuka yang rapi, yang tidak ada dalam bentuk yang saya inginkan, dibangun sampai tidak ada yang kurang. Semuanya gratis, tanpa akun, tanpa telemetri, tanpa iklan dan tanpa tingkatan berbayar. Tidak ada tanda bintang di mana pun. Tidak ada yang terbaca pernah meninggalkan tembokmu sendiri. Ditempa pada malam hari dan akhir pekan, dengan hati dan kekeraskepalaan.",
+  "about.coffee": "Kalau BombVault sudah pantas mendapat tempat di server atau komputermu, lemparkan koin untuk ksatriamu: itu membantu menutup biaya dan menjaga proyek tetap hidup. Dan itu membuat jantung ksatria ini berdetak sedikit lebih cepat. Di bawah ada tiga jalan, ambil yang cocok untukmu.",
   "about.coffeeButton": "Traktir saya kopi",
   "about.crypto": "Kripto",
   "about.paypal": "PayPal",
@@ -29,7 +29,7 @@ const id: Partial<Translations> = {
   "about.report": "Masalah, keinginan, atau saran? Jangan ragu membuka isu di GitHub, atau kirim surel.",
   "about.repo": "GitHub",
   "about.mailSubject": "Masukan",
-  "about.mail": "Kirim surel",
+  "about.mail": "Surel",
 
   // Mode toggle
   "mode.simpleView": "Tampilan sederhana",

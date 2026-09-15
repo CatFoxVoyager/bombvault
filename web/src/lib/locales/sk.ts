@@ -16,8 +16,8 @@ const sk: Partial<Translations> = {
 
   // Mode toggle
   "about.title": "O aplikácii BombVault",
-  "about.body": "Jeden rytier, jedno ťaženie: slobodné, pekné nástroje s otvoreným kódom, ktoré v podobe, akú som chcel, neexistovali. Stavia sa, kým nebude nič chýbať. Žiadne účty, žiadna telemetria, žiadne reklamy. Žiadna skúšobná verzia, žiadne platené úrovne, žiadna hviezdička v drobnom písme. Nič čitateľné nikdy neopustí tvoje vlastné hradby. Kované po večeroch a cez víkendy, so srdcom a tvrdohlavosťou.",
-  "about.coffee": "Ak ti je BombVault na osoh, dar pokryje, čo stojí jeho chod: doménu, server a večery, ktoré doň idú. A srdce tohto rytiera pri tom bije o čosi rýchlejšie. Dole sú tri cesty, vyber si tú, ktorá ti sadne.",
+  "about.body": "Jeden rytier, jedna výprava: pekné open source nástroje, ktoré v podobe, akú som chcel, neexistovali, stavané, kým nič nechýba. Všetko zadarmo, bez účtov, bez telemetrie, bez reklám a bez platených verzií. Nikde žiadna hviezdička. Nič čitateľné nikdy neopustí tvoje vlastné múry. Kované po večeroch a cez víkendy, so srdcom a tvrdohlavosťou.",
+  "about.coffee": "Ak si BombVault zaslúžil miesto na tvojom serveri alebo počítači, hoď groš svojmu rytierovi: pomôže pokryť náklady a udrží projekt nažive. A srdce tohto rytiera vďaka tomu bije o čosi rýchlejšie. Nižšie sú tri cesty, vyber si tú, ktorá ti vyhovuje.",
   "about.coffeeButton": "Kúp mi kávu",
   "about.crypto": "Krypto",
   "about.paypal": "PayPal",
@@ -29,7 +29,7 @@ const sk: Partial<Translations> = {
   "about.report": "Problémy, želania alebo návrhy? Pokojne založ issue na GitHube, alebo pošli e-mail.",
   "about.repo": "GitHub",
   "about.mailSubject": "Spätná väzba",
-  "about.mail": "Poslať e-mail",
+  "about.mail": "E-mail",
 
   // Mode toggle
   "mode.simpleView": "Jednoduché zobrazenie",

@@ -16,8 +16,8 @@ const gl: Partial<Translations> = {
 
   // Mode toggle
   "about.title": "Sobre BombVault",
-  "about.body": "Un só cabaleiro, unha cruzada: ferramentas libres, ben feitas e de código aberto que non existían coa forma que eu quería. Construídas ata que non falte nada. Sen contas, sen telemetría, sen anuncios. Sen período de proba, sen plans de pago, sen letra pequena. Nada lexible sae nunca dos teus propios muros. Forxado polas noites e as fins de semana, con corazón e teimosía.",
-  "about.coffee": "Se BombVault che serve, unha doazón cobre o que custa mantelo en pé: o dominio, o servidor e as noites que van nel. E ademais fai que o corazón deste cabaleiro lata un pouco máis rápido. Abaixo hai tres camiños, colle o que che veña ben.",
+  "about.body": "Un só cabaleiro, unha cruzada: ferramentas de código aberto ben feitas que non existían na forma que eu quería, construídas ata que non falte nada. Todo de balde, sen contas, sen telemetría, sen anuncios e sen plans de pago. Ningún asterisco en ningures. Nada lexible sae nunca das túas propias murallas. Forxado polas noites e as fins de semana, con corazón e teimosía.",
+  "about.coffee": "Se BombVault gañou un sitio no teu servidor ou computador, bótalle unha moeda ao teu cabaleiro: axuda a cubrir os custos e mantén vivo o proxecto. E fai que o corazón deste cabaleiro bata un pouco máis rápido. Abaixo hai tres camiños, colle o que che acaia.",
   "about.coffeeButton": "Convídame a un café",
   "about.crypto": "Cripto",
   "about.paypal": "PayPal",
@@ -29,7 +29,7 @@ const gl: Partial<Translations> = {
   "about.report": "Problemas, desexos ou suxestións? Abre sen problema unha incidencia en GitHub, ou envía un correo.",
   "about.repo": "GitHub",
   "about.mailSubject": "Comentarios",
-  "about.mail": "Enviar un correo",
+  "about.mail": "Correo",
 
   // Mode toggle
   "mode.simpleView": "Vista sinxela",

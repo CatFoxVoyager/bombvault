@@ -67,9 +67,9 @@ export const en = {
   "nav.settings": "Settings",
   "about.title": "About BombVault",
   "about.body":
-    "A one-knight crusade: free, good-looking open-source tools that did not exist in the shape I wanted. Built until nothing is missing. No accounts, no telemetry, no ads. No trial, no tier, no asterisk. Nothing readable ever leaves your own walls. Forged on evenings and weekends, with heart and stubbornness.",
+    "A one-knight crusade: good-looking open-source tools that did not exist in the shape I wanted, built until nothing is missing. It is free, with no accounts, no telemetry, no ads and no paid tier. No asterisk anywhere. Nothing readable ever leaves your own walls. Forged on evenings and weekends, with heart and stubbornness.",
   "about.coffee":
-    "If BombVault is useful to you, a donation covers what it costs to keep the lights on: the domain, the server, and the evenings that go into it. It also makes this knight's heart beat a little faster. Three ways below, whichever suits you.",
+    "If BombVault has earned a place on your server or computer, toss a coin to your knight: it helps cover the costs and keeps the project alive. It also makes this knight's heart beat a little faster. Three ways below, whichever suits you.",
   "about.coffeeButton": "Buy me a coffee",
   "about.crypto": "Crypto",
   "about.paypal": "PayPal",
@@ -79,7 +79,7 @@ export const en = {
   "about.cryptoNoTag": "No destination tag and no memo needed.",
   "about.report": "Problems, wishes or suggestions? You're welcome to open an issue on GitHub, or send an email.",
   "about.repo": "GitHub",
-  "about.mail": "Send an email",
+  "about.mail": "Email",
   "about.mailSubject": "Feedback",
   "about.version": "Version",
 
@@ -2014,9 +2014,9 @@ export const de: Translations = {
   "nav.settings": "Einstellungen",
   "about.title": "Über BombVault",
   "about.body":
-    "Ein einzelner Ritter, ein Feldzug: freie, ansehnliche quelloffene Werkzeuge, die es in der Form, die ich wollte, nicht gab. Gebaut, bis nichts mehr fehlt. Keine Konten, keine Telemetrie, keine Werbung. Keine Testphase, keine Bezahlstufen, kein Sternchen. Nichts Lesbares verlässt je deine eigenen Mauern. An Abenden und Wochenenden geschmiedet, mit Herz und Dickkopf.",
+    "Ein einzelner Ritter, ein Feldzug: ansehnliche quelloffene Werkzeuge, die es in der Form, die ich wollte, nicht gab, gebaut, bis nichts mehr fehlt. Alles kostenlos, ohne Konten, ohne Telemetrie, ohne Werbung, ohne Bezahlstufen. Nirgends ein Sternchen. Nichts Lesbares verlässt je deine eigenen Mauern. An Abenden und Wochenenden geschmiedet, mit Herz und Dickkopf.",
   "about.coffee":
-    "Wenn dir BombVault nützt, deckt eine Spende, was der Betrieb kostet: Domain, Server und die Abende, an denen weitergebaut wird. Und sie lässt das Herz dieses Ritters etwas höher schlagen. Drei Wege stehen unten, nimm den, der dir passt.",
+    "Wenn sich BombVault einen Platz auf deinem Server oder Rechner verdient hat: wirf deinem Ritter eine Münze zu. Sie hilft, die Kosten zu decken, und hält das Projekt am Leben. Und sie lässt das Herz dieses Ritters etwas höher schlagen. Drei Wege stehen unten, nimm den, der dir passt.",
   "about.coffeeButton": "Kaffee spendieren",
   "about.crypto": "Krypto",
   "about.paypal": "PayPal",
@@ -2026,7 +2026,7 @@ export const de: Translations = {
   "about.cryptoNoTag": "Kein Destination Tag und kein Memo nötig.",
   "about.report": "Probleme, Wünsche oder Verbesserungsvorschläge? Mach gern ein Issue auf GitHub auf, oder schick eine E-Mail.",
   "about.repo": "GitHub",
-  "about.mail": "E-Mail schreiben",
+  "about.mail": "E-Mail",
   "about.mailSubject": "Rückmeldung",
   "about.version": "Version",
 

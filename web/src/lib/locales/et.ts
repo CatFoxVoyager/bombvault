@@ -16,8 +16,8 @@ const et: Partial<Translations> = {
 
   // Mode toggle
   "about.title": "Teave BombVaulti kohta",
-  "about.body": "Üks rüütel, üks sõjaretk: vabad, kena väljanägemisega avatud lähtekoodiga tööriistad, mida sellisel kujul, nagu ma tahtsin, polnud. Ehitatakse seni, kuni midagi ei puudu. Ei ühtki kontot, ei mingit telemeetriat, ei ühtki reklaami. Ei prooviaega, ei tasulisi pakette, ei peenikest kirja. Miski loetav ei lahku kunagi sinu enda müüride vahelt. Sepistatud õhtuti ja nädalavahetustel, südame ja kangekaelsusega.",
-  "about.coffee": "Kui BombVaultist on sulle kasu, katab annetus selle, mis ülalhoidmine maksab: domeeni, serveri ja õhtud, mis sellesse lähevad. Ja paneb selle rüütli südame veidi kiiremini põksuma. Allpool on kolm teed, vali see, mis sulle sobib.",
+  "about.body": "Üks rüütel, üks ristisõda: korralikud avatud lähtekoodiga tööriistad, mida sellisel kujul, nagu tahtsin, ei olnud, ehitatud seni, kuni midagi puudu ei ole. Kõik tasuta, ilma kontodeta, ilma telemeetriata, ilma reklaamideta ja ilma tasuliste tasemeteta. Mitte kusagil tärnikest. Miski loetav ei lahku kunagi sinu enda müüride vahelt. Sepistatud õhtuti ja nädalavahetustel, südame ja kangekaelsusega.",
+  "about.coffee": "Kui BombVault on oma koha sinu serveris või arvutis välja teeninud, viska rüütlile münt: see aitab kulusid katta ja hoiab projekti elus. Ja see paneb selle rüütli südame veidi kiiremini põksuma. Allpool on kolm teed, vali endale sobiv.",
   "about.coffeeButton": "Osta mulle kohv",
   "about.crypto": "Krüpto",
   "about.paypal": "PayPal",
@@ -29,7 +29,7 @@ const et: Partial<Translations> = {
   "about.report": "Probleeme, soove või ettepanekuid? Ava julgelt GitHubis teema või saada e-kiri.",
   "about.repo": "GitHub",
   "about.mailSubject": "Tagasiside",
-  "about.mail": "Saada e-kiri",
+  "about.mail": "E-kiri",
 
   // Mode toggle
   "mode.simpleView": "Lihtvaade",

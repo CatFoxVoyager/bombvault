@@ -16,8 +16,8 @@ const ca: Partial<Translations> = {
 
   // Mode toggle
   "about.title": "Quant a BombVault",
-  "about.body": "Un sol cavaller, una croada: eines lliures i de codi obert, ben fetes, que no existien de la manera que jo volia. Construïdes fins que no hi falti res. Sense comptes, sense telemetria, sense anuncis. Sense prova, sense plans de pagament, sense lletra petita. Res llegible no surt mai de les teves pròpies muralles. Forjat als vespres i els caps de setmana, amb cor i tossuderia.",
-  "about.coffee": "Si BombVault et serveix, un donatiu cobreix el que costa mantenir-lo en marxa: el domini, el servidor i els vespres que hi van. I també fa que el cor d'aquest cavaller bategui una mica més de pressa. A sota hi ha tres maneres, tria la que et vagi bé.",
+  "about.body": "Un sol cavaller, una croada: eines de codi obert ben fetes que no existien en la forma que jo volia, construïdes fins que no hi falti res. Tot gratuït, sense comptes, sense telemetria, sense anuncis i sense plans de pagament. Cap asterisc enlloc. Res llegible no surt mai de les teves pròpies muralles. Forjat als vespres i els caps de setmana, amb cor i tossuderia.",
+  "about.coffee": "Si BombVault s'ha guanyat un lloc al teu servidor o ordinador, llança una moneda al teu cavaller: ajuda a cobrir els costos i manté viu el projecte. I fa que el cor d'aquest cavaller bategui una mica més de pressa. A sota hi ha tres camins, tria el que et vagi bé.",
   "about.coffeeButton": "Convida’m a un cafè",
   "about.crypto": "Cripto",
   "about.paypal": "PayPal",
@@ -29,7 +29,7 @@ const ca: Partial<Translations> = {
   "about.report": "Problemes, desitjos o suggeriments? Obre tranquil·lament una incidència a GitHub, o envia un correu.",
   "about.repo": "GitHub",
   "about.mailSubject": "Comentaris",
-  "about.mail": "Envia un correu",
+  "about.mail": "Correu",
 
   // Mode toggle
   "mode.simpleView": "Vista senzilla",

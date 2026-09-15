@@ -16,8 +16,8 @@ const ms: Partial<Translations> = {
 
   // Mode toggle
   "about.title": "Perihal BombVault",
-  "about.body": "Seorang kesateria, satu kempen suci: alat bebas, elok dipandang dan bersumber terbuka, yang tidak wujud dalam bentuk yang saya mahukan. Dibina sehingga tiada apa yang kurang. Tiada akaun, tiada telemetri, tiada iklan. Tiada tempoh percubaan, tiada pakej berbayar, tiada nota kecil bertanda bintang. Tiada apa pun yang boleh dibaca meninggalkan tembokmu sendiri. Ditempa pada waktu malam dan hujung minggu, dengan hati dan kedegilan.",
-  "about.coffee": "Kalau BombVault berguna kepadamu, derma menampung kos untuk terus menghidupkannya: domain, pelayan dan malam-malam yang dicurahkan padanya. Lagipun jantung kesateria ini berdegup sedikit lebih laju. Ada tiga jalan di bawah, ambil yang sesuai untukmu.",
+  "about.body": "Satu kesateria, satu ekspedisi: alat sumber terbuka yang kemas, yang tidak wujud dalam bentuk yang saya mahukan, dibina sehingga tiada apa yang kurang. Semuanya percuma, tanpa akaun, tanpa telemetri, tanpa iklan dan tanpa peringkat berbayar. Tiada tanda bintang di mana-mana. Tiada apa yang boleh dibaca pernah meninggalkan tembokmu sendiri. Ditempa pada waktu malam dan hujung minggu, dengan hati dan sifat degil.",
+  "about.coffee": "Kalau BombVault sudah layak mendapat tempat pada pelayan atau komputermu, lemparkan syiling kepada kesateriamu: ia membantu menampung kos dan memastikan projek terus hidup. Ia juga membuat jantung kesateria ini berdegup sedikit lebih laju. Di bawah ada tiga jalan, ambil yang sesuai untukmu.",
   "about.coffeeButton": "Belanja saya kopi",
   "about.crypto": "Kripto",
   "about.paypal": "PayPal",
@@ -29,7 +29,7 @@ const ms: Partial<Translations> = {
   "about.report": "Masalah, kehendak atau cadangan? Jangan segan membuka isu di GitHub, atau hantar e-mel.",
   "about.repo": "GitHub",
   "about.mailSubject": "Maklum balas",
-  "about.mail": "Hantar e-mel",
+  "about.mail": "E-mel",
 
   // Mode toggle
   "mode.simpleView": "Paparan ringkas",

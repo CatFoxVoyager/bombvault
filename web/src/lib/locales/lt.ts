@@ -16,8 +16,8 @@ const lt: Partial<Translations> = {
 
   // Mode toggle
   "about.title": "Apie BombVault",
-  "about.body": "Vienas riteris, vienas žygis: laisvi, gražūs atvirojo kodo įrankiai, kokių tokio pavidalo, kokio norėjau, nebuvo. Statoma tol, kol nieko netrūks. Jokių paskyrų, jokios telemetrijos, jokių reklamų. Jokio bandomojo laikotarpio, jokių mokamų pakopų, jokios žvaigždutės smulkiu šriftu. Niekas skaitomo niekada nepalieka tavo paties sienų. Kalta vakarais ir savaitgaliais, iš širdies ir užsispyrimo.",
-  "about.coffee": "Jei BombVault tau praverčia, auka padengia tai, kiek kainuoja jį išlaikyti: domeną, serverį ir vakarus, kurie į jį sudedami. Ir dar priverčia šio riterio širdį plakti kiek greičiau. Žemiau yra trys keliai, rinkis tą, kuris tau tinka.",
+  "about.body": "Vienas riteris, vienas žygis: tvarkingi atvirojo kodo įrankiai, kurių tokios formos, kokios norėjau, nebuvo, statomi tol, kol nieko netrūks. Viskas nemokama, be paskyrų, be telemetrijos, be reklamų ir be mokamų lygių. Niekur jokios žvaigždutės. Niekas skaitomo niekada neišeina už tavo paties sienų. Kalta vakarais ir savaitgaliais, su širdimi ir užsispyrimu.",
+  "about.coffee": "Jei BombVault užsitarnavo vietą tavo serveryje ar kompiuteryje, mesk monetą savo riteriui: ji padeda padengti išlaidas ir palaiko projektą gyvą. Ir dėl jos šito riterio širdis plaka šiek tiek greičiau. Žemiau yra trys keliai, rinkis tau tinkamą.",
   "about.coffeeButton": "Pavaišinti kava",
   "about.crypto": "Kripto",
   "about.paypal": "PayPal",
@@ -29,7 +29,7 @@ const lt: Partial<Translations> = {
   "about.report": "Problemos, pageidavimai ar pasiūlymai? Drąsiai sukurk problemą GitHub arba parašyk el. laišką.",
   "about.repo": "GitHub",
   "about.mailSubject": "Atsiliepimas",
-  "about.mail": "Rašyti el. laišką",
+  "about.mail": "El. paštas",
 
   // Mode toggle
   "mode.simpleView": "Paprastas rodinys",
