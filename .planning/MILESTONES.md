@@ -1,5 +1,26 @@
 # Milestones
 
+## v1.1 Mobile Interface (Shipped: 2026-09-15)
+
+**Phases completed:** 4 phases, 26 plans, 39 tasks
+
+**Key accomplishments:**
+
+- Playwright e2e harness: exact-pinned @playwright/test 1.63.0 with 4 device projects that boot the compiled Go binary via webServer and pass the /api/health smoke — proven green on two full local runs.
+- ONE pure nav registry (navModel.ts) now drives the desktop Sidebar with byte-identical hue-counter semantics, and useIsDesktop() lands the single (min-width: 48rem) breakpoint literal under a source-assert guard, with a guarded jsdom matchMedia stub wired in the same change
+- PRIM-01 BottomSheet now lifts useConfirm's proven modal mechanism (portal, document-level Escape, FOCUSABLE_SELECTOR Tab trap, focus capture/restore) into a token-clean bottom-anchored sheet with the 85dvh/overscroll/safe-area viewport contract, and the nav.more key + IconEllipsis glyph exist across all 42 locale surfaces and the glyph family
+- Safe-area custom properties + viewport-fit=cover, dvh-first mobile-correct login with 16px-effective inputs, and theme-color mirroring from paint() — all pinned by a 22-test source-assert suite with the FOUC script byte-guarded and the byte guard proven live
+- The ONE SelectionTree gains an additive `interactionMode` prop — row tap toggles through the guarded Space pipeline, a dedicated >=44x44 labelled chevron expands — driven by a new `useIsCoarsePointer()` capability hook and pinned by touch dom twins plus a Playwright geometry gate on both mobile projects
+- ONE useConfirm promise API now wears two faces — the desktop ConfirmDialog card byte-identically at/above 48rem, a fail-toned ConfirmSheet below it with the destructive control stacked away from the thumb — on a BottomSheet primitive extended additively (fullHeight, footer slot, 44px close, inset-clamped padding) and a scroller whose mobile gutter tightens to p-4
+- The phone Home now reads glanceably in the maquette's four-block order and starts a Backup Everything pass from the thumb zone through a consequence confirm that lands the user inside the live run sheet - with desktop byte-identical and all four Playwright projects green.
+- data-platform (material|cupertino) attribute layer — coerced bv-platform persistence through one applyPlatform choke point, --mob-* custom properties consumed below md, and a null-under-cupertino Fab — with UA-sniffing guard needles and desktop-untouched e2e proof.
+- The mobile card language's shared primitives extracted and locked: MobileSectionLabel, useLoadMore (20/20 constant window), ListToolbar (sticky-in-flow search), and the phase's nine i18n keys pre-seeded across all 42 tables with the backup-confirm copy aligned to the one-at-a-time guard chain
+- /settings below md swaps the 7-tab Selector for a scrollable accent-tonal chip strip bound to the SAME tab state, with the active tab's unchanged panels stacked full-width — desktop >=48rem byte-identical, proven by a new four-project e2e spec on the real binary.
+- Carried 06-UI-REVIEW fixes landed and pinned, the spacing/weight discipline and six-route dual-direction desktop battery are machine-enforced, de/fr 320-360px sweeps cover every phase surface, and the phase closes green end-to-end (vitest 2446/2446, Playwright 287/0 on four projects, fresh committed web/dist, Go chain green).
+- 08-UAT.md: the D-11 protocol a human executes on real hardware - six-cell device matrix with per-cell 48rem landscape derivations, origin-named inherited checklist (WR-01/WR-02/fix 1/themes/four-status/ForeignRestoreCard), and the dist-rebuild + BombVault-test-only redeploy runbook; VERIFY-02 stays honestly open until the session runs.
+
+---
+
 ## v1.0 Tree-Based Sub-Folder Backup Selection (Shipped: 2026-09-11)
 
 **Phases completed:** 4 phases, 15 plans, 30 tasks

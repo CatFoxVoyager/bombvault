@@ -2,20 +2,20 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Mobile Interface
-current_phase: 8
-current_phase_name: Guided Restore & Real-Device Verification
-status: executing
+status: Awaiting next milestone
 stopped_at: Completed 08-05-PLAN.md (all phase 8 plans done)
-last_updated: "2026-09-14T15:30:32.059Z"
-last_activity: 2026-09-14
-last_activity_desc: Phase 8 planning complete — 5 plans ready
-state_head: acf17bb5d82bff19bd1a611cca7eadc71a5d76a9
+last_updated: "2026-09-15T09:20:53.025Z"
+last_activity: 2026-09-15
+last_activity_desc: Milestone v1.1 completed and archived
+state_head: 938b171a53424e0ae1f072025c161725137a3a59
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 26
   completed_plans: 26
-  percent: 75
+  percent: 100
+current_phase: 8
+current_phase_name: Guided Restore & Real-Device Verification
 ---
 
 # Project State
@@ -29,12 +29,10 @@ See: .planning/PROJECT.md (updated 2026-09-14)
 
 ## Current Position
 
-Phase: 8 (Guided Restore & Real-Device Verification) — EXECUTING
-Plan: 5 of 5
-Total Plans in Phase: 5
-Status: All 5 plans complete — awaiting orchestrator tail gate (full e2e once, D-10) and the D-11 device-session pause; VERIFY-02's device pass happens there, not in the plans
-Last activity: 2026-09-14 — Completed quick task 260914-ugv: Une ligne à 360px — rangées Integrity + segments Selector (verdict device D-11 « wrap 2-lignes », compaction mobile-only, desktop byte-identique)
-Last Activity Description: UI-review fix lot 3/3 committed (P0-1, P1-4, P2-5, P2-6) — all 12 findings triaged across 3 quickplans; remaining: review verification pass, 08-UAT.md consignation, D-11 device session
+Phase: Milestone v1.1 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-09-15 — Milestone v1.1 completed and archived
 
 ## Performance Metrics
 
@@ -215,12 +213,6 @@ None yet.
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
-| 260914-j4p | Quickplan 1/3 review UI mobile: controles qui debordent sous 48rem (Selector equalWidth pin off mobile, ListToolbar chips wrap, Settings nav wrap, Language full-width) | 2026-09-14 | baa28f58 | [260914-j4p-quickplan-1-3-review-ui-mobile-controles](./quick/260914-j4p-quickplan-1-3-review-ui-mobile-controles/) |
-| 260914-k2r | Quickplan 2/3 review UI mobile: barres sticky + editeur Files (Files set name once, Remove set danger tone; P1-11/P1-12 resolved as non-findings, bars already last-child) | 2026-09-14 | e56d1e3b | [260914-k2r-quickplan-2-3-review-ui-mobile-barres-st](./quick/260914-k2r-quickplan-2-3-review-ui-mobile-barres-st/) |
-| 260914-l7c | Quickplan 3/3 review UI mobile: cibles tactiles et polish (P0-1 FolderBrowser/Add stack mobile, P1-4 nudge x touch pad 46px, P2-5 CTA recovery min-h mobile, P2-6 byte units promote at 95% boundary) | 2026-09-14 | 1ec0739e | [260914-l7c-quickplan-3-3-review-ui-mobile-cibles-ta](./quick/260914-l7c-quickplan-3-3-review-ui-mobile-cibles-ta/) |
-| 260914-nsv | Safe-area bottom fantôme D-11 (zero inset sous material platform) + contrôle platform material/cupertino en Settings (premier writer bv-platform, i18n 42 tables) | 2026-09-14 | 65cc9d59 | [260914-nsv-neutraliser-l-inset-safe-area-fant-me-du](./quick/260914-nsv-neutraliser-l-inset-safe-area-fant-me-du/) |
-| 260914-p9a | Une carte Apparence unique dans Settings General (verdict device D-11 : 9 cartes → 4, Theme/Corners/Animations/Platform/Labels/Colors en sous-sections, i18n 42 tables) | 2026-09-14 | ca15e7a9 | [260914-p9a-regrouper-les-cartes-d-apparence-de-sett](./quick/260914-p9a-regrouper-les-cartes-d-apparence-de-sett/) |
-| 260914-ugv | Une ligne à 360px : rangées Integrity + segments Selector compacts mobile-only (verdict device D-11 « wrap 2-lignes », preuve géométrique 268/249px ≤ 273px, desktop byte-identique) | 2026-09-14 | 0303b8dd | [260914-ugv-compacter-sur-une-ligne-mobile-integrity-et-labels](./quick/260914-ugv-compacter-sur-une-ligne-mobile-integrity-et-labels/) |
 
 ## Deferred Items
 
@@ -241,4 +233,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Review `.planning/ROADMAP.md`, then start Phase 8 with /gsd-discuss-phase 8
+- Start the next milestone with /gsd-new-milestone

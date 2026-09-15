@@ -2,21 +2,11 @@
 
 ## What This Is
 
-Backup and full disaster recovery for Unraid servers (Docker containers, KVM VMs, USB flash, appdata/config), also targeting TrueNAS Scale and generic Docker hosts. A Go backend drives restic as the storage engine behind a React/Vite SPA: discovery, one-click and scheduled backups, guided restores, retention, and off-site replication, shipped as a multi-arch Docker image. Container mounts and file sets both offer tree-based per-folder selection (lazy tri-state tree over the flat `backupPaths` set) so volatile subfolders like `transcoding` and caches can be excluded without dropping the mount.
+Backup and full disaster recovery for Unraid servers (Docker containers, KVM VMs, USB flash, appdata/config), also targeting TrueNAS Scale and generic Docker hosts. A Go backend drives restic as the storage engine behind a React/Vite SPA: discovery, one-click and scheduled backups, guided restores, retention, and off-site replication, shipped as a multi-arch Docker image. Container mounts and file sets both offer tree-based per-folder selection (lazy tri-state tree over the flat `backupPaths` set) so volatile subfolders like `transcoding` and caches can be excluded without dropping the mount. The SPA is fully operational on phones: below 48rem a dedicated mobile shell (bottom nav + More sheet) serves every destination — including the guided restore flow — with desktop byte-identical above the breakpoint.
 
 ## Core Value
 
 Every container, VM, and config on the host can be backed up consistently and restored completely — a dead server is rebuilt from the restic repo alone.
-
-## Current Milestone: v1.1 Mobile Interface
-
-**Goal:** The BombVault SPA becomes fully operational on mobile — a dedicated responsive layout following the design bible from the `0b64c7df` prototypes, with desktop untouched above the breakpoint.
-
-**Target features:**
-- Mobile SPA shell: bottom bar (Home, Containers, Files, Settings) + "More" sheet for the remaining destinations, safe-area aware, hand-rolled (no state library, no UI kit)
-- The five maquette screens: Home/dashboard, Containers with touch selection tree, File sets with tree, Run detail/Recovery
-- Remaining destinations in the same mobile language: VMs, Flash, Config, Receiver, Fleet, Settings
-- Full operational parity on mobile: backup triggering, tree selection editing, guided restore, schedules, notifications, off-site replication
 
 ## Requirements
 
@@ -46,12 +36,12 @@ Every container, VM, and config on the host can be backed up consistently and re
 - ✓ MOBILE-01: responsive mobile shell — bottom nav + More sheet, safe areas, desktop intact (Playwright real-binary harness, 4 projects incl. WebKit) — Phase 5
 - ✓ MOBILE-02: maquette screens (Home glanceable + thumb-zone trigger, Containers + touch tree, File sets + touch tree, Run detail with frozen-API substitutes) — Phase 6 (SCRN-05 per-file stats triade is a recorded v2 data candidate)
 - ✓ MOBILE-03: remaining destinations (VMs, Flash, Config, Receiver, Fleet, Settings) in the mobile language — Phase 7 (verifier 5/5 must-haves; code review 3 warnings fixed)
+- ✓ MOBILE-04: full operational parity — guided restore runs end-to-end from a phone (portrait + landscape derivation), every phase 5–8 spec green in the full e2e tail gate (659 passed / 0 failed, 4 projects), real-device verification executed (VERIFY-02 PASS on Android, Procedure R PASS, both themes, WR-01/WR-02; iPhone cells 1–4 dispositioned by the operator: Android-only suffices) — Phase 8
 
 ### Active
 
-<!-- Current scope. Building toward these. -->
-
-- [ ] MOBILE-04: full operational parity — trigger, tree editing, guided restore, schedules, notifications, replication (guided restore + real-device validation remain, Phase 8)
+<!-- No active milestone. Define the next one with /gsd-new-milestone. -->
+<!-- Known v1.1.1/v2 candidates live in .planning/milestones/v1.1-MILESTONE-AUDIT.md §6–7 (UI polish backlog, sub-floor touch targets, SELECT-06/TREE-07/08). -->
 
 ### Out of Scope
 
@@ -70,6 +60,8 @@ Every container, VM, and config on the host can be backed up consistently and re
 - Known deferred debt: 2 pre-existing eslint warnings (ActivityLog.tsx:234, Sidebar.tsx:567, warn-only), the stacked-descriptor failure-revert window in the Containers save queue (narrow window, next successful save re-converges), and v2 requirements (SELECT-06, TREE-07/08, SELECT-05) tracked in REQUIREMENTS.md.
 - Public repo (has always been public): no real user data or IPs anywhere, including examples.
 - Mobile design bible (v1.1 reference): `design/mobile/README.md` + prototypes `android.html`/`ios.html` (commit `0b64c7df`, branch `mobile-design-concepts`) — locked carbon tokens, four-status rule, platform mapping; the responsive SPA implements that language.
+- Shipped v1.1 Mobile Interface (2026-09-15): 4 phases / 26 plans / 231 commits (`b6cd0c59`→HEAD, +26.7k lines excl. planning). One chrome switch (`Layout.tsx`, single `min-width: 48rem` breakpoint) hosts a hand-rolled mobile language — BottomNav/MoreSheet over the ONE `navModel.ts` registry, BottomSheet/ConfirmSheet/TapPopover/StickyActionBar primitives, `data-platform` attribute layer (material|cupertino) with `--mob-*` tokens. Verification: Playwright e2e harness over the real compiled binary (4 device projects, VERIFY-01) — vitest 2481 tests + e2e tail gate 659/659 green at HEAD; guided restore verified on real hardware (D-11).
+- v1.1 known debt (MILESTONE-AUDIT §7): Recovery.tsx ↔ RunDetailSheet deliberate helper duplication (lockstep edits), RunDetailSheet stat tiles on a frozen-API substitution contract (v2 candidate), sub-floor touch surfaces by recorded decision (Selector tabs 37.6px, ColorPickerSwatch 28px), 08-UI-REVIEW 3 priority fixes + no formal 06 re-score — natural v1.1.1 UI-polish backlog.
 
 ## Constraints
 
@@ -98,6 +90,14 @@ Every container, VM, and config on the host can be backed up consistently and re
 | File-set `selectedPaths` PATCH is a three-state pointer field (absent = untouched, list = atomic validated overwrite, 64-cap + containment) | Absent-untouched means untouched-until-toggle NULL-seeding never writes; explicit shape beats payload sniffing (INTEG-04 Q1 precedent) | ✓ Good (verified Phase 4, 04-UAT 22/22) |
 | A file-set path edit clears the selection to SQL NULL (clear-wins, compared on resolved roots); compile re-anchors stale entries against the freshly resolved root as layer 2 | Silent backup-scope broadening (T-04-05) needs two independent layers; NULL keeps the legacy mono-SourceDir compile byte-identical | ✓ Good (verified Phase 4; post-review WR-01 made it one atomic statement) |
 | Files-page tree reuses `SelectionTree` via additive-optional props only; the exclusions audit list rides the shared Phase 3 disclosure instead of a second surface | One tree, one exclusion review implementation; INTEG-02 satisfied by construction, not by convention | ✓ Good (integration checker: single implementation, no duplicated "!" logic in web/src) |
+| ONE nav registry (`navModel.ts`) drives desktop Sidebar AND mobile BottomNav/MoreSheet; Layout is the single 48rem chrome switch, desktop branch byte-identical | No second navigation source of truth can drift; the desktop-untouched e2e spec (10-route dual-direction loop) makes the byte-identity machine-enforced | ✓ Good (v1.1; chrome switch + navModel + spec all hold through phases 6–8) |
+| Playwright e2e harness boots the real compiled Go binary, fresh DB per run, 4 device projects (VERIFY-01) | Tests against the shipped artifact, not a mock server; WebKit + Android coverage without device farms | ✓ Good (v1.1 foundation; gated every phase and the 659/659 tail gate) |
+| FOUC theme script is byte-guarded by a source-assert test; `theme-color` mirrors only from `paint()` | Pre-hydration theme application can't regress silently; one choke point for all theme writes | ✓ Good (v1.1; byte-identity proven live) |
+| `useConfirm` wears two faces: desktop ConfirmDialog ≥48rem byte-identical, mobile ConfirmSheet (destructive top, cancel in thumb zone) below | One promise API, no caller branches on platform; the destructive/cancel separation follows thumb-safety | ✓ Good (v1.1; shared through phase 8's restore confirms) |
+| RunDetailSheet per-file stat tiles run on a frozen-API substitution contract (planning-time amendment, recorded in 06-VERIFICATION) | The live per-file triad API wasn't ready; substitutes keep the layout honest until v2 ships the verbatim data | ⚠️ Revisit (v2 data candidate) |
+| Sub-floor touch surfaces accepted by recorded decision (Selector tabs 37.6px, ColorPickerSwatch 28px, native selects) | Rarely-hit surfaces; forcing 44px would break their layout contracts | ⚠️ Revisit (v2 gap if found unusable on device) |
+| E2e harness runs `HTTP_ONLY=true` instead of any TLS bypass (R-05-04); npm supply-chain gate (T-05-SC): exact pin + package-legitimacy checkpoint | No auth surface weakened in app code; third-party code enters the tree only after user-approved legitimacy checks | ✓ Good (v1.1; ASVS L1, threats_open 0 across 4 phases) |
+| Real-device verification (VERIFY-02) executed Android-only; iPhone cells dispositioned by the operator as covered by the derivation contract | Landscape derivations per cell are asserted in e2e; no iPhone hardware was available for the D-11 session | — Pending (operator-accepted limitation, on the record in 08-UAT.md) |
 
 ## Evolution
 
@@ -117,4 +117,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-14 after Phase 7*
+*Last updated: 2026-09-15 after v1.1 milestone*
