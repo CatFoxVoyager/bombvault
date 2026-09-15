@@ -3018,7 +3018,19 @@ body {
   to   { opacity: 1; transform: none; }
 }
 
-/* What's-new modal (#48) — gentle enter; reduced-motion users get just a fade. */
+/* What's-new modal (#48) — gentle enter; reduced-motion users get just a fade.
+   THE SCALE HERE WAS EXAMINED AND KEPT, so the next reader does not have to
+   derive it again. It is the same shape as the page entrance's old scale: an
+   ancestor that scales cannot be composited independently of its subtree, so a
+   descendant animating at the same time gets resampled through this matrix.
+   The difference is that nothing here does. `.glim-modal-card` sits on four
+   dialogs (ConfirmDialog, CryptoDonateDialog, ErrorDetailPanel,
+   WhatsNewDialog) and none of them animates anything during these 260ms - a
+   spinner or a drawn checkmark only appears after somebody acts, long after the
+   entrance has finished. So the trap is theoretical here rather than live, and
+   a 2% scale on a small object is worth keeping for it.
+   If a dialog ever gains a staggered list, a pulse or a live dot, this is the
+   line to revisit. */
 @keyframes glim-modal-in {
   from { opacity: 0; transform: translateY(10px) scale(.98); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
