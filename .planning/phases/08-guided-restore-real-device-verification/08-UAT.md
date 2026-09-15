@@ -132,22 +132,35 @@ exists to prevent.
 - **Config restore reloads the page mid-flow** (Pitfall 7) — a config restore ends in a
   page reload and the flow re-enters at step 1 with the restarting narration visible
   before it happens. Correct behavior; not a bug.
-- **Mobile UI review (2026-09-14, 390px) — leftovers carried to D-11, recouper on
-  device before acting.** Four P2 findings were left OPEN on purpose after the
-  three-quickplan fix batch (recap below); each needs a real-device look to promote,
-  fix, or drop:
+- **Mobile UI review (2026-09-14, 390px) — leftovers RECOUPED on device
+  (2026-09-14, build `mobilefix-877600d5`): ALL FOUR DROPPED.** The four P2 findings
+  left OPEN after the three-quickplan fix batch were each put to the operator's eye
+  on the Android device; none survived recoup. Per-item device verdicts appended
+  below; no gap items filed.
   - **P2-7 (Dashboard)** — the Skipped and Not scheduled pills sit adjacent with
     similar wording; candidate fixes are reorder or merge. Wording/layout decision,
-    needs eyes on hardware.
+    needs eyes on hardware. **Device verdict: DROP** — the wording distinguishes the
+    two pills well enough at real-use pace; no reorder, no merge.
   - **P2-8 (Dashboard)** — "OK" badges give the impression of straddling the card
     name and its sub-line. VISION-ONLY: no geometric proof was captured. Recouper on
     device with a real measurement; do not act on the impression alone.
+    **Device verdict: DROP.** Source geometry confirms the impression cannot be real
+    overlap: the OK badge sits in normal flow inside the padded surface (the Card's
+    `p-5 flex flex-col gap-4` inner div), in a `gap-2` row under the h2 title
+    (`Dashboard.tsx` Card 305-322, SpikeCard 367-378) — overlap with title or
+    sub-line is impossible in that layout. The perceptual artifact is the
+    deliberately-straddling heading Badge (`tone="heading"`, `position:absolute`
+    over the card top edge — Badge.tsx why-comment), shared design-system behavior
+    by design. Operator: not bothersome.
   - **P2-15 (Files)** — the "Include in schedule" toggle hugs its label instead of
     right-aligning the way the Settings switches do (pattern inconsistency,
-    consistency rule).
+    consistency rule). **Device verdict: DROP** — the hugging toggle does not bother
+    use at thumb pace; the inconsistency is accepted as-is.
   - **P2-16 (Files)** — a 100%-full accent progress strip is PERMANENT under every
     healthy set card (track SPAN h-1.5 rounded-full + inner w-full bg-accent); at
     rest it reads as "backup in progress" — misleading affordance.
+    **Device verdict: DROP** — the resting full strip never reads as "backup in
+    progress" on the device.
 - **Mobile UI review — non-findings, do NOT re-file on D-11:**
   - **P1-11 / P1-12 (sticky bars suspected of reserving no space)** — disproven from
     source: both bar containers sit last in normal flow inside scrolling regions that
