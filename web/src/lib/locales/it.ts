@@ -252,6 +252,8 @@ const it: Partial<Translations> = {
   "settings.motion.storm": "Scatenato",
   "settings.rainbow": "Modalità arcobaleno",
   "settings.rainbowHint": "Ogni riga di un elenco riceve un proprio colore da un set di otto, invece che condividere tutti lo stesso colore di accento, così gli elenchi lunghi si distinguono a colpo d'occhio.",
+  "settings.disco": "Modalità disco",
+  "settings.discoHint": "Ogni riga ed elemento colorato passa al colore successivo della palette una volta al secondo, finché la modalità arcobaleno è attiva.",
   "settings.rainbowReactive": "Modalità reattiva",
   "settings.rainbowReactiveHint": "Se attivo, una riga o un elemento mostra il proprio colore solo al passaggio del mouse, oppure mentre è in esecuzione o selezionato, altrimenti resta neutro. Se disattivo, ogni riga ed elemento colorati mostrano il proprio colore sempre.",
   "settings.rainbowRotate": "Rotazione dei colori",

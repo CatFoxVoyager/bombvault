@@ -815,3 +815,66 @@ describe("Selector — glyph mode names its segments (#178)", () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// hueOffset: two selectors stacked above each other must not wear the same
+// colours.
+//
+// A segment's colour comes from its POSITION, rainbowAt(i), which is what
+// makes a rainbow list readable: position three is the same colour wherever
+// you look. Stack three selectors with the same number of segments, though,
+// and every column repeats down the page, so the second selector tells you
+// nothing the first one did not (jdp, 2026-09-15, with a screenshot of the
+// three label-mode selectors all wearing the same orange in column two).
+//
+// hueOffset shifts where a selector starts reading the palette. Default 0, so
+// nothing changes for the single selectors that make up most call sites.
+// ---------------------------------------------------------------------------
+describe("Selector — hueOffset", () => {
+  const styleOf = (name: string) =>
+    screen.getByRole("tab", { name }).getAttribute("style") ?? "";
+
+  it("gives the same position a different colour than an unshifted selector", () => {
+    applyRainbow({ on: true });
+    const { unmount } = render(
+      <Selector items={ITEMS} label="First" active={ITEMS[0].id} onChange={() => {}} />,
+    );
+    const plain = ITEMS.map((it) => styleOf(it.label));
+    unmount();
+
+    render(
+      <Selector items={ITEMS} label="Second" active={ITEMS[0].id} onChange={() => {}} hueOffset={1} />,
+    );
+    const shifted = ITEMS.map((it) => styleOf(it.label));
+
+    expect(shifted).not.toEqual(plain);
+    // Shifted by exactly one: position i now wears what position i+1 wore.
+    for (let i = 0; i < ITEMS.length - 1; i++) {
+      expect(shifted[i]).toBe(plain[i + 1]);
+    }
+  });
+
+  it("defaults to no shift, so existing call sites are untouched", () => {
+    applyRainbow({ on: true });
+    const { unmount } = render(
+      <Selector items={ITEMS} label="Implicit" active={ITEMS[0].id} onChange={() => {}} />,
+    );
+    const implicit = ITEMS.map((it) => styleOf(it.label));
+    unmount();
+
+    render(
+      <Selector items={ITEMS} label="Explicit" active={ITEMS[0].id} onChange={() => {}} hueOffset={0} />,
+    );
+    expect(ITEMS.map((it) => styleOf(it.label))).toEqual(implicit);
+  });
+
+  it("is ignored when the selector is not hued at all", () => {
+    applyRainbow({ on: true });
+    render(
+      <Selector items={ITEMS} label="Flat" active={ITEMS[0].id} onChange={() => {}} hue={false} hueOffset={3} />,
+    );
+    for (const it of ITEMS) {
+      expect(styleOf(it.label)).not.toContain("--item-hue");
+    }
+  });
+});

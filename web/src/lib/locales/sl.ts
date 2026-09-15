@@ -703,6 +703,8 @@ const sl: Partial<Translations> = {
   "settings.motion.storm": "Viharno",
   "settings.rainbow": "Mavrični način",
   "settings.rainbowHint": "Vsaka vrstica na seznamu dobi lastno barvo iz nabora osmih, namesto da si vse deli eno poudarjeno barvo. Dolge sezname naredi lažje razločljive na prvi pogled.",
+  "settings.disco": "Disko način",
+  "settings.discoHint": "Vsaka obarvana vrstica in element preideta na naslednjo barvo palete enkrat na sekundo, dokler je mavrični način vklopljen.",
   "settings.rainbowReactive": "Odzivni način",
   "settings.rainbowReactiveHint": "Ko je vklopljeno, se barva vrstice ali elementa pojavi samo, ko nanjo kažeš z miško ali ko teče ali je izbrana, sicer ostane nevtralna. Ko je izklopljeno, vsaka pobarvana vrstica in element ves čas kažeta svojo barvo.",
   "settings.rainbowRotate": "Vrtenje barv",

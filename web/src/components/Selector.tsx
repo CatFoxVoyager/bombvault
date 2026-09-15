@@ -381,6 +381,23 @@ interface SelectorCommon {
    *  for, never a taste call. Dashboard.tsx's heatmap toggle was named here
    *  until d68d8995 removed its opt-out; it passes no `hue` at all now. */
   hue?: boolean;
+  /** Where this selector starts reading the rainbow palette. Default 0.
+   *
+   *  A segment's colour comes from its position, which is what makes a
+   *  rainbow list readable: position three looks the same wherever you meet
+   *  it. Stack several selectors of the same width, though, and every column
+   *  repeats straight down the page, so the second and third tell you nothing
+   *  the first did not (jdp, 2026-09-15, on the three label-mode selectors in
+   *  Settings all wearing the same orange in column two).
+   *
+   *  A caller that renders a group of selectors passes each one a different
+   *  offset, in the same explicit spirit as `hueIndex` on Card/ToggleRow and
+   *  the `nextHue()` counters in Dashboard and Sidebar: the sequence lives
+   *  with the caller that knows the group, never in hidden module state that
+   *  two independent trees could disagree about.
+   *
+   *  Ignored when `hue` is false, since then no position is read at all. */
+  hueOffset?: number;
   /** Page-tab treatment (no idle background) instead of the default
    *  toolbar-chip treatment (idle `bg-carbon-surface2` pill). See the file
    *  header for which of the twelve call sites uses which. Ignored under
@@ -747,6 +764,7 @@ export function Selector(props: SelectorProps) {
     size = "md",
     buttonHeight = false,
     hue = true,
+    hueOffset = 0,
     plain = false,
     variant = "chip",
     equalWidth = false,
@@ -1181,7 +1199,7 @@ export function Selector(props: SelectorProps) {
         // both are optional and independent, so this stays undefined
         // whenever neither applies rather than always allocating an object.
         const hueStyle = hue
-          ? (hueVars(rainbowAt(i)) as CSSProperties)
+          ? (hueVars(rainbowAt(i + hueOffset)) as CSSProperties)
           : undefined;
         const widthStyle: CSSProperties | undefined =
           segmentWidth

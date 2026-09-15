@@ -53,6 +53,7 @@ import { ColorPickerSwatch } from "../components/ColorPickerPopover";
 import { RAINBOW, getRainbow, setRainbow, type RainbowState } from "../lib/appearance";
 import { SHAPES, getShape, setShape, type Shape } from "../lib/shape";
 import { MOTION_INTENSITIES, getMotionIntensity, setMotionIntensity, stormTap, type MotionIntensity } from "../lib/motion";
+import { applyStoredDisco, discoTap, getDisco, setDisco } from "../lib/disco";
 import { Selector } from "../components/Selector";
 import { IconAdd, IconBackupNow, IconDownload, IconTrash, IconCheckCircle, IconSync, IconGear, IconClose } from "../components/Sidebar";
 // The integrity row's own two verbs ([324]). They live in the ACTION set
@@ -1310,6 +1311,15 @@ export function SettingsPage() {
   // entry), and the click counter has nothing to remember past the gesture.
   const [stormFound, setStormFound] = useState(false);
   const stormClicks = useRef({ taps: 0 });
+  // Disco, the colour engine's own hidden mode, with the same two-part shape
+  // the storm above uses: `discoFound` is component state so a found egg is
+  // not a permanent row, and the counter has nothing to remember once the
+  // gesture completes. Unlike the storm's, this counter carries a timestamp,
+  // because its gesture is five turn-ONs of Rainbow Mode and somebody merely
+  // comparing the mode on and off would otherwise unlock it by accident.
+  const [discoFound, setDiscoFound] = useState(false);
+  const [disco, setDiscoLocal] = useState<boolean>(() => getDisco());
+  const discoClicks = useRef({ taps: 0, last: 0 });
   // #178: the three label modes, mirrored into local state so the selectors
   // show the current choice; the controls themselves read through
   // useLabelMode, which the labelModeChanged() call below wakes.
@@ -1327,6 +1337,19 @@ export function SettingsPage() {
   const [rainbow, setRainbowLocal] = useState<RainbowState>(() => getRainbow());
   function updateRainbow(patch: Partial<RainbowState>) {
     setRainbowLocal(setRainbow(patch));
+    // The disco walk reads the rainbow state, so a rainbow change has to
+    // re-decide whether it runs: switching rainbow off parks it, switching
+    // rainbow back on resumes it without touching the disco switch itself.
+    applyStoredDisco();
+  }
+
+  /** Rainbow Mode's own onChange, which doubles as the disco unlock gesture:
+   *  five turn-ons inside disco.ts's window. Only turn-ons count, so the
+   *  gesture ends with rainbow on, which is the one state where a walking
+   *  palette is visible at all. */
+  function rainbowToggled(on: boolean) {
+    updateRainbow({ on });
+    if (discoTap(discoClicks.current, on, { now: Date.now() })) setDiscoFound(true);
   }
 
   // Per-section save state
@@ -4724,6 +4747,8 @@ export function SettingsPage() {
           size="lg"
           variant="well"
           equalWidth
+          // 4; see the label rows below for the palette split.
+          hueOffset={4}
         />
       </Card>
       )}
@@ -4784,6 +4809,10 @@ export function SettingsPage() {
           size="lg"
           variant="well"
           equalWidth
+          // 5: distinct from the tab strip (0), the label rows (1..3)
+          // and the shape selector (4), so no two selectors on this page
+          // wear the same colour in the same column.
+          hueOffset={5}
         />
       </Card>
       )}
@@ -4800,7 +4829,7 @@ export function SettingsPage() {
           and they read as a pair. */}
       <Card title={t("settings.labels")} hint={t("settings.labelsHint")} hueIndex={nextHue()}>
         <div className="flex flex-col gap-4">
-          {CONTROL_AXES.map((axis) => (
+          {CONTROL_AXES.map((axis, axisIndex) => (
             <div key={axis} className="flex flex-col gap-1">
               <span className="text-xs text-carbon-textSub">
                 {t(`settings.labels.${axis}` as TranslationKey)}
@@ -4823,6 +4852,16 @@ export function SettingsPage() {
                 size="lg"
                 variant="well"
                 equalWidth
+                // Each of the three rows starts one colour further along the
+                // palette (jdp, 2026-09-15: "nicht jeder selektor soll am
+                // gleichen feld die gleiche farbe haben"). Offsetting by the
+                // row index rather than by the row COUNT keeps neighbouring
+                // rows adjacent in the palette, so the block still reads as
+                // one group instead of three unrelated strips.
+                // 1..3; the shape and motion selectors take 4 and 5, and the
+                // tab strip above keeps 0, so no two selectors on this page
+                // start on the same palette colour.
+                hueOffset={1 + axisIndex}
               />
             </div>
           ))}
@@ -4926,7 +4965,7 @@ export function SettingsPage() {
             // abstract "handed out by position" phrasing jdp found unclear).
             hint={t("settings.rainbowHint")}
             checked={rainbow.on}
-            onChange={(v) => updateRainbow({ on: v })}
+            onChange={rainbowToggled}
             hueIndex={0}
           />
 
@@ -4947,6 +4986,25 @@ export function SettingsPage() {
               1.16.0 states the test - does the control still do anything. */}
           {rainbow.on && (
           <>
+          {/* Disco, once found. Shown while it is ON as well as while found,
+              for the reason the storm's own picker entry is: a switch that
+              hid the value it is currently showing would be lying, and
+              somebody who reloads with disco running needs a way to stop it.
+              Sits first inside the rainbow's sub-controls because it changes
+              what the whole set of them does, rather than one more property
+              of it. */}
+          {(discoFound || disco) && (
+            <ToggleRow
+              label={t("settings.disco")}
+              hint={t("settings.discoHint")}
+              checked={disco}
+              onChange={(v) => {
+                setDisco(v);
+                setDiscoLocal(v);
+              }}
+              hueIndex={0}
+            />
+          )}
           <ToggleRow
             label={t("settings.rainbowReactive")}
             hint={t("settings.rainbowReactiveHint")}

@@ -32,6 +32,7 @@ const KEYS = [
   "bv-accent",
   "bv-accent-presets",
   "bv-rainbow",
+  "bv-disco",
   "bv-motion",
   "bv-shape",
   "bv-labels-buttons",

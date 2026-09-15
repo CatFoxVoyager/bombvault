@@ -252,6 +252,8 @@ const ko: Partial<Translations> = {
   "settings.motion.storm": "폭풍",
   "settings.rainbow": "무지개 모드",
   "settings.rainbowHint": "목록의 각 행은 하나의 강조색을 공유하는 대신 여덟 가지 색상 중 자신만의 색을 받습니다. 긴 목록을 한눈에 구분하기 쉬워집니다.",
+  "settings.disco": "디스코 모드",
+  "settings.discoHint": "무지개 모드가 켜져 있는 동안 색이 있는 모든 행과 항목이 1초에 한 번씩 팔레트의 다음 색으로 넘어갑니다.",
   "settings.rainbowReactive": "반응형 모드",
   "settings.rainbowReactiveHint": "켜면 행이나 항목은 마우스를 올렸을 때, 또는 실행 중이거나 선택되었을 때만 색을 보여주고 그 외에는 중립 상태를 유지합니다. 끄면 색이 지정된 모든 행과 항목이 항상 색을 표시합니다.",
   "settings.rainbowRotate": "색상 순환",

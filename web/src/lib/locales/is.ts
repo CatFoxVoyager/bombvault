@@ -705,6 +705,8 @@ const is: Partial<Translations> = {
   "settings.motion.storm": "Tryllt",
   "settings.rainbow": "Regnbogahamur",
   "settings.rainbowHint": "Hver lína í lista fær eigin lit úr átta lita safni, í stað þess að allt deili einum áherslulit. Þetta gerir langa lista auðveldari að greina í einum svip.",
+  "settings.disco": "Diskóstilling",
+  "settings.discoHint": "Hver litaða röð og hlutur fer í næsta lit litatöflunnar einu sinni á sekúndu, svo lengi sem regnbogastilling er kveikt.",
   "settings.rainbowReactive": "Viðbragðshamur",
   "settings.rainbowReactiveHint": "Þegar kveikt er á þessu birtist litur línu eða hlutar aðeins á meðan þú hoverar yfir hann, eða á meðan hann er í keyrslu eða valinn. Annars er hann hlutlaus. Þegar slökkt er á þessu sýna allar litaðar línur og hlutir lit sinn allan tímann.",
   "settings.rainbowRotate": "Litaskipting",

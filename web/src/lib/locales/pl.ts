@@ -247,6 +247,8 @@ const pl: Partial<Translations> = {
   "settings.motion.storm": "Burzliwe",
   "settings.rainbow": "Tryb tęczowy",
   "settings.rainbowHint": "Każdy wiersz na liście otrzymuje własny kolor z zestawu ośmiu, zamiast dzielić jeden wspólny kolor akcentu. Dzięki temu długie listy łatwiej odróżnić na pierwszy rzut oka.",
+  "settings.disco": "Tryb disco",
+  "settings.discoHint": "Każdy kolorowy wiersz i element przechodzi do następnego koloru palety raz na sekundę, dopóki tryb tęczy jest włączony.",
   "settings.rainbowReactive": "Tryb reaktywny",
   "settings.rainbowReactiveHint": "Gdy włączone, wiersz lub element pokazuje swój kolor tylko po najechaniu kursorem albo gdy działa lub jest zaznaczony, w innym wypadku pozostaje neutralny. Gdy wyłączone, każdy kolorowy wiersz i element pokazuje swój kolor przez cały czas.",
   "settings.rainbowRotate": "Rotacja kolorów",

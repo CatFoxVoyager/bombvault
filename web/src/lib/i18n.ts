@@ -912,6 +912,8 @@ export const en = {
   // divergence from KnightLoader's wording, not an oversight.
   "settings.rainbow": "Rainbow Mode",
   "settings.rainbowHint": "Each row in a list gets its own colour from a set of eight, instead of everything sharing one accent colour, which makes long lists easier to tell apart at a glance.",
+  "settings.disco": "Disco Mode",
+  "settings.discoHint": "Every coloured row and item steps to the next colour in the palette once a second, for as long as Rainbow Mode is on.",
   "settings.rainbowReactive": "Reactive Mode",
   "settings.rainbowReactiveHint": "When on, a row or item's colour only appears while you're hovering it, or while it's running or selected. Otherwise it stays neutral. When off, every coloured row and item shows its colour all the time.",
   "settings.rainbowRotate": "Colour Rotation",
@@ -2705,6 +2707,8 @@ export const de: Translations = {
   "settings.motion.storm": "Sturm",
   "settings.rainbow": "Regenbogen-Modus",
   "settings.rainbowHint": "Jede Zeile in einer Liste bekommt eine eigene Farbe aus einer festen Auswahl von acht, statt dass alles dieselbe Akzentfarbe hat. Das macht lange Listen auf einen Blick leichter unterscheidbar.",
+  "settings.disco": "Disco-Modus",
+  "settings.discoHint": "Jede farbige Zeile und jedes farbige Element wechselt einmal pro Sekunde zur nächsten Farbe der Palette, solange der Regenbogen-Modus aktiv ist.",
   "settings.rainbowReactive": "Reaktiver Modus",
   "settings.rainbowReactiveHint": "Wenn aktiv, bleiben farbige Zeilen und Elemente neutral, bis du sie mit der Maus berührst oder sie gerade laufen oder ausgewählt sind. Die Farbe erscheint also nur bei Bedarf. Wenn deaktiviert, zeigen alle farbigen Zeilen und Elemente ihre Farbe durchgehend.",
   "settings.rainbowRotate": "Farbenrotation",
