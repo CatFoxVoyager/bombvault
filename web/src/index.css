@@ -2932,8 +2932,8 @@ body {
    object than a page, and at card size both read as a wobble rather than as an
    arrival. */
 @keyframes glim-card-in {
-  from { opacity: 0; transform: translateY(var(--motion-card-dist, 0px)); }
-  to   { opacity: 1; transform: none; }
+  from { transform: translateY(var(--motion-card-dist, 0px)); }
+  to   { transform: none; }
 }
 
 /* A TRANSLATION ONLY. The scale and the tilt that used to sit here are gone,
@@ -2962,9 +2962,16 @@ body {
    on a spring that overshoots). Whoever picks this up next: nested transform
    animations still exist here, four of them across two levels, all on an
    overshoot curve - see the issue for the table. */
+/* MOVEMENT ONLY. The fade that used to live in here is a separate animation
+   now, riding glim-fade-in on a monotonic curve, because this one is driven by
+   --motion-page-ease and that curve SPRINGS at wild and storm. A spring drives
+   its value through the target and back, which is the point for a distance and
+   meaningless for opacity: the value clamps at 1, so the fade finishes early
+   and then sits flat. See lib/opacityNeverSprings.test.ts, which also records
+   the #228 hypothesis this separation was done for - a hypothesis, not a
+   cause. Same treatment in glim-tab-slide, glim-card-in and glim-row-in. */
 @keyframes glim-page-in {
   from {
-    opacity: 0;
     transform: translateY(var(--motion-page-travel, 8px));
   }
   /* End at `none`, not translateY(0): animation-fill-mode:both keeps the final
@@ -2972,13 +2979,8 @@ body {
      containing block for position:fixed descendants — which anchored in-page
      dialogs (the Files add/edit dialog, #62) to the page box instead of the
      viewport and cut them off at the top. `none` interpolates identically. */
-  to   { opacity: 1; transform: none; }
+  to   { transform: none; }
 }
-@keyframes glim-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
 /* Info bubble entrance (GlimStone form-engine #3) — reference/tokens.css's
    glim-fade-in, verbatim: short on purpose, since a bubble that fades in
    slowly reads as lag, not polish, because the pointer already got there
@@ -3115,6 +3117,20 @@ body {
    mount — a new container appearing, or the whole list's first render), and
    a list re-rendering with the SAME rows (a polling refresh) never replays
    it, because those nodes never unmount in the first place. */
+/* A row keeps its fade INSIDE the keyframe, unlike the page, the tab panel and
+   the notch card, which pair a transform-only keyframe with glim-fade-in. The
+   invariant is the same for all four - opacity must not ride a springing curve
+   - and a row reaches it the other way round: its rule drops
+   --motion-page-ease for a plain ease-out, so nothing on the row springs.
+   WHY THE DIFFERENCE IS REAL AND NOT UNTIDINESS. A two-animation shorthand
+   costs measurably more to parse, and a row is the one element that exists in
+   the dozens: Containers.tree.dom.test.tsx mounts 66 of them and went from
+   passing to an 8.8s timeout against a 5s limit when this rule carried two
+   animations. Reverting just this one rule brought it back. The page and the
+   tab panel are one element each and the notch card a handful, so they can
+   afford the pair.
+   What a row gives up is the spring on 6px of travel, which is the smallest
+   distance in the set and the place it reads least. */
 @keyframes glim-row-in {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: none; }
@@ -3174,8 +3190,8 @@ body {
 :root { --tab-dir-sign: 1; }
 [dir="rtl"] { --tab-dir-sign: -1; }
 @keyframes glim-tab-slide {
-  from { opacity: 0; transform: translateX(calc(var(--tab-dir, 1) * var(--tab-dir-sign, 1) * var(--motion-tab-travel, 18px))); }
-  to   { opacity: 1; transform: none; }
+  from { transform: translateX(calc(var(--tab-dir, 1) * var(--tab-dir-sign, 1) * var(--motion-tab-travel, 18px))); }
+  to   { transform: none; }
 }
 
 /* The logo mark hosts the normal <img> plus (at boom) the fragment grid. The FX
@@ -3310,7 +3326,13 @@ body {
      the element is created and never again, so every card plays this once on
      mount - a fresh page, a tab change, a card appearing because a switch was
      turned on - and never on a re-render. */
-  .glim-notch-card { animation: glim-card-in var(--motion-page-dur, 320ms) var(--motion-page-ease, ease) both; }
+  /* Two animations, one duration. The movement springs, the fade does not:
+     see lib/opacityNeverSprings.test.ts. Same shape on the three rules below. */
+  .glim-notch-card {
+    animation:
+      glim-card-in var(--motion-page-dur, 320ms) var(--motion-page-ease, ease) both,
+      glim-fade-in var(--motion-page-dur, 320ms) ease-out both;
+  }
 
   /* The travelling light on a bar that is filling. `overflow: hidden` on the
      fill keeps the band inside it, so the effect stops exactly at the edge the
@@ -3363,7 +3385,11 @@ body {
      different intensity depending on that attribute, WITHOUT this rule
      itself needing to fork into three copies — see the token block's own
      comment for exactly what "off"/"subtle" resolve to. */
-  .glim-page-enter { animation: glim-page-in var(--motion-page-dur, 320ms) var(--motion-page-ease, cubic-bezier(.2, .6, .2, 1)) both; }
+  .glim-page-enter {
+    animation:
+      glim-page-in var(--motion-page-dur, 320ms) var(--motion-page-ease, cubic-bezier(.2, .6, .2, 1)) both,
+      glim-fade-in var(--motion-page-dur, 320ms) ease-out both;
+  }
 
   /* Info bubble entrance (GlimStone form-engine #3). Motion-engine retrofit:
      duration reads --motion-fade-dur (240/110/70/0ms for storm/wild/subtle/off) — at
@@ -3442,7 +3468,14 @@ body {
      regardless of list length; see this keyframe's own comment further up
      for why a re-render of already-mounted rows never replays this. */
   .glim-stagger-row {
-    animation: glim-row-in var(--motion-stagger-dur, 240ms) var(--motion-page-ease, cubic-bezier(.2, .6, .2, 1)) both;
+    /* ease-out, NOT --motion-page-ease: that token springs at wild and storm,
+       and this keyframe fades. See glim-row-in's own comment for why a row
+       takes this route instead of the paired-animation one. */
+    animation: glim-row-in var(--motion-stagger-dur, 240ms) ease-out both;
+    /* ONE delay for both halves, which is what the shorthand list gives:
+       `animation-delay` with a single value applies to every animation on the
+       element, so the fade and the movement of a row still start together. Two
+       delays here would be two lists to keep in step. */
     animation-delay: min(calc(var(--row-i, 0) * var(--motion-stagger-step, 30ms)), var(--motion-stagger-cap, 480ms));
   }
 
@@ -3504,7 +3537,11 @@ body {
 
   /* Round 2, item 7 — Settings tab slide. See --tab-dir/--tab-dir-sign's own
      comment further up for the direction contract. */
-  .glim-tab-slide { animation: glim-tab-slide var(--motion-tab-dur, 220ms) var(--motion-page-ease, cubic-bezier(.2, .6, .2, 1)) both; }
+  .glim-tab-slide {
+    animation:
+      glim-tab-slide var(--motion-tab-dur, 220ms) var(--motion-page-ease, cubic-bezier(.2, .6, .2, 1)) both,
+      glim-fade-in var(--motion-tab-dur, 220ms) ease-out both;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3581,7 +3618,9 @@ body {
     animation-delay: var(--delay, 0ms);
   }
   :root[data-motion="storm"] .glim-page-enter {
-    animation: glim-page-in var(--motion-page-dur, 320ms) var(--motion-page-ease, cubic-bezier(.2, .6, .2, 1)) both;
+    animation:
+      glim-page-in var(--motion-page-dur, 320ms) var(--motion-page-ease, cubic-bezier(.2, .6, .2, 1)) both,
+      glim-fade-in var(--motion-page-dur, 320ms) ease-out both;
   }
   :root[data-motion="storm"] .glim-modal-backdrop { animation: glim-fade-in 200ms ease both; }
   :root[data-motion="storm"] .glim-modal-card { animation: glim-modal-in 260ms cubic-bezier(.2, .6, .2, 1) both; }
