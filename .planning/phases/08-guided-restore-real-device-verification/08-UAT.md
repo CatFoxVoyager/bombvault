@@ -192,6 +192,12 @@ exists to prevent.
     Animations, Platform, Colors and Labels fold into ONE Appearance card with
     quiet sub-sections (9 stamps → ~4, scroll markedly shorter); no shared
     design-system change, desktop intact. Quickplan to follow.
+  - **Settings Appearance regroup — PASS on device.** After 260914-p9a (deployed as
+    `mobilefix-877600d5`, health stamp + sha256 verified), the operator confirms the
+    regrouped General tab on the Android device: 4 cards (Domains, Language,
+    Appearance, Quiet toasts), the Appearance card carrying the six quiet
+    sub-sections (Theme → Corners → Animations → Platform → Labels → Colors).
+    Operator verdict: "Tout est beau" — closes the REGROUP decision above.
 
 ---
 
