@@ -22,9 +22,15 @@
 // sign-out row (authEnabled). An empty sheet never exists; when there is
 // nothing to show, the bar degrades to its destination slots alone.
 //
-// Active/rest language (UI-SPEC): the active slot's label reads --accentText
-// over an --accentSoft backdrop behind its glyph; resting slots use the muted
-// text token. Status colors never touch controls; tokens only, no hex.
+// Active/rest language (UI-SPEC, user design note 2026-09-15): the active
+// slot is FILLED — the whole slot carries the accent edge to edge, and every
+// mark on it (caption and glyph alike) takes the ink paired to that fill via
+// ordinary currentColor inheritance; resting slots stay the muted text token
+// with no fill. Accent-coloured text on the bar ground reads as a link, not
+// as a selection, which is why the earlier coloured-label treatment was
+// replaced — filled is how this language says "selected" (anchored on
+// .glim-coin-tile.glim-active in index.css). Status colors never touch
+// controls; tokens only, no hex.
 //
 // Tap-on-active (SHELL-02): tapping the ALREADY-active destination scrolls
 // the scroller back to the top instead of navigating — and the navigation is
@@ -144,18 +150,21 @@ function BarSlot({ destination, onTap }: { destination: NavDestination; onTap: (
     <NavLink
       to={destination.to}
       onClick={onTap}
-      className={({ isActive }) => `${slotBase} ${isActive ? "text-accentText" : "text-carbon-textMuted"}`}
+      className={({ isActive }) => `${slotBase} rounded-control ${isActive ? "bg-accent text-accentContrast" : "text-carbon-textMuted"}`}
     >
       {({ isActive }) => (
         <>
-          {/* The accentSoft backdrop is the structural active language
-              (UI-SPEC) — the M3 navpill *indicator* treatment of it is
-              Phase 7 and deliberately not previewed here. */}
-          <span
-            className={`flex h-6 w-6 items-center justify-center rounded-control [&_svg]:h-6 [&_svg]:w-6 ${
-              isActive ? "bg-accentSoft" : ""
-            }`}
-          >
+          {/* The fill is the SLOT's, edge to edge — glyph and caption sit ON
+              the accent fill and both take the ink it was paired with
+              (text-accentContrast): glyphs draw fill="currentColor" per
+              navGlyphs' contract, so no svg utility is needed. Anchored on
+              .glim-coin-tile.glim-active / .glim-hue-icon in index.css —
+              filled is how this language says "this one is selected". The
+              fill is paint-only: no padding, height, width or gap token
+              changed, which is what keeps the narrow-viewport single-line /
+              no-overflow asserts and the 44px touch floor true by
+              construction. */}
+          <span className="flex h-6 w-6 items-center justify-center rounded-control [&_svg]:h-6 [&_svg]:w-6">
             <Icon />
           </span>
           {/* 400 rest, 600 active — the caption's two sanctioned weights. */}

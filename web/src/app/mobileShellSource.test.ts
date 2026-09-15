@@ -914,3 +914,64 @@ describe("PHASE-07/08 — the 8/16 spacing + 400/600 weight discipline holds on 
     },
   );
 });
+
+// ---------------------------------------------------------------------------
+// FILLED-TAB (user design note, 2026-09-15) — the bottom bar's active tab is
+// FILLED, not accent-coloured text.
+//
+// The note decides it verbatim: the active tab in the bottom bar should be
+// filled, not coloured text — coloured text is how a link looks, filled is
+// how this language says "this one is selected". The language's own canonical
+// statement of the filled state already exists in index.css:
+// .glim-coin-tile.glim-active ("the tile is FILLED with the accent, so EVERY
+// mark drops its brand colour and takes the ink that fill was paired with")
+// and its .glim-hue-icon twin (the contrast ink "comes for free from
+// text-accentContrast ... via ordinary currentColor inheritance"). The bar's
+// active treatment is DECLARATIVE — a class string inside a ternary — so no
+// behavioral assert can catch a slide back into the link idiom: the contract
+// is pinned at source level, like every guard in this file.
+//
+// The two banned literals below appear in THIS file on purpose, as
+// negative-assertion needles — their only sanctioned appearance, the same
+// house pattern as the 100vh and UA needles above. The negatives scan the RAW
+// BottomNav text (comments included — deliberately NOT comment-stripped),
+// which is exactly why the component's own comments paraphrase the retired
+// treatments instead of citing the literals.
+// ---------------------------------------------------------------------------
+describe("FILLED-TAB — the active bottom-bar slot is a filled accent surface, not coloured text", () => {
+  it("is reading the real BottomNav source (self-guard)", () => {
+    expect(
+      bottomNav,
+      "BottomNav.tsx no longer exports BottomNav — the FILLED-TAB asserts below " +
+        "are running against a file that no longer contains the component, so " +
+        "the negatives would pass against dead text."
+    ).toContain("export function BottomNav");
+  });
+
+  it("fills the WHOLE active slot with the accent and pairs every mark on it with the contrast ink", () => {
+    expect(
+      bottomNav.includes('isActive ? "bg-accent text-accentContrast" : "text-carbon-textMuted"'),
+      "BottomNav.tsx's active branch no longer fills the slot. The active tab " +
+        "must read as FILLED: bg-accent over the entire NavLink — glyph and " +
+        "caption sit on the fill together — with the ink paired to that fill " +
+        "(text-accentContrast; glyphs inherit it because every navGlyph draws " +
+        'fill="currentColor"). Accent-coloured text on the bar ground is the ' +
+        "link idiom, not the selected idiom (user design note, 2026-09-15)."
+    ).toBe(true);
+  });
+
+  it.each([
+    "text-accentText",
+    "bg-accentSoft",
+  ] as const)("keeps the retired link-idiom literal out of the bar: %s", (needle) => {
+    expect(
+      bottomNav.includes(needle),
+      `${needle} reappeared in BottomNav.tsx. The active tab is a FILLED accent ` +
+        "slot (user design note, 2026-09-15): accent-coloured text on the bar " +
+        "ground reads as a link, and the soft glyph-box backdrop wash is gone " +
+        "with it — both belong to the retired treatment this guard bans. The " +
+        "scan runs on RAW text (comments included), so paraphrase in prose; " +
+        "never cite the literal."
+    ).toBe(false);
+  });
+});
