@@ -68,7 +68,7 @@ ARG RESTIC_VERSION=0.17.3
 # so pull the official current static binary instead, same approach as restic.
 # NOTE: rclone reads RCLONE_* env vars as flag overrides, so RCLONE_* build ARGs
 # shadow rclone flags; the `rclone version` check below runs with them unset.
-ARG RCLONE_VERSION=1.74.2
+ARG RCLONE_VERSION=1.75.1
 # Supply-chain integrity: pinned SHA256 checksums for the exact release artifacts
 # above, taken from the upstream-published checksum files
 # (https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/SHA256SUMS
@@ -76,8 +76,8 @@ ARG RCLONE_VERSION=1.74.2
 # MUST update these in the same change or the build fails on the mismatch.
 ARG RESTIC_SHA256_AMD64=5097faeda6aa13167aae6e36efdba636637f8741fed89bbf015678334632d4d3
 ARG RESTIC_SHA256_ARM64=db27b803534d301cef30577468cf61cb2e242165b8cd6d8cd6efd7001be2e557
-ARG RCLONE_SHA256_AMD64=72a806370072015ccbe4d81bcd348cc5eaf3beca6c65ba693fd43fb31fcca5b1
-ARG RCLONE_SHA256_ARM64=bc2b2eb8269b743ed7bcea869f3782cfb4931e41efa53fc8befc6dc8308b7a50
+ARG RCLONE_SHA256_AMD64=982b5aa772841168f8e380f139e9e787b2a105403e32b94da8676a0e1c0a13ab
+ARG RCLONE_SHA256_ARM64=03f2504174034b6d004152ed7369251c9a9ec1f7e0836eda420f5c7a5ec0dff9
 ARG TARGETARCH
 # pipefail so a failed download can never slip past the `| sha256sum -c -`
 # checks below (bash is Essential in Debian, so it exists in the slim image).
