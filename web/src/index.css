@@ -3462,29 +3462,65 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* THE ONE EXEMPTION, and where it sits.
+     Every substitute below now excludes `storm`, and storm gets the full
+     animation back at the end of this block. jdp's call (2026-09-15): the
+     three offered levels keep obeying the operating system, because a person
+     who set reduced motion did not go looking for any of them. Storm is
+     different in kind - it is reached by clicking the same option five times,
+     so arriving there is a statement of intent, not a default somebody
+     inherited.
+     This block is the right place for that exemption, not the 225-line
+     (no-preference) one. What that block holds is the press, the hover lift,
+     the spinner: micro-interactions nobody unlocks a storm for. What THIS
+     block holds is the gentler stand-ins for exactly the things that make the
+     storm a storm - the shatter, the page entrance, the shake - so gating
+     them per selector reaches the whole effect while leaving the
+     accessibility rule intact everywhere it still applies. */
+
   /* No violent shatter or explosion — just a quiet fade-pulse of the logo; the
      cloud, fragments and sparks stay hidden so reduced-motion users get something
      gentle instead of a shattering blast. */
-  .glim-egg-wobble { animation: glim-egg-fade-pulse 900ms ease-in-out; }
-  .glim-egg-boom .glim-logo-img { animation: glim-egg-fade-pulse 600ms ease-in-out; }
-  .glim-frag-grid, .glim-boom-fx { display: none; }
-  .glim-page-enter { animation: glim-fade-in 200ms ease both; }
+  :root:not([data-motion="storm"]) .glim-egg-wobble { animation: glim-egg-fade-pulse 900ms ease-in-out; }
+  :root:not([data-motion="storm"]) .glim-egg-boom .glim-logo-img { animation: glim-egg-fade-pulse 600ms ease-in-out; }
+  :root:not([data-motion="storm"]) .glim-frag-grid,
+  :root:not([data-motion="storm"]) .glim-boom-fx { display: none; }
+  :root:not([data-motion="storm"]) .glim-page-enter { animation: glim-fade-in 200ms ease both; }
 
   /* Reduced motion: the modal only fades — no slide or scale. */
-  .glim-modal-backdrop { animation: glim-fade-in 150ms ease both; }
-  .glim-modal-card { animation: glim-fade-in 150ms ease both; }
+  :root:not([data-motion="storm"]) .glim-modal-backdrop { animation: glim-fade-in 150ms ease both; }
+  :root:not([data-motion="storm"]) .glim-modal-card { animation: glim-fade-in 150ms ease both; }
 
   /* Reduced motion: the toast drops its translateX slide and just fades in
      (reusing glim-fade-in, per reference/tokens.css's own reduced-motion
      pairing) — it still needs to arrive legibly, just without the motion
      component (design-language.md's motion engine section). */
-  .glim-toast { animation: glim-fade-in 160ms ease both; }
+  :root:not([data-motion="storm"]) .glim-toast { animation: glim-fade-in 160ms ease both; }
 
   /* Reduced motion: no lateral shake — reuses the egg wobble's own quiet
      fade-pulse (glim-egg-fade-pulse is already a generic opacity pulse despite
      its name; the failure still needs to register, just without the
      side-to-side motion component). */
-  .glim-shake { animation: glim-egg-fade-pulse 300ms ease-in-out; }
+  :root:not([data-motion="storm"]) .glim-shake { animation: glim-egg-fade-pulse 300ms ease-in-out; }
+
+  /* And the storm, restored. Exempting without restoring would leave these
+     elements with no animation at all here, since the full rules live in the
+     (no-preference) block this media query replaces - quieter than the
+     substitute it removed, which is the opposite of the point. Values are the
+     (no-preference) block's own, token-driven, so storm's numbers keep coming
+     from its :root[data-motion="storm"] token set rather than being repeated
+     here. Guarded by lib/stormOverridesOs.test.ts. */
+  :root[data-motion="storm"] .glim-egg-wobble { animation: glim-egg-shake 240ms ease-in-out infinite; }
+  :root[data-motion="storm"] .glim-egg-boom .glim-logo-img { opacity: 0; }
+  :root[data-motion="storm"] .glim-page-enter {
+    animation: glim-page-in var(--motion-page-dur, 320ms) var(--motion-page-ease, cubic-bezier(.2, .6, .2, 1)) both;
+  }
+  :root[data-motion="storm"] .glim-modal-backdrop { animation: glim-fade-in 200ms ease both; }
+  :root[data-motion="storm"] .glim-modal-card { animation: glim-modal-in 260ms cubic-bezier(.2, .6, .2, 1) both; }
+  :root[data-motion="storm"] .glim-toast {
+    animation: glim-toast-in var(--motion-toast-dur, 220ms) var(--motion-toast-ease, cubic-bezier(.2, .6, .2, 1)) both;
+  }
+  :root[data-motion="storm"] .glim-shake { animation: glim-shake var(--motion-shake-dur, 360ms) ease-in-out; }
 }
 
 /* The native number spinner is gone ([411]).
