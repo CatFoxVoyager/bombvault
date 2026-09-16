@@ -8,7 +8,8 @@
 // was set to make the entrance longer makes the fade shorter.
 //
 // That is reason enough on its own. The reason it was done NOW is #228, and it
-// is a hypothesis rather than a cause:
+// is the CAUSE of that flash rather than a guess at it. The evidence, in the
+// order it arrived:
 //   - The reporter's own data: motion "off" and "subtle" are clean, "wild"
 //     flashes. He is on software WebRender already, so a GPU compositor is out.
 //   - Nesting cannot be it. At subtle the page translates 6px while its rows
@@ -17,8 +18,16 @@
 //   - What differs is the curve. Subtle eases, off is linear, wild and storm
 //     spring - and the four animations on that spring all interpolate opacity.
 //     An alpha driven past 1 into a premultiplied software rasteriser is a
-//     plausible route to one saturated channel. PLAUSIBLE. Not measured, and
-//     not to be written down anywhere as the cause.
+//     route to one saturated channel.
+//   - AND THEN IT WAS MEASURED, which is what moved this from plausible to
+//     settled. A four-panel file stepped through the change that introduced
+//     the flash, with nothing of this app in it: the panels that keep opacity
+//     on the springing curve flash, the panel without it does not. The
+//     reporter ran it, then updated to the build carrying this separation and
+//     answered "No more green with wild!".
+// One honest limit on that: the standalone panels flashed WITHOUT the green
+// tint, so the file reproduced the flash and not its colour. The colour only
+// ever appeared in the app, and it goes when the flash goes.
 //
 // So: movement keeps the spring, opacity gets its own animation on a
 // monotonic curve. Both halves stay in the same rule, which is why this guard
