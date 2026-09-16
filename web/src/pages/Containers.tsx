@@ -4580,13 +4580,15 @@ export function Containers() {
       {/* Phase 6 (D-03, SCRN-03): the container detail's sticky Save bar — the
           page column's LAST visible child, so its sticky positioning resolves
           against main#bv-main (Pitfall 3: nested in a Card it would stick
-          only within the card's own box). Row 1 = live "handed to restic"
-          count (accentSoft chip, tabular) + the queue spinner; row 2 = Save,
-          which flushes the ONE serialized queue; row 3 = the CACHEDIR.TAG
-          plain-language line (per-root switches remain in the tree — state
-          lives there, this row only says what the flag does item-wide).
-          Rendered only while the detail is open AND its editor is present
-          (advanced + installed) — with no editor there is no queue to flush. */}
+          only within the card's own box). Two rows: row 1 = live "handed to
+          restic" count (accentSoft chip, tabular) + the queue spinner; row 2
+          = Save, which flushes the ONE serialized queue. A former row 3 —
+          the CACHEDIR.TAG plain-language line — was removed 2026-09-16
+          (D-02, locked): it duplicated what the tree's per-set toggles
+          already show IN PLACE, next to the state they switch; one
+          presentation, where the flag actually lives. Rendered only while
+          the detail is open AND its editor is present (advanced +
+          installed) — with no editor there is no queue to flush. */}
       {!isDesktop && openContainer !== null && openContainer.installed && advanced && (
         <StickyActionBar className="md:hidden">
           <div className="flex items-center gap-2 min-h-[1.25rem]">
@@ -4616,10 +4618,6 @@ export function Containers() {
             onClick={() => saveFlushRef.current?.()}
             className={`w-full min-h-[2.75rem] justify-center${saveState.shakeNonce ? " glim-shake" : ""}`}
           />
-          <p className="flex items-center gap-1.5 text-xs text-carbon-textMuted">
-            {t("folders.cachedirToggle")}
-            <InfoBubble tip={t("folders.cachedirScope")} />
-          </p>
         </StickyActionBar>
       )}
       {confirmDialog}
