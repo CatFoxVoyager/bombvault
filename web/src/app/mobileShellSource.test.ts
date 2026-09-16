@@ -975,3 +975,54 @@ describe("FILLED-TAB — the active bottom-bar slot is a filled accent surface, 
     ).toBe(false);
   });
 });
+
+// REACTIVE-AT-REST — reactive labels reveal on COARSE pointers without a
+// hover. A tap fires before any reveal state can exist, so under
+// `(pointer: coarse)` reactive mode used to degenerate into permanent
+// icon-only — the recovery wizard's step-1 CTA was an unlabeled check glyph
+// (mobile UI review 2026-09-15, P1). index.css now reveals at rest on coarse
+// pointers, and — because every reveal state must also reset the lively
+// motion levels' resting `translateX`/`scaleX` (the [467]-bug-[527] pair) —
+// carries a companion coarse reset after the reduced-motion gate. These
+// asserts read the source so the pair cannot be removed independently.
+describe("REACTIVE-AT-REST — coarse pointers reveal reactive labels at rest, with the motion companion", () => {
+  it("is reading the real reactive-label source (self-guard)", () => {
+    expect(
+      indexCss.includes("max-width: 0"),
+      "index.css no longer contains the resting collapse (`max-width: 0` in " +
+        "the .glim-label-reactive rule). The positives below prove nothing " +
+        "without it: they assert the coarse REVEAL exists, which is only " +
+        "meaningful against the collapse it must override. The resting rule " +
+        "was renamed or removed — restore it or rewrite this guard's needle " +
+        "to the new resting declaration."
+    ).toBe(true);
+  });
+
+  it("reveals the reactive label at rest under (pointer: coarse), at the chars-sized ceiling", () => {
+    expect(
+      /\(pointer: coarse\)[\s\S]*?\.glim-label-reactive\s*\{[\s\S]*?max-width: calc\(var\(--reactive-chars/
+        .test(indexCss),
+      "index.css no longer reveals .glim-label-reactive at rest on coarse " +
+        "pointers. Without the (pointer: coarse) at-rest block, touch users " +
+        "in reactive mode see only the glyph of every isolated primary button " +
+        "— a tap never produces the hover the reveal needs (mobile UI review " +
+        "2026-09-15, P1). The block must size its ceiling from " +
+        "`--reactive-chars` (the reveal state's own contract), not a fixed " +
+        "width."
+    ).toBe(true);
+  });
+
+  it("carries the companion transform reset for the coarse at-rest reveal in the lively motion levels", () => {
+    expect(
+      /\(prefers-reduced-motion: no-preference\) and \(pointer: coarse\)[\s\S]*?translateX\(0\) scaleX\(1\)/
+        .test(indexCss),
+      "index.css no longer resets the resting transform for the coarse " +
+        "at-rest reveal. In the lively motion levels the revealed label would " +
+        "then sit displaced and squashed — the revealed-but-still-displaced " +
+        "shape [527] repaired for `.glim-active`. A reveal state added to the " +
+        "(pointer: coarse) block MUST have its reset in a block combining " +
+        "prefers-reduced-motion: no-preference with (pointer: coarse); the " +
+        "two lists move together or not at all."
+    ).toBe(true);
+  });
+});

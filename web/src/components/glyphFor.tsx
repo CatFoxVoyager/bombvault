@@ -108,6 +108,15 @@ const RULES: Rule[] = [
   // connect keys never matched anything above it.
   [/connect|pair|link|reconnect/i, () => <IconLink />],
 
+  // "Re-check" is the retry family, not the check family. Below the probing
+  // rules `recovery.recheck` matched `check` and wore IconCheckCircle — a STATE
+  // mark ("already OK") on the recovery path's ACTION button ("verify again"),
+  // which on touch was also the button's whole face (mobile UI review
+  // 2026-09-15, P1c). The retry family's circular arrows already carry the
+  // run-it-again meaning. Word-anchored so exactly one key re-glyphs — it has
+  // a single call site (Recovery.tsx step 1).
+  [/\brecheck\b/i, () => <IconRefresh />],
+
   // Probing and inspection.
   // The tamper test sits in the same row as verify and drill and does the same
   // kind of thing: it proves a claim. "accept" and "resolveAll" are the other

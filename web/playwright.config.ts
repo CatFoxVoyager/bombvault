@@ -52,15 +52,24 @@ const binary = join(repoRoot, process.platform === "win32" ? "bombvault.exe" : "
 const node = JSON.stringify(process.execPath);
 const command = `${node} web/e2e/wipe-e2e-data.mjs && "${binary}"`;
 
+// The harness port is env-overridable (E2E_PORT) but defaults to the app's
+// own 3000. The override exists because 3000 is a popular port: a foreign
+// container on this host (a sibling project's dev instance — quick 260915
+// ran into exactly that) must not be killed to run THIS project's gate, and
+// reuseExistingServer must stay false, so the only clean path is another
+// port. The throwaway harness boots its own binary either way — no reuse, no
+// foreign state, every fresh-DB guarantee below intact.
+const e2ePort = process.env.E2E_PORT ?? "3000";
+
 export default defineConfig({
   testDir: "./e2e",
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    baseURL: `http://127.0.0.1:${e2ePort}`,
   },
   webServer: {
     command,
     cwd: repoRoot,
-    url: "http://127.0.0.1:3000/api/health",
+    url: `http://127.0.0.1:${e2ePort}/api/health`,
     timeout: 120_000,
     // NEVER reuse whatever already listens on 127.0.0.1:3000: a running dev
     // BombVault (real settings, enabled domains, a password) would silently
@@ -85,7 +94,7 @@ export default defineConfig({
       DATA_DIR: "./.playwright-data",
       // Plain HTTP instead of any TLS-bypass flag (T-05-04).
       HTTP_ONLY: "true",
-      PORT: "3000",
+      PORT: e2ePort,
     },
   },
   projects: [

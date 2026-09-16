@@ -36,6 +36,15 @@ describe("glyphFor", () => {
     // the better failure: a wrong symbol is worse than a word.
     expect(glyphFor("zzz.somethingWithNoVerb")).toBeUndefined();
   });
+
+  it("re-checks again instead of declaring a state", () => {
+    // "recheck" is an ACTION ("verify again"), so it wears the retry family's
+    // circular arrows and NOT the check-circle family's state mark — the probe
+    // rules would otherwise swallow it via `check` (mobile UI review
+    // 2026-09-15, P1c). Defined, and distinct from the probing rule's glyph.
+    expect(glyphFor("recovery.recheck")).toBeDefined();
+    expect(glyphFor("recovery.recheck")).not.toEqual(glyphFor("integrity.verify"));
+  });
 });
 
 // The About card's buttons (jdp, 2026-09-08: "in der übercard fehlen die

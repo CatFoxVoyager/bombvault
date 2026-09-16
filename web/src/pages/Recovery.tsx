@@ -2128,9 +2128,18 @@ export default function Recovery() {
                 are prose about repeating the action, not this label) refer to;
                 the button's own wording is the value, and the value is now plain.
                 Do not re-lengthen it. */}
+            {/* The disaster-recovery path is the app's most critical flow, so its
+                wizard CTAs carry keepLabel: they must stay labeled under EVERY
+                label mode on BOTH pointers (mobile UI review 2026-09-15, P1b —
+                in reactive mode on touch the step-1 CTA rendered as an unlabeled
+                check glyph, the only affordance for restarting a dead server).
+                Precedent: keepLabel already protects Download/Delete. Under the
+                default textGlyph mode this changes nothing; all 14 wizard step
+                CTAs (4 desktop + 10 mobile sticky-bar) get the same prop. */}
             <Button
               label={t("recovery.recheck")}
               labelKey="recovery.recheck"
+              keepLabel
               tone="accent"
               onClick={() => void checkReadable()}
               disabled={checking}
@@ -2486,6 +2495,7 @@ export default function Recovery() {
                   key={connectPreviewShake}
                   label={t("recovery.connectPreview")}
                   labelKey="recovery.connectPreview"
+                  keepLabel
                   tone="accent"
                   onClick={() => void connectPreview()}
                   disabled={attachState === "saving"}
@@ -2505,6 +2515,7 @@ export default function Recovery() {
             <Button
               label={t("recovery.discover")}
               labelKey="recovery.discover"
+              keepLabel
               tone="accent"
               onClick={() => void runDiscover()}
               disabled={discovering}
@@ -2586,6 +2597,7 @@ export default function Recovery() {
                 <Button
                   label={t("recovery.restoreAll")}
                   labelKey="recovery.restoreAll"
+                  keepLabel
                   tone="accent"
                   onClick={() => void restoreAll()}
                   disabled={restoreAllBusy || running.active}
@@ -3885,6 +3897,7 @@ function MobileRecoveryFlow({
             <Button
               label={t("recovery.recheck")}
               labelKey="recovery.recheck"
+              keepLabel
               tone="accent"
               onClick={() => void checkReadable()}
               disabled={checking}
@@ -3896,6 +3909,7 @@ function MobileRecoveryFlow({
             <Button
               label={t("common.continue")}
               labelKey="common.continue"
+              keepLabel
               tone="accent"
               onClick={() => setStep(2)}
               className="min-h-[2.75rem] w-full"
@@ -3908,6 +3922,7 @@ function MobileRecoveryFlow({
           <Button
             label={t("common.continue")}
             labelKey="common.continue"
+            keepLabel
             tone="accent"
             onClick={() => setStep(3)}
             className="min-h-[2.75rem] w-full"
@@ -3920,6 +3935,7 @@ function MobileRecoveryFlow({
             key={connectPreviewShake}
             label={t("recovery.connectPreview")}
             labelKey="recovery.connectPreview"
+            keepLabel
             tone={previewed ? "neutral" : "accent"}
             onClick={() => void connectPreview()}
             disabled={attachState === "saving"}
@@ -3930,6 +3946,7 @@ function MobileRecoveryFlow({
             <Button
               label={t("common.continue")}
               labelKey="common.continue"
+              keepLabel
               tone="accent"
               onClick={() => setStep(4)}
               className="min-h-[2.75rem] w-full"
@@ -3943,6 +3960,7 @@ function MobileRecoveryFlow({
             <Button
               label={t("recovery.discover")}
               labelKey="recovery.discover"
+              keepLabel
               tone="accent"
               onClick={() => void runDiscover()}
               disabled={discovering}
@@ -3954,6 +3972,7 @@ function MobileRecoveryFlow({
             <Button
               label={t("common.continue")}
               labelKey="common.continue"
+              keepLabel
               tone="accent"
               onClick={() => setStep(5)}
               className="min-h-[2.75rem] w-full"
@@ -3968,6 +3987,7 @@ function MobileRecoveryFlow({
           <Button
             label={t("common.continue")}
             labelKey="common.continue"
+            keepLabel
             tone="accent"
             onClick={() => setStep(6)}
             className="min-h-[2.75rem] w-full"
@@ -3980,6 +4000,7 @@ function MobileRecoveryFlow({
             key={kitShake}
             label={t("recovery.kitDownload")}
             labelKey="recovery.kitDownload"
+            keepLabel
             tone="neutral"
             onClick={fireKitDownload}
             className={`min-h-[2.75rem] w-full${kitShake ? " glim-shake" : ""}`}
@@ -3990,6 +4011,7 @@ function MobileRecoveryFlow({
           <Button
             label={t("common.done")}
             labelKey="common.done"
+            keepLabel
             tone="accent"
             onClick={() => navigate("/")}
             className="min-h-[2.75rem] w-full"

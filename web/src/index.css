@@ -548,7 +548,9 @@
    transform reset further down — this rule hands back width, opacity and
    margin, that one hands back the resting `translateX`/`scaleX`. Adding a
    state to one list and not the other leaves the label revealed but still
-   displaced, which is what [527] had to repair. */
+   displaced, which is what [527] had to repair. The `(pointer: coarse)`
+   at-rest block below is that contract's newest member — a reveal without
+   hover, whose own reset sits after the reduced-motion gate. */
 .glim-reactive.glim-active .glim-label-reactive,
 .glim-reactive:hover .glim-label-reactive,
 .glim-reactive:focus-visible .glim-label-reactive,
@@ -573,6 +575,30 @@
   max-width: calc(var(--reactive-chars, 24) * 0.62em + 0.75rem);
   opacity: 1;
   margin-inline-start: var(--btn-gap);
+}
+
+/* Coarse pointers reveal at REST. A tap fires before any reveal state can
+   exist — hover is a desktop-only state, so on a coarse pointer reactive
+   degenerated into permanent icon-only (mobile UI review 2026-09-15, P1: the
+   recovery wizard's step-1 CTA rendered as an unlabeled check glyph). Under
+   coarse pointers reactive now reads as text at rest, and the hover/focus
+   reveal above keeps working unchanged on fine pointers.
+
+   The ceiling is the reveal's own `--reactive-chars` contract — same formula,
+   same 24 fallback, deliberately not re-derived here (see that block's
+   comment for why a fixed number clipped and crawled at both ends). No
+   padding declaration, on purpose: the reveal restores none either, and the
+   resting `padding: 0` stays load-bearing for the glyph's centering.
+
+   This is a reveal state, so it carries the same obligation the guard above
+   states: its transform reset lives after the reduced-motion gate below and
+   the two must move together. */
+@media (pointer: coarse) {
+  .glim-label-reactive {
+    max-width: calc(var(--reactive-chars, 24) * 0.62em + 0.75rem);
+    opacity: 1;
+    margin-inline-start: var(--btn-gap);
+  }
 }
 
 /* Motion is opt-in per intensity and strictly inside the OS gate, exactly like
@@ -635,6 +661,19 @@
   :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-reactive:hover .glim-label-reactive,
   :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-reactive:focus-visible .glim-label-reactive,
   :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-reactive:focus-within .glim-label-reactive {
+    transform: translateX(0) scaleX(1);
+  }
+}
+
+/* The coarse-pointer companion reset — the pair the two guard comments above
+   exist to keep together. The `(pointer: coarse)` block before the gate
+   reveals reactive labels at rest; in the lively motion levels that revealed
+   label would otherwise sit 6.4px displaced and squashed to 82%, the exact
+   revealed-but-still-displaced shape [467]-bug-[527] repaired for `.glim-active`.
+   Same combined query and same selector shape as the reset list above, so the
+   at-rest coarse reveal reads like any other reveal state. */
+@media (prefers-reduced-motion: no-preference) and (pointer: coarse) {
+  :root:not([data-motion="subtle"]):not([data-motion="off"]) .glim-label-reactive {
     transform: translateX(0) scaleX(1);
   }
 }
