@@ -14,13 +14,24 @@
   </defs>
   <style>
     @keyframes pass {
-      0%       { transform: translateX(-244.0px); }
-      13.57%   { transform: translateX(822.0px); }
-      100%     { transform: translateX(822.0px); }
+      0%       { transform: translateX(-226.6px); }
+      18.16%   { transform: translateX(946.6px); }
+      100%     { transform: translateX(946.6px); }
     }
     /* linear, not eased: an eased pass hands off at the wrong moment and the
-       row stops reading as one band crossing both buttons. */
-    .band { animation: pass 7s linear 0.000s infinite; }
+       row stops reading as one band crossing both buttons.
+
+       `backwards` is not decoration, it is the second half of the delay. An
+       animation that has not started yet leaves its element wherever the
+       document put it, which for this band is x=0 - INSIDE the button, against
+       its left edge. So the stagger that makes the row read as one band was
+       also parking a motionless band on every button but the first, for as long
+       as that button's delay, every single time the page loaded. It came right
+       on its own from the second cycle onwards, which is why it survived: it is
+       only ever wrong while somebody is looking at the row for the first time.
+       `backwards` holds the 0% state during the delay instead, and 0% is off
+       the left edge. */
+    .band { animation: pass 7s linear 0.000s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .band { animation: none; opacity: 0; }
     }
@@ -36,7 +47,7 @@
       <!-- Taller than the canvas and started off its left edge, so the tilt
            never exposes a corner. skewX rather than rotate: the band stays
            axis-aligned for the translate, so the motion is one transform. -->
-      <rect x="0" y="-60" width="141.0" height="365.3"
+      <rect x="0" y="-60" width="121.8" height="365.3"
             fill="url(#sheen)" transform="skewX(-16)"/>
     </g>
   </g>
