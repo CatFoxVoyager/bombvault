@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { listVMs, backupVMNow, restoreVM, listVMSnapshots, setVMInclude, setVMIncludeAll, setVMMethod, deleteSnapshot, deleteBackupsVM, forgetVM, discoverVMs, exportVM, getVmBackupOrder, setVmBackupOrder, getScheduleNext, setVMScheduleCadence, setVMRepo, getSettings } from "../lib/api";
 import { SourceToggle, type RepoSource } from "../components/SourceToggle";
 import { FilterPopover } from "../components/FilterPopover";
+import { ChipFilter, loadStoredFilterKey } from "../components/ChipFilter";
 import { IconTipButton } from "../components/IconTipButton";
 import { OffsiteIndicator } from "../components/OffsiteIndicator";
 import type { VM, Snapshot, VmOrder, Run, ScheduleNext } from "../lib/api";
@@ -149,9 +150,10 @@ function SortControl({
 // ---------------------------------------------------------------------------
 // Generic sibling of the sort chips: same chip look + localStorage pattern, but
 // parameterised over its option set so the schedule and backup dimensions each
-// instantiate it without duplicating the markup. Mirrors Containers.tsx's
-// ChipFilter. VMs have NO installed/not-installed FilterControl — the state-
-// based live/orphans split already covers that dimension.
+// instantiate it without duplicating the markup. ChipFilter itself lives in
+// components/ChipFilter.tsx — the shared copy Containers.tsx uses too. VMs have
+// NO installed/not-installed FilterControl — the state-based live/orphans split
+// already covers that dimension.
 
 type ScheduleFilterKey = "all" | "scheduled" | "notScheduled";
 type BackupFilterKey = "all" | "backedUp" | "neverBackedUp";
@@ -160,40 +162,18 @@ const SCHEDULE_FILTER_STORAGE_KEY = "bv-vms-schedule-filter";
 const BACKUP_FILTER_STORAGE_KEY = "bv-vms-backup-filter";
 
 function loadScheduleFilterKey(): ScheduleFilterKey {
-  const v = localStorage.getItem(SCHEDULE_FILTER_STORAGE_KEY);
-  if (v === "all" || v === "scheduled" || v === "notScheduled") return v;
-  return "all";
+  return loadStoredFilterKey(
+    SCHEDULE_FILTER_STORAGE_KEY,
+    ["all", "scheduled", "notScheduled"] as const,
+    "all",
+  );
 }
 
 function loadBackupFilterKey(): BackupFilterKey {
-  const v = localStorage.getItem(BACKUP_FILTER_STORAGE_KEY);
-  if (v === "all" || v === "backedUp" || v === "neverBackedUp") return v;
-  return "all";
-}
-
-function ChipFilter<K extends string>({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: { key: K; label: string }[];
-  value: K;
-  onChange: (k: K) => void;
-}) {
-  return (
-    <div className="flex items-center gap-2 flex-wrap">
-      <span className="text-xs text-carbon-textMuted">{label}</span>
-      <Selector
-        items={options.map((o) => ({ id: o.key, label: o.label }))}
-        label={label}
-        variant="well"
-        select="one"
-        active={value}
-        onChange={(id) => onChange(id as K)}
-      />
-    </div>
+  return loadStoredFilterKey(
+    BACKUP_FILTER_STORAGE_KEY,
+    ["all", "backedUp", "neverBackedUp"] as const,
+    "all",
   );
 }
 

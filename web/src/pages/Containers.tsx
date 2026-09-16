@@ -12,6 +12,7 @@ import { RepoPicker } from "../components/RepoPicker";
 import { FolderBrowser } from "../components/FolderBrowser";
 import { humanBytes } from "../lib/forecast";
 import { FilterPopover } from "../components/FilterPopover";
+import { ChipFilter, loadStoredFilterKey } from "../components/ChipFilter";
 import { IconTipButton } from "../components/IconTipButton";
 import { DropdownListbox } from "../components/DropdownListbox";
 import { OffsiteIndicator } from "../components/OffsiteIndicator";
@@ -181,7 +182,9 @@ const SORT_KEYS = {
 // Home/End, RTL) and rainbow hueing all now live in Selector itself, not
 // copy-pasted here — that duplicated rendering (with zero keyboard support)
 // was exactly what had drifted apart between this file and VMs.tsx's own
-// near-identical copies.
+// near-identical copies. ChipFilter, the most generic of the three
+// (parameterised over its option set), has since moved to
+// components/ChipFilter.tsx to serve Containers and VMs from one copy.
 //
 // All three render the SMALL horizontal selector (`variant="well"`, no
 // `equalWidth`) — jdp, live review: "Im Filtermenü: die Optionen bitte in
@@ -275,40 +278,18 @@ const SCHEDULE_FILTER_STORAGE_KEY = "bv-containers-schedule-filter";
 const BACKUP_FILTER_STORAGE_KEY = "bv-containers-backup-filter";
 
 function loadScheduleFilterKey(): ScheduleFilterKey {
-  const v = localStorage.getItem(SCHEDULE_FILTER_STORAGE_KEY);
-  if (v === "all" || v === "scheduled" || v === "notScheduled") return v;
-  return "all";
+  return loadStoredFilterKey(
+    SCHEDULE_FILTER_STORAGE_KEY,
+    ["all", "scheduled", "notScheduled"] as const,
+    "all",
+  );
 }
 
 function loadBackupFilterKey(): BackupFilterKey {
-  const v = localStorage.getItem(BACKUP_FILTER_STORAGE_KEY);
-  if (v === "all" || v === "backedUp" || v === "neverBackedUp") return v;
-  return "all";
-}
-
-function ChipFilter<K extends string>({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: { key: K; label: string }[];
-  value: K;
-  onChange: (k: K) => void;
-}) {
-  return (
-    <div className="flex items-center gap-2 flex-wrap">
-      <span className="text-xs text-carbon-textMuted">{label}</span>
-      <Selector
-        items={options.map((o) => ({ id: o.key, label: o.label }))}
-        label={label}
-        variant="well"
-        select="one"
-        active={value}
-        onChange={(id) => onChange(id as K)}
-      />
-    </div>
+  return loadStoredFilterKey(
+    BACKUP_FILTER_STORAGE_KEY,
+    ["all", "backedUp", "neverBackedUp"] as const,
+    "all",
   );
 }
 
