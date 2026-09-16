@@ -197,7 +197,11 @@ export const en = {
   "containers.notInstalledSkipped": "They are still scheduled, so every run records a skip for each one.",
   "containers.deleteBackups": "Delete all backups",
   "containers.deleteBackupsConfirm": "Delete ALL backups of this container? The snapshots are permanently removed from the repository and cannot be undone.",
-  "containers.filter": "Filter:",
+  // No trailing colon, in any language: the toolbar's adjacent chip-group
+  // labels must read alike, and this one and sort.label were the odd ones
+  // out (mobile UI review 2026-09-15, P2; MobileSectionLabel's no-colon
+  // house style). Convention 987a4d0b: the note lives in the en table only.
+  "containers.filter": "Filter",
   "containers.filterAll": "All",
   "containers.filterInstalled": "Installed",
   "containers.sectionsLabel": "Sections",
@@ -1122,7 +1126,7 @@ export const en = {
   "jobs.cadenceDaily": "Daily at {time}",
   "jobs.cadenceWeekly": "Weekly ({days}) at {time}",
   "jobs.cadenceEveryN": "Every {n} days at {time}",
-  "sort.label": "Sort:",
+  "sort.label": "Sort",
   "sort.nameAsc": "Name (A–Z)",
   "sort.status": "Status",
   "sort.ip": "IP",
@@ -2225,7 +2229,7 @@ export const de: Translations = {
   "containers.notInstalledSkipped": "Sie sind weiterhin eingeplant, also hält jeder Lauf für jeden von ihnen einen Überspringer fest.",
   "containers.deleteBackups": "Alle Backups löschen",
   "containers.deleteBackupsConfirm": "ALLE Backups dieses Containers löschen? Die Snapshots werden dauerhaft aus dem Repository entfernt und können nicht wiederhergestellt werden.",
-  "containers.filter": "Filter:",
+  "containers.filter": "Filter",
   "containers.filterAll": "Alle",
   "containers.filterInstalled": "Installiert",
   "containers.sectionsLabel": "Bereiche",
@@ -2957,7 +2961,7 @@ export const de: Translations = {
   "jobs.cadenceDaily": "Täglich um {time}",
   "jobs.cadenceWeekly": "Wöchentlich ({days}) um {time}",
   "jobs.cadenceEveryN": "Alle {n} Tage um {time}",
-  "sort.label": "Sortieren:",
+  "sort.label": "Sortieren",
   "sort.nameAsc": "Name (A–Z)",
   "sort.status": "Status",
   "sort.ip": "IP",

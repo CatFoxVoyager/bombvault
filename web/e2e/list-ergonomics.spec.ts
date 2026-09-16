@@ -360,7 +360,7 @@ test("toolbar is sticky-in-flow (never fixed) and its chips switch the rendered 
   // Scoped to the installed-toggle's own tablist — the Schedule/Backup chip
   // groups each carry their own "All" tab with the same role.
   await toolbar
-    .getByRole("tablist", { name: "Filter:" })
+    .getByRole("tablist", { name: "Filter" })
     .getByRole("tab", { name: "All", exact: true })
     .tap();
   await expect(allCards).toHaveCount(7);
