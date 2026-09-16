@@ -179,6 +179,15 @@ PASS_PCT = PASS / CYCLE * 100.0
 # The delay is the button's POSITION times STEP, computed below rather than
 # written out here: a hand-kept column of seconds is a column somebody edits the
 # row without touching, and then the band hands off into nothing.
+#
+# THIS ROW STARTS AT ZERO because it is the FIRST row on the page. One band
+# works its way down the README rather than one band per row running beside the
+# others: the whole first row, then the whole second. The give row below carries
+# the other half of that schedule - a fixed 3.8s offset, which is when the
+# longest download row in the house (ArrowLoop's four buttons) has finished. It
+# has to be a fixed number rather than a derived one, because those three
+# buttons are one shared asset referenced by twenty-six repositories and cannot
+# know what a given README puts above them.
 BUTTONS = [
     # DOCS IS FIRST, and it is in this row rather than on a line of its own
     # (jdp, 2026-09-13: "der Dokubutton soll in der zeile der downloadbuttons
