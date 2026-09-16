@@ -65,21 +65,37 @@ const GLIMSTONE_REPO = "https://github.com/junkerderprovinz/glimstone";
 /** The handle from .github/FUNDING.yml, so one place in the product knows it. */
 const COFFEE = "https://buymeacoffee.com/junkerderprovinz";
 /**
- * The PayPal.Me page.
+ * PayPal's donation page for this workshop.
  *
  * The card's own rule, applied to a route rather than to a sentence: never
- * offer a control that reaches nowhere. This sat empty until the page existed,
- * because a PayPal.Me name is created once and cannot be renamed afterwards
- * without asking their support, so it had to be chosen deliberately rather
- * than guessed at here. It exists now, under the workshop's own name rather
- * than a product's: one page serves every tool, the same way hello@ below
- * serves every tool's mail.
+ * offer a control that reaches nowhere. This sat empty until a page existed,
+ * and pointed at PayPal.Me once one did.
+ *
+ * IT IS NOT THAT PAGE ANY MORE. PayPal.Me opens on a handle, and a handle is
+ * the workshop's name to PayPal rather than a sentence about what the money is
+ * for: somebody who arrives from a button that says "toss a coin" lands on a
+ * page that says `hallelujadesign` and has to work out whether they are in the
+ * right place. The donation page says "Donate to Junker der Provinz", carries a
+ * sentence about what the money does, offers three amounts and a free one,
+ * takes a card without a PayPal account, and has a box for making it monthly.
+ *
+ * A HOSTED BUTTON, not the open `?business=<id>&item_name=<project>` address.
+ * That address was tried first and PayPal refused it for this account -
+ * `ppccNotConfirmed`, "this organisation cannot accept donations at the moment"
+ * - because the donate endpoint needs an account confirmed for donations. The
+ * button is that confirmation.
+ *
+ * Which means it is the SAME address in every repository and every app: the
+ * project is a dropdown the donor picks from on PayPal's own page, and it
+ * cannot be preselected from the link (measured: the list comes back in the
+ * same order whatever `os0`, `item_name` or `program_name` are set to).
  *
  * Typed as `string` rather than inferred, so the button's gate below stays a
  * runtime check on a value this file expects to change, and not a comparison
  * the compiler folds away.
  */
-const PAYPAL: string = "https://paypal.me/hallelujadesign";
+const PAYPAL: string =
+  "https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS";
 /** The workshop's own mailbox, shared by every tool in it: the subject carries
  *  the product name, so one inbox can tell them apart. */
 const MAIL = "hello@halleluja.design";
