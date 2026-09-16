@@ -98,21 +98,27 @@ The core idea — one-click backup *and* automatic re-install of Docker containe
 
 Unraid's usual backup answer is [**Appdata.Backup**](https://github.com/Commifreak/unraid-appdata.backup) (the community-maintained successor to the old Appdata Backup/Restore plugin) — a native CA plugin, but a file-level one: it archives the appdata folder (and optionally VM disks + Unraid flash), with no awareness of what a Docker container or a libvirt VM *is*, so a restore is copying files back, not the container reappearing in the Docker tab on its own. The other well-known route is a generic dedup/encrypted engine — [Duplicati](https://duplicati.com), [Kopia](https://kopia.io), [Duplicacy](https://duplicacy.com) or [BorgBackup](https://borgbackup.readthedocs.io) — run by hand or via a community Docker template; all are solid, actively developed engines (restic's own closest siblings, in Kopia's, Duplicacy's and Borg's case), but none of them know what a container or a VM is either, and none ship as a native Unraid plugin.
 
-| | **BombVault** | Appdata.Backup (CA) | Duplicati | Kopia | BorgBackup |
-|---|:---:|:---:|:---:|:---:|:---:|
-| Docker restore reinstalls the container (image, env, ports, labels) | ✅ | ❌ files only | ❌ | ❌ | ❌ |
-| VM/guest restore re-defines it (not just a disk copy) | ✅ via libvirt | ⚠️ backs up disk+XML, restore is file-level | ❌ | ❌ | ❌ |
-| Deduplication | ✅ content-defined | ❓ undocumented | ⚠️ fixed-block only | ✅ content-defined | ✅ content-defined |
-| Client-side encryption | ✅ | ❓ undocumented | ✅ | ✅ | ✅ |
-| Immutable / append-only off-site | ✅ + an active tamper test proves it | ❌ | ⚠️ depends on backend config | ✅ Object Lock | ✅ append-only SSH mode |
-| Automated restore-verification drills | ✅ local + off-site sandbox restore | ❌ | ⚠️ sample-file check only | ✅ opt-in full test-restore | ❌ manual convention only |
-| Multiple off-site targets, independent credentials | ✅ | ❌ | ✅ | ⚠️ mirrors to N, one active repo | ❌ needs manual scripting |
-| Native pre/post-backup hooks | ✅ | ✅ | ✅ | ✅ | ❌ core has none — Borgmatic adds it |
-| Live restore progress + cancel | ✅ | ❓ | ✅ | ❌ [confirmed gap](https://github.com/kopia/kopia/issues/3609) | ⚠️ CLI progress, no true cancel |
-| Native platform packaging | ✅ Unraid CA | ✅ Unraid CA | ❌ generic Docker template | ❌ generic Docker template | ❌ generic Docker template |
-| Web UI | ✅ | ✅ | ✅ | ⚠️ separate project (KopiaUI) | ❌ CLI/config-file only |
+The closest thing to a direct counterpart is [**Vault**](https://github.com/ruaan-deysel/vault) by [@ruaan-deysel](https://github.com/ruaan-deysel), a native Unraid plugin that shares the core idea: it, too, recreates containers through the Docker API and re-defines VMs through libvirt on restore. It reaches further in places BombVault does not cover yet — ZFS datasets and installed Unraid plugins as backup sources, statistical anomaly detection, automatic database dumps for recognised database containers. It stops short in others: it runs a backup engine of its own rather than an established one, so a backup is readable only by Vault itself; it has no append-only off-site mode; and it verifies a restore point by reading the data back and re-hashing it rather than by actually restoring it. Worth a look, and the honest comparison is below.
 
-✅ yes · ❌ no · ⚠️ present but limited · ❓ undocumented
+| | **BombVault** | Vault (plugin) | Appdata.Backup (CA) | Duplicati | Kopia | BorgBackup |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| Docker restore reinstalls the container (image, env, ports, labels) | ✅ | ✅ | ❌ files only | ❌ | ❌ | ❌ |
+| VM/guest restore re-defines it (not just a disk copy) | ✅ via libvirt | ✅ via libvirt | ⚠️ backs up disk+XML, restore is file-level | ❌ | ❌ | ❌ |
+| Deduplication | ✅ content-defined | ✅ content-defined | ❓ undocumented | ⚠️ fixed-block only | ✅ content-defined | ✅ content-defined |
+| Client-side encryption | ✅ | ✅ | ❓ undocumented | ✅ | ✅ | ✅ |
+| Restorable without this app, with a standard CLI tool | ✅ restic | ❌ Vault only | ✅ tar | ✅ | ✅ | ✅ |
+| Immutable / append-only off-site | ✅ + an active tamper test proves it | ❌ | ❌ | ⚠️ depends on backend config | ✅ Object Lock | ✅ append-only SSH mode |
+| Automated restore-verification drills | ✅ local + off-site sandbox restore | ⚠️ read-back + re-hash, no test restore | ❌ | ⚠️ sample-file check only | ✅ opt-in full test-restore | ❌ manual convention only |
+| Multiple off-site targets, independent credentials | ✅ | ✅ | ❌ | ✅ | ⚠️ mirrors to N, one active repo | ❌ needs manual scripting |
+| Native pre/post-backup hooks | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ core has none — Borgmatic adds it |
+| Live restore progress + cancel | ✅ | ✅ | ❓ | ✅ | ❌ [confirmed gap](https://github.com/kopia/kopia/issues/3609) | ⚠️ CLI progress, no true cancel |
+| Notification channels | ✅ 6+ incl. SMTP, Matrix, Apprise | ⚠️ Discord + Unraid | ⚠️ Unraid only | ✅ | ❌ | ❌ |
+| Statistical anomaly detection (size/duration drift, capacity ETA) | ⏳ planned | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Runs outside Unraid too | ✅ Docker host, TrueNAS Scale | ❌ Unraid 7 only | ❌ | ✅ | ✅ | ✅ |
+| Native platform packaging | ✅ Unraid CA | ✅ Unraid plugin | ✅ Unraid CA | ❌ generic Docker template | ❌ generic Docker template | ❌ generic Docker template |
+| Web UI | ✅ | ✅ | ✅ | ✅ | ⚠️ separate project (KopiaUI) | ❌ CLI/config-file only |
+
+✅ yes · ❌ no · ⚠️ present but limited · ⏳ planned · ❓ undocumented
 
 <br>
 
