@@ -643,6 +643,26 @@ export const MIN_PINNED_WIDTH = 200;
 // presence of the compaction is proven by the plan's grep gate.
 const MOBILE_COMPACT = "max-md:text-xs max-md:px-1";
 
+// SEGMENT_TOUCH_BLEED — the 44px touch floor, carried by an invisible
+// ::after rather than by real size (mobile UI review 2026-09-15, P2: the
+// small well's segments measure 24px on a device, half the floor). The same
+// bleed row actions already ship (Button.tsx's MOBILE_BLEED, Toggle,
+// LanguageCard): `relative` + an absolutely-positioned, inset-negative,
+// content-empty ::after grows the TAP AREA without painting anything — the
+// pseudo has no background, so pixels do not move. Scoped to the SMALL well
+// only (`well && !equalWidth`, joined at the segment class list below): the
+// big Settings pickers (`equalWidth size="lg"`, measured 37.6px) were
+// explicitly ACCEPTED sub-floor by device verdict D-11 and this does not
+// reopen that verdict. Adjacent segments' bleed zones overlap by design —
+// the row-action pattern's own accepted trade: a boundary tap inside the
+// overlap resolves to the later sibling, and the vertical growth is the
+// win. jsdom cannot resolve media queries (the MOBILE_COMPACT comment's
+// closing note), so the proof this bleed exists lives in e2e —
+// list-ergonomics.spec.ts's 44px floor test reads the ::after's computed
+// height — not in this file's dom suites.
+const SEGMENT_TOUCH_BLEED =
+  "max-md:relative max-md:after:absolute max-md:after:-inset-3 max-md:after:content-['']";
+
 // ---------------------------------------------------------------------------
 // Pure, DOM-free navigation math — exported and unit-tested directly (see
 // Selector.test.ts) without jsdom, matching this repo's established
@@ -1128,6 +1148,10 @@ export function Selector(props: SelectorProps) {
           // Below-md compaction, every variant and scale alike (why: the
           // MOBILE_COMPACT const's own comment above).
           MOBILE_COMPACT,
+          // The 44px touch bleed — small well only (why: the
+          // SEGMENT_TOUCH_BLEED const's own comment above; D-11 accepted the
+          // big pickers sub-floor and this must not leak into them).
+          well && !equalWidth ? SEGMENT_TOUCH_BLEED : "",
           // CORRECTED (jdp, live-review — "the shape picker's own well
           // track/segments don't reshape"): this used to read "well segments
           // carry no radius of their own", copying TrickWork's

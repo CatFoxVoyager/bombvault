@@ -383,6 +383,68 @@ test("every rendered card clears the 44px touch floor", async ({ page }, testInf
   expect(minHeight).toBeGreaterThanOrEqual(44);
 });
 
+test("toolbar chips and reorder arrows clear the 44px touch floor", async ({ page }, testInfo) => {
+  test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "LISTS-01 mobile presentation only");
+  // THREE orderable containers, no more: the panel lists every orderable
+  // container (the explicitly ordered ones first, the rest appended
+  // alphabetically — BackupOrderPanel's hydration effect), so the staged
+  // list size IS the arrow count. The chips need no cards at all.
+  await stageContainersDomain(page, containerList(3));
+  // Registered AFTER the domain staging on purpose: Playwright lets the LAST
+  // matching route win, and `/api/containers/backup-order` also matches the
+  // `/api/containers/{name}$` catch-all above — the panel needs the order
+  // payload, not the generic ok envelope. Shape mirrors getBackupOrder's
+  // ContainerOrder[] (api.ts) and the Go handler field-for-field (the
+  // header's staging rule): {container, order} pairs, not bare names.
+  await page.route("**/api/containers/backup-order", (route) =>
+    route.fulfill({
+      json: {
+        ok: true,
+        order: [
+          { container: "svc-00", order: 0 },
+          { container: "svc-01", order: 1 },
+          { container: "svc-02", order: 2 },
+        ],
+      },
+    }),
+  );
+  // The reorder card lives inside <Advanced> (default OFF, persisted in
+  // localStorage — lib/advanced.tsx), so the harness visitor opts in before
+  // boot; the display-prefs abort the sibling tests rely on stays untouched.
+  await page.addInitScript(() => localStorage.setItem("bombvault.advanced", "1"));
+  await page.goto("/containers");
+
+  // Chips: the tap area is the ::after bleed pseudo, NOT the host box — a
+  // bounding-box read like the card test's above would measure the 24px host
+  // and miss the whole point, which is why this reads the pseudo's USED
+  // height per element instead (a bleed that regresses to nothing reads 0px
+  // here, not 24px).
+  const tabs = toolbarRoot(page).getByRole("tab");
+  await expect(
+    tabs,
+    "the mobile toolbar's four chip groups (filter/schedule/backup/sort, 3 segments each) must render for this floor proof",
+  ).toHaveCount(12);
+  const minChipBleed = await tabs.evaluateAll((els) =>
+    Math.min(...els.map((el) => parseFloat(getComputedStyle(el, "::after").height))),
+  );
+  expect(minChipBleed).toBeGreaterThanOrEqual(44);
+
+  // Reorder arrows: 20px hosts, so 12px of bleed on both vertical sides is
+  // exactly the 44px floor — no headroom, which is the point. Three rows
+  // staged, so the counts are asserted before the min (an empty evaluateAll
+  // would take Math.min of nothing and pass vacuously).
+  const arrowBleeds = async (name: string) => {
+    const btns = page.getByRole("button", { name });
+    await expect(btns, `three "${name}" rows must render`).toHaveCount(3);
+    return btns.evaluateAll((els) =>
+      els.map((el) => parseFloat(getComputedStyle(el, "::after").height)),
+    );
+  };
+  const ups = await arrowBleeds("Move up");
+  const downs = await arrowBleeds("Move down");
+  expect(Math.min(...ups, ...downs)).toBeGreaterThanOrEqual(44);
+});
+
 // --- the Files sets list (Task 2) --------------------------------------------
 //
 // The sets list has NO desktop search state to bind (the page's `filter` is
