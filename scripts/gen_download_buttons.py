@@ -39,11 +39,13 @@ what it hands over is an archive, not a visit to GitHub. The mark named the
 host; the glyph names the file.
 
 Run from anywhere:  python scripts/gen_download_buttons.py
-Writes .github/assets/download-buttons/*.svg, which are committed.
+Writes .github/assets/download-buttons/*.svg, which are committed, and the
+button row in README.md between its two markers.
 """
 
 import math
 import os
+from html import escape
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", ".github", "assets", "download-buttons")
@@ -188,6 +190,9 @@ PASS_PCT = PASS / CYCLE * 100.0
 # has to be a fixed number rather than a derived one, because those three
 # buttons are one shared asset referenced by twenty-six repositories and cannot
 # know what a given README puts above them.
+#
+# The last column is where the button leads. It lives here with the rest of the
+# button because this file writes the README row too, see write_readme().
 BUTTONS = [
     # DOCS IS FIRST, and it is in this row rather than on a line of its own
     # (jdp, 2026-09-13: "der Dokubutton soll in der zeile der downloadbuttons
@@ -203,19 +208,42 @@ BUTTONS = [
     # a row that is otherwise blue and slate. Dark ink on it for the same reason
     # the Linux button has dark ink.
     ("docs", "book", "#fd0", "#0d0c23",
-     "Docs", "online manual", "Read the documentation"),
+     "Docs", "online manual", "Read the documentation",
+     "https://junkerderprovinz.github.io/bombvault/"),
     # The image itself. A browser cannot download an image, so this one opens
     # the package page rather than pretending to hand over a file: the second
     # line says "ghcr.io image" and not "download".
     ("docker-image", "docker", "#1d63ed", "#ffffff",
-     "Docker", "ghcr.io image", "The container image on ghcr.io"),
+     "Docker", "ghcr.io image", "The container image on ghcr.io",
+     "https://github.com/junkerderprovinz/bombvault/pkgs/container/bombvault"),
     # GitHub attaches "Source code (zip)" to every release: the whole repository
     # at that tag, not the Dockerfile alone. The button says Source for that
     # reason. The glyph is a ZIP rather than GitHub's mark, because what arrives
     # is an archive - the mark would name the host, the glyph names the file.
     ("source-zip", "zip", "#4d5562", "#ffffff",
-     "Source", "zip archive", "Download the source archive for this release"),
+     "Source", "zip archive", "Download the source archive for this release",
+     "https://github.com/junkerderprovinz/bombvault/releases/latest"),
 ]
+
+# THE README ROW is written here as well, between two markers, so a button added
+# to BUTTONS reaches the page by running this file and nothing else, once it is
+# on main: the Worker below always reads main, so a branch's README preview
+# shows a button that exists only on that branch as a broken image.
+#
+# Its images come from buttons.halleluja.design, not straight from this
+# repository. Every <img> runs its animation on its own clock, started when that
+# one image arrived, and on a first visit the images of one row arrived up to
+# 1.2 s apart, so the band jumped between buttons instead of travelling. That
+# Worker serves these same files with the delay rewritten against the wall clock
+# at the moment it answers, which puts every image on one schedule however late
+# it loads. It serves any file in .github/assets/download-buttons/ of any
+# junkerderprovinz repository, so a new button needs no change there. Source and
+# measurements: junkerderprovinz/junkerderprovinz, donate/worker/.
+REPO = "bombvault"
+BUTTON_HOST = "https://buttons.halleluja.design"
+README = os.path.join(HERE, "..", "README.md")
+ROW_OPEN = "<!-- download-buttons: written by scripts/gen_download_buttons.py -->"
+ROW_CLOSE = "<!-- /download-buttons -->"
 
 
 def brand(name):
@@ -227,9 +255,51 @@ def brand(name):
     return path, box[2], box[3]
 
 
+def read_readme():
+    """README.md and where its row sits, checked before anything is written.
+
+    Checked first, so a README without its markers stops the run while the
+    buttons are still untouched, instead of leaving them and the row out of
+    step. REPO is checked against the links for the same reason: copied into
+    another repository and left unchanged, it would quietly show this
+    repository's buttons there.
+    """
+    with open(README, "rb") as fh:
+        text = fh.read().decode("utf-8")
+    start = text.find(ROW_OPEN)
+    end = text.find(ROW_CLOSE, start) if start >= 0 else -1
+    if end < 0:
+        raise SystemExit(f"README.md has no {ROW_OPEN} ... {ROW_CLOSE} around the button row")
+    for slug, *_, href in BUTTONS:
+        if f"/{REPO}/" not in href:
+            raise SystemExit(f"REPO is {REPO!r}, but {slug} leads to {href}")
+    return text, start, end
+
+
+def write_readme(text, start, end):
+    """Replace the row between the markers.
+
+    The separator stands on its own line, two spaces in, because that is the
+    gap GAP_PX was measured on. The width is RENDER_PX for the same reason. The
+    row takes the line ending of its own marker line.
+    """
+    nl = "\r\n" if text[start:].split("\n", 1)[0].endswith("\r") else "\n"
+    row = [ROW_OPEN, '<p align="center">']
+    for index, (slug, *_, alt, href) in enumerate(BUTTONS):
+        if index:
+            row.append("  &nbsp;")
+        row.append(f'  <a href="{escape(href)}"><img src="{BUTTON_HOST}/{REPO}/{slug}.svg" '
+                   f'alt="{escape(alt)}" width="{RENDER_PX:g}"></a>')
+    row.append("</p>")
+    with open(README, "wb") as fh:
+        fh.write((text[:start] + nl.join(row) + nl + text[end:]).encode("utf-8"))
+    print(f"README.md  row of {len(BUTTONS)}")
+
+
 def main():
+    readme = read_readme()
     os.makedirs(OUT, exist_ok=True)
-    for index, (slug, mark, bg, ink, head, sub, alt) in enumerate(BUTTONS):
+    for index, (slug, mark, bg, ink, head, sub, alt, _href) in enumerate(BUTTONS):
         path, bw, bh = brand(mark)
         # Scale on the LONGER axis so glyphs of different proportions end up
         # the same optical size. Docker's box is 640 by 512, the ZIP glyph's is
@@ -241,7 +311,7 @@ def main():
         gy = GY + (GLYPH - bh * scale) / 2
         svg = TEMPLATE.format(w=W, h=H, r=R, bg=bg, ink=ink, gx=gx, gy=gy,
                               scale=scale, path=path, font=FONT, head=head,
-                              sub_text=sub, alt=alt,
+                              sub_text=sub, alt=escape(alt),
                               delay="%.3f" % (STEP * index),
                               cycle="%g" % CYCLE,
                               pass_pct="%.2f" % PASS_PCT,
@@ -253,6 +323,7 @@ def main():
         with open(ziel, "wb") as fh:
             fh.write(svg.encode("utf-8"))
         print(f"{slug}.svg  {os.path.getsize(ziel)} B")
+    write_readme(*readme)
 
 
 if __name__ == "__main__":
