@@ -254,15 +254,36 @@ export function BottomSheet({ open, onClose, title, children, fullHeight, footer
             rotation. Physical pl/pr + physical inset vars, not logical
             padding-inline, so the mapping stays correct under direction:rtl
             (the env() insets never flip with writing direction). */}
-        <div className="flex items-start justify-between gap-4 py-4 pl-[max(1rem,var(--safe-area-left))] pr-[max(1rem,var(--safe-area-right))]">
-          {/* Same title-as-window-chrome treatment as ConfirmDialog's header:
-              the <h2> carries the id that aria-labelledby reads (the Badge's
-              computed text content is included), just rendered as a heading
-              Badge. useId instead of ConfirmDialog's hardcoded id: sheets can
-              plausibly nest or coexist, and two identical ids would make the
-              label ambiguous. */}
-          <h2 id={titleId} className="flex items-center">
-            <Badge tone="heading" size="heading" wrap>
+        <div className="flex items-center justify-between gap-4 py-3 pl-[max(1rem,var(--safe-area-left))] pr-[max(1rem,var(--safe-area-right))]">
+          {/* Title IN FLOW, not a self-positioning notch (D-01, locked
+              2026-09-16 "Titre en flux partout"): the default heading Badge
+              carries its own `absolute top-0 -translate-y-1/2`, which is
+              correct when a CARD's top edge is mid-viewport but exactly wrong
+              on a fullHeight sheet — panel h-dvh puts the top edge ON the
+              viewport top, and the 2026-09-16 device probe (Chrome Android,
+              390x844) measured badgeRect.top = -11px on RunDetailSheet: half
+              the title badge outside the viewport, the h2 collapsed to 0px,
+              an ~90px empty band under the panel top. `inFlow` (Badge.tsx)
+              drops exactly those four positioning classes and hands
+              positioning to the caller — the same model as StepCard.tsx's
+              step-title badges. The locked decision keeps the notch default
+              reserved for cards: Badge.tsx is untouched, the default is
+              unchanged, every sheet (MoreSheet, RunDetailSheet, ConfirmSheet
+              — all import this component) gets the in-flow treatment from
+              this one header. `items-center` (not items-start) keeps the
+              h-11 close button on the title's axis whether the title is one
+              line or wraps to two; `py-3` (not py-4) because an in-flow
+              badge needs no notch headroom above the panel edge — measured
+              header lands in the ~60-68px band at 390px. Still the
+              title-as-window-chrome treatment of ConfirmDialog's header: the
+              <h2> carries the id that aria-labelledby reads (the Badge's
+              computed text content is included) and gains min-w-0 so a long
+              title wraps instead of pushing the close button out; useId
+              instead of ConfirmDialog's hardcoded id: sheets can plausibly
+              nest or coexist, and two identical ids would make the label
+              ambiguous. */}
+          <h2 id={titleId} className="flex min-w-0 items-center">
+            <Badge tone="heading" size="heading" wrap inFlow className="min-w-0">
               {title}
             </Badge>
           </h2>
