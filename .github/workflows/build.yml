@@ -1,10 +1,21 @@
 name: Build Docker Image
 
-# Build the multi-arch image and, on main, push it to GHCR so it can be pulled on the
-# Unraid box (e.g. for the integration spike). Pull requests build only (no push).
+# Build the multi-arch image and push it to GHCR so it can be pulled on the Unraid
+# box. Pull requests build only (no push).
+#
+# EVERY branch builds and pushes, not just main. A feature branch used to produce
+# no image at all, which sounds harmless and is not: the only way to try a change
+# on the real server was to put it on main first, so feature work and hotfixes kept
+# landing in the same place and had to be untangled afterwards. A branch push now
+# lands at ghcr.io/junkerderprovinz/bombvault:<branch> (slashes become hyphens), so
+# a branch can be tested on bottich for as long as it needs before it is merged.
+#
+# What a branch build deliberately does NOT touch: `latest`, `edge`, the semver
+# tags, the Docker Hub mirror and the Docker Hub description. Those belong to main
+# and to release tags — see the metadata step below.
 on:
   push:
-    branches: [main]
+    branches: ["**"]
     tags: ["v[0-9]+.[0-9]+.[0-9]+"]
     paths-ignore:
       - "**.md"
@@ -18,6 +29,14 @@ permissions:
   contents: read
   packages: write
   security-events: write # Trivy uploads its CVE report (SARIF) to the Security tab
+
+# One build per ref. A branch under active development gets pushed to repeatedly,
+# and without this every push queues another full multi-arch build behind the last.
+# Superseded branch builds are cancelled; main and tags are never cancelled, because
+# a release build that dies halfway leaves the registry half-written.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' && github.ref_name != github.event.repository.default_branch }}
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}
@@ -157,9 +176,12 @@ jobs:
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
         with:
+          # The Docker Hub mirror carries releases and main, never a feature
+          # branch: it is the address people pull by hand from the template, and
+          # an unfinished branch has no business appearing in that tag list.
           images: |
             ${{ env.IMAGE }}
-            name=docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }},enable=${{ vars.DOCKERHUB_USERNAME != '' }}
+            name=docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }},enable=${{ vars.DOCKERHUB_USERNAME != '' && (github.ref_type == 'tag' || github.ref_name == github.event.repository.default_branch) }}
           # `latest` MEANS "the newest released version", and nothing else.
           #
           # It used to mean "the tip of main", which is not the same thing and
@@ -185,8 +207,15 @@ jobs:
           # wrong only while folding, which is rare enough to handle by hand.
           # After folding, re-run the NEWEST tag's build and check that
           # latest/8/8.<minor> all resolve to the same digest.
+          #
+          # A branch that is not main gets its own name as the tag and nothing
+          # else, so `docker pull ghcr.io/.../bombvault:feat-retention-preview`
+          # fetches exactly that branch's tip and no moving tag follows along.
+          # The semver lines below only ever match a tag build, so they stay out
+          # of a branch build on their own.
           tags: |
             type=sha,format=short
+            type=ref,event=branch,enable=${{ github.ref_type == 'branch' && github.ref_name != github.event.repository.default_branch }}
             type=raw,value=edge,enable=${{ github.ref_type == 'branch' && github.ref_name == github.event.repository.default_branch }}
             type=raw,value=latest,enable=${{ github.ref_type == 'tag' && steps.newest.outputs.is_newest == 'true' }}
             type=semver,pattern={{version}}
@@ -253,9 +282,12 @@ jobs:
       # the account password is refused outright with 401, because Docker Hub's
       # legacy login endpoint rejects a password once 2FA is on. One secret,
       # and the one that actually works.
+      # Releases and main only, for the same reason the mirror itself is: a README
+      # edited on a feature branch would otherwise rewrite the public Docker Hub
+      # overview before anyone had agreed to the change.
       - name: Docker Hub description sync ready?
         id: dhdesc
-        if: ${{ vars.DOCKERHUB_USERNAME != '' && github.event_name != 'pull_request' }}
+        if: ${{ vars.DOCKERHUB_USERNAME != '' && github.event_name != 'pull_request' && (github.ref_type == 'tag' || github.ref_name == github.event.repository.default_branch) }}
         env:
           PW: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
