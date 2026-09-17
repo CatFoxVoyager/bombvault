@@ -36,11 +36,11 @@ saying ransomware is welcome to knock.
 
 <!-- download-buttons: written by scripts/gen_download_buttons.py -->
 <p align="center">
-  <a href="https://junkerderprovinz.github.io/bombvault/"><img src="https://buttons.halleluja.design/bombvault/docs.svg" alt="Read the documentation" width="195"></a>
+  <a href="https://junkerderprovinz.github.io/bombvault/"><img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(0,0,720,245.3))" alt="Read the documentation" width="195" height="66.435"></a>
   &nbsp;
-  <a href="https://github.com/junkerderprovinz/bombvault/pkgs/container/bombvault"><img src="https://buttons.halleluja.design/bombvault/docker-image.svg" alt="The container image on ghcr.io" width="195"></a>
+  <a href="https://github.com/junkerderprovinz/bombvault/pkgs/container/bombvault"><img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(720,0,720,245.3))" alt="The container image on ghcr.io" width="195" height="66.435"></a>
   &nbsp;
-  <a href="https://github.com/junkerderprovinz/bombvault/releases/latest"><img src="https://buttons.halleluja.design/bombvault/source-zip.svg" alt="Download the source archive for this release" width="195"></a>
+  <a href="https://github.com/junkerderprovinz/bombvault/releases/latest"><img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(1440,0,720,245.3))" alt="Download the source archive for this release" width="195" height="66.435"></a>
 </p>
 <!-- /download-buttons -->
 
@@ -56,13 +56,15 @@ If it has earned a place on your server or computer, toss a coin to your knight:
 
 <br>
 
+<!-- give-buttons: written by scripts/gen_download_buttons.py -->
 <p align="center">
-  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://buttons.halleluja.design/give/buy-me-a-coffee.svg" alt="Buy me a coffee" width="160"></a>
+  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(2160,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://buttons.halleluja.design/give/paypal.svg" alt="PayPal" width="160"></a>
+  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(3001.9,0,841.9,245.3))" alt="PayPal" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://buttons.halleluja.design/give/crypto.svg" alt="Donate with crypto" width="160"></a>
+  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(3843.8,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.618"></a>
 </p>
+<!-- /give-buttons -->
 
 <br>
 
@@ -481,10 +483,12 @@ A one-knight job: I build it, keep it running, work through the issues and add w
 
 If it has earned a place on your server or computer, toss a coin to your knight: it helps cover the costs and keeps the project alive. It also makes this knight's heart beat a little faster. Three ways below, whichever suits you.
 
+<!-- give-buttons: written by scripts/gen_download_buttons.py -->
 <p align="center">
-  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://buttons.halleluja.design/give/buy-me-a-coffee.svg" alt="Buy me a coffee" width="160"></a>
+  <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(2160,0,841.9,245.3))" alt="Buy me a coffee" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://buttons.halleluja.design/give/paypal.svg" alt="PayPal" width="160"></a>
+  <a href="https://www.paypal.com/donate/?hosted_button_id=76FVV52TKXTUS"><img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(3001.9,0,841.9,245.3))" alt="PayPal" width="160" height="46.618"></a>
   &nbsp;
-  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://buttons.halleluja.design/give/crypto.svg" alt="Donate with crypto" width="160"></a>
+  <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/bombvault/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(3843.8,0,841.9,245.3))" alt="Donate with crypto" width="160" height="46.618"></a>
 </p>
+<!-- /give-buttons -->
