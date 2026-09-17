@@ -88,7 +88,7 @@ The complete README — features in depth, screenshots, the security/trust model
 Questions, bugs, ideas? **[Unraid support thread](https://forums.unraid.net/topic/199509-support-junkerderprovinz-bombvault/)** · [GitHub issues](https://github.com/junkerderprovinz/bombvault/issues)
 
 <a href="https://buymeacoffee.com/junkerderprovinz">
-  <img src="https://buttons.halleluja.design/give/buy-me-a-coffee.svg" alt="Buy me a coffee" width="160">
+  <img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/button-buy-me-a-coffee-live.svg" alt="Buy me a coffee" width="160">
 </a>
 
 ## Credits
