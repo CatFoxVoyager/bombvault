@@ -1,0 +1,53 @@
+package api
+
+import (
+	"context"
+	"strings"
+	"testing"
+
+	"github.com/junkerderprovinz/bombvault/internal/config"
+	"github.com/junkerderprovinz/bombvault/internal/store"
+)
+
+// TestDeleteBackupsVMUnknownEstablishmentKeepsEntry (#232): without a local
+// repository DeleteBackupsVM removes only the entry, and only once it knows the
+// repository was never created. When the store cannot answer that question the
+// repository may be an established one on a share that is not mounted, with
+// every snapshot still in it, so the entry stays. An internal test because the
+// only way to make that read fail is to break the real schema underneath.
+func TestDeleteBackupsVMUnknownEstablishmentKeepsEntry(t *testing.T) {
+	dir := t.TempDir()
+	db, err := store.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+	if err := store.Migrate(db); err != nil {
+		t.Fatal(err)
+	}
+	st := store.New(db)
+	settings, err := st.GetSettings()
+	if err != nil {
+		t.Fatal(err)
+	}
+	settings.VMsPath = "backups/vms" // never created on disk
+	if err := st.UpdateSettings(settings); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := st.UpsertVMTarget(store.VMTarget{Name: "win11"}); err != nil {
+		t.Fatal(err)
+	}
+	svc := NewService(config.Config{AppKey: strings.Repeat("a", 64), DataDir: dir, HostMountRoot: dir}, st, nil, nil, nil)
+
+	// Every "was this repository established?" read fails from here on.
+	if _, err := db.Exec("DROP TABLE established_repos"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := svc.DeleteBackupsVM(context.Background(), "win11", ""); err == nil {
+		t.Fatal("DeleteBackupsVM must refuse while it cannot tell whether the repository was ever created")
+	}
+	if _, err := st.GetVMTargetByName("win11"); err != nil {
+		t.Fatalf("the entry must stay: %v", err)
+	}
+}

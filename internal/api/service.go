@@ -8706,6 +8706,14 @@ func (s *Service) DeleteBackupsVM(ctx context.Context, name, source string) erro
 		// only thing pointing at them: that one is refused, the same answer
 		// DeleteBackups gives for a container. And as this only removes the entry,
 		// it keeps the entry of a VM still defined, like ForgetVMTarget.
+		//
+		// snapshotsForTag reads "could not tell whether it was established" as
+		// "never", which is right for a list and wrong for a removal: the entry
+		// could be all that points at a repository on an unmounted share. So that
+		// answer is asked first and refused, the way reposThatExist words it.
+		if s.repoEstablishmentOf(repo) == repoEstablishmentUnknown {
+			return errors.New("this VM's repository is not reachable now, and whether it ever held backups could not be read, so its entry stays")
+		}
 		if _, sErr := s.snapshotsForTag(ctx, repo, s.repoModeFor(settings, "vms", source, repo), "vm:"+name); sErr != nil {
 			return sErr
 		}
