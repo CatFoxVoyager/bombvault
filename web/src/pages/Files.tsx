@@ -79,7 +79,7 @@ function formatTs(unix: number | null | undefined): string {
 }
 
 // ---------------------------------------------------------------------------
-// Include-in-schedule toggle (mirrors VMIncludeToggle, PATCHes {enabled})
+// Include-in-schedule toggle (mirrors components/IncludeToggle.tsx, PATCHes {enabled})
 // ---------------------------------------------------------------------------
 
 function FileSetEnabledToggle({ id, initial }: { id: string; initial: boolean }) {
@@ -120,9 +120,10 @@ function FileSetEnabledToggle({ id, initial }: { id: string; initial: boolean })
   // gleich formatieren. Der Text soll immer ganz links stehen und der Toggle
   // ganz rechts sein."
   //
-  // That round only touched the Container tab, so THIS copy and VMs.tsx's
-  // VMIncludeToggle were left as the mirror image of the shape they were meant
-  // to match: a bare `hideLabel` Toggle whose caller hand-rolled a `<label
+  // That round only touched the Container tab, so THIS copy and VMs.tsx's own
+  // copy (since folded into IncludeToggle, #232) were left as the mirror image
+  // of the shape they were meant to match: a bare `hideLabel` Toggle whose
+  // caller hand-rolled a `<label
   // className="flex items-center gap-2">` around it — switch FIRST, text
   // SECOND, `text-xs text-carbon-textSub` — against ToggleRow's own
   // text-first/switch-last, `text-sm text-carbon-text`. All three tabs render
@@ -807,7 +808,7 @@ function FileSetRestorePanel({
     // non-English locales, out of scope for this window.confirm() → dialog
     // mechanism swap, form-engine Task 7). This is the highest-value site for
     // it: an irreversible bulk delete of every backup this set has. Same
-    // flagged follow-up as Containers.tsx's deleteBackupsConfirm and
+    // flagged follow-up as OrphanRemoveButton.tsx's deleteConfirm and
     // VMs.tsx's deleteAllConfirm.
     if (!(await confirm(t("files.deleteBackupsConfirm")))) return;
     setDeletingAll(true);

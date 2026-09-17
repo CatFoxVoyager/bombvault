@@ -102,9 +102,10 @@ const th: Partial<Translations> = {
   "containers.notInstalled": "ไม่ได้ติดตั้ง",
   "containers.notInstalledTitle": "ไม่ได้ติดตั้ง (เฉพาะการสำรองข้อมูล)",
   "containers.notInstalledHint": "Containers เหล่านี้ไม่ได้ติดตั้งแล้ว แต่ยังมีการสำรองข้อมูลอยู่ กู้คืนหรือลบการสำรองข้อมูลเพื่อเพิ่มพื้นที่",
-  "containers.notInstalledSkipped": "รายการเหล่านี้ยังอยู่ในกำหนดการ ทุกรอบการทำงานจึงบันทึกการข้ามไว้สำหรับแต่ละรายการ",
+  "containers.notInstalledSkipped": "รายการที่ยังอยู่ในกำหนดการจะบันทึกการข้ามไว้ทุกรอบการทำงาน ปิด «รวมในตารางเวลา» บนการ์ดเพื่อหยุดการข้ามนี้",
   "containers.deleteBackups": "ลบการสำรองข้อมูลทั้งหมด",
   "containers.deleteBackupsConfirm": "ลบการสำรองข้อมูลทั้งหมดของ container นี้? สแนปช็อตจะถูกลบออกจากรีพอสิทอรีอย่างถาวรและไม่สามารถยกเลิกได้",
+  "containers.removeEntryConfirm": "นำรายการของ container นี้ออกจากรายการหรือไม่? ข้อมูลสำรองที่มีอยู่จะไม่ถูกลบ",
   "containers.filter": "กรอง:",
   "containers.sectionsLabel": "ส่วนต่าง ๆ",
   "containers.filterAll": "ทั้งหมด",
@@ -422,6 +423,7 @@ const th: Partial<Translations> = {
   "vms.notInstalledHint": "VMs เหล่านี้ไม่ได้กำหนดบนโฮสต์แล้ว แต่ยังมีการสำรองข้อมูลอยู่ กู้คืนหรือเรียกดูสแนปช็อตในแผงการสำรองข้อมูล",
   "vms.removeEntry": "ลบรายการ",
   "vms.removeEntryConfirm": "นำรายการของ VM นี้ออกจากรายการหรือไม่? ข้อมูลสำรองที่มีอยู่จะไม่ถูกลบ",
+  "vms.deleteBackupsConfirm": "ลบการสำรองข้อมูลทั้งหมดของ VM นี้? สแนปช็อตจะถูกลบออกจากรีพอสิทอรีอย่างถาวรและไม่สามารถยกเลิกได้",
   "vms.discoverHint": "ลบ VM ออกจาก Unraid แล้ว (หรือหายไปหลังติดตั้งใหม่)? สร้างรายการสำรองข้อมูลของมันใหม่จากที่จัดเก็บเพื่อให้คุณกู้คืนได้",
 
   // Container / VM state badge labels

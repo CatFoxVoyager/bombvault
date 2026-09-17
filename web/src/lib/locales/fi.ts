@@ -102,9 +102,10 @@ const fi: Partial<Translations> = {
   "containers.notInstalled": "Ei asennettu",
   "containers.notInstalledTitle": "Ei asennettu (vain varmuuskopiot)",
   "containers.notInstalledHint": "Näitä kontteja ei enää ole asennettu, mutta niillä on edelleen varmuuskopioita. Palauta ne tai poista niiden varmuuskopiot vapauttaaksesi tilaa.",
-  "containers.notInstalledSkipped": "Ne ovat yhä ajastettuja, joten jokainen ajo kirjaa kullekin ohituksen.",
+  "containers.notInstalledSkipped": "Täällä yhä ajastetut kohteet kirjaavat ohituksen jokaisella ajolla. Poista kortilta „Sisällytä aikatauluun” käytöstä, niin se loppuu.",
   "containers.deleteBackups": "Poista kaikki varmuuskopiot",
   "containers.deleteBackupsConfirm": "Poistetaanko KAIKKI tämän kontin varmuuskopiot? Tilannekuvat poistetaan pysyvästi arkistosta, eikä toimintoa voi peruuttaa.",
+  "containers.removeEntryConfirm": "Poistetaanko tämän kontin merkintä listalta? Mahdollisia varmuuskopioita ei poisteta.",
   "containers.filter": "Suodatin:",
   "containers.sectionsLabel": "Osiot",
   "containers.filterAll": "Kaikki",
@@ -422,6 +423,7 @@ const fi: Partial<Translations> = {
   "vms.notInstalledHint": "Näitä VM:iä ei enää ole määritetty isännällä, mutta niillä on edelleen varmuuskopioita. Palauta ne tai selaa niiden tilannekuvia Varmuuskopiot-paneelissa.",
   "vms.removeEntry": "Poista merkintä",
   "vms.removeEntryConfirm": "Poistetaanko tämän VM:n merkintä listalta? Mahdollisia varmuuskopioita ei poisteta.",
+  "vms.deleteBackupsConfirm": "Poistetaanko KAIKKI tämän VM:n varmuuskopiot? Tilannekuvat poistetaan pysyvästi arkistosta, eikä toimintoa voi peruuttaa.",
   "vms.discoverHint": "Poistettiinko virtuaalikone Unraidista (tai katosiko se uudelleenasennuksessa)? Rakenna sen varmuuskopiomerkintä uudelleen tallennustilasta palauttaaksesi sen.",
 
   // Container / VM state badge labels

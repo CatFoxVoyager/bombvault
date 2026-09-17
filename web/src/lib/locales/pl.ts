@@ -101,9 +101,10 @@ const pl: Partial<Translations> = {
   "containers.notInstalled": "Niezainstalowany",
   "containers.notInstalledTitle": "Niezainstalowany (tylko kopie zapasowe)",
   "containers.notInstalledHint": "Te containers nie są już zainstalowane, ale nadal mają kopie zapasowe. Przywróć je lub usuń ich kopie zapasowe, aby zwolnić miejsce.",
-  "containers.notInstalledSkipped": "Nadal są zaplanowane, więc każde uruchomienie zapisuje pominięcie dla każdego z nich.",
+  "containers.notInstalledSkipped": "Wpisy, które są tu nadal zaplanowane, zapisują pominięcie przy każdym uruchomieniu. Wyłącz na karcie „Uwzględnij w harmonogramie”, aby to zatrzymać.",
   "containers.deleteBackups": "Usuń wszystkie kopie zapasowe",
   "containers.deleteBackupsConfirm": "Usunąć WSZYSTKIE kopie zapasowe tego kontenera? Migawki zostaną trwale usunięte z repozytorium i nie można tego cofnąć.",
+  "containers.removeEntryConfirm": "Usunąć wpis tego kontenera z listy? Ewentualne kopie nie zostaną usunięte.",
   "containers.filter": "Filtr:",
   "containers.sectionsLabel": "Sekcje",
   "containers.filterAll": "Wszystkie",
@@ -416,6 +417,7 @@ const pl: Partial<Translations> = {
   "vms.notInstalledHint": "Te maszyny wirtualne nie są już zdefiniowane na hoście, ale nadal mają kopie zapasowe. Przywróć je lub użyj panelu Kopie zapasowe, aby przeglądać migawki.",
   "vms.removeEntry": "Usuń wpis",
   "vms.removeEntryConfirm": "Usunąć wpis tej maszyny z listy? Ewentualne kopie nie zostaną usunięte.",
+  "vms.deleteBackupsConfirm": "Usunąć WSZYSTKIE kopie zapasowe tej maszyny? Migawki zostaną trwale usunięte z repozytorium i nie można tego cofnąć.",
   "vms.discoverHint": "Maszyna wirtualna usunięta z Unraida (lub utracona po ponownej instalacji)? Odbuduj jej wpis kopii zapasowej z magazynu, aby ją przywrócić.",
 
   // Container / VM state badge labels

@@ -102,9 +102,10 @@ const sv: Partial<Translations> = {
   "containers.notInstalled": "Inte installerad",
   "containers.notInstalledTitle": "Inte installerad (enbart säkerhetskopior)",
   "containers.notInstalledHint": "Dessa containers är inte längre installerade men har fortfarande säkerhetskopior. Återställ dem eller ta bort deras säkerhetskopior för att frigöra utrymme.",
-  "containers.notInstalledSkipped": "De är fortfarande schemalagda, så varje körning registrerar ett överhopp för var och en.",
+  "containers.notInstalledSkipped": "Poster som fortfarande är schemalagda här registrerar ett överhopp vid varje körning. Stäng av ”Inkludera i schema” på kortet för att stoppa det.",
   "containers.deleteBackups": "Ta bort alla säkerhetskopior",
   "containers.deleteBackupsConfirm": "Ta bort ALLA säkerhetskopior för den här containern? Ögonblicksbilderna tas bort permanent från arkivet och kan inte ångras.",
+  "containers.removeEntryConfirm": "Ta bort den här containerns post från listan? Eventuella säkerhetskopior raderas inte.",
   "containers.filter": "Filter:",
   "containers.sectionsLabel": "Avsnitt",
   "containers.filterAll": "Alla",
@@ -422,6 +423,7 @@ const sv: Partial<Translations> = {
   "vms.notInstalledHint": "Dessa VMs är inte längre definierade på värden men har fortfarande säkerhetskopior. Återställ dem eller bläddra bland deras ögonblicksbilder i panelen Säkerhetskopior.",
   "vms.removeEntry": "Ta bort post",
   "vms.removeEntryConfirm": "Ta bort den här VM:ens post från listan? Eventuella säkerhetskopior raderas inte.",
+  "vms.deleteBackupsConfirm": "Ta bort ALLA säkerhetskopior för den här VM:en? Ögonblicksbilderna tas bort permanent från arkivet och kan inte ångras.",
   "vms.discoverHint": "VM borttagen från Unraid (eller förlorad efter en ominstallation)? Bygg om dess säkerhetskopiepost från lagringen så att du kan återställa den.",
 
   // Container / VM state badge labels

@@ -106,9 +106,10 @@ const sk: Partial<Translations> = {
   "containers.notInstalled": "Nenainštalovaný",
   "containers.notInstalledTitle": "Nenainštalovaný (iba zálohy)",
   "containers.notInstalledHint": "Tieto kontajnery už nie sú nainštalované, no stále majú zálohy. Obnovte ich alebo odstráňte ich zálohy, aby ste uvoľnili miesto.",
-  "containers.notInstalledSkipped": "Sú stále naplánované, takže každý beh pre každý z nich zaznamená preskočenie.",
+  "containers.notInstalledSkipped": "Položky, ktoré sú tu stále naplánované, zaznamenajú pri každom behu preskočenie. Vypnite na karte „Zahrnúť do plánu“, aby to prestalo.",
   "containers.deleteBackups": "Odstrániť všetky zálohy",
   "containers.deleteBackupsConfirm": "Odstrániť VŠETKY zálohy tohto kontajnera? Snímky sa natrvalo odstránia z repozitára a nebude ich možné obnoviť.",
+  "containers.removeEntryConfirm": "Odstrániť záznam tohto kontajnera zo zoznamu? Jeho zálohy, ak existujú, sa neodstránia.",
   "containers.filter": "Filter:",
   "containers.sectionsLabel": "Sekcie",
   "containers.filterAll": "Všetky",
@@ -1015,6 +1016,7 @@ const sk: Partial<Translations> = {
   "vms.notInstalledHint": "Tieto VM už nie sú definované na hostiteľovi, no stále majú zálohy. Obnovte ich, aby ste ich získali späť, alebo použite panel Zálohy na prehľadávanie ich snímok.",
   "vms.removeEntry": "Odstrániť záznam",
   "vms.removeEntryConfirm": "Odstrániť záznam tohto VM zo zoznamu? Jeho zálohy, ak existujú, sa neodstránia.",
+  "vms.deleteBackupsConfirm": "Odstrániť VŠETKY zálohy tohto VM? Snímky sa natrvalo odstránia z repozitára a nebude ich možné obnoviť.",
   "vms.discoverHint": "VM odstránený z Unraid (alebo stratený po opätovnej inštalácii)? Obnovte jeho záznam zálohovania z úložiska, aby ste ho mohli obnoviť.",
 
   // Flash (Unraid USB) backup

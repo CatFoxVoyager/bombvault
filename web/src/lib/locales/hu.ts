@@ -102,9 +102,10 @@ const hu: Partial<Translations> = {
   "containers.notInstalled": "Nincs telepítve",
   "containers.notInstalledTitle": "Nincs telepítve (csak mentések)",
   "containers.notInstalledHint": "Ezek a konténerek már nincsenek telepítve, de még vannak biztonsági mentéseik. Állítsa vissza őket, vagy törölje a mentéseket a hely felszabadításához.",
-  "containers.notInstalledSkipped": "Továbbra is ütemezve vannak, így minden futás mindegyikhez rögzít egy kihagyást.",
+  "containers.notInstalledSkipped": "Az itt még ütemezett bejegyzések minden futáskor kihagyást rögzítenek. Kapcsold ki a kártyán az „Ütemezésbe foglalás“ opciót, hogy ez megszűnjön.",
   "containers.deleteBackups": "Összes mentés törlése",
   "containers.deleteBackupsConfirm": "Törli a konténer ÖSSZES biztonsági mentését? A pillanatképek véglegesen eltávolításra kerülnek a tárolóból, és nem lehet visszavonni.",
+  "containers.removeEntryConfirm": "Eltávolítod ennek a konténernek a bejegyzését a listából? A meglévő mentések nem törlődnek.",
   "containers.filter": "Szűrő:",
   "containers.sectionsLabel": "Szakaszok",
   "containers.filterAll": "Összes",
@@ -422,6 +423,7 @@ const hu: Partial<Translations> = {
   "vms.notInstalledHint": "Ezek a VM-ek már nincsenek definiálva a hoszton, de még vannak biztonsági mentéseik. Állítsa vissza őket, vagy tekintse meg pillanatképeiket a Mentések panelen.",
   "vms.removeEntry": "Bejegyzés eltávolítása",
   "vms.removeEntryConfirm": "Eltávolítod ennek a VM-nek a bejegyzését a listából? A meglévő mentések nem törlődnek.",
+  "vms.deleteBackupsConfirm": "Törli a VM ÖSSZES biztonsági mentését? A pillanatképek véglegesen eltávolításra kerülnek a tárolóból, és nem lehet visszavonni.",
   "vms.discoverHint": "Törölted a VM-et az Unraidből (vagy elveszett egy újratelepítés után)? Építsd újra a biztonsági mentési bejegyzését a tárhelyről, hogy visszaállíthasd.",
 
   // Container / VM state badge labels

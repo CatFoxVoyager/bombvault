@@ -102,9 +102,10 @@ const ar: Partial<Translations> = {
   "containers.notInstalled": "غير مثبّت",
   "containers.notInstalledTitle": "غير مثبّت (النسخ الاحتياطية فقط)",
   "containers.notInstalledHint": "هذه الـ containers لم تعد مثبّتة لكنها لا تزال تحتوي على نسخ احتياطية. استعدها أو احذف نسخها الاحتياطية لتوفير المساحة.",
-  "containers.notInstalledSkipped": "لا تزال مجدولة، لذا يسجل كل تشغيل تخطياً لكل واحدة منها.",
+  "containers.notInstalledSkipped": "ما يزال مجدولاً هنا يسجل تخطياً في كل تشغيل. أوقف «تضمين في الجدول الزمني» في البطاقة لإيقاف ذلك.",
   "containers.deleteBackups": "حذف جميع النسخ الاحتياطية",
   "containers.deleteBackupsConfirm": "حذف جميع النسخ الاحتياطية لهذا الـ container؟ ستُزال اللقطات نهائياً من المستودع ولا يمكن التراجع عن ذلك.",
+  "containers.removeEntryConfirm": "إزالة إدخال هذا الـ container من القائمة؟ لن تُحذف أي نسخ احتياطية موجودة.",
   "containers.filter": "تصفية:",
   "containers.sectionsLabel": "أقسام",
   "containers.filterAll": "الكل",
@@ -422,6 +423,7 @@ const ar: Partial<Translations> = {
   "vms.notInstalledHint": "هذه الـ VMs لم تعد محددة على المضيف لكن لا تزال لديها نسخ احتياطية. استعدها أو تصفح لقطاتها في لوحة النسخ الاحتياطية.",
   "vms.removeEntry": "إزالة الإدخال",
   "vms.removeEntryConfirm": "إزالة إدخال هذا الجهاز الظاهري من القائمة؟ لن تُحذف أي نسخ احتياطية موجودة.",
+  "vms.deleteBackupsConfirm": "حذف جميع النسخ الاحتياطية لهذا الجهاز الظاهري؟ ستُزال اللقطات نهائياً من المستودع ولا يمكن التراجع عن ذلك.",
   "vms.discoverHint": "هل حُذفت الجهاز الظاهري من Unraid (أو فُقد بعد إعادة التثبيت)؟ أعد بناء إدخال النسخ الاحتياطي من التخزين لاستعادته.",
 
   // Container / VM state badge labels

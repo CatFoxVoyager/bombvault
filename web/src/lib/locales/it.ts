@@ -102,9 +102,10 @@ const it: Partial<Translations> = {
   "containers.notInstalled": "Non installato",
   "containers.notInstalledTitle": "Non installato (solo backup)",
   "containers.notInstalledHint": "Questi container non sono più installati ma hanno ancora dei backup. Ripristinali o elimina i loro backup per liberare spazio.",
-  "containers.notInstalledSkipped": "Restano pianificati, quindi ogni esecuzione registra un salto per ciascuno.",
+  "containers.notInstalledSkipped": "Le voci ancora pianificate registrano un salto a ogni esecuzione. Disattiva «Includi nel calendario» nella scheda per interromperlo.",
   "containers.deleteBackups": "Elimina tutti i backup",
   "containers.deleteBackupsConfirm": "Eliminare TUTTI i backup di questo container? Gli snapshot verranno rimossi definitivamente dal repository e l'operazione non è reversibile.",
+  "containers.removeEntryConfirm": "Rimuovere la voce di questo container dall'elenco? Gli eventuali backup non vengono eliminati.",
   "containers.filter": "Filtro:",
   "containers.sectionsLabel": "Sezioni",
   "containers.filterAll": "Tutti",
@@ -422,6 +423,7 @@ const it: Partial<Translations> = {
   "vms.notInstalledHint": "Queste VM non sono più definite sull'host ma hanno ancora dei backup. Ripristinale per recuperarle, o usa il pannello Backup per sfogliare i loro snapshot.",
   "vms.removeEntry": "Rimuovi voce",
   "vms.removeEntryConfirm": "Rimuovere la voce di questa VM dall'elenco? Gli eventuali backup non vengono eliminati.",
+  "vms.deleteBackupsConfirm": "Eliminare TUTTI i backup di questa VM? Gli snapshot verranno rimossi definitivamente dal repository e l'operazione non è reversibile.",
   "vms.discoverHint": "VM eliminata da Unraid (o persa dopo una reinstallazione)? Ricostruisci la sua voce di backup dallo storage per poterla ripristinare.",
 
   // Container / VM state badge labels

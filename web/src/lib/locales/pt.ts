@@ -101,9 +101,10 @@ const pt: Partial<Translations> = {
   "containers.notInstalled": "Não instalado",
   "containers.notInstalledTitle": "Não instalado (apenas backups)",
   "containers.notInstalledHint": "Estes containers já não estão instalados mas ainda têm backups. Restaure-os ou elimine os seus backups para libertar espaço.",
-  "containers.notInstalledSkipped": "Continuam agendados, por isso cada execução regista uma omissão para cada um.",
+  "containers.notInstalledSkipped": "As entradas que continuam agendadas registam uma omissão em cada execução. Desative «Incluir no agendamento» no cartão para parar isso.",
   "containers.deleteBackups": "Eliminar todos os backups",
   "containers.deleteBackupsConfirm": "Eliminar TODOS os backups deste container? Os instantâneos são removidos permanentemente do repositório e a ação não pode ser revertida.",
+  "containers.removeEntryConfirm": "Remover a entrada deste container da lista? Os backups, se houver, não são excluídos.",
   "containers.filter": "Filtro:",
   "containers.sectionsLabel": "Seções",
   "containers.filterAll": "Todos",
@@ -419,6 +420,7 @@ const pt: Partial<Translations> = {
   "vms.notInstalledHint": "Estas VMs já não estão definidas no host mas ainda têm backups. Restaure-as para as recuperar, ou use o painel de Backups para ver os seus instantâneos.",
   "vms.removeEntry": "Remover entrada",
   "vms.removeEntryConfirm": "Remover a entrada desta VM da lista? Os backups, se houver, não são excluídos.",
+  "vms.deleteBackupsConfirm": "Eliminar TODOS os backups desta VM? Os instantâneos são removidos permanentemente do repositório e a ação não pode ser revertida.",
   "vms.discoverHint": "VM excluída do Unraid (ou perdida após uma reinstalação)? Reconstrua sua entrada de backup a partir do armazenamento para poder restaurá-la.",
 
   // Container / VM state badge labels

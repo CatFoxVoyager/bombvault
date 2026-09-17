@@ -106,9 +106,10 @@ const id: Partial<Translations> = {
   "containers.notInstalled": "Tidak terpasang",
   "containers.notInstalledTitle": "Tidak terpasang (hanya cadangan)",
   "containers.notInstalledHint": "Container ini sudah tidak terpasang tetapi masih memiliki cadangan. Pulihkan, atau hapus cadangannya untuk membebaskan ruang.",
-  "containers.notInstalledSkipped": "Semuanya masih dijadwalkan, jadi setiap proses mencatat satu lewatan untuk masing-masing.",
+  "containers.notInstalledSkipped": "Entri yang masih dijadwalkan mencatat satu lewatan di setiap proses. Matikan \"Sertakan dalam jadwal\" pada kartu untuk menghentikannya.",
   "containers.deleteBackups": "Hapus semua cadangan",
   "containers.deleteBackupsConfirm": "Hapus SEMUA cadangan container ini? Snapshot dihapus secara permanen dari repositori dan tidak dapat dipulihkan.",
+  "containers.removeEntryConfirm": "Hapus entri container ini dari daftar? Cadangannya, jika ada, tidak dihapus.",
   "containers.filter": "Filter:",
   "containers.sectionsLabel": "Bagian",
   "containers.filterAll": "Semua",
@@ -1015,6 +1016,7 @@ const id: Partial<Translations> = {
   "vms.notInstalledHint": "VM ini tidak lagi didefinisikan di host tetapi masih memiliki cadangan. Pulihkan untuk mengembalikannya, atau gunakan panel Cadangan untuk menjelajahi snapshot-nya.",
   "vms.removeEntry": "Hapus entri",
   "vms.removeEntryConfirm": "Hapus entri VM ini dari daftar? Cadangannya, jika ada, tidak dihapus.",
+  "vms.deleteBackupsConfirm": "Hapus SEMUA cadangan VM ini? Snapshot dihapus secara permanen dari repositori dan tidak dapat dipulihkan.",
   "vms.discoverHint": "VM dihapus dari Unraid (atau hilang setelah pemasangan ulang)? Bangun kembali entri cadangannya dari penyimpanan agar Anda dapat memulihkannya.",
 
   // Flash (Unraid USB) backup

@@ -106,9 +106,10 @@ const hi: Partial<Translations> = {
   "containers.notInstalled": "इंस्टॉल नहीं है",
   "containers.notInstalledTitle": "इंस्टॉल नहीं है (केवल बैकअप)",
   "containers.notInstalledHint": "ये कंटेनर अब इंस्टॉल नहीं हैं लेकिन इनके बैकअप अभी भी मौजूद हैं। इन्हें रीस्टोर करें या जगह खाली करने के लिए इनके बैकअप हटाएँ।",
-  "containers.notInstalledSkipped": "ये अब भी निर्धारित हैं, इसलिए हर बार चलने पर हर एक के लिए एक छोड़ी गई प्रविष्टि दर्ज होती है।",
+  "containers.notInstalledSkipped": "जो प्रविष्टियाँ यहाँ अब भी निर्धारित हैं, वे हर बार चलने पर एक छोड़ी गई प्रविष्टि दर्ज करती हैं। इसे रोकने के लिए कार्ड पर \"शेड्यूल में शामिल करें\" बंद करें।",
   "containers.deleteBackups": "सभी बैकअप हटाएँ",
   "containers.deleteBackupsConfirm": "इस कंटेनर के सभी बैकअप हटाएँ? स्नैपशॉट रिपॉज़िटरी से स्थायी रूप से हटा दिए जाते हैं और इन्हें वापस नहीं लाया जा सकता।",
+  "containers.removeEntryConfirm": "इस कंटेनर की एंट्री सूची से हटाएँ? इसके बैकअप, अगर हैं, हटाए नहीं जाते।",
   "containers.filter": "फ़िल्टर:",
   "containers.sectionsLabel": "अनुभाग",
   "containers.filterAll": "सभी",
@@ -1015,6 +1016,7 @@ const hi: Partial<Translations> = {
   "vms.notInstalledHint": "ये VM अब होस्ट पर परिभाषित नहीं हैं लेकिन इनके बैकअप अभी भी मौजूद हैं। इन्हें रिकवर करने के लिए रीस्टोर करें, या इनके स्नैपशॉट देखने के लिए Backups पैनल का उपयोग करें।",
   "vms.removeEntry": "एंट्री हटाएँ",
   "vms.removeEntryConfirm": "इस VM की एंट्री सूची से हटाएँ? इसके बैकअप, अगर हैं, हटाए नहीं जाते।",
+  "vms.deleteBackupsConfirm": "इस VM के सभी बैकअप हटाएँ? स्नैपशॉट रिपॉज़िटरी से स्थायी रूप से हटा दिए जाते हैं और इन्हें वापस नहीं लाया जा सकता।",
   "vms.discoverHint": "VM Unraid से हटा दी गई (या फिर से इंस्टॉल करने के बाद खो गई)? इसे रीस्टोर करने के लिए स्टोरेज से इसकी बैकअप एंट्री फिर से बनाएँ।",
 
   // Flash (Unraid USB) backup

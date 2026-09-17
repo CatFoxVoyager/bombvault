@@ -102,9 +102,10 @@ const da: Partial<Translations> = {
   "containers.notInstalled": "Ikke installeret",
   "containers.notInstalledTitle": "Ikke installeret (kun sikkerhedskopier)",
   "containers.notInstalledHint": "Disse containers er ikke længere installeret, men har stadig sikkerhedskopier. Gendan dem, eller slet deres sikkerhedskopier for at frigøre plads.",
-  "containers.notInstalledSkipped": "De er stadig planlagt, så hver kørsel registrerer en oversprunget post for hver af dem.",
+  "containers.notInstalledSkipped": "Poster, der stadig er planlagt her, registrerer en oversprunget kørsel hver gang. Slå »Inkluder i tidsplan« fra på kortet for at stoppe det.",
   "containers.deleteBackups": "Slet alle sikkerhedskopier",
   "containers.deleteBackupsConfirm": "Slet ALLE sikkerhedskopier af denne container? Øjebliksbillederne fjernes permanent fra arkivet og kan ikke fortrydes.",
+  "containers.removeEntryConfirm": "Fjern denne containers post fra listen? Eventuelle sikkerhedskopier slettes ikke.",
   "containers.filter": "Filter:",
   "containers.sectionsLabel": "Afsnit",
   "containers.filterAll": "Alle",
@@ -422,6 +423,7 @@ const da: Partial<Translations> = {
   "vms.notInstalledHint": "Disse VMs er ikke længere defineret på værten, men har stadig sikkerhedskopier. Gendan dem, eller gennemse deres øjebliksbilleder i panelet Sikkerhedskopier.",
   "vms.removeEntry": "Fjern post",
   "vms.removeEntryConfirm": "Fjern denne VM's post fra listen? Eventuelle sikkerhedskopier slettes ikke.",
+  "vms.deleteBackupsConfirm": "Slet ALLE sikkerhedskopier af denne VM? Øjebliksbillederne fjernes permanent fra arkivet og kan ikke fortrydes.",
   "vms.discoverHint": "VM slettet fra Unraid (eller mistet efter geninstallation)? Genopbyg dens sikkerhedskopipost fra lageret, så du kan gendanne den.",
 
   // Container / VM state badge labels

@@ -40,11 +40,15 @@ vi.mock("../lib/api", async () => {
     // on a real network call.
     listRuns: vi.fn(async () => ({ ok: true, runs: [] })),
     backupVMNow: vi.fn(async () => ({ ok: true, started: true })),
+    forgetVM: vi.fn(async () => ({ ok: true })),
+    deleteBackupsVM: vi.fn(async () => ({ ok: true })),
+    setVMInclude: vi.fn(async () => ({ ok: true })),
   };
 });
 
 // Imported AFTER vi.mock so this binding is the mocked function.
-import { backupVMNow } from "../lib/api";
+import { backupVMNow, deleteBackupsVM, forgetVM, setVMInclude } from "../lib/api";
+import { en } from "../lib/i18n";
 
 const noop = () => {
   /* no-op */
@@ -161,5 +165,60 @@ describe("VMRow matches the container card's structure", () => {
     // precisely so the alternative never has to be inferred.
     expect(graceful.getAttribute("aria-selected")).toBe("true");
     expect(live.getAttribute("aria-selected")).toBe("false");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// #232: a not-installed card offers the same controls on the VM page as on the
+// Containers page. The schedule switch, so an entry can come off the schedule
+// without losing its backups, and ONE removal button in the top-right action
+// corner: "Delete all backups" while it has backups, "Remove entry" once it has
+// none. Removing only the entry while backups exist would hide those backups
+// from the page, so that button is never offered then.
+// ---------------------------------------------------------------------------
+describe("VMRow when the VM is no longer defined (#232)", () => {
+  // Display name and libvirt name differ on purpose, same as trueNasVM above.
+  const orphan: VM = { ...trueNasVM, state: "not-installed", includeInSchedule: true };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("offers the schedule switch", () => {
+    render(<VMRow vm={orphan} t={t} onRefresh={noop} index={0} />);
+    const sw = screen.getByRole("switch", { name: en["containers.includeInSchedule"] });
+    expect(sw.getAttribute("aria-checked")).toBe("true");
+  });
+
+  it("saves the switch as a VM setting, under the libvirt name", async () => {
+    render(<VMRow vm={orphan} t={t} onRefresh={noop} index={0} />);
+    const sw = screen.getByRole("switch", { name: en["containers.includeInSchedule"] });
+
+    fireEvent.click(sw);
+
+    await waitFor(() => expect(sw.getAttribute("aria-checked")).toBe("false"));
+    expect(setVMInclude).toHaveBeenCalledWith(orphan.libvirtName, false);
+  });
+
+  it("offers Remove entry, not Delete all backups, when it has no backups", async () => {
+    render(<VMRow vm={orphan} t={t} onRefresh={noop} index={0} />);
+    expect(screen.queryByRole("button", { name: "containers.deleteBackups" })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "vms.removeEntry" }));
+    fireEvent.click(await screen.findByRole("button", { name: en["common.confirm"] }));
+
+    await waitFor(() => expect(forgetVM).toHaveBeenCalledWith(orphan.libvirtName));
+    expect(deleteBackupsVM).not.toHaveBeenCalled();
+  });
+
+  it("offers Delete all backups, not Remove entry, when it has backups", async () => {
+    render(<VMRow vm={{ ...orphan, lastBackup: 1_757_000_000 }} t={t} onRefresh={noop} index={0} />);
+    expect(screen.queryByRole("button", { name: "vms.removeEntry" })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "containers.deleteBackups" }));
+    fireEvent.click(await screen.findByRole("button", { name: en["common.confirm"] }));
+
+    await waitFor(() => expect(deleteBackupsVM).toHaveBeenCalledWith(orphan.libvirtName, "local"));
+    expect(forgetVM).not.toHaveBeenCalled();
   });
 });

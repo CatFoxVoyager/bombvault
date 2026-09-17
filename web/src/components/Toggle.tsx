@@ -46,7 +46,7 @@ export interface ToggleProps {
    *  when the CALLER, right there in its own layout, already draws this
    *  exact text as real visible content next to this switch (e.g. a
    *  hand-rolled row like Containers.tsx's UpdateAfterBackupRow, or a
-   *  wrapping `<label>` + sibling `<span>` like VMs.tsx's VMIncludeToggle) —
+   *  wrapping `<label>` + sibling `<span>`) —
    *  never to rely on a Card's title/hint further up the page to justify an
    *  otherwise-blank row. That specific reasoning ("the Card title already
    *  says it") is the exact anti-pattern jdp ruled out categorically after

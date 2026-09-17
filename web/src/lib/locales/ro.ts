@@ -101,9 +101,10 @@ const ro: Partial<Translations> = {
   "containers.notInstalled": "Neinstalat",
   "containers.notInstalledTitle": "Neinstalat (numai copii de rezervă)",
   "containers.notInstalledHint": "Aceste containere nu mai sunt instalate, dar încă au copii de rezervă. Restaurați-le sau ștergeți copiile de rezervă pentru a elibera spațiu.",
-  "containers.notInstalledSkipped": "Sunt încă programate, așa că fiecare rulare înregistrează o omitere pentru fiecare.",
+  "containers.notInstalledSkipped": "Intrările încă programate aici înregistrează o omitere la fiecare rulare. Dezactivați „Includeți în programare” pe card pentru a opri asta.",
   "containers.deleteBackups": "Șterge toate copiile de rezervă",
   "containers.deleteBackupsConfirm": "Ștergeți TOATE copiile de rezervă ale acestui container? Instantaneele sunt eliminate permanent din depozit și nu pot fi anulate.",
+  "containers.removeEntryConfirm": "Elimini intrarea acestui container din listă? Eventualele backupuri nu sunt șterse.",
   "containers.filter": "Filtrare:",
   "containers.sectionsLabel": "Secțiuni",
   "containers.filterAll": "Toate",
@@ -419,6 +420,7 @@ const ro: Partial<Translations> = {
   "vms.notInstalledHint": "Aceste VM-uri nu mai sunt definite pe gazdă, dar încă au copii de rezervă. Restaurați-le sau navigați în panoul Copii de rezervă pentru a vedea instantaneele.",
   "vms.removeEntry": "Elimină intrarea",
   "vms.removeEntryConfirm": "Elimini intrarea acestei VM din listă? Eventualele backupuri nu sunt șterse.",
+  "vms.deleteBackupsConfirm": "Ștergeți TOATE copiile de rezervă ale acestei VM? Instantaneele sunt eliminate permanent din depozit și nu pot fi anulate.",
   "vms.discoverHint": "VM ștearsă din Unraid (sau pierdută după o reinstalare)? Reconstruiește intrarea ei de backup din stocare pentru a o putea restaura.",
 
   // Container / VM state badge labels

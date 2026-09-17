@@ -102,9 +102,10 @@ const zh: Partial<Translations> = {
   "containers.notInstalled": "未安装",
   "containers.notInstalledTitle": "未安装（仅备份）",
   "containers.notInstalledHint": "这些容器已不再安装，但仍有备份。请还原它们，或删除备份以释放空间。",
-  "containers.notInstalledSkipped": "它们仍在计划中，因此每次运行都会为每一个记录一次跳过。",
+  "containers.notInstalledSkipped": "仍在计划中的条目每次运行都会记录一次跳过。在卡片上关闭“加入计划任务”即可停止。",
   "containers.deleteBackups": "删除所有备份",
   "containers.deleteBackupsConfirm": "删除此容器的所有备份？快照将从仓库中永久移除且无法撤销。",
+  "containers.removeEntryConfirm": "将此容器的条目从列表中移除？现有备份不会被删除。",
   "containers.filter": "筛选:",
   "containers.sectionsLabel": "部分",
   "containers.filterAll": "全部",
@@ -422,6 +423,7 @@ const zh: Partial<Translations> = {
   "vms.notInstalledHint": "这些虚拟机已不再在主机上定义，但仍有备份。请还原它们，或在备份面板中浏览其快照。",
   "vms.removeEntry": "移除条目",
   "vms.removeEntryConfirm": "将此虚拟机的条目从列表中移除？现有备份不会被删除。",
+  "vms.deleteBackupsConfirm": "删除此虚拟机的所有备份？快照将从仓库中永久移除且无法撤销。",
   "vms.discoverHint": "从 Unraid 中删除了虚拟机（或重装后丢失）？从存储中重建它的备份条目即可恢复。",
 
   // Container / VM state badge labels

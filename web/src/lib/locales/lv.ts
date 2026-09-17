@@ -106,9 +106,10 @@ const lv: Partial<Translations> = {
   "containers.notInstalled": "Nav instalēts",
   "containers.notInstalledTitle": "Nav instalēts (tikai rezerves kopijas)",
   "containers.notInstalledHint": "Šie konteineri vairs nav instalēti, bet joprojām satur rezerves kopijas. Atjaunojiet tos vai izdzēsiet to rezerves kopijas, lai atbrīvotu vietu.",
-  "containers.notInstalledSkipped": "Tie joprojām ir ieplānoti, tāpēc katrā palaišanā katram no tiem tiek reģistrēta izlaišana.",
+  "containers.notInstalledSkipped": "Ieraksti, kas šeit joprojām ir ieplānoti, katrā palaišanā reģistrē izlaišanu. Kartītē izslēdziet „Iekļaut grafikā”, lai to pārtrauktu.",
   "containers.deleteBackups": "Dzēst visas rezerves kopijas",
   "containers.deleteBackupsConfirm": "Dzēst VISAS šī konteinera rezerves kopijas? Momentuzņēmumi tiek neatgriezeniski noņemti no repozitorija, un tos nevarēs atjaunot.",
+  "containers.removeEntryConfirm": "Noņemt šī konteinera ierakstu no saraksta? Tā rezerves kopijas, ja tādas ir, netiek dzēstas.",
   "containers.filter": "Filtrs:",
   "containers.sectionsLabel": "Sadaļas",
   "containers.filterAll": "Visi",
@@ -1015,6 +1016,7 @@ const lv: Partial<Translations> = {
   "vms.notInstalledHint": "Šīs VM vairs nav definētas saimniekdatorā, bet joprojām satur rezerves kopijas. Atjaunojiet tās, lai tās atgūtu, vai izmantojiet Rezerves kopiju paneli, lai pārlūkotu to momentuzņēmumus.",
   "vms.removeEntry": "Noņemt ierakstu",
   "vms.removeEntryConfirm": "Noņemt šīs VM ierakstu no saraksta? Tās rezerves kopijas, ja tādas ir, netiek dzēstas.",
+  "vms.deleteBackupsConfirm": "Dzēst VISAS šīs VM rezerves kopijas? Momentuzņēmumi tiek neatgriezeniski noņemti no repozitorija, un tos nevarēs atjaunot.",
   "vms.discoverHint": "VM izdzēsta no Unraid (vai pazaudēta pēc atkārtotas instalēšanas)? Atjaunojiet tās rezerves kopēšanas ierakstu no krātuves, lai varētu to atjaunot.",
 
   // Flash (Unraid USB) backup

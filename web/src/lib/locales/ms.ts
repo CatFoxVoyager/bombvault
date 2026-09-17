@@ -106,9 +106,10 @@ const ms: Partial<Translations> = {
   "containers.notInstalled": "Tidak dipasang",
   "containers.notInstalledTitle": "Tidak dipasang (hanya sandaran)",
   "containers.notInstalledHint": "Bekas ini tidak lagi dipasang tetapi masih mempunyai sandaran. Pulihkan mereka atau padamkan sandaran mereka untuk membebaskan ruang.",
-  "containers.notInstalledSkipped": "Semuanya masih dijadualkan, jadi setiap larian merekodkan satu langkauan bagi setiap satu.",
+  "containers.notInstalledSkipped": "Entri yang masih dijadualkan merekodkan satu langkauan pada setiap larian. Matikan \"Sertakan dalam jadual\" pada kad untuk menghentikannya.",
   "containers.deleteBackups": "Padam semua sandaran",
   "containers.deleteBackupsConfirm": "Padam SEMUA sandaran bekas ini? Snapshot dipadamkan secara kekal daripada repositori dan tidak boleh dipulihkan.",
+  "containers.removeEntryConfirm": "Alih keluar entri bekas ini daripada senarai? Sandarannya, jika ada, tidak dipadamkan.",
   "containers.filter": "Penapis:",
   "containers.sectionsLabel": "Bahagian",
   "containers.filterAll": "Semua",
@@ -1015,6 +1016,7 @@ const ms: Partial<Translations> = {
   "vms.notInstalledHint": "VM ini tidak lagi ditakrifkan pada hos tetapi masih mempunyai sandaran. Pulihkan mereka untuk mendapatkannya semula, atau gunakan panel Sandaran untuk menyemak imbas snapshot mereka.",
   "vms.removeEntry": "Alih keluar entri",
   "vms.removeEntryConfirm": "Alih keluar entri VM ini daripada senarai? Sandarannya, jika ada, tidak dipadamkan.",
+  "vms.deleteBackupsConfirm": "Padam SEMUA sandaran VM ini? Snapshot dipadamkan secara kekal daripada repositori dan tidak boleh dipulihkan.",
   "vms.discoverHint": "VM dipadamkan daripada Unraid (atau hilang selepas pemasangan semula)? Bina semula entri sandarannya daripada storan supaya anda boleh memulihkannya.",
 
   // Flash (Unraid USB) backup

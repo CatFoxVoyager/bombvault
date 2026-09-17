@@ -101,9 +101,10 @@ const nl: Partial<Translations> = {
   "containers.notInstalled": "Niet geïnstalleerd",
   "containers.notInstalledTitle": "Niet geïnstalleerd (alleen back-ups)",
   "containers.notInstalledHint": "Deze containers zijn niet meer geïnstalleerd, maar hebben nog back-ups. Herstel ze of verwijder hun back-ups om ruimte vrij te maken.",
-  "containers.notInstalledSkipped": "Ze staan nog steeds ingepland, dus elke uitvoering legt voor elk van hen een overslag vast.",
+  "containers.notInstalledSkipped": "Vermeldingen die hier nog ingepland staan, leggen bij elke uitvoering een overslag vast. Zet „Opnemen in planning” op de kaart uit om dat te stoppen.",
   "containers.deleteBackups": "Alle back-ups verwijderen",
   "containers.deleteBackupsConfirm": "ALLE back-ups van deze container verwijderen? De snapshots worden permanent uit de repository verwijderd en kunnen niet ongedaan worden gemaakt.",
+  "containers.removeEntryConfirm": "De vermelding van deze container uit de lijst verwijderen? Eventuele back-ups worden niet verwijderd.",
   "containers.filter": "Filter:",
   "containers.sectionsLabel": "Secties",
   "containers.filterAll": "Alle",
@@ -416,6 +417,7 @@ const nl: Partial<Translations> = {
   "vms.notInstalledHint": "Deze VM's zijn niet meer gedefinieerd op de host, maar hebben nog back-ups. Herstel ze of gebruik het back-uppaneel om hun snapshots te bekijken.",
   "vms.removeEntry": "Vermelding verwijderen",
   "vms.removeEntryConfirm": "De vermelding van deze VM uit de lijst verwijderen? Eventuele back-ups worden niet verwijderd.",
+  "vms.deleteBackupsConfirm": "ALLE back-ups van deze VM verwijderen? De snapshots worden permanent uit de repository verwijderd en kunnen niet ongedaan worden gemaakt.",
   "vms.discoverHint": "VM verwijderd uit Unraid (of kwijt na een herinstallatie)? Bouw de back-upvermelding opnieuw op vanuit de opslag om hem te kunnen herstellen.",
 
   // Container / VM state badge labels

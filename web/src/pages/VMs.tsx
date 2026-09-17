@@ -17,14 +17,13 @@ import { RecentRunsList } from "../components/RecentRunsList";
 import { EmptyStateIcon } from "../components/EmptyStateIcon";
 import { IconVM, IconRestore, IconTrash, IconBackupNow, IconDownload, IconPower, IconLive } from "../components/Sidebar";
 import { InfoBubble } from "../components/InfoBubble";
+import { NotInstalledHeading } from "../components/NotInstalledHeading";
+import { OrphanRemoveButton } from "../components/OrphanRemoveButton";
 import { Badge, type BadgeTone } from "../components/Badge";
 import { Button } from "../components/Button";
 import { groupStage } from "../lib/controls";
-// ToggleRow, not the bare Toggle: VMIncludeToggle renders the shared row
-// (label + switch) rather than a naked switch its caller labels by hand — the
-// same import components/IncludeToggle.tsx already uses for the Container
-// tab's copy of that control.
-import { ToggleRow } from "./settings/shared";
+// The Containers page's schedule switch, saving through setVMInclude here.
+import { IncludeToggle } from "../components/IncludeToggle";
 import { useProgress, anyActive, busyPhraseKey } from "../lib/progress";
 import { useBackupWatch, fireAndWaitRun } from "../lib/backupWatch";
 import { useConfirm } from "../lib/useConfirm";
@@ -205,7 +204,7 @@ function VMMethodSelect({
   // Re-seed when the parent hands down a fresh value (a list reload after a
   // bulk action). Rows are keyed by libvirt name and do not remount, so
   // without this the control would keep painting its stale pre-reload choice —
-  // the same fix VMIncludeToggle below already carries.
+  // the same fix IncludeToggle already carries.
   useEffect(() => setMethod(initial || "graceful"), [initial]);
 
   async function handleChange(next: string) {
@@ -268,65 +267,6 @@ function VMMethodSelect({
       disabled={busy}
       active={method}
       onChange={(id) => void handleChange(id)}
-    />
-  );
-}
-
-function VMIncludeToggle({
-  name,
-  initial,
-}: {
-  name: string;
-  initial: boolean;
-}) {
-  const { t } = useT();
-  const [enabled, setEnabled] = useState(initial);
-  const [busy, setBusy] = useState(false);
-  const { push } = useToast();
-  // GlimStone standing rule (jdp, live review, emphatic — "Wenn etwas
-  // fehlschlägt soll der Toggle/Button kurz zittern. Systemweit!!"): a bumped
-  // nonce, keyed onto the Toggle exactly like ToggleRow's own shakeNonce
-  // prop, replays `.glim-shake` once per failure — see Settings.tsx's
-  // ToggleRow for the fuller "why a nonce, not a boolean" reasoning.
-  const [shake, setShake] = useState(0);
-
-  // Re-seed when the parent passes a fresh value (e.g. after "Include all in
-  // schedule" reloads the list). Rows are keyed by name and do not remount, so
-  // without this the toggle would keep showing its stale pre-bulk state.
-  useEffect(() => setEnabled(initial), [initial]);
-
-  async function handleChange(next: boolean) {
-    setBusy(true);
-    try {
-      const res = await setVMInclude(name, next);
-      if (res.ok) {
-        setEnabled(next);
-      } else {
-        push(res.error ?? t("schedule.updateFailed"), "fail");
-        setShake((n) => n + 1);
-      }
-    } catch (err) {
-      push(err instanceof Error ? err.message : t("schedule.updateFailed"), "fail");
-      setShake((n) => n + 1);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  // Renders through the SAME shared ToggleRow as components/IncludeToggle.tsx
-  // (the Container tab's copy of this exact control) and Files.tsx's
-  // FileSetEnabledToggle — all three converted together in the whole-app sweep.
-  // See IncludeToggle.tsx for jdp's original ask ("Der Text soll immer ganz
-  // links stehen und der Toggle ganz rechts sein") and Files.tsx's copy for
-  // why this one was still the mirror image of it: a bare `hideLabel` Toggle
-  // with a hand-rolled switch-first/text-second `<label>` at the call site.
-  return (
-    <ToggleRow
-      label={t("containers.includeInSchedule")}
-      checked={enabled}
-      onChange={(next) => void handleChange(next)}
-      disabled={busy}
-      shakeNonce={shake}
     />
   );
 }
@@ -741,8 +681,8 @@ function VMRestorePanel({
     // TODO(#follow-up): richer stake-detail copy ("N snapshots, X GB") belongs
     // here once it ships (deferred — new interpolated i18n keys across all 25
     // non-English locales, out of scope for this window.confirm() → dialog
-    // mechanism swap). Same flagged follow-up as Containers.tsx's
-    // deleteBackupsConfirm and Files.tsx's deleteBackupsConfirm.
+    // mechanism swap). Same flagged follow-up as OrphanRemoveButton.tsx's
+    // deleteConfirm and Files.tsx's deleteBackupsConfirm.
     if (!(await confirm(t("snapshots.deleteAllConfirm")))) return;
     setDeletingAll(true);
     deleteBackupsVM(name, source)
@@ -980,8 +920,15 @@ export function VMRow({
               The label and its InfoBubble come along rather than being dropped
             for compactness: two icon badges with no text next to them is
             exactly the unlabelled control jdp has ruled out, and the hint is
-            the only place the difference between the methods is spelled out. */}
-        {installed && (
+            the only place the difference between the methods is spelled out.
+              A not-installed VM has nothing to back up, so the corner holds its
+            removal button instead, the same OrphanRemoveButton in the same
+            place as on the container card (#232). "Remove entry" sat at the
+            card's bottom edge before and was offered even while backups existed,
+            which then vanished from the page with the entry. The local source
+            here, as on the container card; the Backups panel below keeps its own
+            source-aware delete for the off-site copy. */}
+        {installed ? (
           <div className="ms-auto flex items-center gap-4 shrink-0">
             {/* Backup method (graceful / live) — always visible, never gated
                 behind Advanced: it decides whether the VM is shut down. */}
@@ -1004,6 +951,18 @@ export function VMRow({
               <Advanced><VMExportButton name={vm.libvirtName} t={t} /></Advanced>
             </div>
           </div>
+        ) : (
+          <div className="ms-auto shrink-0">
+            <OrphanRemoveButton
+              hasBackups={vm.lastBackup != null}
+              deleteConfirm={t("vms.deleteBackupsConfirm")}
+              removeConfirm={t("vms.removeEntryConfirm")}
+              deleteBackups={() => deleteBackupsVM(vm.libvirtName, "local")}
+              removeEntry={() => forgetVM(vm.libvirtName)}
+              onDone={onRefresh}
+              t={t}
+            />
+          </div>
         )}
       </div>
 
@@ -1011,26 +970,22 @@ export function VMRow({
           the include toggle. There it also carries UpdateAfterBackupRow
           stacked under it; VMs have no such setting, and the method that used
           to sit in that slot moved up into the top row (see its comment
-          above), so this row is now the toggle alone. */}
-      {installed && (
-        <div className="flex items-start">
-          {/* No wrapping `<label>`/`<span>`: VMIncludeToggle renders the full
-              ToggleRow itself (label included, text-first), the identical
-              shape Containers.tsx's IncludeToggle call site already uses —
-              see that component's own comment. */}
-          <div className="ms-auto">
-            <VMIncludeToggle name={vm.libvirtName} initial={vm.includeInSchedule} />
-          </div>
+          above), so this row is now the toggle alone.
+            On a not-installed card too (#232), exactly as on the container
+          card: a deleted VM stays scheduled, and every run tries it again and
+          logs a skip, until this switch goes off. */}
+      <div className="flex items-start">
+        {/* No wrapping `<label>`/`<span>`: IncludeToggle renders the full
+            ToggleRow itself (label included, text-first) — see that
+            component's own comment. */}
+        <div className="ms-auto">
+          <IncludeToggle
+            name={vm.libvirtName}
+            initial={vm.includeInSchedule}
+            save={setVMInclude}
+          />
         </div>
-      )}
-
-      {/* Not installed: offer to clear the stale entry (also stops the scheduler
-          retrying a deleted VM). Deleting actual backups stays in the panel below. */}
-      {!installed && (
-        <div className="flex justify-end">
-          <VMForgetButton name={vm.libvirtName} t={t} onForgotten={onRefresh} />
-        </div>
-      )}
+      </div>
 
       {/* Backups / Restore disclosure — ContainerRow's exact block: a chip row
           holding the section Selector with the last-backup summary pushed to
@@ -1118,66 +1073,6 @@ export function VMRow({
           label={progress.phase === "restore" ? t("common.restoring") : t("common.backingUp")}
         />
       )}
-    </div>
-  );
-}
-
-// VMForgetButton clears a no-longer-installed VM's stale entry (its target row),
-// for a deleted VM that has no backups left — answering "how do I remove this".
-function VMForgetButton({
-  name,
-  t,
-  onForgotten,
-}: {
-  name: string;
-  t: T;
-  onForgotten: () => void;
-}) {
-  const [pending, setPending] = useState(false);
-  const { push } = useToast();
-  const { confirm, confirmDialog } = useConfirm();
-  // GlimStone standing rule (jdp, live review, emphatic, system-wide): a
-  // failed action toasts AND shakes its button.
-  const [shake, setShake] = useState(0);
-
-  async function handleForget() {
-    if (!(await confirm(t("vms.removeEntryConfirm")))) return;
-    setPending(true);
-    try {
-      const res = await forgetVM(name);
-      if (res.ok) onForgotten();
-      else {
-        push(res.error ?? t("common.removeFailed"), "fail");
-        setShake((n) => n + 1);
-      }
-    } catch (err) {
-      push(err instanceof Error ? err.message : t("common.removeFailed"), "fail");
-      setShake((n) => n + 1);
-    } finally {
-      setPending(false);
-    }
-  }
-
-  return (
-    <div className="flex flex-col items-end gap-1">
-      {/* NO bespoke red (whole-app sweep) — the exact twin of Containers.tsx's
-          DeleteBackupsButton, converted in the same pass and for the same
-          reason; see that call site for the full writeup. The label names the
-          action, handleForget still routes through the shared useConfirm
-          dialog (t("vms.removeEntryConfirm")), and `glim-shake` survives as
-          behaviour rather than colour. */}
-      <Button
-        key={shake}
-        label={t("vms.removeEntry")}
-        labelKey="vms.removeEntry"
-        tone="neutral"
-        onClick={() => void handleForget()}
-        disabled={pending}
-        busy={pending}
-        title={pending ? t("dashboard.checking") : undefined}
-        className={shake ? "glim-shake" : ""}
-      />
-      {confirmDialog}
     </div>
   );
 }
@@ -2019,32 +1914,15 @@ export function VMs() {
       {/* Orphan VMs — no longer defined on the host but still have backups */}
       {!loading && orphans.length > 0 && (
         <div className="flex flex-col gap-3 glim-content-fade">
-          <div>
-            {/* GlimStone follow-up pass ("half-overlap card notch"):
-                `relative` directly on this <h2> — no padding wraps it, so
-                the h2 itself is the right anchor; see Badge.tsx's
-                badgeClassName comment and Containers.tsx's identical
-                notInstalled section.
-                `hueIndex={nextHue()}` (GlimStone follow-up pass, proactive
-                sweep of this same file): this badge used to be the ONLY
-                tone="heading" notch anywhere in VMs.tsx, so it always read
-                as a "genuine singleton" and correctly kept the flat,
-                un-rainbowed default — but VMBackupOrderPanel's own notch
-                above can render on the very same page now, which makes this
-                one no longer a singleton whenever both are visible at once
-                (Advanced mode on + at least one orphaned VM). Threaded
-                through the same page-wide `nextHue()` counter, in render
-                order after VMBackupOrderPanel's own call, so the two never
-                collide on the same rainbow position. */}
-            <h2 className="relative flex items-center">
-              <Badge tone="heading" size="heading" wrap hueIndex={nextHue()}>
-                {t("containers.notInstalledTitle")}
-              </Badge>
-            </h2>
-            <p className="mt-1 text-xs text-carbon-textMuted">
-              {t("vms.notInstalledHint")}
-            </p>
-          </div>
+          {/* The same heading component as Containers.tsx's not-installed
+              section (#232), which also fixed the badge covering the hint.
+              `hueIndex={nextHue()}` (GlimStone follow-up pass, proactive sweep
+              of this same file): VMBackupOrderPanel's own notch above can
+              render on the very same page (Advanced mode on + at least one
+              orphaned VM), so this one is threaded through the same page-wide
+              `nextHue()` counter, in render order after that panel's own call,
+              and the two never collide on the same rainbow position. */}
+          <NotInstalledHeading tip={t("vms.notInstalledHint")} hueIndex={nextHue()} t={t} />
           {/* Continues the live list's index sequence (live.length + i)
               instead of restarting at 0. Both sections render on the same
               page at once, so a second sequence starting at 0 would hand the

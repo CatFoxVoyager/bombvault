@@ -8622,9 +8622,10 @@ func (s *Service) DeleteBackups(ctx context.Context, name string) error {
 		// no way out but switching the whole repository's protection off - which
 		// drops it for every other item sharing that repository.
 		//
-		// Containers are the only domain with no row-only removal route (VMs have
-		// handleForgetVM, file sets have their own DELETE), which is what makes
-		// this the difference between an inconvenience and a dead end.
+		// While an entry has backups, this is the only removal the not-installed
+		// card offers (#232 added a row-only route, handleForgetContainer, for an
+		// entry without any), which is what makes this the difference between an
+		// inconvenience and a dead end.
 		//
 		// Asked AGAIN, not replayed. The check above runs outside the domain lock
 		// and answers "is there anything to protect"; this one runs inside it and
@@ -8694,7 +8695,22 @@ func (s *Service) DeleteBackupsVM(ctx context.Context, name, source string) erro
 		return appendOnlyRefusal(f)
 	}
 	if err := s.requireExistingRepo(repo, "no backups to delete yet"); err != nil {
-		return err
+		if isOffsiteSource(source) {
+			return err
+		}
+		// No local repository means no local backups, and nothing left to delete
+		// but the entry (#232). Refusing here left a not-installed card whose one
+		// removal button could never succeed. DeleteBackups reaches the same end
+		// for a container, where a missing repository simply lists no snapshots.
+		unlock, ok := s.tryLockDomainFor("vms", "delete")
+		if !ok {
+			return errDomainBusy
+		}
+		defer unlock()
+		if err := s.store.DeleteVMTarget(name); err != nil {
+			return fmt.Errorf("delete vm target: %w", err)
+		}
+		return nil
 	}
 	unlock, ok := s.tryLockDomainFor("vms", "delete")
 	if !ok {
@@ -8735,9 +8751,63 @@ func (s *Service) DeleteBackupsVM(ctx context.Context, name, source string) erro
 // repo — for clearing a stale "Not installed" entry that has no backups (which
 // also stops the scheduler from retrying a deleted VM). Deleting actual backups
 // is DeleteBackupsVM; this is just the bookkeeping cleanup.
-func (s *Service) ForgetVMTarget(name string) error {
+//
+// Refused for a VM that is defined on the host, asked the way ListVMs asks
+// (libvirt only while VMs are enabled), so a card left open while the VM came
+// back cannot wipe a live VM's settings and history. Serialised against VM
+// backups and restores like DeleteBackupsVM: a restore of this entry writes
+// the run row this would delete.
+func (s *Service) ForgetVMTarget(ctx context.Context, name string) error {
+	settings, err := s.store.GetSettings()
+	if err != nil {
+		return fmt.Errorf("read settings: %w", err)
+	}
+	if settings.VMsEnabled {
+		infos, err := s.virsh.List(ctx)
+		if err != nil {
+			return fmt.Errorf("list vms: virsh: %w", err)
+		}
+		for _, vm := range infos {
+			if vm.Name == name {
+				return fmt.Errorf("VM %q is defined on the host, so its entry stays", name)
+			}
+		}
+	}
+	unlock, ok := s.tryLockDomainFor("vms", "delete")
+	if !ok {
+		return errDomainBusy
+	}
+	defer unlock()
 	if err := s.store.DeleteVMTarget(name); err != nil {
 		return fmt.Errorf("forget vm target: %w", err)
+	}
+	return nil
+}
+
+// ForgetTarget removes a container's target row + run history WITHOUT touching
+// any repo, the container twin of ForgetVMTarget (#232). It clears a "Not
+// installed" entry that has no backups, which also takes it off the schedule.
+// Deleting actual backups is DeleteBackups; this is only the bookkeeping. Before
+// it existed, that button was the one way to remove such an entry, and on an
+// entry that still had snapshots it deleted them too. Refused for an installed
+// container and serialised like ForgetVMTarget, for the same reasons.
+func (s *Service) ForgetTarget(ctx context.Context, name string) error {
+	infos, err := s.docker.List(ctx)
+	if err != nil {
+		return fmt.Errorf("list containers: %w", err)
+	}
+	for _, c := range infos {
+		if c.Name == name {
+			return fmt.Errorf("container %q is installed, so its entry stays", name)
+		}
+	}
+	unlock, ok := s.tryLockDomainFor("containers", "delete")
+	if !ok {
+		return errDomainBusy
+	}
+	defer unlock()
+	if err := s.store.DeleteTarget(name); err != nil {
+		return fmt.Errorf("forget target: %w", err)
 	}
 	return nil
 }
@@ -8820,17 +8890,40 @@ func (s *Service) SetScheduleCadence(ctx context.Context, name, cadence string) 
 // job and make it show up as a schedule member. A single container's
 // inspect/upsert failure aborts the batch with that error rather than leaving a
 // partial, ambiguous result.
+//
+// Excluding also reaches every target whose container is gone from the host
+// (#232). Such a row stays scheduled until somebody switches it off, and every
+// run records a skip for it; "Exclude all" leaving those behind made it the one
+// switch that could not end that. Including never reaches them: it would put
+// every removed container straight back into the skip loop.
 func (s *Service) SetIncludeAll(ctx context.Context, include bool) error {
 	infos, err := s.docker.List(ctx)
 	if err != nil {
 		return fmt.Errorf("list containers: %w", err)
 	}
 	self := s.selfContainerName(ctx)
+	live := make(map[string]bool, len(infos))
 	for _, c := range infos {
+		live[c.Name] = true
 		if self != "" && c.Name == self {
 			continue // never schedule BombVault's own container
 		}
 		if err := s.SetInclude(ctx, c.Name, include); err != nil {
+			return err
+		}
+	}
+	if include {
+		return nil
+	}
+	targets, err := s.store.ListTargets()
+	if err != nil {
+		return fmt.Errorf("list targets: %w", err)
+	}
+	for _, t := range targets {
+		if live[t.ContainerName] || !t.IncludeInSchedule {
+			continue
+		}
+		if err := s.store.SetInclude(t.ContainerName, false); err != nil {
 			return err
 		}
 	}
@@ -12303,23 +12396,30 @@ func (s *Service) SetVMScheduleCadence(_ context.Context, name, cadence string) 
 	return s.store.SetVMScheduleCadence(name, cadence)
 }
 
-// SetVMIncludeAll sets the include_in_schedule flag for EVERY known VM in one
-// call — the VM counterpart to SetIncludeAll. It iterates the live VMs reported
+// SetVMIncludeAll sets the include_in_schedule flag for every VM on the host in
+// one call — the VM counterpart to SetIncludeAll. It iterates the live VMs reported
 // by virsh and ensures a target row exists for each (find-or-create, exactly as
-// SetVMInclude does), then applies the same flag to every already-known VM
-// target (so an orphan VM that still has backups is toggled too). De-duplicated
-// so a VM that is both live and a known target is only set once.
+// SetVMInclude does). Excluding then applies to every already-known VM target
+// too, so an orphan VM that still has backups comes off the schedule.
+// De-duplicated so a VM that is both live and a known target is only set once.
+//
+// Including stops at the live VMs (#232). It used to reach the orphans as well,
+// so "Include all" put every deleted VM back on the schedule, where each run
+// tries it again and logs a skip. Same rule as SetIncludeAll on containers.
 func (s *Service) SetVMIncludeAll(ctx context.Context, include bool) error {
 	infos, err := s.virsh.List(ctx)
 	if err != nil {
 		return fmt.Errorf("list vms: %w", err)
 	}
-	seen := make(map[string]bool, len(infos))
+	live := make(map[string]bool, len(infos))
 	for _, vm := range infos {
+		live[vm.Name] = true
 		if err := s.SetVMInclude(ctx, vm.Name, include); err != nil {
 			return err
 		}
-		seen[vm.Name] = true
+	}
+	if include {
+		return nil
 	}
 	// Known targets whose VM is no longer defined on the host (orphans with
 	// backups) — the find-or-create in SetVMInclude already handles existing
@@ -12329,10 +12429,10 @@ func (s *Service) SetVMIncludeAll(ctx context.Context, include bool) error {
 		return fmt.Errorf("list vm targets: %w", err)
 	}
 	for _, t := range targets {
-		if seen[t.Name] {
+		if live[t.Name] || !t.IncludeInSchedule {
 			continue
 		}
-		if err := s.store.SetVMInclude(t.Name, include); err != nil {
+		if err := s.store.SetVMInclude(t.Name, false); err != nil {
 			return err
 		}
 	}

@@ -1312,6 +1312,14 @@ export function deleteBackups(name: string): Promise<OkEnvelope> {
   });
 }
 
+/** Clear a stale container entry (its target row) without touching any repo —
+ *  the container twin of forgetVM (#232). */
+export function forgetContainer(name: string): Promise<OkEnvelope> {
+  return fetchJSON(`/api/containers/${encodeURIComponent(name)}`, {
+    method: "DELETE",
+  });
+}
+
 /**
  * Delete ALL backups of a VM from the selected source (local or off-site) in one
  * go and prune the freed space. On the local source the VM is also forgotten from
@@ -1361,6 +1369,7 @@ export function setScheduleCadence(
 /**
  * POST /api/containers/schedule-include — one-click set the "include in schedule"
  * flag for EVERY installed container (true = include all, false = exclude all).
+ * Excluding also takes not-installed entries off the schedule (#232).
  */
 export function setIncludeAll(include: boolean): Promise<OkEnvelope> {
   return fetchJSON("/api/containers/schedule-include", {
@@ -2311,7 +2320,8 @@ export function setVMScheduleCadence(
 
 /**
  * POST /api/vms/schedule-include — one-click set the "include in schedule" flag
- * for EVERY known VM (true = include all, false = exclude all).
+ * for every VM on the host (true = include all, false = exclude all). Excluding
+ * also takes not-installed entries off the schedule (#232).
  */
 export function setVMIncludeAll(include: boolean): Promise<OkEnvelope> {
   return fetchJSON("/api/vms/schedule-include", {

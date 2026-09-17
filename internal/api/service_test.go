@@ -2992,15 +2992,102 @@ func TestServiceSetIncludeAll(t *testing.T) {
 	}
 }
 
+// TestServiceSetIncludeAllOrphans pins #232: a container that is gone from the
+// host (typically a renamed one) keeps its target row, and while that row is
+// scheduled every run records a skip for it. "Exclude all" has to reach it, or
+// the only way off the schedule is deleting its backups. "Include all" must not,
+// or one click puts every removed container back into that skip loop.
+func TestServiceSetIncludeAllOrphans(t *testing.T) {
+	cfg := config.Config{AppKey: strings.Repeat("a", 64), DataDir: t.TempDir(), HostMountRoot: "/host/user"}
+	st := newMemStore(t)
+	if _, err := st.UpsertTarget(store.Target{ContainerName: "radarr-movies"}); err != nil {
+		t.Fatal(err)
+	}
+	d := &fakeServiceDocker{
+		listOut:    []dockercli.ContainerInfo{{Name: "radarr"}},
+		inspectErr: errors.New("no such container"),
+	}
+	svc := api.NewService(cfg, st, d, fakeVirsh{}, &fakeResticEngine{})
+
+	if err := svc.SetIncludeAll(context.Background(), true); err != nil {
+		t.Fatalf("SetIncludeAll(true): %v", err)
+	}
+	tg, err := st.GetTargetByContainer("radarr-movies")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tg.IncludeInSchedule {
+		t.Fatal("include all must not schedule a container that is no longer installed")
+	}
+
+	if err := st.SetInclude("radarr-movies", true); err != nil {
+		t.Fatal(err)
+	}
+	if err := svc.SetIncludeAll(context.Background(), false); err != nil {
+		t.Fatalf("SetIncludeAll(false): %v", err)
+	}
+	tg, err = st.GetTargetByContainer("radarr-movies")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tg.IncludeInSchedule {
+		t.Fatal("exclude all must also unschedule a container that is no longer installed")
+	}
+}
+
+// TestForgetTargetRemovesContainerEntry is the container half of
+// TestForgetVMTargetRemovesEntry (#232): a not-installed container with no
+// backups can leave the list without going through "Delete all backups", and
+// removing the entry never touches a repository.
+func TestForgetTargetRemovesContainerEntry(t *testing.T) {
+	cfg := config.Config{AppKey: strings.Repeat("a", 64), DataDir: t.TempDir()}
+	st := newMemStore(t)
+	if _, err := st.UpsertTarget(store.Target{ContainerName: "Nexterm"}); err != nil {
+		t.Fatal(err)
+	}
+	eng := &fakeResticEngine{}
+	svc := api.NewService(cfg, st, &fakeServiceDocker{}, fakeVirsh{}, eng)
+	if err := svc.ForgetTarget(context.Background(), "Nexterm"); err != nil {
+		t.Fatalf("ForgetTarget: %v", err)
+	}
+	if _, err := st.GetTargetByContainer("Nexterm"); err == nil {
+		t.Fatal("container target should be gone after ForgetTarget")
+	}
+	if len(eng.forgotten) != 0 {
+		t.Fatalf("removing an entry must not forget snapshots, forgot %v", eng.forgotten)
+	}
+}
+
+// TestForgetTargetRefusesInstalledContainer: removing only the entry is meant for
+// a container that is gone. A card left open while the container was recreated
+// under its old name must not wipe a live container's settings and history.
+func TestForgetTargetRefusesInstalledContainer(t *testing.T) {
+	cfg := config.Config{AppKey: strings.Repeat("a", 64), DataDir: t.TempDir()}
+	st := newMemStore(t)
+	if _, err := st.UpsertTarget(store.Target{ContainerName: "radarr-movies"}); err != nil {
+		t.Fatal(err)
+	}
+	d := &fakeServiceDocker{listOut: []dockercli.ContainerInfo{{Name: "radarr-movies"}}}
+	svc := api.NewService(cfg, st, d, fakeVirsh{}, &fakeResticEngine{})
+	if err := svc.ForgetTarget(context.Background(), "radarr-movies"); err == nil {
+		t.Fatal("ForgetTarget must refuse a container that is installed")
+	}
+	if _, err := st.GetTargetByContainer("radarr-movies"); err != nil {
+		t.Fatalf("the installed container's entry must stay: %v", err)
+	}
+}
+
 // TestServiceSetVMIncludeAll verifies the VM one-click action toggles the flag
-// for every live VM (find-or-creating its target) AND every already-known VM
-// target (orphans with backups but no live domain).
+// for every live VM (find-or-creating its target). An orphan (a known VM target
+// with no live domain) is only ever EXCLUDED by it, never included: while it is
+// scheduled every run tries it again and logs a skip, the same trap #232 found
+// on the container side.
 func TestServiceSetVMIncludeAll(t *testing.T) {
 	dir := t.TempDir()
 	cfg := config.Config{AppKey: strings.Repeat("a", 64), DataDir: dir, HostMountRoot: "/host/user"}
 	st := newMemStore(t)
 
-	// Pre-seed an orphan VM target (no live domain) so we prove orphans are toggled.
+	// Pre-seed an orphan VM target (no live domain).
 	if _, err := st.UpsertVMTarget(store.VMTarget{Name: "old-vm", Method: "graceful"}); err != nil {
 		t.Fatal(err)
 	}
@@ -3015,7 +3102,7 @@ func TestServiceSetVMIncludeAll(t *testing.T) {
 	if err := svc.SetVMIncludeAll(context.Background(), true); err != nil {
 		t.Fatalf("SetVMIncludeAll(true): %v", err)
 	}
-	for _, name := range []string{"win11", "ubuntu", "old-vm"} {
+	for _, name := range []string{"win11", "ubuntu"} {
 		tg, err := st.GetVMTargetByName(name)
 		if err != nil {
 			t.Fatalf("vm target %q must exist: %v", name, err)
@@ -3024,7 +3111,18 @@ func TestServiceSetVMIncludeAll(t *testing.T) {
 			t.Fatalf("include flag must be true for vm %q", name)
 		}
 	}
+	old, err := st.GetVMTargetByName("old-vm")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if old.IncludeInSchedule {
+		t.Fatal("include all must not schedule a VM that is no longer defined")
+	}
 
+	// Scheduled by hand before it went away: exclude all must still reach it.
+	if err := st.SetVMInclude("old-vm", true); err != nil {
+		t.Fatal(err)
+	}
 	if err := svc.SetVMIncludeAll(context.Background(), false); err != nil {
 		t.Fatalf("SetVMIncludeAll(false): %v", err)
 	}
@@ -4139,11 +4237,64 @@ func TestForgetVMTargetRemovesEntry(t *testing.T) {
 		t.Fatal(err)
 	}
 	svc := api.NewService(cfg, st, &fakeServiceDocker{}, fakeVirsh{}, &fakeResticEngine{})
-	if err := svc.ForgetVMTarget("DietPi_template"); err != nil {
+	if err := svc.ForgetVMTarget(context.Background(), "DietPi_template"); err != nil {
 		t.Fatalf("ForgetVMTarget: %v", err)
 	}
 	if _, err := st.GetVMTargetByName("DietPi_template"); err == nil {
 		t.Fatal("VM target should be gone after ForgetVMTarget")
+	}
+}
+
+// TestForgetVMTargetRefusesDefinedVM is the VM half of
+// TestForgetTargetRefusesInstalledContainer.
+func TestForgetVMTargetRefusesDefinedVM(t *testing.T) {
+	cfg := config.Config{AppKey: strings.Repeat("a", 64), DataDir: t.TempDir()}
+	st := newMemStore(t)
+	s := mustSettings(t, st)
+	s.VMsEnabled = true // ListVMs only asks libvirt then, and so does the guard
+	if err := st.UpdateSettings(s); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := st.UpsertVMTarget(store.VMTarget{Name: "win11"}); err != nil {
+		t.Fatal(err)
+	}
+	v := listVMsVirsh{vms: []virshcli.VMInfo{{Name: "win11"}}}
+	svc := api.NewService(cfg, st, &fakeServiceDocker{}, v, &fakeResticEngine{})
+	if err := svc.ForgetVMTarget(context.Background(), "win11"); err == nil {
+		t.Fatal("ForgetVMTarget must refuse a VM that is defined on the host")
+	}
+	if _, err := st.GetVMTargetByName("win11"); err != nil {
+		t.Fatalf("the defined VM's entry must stay: %v", err)
+	}
+}
+
+// TestDeleteBackupsVMMissingLocalRepoClearsEntry (#232): without a local
+// repository there is nothing to delete, so the not-installed entry goes anyway,
+// as DeleteBackups already does for a container. Refusing left the card's one
+// removal button unable to ever succeed.
+func TestDeleteBackupsVMMissingLocalRepoClearsEntry(t *testing.T) {
+	dir := t.TempDir()
+	cfg := config.Config{AppKey: strings.Repeat("a", 64), DataDir: dir, HostMountRoot: dir}
+	st := newMemStore(t)
+	s := mustSettings(t, st)
+	s.VMsPath = "backups/vms" // never created
+	if err := st.UpdateSettings(s); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := st.UpsertVMTarget(store.VMTarget{Name: "win11"}); err != nil {
+		t.Fatal(err)
+	}
+	eng := &fakeResticEngine{}
+	svc := api.NewService(cfg, st, &fakeServiceDocker{}, fakeVirsh{}, eng)
+
+	if err := svc.DeleteBackupsVM(context.Background(), "win11", ""); err != nil {
+		t.Fatalf("DeleteBackupsVM without a local repository: %v", err)
+	}
+	if len(eng.forgotten) != 0 {
+		t.Fatalf("nothing may reach the engine, got %v", eng.forgotten)
+	}
+	if _, err := st.GetVMTargetByName("win11"); err == nil {
+		t.Fatal("the entry must be gone")
 	}
 }
 

@@ -763,6 +763,21 @@ func (h *Handler) handleDeleteBackups(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, okEnvelope(nil))
 }
 
+// handleForgetContainer clears a container's stale "Not installed" entry (its
+// target row) without touching any repo, the twin of handleForgetVM (#232).
+// DELETE /api/containers/{name}
+func (h *Handler) handleForgetContainer(w http.ResponseWriter, r *http.Request) {
+	name, ok := h.nameParam(w, r)
+	if !ok {
+		return
+	}
+	if err := h.svc.ForgetTarget(r.Context(), name); err != nil {
+		writeJSON(w, http.StatusOK, failEnvelope(err))
+		return
+	}
+	writeJSON(w, http.StatusOK, okEnvelope(nil))
+}
+
 // handleDeleteBackupsVM removes ALL backups of a VM from the selected source
 // (local or off-site) in one go and prunes the freed space. The one-shot
 // counterpart to deleting each snapshot individually per source.
@@ -787,7 +802,7 @@ func (h *Handler) handleForgetVM(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	if err := h.svc.ForgetVMTarget(name); err != nil {
+	if err := h.svc.ForgetVMTarget(r.Context(), name); err != nil {
 		writeJSON(w, http.StatusOK, failEnvelope(err))
 		return
 	}
@@ -1454,7 +1469,8 @@ func (h *Handler) reloadScheduler() error {
 
 // handleScheduleIncludeAll sets the include_in_schedule flag for EVERY installed
 // container in one call — the one-click "include all in schedule" / "exclude all"
-// action. POST /api/containers/schedule-include  body {include: bool}
+// action. Excluding also reaches containers that are no longer installed (#232).
+// POST /api/containers/schedule-include  body {include: bool}
 func (h *Handler) handleScheduleIncludeAll(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Include bool `json:"include"`
@@ -4572,8 +4588,9 @@ func (h *Handler) handlePatchVM(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, okEnvelope(nil))
 }
 
-// handleVMScheduleIncludeAll sets the include_in_schedule flag for EVERY known VM
-// in one call — the VM counterpart to handleScheduleIncludeAll.
+// handleVMScheduleIncludeAll sets the include_in_schedule flag for every VM on
+// the host in one call — the VM counterpart to handleScheduleIncludeAll.
+// Excluding also reaches VMs that are no longer defined (#232).
 // POST /api/vms/schedule-include  body {include: bool}
 func (h *Handler) handleVMScheduleIncludeAll(w http.ResponseWriter, r *http.Request) {
 	var body struct {

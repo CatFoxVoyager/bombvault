@@ -106,9 +106,10 @@ const hr: Partial<Translations> = {
   "containers.notInstalled": "Nije instaliran",
   "containers.notInstalledTitle": "Nije instaliran (samo sigurnosne kopije)",
   "containers.notInstalledHint": "Ovi kontejneri više nisu instalirani, ali još imaju sigurnosne kopije. Vratite ih ili izbrišite njihove sigurnosne kopije da oslobodite prostor.",
-  "containers.notInstalledSkipped": "I dalje su zakazani, pa svako izvođenje bilježi preskakanje za svaki od njih.",
+  "containers.notInstalledSkipped": "Unosi koji su ovdje još zakazani bilježe preskakanje pri svakom izvođenju. Isključi „Uključi u raspored” na kartici da to prestane.",
   "containers.deleteBackups": "Izbriši sve sigurnosne kopije",
   "containers.deleteBackupsConfirm": "Izbrisati SVE sigurnosne kopije ovog kontejnera? Snimke se trajno uklanjaju iz repozitorija i ne mogu se vratiti.",
+  "containers.removeEntryConfirm": "Ukloniti unos ovog kontejnera s popisa? Njegove sigurnosne kopije, ako postoje, ne brišu se.",
   "containers.filter": "Filtar:",
   "containers.sectionsLabel": "Odjeljci",
   "containers.filterAll": "Svi",
@@ -1015,6 +1016,7 @@ const hr: Partial<Translations> = {
   "vms.notInstalledHint": "Ovi VM-ovi više nisu definirani na hostu, ali još imaju sigurnosne kopije. Vratite ih za oporavak, ili koristite panel Sigurnosnih kopija za pregled njihovih snimki.",
   "vms.removeEntry": "Ukloni unos",
   "vms.removeEntryConfirm": "Ukloniti unos ovog VM-a s popisa? Njegove sigurnosne kopije, ako postoje, ne brišu se.",
+  "vms.deleteBackupsConfirm": "Izbrisati SVE sigurnosne kopije ovog VM-a? Snimke se trajno uklanjaju iz repozitorija i ne mogu se vratiti.",
   "vms.discoverHint": "VM izbrisan iz Unraida (ili izgubljen nakon ponovne instalacije)? Ponovno izgradite njegov unos sigurnosne kopije iz pohrane kako biste ga mogli vratiti.",
 
   // Flash (Unraid USB) backup

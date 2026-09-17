@@ -102,9 +102,10 @@ const uk: Partial<Translations> = {
   "containers.notInstalled": "Не встановлено",
   "containers.notInstalledTitle": "Не встановлено (лише резервні копії)",
   "containers.notInstalledHint": "Ці контейнери більше не встановлені, але резервні копії збереглися. Відновіть їх або видаліть резервні копії, щоб звільнити місце.",
-  "containers.notInstalledSkipped": "Вони досі заплановані, тож кожен запуск записує пропуск для кожного з них.",
+  "containers.notInstalledSkipped": "Записи, які тут досі заплановані, під час кожного запуску записують пропуск. Вимкніть «Включити до розкладу» на картці, щоб це припинити.",
   "containers.deleteBackups": "Видалити всі резервні копії",
   "containers.deleteBackupsConfirm": "Видалити ВСІ резервні копії цього контейнера? Знімки будуть безповоротно видалені з репозиторію.",
+  "containers.removeEntryConfirm": "Прибрати запис цього контейнера зі списку? Наявні копії не видаляються.",
   "containers.filter": "Фільтр:",
   "containers.sectionsLabel": "Розділи",
   "containers.filterAll": "Всі",
@@ -419,6 +420,7 @@ const uk: Partial<Translations> = {
   "vms.notInstalledHint": "Ці VM більше не визначені на хості, але резервні копії збереглися. Відновіть їх або відкрийте панель Резервних копій для перегляду знімків.",
   "vms.removeEntry": "Видалити запис",
   "vms.removeEntryConfirm": "Прибрати запис цієї ВМ зі списку? Наявні копії не видаляються.",
+  "vms.deleteBackupsConfirm": "Видалити ВСІ резервні копії цієї ВМ? Знімки будуть безповоротно видалені з репозиторію.",
   "vms.discoverHint": "ВМ видалено з Unraid (або втрачено після перевстановлення)? Відновіть її резервний запис зі сховища, щоб відновити її.",
 
   // Container / VM state badge labels

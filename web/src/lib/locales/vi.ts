@@ -102,9 +102,10 @@ const vi: Partial<Translations> = {
   "containers.notInstalled": "Chưa cài đặt",
   "containers.notInstalledTitle": "Chưa cài đặt (chỉ có bản sao lưu)",
   "containers.notInstalledHint": "Các containers này không còn được cài đặt nhưng vẫn còn bản sao lưu. Hãy khôi phục hoặc xóa bản sao lưu để giải phóng dung lượng.",
-  "containers.notInstalledSkipped": "Chúng vẫn còn trong lịch, nên mỗi lần chạy đều ghi lại một mục bỏ qua cho từng cái.",
+  "containers.notInstalledSkipped": "Các mục vẫn còn trong lịch sẽ ghi lại một lần bỏ qua ở mỗi lần chạy. Tắt \"Đưa vào lịch trình\" trên thẻ để dừng việc này.",
   "containers.deleteBackups": "Xóa tất cả bản sao lưu",
   "containers.deleteBackupsConfirm": "Xóa TẤT CẢ bản sao lưu của container này? Các snapshot sẽ bị xóa vĩnh viễn khỏi kho và không thể hoàn tác.",
+  "containers.removeEntryConfirm": "Xóa mục của container này khỏi danh sách? Mọi bản sao lưu hiện có sẽ không bị xóa.",
   "containers.filter": "Lọc:",
   "containers.sectionsLabel": "Các phần",
   "containers.filterAll": "Tất cả",
@@ -422,6 +423,7 @@ const vi: Partial<Translations> = {
   "vms.notInstalledHint": "Các VMs này không còn được định nghĩa trên máy chủ nhưng vẫn còn bản sao lưu. Khôi phục hoặc duyệt snapshot trong bảng Bản sao lưu.",
   "vms.removeEntry": "Xóa mục",
   "vms.removeEntryConfirm": "Xóa mục của VM này khỏi danh sách? Mọi bản sao lưu hiện có sẽ không bị xóa.",
+  "vms.deleteBackupsConfirm": "Xóa TẤT CẢ bản sao lưu của VM này? Các snapshot sẽ bị xóa vĩnh viễn khỏi kho và không thể hoàn tác.",
   "vms.discoverHint": "Đã xóa máy ảo khỏi Unraid (hoặc mất sau khi cài lại)? Dựng lại mục sao lưu của nó từ bộ lưu trữ để có thể khôi phục.",
 
   // Container / VM state badge labels

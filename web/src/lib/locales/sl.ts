@@ -106,9 +106,10 @@ const sl: Partial<Translations> = {
   "containers.notInstalled": "Ni nameščeno",
   "containers.notInstalledTitle": "Ni nameščeno (samo varnostne kopije)",
   "containers.notInstalledHint": "Ti vsebniki niso več nameščeni, a imajo še vedno varnostne kopije. Obnovi jih ali izbriši njihove varnostne kopije, da sprostiš prostor.",
-  "containers.notInstalledSkipped": "Še vedno so načrtovani, zato vsak zagon za vsakega od njih zabeleži preskok.",
+  "containers.notInstalledSkipped": "Vnosi, ki so tu še načrtovani, ob vsakem zagonu zabeležijo preskok. Na kartici izklopite \"Vključi v urnik\", da se to ustavi.",
   "containers.deleteBackups": "Izbriši vse varnostne kopije",
   "containers.deleteBackupsConfirm": "Izbrišem VSE varnostne kopije tega vsebnika? Posnetki se trajno odstranijo iz repozitorija in tega ni mogoče razveljaviti.",
+  "containers.removeEntryConfirm": "Odstranim vnos tega vsebnika s seznama? Njegove varnostne kopije, če obstajajo, se ne izbrišejo.",
   "containers.filter": "Filter:",
   "containers.sectionsLabel": "Razdelki",
   "containers.filterAll": "Vsi",
@@ -1010,6 +1011,7 @@ const sl: Partial<Translations> = {
   "vms.notInstalledHint": "Ti VM-ji na gostitelju niso več definirani, a imajo še vedno varnostne kopije. Obnovi jih, da jih povrneš, ali uporabi ploščo Varnostne kopije za brskanje po njihovih posnetkih.",
   "vms.removeEntry": "Odstrani vnos",
   "vms.removeEntryConfirm": "Odstranim vnos tega VM-ja s seznama? Njegove varnostne kopije, če obstajajo, se ne izbrišejo.",
+  "vms.deleteBackupsConfirm": "Izbrišem VSE varnostne kopije tega VM-ja? Posnetki se trajno odstranijo iz repozitorija in tega ni mogoče razveljaviti.",
   "vms.discoverHint": "VM izbrisan iz Unraida (ali izgubljen po ponovni namestitvi)? Iz shrambe ponovno zgradi njegov vnos varnostne kopije, da ga lahko obnoviš.",
 
   // Flash (Unraid USB) backup

@@ -102,9 +102,10 @@ const cs: Partial<Translations> = {
   "containers.notInstalled": "Není nainstalováno",
   "containers.notInstalledTitle": "Není nainstalováno (pouze zálohy)",
   "containers.notInstalledHint": "Tyto kontejnery již nejsou nainstalovány, ale stále mají zálohy. Obnovte je nebo odstraňte jejich zálohy pro uvolnění místa.",
-  "containers.notInstalledSkipped": "Jsou stále naplánované, takže každý běh pro každý z nich zaznamená přeskočení.",
+  "containers.notInstalledSkipped": "Položky, které jsou tu stále naplánované, zaznamenají při každém běhu přeskočení. Vypněte na kartě „Zahrnout do plánu“, aby to přestalo.",
   "containers.deleteBackups": "Smazat všechny zálohy",
   "containers.deleteBackupsConfirm": "Smazat VŠECHNY zálohy tohoto kontejneru? Snímky budou trvale odstraněny z repozitáře a tuto akci nelze vrátit zpět.",
+  "containers.removeEntryConfirm": "Odebrat položku tohoto kontejneru ze seznamu? Případné zálohy se nesmažou.",
   "containers.filter": "Filtr:",
   "containers.sectionsLabel": "Sekce",
   "containers.filterAll": "Vše",
@@ -422,6 +423,7 @@ const cs: Partial<Translations> = {
   "vms.notInstalledHint": "Tyto VM již nejsou definovány na hostiteli, ale stále mají zálohy. Obnovte je nebo procházejte jejich snímky v panelu Zálohy.",
   "vms.removeEntry": "Odebrat položku",
   "vms.removeEntryConfirm": "Odebrat položku tohoto VM ze seznamu? Případné zálohy se nesmažou.",
+  "vms.deleteBackupsConfirm": "Smazat VŠECHNY zálohy tohoto VM? Snímky budou trvale odstraněny z repozitáře a tuto akci nelze vrátit zpět.",
   "vms.discoverHint": "Virtuální stroj smazaný z Unraidu (nebo ztracený po přeinstalaci)? Znovu sestavte jeho zálohovací záznam z úložiště, abyste jej mohli obnovit.",
 
   // Container / VM state badge labels

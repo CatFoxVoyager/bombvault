@@ -106,9 +106,10 @@ const is: Partial<Translations> = {
   "containers.notInstalled": "Ekki uppsettur",
   "containers.notInstalledTitle": "Ekki uppsettur (aðeins afrit)",
   "containers.notInstalledHint": "Þessir gámar eru ekki lengur uppsettir en eiga samt afrit. Endurheimtu þá eða eyddu afritum þeirra til að losa pláss.",
-  "containers.notInstalledSkipped": "Þau eru enn á áætlun, svo hver keyrsla skráir sleppingu fyrir hvert þeirra.",
+  "containers.notInstalledSkipped": "Færslur sem eru enn á áætlun hér skrá sleppingu í hverri keyrslu. Slökktu á „Setja í tímaáætlun“ á spjaldinu til að stöðva það.",
   "containers.deleteBackups": "Eyða öllum afritum",
   "containers.deleteBackupsConfirm": "Eyða ÖLLUM afritum þessa gáms? Snapshottin eru fjarlægð varanlega úr geymslusafninu og verður ekki afturkallað.",
+  "containers.removeEntryConfirm": "Fjarlægja færslu þessa gáms úr listanum? Afritum hans, ef einhver eru, er ekki eytt.",
   "containers.filter": "Sía:",
   "containers.sectionsLabel": "Hlutar",
   "containers.filterAll": "Allir",
@@ -1015,6 +1016,7 @@ const is: Partial<Translations> = {
   "vms.notInstalledHint": "Þessar sýndarvélar eru ekki lengur skilgreindar á hýslinum en eiga samt afrit. Endurheimtu þær til að ná þeim aftur, eða notaðu Afrit-spjaldið til að skoða snapshottin þeirra.",
   "vms.removeEntry": "Fjarlægja færslu",
   "vms.removeEntryConfirm": "Fjarlægja færslu þessarar sýndarvélar úr listanum? Afritum hennar, ef einhver eru, er ekki eytt.",
+  "vms.deleteBackupsConfirm": "Eyða ÖLLUM afritum þessarar sýndarvélar? Snapshottin eru fjarlægð varanlega úr geymslusafninu og verður ekki afturkallað.",
   "vms.discoverHint": "Sýndarvél eytt úr Unraid (eða týnd eftir endurinnsetningu)? Endurbyggðu afritafærslu hennar úr geymslunni svo þú getir endurheimt hana.",
 
   // Flash (Unraid USB) backup

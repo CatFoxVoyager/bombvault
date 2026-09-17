@@ -102,9 +102,10 @@ const ja: Partial<Translations> = {
   "containers.notInstalled": "未インストール",
   "containers.notInstalledTitle": "未インストール（バックアップのみ）",
   "containers.notInstalledHint": "これらのコンテナはインストールされていませんが、バックアップが残っています。復元するか、バックアップを削除してスペースを解放してください。",
-  "containers.notInstalledSkipped": "まだ予定に残っているため、実行のたびにそれぞれについて省略が記録されます。",
+  "containers.notInstalledSkipped": "予定に残っている項目は、実行のたびに省略が記録されます。止めるには、カードの「スケジュールに含める」をオフにしてください。",
   "containers.deleteBackups": "バックアップをすべて削除",
   "containers.deleteBackupsConfirm": "このコンテナのバックアップをすべて削除しますか？スナップショットはリポジトリから完全に削除され、元に戻せません。",
+  "containers.removeEntryConfirm": "このコンテナのエントリを一覧から削除しますか？バックアップがあっても削除されません。",
   "containers.filter": "フィルター:",
   "containers.sectionsLabel": "セクション",
   "containers.filterAll": "すべて",
@@ -422,6 +423,7 @@ const ja: Partial<Translations> = {
   "vms.notInstalledHint": "これらの VM はホストで定義されていませんが、バックアップが残っています。復元するか、バックアップパネルでスナップショットを参照してください。",
   "vms.removeEntry": "エントリを削除",
   "vms.removeEntryConfirm": "このVMのエントリを一覧から削除しますか？バックアップがあっても削除されません。",
+  "vms.deleteBackupsConfirm": "このVMのバックアップをすべて削除しますか？スナップショットはリポジトリから完全に削除され、元に戻せません。",
   "vms.discoverHint": "Unraid から VM を削除した(または再インストールで失った)場合は、ストレージからバックアップエントリを再構築すると復元できます。",
 
   // Container / VM state badge labels

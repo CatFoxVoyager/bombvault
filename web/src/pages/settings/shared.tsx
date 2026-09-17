@@ -450,7 +450,7 @@ export function ToggleRow({
   // there to reach for anymore. (The underlying Toggle's OWN `hideLabel`
   // stays a real, legitimate prop — a caller that renders this row's label
   // itself, in its own layout, e.g. a hand-rolled row like Containers.tsx's
-  // UpdateAfterBackupRow or VMs.tsx's VMIncludeToggle, still needs to tell
+  // UpdateAfterBackupRow, still needs to tell
   // the bare switch not to print a second, literally duplicate copy right
   // next to the one the caller already drew. What's gone is only the
   // ToggleRow-level shortcut that let a caller skip drawing any caption at

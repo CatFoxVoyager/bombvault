@@ -102,9 +102,10 @@ const ko: Partial<Translations> = {
   "containers.notInstalled": "설치되지 않음",
   "containers.notInstalledTitle": "설치되지 않음 (백업만)",
   "containers.notInstalledHint": "이 컨테이너는 더 이상 설치되지 않았지만 백업이 있습니다. 복원하거나 공간을 확보하려면 백업을 삭제하세요.",
-  "containers.notInstalledSkipped": "여전히 예약되어 있어 실행할 때마다 각각에 대해 건너뜀이 기록됩니다.",
+  "containers.notInstalledSkipped": "아직 예약된 항목은 실행할 때마다 건너뜀이 기록됩니다. 멈추려면 카드에서 「일정에 포함」을 끄세요.",
   "containers.deleteBackups": "모든 백업 삭제",
   "containers.deleteBackupsConfirm": "이 컨테이너의 모든 백업을 삭제하시겠습니까? 스냅샷이 리포지토리에서 영구적으로 제거되며 되돌릴 수 없습니다.",
+  "containers.removeEntryConfirm": "이 컨테이너의 항목을 목록에서 제거할까요? 백업이 있어도 삭제되지 않습니다.",
   "containers.filter": "필터:",
   "containers.sectionsLabel": "섹션",
   "containers.filterAll": "전체",
@@ -422,6 +423,7 @@ const ko: Partial<Translations> = {
   "vms.notInstalledHint": "이 VM은 더 이상 호스트에 정의되어 있지 않지만 백업이 있습니다. 복원하거나 백업 패널에서 스냅샷을 탐색하세요.",
   "vms.removeEntry": "항목 제거",
   "vms.removeEntryConfirm": "이 VM의 항목을 목록에서 제거할까요? 백업이 있어도 삭제되지 않습니다.",
+  "vms.deleteBackupsConfirm": "이 VM의 모든 백업을 삭제하시겠습니까? 스냅샷이 리포지토리에서 영구적으로 제거되며 되돌릴 수 없습니다.",
   "vms.discoverHint": "Unraid에서 VM을 삭제했나요(또는 재설치 후 잃어버렸나요)? 스토리지에서 백업 항목을 재구성하면 복원할 수 있습니다.",
 
   // Container / VM state badge labels

@@ -158,9 +158,10 @@ export const en = {
   "containers.notInstalled": "Not installed",
   "containers.notInstalledTitle": "Not installed (backups only)",
   "containers.notInstalledHint": "These containers are no longer installed but still have backups. Restore them, or delete their backups to free space.",
-  "containers.notInstalledSkipped": "They are still scheduled, so every run records a skip for each one.",
+  "containers.notInstalledSkipped": "Entries that are still scheduled record a skip on every run. Switch off “Include in schedule” on the card to stop that.",
   "containers.deleteBackups": "Delete all backups",
   "containers.deleteBackupsConfirm": "Delete ALL backups of this container? The snapshots are permanently removed from the repository and cannot be undone.",
+  "containers.removeEntryConfirm": "Remove this container's entry from the list? Its backups, if any, are not deleted.",
   "containers.filter": "Filter:",
   "containers.filterAll": "All",
   "containers.filterInstalled": "Installed",
@@ -1278,6 +1279,7 @@ export const en = {
   "vms.notInstalledHint": "These VMs are no longer defined on the host but still have backups. Restore them to recover, or use the Backups panel to browse their snapshots.",
   "vms.removeEntry": "Remove entry",
   "vms.removeEntryConfirm": "Remove this VM's entry from the list? Its backups, if any, are not deleted.",
+  "vms.deleteBackupsConfirm": "Delete ALL backups of this VM? The snapshots are permanently removed from the repository and cannot be undone.",
   "vms.discoverHint": "VM deleted from Unraid (or lost after a reinstall)? Rebuild its backup entry from storage so you can restore it.",
 
   // Flash (Unraid USB) backup
@@ -2100,9 +2102,10 @@ export const de: Translations = {
   "containers.notInstalled": "Nicht installiert",
   "containers.notInstalledTitle": "Nicht installiert (nur Backups)",
   "containers.notInstalledHint": "Diese Container sind nicht mehr installiert, haben aber noch Backups. Stelle sie wieder her oder lösche ihre Backups, um Platz freizugeben.",
-  "containers.notInstalledSkipped": "Sie sind weiterhin eingeplant, also hält jeder Lauf für jeden von ihnen einen Überspringer fest.",
+  "containers.notInstalledSkipped": "Einträge, die hier noch eingeplant sind, halten bei jedem Lauf einen Überspringer fest. Schalte auf der Karte „Im Zeitplan einschließen“ aus, damit das aufhört.",
   "containers.deleteBackups": "Alle Backups löschen",
   "containers.deleteBackupsConfirm": "ALLE Backups dieses Containers löschen? Die Snapshots werden dauerhaft aus dem Repository entfernt und können nicht wiederhergestellt werden.",
+  "containers.removeEntryConfirm": "Den Eintrag dieses Containers aus der Liste entfernen? Vorhandene Backups werden nicht gelöscht.",
   "containers.filter": "Filter:",
   "containers.filterAll": "Alle",
   "containers.filterInstalled": "Installiert",
@@ -3017,6 +3020,7 @@ export const de: Translations = {
   "vms.notInstalledHint": "Diese VMs sind nicht mehr auf dem Host definiert, haben aber noch Backups. Stelle sie wieder her oder sieh ihre Snapshots im Backups-Panel ein.",
   "vms.removeEntry": "Eintrag entfernen",
   "vms.removeEntryConfirm": "Den Eintrag dieser VM aus der Liste entfernen? Vorhandene Backups werden nicht gelöscht.",
+  "vms.deleteBackupsConfirm": "ALLE Backups dieser VM löschen? Die Snapshots werden dauerhaft aus dem Repository entfernt und können nicht wiederhergestellt werden.",
   "vms.discoverHint": "VM aus Unraid gelöscht (oder nach einer Neuinstallation verloren)? Baue ihren Backup-Eintrag aus dem Speicher neu auf, um sie wiederherzustellen.",
 
   // Flash (Unraid USB) backup

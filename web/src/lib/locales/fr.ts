@@ -102,9 +102,10 @@ const fr: Partial<Translations> = {
   "containers.notInstalled": "Non installé",
   "containers.notInstalledTitle": "Non installé (sauvegardes uniquement)",
   "containers.notInstalledHint": "Ces conteneurs ne sont plus installés mais ont encore des sauvegardes. Restaurez-les ou supprimez leurs sauvegardes pour libérer de l'espace.",
-  "containers.notInstalledSkipped": "Ils restent planifiés, donc chaque exécution enregistre un saut pour chacun.",
+  "containers.notInstalledSkipped": "Les entrées encore planifiées enregistrent un saut à chaque exécution. Désactivez « Inclure dans le planning » sur la carte pour y mettre fin.",
   "containers.deleteBackups": "Supprimer toutes les sauvegardes",
   "containers.deleteBackupsConfirm": "Supprimer TOUTES les sauvegardes de ce conteneur ? Les instantanés sont supprimés définitivement du dépôt et cette action est irréversible.",
+  "containers.removeEntryConfirm": "Retirer l'entrée de ce conteneur de la liste ? Ses sauvegardes éventuelles ne sont pas supprimées.",
   "containers.filter": "Filtre :",
   "containers.sectionsLabel": "Sections",
   "containers.filterAll": "Tous",
@@ -422,6 +423,7 @@ const fr: Partial<Translations> = {
   "vms.notInstalledHint": "Ces VMs ne sont plus définies sur l'hôte mais ont encore des sauvegardes. Restaurez-les pour les récupérer, ou utilisez le panneau Sauvegardes pour parcourir leurs instantanés.",
   "vms.removeEntry": "Supprimer l'entrée",
   "vms.removeEntryConfirm": "Retirer l'entrée de cette VM de la liste ? Ses sauvegardes éventuelles ne sont pas supprimées.",
+  "vms.deleteBackupsConfirm": "Supprimer TOUTES les sauvegardes de cette VM ? Les instantanés sont supprimés définitivement du dépôt et cette action est irréversible.",
   "vms.discoverHint": "VM supprimée d'Unraid (ou perdue après une réinstallation) ? Reconstruisez son entrée de sauvegarde depuis le stockage pour pouvoir la restaurer.",
 
   // Container / VM state badge labels

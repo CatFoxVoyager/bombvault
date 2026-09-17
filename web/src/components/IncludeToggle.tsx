@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { setInclude } from "../lib/api";
+import { setInclude, type OkEnvelope } from "../lib/api";
 import { useT } from "../lib/i18n";
 import { ToggleRow } from "../pages/settings/shared";
 import { useToast } from "../lib/toast";
@@ -7,9 +7,12 @@ import { useToast } from "../lib/toast";
 interface IncludeToggleProps {
   name: string;
   initial: boolean;
+  /** The request that stores the switch. Containers by default; the VMs page
+   *  passes setVMInclude, so both pages render this one control. */
+  save?: (name: string, include: boolean) => Promise<OkEnvelope>;
 }
 
-export function IncludeToggle({ name, initial }: IncludeToggleProps) {
+export function IncludeToggle({ name, initial, save = setInclude }: IncludeToggleProps) {
   const { t } = useT();
   const { push } = useToast();
   const [enabled, setEnabled] = useState(initial);
@@ -31,7 +34,7 @@ export function IncludeToggle({ name, initial }: IncludeToggleProps) {
   async function handleChange(next: boolean) {
     setBusy(true);
     try {
-      const res = await setInclude(name, next);
+      const res = await save(name, next);
       if (res.ok) {
         setEnabled(next);
       } else {

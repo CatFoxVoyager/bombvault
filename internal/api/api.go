@@ -207,6 +207,7 @@ func (h *Handler) Router() http.Handler {
 	mux.HandleFunc("GET /api/containers/{name}/diff", h.handleDiff)
 	mux.HandleFunc("POST /api/containers/{name}/tag", h.handleTagSnapshot)
 	mux.HandleFunc("DELETE /api/containers/{name}/backups", h.handleDeleteBackups)
+	mux.HandleFunc("DELETE /api/containers/{name}", h.handleForgetContainer)
 	mux.HandleFunc("PATCH /api/containers/{name}", h.handlePatchContainer)
 	mux.HandleFunc("GET /api/settings", h.handleGetSettings)
 	mux.HandleFunc("PUT /api/settings", h.handlePutSettings)

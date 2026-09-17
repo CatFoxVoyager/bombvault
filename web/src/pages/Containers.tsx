@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { listContainers, deleteBackups, backupAll, restore, restoreStack, discover, setContainerHooks, getContainerMounts, setContainerRepo, setContainerTargets, setStopContainers, setContainerExcludes, previewContainerExcludes, suggestContainerExcludes, exportContainer, setIncludeAll, setUpdateAfterBackup, getBackupOrder, setBackupOrder, ApiError, type ContainerTargetsBody } from "../lib/api";
+import { listContainers, deleteBackups, forgetContainer, backupAll, restore, restoreStack, discover, setContainerHooks, getContainerMounts, setContainerRepo, setContainerTargets, setStopContainers, setContainerExcludes, previewContainerExcludes, suggestContainerExcludes, exportContainer, setIncludeAll, setUpdateAfterBackup, getBackupOrder, setBackupOrder, ApiError, type ContainerTargetsBody } from "../lib/api";
 import type { Container, ExcludeSuggestion, MountInfo, CustomPath, ContainerOrder, BrowseResponse } from "../lib/api";
 import { applyToggle, browseRelToHost, classifyNode, isAtOrUnder, partitionCustomPaths, toFlatList } from "../lib/selectionTree";
 import { SelectionTree } from "../components/SelectionTree";
@@ -23,6 +23,8 @@ import { SourceToggle, type RepoSource } from "../components/SourceToggle";
 import { EmptyStateIcon } from "../components/EmptyStateIcon";
 import { IconContainers, IconDownload, IconAdd } from "../components/Sidebar";
 import { IncludeToggle } from "../components/IncludeToggle";
+import { NotInstalledHeading } from "../components/NotInstalledHeading";
+import { OrphanRemoveButton } from "../components/OrphanRemoveButton";
 import { Badge, type BadgeTone } from "../components/Badge";
 import { Button } from "../components/Button";
 import { groupStage } from "../lib/controls";
@@ -310,83 +312,6 @@ function ChipFilter<K extends string>({
 // ---------------------------------------------------------------------------
 // Container row
 // ---------------------------------------------------------------------------
-
-// DeleteBackupsButton permanently forgets all backups of a (usually
-// no-longer-installed) container and refreshes the list on success.
-function DeleteBackupsButton({
-  name,
-  t,
-  onDeleted,
-}: {
-  name: string;
-  t: T;
-  onDeleted: () => void;
-}) {
-  const [pending, setPending] = useState(false);
-  const { push } = useToast();
-  const { confirm, confirmDialog } = useConfirm();
-  // GlimStone standing rule (jdp, live review, emphatic, system-wide): a
-  // failed action toasts AND shakes its button.
-  const [shake, setShake] = useState(0);
-
-  async function handleDelete() {
-    // TODO(#follow-up): once richer stake-detail copy ("N snapshots, X GB")
-    // ships (deferred — needs new interpolated i18n keys across all 25
-    // non-English locales, out of scope for the window.confirm() → dialog
-    // mechanism swap, form-engine Task 7), it renders here as extra body
-    // content passed to confirm(), same as the two other flagged sites in
-    // VMs.tsx's deleteAllConfirm and Files.tsx's deleteBackupsConfirm.
-    if (!(await confirm(t("containers.deleteBackupsConfirm")))) return;
-    setPending(true);
-    try {
-      const res = await deleteBackups(name);
-      if (res.ok) onDeleted();
-      else {
-        push(res.error ?? t("common.deleteFailed"), "fail");
-        setShake((n) => n + 1);
-      }
-    } catch (err) {
-      push(err instanceof Error ? err.message : t("common.deleteFailed"), "fail");
-      setShake((n) => n + 1);
-    } finally {
-      setPending(false);
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-1">
-      {/* NO bespoke red (whole-app sweep). This was `bg-statusFailBg`/
-          `text-statusFail`, the last of that treatment on this page. The
-          standing rule is explicit — status colours stay OUT of the accent
-          engine AND a destructive action gets no special red of its own
-          either (jdp: "Keine Sonderfarbe fuer den Entfernen-Badge", and
-          RestorePanel's own delete badge records the same reversal: "Der
-          Löschen-Badge ist auch anders eingefärbt, soll nicht so sein").
-          Plain neutral secondary chrome now, identical to every other
-          secondary text button in the app.
-            Nothing about the action becomes ambiguous: the label says
-          "Alle Backups löschen" verbatim, and handleDelete still routes
-          through the shared useConfirm dialog
-          (t("containers.deleteBackupsConfirm")) before anything is deleted —
-          that confirmation is untouched. `glim-shake` on failure survives:
-          behaviour, not colour. Stays a TEXT button (not an icon badge) —
-          it is a labelled action that also carries an in-flight label, not
-          a row-action glyph pair. */}
-      <Button
-        key={shake}
-        label={t("containers.deleteBackups")}
-        labelKey="containers.deleteBackups"
-        tone="neutral"
-        onClick={() => void handleDelete()}
-        disabled={pending}
-        busy={pending}
-        title={pending ? t("dashboard.checking") : undefined}
-        className={shake ? "glim-shake" : ""}
-      />
-      {confirmDialog}
-    </div>
-  );
-}
 
 // ExportButton writes a plain, tool-free tar+xml copy of the container (the same
 // folders restic backs up, plus the Unraid template) into a browsable folder next
@@ -2309,7 +2234,7 @@ function updateCheckResultText(t: T, result: string): string {
   }
 }
 
-function ContainerRow({
+export function ContainerRow({
   container,
   installedContainers,
   t,
@@ -2466,22 +2391,35 @@ function ContainerRow({
             backup action at all (backing it up would stop itself), so this
             slot is empty for it — same self-gating the pre-existing
             `selfNote` text already had at its old position in the Actions
-            row below. */}
-        {installed && (
-          <div className="ms-auto flex items-start gap-1.5 shrink-0">
-            {container.self ? (
-              <span className="text-xs text-carbon-textMuted max-w-[18rem] text-end">
-                {t("containers.selfNote")}
-              </span>
-            ) : (
-              <>
-                <BackupButton name={container.name} t={t} onBackedUp={onDeleted} running={running} />
-                {/* Plain tar+xml export is an advanced-only extra. */}
-                <Advanced><ExportButton name={container.name} t={t} /></Advanced>
-              </>
-            )}
-          </div>
-        )}
+            row below.
+              A not-installed container has nothing to back up, so the corner
+            holds its removal button instead (#232). It sat at the start of the
+            Actions row before, the one action on the card that was not on the
+            right, and it never matched the VM card's; OrphanRemoveButton is
+            the one both cards use now. */}
+        <div className="ms-auto flex items-start gap-1.5 shrink-0">
+          {!installed ? (
+            <OrphanRemoveButton
+              hasBackups={container.lastBackup != null}
+              deleteConfirm={t("containers.deleteBackupsConfirm")}
+              removeConfirm={t("containers.removeEntryConfirm")}
+              deleteBackups={() => deleteBackups(container.name)}
+              removeEntry={() => forgetContainer(container.name)}
+              onDone={onDeleted}
+              t={t}
+            />
+          ) : container.self ? (
+            <span className="text-xs text-carbon-textMuted max-w-[18rem] text-end">
+              {t("containers.selfNote")}
+            </span>
+          ) : (
+            <>
+              <BackupButton name={container.name} t={t} onBackedUp={onDeleted} running={running} />
+              {/* Plain tar+xml export is an advanced-only extra. */}
+              <Advanced><ExportButton name={container.name} t={t} /></Advanced>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Actions row — schedule-include + update-after-backup, both flush
@@ -2491,8 +2429,10 @@ function ContainerRow({
           left) / scattered among the advanced editors below (update-after-
           backup) — "Jetzt sichern"/Export moving to the top-right icon-badge
           corner above (Task 2) freed this row up to become a single flush-
-          right stack instead. DeleteBackupsButton (not-installed branch) is
-          unrelated to either toggle and stays at the row's own start.
+          right stack instead.
+          The include toggle shows on a not-installed card too (#232): such an
+          entry stays scheduled, every run records a skip for it, and the card
+          had no switch to end that short of deleting its backups.
           IncludeToggle no longer needs a wrapping `<label>`/`<span>` here
           (Task 2 follow-up, jdp live-review — "gleich anordnen ... Text ...
           ganz links ... Toggle ganz rechts"): it now renders the full
@@ -2501,23 +2441,21 @@ function ContainerRow({
           two independently hand-matched ones — see IncludeToggle.tsx's own
           comment. */}
       <div className="flex items-start">
-        {installed ? (
-          <div className="ms-auto flex flex-col items-end gap-2">
-            <IncludeToggle name={container.name} initial={container.includeInSchedule} />
-            <Advanced>
-              <UpdateAfterBackupRow
-                name={container.name}
-                initial={container.updateAfterBackup ?? false}
-                lastUpdateCheck={container.lastUpdateCheck}
-                lastUpdateResult={container.lastUpdateResult}
-                t={t}
-              />
-            </Advanced>
-          </div>
-        ) : (
-          /* Not installed: can't back up; offer delete-all-backups instead. */
-          <DeleteBackupsButton name={container.name} t={t} onDeleted={onDeleted} />
-        )}
+        <div className="ms-auto flex flex-col items-end gap-2">
+          <IncludeToggle
+            name={container.name}
+            initial={container.includeInSchedule}
+          />
+          <Advanced when={installed}>
+            <UpdateAfterBackupRow
+              name={container.name}
+              initial={container.updateAfterBackup ?? false}
+              lastUpdateCheck={container.lastUpdateCheck}
+              lastUpdateResult={container.lastUpdateResult}
+              t={t}
+            />
+          </Advanced>
+        </div>
       </div>
 
       {/* Disclosure-section trigger row (GlimStone follow-up round, jdp
@@ -3937,44 +3875,22 @@ export function Containers() {
       {/* Not-installed containers that still have backups. */}
       {!loading && filterKey !== "installed" && orphans.length > 0 && (
         <div className="flex flex-col gap-3 glim-content-fade">
-          <div>
-            {/* GlimStone follow-up pass ("half-overlap card notch"):
-                `relative` directly on this <h2> — same bare-heading case as
-                StacksPanel above.
-                `hueIndex={nextHue()}` (GlimStone follow-up pass, proactive
-                sweep of this same file per the standing colour-engine rule):
-                this badge used to be tone="heading"/size="heading" with no
-                hueIndex at all — a real gap once BackupOrderPanel's and
-                StacksPanel's own notches above can render on the very same
-                page, which silently assumed this was the page's only
-                heading notch and stayed flat --accent while its siblings
-                joined the rainbow (the exact "everything the same colour"
-                pattern this rule exists to catch). Threaded through the
-                same page-wide `nextHue()` counter, in render order after
-                both panels' own calls, so none of the three ever collide on
-                the same rainbow position. */}
-            <h2 className="relative flex items-center">
-              <Badge tone="heading" size="heading" wrap hueIndex={nextHue()}>
-                {t("containers.notInstalledTitle")}
-              </Badge>
-            </h2>
-            <p className="mt-1 text-xs text-carbon-textMuted">
-              {t("containers.notInstalledHint")}
-            </p>
-            {/* The operational half the hint above never said ([378]).
-                "They still have backups" explains the disk space. It does not
-                explain the LOG, and the log is where these are actually
-                noticed: measured on jdp's box, three definitions here
-                (OpenRGB, QDirStat, MinIO) had produced twelve skipped runs in
-                the visible window, one per definition per scheduled run,
-                forever, and nothing connected those lines to this page. A skip
-                is cheap and correct, so the fix is not to stop skipping - it is
-                to say out loud that it will keep happening until somebody
-                decides otherwise. */}
-            <p className="mt-1 text-xs text-carbon-textMuted">
-              {t("containers.notInstalledSkipped")}
-            </p>
-          </div>
+          {/* `hueIndex={nextHue()}` (GlimStone follow-up pass, proactive sweep
+              of this same file per the standing colour-engine rule): threaded
+              through the same page-wide `nextHue()` counter, in render order
+              after BackupOrderPanel's and StacksPanel's own calls, so none of
+              the three heading notches ever collide on the same rainbow
+              position.
+                The skip sentence ([378]) connects the skipped runs in the log to
+              this list: measured on jdp's box, three definitions here (OpenRGB,
+              QDirStat, MinIO) had produced twelve skipped runs in the visible
+              window. Since #232 it names the switch on each card that ends
+              them, and it rides in the heading's (i) with the hint. */}
+          <NotInstalledHeading
+            tip={`${t("containers.notInstalledHint")} ${t("containers.notInstalledSkipped")}`}
+            hueIndex={nextHue()}
+            t={t}
+          />
           {/* Continues the live list's index sequence (live.length + i)
               instead of restarting at 0. Both sections render on the same
               page at once, so a second sequence starting at 0 would hand the

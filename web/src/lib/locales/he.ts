@@ -102,9 +102,10 @@ const he: Partial<Translations> = {
   "containers.notInstalled": "לא מותקן",
   "containers.notInstalledTitle": "לא מותקן (גיבויים בלבד)",
   "containers.notInstalledHint": "ה-containers האלו אינם מותקנים עוד אך עדיין קיימים להם גיבויים. שחזר אותם או מחק את הגיבויים לפינוי מקום.",
-  "containers.notInstalledSkipped": "הם עדיין מתוזמנים, ולכן כל ריצה רושמת דילוג עבור כל אחד מהם.",
+  "containers.notInstalledSkipped": "רשומות שעדיין מתוזמנות כאן רושמות דילוג בכל ריצה. כבה את „כלול בלוח הזמנים‟ בכרטיס כדי להפסיק זאת.",
   "containers.deleteBackups": "מחק את כל הגיבויים",
   "containers.deleteBackupsConfirm": "למחוק את כל הגיבויים של ה-container הזה? ה-snapshots יוסרו לצמיתות מהמאגר ולא ניתן לבטל פעולה זו.",
+  "containers.removeEntryConfirm": "להסיר את הרשומה של ה-container הזה מהרשימה? גיבויים קיימים לא יימחקו.",
   "containers.filter": "סינון:",
   "containers.sectionsLabel": "קטעים",
   "containers.filterAll": "הכל",
@@ -422,6 +423,7 @@ const he: Partial<Translations> = {
   "vms.notInstalledHint": "ה-VMs האלו אינם מוגדרים עוד במארח אך עדיין קיימים להם גיבויים. שחזר אותם או עיין ב-snapshots שלהם בלוח הגיבויים.",
   "vms.removeEntry": "הסר רשומה",
   "vms.removeEntryConfirm": "להסיר את הרשומה של מכונה זו מהרשימה? גיבויים קיימים לא יימחקו.",
+  "vms.deleteBackupsConfirm": "למחוק את כל הגיבויים של המכונה הווירטואלית הזו? ה-snapshots יוסרו לצמיתות מהמאגר ולא ניתן לבטל פעולה זו.",
   "vms.discoverHint": "המכונה הווירטואלית נמחקה מ-Unraid (או אבדה לאחר התקנה מחדש)? בנה מחדש את רשומת הגיבוי שלה מהאחסון כדי לשחזר אותה.",
 
   // Container / VM state badge labels

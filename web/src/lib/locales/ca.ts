@@ -106,9 +106,10 @@ const ca: Partial<Translations> = {
   "containers.notInstalled": "No instal·lat",
   "containers.notInstalledTitle": "No instal·lat (només còpies)",
   "containers.notInstalledHint": "Aquests contenidors ja no estan instal·lats però encara tenen còpies. Restaura'ls o elimina les seves còpies per alliberar espai.",
-  "containers.notInstalledSkipped": "Encara estan programats, així que cada execució registra una omissió per a cadascun.",
+  "containers.notInstalledSkipped": "Les entrades que encara estan programades registren una omissió a cada execució. Desactiva «Inclou en la planificació» a la targeta per aturar-ho.",
   "containers.deleteBackups": "Elimina totes les còpies",
   "containers.deleteBackupsConfirm": "Vols eliminar TOTES les còpies d'aquest contenidor? Els instantanis s'eliminen permanentment del repositori i no es poden recuperar.",
+  "containers.removeEntryConfirm": "Vols eliminar l'entrada d'aquest contenidor de la llista? Les seves còpies, si n'hi ha, no s'eliminen.",
   "containers.filter": "Filtre:",
   "containers.sectionsLabel": "Seccions",
   "containers.filterAll": "Tots",
@@ -1015,6 +1016,7 @@ const ca: Partial<Translations> = {
   "vms.notInstalledHint": "Aquestes MV ja no estan definides a l'amfitrió però encara tenen còpies. Restaura-les per recuperar-les, o fes servir el panell de Còpies per veure els seus instantanis.",
   "vms.removeEntry": "Elimina l'entrada",
   "vms.removeEntryConfirm": "Vols eliminar l'entrada d'aquesta MV de la llista? Les seves còpies, si n'hi ha, no s'eliminen.",
+  "vms.deleteBackupsConfirm": "Vols eliminar TOTES les còpies d'aquesta MV? Els instantanis s'eliminen permanentment del repositori i no es poden recuperar.",
   "vms.discoverHint": "MV eliminada d'Unraid (o perduda després d'una reinstal·lació)? Reconstrueix la seva entrada de còpia des de l'emmagatzematge per poder-la restaurar.",
 
   // Flash (Unraid USB) backup

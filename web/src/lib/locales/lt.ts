@@ -106,9 +106,10 @@ const lt: Partial<Translations> = {
   "containers.notInstalled": "Neįdiegtas",
   "containers.notInstalledTitle": "Neįdiegtas (tik kopijos)",
   "containers.notInstalledHint": "Šie konteineriai jau nebeįdiegti, bet vis dar turi atsarginių kopijų. Atkurkite juos arba ištrinkite jų kopijas, kad atlaisvintumėte vietos.",
-  "containers.notInstalledSkipped": "Jie vis dar suplanuoti, todėl kiekvienas vykdymas kiekvienam jų įrašo praleidimą.",
+  "containers.notInstalledSkipped": "Čia vis dar suplanuoti įrašai kiekvieno vykdymo metu įrašo praleidimą. Kortelėje išjunkite „Įtraukti į tvarkaraštį“, kad tai liautųsi.",
   "containers.deleteBackups": "Ištrinti visas kopijas",
   "containers.deleteBackupsConfirm": "Ištrinti VISAS šio konteinerio atsargines kopijas? Momentinės kopijos negrįžtamai pašalinamos iš saugyklos ir jų nebus galima atkurti.",
+  "containers.removeEntryConfirm": "Pašalinti šio konteinerio įrašą iš sąrašo? Jo atsarginės kopijos, jei tokių yra, netrinamos.",
   "containers.filter": "Filtras:",
   "containers.sectionsLabel": "Skyriai",
   "containers.filterAll": "Visi",
@@ -1015,6 +1016,7 @@ const lt: Partial<Translations> = {
   "vms.notInstalledHint": "Šios VM jau nebeapibrėžtos pagrindiniame kompiuteryje, bet vis dar turi atsarginių kopijų. Atkurkite jas, kad jas susigrąžintumėte, arba naudokite Atsarginių kopijų skydelį, kad peržiūrėtumėte jų momentines kopijas.",
   "vms.removeEntry": "Pašalinti įrašą",
   "vms.removeEntryConfirm": "Pašalinti šios VM įrašą iš sąrašo? Jos atsarginės kopijos, jei tokių yra, netrinamos.",
+  "vms.deleteBackupsConfirm": "Ištrinti VISAS šios VM atsargines kopijas? Momentinės kopijos negrįžtamai pašalinamos iš saugyklos ir jų nebus galima atkurti.",
   "vms.discoverHint": "VM ištrinta iš Unraid (arba prarasta po pakartotinio diegimo)? Atkurkite jos atsarginio kopijavimo įrašą iš saugyklos, kad galėtumėte ją atkurti.",
 
   // Flash (Unraid USB) backup

@@ -102,9 +102,10 @@ const tr: Partial<Translations> = {
   "containers.notInstalled": "Kurulu değil",
   "containers.notInstalledTitle": "Kurulu değil (yalnızca yedekler)",
   "containers.notInstalledHint": "Bu konteynerler artık kurulu değil ancak yedekleri mevcut. Geri yükleyin veya alan açmak için yedeklerini silin.",
-  "containers.notInstalledSkipped": "Hâlâ zamanlanmış durumdalar, bu yüzden her çalışma her biri için bir atlama kaydeder.",
+  "containers.notInstalledSkipped": "Burada hâlâ zamanlanmış olan girişler her çalışmada bir atlama kaydeder. Bunu durdurmak için karttaki “Zamanlamaya ekle” seçeneğini kapatın.",
   "containers.deleteBackups": "Tüm yedekleri sil",
   "containers.deleteBackupsConfirm": "Bu konteynerin TÜM yedekleri silinsin mi? Anlık görüntüler depodan kalıcı olarak kaldırılır ve geri alınamaz.",
+  "containers.removeEntryConfirm": "Bu konteynerin girişi listeden kaldırılsın mı? Varsa yedekleri silinmez.",
   "containers.filter": "Filtre:",
   "containers.sectionsLabel": "Bölümler",
   "containers.filterAll": "Tümü",
@@ -422,6 +423,7 @@ const tr: Partial<Translations> = {
   "vms.notInstalledHint": "Bu VM'ler artık hostta tanımlı değil ancak yedekleri mevcut. Geri yükleyin veya anlık görüntülerini Yedekler panelinden inceleyin.",
   "vms.removeEntry": "Girişi kaldır",
   "vms.removeEntryConfirm": "Bu VM'nin girişi listeden kaldırılsın mı? Varsa yedekleri silinmez.",
+  "vms.deleteBackupsConfirm": "Bu VM'nin TÜM yedekleri silinsin mi? Anlık görüntüler depodan kalıcı olarak kaldırılır ve geri alınamaz.",
   "vms.discoverHint": "VM Unraid'den silindi mi (ya da yeniden kurulumdan sonra kayboldu mu)? Geri yükleyebilmek için yedek kaydını depolamadan yeniden oluşturun.",
 
   // Container / VM state badge labels

@@ -110,6 +110,26 @@ func TestHealth(t *testing.T) {
 	}
 }
 
+// TestForgetContainerRoute pins DELETE /api/containers/{name}, the container
+// twin of DELETE /api/vms/{name} (#232): it removes the entry and nothing else.
+func TestForgetContainerRoute(t *testing.T) {
+	eng := &fakeResticEngine{}
+	h, st := newTestRouter(t, &fakeServiceDocker{}, eng)
+	if _, err := st.UpsertTarget(store.Target{ContainerName: "radarr-movies"}); err != nil {
+		t.Fatal(err)
+	}
+	w, m := doJSON(t, h, http.MethodDelete, "/api/containers/radarr-movies", "")
+	if w.Code != http.StatusOK || m["ok"] != true {
+		t.Fatalf("forget failed: %d %v", w.Code, m)
+	}
+	if _, err := st.GetTargetByContainer("radarr-movies"); err == nil {
+		t.Fatal("the container entry must be gone")
+	}
+	if len(eng.forgotten) != 0 {
+		t.Fatalf("removing an entry must not forget snapshots, forgot %v", eng.forgotten)
+	}
+}
+
 func TestListContainers(t *testing.T) {
 	d := &fakeServiceDocker{listOut: []dockercli.ContainerInfo{
 		{ID: "abc", Name: "plex", Image: "plex:latest", State: "running", Status: "Up 2h"},

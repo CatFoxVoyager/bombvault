@@ -106,9 +106,10 @@ const et: Partial<Translations> = {
   "containers.notInstalled": "Pole paigaldatud",
   "containers.notInstalledTitle": "Pole paigaldatud (ainult varundused)",
   "containers.notInstalledHint": "Need konteinerid pole enam paigaldatud, kuid neil on ikka varundusi. Taasta need või kustuta nende varundused ruumi vabastamiseks.",
-  "containers.notInstalledSkipped": "Need on endiselt ajastatud, nii et iga käivitus salvestab igaühe kohta vahelejätmise.",
+  "containers.notInstalledSkipped": "Kirjed, mis on siin endiselt ajastatud, salvestavad igal käivitusel vahelejätmise. Lülita kaardil „Lisa ajakavasse” välja, et see lõpetada.",
   "containers.deleteBackups": "Kustuta kõik varundused",
   "containers.deleteBackupsConfirm": "Kas kustutada selle konteineri KÕIK varundused? Hetktõmmised eemaldatakse hoidlast jäädavalt ja neid ei saa taastada.",
+  "containers.removeEntryConfirm": "Kas eemaldada selle konteineri kirje loendist? Selle varundusi (kui neid on) ei kustutata.",
   "containers.filter": "Filter:",
   "containers.sectionsLabel": "Jaotised",
   "containers.filterAll": "Kõik",
@@ -1015,6 +1016,7 @@ const et: Partial<Translations> = {
   "vms.notInstalledHint": "Neid VM-e pole enam hostil defineeritud, kuid neil on ikka varundusi. Taasta need taasteks või kasuta Varunduste paneeli nende hetktõmmiste sirvimiseks.",
   "vms.removeEntry": "Eemalda kirje",
   "vms.removeEntryConfirm": "Kas eemaldada selle VM-i kirje loendist? Selle varundusi (kui neid on) ei kustutata.",
+  "vms.deleteBackupsConfirm": "Kas kustutada selle VM-i KÕIK varundused? Hetktõmmised eemaldatakse hoidlast jäädavalt ja neid ei saa taastada.",
   "vms.discoverHint": "VM Unraidist kustutatud (või kaotatud pärast uuesti paigaldamist)? Ehita selle varunduse kirje salvestusruumist uuesti üles, et saaksid selle taastada.",
 
   // Flash (Unraid USB) backup

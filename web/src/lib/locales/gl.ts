@@ -106,9 +106,10 @@ const gl: Partial<Translations> = {
   "containers.notInstalled": "Non instalado",
   "containers.notInstalledTitle": "Non instalado (só copias)",
   "containers.notInstalledHint": "Estes contedores xa non están instalados pero aínda teñen copias. Restáuraos ou elimina as súas copias para liberar espazo.",
-  "containers.notInstalledSkipped": "Seguen programados, así que cada execución rexistra unha omisión para cada un.",
+  "containers.notInstalledSkipped": "As entradas que seguen programadas rexistran unha omisión en cada execución. Desactiva «Incluír na planificación» na tarxeta para evitalo.",
   "containers.deleteBackups": "Eliminar todas as copias",
   "containers.deleteBackupsConfirm": "Eliminar TODAS as copias deste contedor? As instantáneas elimínanse do repositorio para sempre e non se poden recuperar.",
+  "containers.removeEntryConfirm": "Eliminar a entrada deste contedor da lista? As súas copias, se as hai, non se eliminan.",
   "containers.filter": "Filtro:",
   "containers.sectionsLabel": "Seccións",
   "containers.filterAll": "Todos",
@@ -1015,6 +1016,7 @@ const gl: Partial<Translations> = {
   "vms.notInstalledHint": "Estas MV xa non están definidas no host pero aínda teñen copias. Restáuraas para recuperalas, ou usa o panel de Copias para explorar as súas instantáneas.",
   "vms.removeEntry": "Eliminar entrada",
   "vms.removeEntryConfirm": "Eliminar a entrada desta MV da lista? As súas copias, se as hai, non se eliminan.",
+  "vms.deleteBackupsConfirm": "Eliminar TODAS as copias desta MV? As instantáneas elimínanse do repositorio para sempre e non se poden recuperar.",
   "vms.discoverHint": "MV eliminada de Unraid (ou perdida despois dunha reinstalación)? Reconstrúe a súa entrada de copia desde o almacenamento para poder restauraa.",
 
   // Flash (Unraid USB) backup

@@ -1170,10 +1170,11 @@ func TestEveryAppendOnlyGateRefusesALocalNamedRepository(t *testing.T) {
 // TestAnEmptyContainerRowCanStillBeCleared is the other half: the flag protects
 // SNAPSHOTS, and with none there is nothing to protect.
 //
-// Containers are the only domain with no row-only removal route, so refusing
-// here left a container with no backups at all stuck in the "not installed"
-// list, with no way out but switching the whole repository's protection off -
-// which drops it for every other item sharing that repository.
+// While an entry has backups, "Delete all backups" is the only removal its card
+// offers, so refusing here left a container with no snapshots left at all stuck
+// in the "not installed" list, with no way out but switching the whole
+// repository's protection off - which drops it for every other item sharing
+// that repository.
 func TestAnEmptyContainerRowCanStillBeCleared(t *testing.T) {
 	eng := &fakeResticEngine{snapsByRepo: map[string][]restic.Snapshot{}}
 	svc, st, own, cold := twoRepoDomain(t, eng)

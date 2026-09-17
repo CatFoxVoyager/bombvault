@@ -101,9 +101,10 @@ const no: Partial<Translations> = {
   "containers.notInstalled": "Ikke installert",
   "containers.notInstalledTitle": "Ikke installert (kun sikkerhetskopier)",
   "containers.notInstalledHint": "Disse kontainerne er ikke lenger installert, men har fortsatt sikkerhetskopier. Gjenopprett dem, eller slett sikkerhetskopiene for å frigjøre plass.",
-  "containers.notInstalledSkipped": "De er fortsatt planlagt, så hver kjøring registrerer en overhopping for hver av dem.",
+  "containers.notInstalledSkipped": "Oppføringer som fortsatt er planlagt her, registrerer en overhopping ved hver kjøring. Slå av «Inkluder i tidsplan» på kortet for å stoppe det.",
   "containers.deleteBackups": "Slett alle sikkerhetskopier",
   "containers.deleteBackupsConfirm": "Slette ALLE sikkerhetskopier av denne kontaineren? Snapshotene fjernes permanent fra repositoriet og kan ikke angres.",
+  "containers.removeEntryConfirm": "Fjerne denne kontainerens oppføring fra listen? Eventuelle sikkerhetskopier slettes ikke.",
   "containers.filter": "Filter:",
   "containers.sectionsLabel": "Seksjoner",
   "containers.filterAll": "Alle",
@@ -419,6 +420,7 @@ const no: Partial<Translations> = {
   "vms.notInstalledHint": "Disse VM-ene er ikke lenger definert på hosten, men har fortsatt sikkerhetskopier. Gjenopprett dem eller bruk Sikkerhetskopier-panelet til å bla gjennom snapshots.",
   "vms.removeEntry": "Fjern oppføring",
   "vms.removeEntryConfirm": "Fjerne denne VM-ens oppføring fra listen? Eventuelle sikkerhetskopier slettes ikke.",
+  "vms.deleteBackupsConfirm": "Slette ALLE sikkerhetskopier av denne VM-en? Snapshotene fjernes permanent fra repositoriet og kan ikke angres.",
   "vms.discoverHint": "VM slettet fra Unraid (eller mistet etter en reinstallasjon)? Bygg opp sikkerhetskopioppføringen på nytt fra lageret for å gjenopprette den.",
 
   // Container / VM state badge labels

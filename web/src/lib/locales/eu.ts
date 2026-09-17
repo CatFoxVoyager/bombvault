@@ -106,9 +106,10 @@ const eu: Partial<Translations> = {
   "containers.notInstalled": "Instalatu gabe",
   "containers.notInstalledTitle": "Instalatu gabe (babeskopiak bakarrik)",
   "containers.notInstalledHint": "Edukiontzi hauek jada ez daude instalatuta baina oraindik badituzte babeskopiak. Berrezarri itzazu edo ezabatu haien babeskopiak lekua askatzeko.",
-  "containers.notInstalledSkipped": "Oraindik programatuta daude, beraz exekuzio bakoitzak saltatze bat gordetzen du bakoitzarentzat.",
+  "containers.notInstalledSkipped": "Oraindik programatuta dauden sarrerek saltatze bat gordetzen dute exekuzio bakoitzean. Desaktibatu «Sartu egutegian» txartelean hori eteteko.",
   "containers.deleteBackups": "Ezabatu babeskopia guztiak",
   "containers.deleteBackupsConfirm": "Edukiontzi honen babeskopia GUZTIAK ezabatu nahi dituzu? Argazkiak betiko ezabatzen dira biltegitik eta ezin dira berreskuratu.",
+  "containers.removeEntryConfirm": "Edukiontzi honen sarrera zerrendatik kendu nahi duzu? Bere babeskopiak, badago, ez dira ezabatzen.",
   "containers.filter": "Iragazkia:",
   "containers.sectionsLabel": "Atalak",
   "containers.filterAll": "Denak",
@@ -1015,6 +1016,7 @@ const eu: Partial<Translations> = {
   "vms.notInstalledHint": "MB hauek jada ez daude ostalarian definituta baina oraindik badituzte babeskopiak. Berrezarri itzazu berreskuratzeko, edo erabili Babeskopiak panela beren argazkiak arakatzeko.",
   "vms.removeEntry": "Kendu sarrera",
   "vms.removeEntryConfirm": "MB honen sarrera zerrendatik kendu nahi duzu? Bere babeskopiak, badago, ez dira ezabatzen.",
+  "vms.deleteBackupsConfirm": "MB honen babeskopia GUZTIAK ezabatu nahi dituzu? Argazkiak betiko ezabatzen dira biltegitik eta ezin dira berreskuratu.",
   "vms.discoverHint": "MB Unraid-etik ezabatuta (edo birinstalazio baten ondoren galduta)? Berreraiki bere babeskopia-sarrera biltegitik berrezarri ahal izateko.",
 
   // Flash (Unraid USB) backup

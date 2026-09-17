@@ -635,8 +635,8 @@ function FilesSection({
                   there wasn't even a duplicate label to point to, only the
                   set's own NAME (which identifies the row, not what the
                   switch does). Wrapped in the same `<label>` + sibling
-                  `<span>` shape VMIncludeToggle/FileSetEnabledToggle already
-                  use for a per-row switch: `hideLabel` stays on the bare
+                  `<span>` shape FileSetEnabledToggle then
+                  used for a per-row switch: `hideLabel` stays on the bare
                   Toggle (legitimate here — the caller right beside it now
                   draws the same text), but the text is genuinely visible in
                   the row, always, not just conveyed via aria-label. */}

@@ -102,9 +102,10 @@ const es: Partial<Translations> = {
   "containers.notInstalled": "No instalado",
   "containers.notInstalledTitle": "No instalado (solo copias)",
   "containers.notInstalledHint": "Estos contenedores ya no están instalados pero aún tienen copias. Restáuralos o elimina sus copias para liberar espacio.",
-  "containers.notInstalledSkipped": "Siguen programados, así que cada ejecución registra una omisión para cada uno.",
+  "containers.notInstalledSkipped": "Las entradas que siguen programadas registran una omisión en cada ejecución. Desactiva «Incluir en el calendario» en la tarjeta para evitarlo.",
   "containers.deleteBackups": "Eliminar todas las copias",
   "containers.deleteBackupsConfirm": "¿Eliminar TODAS las copias de este contenedor? Las instantáneas se eliminan permanentemente del repositorio y no se puede deshacer.",
+  "containers.removeEntryConfirm": "¿Quitar la entrada de este contenedor de la lista? Sus copias, si las hay, no se eliminan.",
   "containers.filter": "Filtro:",
   "containers.sectionsLabel": "Secciones",
   "containers.filterAll": "Todos",
@@ -422,6 +423,7 @@ const es: Partial<Translations> = {
   "vms.notInstalledHint": "Estas VMs ya no están definidas en el host pero aún tienen copias. Restáuralas para recuperarlas, o usa el panel de Copias para ver sus instantáneas.",
   "vms.removeEntry": "Eliminar entrada",
   "vms.removeEntryConfirm": "¿Quitar la entrada de esta VM de la lista? Sus copias, si las hay, no se eliminan.",
+  "vms.deleteBackupsConfirm": "¿Eliminar TODAS las copias de esta VM? Las instantáneas se eliminan permanentemente del repositorio y no se puede deshacer.",
   "vms.discoverHint": "¿Eliminaste la VM de Unraid (o se perdió tras reinstalar)? Reconstruye su entrada de copia desde el almacenamiento para poder restaurarla.",
 
   // Container / VM state badge labels
