@@ -8698,10 +8698,20 @@ func (s *Service) DeleteBackupsVM(ctx context.Context, name, source string) erro
 		if isOffsiteSource(source) {
 			return err
 		}
-		// No local repository means no local backups, and nothing left to delete
-		// but the entry (#232). Refusing here left a not-installed card whose one
-		// removal button could never succeed. DeleteBackups reaches the same end
-		// for a container, where a missing repository simply lists no snapshots.
+		// A repository that was never created holds no backups, and nothing is
+		// left to delete but the entry (#232). Refusing here left a not-installed
+		// card whose one removal button could never succeed. snapshotsForTag tells
+		// that case apart from an established repository whose share is not
+		// mounted (#55), where every snapshot still exists and the entry is the
+		// only thing pointing at them: that one is refused, the same answer
+		// DeleteBackups gives for a container. And as this only removes the entry,
+		// it keeps the entry of a VM still defined, like ForgetVMTarget.
+		if _, sErr := s.snapshotsForTag(ctx, repo, s.repoModeFor(settings, "vms", source, repo), "vm:"+name); sErr != nil {
+			return sErr
+		}
+		if dErr := s.refuseDefinedVM(ctx, settings, name); dErr != nil {
+			return dErr
+		}
 		unlock, ok := s.tryLockDomainFor("vms", "delete")
 		if !ok {
 			return errDomainBusy
@@ -8762,16 +8772,8 @@ func (s *Service) ForgetVMTarget(ctx context.Context, name string) error {
 	if err != nil {
 		return fmt.Errorf("read settings: %w", err)
 	}
-	if settings.VMsEnabled {
-		infos, err := s.virsh.List(ctx)
-		if err != nil {
-			return fmt.Errorf("list vms: virsh: %w", err)
-		}
-		for _, vm := range infos {
-			if vm.Name == name {
-				return fmt.Errorf("VM %q is defined on the host, so its entry stays", name)
-			}
-		}
+	if err := s.refuseDefinedVM(ctx, settings, name); err != nil {
+		return err
 	}
 	unlock, ok := s.tryLockDomainFor("vms", "delete")
 	if !ok {
@@ -8780,6 +8782,26 @@ func (s *Service) ForgetVMTarget(ctx context.Context, name string) error {
 	defer unlock()
 	if err := s.store.DeleteVMTarget(name); err != nil {
 		return fmt.Errorf("forget vm target: %w", err)
+	}
+	return nil
+}
+
+// refuseDefinedVM answers an error when the VM is defined on the host, asked the
+// way ListVMs asks: libvirt only while VMs are enabled, because with VMs off
+// every entry is listed as not installed. For the routes that remove only a VM's
+// entry, so none of them can drop the settings and history of a live VM.
+func (s *Service) refuseDefinedVM(ctx context.Context, settings store.Settings, name string) error {
+	if !settings.VMsEnabled {
+		return nil
+	}
+	infos, err := s.virsh.List(ctx)
+	if err != nil {
+		return fmt.Errorf("list vms: virsh: %w", err)
+	}
+	for _, vm := range infos {
+		if vm.Name == name {
+			return fmt.Errorf("VM %q is defined on the host, so its entry stays", name)
+		}
 	}
 	return nil
 }

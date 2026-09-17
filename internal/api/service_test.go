@@ -21,6 +21,7 @@ import (
 	"github.com/junkerderprovinz/bombvault/internal/config"
 	"github.com/junkerderprovinz/bombvault/internal/dockercli"
 	"github.com/junkerderprovinz/bombvault/internal/model"
+	"github.com/junkerderprovinz/bombvault/internal/paths"
 	"github.com/junkerderprovinz/bombvault/internal/platform"
 	"github.com/junkerderprovinz/bombvault/internal/progress"
 	"github.com/junkerderprovinz/bombvault/internal/restic"
@@ -4295,6 +4296,73 @@ func TestDeleteBackupsVMMissingLocalRepoClearsEntry(t *testing.T) {
 	}
 	if _, err := st.GetVMTargetByName("win11"); err == nil {
 		t.Fatal("the entry must be gone")
+	}
+}
+
+// TestDeleteBackupsVMUnmountedRepoKeepsEntry: a local repository that was
+// established before and is missing now sits on a share that is not mounted
+// (#55). Its snapshots still exist, so deleting "all backups" must refuse the
+// way the container path does, not report success and drop the entry.
+func TestDeleteBackupsVMUnmountedRepoKeepsEntry(t *testing.T) {
+	dir := t.TempDir()
+	cfg := config.Config{AppKey: strings.Repeat("a", 64), DataDir: dir, HostMountRoot: dir}
+	st := newMemStore(t)
+	s := mustSettings(t, st)
+	s.VMsPath = "backups/vms"
+	if err := st.UpdateSettings(s); err != nil {
+		t.Fatal(err)
+	}
+	// Resolved exactly as the service resolves VMsPath, so the established
+	// marker is keyed the same way. No `config` inside: the repo looks missing.
+	repo, err := paths.Resolve(dir, s.VMsPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(repo, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := st.MarkRepoEstablished(repo); err != nil {
+		t.Fatal(err)
+	}
+	writeMountinfo(t, "/", slashRepo(dir)) // the share under the repo is not mounted
+	if _, err := st.UpsertVMTarget(store.VMTarget{Name: "win11"}); err != nil {
+		t.Fatal(err)
+	}
+	svc := api.NewService(cfg, st, &fakeServiceDocker{}, fakeVirsh{}, &fakeResticEngine{})
+
+	err = svc.DeleteBackupsVM(context.Background(), "win11", "")
+	if !errors.Is(err, api.ErrBackupPathNotMounted) {
+		t.Fatalf("an unmounted repository must refuse with ErrBackupPathNotMounted, got %v", err)
+	}
+	if _, err := st.GetVMTargetByName("win11"); err != nil {
+		t.Fatalf("the entry must stay while its snapshots are out of reach: %v", err)
+	}
+}
+
+// TestDeleteBackupsVMMissingRepoRefusesDefinedVM: without a local repository
+// DeleteBackupsVM only removes the entry, so it asks what ForgetVMTarget asks
+// and keeps the entry of a VM that is still defined on the host.
+func TestDeleteBackupsVMMissingRepoRefusesDefinedVM(t *testing.T) {
+	dir := t.TempDir()
+	cfg := config.Config{AppKey: strings.Repeat("a", 64), DataDir: dir, HostMountRoot: dir}
+	st := newMemStore(t)
+	s := mustSettings(t, st)
+	s.VMsPath = "backups/vms" // never created
+	s.VMsEnabled = true
+	if err := st.UpdateSettings(s); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := st.UpsertVMTarget(store.VMTarget{Name: "win11"}); err != nil {
+		t.Fatal(err)
+	}
+	v := listVMsVirsh{vms: []virshcli.VMInfo{{Name: "win11"}}}
+	svc := api.NewService(cfg, st, &fakeServiceDocker{}, v, &fakeResticEngine{})
+
+	if err := svc.DeleteBackupsVM(context.Background(), "win11", ""); err == nil {
+		t.Fatal("DeleteBackupsVM must refuse to drop the entry of a VM defined on the host")
+	}
+	if _, err := st.GetVMTargetByName("win11"); err != nil {
+		t.Fatalf("the defined VM's entry must stay: %v", err)
 	}
 }
 
