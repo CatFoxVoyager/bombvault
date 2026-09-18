@@ -1,6 +1,4 @@
 // ---------------------------------------------------------------------------
-// Playwright harness: the responsive-regression gate for the mobile shell
-// and the Dashboard's phone layout.
 //
 // Why the compiled Go binary and not `vite preview` or MSW: the binary serves
 // the embedded SPA and the real API (web/embed.go), `vite preview` serves zero
@@ -70,6 +68,11 @@ const testMatch = [
   "home-trigger.spec.ts",
   "desktop-untouched.spec.ts",
   "narrow-viewport.spec.ts",
+  // The Containers PR: touch tree, list ergonomics battery and the
+  // run-visibility sheet checks.
+  "touch-tree.spec.ts",
+  "list-ergonomics-containers.spec.ts",
+  "run-detail-visibility.spec.ts",
 ];
 
 for (const spec of testMatch) {

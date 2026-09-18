@@ -23,17 +23,18 @@
 // every destination is directly reachable by goto (the Go SPA fallback,
 // internal/api/spa.go, serves index.html for client routes).
 //
-// The second, per-page half: /dashboard additionally asserts the absence of
-// every phone-only surface the phone work put below the breakpoint (the
-// StickyActionBar chrome and the filled full-width New-backup trigger). Same
-// discipline as the route loop: fresh-DB empty states, chrome not data.
-// The /dashboard route (not the / redirect) keeps the loop's canonical form.
+// The second, per-page half: each page that has been given a phone face
+// (/dashboard in the shell PR, /containers in this one) additionally asserts
+// the absence of every phone-only surface its PR put below the breakpoint
+// (the StickyActionBar chrome and the filled full-width primary triggers).
+// Same discipline as the route loop: fresh-DB empty states, chrome not data.
+// The page routes (not the / redirect) keep the loop's canonical form.
 //
-// SCOPE NOTE: the Containers, Files, Settings-family and Recovery mobile
-// surfaces carry their own per-page leakage batteries with their own
-// commits (their Fab/ListToolbar/Load-more/chip-strip/wizard needles and
-// the inverse mobile-direction halves); this file pins the desktop half,
-// and those pages' asserts live beside those pages' phone treatments.
+// SCOPE NOTE: the Files, Settings-family and Recovery mobile surfaces carry
+// their own per-page leakage batteries with their own commits (their
+// Fab/ListToolbar/Load-more/chip-strip/wizard needles and the inverse
+// mobile-direction halves); this file pins the desktop half, and those
+// pages' asserts live beside those pages' phone treatments.
 // ---------------------------------------------------------------------------
 import { expect, test, type Page } from "@playwright/test";
 
@@ -178,6 +179,41 @@ for (const route of DASHBOARD_ROUTES) {
     await expect(page.locator("button.w-full.bg-accent")).toHaveCount(0);
     // The Home thumb-zone trigger.
     await expect(page.getByRole("button", { name: "Backup Everything" })).toHaveCount(0);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// The >=48rem leakage pass for /containers: the page this PR gives a phone
+// face (the card list, the stacked detail, the Save bar). Same discipline as
+// the Dashboard pass above.
+//
+// The files.emptyRule needle from the same upstream battery deliberately
+// does NOT travel with this file: its subject matter is the Files page's
+// mobile treatment, which lands with the Files PR.
+// ---------------------------------------------------------------------------
+const CONTAINER_ROUTES = ["/containers"];
+
+for (const route of CONTAINER_ROUTES) {
+  test(`desktop untouched of the Containers phone chrome at ${route}`, async ({ page }, testInfo) => {
+    test.skip(!DESKTOP_PROJECTS.has(testInfo.project.name), "desktop-only: the >=48rem leakage contract");
+    await page.goto(route);
+
+    // The sticky-in-flow Save bar (the stacked detail's footer): its exact
+    // class signature exists nowhere on desktop.
+    await expect(page.locator("div.sticky.bottom-0.z-10.bg-carbon-sidebar")).toHaveCount(0);
+    // The filled full-width accent control — the mobile Save / New-backup
+    // trigger's signature (Button tone="accent" over the caller's w-full
+    // stage); no desktop control carries it.
+    await expect(page.locator("button.w-full.bg-accent")).toHaveCount(0);
+    // The Home thumb-zone trigger and the tree Save bar's action.
+    await expect(page.getByRole("button", { name: "New backup" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Save folders" })).toHaveCount(0);
+    // The stacked container detail's back row (accessible name
+    // "<container>, Back" — touch-tree.spec.ts's entry locator, generalized
+    // past the fixture name).
+    await expect(page.getByRole("button", { name: /, Back$/ })).toHaveCount(0);
+    // The Save bar's live count statement (folders.handedToRestic).
+    await expect(page.getByText(/folders handed to restic/)).toHaveCount(0);
   });
 }
 
