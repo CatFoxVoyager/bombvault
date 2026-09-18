@@ -332,7 +332,7 @@ const ja: Partial<Translations> = {
   "jobs.cadenceDaily": "毎日 {time}",
   "jobs.cadenceWeekly": "毎週（{days}）{time}",
   "jobs.cadenceEveryN": "{n}日ごと {time}",
-  "sort.label": "並べ替え：",
+  "sort.label": "並べ替え",
   "sort.nameAsc": "名前（A–Z）",
   "sort.status": "状態",
   "sort.ip": "IP",
@@ -627,6 +627,8 @@ const ja: Partial<Translations> = {
   "common.close": "閉じる",
   "common.expand": "展開",
   "common.collapse": "折りたたみ",
+  "common.back": "戻る",
+  "common.loadMore": "さらに読み込む",
 
   // Failure fallbacks
   "common.actionFailed": "操作に失敗しました",
@@ -709,6 +711,7 @@ const ja: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "BombVault はこのホストを Unraid ではなく \"{platform}\" として検出しました。このオプションが有効でも Unraid 通知は無効のままです。実際に Unraid ホストである場合は、ホストの /boot がコンテナ内の /host/boot にバインドマウントされているか確認し（BombVault の Unraid テンプレートを参照）、コンテナを再起動してください。",
   "notify.test": "テスト送信",
   "notify.tested": "テストを送信しました",
+  "folders.handedToRestic": "{n} 個のフォルダーを restic に引き渡しました",
   "stophook.title": "他のコンテナを停止",
   "stophook.hint": "このコンテナのバックアップ中に、これらの他のコンテナ（例えばデータベース）を停止し、その後に再び起動します。",
   "stophook.noCandidates": "他にインストール済みのコンテナが見つかりません。",

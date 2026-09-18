@@ -635,6 +635,8 @@ const it: Partial<Translations> = {
   "common.close": "Chiudi",
   "common.expand": "Espandi",
   "common.collapse": "Comprimi",
+  "common.back": "Indietro",
+  "common.loadMore": "Carica altri",
 
   // Failure fallbacks
   "common.actionFailed": "Azione non riuscita",
@@ -717,6 +719,7 @@ const it: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "BombVault ha rilevato questo host come \"{platform}\", non come Unraid. Le notifiche Unraid restano disattivate anche con questa opzione attiva. Se questo È davvero un host Unraid, verifica che il /boot dell'host sia montato (bind-mount) su /host/boot all'interno del container (vedi il template Unraid di BombVault) e riavvia il container.",
   "notify.test": "Invia test",
   "notify.tested": "Test inviato",
+  "folders.handedToRestic": "{n} cartelle consegnate a restic",
   "stophook.title": "Arresta altri container",
   "stophook.hint": "Arresta questi altri container durante il backup di questo (per esempio un database) e riavviali in seguito.",
   "stophook.noCandidates": "Nessun altro container installato trovato.",

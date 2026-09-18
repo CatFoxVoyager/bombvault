@@ -627,6 +627,8 @@ const pl: Partial<Translations> = {
   "common.close": "Zamknij",
   "common.expand": "Rozwiń",
   "common.collapse": "Zwiń",
+  "common.back": "Wstecz",
+  "common.loadMore": "Wczytaj więcej",
 
   // Failure fallbacks
   "common.actionFailed": "Akcja nie powiodła się",
@@ -709,6 +711,7 @@ const pl: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "BombVault wykrył ten host jako \"{platform}\", a nie jako Unraid. Powiadomienia Unraid pozostają wyłączone, mimo że ta opcja jest włączona. Jeśli to NAPRAWDĘ jest host Unraid, sprawdź, czy /boot hosta jest zamontowane (bind-mount) do /host/boot wewnątrz kontenera (zobacz szablon Unraid BombVault), a następnie zrestartuj kontener.",
   "notify.test": "Wyślij test",
   "notify.tested": "Test wysłany",
+  "folders.handedToRestic": "{n} folderów przekazanych do restic",
   "stophook.title": "Zatrzymaj inne kontenery",
   "stophook.hint": "Zatrzymaj te inne kontenery na czas tworzenia kopii zapasowej tego kontenera (na przykład bazę danych), a następnie uruchom je ponownie.",
   "stophook.noCandidates": "Nie znaleziono innych zainstalowanych kontenerów.",

@@ -627,6 +627,8 @@ const ru: Partial<Translations> = {
   "common.close": "Закрыть",
   "common.expand": "Развернуть",
   "common.collapse": "Свернуть",
+  "common.back": "Назад",
+  "common.loadMore": "Загрузить ещё",
 
   // Failure fallbacks
   "common.actionFailed": "Не удалось выполнить действие",
@@ -709,6 +711,7 @@ const ru: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "BombVault определил этот хост как \"{platform}\", а не как Unraid — уведомления Unraid остаются выключенными, даже если эта опция включена. Если это ДЕЙСТВИТЕЛЬНО хост Unraid, проверьте, что /boot хоста смонтирован (bind-mount) в /host/boot внутри контейнера (см. шаблон Unraid для BombVault), и перезапустите контейнер.",
   "notify.test": "Отправить тест",
   "notify.tested": "Тест отправлен",
+  "folders.handedToRestic": "{n} папок передано restic",
   "stophook.title": "Остановить другие контейнеры",
   "stophook.hint": "Остановить эти другие контейнеры на время резервного копирования данного контейнера (например базу данных), а затем снова запустить их.",
   "stophook.noCandidates": "Другие установленные контейнеры не найдены.",

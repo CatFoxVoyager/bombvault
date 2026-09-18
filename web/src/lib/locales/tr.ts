@@ -635,6 +635,8 @@ const tr: Partial<Translations> = {
   "common.close": "Kapat",
   "common.expand": "Genişlet",
   "common.collapse": "Daralt",
+  "common.back": "Geri",
+  "common.loadMore": "Daha fazla yükle",
 
   // Failure fallbacks
   "common.actionFailed": "İşlem başarısız",
@@ -717,6 +719,7 @@ const tr: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "BombVault bu ana makineyi Unraid değil, \"{platform}\" olarak algıladı. Bu seçenek açık olsa bile Unraid bildirimleri kapalı kalır. Bu GERÇEKTEN bir Unraid ana makinesiyse, ana makinenin /boot yolunun container içinde /host/boot konumuna bind-mount edildiğini kontrol edin (BombVault Unraid şablonuna bakın) ve container'ı yeniden başlatın.",
   "notify.test": "Test gönder",
   "notify.tested": "Test gönderildi",
+  "folders.handedToRestic": "{n} klasör restic'e teslim edildi",
   "stophook.title": "Diğer konteynerleri durdur",
   "stophook.hint": "Bu konteyner yedeklenirken şu diğer konteynerleri durdurun (örneğin bir veritabanı) ve sonrasında yeniden başlatın.",
   "stophook.noCandidates": "Başka yüklü konteyner bulunamadı.",

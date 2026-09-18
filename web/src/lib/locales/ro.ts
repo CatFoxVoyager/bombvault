@@ -632,6 +632,8 @@ const ro: Partial<Translations> = {
   "common.close": "Închide",
   "common.expand": "Extinde",
   "common.collapse": "Restrânge",
+  "common.back": "Înapoi",
+  "common.loadMore": "Încarcă mai multe",
 
   // Failure fallbacks
   "common.actionFailed": "Acțiunea a eșuat",
@@ -714,6 +716,7 @@ const ro: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "BombVault a detectat această gazdă ca fiind \"{platform}\", nu Unraid. Notificările Unraid rămân dezactivate chiar dacă această opțiune este activată. Dacă aceasta ESTE într-adevăr o gazdă Unraid, verifică dacă /boot al gazdei este montat (bind-mount) la /host/boot în interiorul containerului (vezi șablonul Unraid al BombVault) și repornește containerul.",
   "notify.test": "Trimite test",
   "notify.tested": "Test trimis",
+  "folders.handedToRestic": "{n} dosare predate către restic",
   "stophook.title": "Oprește alte containere",
   "stophook.hint": "Oprește aceste alte containere în timp ce acesta este copiat de rezervă (de exemplu o bază de date), apoi pornește-le din nou după aceea.",
   "stophook.noCandidates": "Nu s-au găsit alte containere instalate.",

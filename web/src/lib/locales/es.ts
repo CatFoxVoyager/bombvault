@@ -635,6 +635,8 @@ const es: Partial<Translations> = {
   "common.close": "Cerrar",
   "common.expand": "Desplegar",
   "common.collapse": "Plegar",
+  "common.back": "Atrás",
+  "common.loadMore": "Cargar más",
 
   // Failure fallbacks
   "common.actionFailed": "La acción ha fallado",
@@ -725,6 +727,7 @@ const es: Partial<Translations> = {
   "notify.smtpTls": "Cifrado",
   "notify.test": "Enviar prueba",
   "notify.tested": "Prueba enviada",
+  "folders.handedToRestic": "{n} carpetas entregadas a restic",
   "stophook.title": "Detener otros contenedores",
   "stophook.hint": "Detener estos otros contenedores mientras se hace la copia de seguridad de este (por ejemplo una base de datos) y volver a iniciarlos después.",
   "stophook.noCandidates": "No se encontraron otros contenedores instalados.",

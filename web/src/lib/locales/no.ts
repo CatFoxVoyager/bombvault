@@ -632,6 +632,8 @@ const no: Partial<Translations> = {
   "common.close": "Lukk",
   "common.expand": "Utvid",
   "common.collapse": "Slå sammen",
+  "common.back": "Tilbake",
+  "common.loadMore": "Last inn flere",
 
   // Failure fallbacks
   "common.actionFailed": "Handlingen mislyktes",
@@ -714,6 +716,7 @@ const no: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "BombVault har oppdaget denne verten som \"{platform}\", ikke Unraid. Unraid-varsler forblir avslått selv om denne er slått på. Hvis dette FAKTISK er en Unraid-vert, sjekk at vertens /boot er bind-mountet til /host/boot inne i containeren (se BombVault Unraid-malen), og start containeren på nytt.",
   "notify.test": "Send test",
   "notify.tested": "Test sendt",
+  "folders.handedToRestic": "{n} mapper overlevert til restic",
   "stophook.title": "Stopp andre containere",
   "stophook.hint": "Stopp disse andre containerne mens denne sikkerhetskopieres (for eksempel en database), og start dem igjen etterpå.",
   "stophook.noCandidates": "Fant ingen andre installerte containere.",

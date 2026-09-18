@@ -114,6 +114,7 @@ export default [
             // gap-10 at/above it, so desktop is unchanged by construction).
             // Same 1152px cap. See PAGE_SHELL_RESPONSIVE in pageShell.ts.
             "Dashboard.tsx": "PAGE_SHELL_RESPONSIVE",
+            "Containers.tsx": "PAGE_SHELL_RESPONSIVE",
             // Not a routed page: Layout renders it in place of the app shell
             // while auth is blocked.
             "Login.tsx": null,
