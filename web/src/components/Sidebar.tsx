@@ -598,7 +598,12 @@ export function Sidebar({ settings, authEnabled }: SidebarProps) {
     // mark, and the two rails then did the same job at different widths. The
     // mark fits the rail now: 48px still sits centred at 85 with room on both
     // sides. See GlimStone's own bullet for the reversal.
-    <aside className={`flex flex-col ${railNarrow ? "w-(--rail-narrow)" : "w-56"} shrink-0 h-full overflow-hidden rounded-card bg-carbon-sidebar`}>
+    // A window shorter than the rows scrolls the rail instead of cutting off
+    // the bottom group, which holds Settings.
+    <aside
+      className={`flex flex-col ${railNarrow ? "w-(--rail-narrow)" : "w-56"} shrink-0 h-full overflow-x-hidden overflow-y-auto rounded-card bg-carbon-sidebar`}
+      style={{ scrollbarWidth: "thin", scrollbarColor: "var(--carbon-border) transparent" }}
+    >
       {/* Logo + wordmark → Dashboard. Two theme-specific marks auto-switch via the
           `dark:` variant (dark mark on the light surface, light mark on the dark
           surface). A short click navigates to the Dashboard; press-and-hold fires
