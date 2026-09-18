@@ -43,17 +43,12 @@ func TestConfigureProcGroup_KillsOnCancel(t *testing.T) {
 	}
 }
 
-// TestConfigureProcGroup_SendsSIGTERMNotSIGKILL guards the actual fix: Cancel
-// must send SIGTERM (which restic treats as a clean-abort request — stop,
-// don't write the snapshot, exit) not SIGKILL (which skips that handler
-// entirely and, hit at the wrong moment, can leave a snapshot whose tree
-// already references a blob that never finished uploading — root-caused live
-// 2026-08-12 against a real damaged repo, see the doc comment above
-// configureProcGroup). SIGKILL can never be caught by any process, so the
-// distinguishing test is whether a trap handler gets to run at all: a shell
-// that traps TERM and writes a marker file proves SIGTERM arrived; if SIGKILL
-// were sent instead, the process dies before the trap (or any of its own
-// code) can execute, and the marker is never written.
+// TestConfigureProcGroup_SendsSIGTERMNotSIGKILL checks that Cancel sends
+// SIGTERM, which restic handles as a clean abort without writing a snapshot,
+// and not SIGKILL, which can leave a snapshot whose tree references a blob
+// that never finished uploading (see configureProcGroup). SIGKILL cannot be
+// caught, so a shell that traps TERM and writes a marker file tells the two
+// apart: the marker exists only if the trap ran.
 func TestConfigureProcGroup_SendsSIGTERMNotSIGKILL(t *testing.T) {
 	shBin, err := exec.LookPath("sh")
 	if err != nil {
@@ -64,19 +59,19 @@ func TestConfigureProcGroup_SendsSIGTERMNotSIGKILL(t *testing.T) {
 	ready := filepath.Join(dir, "trap-installed")
 
 	ctx, cancel := context.WithCancel(context.Background())
-	// trap writes the marker and exits 0 on TERM; without a trap firing, the
-	// marker is never created (SIGKILL leaves no chance to run this script at all).
-	// Touching `ready` right after installing the trap, and polling for it
-	// below before cancelling, closes a real race: cmd.Start() only proves the
-	// fork succeeded, not that the shell has reached the `trap` line yet — a
-	// SIGTERM arriving before that point hits the shell's default (untrapped)
-	// disposition and looks identical to this test as a failed fix.
-	// "; true" after sleep matters too: some /bin/sh implementations (e.g.
-	// BusyBox ash) exec()-replace their own process image for a script's FINAL
-	// simple command instead of forking a child, which would wipe out the trap.
-	// Giving the shell something to do after sleep forces a real fork, keeping
-	// the shell (and its trap) alive as the process that receives the SIGTERM.
-	script := "trap 'touch " + marker + "; exit 0' TERM; touch " + ready + "; sleep 30; true"
+	// The shell touches `ready` after installing the trap, and the test waits
+	// for it before cancelling: cmd.Start only proves the fork succeeded, and a
+	// TERM that arrives before the trap line hits the default disposition,
+	// which looks the same as a failed fix.
+	//
+	// The wait is a loop of short sleeps. A shell runs a trap only once its
+	// foreground command has finished, and the group kill reaches only the
+	// processes that exist at that instant, so a TERM that lands between
+	// `touch` and the fork of the next sleep leaves that sleep running. With
+	// 50ms sleeps the trap runs within 50ms instead of after the whole wait.
+	// The loop also keeps BusyBox ash from exec()-replacing the shell with its
+	// final command, which would take the trap with it.
+	script := "trap 'touch " + marker + "; exit 0' TERM; touch " + ready + "; while :; do sleep 0.05; done"
 	cmd := exec.CommandContext(ctx, shBin, "-c", script) //nolint:gosec // G204: fixed script, no user input
 	configureProcGroup(cmd)
 
