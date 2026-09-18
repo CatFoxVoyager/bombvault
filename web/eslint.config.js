@@ -145,6 +145,11 @@ export default [
             // below 48rem for the stacked detail and the card list, the
             // settled 40px/1152px desktop above it by construction.
             "Containers.tsx": "PAGE_SHELL_RESPONSIVE",
+            // Third page on the responsive root, same deal: the settled
+            // 1152px/40px desktop shell at/above 48rem by construction, the
+            // 24px card rhythm below it for the mobile card list. See
+            // PAGE_SHELL_RESPONSIVE in pageShell.ts.
+            "VMs.tsx": "PAGE_SHELL_RESPONSIVE",
             // Not a routed page at all: Layout.tsx returns it BEFORE the
             // sidebar/<main> shell when auth is blocked, so it never sits
             // under <Outlet />. Its `w-full max-w-sm` is a centred
