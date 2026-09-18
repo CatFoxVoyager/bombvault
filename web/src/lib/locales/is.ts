@@ -1004,6 +1004,8 @@ const is: Partial<Translations> = {
   "common.restoring": "Endurheimti…",
   "common.done": "Lokið",
   "common.close": "Loka",
+  "common.expand": "Opna",
+  "common.collapse": "Loka",
   "common.loadingBackups": "Hleð afritum…",
   "common.saving": "Vista…",
   "common.restoreRunning": "Endurheimt er í gangi…",

@@ -1004,6 +1004,8 @@ const lv: Partial<Translations> = {
   "common.restoring": "Atjauno…",
   "common.done": "Gatavs",
   "common.close": "Aizvērt",
+  "common.expand": "Izvērst",
+  "common.collapse": "Sakļaut",
   "common.loadingBackups": "Ielādē rezerves kopijas…",
   "common.saving": "Saglabā…",
   "common.restoreRunning": "Notiek atjaunošana…",

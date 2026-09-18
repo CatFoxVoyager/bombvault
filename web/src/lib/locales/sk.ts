@@ -1004,6 +1004,8 @@ const sk: Partial<Translations> = {
   "common.restoring": "Obnovuje sa…",
   "common.done": "Hotovo",
   "common.close": "Zavrieť",
+  "common.expand": "Rozbaliť",
+  "common.collapse": "Zbaliť",
   "common.loadingBackups": "Načítavajú sa zálohy…",
   "common.saving": "Ukladá sa…",
   "common.restoreRunning": "Prebieha obnovenie…",

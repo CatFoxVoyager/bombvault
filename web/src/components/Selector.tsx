@@ -20,6 +20,7 @@ import {
 } from "react";
 import { hueVars } from "../lib/appearance";
 import { useLabelMode } from "../lib/useLabelMode";
+import { useIsDesktop } from "../lib/useMediaQuery";
 import type { ControlAxis } from "../lib/controls";
 import { hidesLabel, labelWidth } from "../lib/controls";
 import { useTipBubble } from "../lib/useTipBubble";
@@ -107,6 +108,13 @@ interface SelectorCommon {
  * Each pair sits in different tabs, which is the property the test checks.
  * General spends all eight positions, so a selector added there has no free
  * start and the table needs rethinking rather than another entry.
+ * There are more selectors than the palette has colours, so two pairs share a
+ * start: `drillKind` with the first label row, and `theme` with `notifyOn`.
+ * There are more selectors than the palette has colours, so two pairs share a
+ * start: `drillKind` with the first label row, and `theme` with `notifyOn`.
+ * Each pair sits in different tabs, which is the property the test checks.
+ * General spends all eight positions, so a selector added there has no free
+ * start and the table needs rethinking rather than another entry.
  */
 export const HUE_OFFSET = {
   tabs: 0,
@@ -117,6 +125,11 @@ export const HUE_OFFSET = {
   motion: 6,
   theme: 7,
   notifyOn: 7,
+  /** Reserved hue allocation: 8 is the next free start after theme (7) and
+   *  notifyOn (7). The Platform sub-section's material/cupertino picker that
+   *  consumes it does not exist yet, but the number is pre-allocated so that
+   *  picker can never collide with theme's or notifyOn's when it does. */
+  platform: 8,
   drillKind: 1,
 } as const;
 
@@ -184,6 +197,22 @@ export function rowFill(pinned: number, count: number, available: number): numbe
   }
   return (available - (columns - 1) * GROOVE_STEP) / columns;
 }
+
+// Below md the segments compact one step down (text and inline padding): on
+// a phone the lg pickers' fourth label wrapped alone onto a second line.
+// Plain utilities, so the mobile variants win the utilities layer; the
+// engine-owned height and the groove are untouched. jsdom cannot resolve
+// media queries, so the compaction is asserted by this file's mobile dom
+// suite.
+const MOBILE_COMPACT = "max-md:text-xs max-md:px-1";
+
+// The 44px touch floor, carried by an invisible ::after rather than by real
+// size (the same bleed Button and Toggle ship): the small well's segments
+// measure 24px on a device, half the floor. The pseudo has no background, so
+// pixels do not move. Scoped to the small well only: the big pickers are
+// accepted sub-floor and must not inherit it.
+const SEGMENT_TOUCH_BLEED =
+  "max-md:relative max-md:after:absolute max-md:after:-inset-3 max-md:after:content-['']";
 
 // The navigation math is pure so Selector.test.ts can cover it without a DOM.
 
@@ -347,7 +376,10 @@ export function Selector(props: SelectorProps) {
   // mode. It is the same split `.glim-seg` and `.glim-seg-btn` draw in the
   // stylesheet.
   const labelAxis: ControlAxis = size === "lg" ? "tabs" : "buttons";
-  // Pinning is decided for the whole row, so the strip reads the mode as well.
+  // Whether to pin is a decision about the whole row, not one segment. Below
+  // 48rem the answer is no: the pin is a desktop-scale width, so the
+  // isDesktop gate below fences the whole expression and the measured
+  // pipeline never runs on a phone.
   const labelModeForStrip = useLabelMode(labelAxis);
 
   // A strip whose labels are all off screen does not pin: the pinned width is
@@ -356,7 +388,8 @@ export function Selector(props: SelectorProps) {
   // stays a row of equal tabs in glyph mode.
   const labelsOffScreen = hidesLabel(labelModeForStrip) && items.every((i) => !!i.icon);
   const reactiveStrip = labelModeForStrip === "reactive" && items.every((i) => !!i.icon && !i.iconOnly);
-  const pinWidth = equalWidth && !(labelsOffScreen && size !== "lg");
+  const isDesktop = useIsDesktop();
+  const pinWidth = isDesktop && equalWidth && !(labelsOffScreen && size !== "lg");
 
   // Pinning needs the widest segment's natural width, which only a DOM
   // measurement gives. A flex share (`flex-1`) does not work: a shrink-to-fit
@@ -496,6 +529,12 @@ export function Selector(props: SelectorProps) {
         const itemDisabled = disabledFlags[i];
         const cls = [
           "inline-flex min-w-0 max-w-full items-center font-medium",
+          // Below-md compaction, every variant and scale alike (MOBILE_COMPACT
+          // above).
+          MOBILE_COMPACT,
+          // The 44px touch bleed; small well only, so it never leaks into the
+          // big accepted-sub-floor pickers (SEGMENT_TOUCH_BLEED above).
+          well && !equalWidth ? SEGMENT_TOUCH_BLEED : "",
           // Well segments are rounded too, so the selected pill follows the
           // shape setting along with the groove.
           well

@@ -627,6 +627,8 @@ const nl: Partial<Translations> = {
   "common.confirm": "Bevestigen",
   "common.cancel": "Annuleren",
   "common.close": "Sluiten",
+  "common.expand": "Uitklappen",
+  "common.collapse": "Inklappen",
 
   // Failure fallbacks
   "common.actionFailed": "Actie mislukt",
