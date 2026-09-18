@@ -13,6 +13,8 @@ const ca: Partial<Translations> = {
   "nav.flash": "Flash",
   "nav.config": "Autocòpia",
   "nav.settings": "Configuració",
+  "nav.more": "Més",
+  "nav.mobileNavigation": "Navegació mòbil",
 
   // Mode toggle
   "about.title": "Quant a BombVault",
@@ -696,6 +698,7 @@ const ca: Partial<Translations> = {
   "settings.labels.buttons": "Botons",
   "settings.labels.sidebar": "Barra lateral",
   "settings.labels.tabs": "Pestanyes",
+  "settings.labels.bottombar": "Barra inferior",
   "settings.labels.mode.text": "Text",
   "settings.labels.mode.textGlyph": "Text i símbol",
   "settings.labels.mode.glyph": "Símbol",

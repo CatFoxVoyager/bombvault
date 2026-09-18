@@ -13,6 +13,8 @@ const bg: Partial<Translations> = {
   "nav.flash": "Flash",
   "nav.config": "Самобекъп",
   "nav.settings": "Настройки",
+  "nav.more": "Още",
+  "nav.mobileNavigation": "Мобилна навигация",
 
   // Mode toggle
   "about.title": "Относно BombVault",
@@ -696,6 +698,7 @@ const bg: Partial<Translations> = {
   "settings.labels.buttons": "Бутони",
   "settings.labels.sidebar": "Странична лента",
   "settings.labels.tabs": "Раздели",
+  "settings.labels.bottombar": "Долна лента",
   "settings.labels.mode.text": "Текст",
   "settings.labels.mode.textGlyph": "Текст и символ",
   "settings.labels.mode.glyph": "Символ",

@@ -13,6 +13,8 @@ const fa: Partial<Translations> = {
   "nav.flash": "فلش",
   "nav.config": "پشتیبان‌گیری خودکار",
   "nav.settings": "تنظیمات",
+  "nav.more": "بیشتر",
+  "nav.mobileNavigation": "ناوبری موبایل",
 
   // Mode toggle
   "about.title": "درباره BombVault",
@@ -696,6 +698,7 @@ const fa: Partial<Translations> = {
   "settings.labels.buttons": "دکمه‌ها",
   "settings.labels.sidebar": "نوار کناری",
   "settings.labels.tabs": "زبانه‌ها",
+  "settings.labels.bottombar": "نوار پایینی",
   "settings.labels.mode.text": "متن",
   "settings.labels.mode.textGlyph": "متن و نماد",
   "settings.labels.mode.glyph": "نماد",

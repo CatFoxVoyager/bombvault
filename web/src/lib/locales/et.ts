@@ -13,6 +13,8 @@ const et: Partial<Translations> = {
   "nav.flash": "Flash",
   "nav.config": "Iseenda varundus",
   "nav.settings": "Seaded",
+  "nav.more": "Rohkem",
+  "nav.mobileNavigation": "Mobiilne navigeerimine",
 
   // Mode toggle
   "about.title": "Teave BombVaulti kohta",
@@ -696,6 +698,7 @@ const et: Partial<Translations> = {
   "settings.labels.buttons": "Nupud",
   "settings.labels.sidebar": "Külgriba",
   "settings.labels.tabs": "Vahekaardid",
+  "settings.labels.bottombar": "Alumine riba",
   "settings.labels.mode.text": "Tekst",
   "settings.labels.mode.textGlyph": "Tekst ja sümbol",
   "settings.labels.mode.glyph": "Sümbol",

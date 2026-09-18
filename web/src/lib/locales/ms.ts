@@ -13,6 +13,8 @@ const ms: Partial<Translations> = {
   "nav.flash": "Flash",
   "nav.config": "Sandaran Sendiri",
   "nav.settings": "Tetapan",
+  "nav.more": "Lagi",
+  "nav.mobileNavigation": "Navigasi mudah alih",
 
   // Mode toggle
   "about.title": "Perihal BombVault",
@@ -696,6 +698,7 @@ const ms: Partial<Translations> = {
   "settings.labels.buttons": "Butang",
   "settings.labels.sidebar": "Bar sisi",
   "settings.labels.tabs": "Tab",
+  "settings.labels.bottombar": "Bar bawah",
   "settings.labels.mode.text": "Teks",
   "settings.labels.mode.textGlyph": "Teks dan simbol",
   "settings.labels.mode.glyph": "Simbol",

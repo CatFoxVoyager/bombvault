@@ -13,6 +13,8 @@ const id: Partial<Translations> = {
   "nav.flash": "Flash",
   "nav.config": "Cadangan Mandiri",
   "nav.settings": "Pengaturan",
+  "nav.more": "Lainnya",
+  "nav.mobileNavigation": "Navigasi seluler",
 
   // Mode toggle
   "about.title": "Tentang BombVault",
@@ -696,6 +698,7 @@ const id: Partial<Translations> = {
   "settings.labels.buttons": "Tombol",
   "settings.labels.sidebar": "Bilah sisi",
   "settings.labels.tabs": "Tab",
+  "settings.labels.bottombar": "Bilah bawah",
   "settings.labels.mode.text": "Teks",
   "settings.labels.mode.textGlyph": "Teks dan simbol",
   "settings.labels.mode.glyph": "Simbol",

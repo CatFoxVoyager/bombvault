@@ -13,6 +13,8 @@ const lt: Partial<Translations> = {
   "nav.flash": "Flash",
   "nav.config": "Savarankiška atsarga",
   "nav.settings": "Nustatymai",
+  "nav.more": "Daugiau",
+  "nav.mobileNavigation": "Mobilioji navigacija",
 
   // Mode toggle
   "about.title": "Apie BombVault",
@@ -696,6 +698,7 @@ const lt: Partial<Translations> = {
   "settings.labels.buttons": "Mygtukai",
   "settings.labels.sidebar": "Šoninė juosta",
   "settings.labels.tabs": "Kortelės",
+  "settings.labels.bottombar": "Apatinė juosta",
   "settings.labels.mode.text": "Tekstas",
   "settings.labels.mode.textGlyph": "Tekstas ir simbolis",
   "settings.labels.mode.glyph": "Simbolis",

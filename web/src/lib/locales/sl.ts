@@ -13,6 +13,8 @@ const sl: Partial<Translations> = {
   "nav.flash": "Flash",
   "nav.config": "Lastna varnostna kopija",
   "nav.settings": "Nastavitve",
+  "nav.more": "Več",
+  "nav.mobileNavigation": "Mobilna navigacija",
 
   // Mode toggle
   "about.title": "O programu BombVault",
@@ -694,6 +696,7 @@ const sl: Partial<Translations> = {
   "settings.labels.buttons": "Gumbi",
   "settings.labels.sidebar": "Stranska vrstica",
   "settings.labels.tabs": "Zavihki",
+  "settings.labels.bottombar": "Spodnja vrstica",
   "settings.labels.mode.text": "Besedilo",
   "settings.labels.mode.textGlyph": "Besedilo in simbol",
   "settings.labels.mode.glyph": "Simbol",

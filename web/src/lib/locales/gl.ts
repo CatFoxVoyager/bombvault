@@ -13,6 +13,8 @@ const gl: Partial<Translations> = {
   "nav.flash": "Flash",
   "nav.config": "Autocopia",
   "nav.settings": "Configuración",
+  "nav.more": "Máis",
+  "nav.mobileNavigation": "Navegación móbil",
 
   // Mode toggle
   "about.title": "Sobre BombVault",
@@ -696,6 +698,7 @@ const gl: Partial<Translations> = {
   "settings.labels.buttons": "Botóns",
   "settings.labels.sidebar": "Barra lateral",
   "settings.labels.tabs": "Lapelas",
+  "settings.labels.bottombar": "Barra inferior",
   "settings.labels.mode.text": "Texto",
   "settings.labels.mode.textGlyph": "Texto e símbolo",
   "settings.labels.mode.glyph": "Símbolo",

@@ -13,6 +13,8 @@ const is: Partial<Translations> = {
   "nav.flash": "Flash",
   "nav.config": "Sjálfvirk afritun",
   "nav.settings": "Stillingar",
+  "nav.more": "Meira",
+  "nav.mobileNavigation": "Farsímaflakk",
 
   // Mode toggle
   "about.title": "Um BombVault",
@@ -696,6 +698,7 @@ const is: Partial<Translations> = {
   "settings.labels.buttons": "Hnappar",
   "settings.labels.sidebar": "Hliðarstika",
   "settings.labels.tabs": "Flipar",
+  "settings.labels.bottombar": "Neðri stika",
   "settings.labels.mode.text": "Texti",
   "settings.labels.mode.textGlyph": "Texti og tákn",
   "settings.labels.mode.glyph": "Tákn",

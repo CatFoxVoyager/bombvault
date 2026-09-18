@@ -13,6 +13,8 @@ const lv: Partial<Translations> = {
   "nav.flash": "Flash",
   "nav.config": "Pašrezerve",
   "nav.settings": "Iestatījumi",
+  "nav.more": "Vēl",
+  "nav.mobileNavigation": "Mobilā navigācija",
 
   // Mode toggle
   "about.title": "Par BombVault",
@@ -696,6 +698,7 @@ const lv: Partial<Translations> = {
   "settings.labels.buttons": "Pogas",
   "settings.labels.sidebar": "Sānjosla",
   "settings.labels.tabs": "Cilnes",
+  "settings.labels.bottombar": "Apakšjosla",
   "settings.labels.mode.text": "Teksts",
   "settings.labels.mode.textGlyph": "Teksts un simbols",
   "settings.labels.mode.glyph": "Simbols",

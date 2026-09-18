@@ -13,6 +13,8 @@ const hi: Partial<Translations> = {
   "nav.flash": "फ़्लैश",
   "nav.config": "सेल्फ़-बैकअप",
   "nav.settings": "सेटिंग्स",
+  "nav.more": "और",
+  "nav.mobileNavigation": "मोबाइल नेविगेशन",
 
   // Mode toggle
   "about.title": "BombVault के बारे में",
@@ -696,6 +698,7 @@ const hi: Partial<Translations> = {
   "settings.labels.buttons": "बटन",
   "settings.labels.sidebar": "साइडबार",
   "settings.labels.tabs": "टैब",
+  "settings.labels.bottombar": "बॉटम बार",
   "settings.labels.mode.text": "पाठ",
   "settings.labels.mode.textGlyph": "पाठ और प्रतीक",
   "settings.labels.mode.glyph": "प्रतीक",
