@@ -480,15 +480,7 @@ var repoAbsenceMarkers = []string{
 //	dial tcp 192.168.20.199:8000: connect: no route to host
 //	Is there a repository at the following location?
 //
-// — which contains "unable to open config file", so isRepoUninitialized (and
-// therefore a naive "absent") matches a dead network. For listSnapshots and
-// probeOffsiteRepo that loose reading is harmless and deliberate (#117/#130:
-// report "empty, not fatal"). For THIS feature it is the exact wrong answer:
-// "absent" means "nothing exists, your choice decides", so a dead REST server
-// would license the user to pick a mode and have BombVault create a second,
-// empty repository beside backups that were there all along.
-//
-// It is kept as a VETO on top of the allow-list above, not as the decision:
+// It is kept as a veto on top of the allow-list above, not as the decision:
 // "dial tcp: lookup backup.example: no such host" is a dead name that happens
 // to phrase itself like a missing object, and "open /mnt/x/config: permission
 // denied: no such file or directory" is the kind of compound message a layered
@@ -505,29 +497,23 @@ var transportFailureMarkers = []string{
 }
 
 // isRepoDefinitelyAbsent reports whether err means "this location is reachable
-// and holds no repository" — and nothing else. It is deliberately STRICTER than
-// isRepoUninitialized: the uninitialized signal must be present, the backend
-// must have SAID the object is not there (repoAbsenceMarkers), and no transport
-// failure may be named alongside it.
+// and holds no repository", and nothing else. It is stricter than
+// isRepoUninitialized in one place: a transport failure named anywhere in the
+// message vetoes even restic's own "repository does not exist".
 //
 // The asymmetry is intentional. Guessing "unreachable" when a repo is merely
 // absent costs the user one visible "can't tell" line and a switch they set
 // themselves. Guessing "absent" when a repo is merely unreachable can silently
 // create an empty repository next to real backups. So anything ambiguous
-// resolves to unreachable — and with the allow-list above, "ambiguous" is the
-// DEFAULT rather than a case someone has to have enumerated in advance.
+// resolves to unreachable, and with the allow-list above, "ambiguous" is the
+// default rather than a case someone has to have enumerated in advance.
 func isRepoDefinitelyAbsent(err error) bool {
-	if !isRepoUninitialized(err) {
-		return false
-	}
-	msg := strings.ToLower(err.Error())
-	for _, marker := range transportFailureMarkers {
-		if strings.Contains(msg, marker) {
-			return false
-		}
-	}
-	for _, marker := range repoAbsenceMarkers {
-		if strings.Contains(msg, marker) {
+	return isRepoUninitialized(err) && !containsAny(strings.ToLower(err.Error()), transportFailureMarkers)
+}
+
+func containsAny(s string, subs []string) bool {
+	for _, sub := range subs {
+		if strings.Contains(s, sub) {
 			return true
 		}
 	}

@@ -71,6 +71,15 @@ func TestListSnapshotsRemoteUninitialized(t *testing.T) {
 		}
 	})
 
+	t.Run("remote host out of reach -> propagates", func(t *testing.T) {
+		dead := errors.New(`restic snapshots failed: Fatal: unable to open config file: Head "http://box:8000[path]": dial tcp: lookup box on 127.0.0.11:53: no such host`)
+		s := &Service{engine: snapshotsStubEngine{err: dead}}
+		_, err := s.listSnapshots(context.Background(), "rest:http://box:8000/flash", restic.Mode{})
+		if err == nil {
+			t.Fatal("a host that does not resolve holds no answer about snapshots and must not read as empty")
+		}
+	})
+
 	t.Run("local uninitialized -> propagates (guarded upstream, not here)", func(t *testing.T) {
 		s := &Service{engine: snapshotsStubEngine{err: notInit}}
 		_, err := s.listSnapshots(context.Background(), "/mnt/user/backups/flash", restic.Mode{})

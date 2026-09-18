@@ -5,14 +5,15 @@ import (
 	"testing"
 )
 
-// "Not initialised yet" and "the server refused you" are different answers, and
-// restic's wrapper text does not distinguish them: it prefixes "unable to open
-// config file" onto the transport failure as well.
+// "Not initialised yet", "the server refused you" and "the server never
+// answered" are different answers, and restic's wrapper text does not
+// distinguish them: it prefixes "unable to open config file" onto every failure
+// to read the config.
 //
-// The three messages below are VERBATIM from a real rest-server started with
-// --private-repos and an htpasswd file, captured before the fix. Reported as a
-// remote primary repository stuck on "reachable, not initialized" with nothing
-// to act on (issue #192).
+// The rest-server messages are verbatim from restic 0.17.3 against a real
+// rest-server started with --private-repos and an htpasswd file, the transport
+// failures verbatim from the same restic against a name that does not resolve
+// and a port with nothing listening.
 func TestIsRepoUninitializedTellsRefusalFromEmptiness(t *testing.T) {
 	for _, tc := range []struct {
 		name string
@@ -26,8 +27,8 @@ func TestIsRepoUninitializedTellsRefusalFromEmptiness(t *testing.T) {
 			want: true,
 		},
 		{
-			// Wrong password. Was reported as "reachable, not initialized",
-			// which reads as "your destination is fine, just empty".
+			// Wrong password. "Reachable, not initialized" would read as
+			// "your destination is fine, just empty".
 			name: "wrong password",
 			msg:  "Fatal: unable to open config file: unexpected HTTP response (401): 401 Unauthorized",
 			want: false,
@@ -45,6 +46,23 @@ func TestIsRepoUninitializedTellsRefusalFromEmptiness(t *testing.T) {
 			name: "forbidden",
 			msg:  "unable to open config file: AccessDenied: 403 Forbidden",
 			want: false,
+		},
+		{
+			name: "name does not resolve",
+			msg:  `restic cat failed: Fatal: unable to open config file: Head "http://:***@ljsnas02.invalid:8000[path]": dial tcp: lookup ljsnas02.invalid on 127.0.0.11:53: no such host`,
+			want: false,
+		},
+		{
+			name: "nothing listening",
+			msg:  `restic cat failed: Fatal: unable to open config file: Head "http://:***@192.168.20.87:8999[path]": dial tcp 192.168.20.87:8999: connect: connection refused`,
+			want: false,
+		},
+		{
+			// restic reports a missing bucket in the loose form, and init
+			// creates the bucket, so the destination is as good as empty.
+			name: "bucket not created yet",
+			msg:  "Fatal: unable to open config file: Stat: The specified bucket does not exist.",
+			want: true,
 		},
 		{
 			// A local repository that was never initialised: no transport, no

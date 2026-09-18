@@ -47,9 +47,6 @@ rest:https://backup.example.com/repo`,
 	for name, msg := range cases {
 		t.Run(name, func(t *testing.T) {
 			err := errors.New(msg)
-			if !isRepoUninitialized(err) {
-				t.Fatal("precondition: the loose helper is expected to match — that is the trap being guarded")
-			}
 			if isRepoDefinitelyAbsent(err) {
 				t.Fatalf("%q must not be read as a definitely-absent repository", msg)
 			}

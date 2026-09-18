@@ -410,13 +410,11 @@ func TestClassifyClosedRepoVanishedMountIsUnreachable(t *testing.T) {
 	}
 }
 
-// TestDeadRemoteHostIsUnreachableNotAbsent is a LIVE-CAUGHT regression. Pointed
-// at a host with nothing listening, restic answers with a message that contains
-// BOTH "unable to open config file" and the dial failure — so isRepoUninitialized
-// matches and a naive classification called a dead network "absent". That is the
-// one wrong answer this feature must never give: "absent" means "nothing exists,
-// your choice decides", which would license creating an empty repository beside
-// backups that were there all along.
+// TestDeadRemoteHostIsUnreachableNotAbsent: pointed at a host with nothing
+// listening, restic answers with "unable to open config file" and the dial
+// failure. Calling that "absent" is the one wrong answer this feature must never
+// give, because "absent" licenses creating an empty repository beside backups
+// that were there all along.
 //
 // The message below is the verbatim text observed against the test container.
 func TestDeadRemoteHostIsUnreachableNotAbsent(t *testing.T) {
@@ -427,8 +425,8 @@ func TestDeadRemoteHostIsUnreachableNotAbsent(t *testing.T) {
 Is there a repository at the following location?
 rest:http://192.168.20.199:8000/norepo/`)
 
-	if isRepoUninitialized(dead) != true {
-		t.Fatal("precondition: the loose helper is expected to match this message — that is the trap being guarded")
+	if isRepoUninitialized(dead) {
+		t.Fatal("a dial failure must not count as an uninitialised repository")
 	}
 	if isRepoDefinitelyAbsent(dead) {
 		t.Fatal("a dial failure must never count as a definitely-absent repository")

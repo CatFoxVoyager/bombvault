@@ -1721,6 +1721,39 @@ func TestTestOffsiteFreshRemoteRepoReportsUninitializedNotFailed(t *testing.T) {
 	}
 }
 
+// TestTestOffsiteServerOutOfReachIsNotReachable feeds the probe restic 0.17's own
+// answers for a server it never reached. They carry "unable to open config file"
+// just like a missing repository does, and must not read as a reachable, empty one.
+func TestTestOffsiteServerOutOfReachIsNotReachable(t *testing.T) {
+	for name, msg := range map[string]string{
+		"name does not resolve":    `restic cat failed: Fatal: unable to open config file: Head "http://:***@ljsnas02.invalid:8000[path]": dial tcp: lookup ljsnas02.invalid on 127.0.0.11:53: no such host`,
+		"connection refused":       `restic cat failed: Fatal: unable to open config file: Head "http://:***@192.168.20.87:8999[path]": dial tcp 192.168.20.87:8999: connect: connection refused`,
+		"no route to host":         `restic cat failed: Fatal: unable to open config file: Head "http://:***@192.168.20.254:8000[path]": dial tcp 192.168.20.254:8000: connect: no route to host`,
+		"s3 name does not resolve": `restic cat failed: Fatal: unable to open config file: Stat: Get "https://nosuchhost.invalid[path]": dial tcp: lookup nosuchhost.invalid on 127.0.0.11:53: no such host`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			dir := t.TempDir()
+			cfg := config.Config{AppKey: strings.Repeat("a", 64), DataDir: dir, HostMountRoot: dir}
+			st := newMemStore(t)
+			s := mustSettings(t, st)
+			s.ContainersOffsite = "rest:http://ljsnas02.invalid:8000/containers"
+			if err := st.UpdateSettings(s); err != nil {
+				t.Fatal(err)
+			}
+			eng := &fakeResticEngine{repoOpensErr: errors.New(msg)}
+			svc := api.NewService(cfg, st, &fakeServiceDocker{}, fakeVirsh{}, eng)
+
+			reachable, initialized, err := svc.TestOffsite(context.Background(), "containers")
+			if reachable || initialized {
+				t.Fatalf("got reachable=%v initialized=%v, want both false", reachable, initialized)
+			}
+			if err == nil {
+				t.Fatal("expected restic's reason to reach the user, got nil")
+			}
+		})
+	}
+}
+
 // TestDomainStatus drives DomainStatus through a seeded store: a disabled domain
 // is "off", an enabled+scheduled domain with no successful backup is "never", and
 // one with a fresh successful backup is "ok". The time-boundary cases
