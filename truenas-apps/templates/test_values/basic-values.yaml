@@ -6,18 +6,15 @@ resources:
 TZ: Etc/UTC
 
 bombvault:
-  # Not a real secret: 64 hex characters, the length the schema requires.
-  app_key: "ecc786b571f536ebb075da4bfe0ff40f6218631903a7af98722f81d78ee20e28"
+  app_key: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
   http_only: false
   backup_max_hours: null
   self_container_name: ""
-  additional_envs: []
-
-vm_backup:
   libvirt_uri: ""
   libvirt_host: host.docker.internal
   libvirt_ssh_user: root
   libvirt_ssh_port: 22
+  additional_envs: []
 
 network:
   host_network: false
@@ -39,11 +36,9 @@ storage:
     ix_volume_config:
       dataset_name: config
       create_host_path: true
-  host_data: /opt/tests/mnt/bombvault/hostdata
-  # The deploy test runs against a path that does not exist yet, so it has to
-  # be created here. A real install leaves this off and points at an existing
-  # pool or dataset.
-  host_data_create: true
+  host_data:
+    path: /opt/tests/mnt/bombvault/hostdata
+    create_host_path: true
   additional_storage: []
 
 labels: []
