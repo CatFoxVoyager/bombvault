@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 // Playwright harness — the responsive-regression gate for the mobile shell
-// and the phone layouts of the Dashboard and the Containers page.
+// and the phone layouts of the Dashboard, Containers and VMs pages.
 //
 // Why the compiled Go binary and not `vite preview` or MSW: the binary serves
 // the embedded SPA AND the real API (web/embed.go), `vite preview` serves zero
@@ -82,6 +82,7 @@ export default defineConfig({
     "touch-tree.spec.ts",
     "list-ergonomics-containers.spec.ts",
     "run-detail-visibility.spec.ts",
+    "destination-vms.spec.ts",
   ],
   use: {
     baseURL: `http://127.0.0.1:${e2ePort}`,
