@@ -27,18 +27,9 @@ services:
     image: junkerderprovinz/bombvault:latest
     restart: unless-stopped
 
-    # Pinned, not left at Docker's random per-container default, for stable
-    # restic repo locks: restic's own lock files record the hostname of the
-    # process holding them, and BombVault's stale-lock check (unlockStale,
-    # see internal/api/service.go) can only safely recognize a lock left by
-    # ITS OWN prior incarnation as dead (rather than waiting out restic's
-    # ~30-minute lock-age fallback) when that prior incarnation reported the
-    # SAME hostname. Since Docker gives every recreated container (e.g. on
-    # an image update) a new random hostname by default, a fixed hostname
-    # closes that gap. container_name matches it so self-container detection
-    # (BombVault refuses to back up or stop itself) resolves correctly by
-    # hostname without needing the Unraid template's BOMBVAULT_SELF_CONTAINER
-    # override.
+    # restic records the hostname in its locks. A fixed one lets BombVault
+    # clear a stale lock left by its previous container right away instead of
+    # waiting 30 minutes after every recreate.
     hostname: bombvault
     container_name: bombvault
 

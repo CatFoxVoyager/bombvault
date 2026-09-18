@@ -11,6 +11,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -469,15 +470,14 @@ func (c *Client) InspectName(ctx context.Context, name string) (string, error) {
 	return normalizeName(resp.Name), nil
 }
 
-// Self resolves the container this process runs in by inspecting our hostname,
-// which Docker defaults to the short container ID. Returns "" (no error) when we
-// are not in a container or it can't be found, so callers degrade gracefully.
+// Self returns the name of the container this process runs in, or "" when it
+// cannot be found.
 func (c *Client) Self(ctx context.Context) (string, error) {
-	host, err := os.Hostname()
-	if err != nil || host == "" {
+	ref := ownContainerRef()
+	if ref == "" {
 		return "", nil
 	}
-	resp, err := c.api.ContainerInspect(ctx, host)
+	resp, err := c.api.ContainerInspect(ctx, ref)
 	if err != nil {
 		if isNoSuchContainer(err) {
 			return "", nil
@@ -485,6 +485,29 @@ func (c *Client) Self(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("dockercli: self-inspect: %w", err)
 	}
 	return normalizeName(resp.Name), nil
+}
+
+var (
+	mountinfoPath = "/proc/self/mountinfo"
+	containerID   = regexp.MustCompile(`containers/([0-9a-f]{64})/`)
+)
+
+// ownContainerRef reads the container ID from the file Docker mounts over
+// /etc/hostname. The hostname itself is only a fallback: a platform or template
+// may set it to something other than the short ID.
+func ownContainerRef() string {
+	data, _ := os.ReadFile(mountinfoPath)
+	for line := range strings.Lines(string(data)) {
+		fields := strings.Fields(line)
+		if len(fields) < 5 || fields[4] != "/etc/hostname" {
+			continue
+		}
+		if m := containerID.FindStringSubmatch(fields[3]); m != nil {
+			return m[1]
+		}
+	}
+	host, _ := os.Hostname()
+	return host
 }
 
 // isNoSuchContainer reports whether err is the SDK's "no such container" error.

@@ -77,10 +77,8 @@ type Docker interface {
 	// slash) or "" when no such container exists. Used as the restore
 	// wrong-target guard.
 	InspectName(ctx context.Context, name string) (string, error)
-	// Self returns the name (normalized) of the container this process runs in,
-	// resolved from our hostname (Docker defaults it to the short container ID),
-	// or "" when it can't be determined (not in a container / not found). Used so
-	// a backup never stops its own container.
+	// Self returns the name of the container this process runs in, or "" when
+	// it cannot be found. A backup must never stop its own container.
 	Self(ctx context.Context) (string, error)
 	// Exec runs cmd inside the (running) container and returns an error when the
 	// command exits non-zero. Used for pre/post-backup hooks.

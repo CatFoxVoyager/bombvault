@@ -4603,11 +4603,9 @@ func (s *Service) storedDataIsGone(name string) bool {
 // is nothing to gain and a crash to lose.
 var ErrSelfBackup = errors.New("BombVault won't back up its own container (it would stop itself mid-backup); its configuration is recovered via Discover")
 
-// selfContainerName returns the name of BombVault's OWN container, resolved once
-// and cached. The BOMBVAULT_SELF_CONTAINER env (set by the Unraid template) wins;
-// otherwise we Inspect our hostname, which Docker defaults to the short container
-// ID, and take that container's Name. Returns "" when undetectable (Docker not
-// reachable yet) and leaves the cache unset so a later call can retry.
+// selfContainerName returns BombVault's own container name, cached after the
+// first success. BOMBVAULT_SELF_CONTAINER overrides the lookup. An empty result
+// is not cached, so a call made before Docker is reachable is retried later.
 func (s *Service) selfContainerName(ctx context.Context) string {
 	s.selfMu.Lock()
 	defer s.selfMu.Unlock()

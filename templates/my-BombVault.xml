@@ -118,13 +118,13 @@ Full documentation: https://junkerderprovinz.github.io/bombvault/</Overview>
   <Config
     Name="BOMBVAULT_SELF_CONTAINER"
     Target="BOMBVAULT_SELF_CONTAINER"
-    Default="BombVault"
+    Default=""
     Mode=""
-    Description="The name of THIS container, so BombVault never backs up (and thus stops) itself. Defaults to BombVault and normally needs no change — this value is used directly. The container hostname is pinned to 'bombvault' (for stable restic repo locks), so if you CLEAR this variable or run with host networking, set it to the exact container name (hostname-based auto-detection no longer applies)."
+    Description="The name of this container, so BombVault never backs up and stops itself. Leave it empty and BombVault finds its own container."
     Type="Variable"
     Display="advanced"
     Required="false"
-    Mask="false">BombVault</Config>
+    Mask="false"></Config>
   <Config
     Name="BACKUP_MAX_HOURS"
     Target="BACKUP_MAX_HOURS"

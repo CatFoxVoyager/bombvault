@@ -18,7 +18,7 @@
 | `HOST_SOURCE_ROOT` | 아니요 | **Host Data**로 마운트되는 호스트 경로(기본값 `/mnt`). BombVault는 Docker가 보고하는 바인드 마운트 소스를 이 마운트 아래의 경로로 변환합니다. 다른 호스트 루트를 마운트한 경우에만 변경하세요. |
 | `DATA_ROOT_SEGMENTS` | 아니요 | 바인드 마운트 소스를 백업 데이터로 표시하는, 쉼표로 구분한 경로 세그먼트 이름 목록입니다(기본값 `appdata`, Unraid의 `/mnt/user/appdata/<container>` 규칙과 일치). 나열된 세그먼트 중 하나라도 호스트 소스의 전체 경로 세그먼트로 나타나면 해당 컨테이너의 바인드 마운트가 백업 대상으로 자동 선택됩니다. 예를 들어 `DATA_ROOT_SEGMENTS=appdata,config`는 `.../config` 바인드도 함께 포함시킵니다. 컨테이너의 데이터 폴더를 찾는 그 밖의 상시 활성 방식은 [백업 소스 감지](#backup-source-detection)를 참고하세요. |
 | `PLATFORM` | 아니요 | 자동 감지 대신 BombVault가 자신이 실행 중이라고 판단할 플랫폼을 강제로 지정합니다: `unraid`, `generic`, `truenas` 중 하나입니다(기본값은 설정되지 않음입니다. 플래시 마운트 아래의 `dockerMan` 표시를 찾아 Unraid를 자동 감지하고, 찾지 못하면 `generic`으로 처리합니다. 인식되지 않는 값도 `generic`으로 대체되며 이때 로그가 남습니다). 일반 Docker 호스트나 TrueNAS Scale에서는 Unraid 전용 자동 감지에 의존하지 말고 명시적으로 설정하세요. 일반용 compose 파일이 이렇게 되어 있습니다. 이 값은 appdata 대체 규칙, 인스턴스 간 복원 대상 기본값, Unraid 전용 알림/컴패니언 플러그인 단계 시도 여부를 바꿉니다(`internal/platform` 참고). |
-| `BOMBVAULT_SELF_CONTAINER` | 아니요 | BombVault 컨테이너 자체의 이름으로, 자기 자신을 절대 백업(따라서 중지)하지 않도록 합니다(기본값 `BombVault`; 브리지 네트워킹에서 호스트 이름으로 자동 감지). |
+| `BOMBVAULT_SELF_CONTAINER` | 아니요 | BombVault 컨테이너 자체의 이름으로, 자기 자신을 절대 백업(따라서 중지)하지 않도록 합니다. |
 | `BACKUP_MAX_HOURS` | 아니요 | 단일 백업 실행이 강제 취소되기 전에 도메인 잠금을 유지할 수 있는 최대 실제 경과 시간(멈춘 실행이 도메인을 영원히 차단하지 못하게 하는 보호 장치). 비어 있으면(기본값) `48`을 사용합니다. 매우 크거나 느린 클라우드 백업에는 이를 높이세요(상한에서 취소된 실행은 `context deadline exceeded`로 실패함). 상한을 완전히 비활성화하려면 `0`으로 설정하세요. |
 | `TZ` | 아니요 | 스케줄러용 시간대(예: `Europe/Berlin`). **설정하지 않으면 모든 일정이 UTC로 실행됩니다**: 02:30으로 설정한 일정은 현지 시간이 아니라 02:30 UTC에 시작됩니다. Unraid에서는 직접 설정하지 않습니다. 시스템이 자체 시간대를 모든 컨테이너에 전달합니다. |
 
