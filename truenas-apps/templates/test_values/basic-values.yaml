@@ -9,7 +9,6 @@ bombvault:
   app_key: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
   http_only: false
   backup_max_hours: null
-  self_container_name: ""
   libvirt_uri: ""
   libvirt_host: host.docker.internal
   libvirt_ssh_user: root

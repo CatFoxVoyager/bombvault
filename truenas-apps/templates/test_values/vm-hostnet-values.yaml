@@ -9,7 +9,6 @@ bombvault:
   app_key: "3f9c1d47a8b20e65fd913c07ab4e28d5106f7be3c9a4520d8e17fb6390c2a4d1"
   http_only: true
   backup_max_hours: 12
-  self_container_name: ix-bombvault-bombvault-1
   libvirt_uri: qemu+ssh://root@192.0.2.10/system?socket=/run/truenas_libvirt/libvirt-sock
   libvirt_host: 192.0.2.10
   libvirt_ssh_user: root

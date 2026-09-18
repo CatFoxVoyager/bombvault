@@ -51,12 +51,6 @@ questions:
             type: int
             "null": true
             default: null
-        - variable: self_container_name
-          label: Container Name
-          description: The name of this app's container, for example ix-bombvault-bombvault-1.
-          schema:
-            type: string
-            default: ""
         - variable: libvirt_uri
           label: Libvirt URI
           description: |

@@ -15,9 +15,6 @@
 {% if values.bombvault.backup_max_hours is not none %}
   {% do c1.environment.add_env("BACKUP_MAX_HOURS", values.bombvault.backup_max_hours) %}
 {% endif %}
-{% if values.bombvault.self_container_name %}
-  {% do c1.environment.add_env("BOMBVAULT_SELF_CONTAINER", values.bombvault.self_container_name) %}
-{% endif %}
 {% if values.bombvault.libvirt_uri %}
   {% do c1.environment.add_env("LIBVIRT_URI", values.bombvault.libvirt_uri) %}
 {% endif %}
