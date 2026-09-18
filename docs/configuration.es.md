@@ -24,7 +24,7 @@ Esta página cubre las variables de entorno del contenedor, los montajes que pro
 
 ## Montajes
 
-Monta el socket de Docker, el flash (`/boot`) y la raíz de **Host Data** (`/mnt`) como se muestra en la plantilla de CA. Tanto los *orígenes* como los *destinos* de las copias viven bajo Host Data, y se monta como **rslave** para que un recurso compartido remoto que se monte después de que arranque el contenedor (por ejemplo bajo `/mnt/remotes`) se vuelva visible sin reiniciar.
+Monta el socket de Docker, el flash (`/boot`) y la raíz de **Host Data** (`/mnt`) como se muestra en la plantilla de CA. Tanto los *orígenes* como los *destinos* de las copias viven bajo Host Data, y se monta como **slave** para que un recurso compartido remoto que se monte después de que arranque el contenedor (por ejemplo bajo `/mnt/remotes`) se vuelva visible sin reiniciar.
 
 Las rutas de repositorio de copia son por defecto `/mnt/user/bombvault/{container,vms,flash,config,files}`, creadas en la primera copia. Cambia la ubicación en cualquier momento en **Ajustes, Rutas de copia**.
 

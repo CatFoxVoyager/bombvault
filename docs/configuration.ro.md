@@ -24,7 +24,7 @@ Această pagină acoperă variabilele de mediu ale containerului, montările pe 
 
 ## Montări
 
-Montează socket-ul Docker, flash-ul (`/boot`) și rădăcina **Host Data** (`/mnt`) așa cum se arată în șablonul CA. Atât *sursele* cât și *destinațiile* backupurilor se află sub Host Data, iar aceasta este montată **rslave** astfel încât o partajare la distanță care se montează după ce containerul pornește (de exemplu sub `/mnt/remotes`) devine vizibilă fără repornire.
+Montează socket-ul Docker, flash-ul (`/boot`) și rădăcina **Host Data** (`/mnt`) așa cum se arată în șablonul CA. Atât *sursele* cât și *destinațiile* backupurilor se află sub Host Data, iar aceasta este montată **slave** astfel încât o partajare la distanță care se montează după ce containerul pornește (de exemplu sub `/mnt/remotes`) devine vizibilă fără repornire.
 
 Căile depozitelor de backup sunt implicit `/mnt/user/bombvault/{container,vms,flash,config,files}`, create la primul backup. Schimbă locația oricând în **Setări, Căi de backup**.
 

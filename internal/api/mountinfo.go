@@ -12,8 +12,8 @@ import (
 )
 
 // mountinfoPath is the source of mount records. It is a package var so tests can
-// point it at a fixture; production reads the live kernel table. The container
-// runs with rslave propagation, so a mount that appears on the host (e.g. an
+// point it at a fixture; production reads the live kernel table. Host Data is
+// mounted with slave propagation, so a mount that appears on the host (e.g. an
 // Unassigned Devices disk that mounts after Docker starts) becomes visible here.
 var mountinfoPath = "/proc/self/mountinfo"
 

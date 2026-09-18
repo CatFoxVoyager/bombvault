@@ -24,7 +24,7 @@ Tämä sivu käsittelee kontin ympäristömuuttujat, mallin tarjoamat liitokset,
 
 ## Liitokset
 
-Liitä Docker-soketti, flash (`/boot`) ja **Host Data** -juuri (`/mnt`) kuten CA-mallissa on näytetty. Varmuuskopioinnin *lähteet* ja *kohteet* asuvat molemmat Host Datan alla, ja se liitetään **rslave**-tilassa, joten etäjako, joka liittyy kontin käynnistymisen jälkeen (esimerkiksi kohtaan `/mnt/remotes`), tulee näkyviin ilman uudelleenkäynnistystä.
+Liitä Docker-soketti, flash (`/boot`) ja **Host Data** -juuri (`/mnt`) kuten CA-mallissa on näytetty. Varmuuskopioinnin *lähteet* ja *kohteet* asuvat molemmat Host Datan alla, ja se liitetään **slave**-tilassa, joten etäjako, joka liittyy kontin käynnistymisen jälkeen (esimerkiksi kohtaan `/mnt/remotes`), tulee näkyviin ilman uudelleenkäynnistystä.
 
 Varmuuskopioinnin repopolut ovat oletuksena `/mnt/user/bombvault/{container,vms,flash,config,files}`, luotuina ensimmäisen varmuuskopion yhteydessä. Vaihda sijaintia milloin tahansa kohdassa **Asetukset, Varmuuskopiopolut**.
 

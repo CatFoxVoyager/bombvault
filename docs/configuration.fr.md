@@ -24,7 +24,7 @@ Cette page couvre les variables d'environnement du conteneur, les montages fourn
 
 ## Montages
 
-Montez le socket Docker, la flash (`/boot`) et la racine **Host Data** (`/mnt`) comme indiqué dans le modèle CA. Les *sources* et les *destinations* de sauvegarde vivent toutes deux sous Host Data, et elle est montée en **rslave** afin qu'un partage distant qui se monte après le démarrage du conteneur (par exemple sous `/mnt/remotes`) devienne visible sans redémarrage.
+Montez le socket Docker, la flash (`/boot`) et la racine **Host Data** (`/mnt`) comme indiqué dans le modèle CA. Les *sources* et les *destinations* de sauvegarde vivent toutes deux sous Host Data, et elle est montée en **slave** afin qu'un partage distant qui se monte après le démarrage du conteneur (par exemple sous `/mnt/remotes`) devienne visible sans redémarrage.
 
 Les chemins de dépôt de sauvegarde ont pour valeur par défaut `/mnt/user/bombvault/{container,vms,flash,config,files}`, créés à la première sauvegarde. Changez l'emplacement à tout moment dans **Paramètres, Chemins de sauvegarde**.
 

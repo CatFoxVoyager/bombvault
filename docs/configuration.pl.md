@@ -24,7 +24,7 @@ Ta strona omawia zmienne środowiskowe kontenera, montaże udostępniane przez s
 
 ## Montaże
 
-Zamontuj gniazdo Docker, flash (`/boot`) oraz katalog główny **Host Data** (`/mnt`), jak pokazano w szablonie CA. Zarówno *źródła*, jak i *cele* kopii zapasowych znajdują się pod Host Data i jest on montowany jako **rslave**, więc zdalny udział, który montuje się po uruchomieniu kontenera (na przykład pod `/mnt/remotes`), staje się widoczny bez restartu.
+Zamontuj gniazdo Docker, flash (`/boot`) oraz katalog główny **Host Data** (`/mnt`), jak pokazano w szablonie CA. Zarówno *źródła*, jak i *cele* kopii zapasowych znajdują się pod Host Data i jest on montowany jako **slave**, więc zdalny udział, który montuje się po uruchomieniu kontenera (na przykład pod `/mnt/remotes`), staje się widoczny bez restartu.
 
 Ścieżki repozytoriów kopii domyślnie wynoszą `/mnt/user/bombvault/{container,vms,flash,config,files}`, tworzone przy pierwszej kopii. Zmień lokalizację w dowolnym momencie w **Ustawienia, Ścieżki kopii**.
 

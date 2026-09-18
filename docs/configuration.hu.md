@@ -24,7 +24,7 @@ Ez az oldal a konténer környezeti változóit, a sablon által biztosított cs
 
 ## Csatolások
 
-Csatold a Docker socketet, a flasht (`/boot`) és a **Host Data** gyökeret (`/mnt`), ahogy a CA-sablonban látható. A mentési *források* és *célok* egyaránt a Host Data alatt találhatók, és az **rslave** módban van csatolva, így egy távoli megosztás, amely a konténer indulása után csatolódik (például a `/mnt/remotes` alatt), újraindítás nélkül válik láthatóvá.
+Csatold a Docker socketet, a flasht (`/boot`) és a **Host Data** gyökeret (`/mnt`), ahogy a CA-sablonban látható. A mentési *források* és *célok* egyaránt a Host Data alatt találhatók, és az **slave** módban van csatolva, így egy távoli megosztás, amely a konténer indulása után csatolódik (például a `/mnt/remotes` alatt), újraindítás nélkül válik láthatóvá.
 
 A mentési tároló-útvonalak alapértelmezetten a `/mnt/user/bombvault/{container,vms,flash,config,files}` útvonalra mutatnak, és az első mentéskor jönnek létre. A helyet bármikor megváltoztathatod a **Beállítások, Mentési útvonalak** alatt.
 

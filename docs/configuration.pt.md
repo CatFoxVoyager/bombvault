@@ -24,7 +24,7 @@ Esta página cobre as variáveis de ambiente do container, as montagens que o te
 
 ## Montagens
 
-Monte o socket Docker, o flash (`/boot`) e a raiz **Host Data** (`/mnt`) como mostrado no template CA. As *origens* e os *destinos* de backup vivem ambos sob Host Data, e é montada em **rslave** para que uma partilha remota que monte depois de o container arrancar (por exemplo sob `/mnt/remotes`) fique visível sem um reinício.
+Monte o socket Docker, o flash (`/boot`) e a raiz **Host Data** (`/mnt`) como mostrado no template CA. As *origens* e os *destinos* de backup vivem ambos sob Host Data, e é montada em **slave** para que uma partilha remota que monte depois de o container arrancar (por exemplo sob `/mnt/remotes`) fique visível sem um reinício.
 
 Os caminhos de repositório de backup assumem por predefinição `/mnt/user/bombvault/{container,vms,flash,config,files}`, criados no primeiro backup. Altere a localização a qualquer momento em **Definições, Caminhos de backup**.
 

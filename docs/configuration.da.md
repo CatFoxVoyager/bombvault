@@ -24,7 +24,7 @@ Denne side dækker containerens miljøvariabler, de monteringer skabelonen lever
 
 ## Monteringer
 
-Montér Docker-socket'en, flashen (`/boot`) og **Host Data**-roden (`/mnt`) som vist i CA-skabelonen. Både *kilder* og *destinationer* for sikkerhedskopier lever under Host Data, og den er monteret **rslave**, så en remote share, der monteres, efter containeren er startet (for eksempel under `/mnt/remotes`), bliver synlig uden en genstart.
+Montér Docker-socket'en, flashen (`/boot`) og **Host Data**-roden (`/mnt`) som vist i CA-skabelonen. Både *kilder* og *destinationer* for sikkerhedskopier lever under Host Data, og den er monteret **slave**, så en remote share, der monteres, efter containeren er startet (for eksempel under `/mnt/remotes`), bliver synlig uden en genstart.
 
 Repository-stier for sikkerhedskopier defaulter til `/mnt/user/bombvault/{container,vms,flash,config,files}`, oprettet ved den første sikkerhedskopi. Skift placeringen når som helst i **Indstillinger, Sikkerhedskopistier**.
 

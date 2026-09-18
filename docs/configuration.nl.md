@@ -24,7 +24,7 @@ Deze pagina behandelt de omgevingsvariabelen van de container, de mounts die de 
 
 ## Mounts
 
-Mount de Docker-socket, de flash (`/boot`) en de root **Host Data** (`/mnt`) zoals getoond in de CA-template. Back-up*bronnen* en *bestemmingen* leven allebei onder Host Data, en het wordt **rslave** gemount zodat een remote share die na de start van de container mount (bijvoorbeeld onder `/mnt/remotes`) zichtbaar wordt zonder herstart.
+Mount de Docker-socket, de flash (`/boot`) en de root **Host Data** (`/mnt`) zoals getoond in de CA-template. Back-up*bronnen* en *bestemmingen* leven allebei onder Host Data, en het wordt **slave** gemount zodat een remote share die na de start van de container mount (bijvoorbeeld onder `/mnt/remotes`) zichtbaar wordt zonder herstart.
 
 Back-uprepository-paden gaan standaard naar `/mnt/user/bombvault/{container,vms,flash,config,files}`, aangemaakt bij de eerste back-up. Wijzig de locatie op elk moment in **Instellingen, Back-uppaden**.
 
