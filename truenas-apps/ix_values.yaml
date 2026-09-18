@@ -6,4 +6,3 @@ images:
 consts:
   bombvault_container_name: bombvault
   config_path: /config
-  host_data_path: /host/user

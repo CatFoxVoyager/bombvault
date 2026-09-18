@@ -14,8 +14,7 @@ categories:
 - backup
 changelog_url: https://github.com/junkerderprovinz/bombvault/releases
 date_added: '2026-08-28'
-description: Backup and full disaster recovery for Docker containers and KVM/libvirt
-  VMs, powered by restic.
+description: BombVault backs up Docker containers and KVM/libvirt VMs with restic.
 home: https://github.com/junkerderprovinz/bombvault
 host_mounts:
 - description: Docker socket

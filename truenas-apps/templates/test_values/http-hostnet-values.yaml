@@ -9,8 +9,8 @@ bombvault:
   app_key: "3f9c1d47a8b20e65fd913c07ab4e28d5106f7be3c9a4520d8e17fb6390c2a4d1"
   http_only: true
   additional_envs:
-    - name: LIBVIRT_URI
-      value: qemu+ssh://root@192.0.2.10/system?socket=/run/truenas_libvirt/libvirt-sock
+    - name: BACKUP_MAX_HOURS
+      value: "12"
 
 network:
   host_network: true

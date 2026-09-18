@@ -18,6 +18,7 @@ network:
 
 ix_volumes:
   config: /opt/tests/mnt/bombvault/config
+  host_data: /opt/tests/mnt/bombvault/host_data
 
 storage:
   config:
@@ -26,9 +27,9 @@ storage:
       dataset_name: config
       create_host_path: true
   host_data:
-    type: host_path
-    host_path_config:
-      path: /opt/tests/mnt/bombvault/hostdata
+    type: ix_volume
+    ix_volume_config:
+      dataset_name: host_data
       create_host_path: true
   additional_storage: []
 
