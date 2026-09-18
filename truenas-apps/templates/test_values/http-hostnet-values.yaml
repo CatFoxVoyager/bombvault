@@ -8,25 +8,15 @@ TZ: Europe/Berlin
 bombvault:
   app_key: "3f9c1d47a8b20e65fd913c07ab4e28d5106f7be3c9a4520d8e17fb6390c2a4d1"
   http_only: true
-  backup_max_hours: 12
-  libvirt_uri: qemu+ssh://root@192.0.2.10/system?socket=/run/truenas_libvirt/libvirt-sock
-  libvirt_host: 192.0.2.10
-  libvirt_ssh_user: root
-  libvirt_ssh_port: 22
   additional_envs:
-    - name: BOMBVAULT_EXTRA
-      value: "1"
+    - name: LIBVIRT_URI
+      value: qemu+ssh://root@192.0.2.10/system?socket=/run/truenas_libvirt/libvirt-sock
 
 network:
   host_network: true
   web_port:
     bind_mode: published
-    port_number: 30443
-    host_ips: []
-  http_port:
-    bind_mode: published
-    port_number: 30300
-    host_ips: []
+    port_number: 38081
 
 ix_volumes:
   config: /opt/tests/mnt/bombvault/config
@@ -38,8 +28,10 @@ storage:
       dataset_name: config
       create_host_path: true
   host_data:
-    path: /opt/tests/mnt/bombvault/hostdata
-    create_host_path: true
+    type: host_path
+    host_path_config:
+      path: /opt/tests/mnt/bombvault/hostdata
+      create_host_path: true
   additional_storage:
     - type: host_path
       read_only: true

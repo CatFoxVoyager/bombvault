@@ -7,5 +7,3 @@ consts:
   bombvault_container_name: bombvault
   config_path: /config
   host_data_path: /host/user
-  internal_https_port: 3443
-  internal_http_port: 3000
