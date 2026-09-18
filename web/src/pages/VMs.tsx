@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { listVMs, backupVMNow, restoreVM, listVMSnapshots, setVMInclude, setVMIncludeAll, setVMMethod, deleteSnapshot, deleteBackupsVM, forgetVM, discoverVMs, exportVM, getVmBackupOrder, setVmBackupOrder, setVMRepo } from "../lib/api";
+import { Link } from "react-router-dom";
+import { listVMs, backupVMNow, restoreVM, listVMSnapshots, setVMInclude, setVMIncludeAll, setVMMethod, deleteSnapshot, deleteBackupsVM, forgetVM, discoverVMs, exportVM, getVmBackupOrder, setVmBackupOrder, setVMRepo, getScheduleNext, setVMScheduleCadence, getSettings } from "../lib/api";
+import type { VM, Snapshot, VmOrder, Run, ScheduleNext } from "../lib/api";
 import { SourceToggle, type RepoSource } from "../components/SourceToggle";
 import { FilterPopover } from "../components/FilterPopover";
+import { ChipFilter, loadStoredFilterKey } from "../components/ChipFilter";
 import { IconTipButton } from "../components/IconTipButton";
 import { OffsiteIndicator } from "../components/OffsiteIndicator";
-import type { VM, Snapshot, VmOrder } from "../lib/api";
 import { BULK_HUE } from "../lib/bulkHue";
 import { useT, stateLabel } from "../lib/i18n";
-import { PAGE_SHELL } from "../lib/pageShell";
+import { PAGE_SHELL_RESPONSIVE } from "../lib/pageShell";
 import { useDragReorder } from "../lib/useDragReorder";
 import { Advanced, useAdvanced } from "../lib/advanced";
 import { BackupCancelButton } from "../components/BackupCancelButton";
@@ -35,6 +37,18 @@ import { hueVars } from "../lib/appearance";
 import { Selector } from "../components/Selector";
 import { useToast } from "../lib/toast";
 import { RepoPicker } from "../components/RepoPicker";
+// The phone face's building blocks: the breakpoint hook, the ONE pagination
+// primitive, the shared mobile list chrome and the card block's surfaces.
+import { useIsDesktop } from "../lib/useMediaQuery";
+import { useLoadMore } from "../lib/useLoadMore";
+import { ListToolbar } from "../components/mobile/ListToolbar";
+import { BottomSheet } from "../components/mobile/BottomSheet";
+import { StickyActionBar } from "../components/mobile/StickyActionBar";
+import { RunDetailSheet } from "../components/mobile/RunDetailSheet";
+import { MobileSectionLabel } from "../components/mobile/MobileSectionLabel";
+import { Fab } from "../components/mobile/Fab";
+import { CadenceBuilder, EXACT_CADENCE_MODES } from "../components/CadenceBuilder";
+import { ScheduleBadge, scheduleStatus, cadenceLabel } from "../components/ScheduleBadge";
 
 type T = ReturnType<typeof useT>["t"];
 
@@ -121,40 +135,18 @@ const SCHEDULE_FILTER_STORAGE_KEY = "bv-vms-schedule-filter";
 const BACKUP_FILTER_STORAGE_KEY = "bv-vms-backup-filter";
 
 function loadScheduleFilterKey(): ScheduleFilterKey {
-  const v = localStorage.getItem(SCHEDULE_FILTER_STORAGE_KEY);
-  if (v === "all" || v === "scheduled" || v === "notScheduled") return v;
-  return "all";
+  return loadStoredFilterKey(
+    SCHEDULE_FILTER_STORAGE_KEY,
+    ["all", "scheduled", "notScheduled"] as const,
+    "all",
+  );
 }
 
 function loadBackupFilterKey(): BackupFilterKey {
-  const v = localStorage.getItem(BACKUP_FILTER_STORAGE_KEY);
-  if (v === "all" || v === "backedUp" || v === "neverBackedUp") return v;
-  return "all";
-}
-
-function ChipFilter<K extends string>({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: { key: K; label: string }[];
-  value: K;
-  onChange: (k: K) => void;
-}) {
-  return (
-    <div className="flex items-center gap-2 flex-wrap">
-      <span className="text-xs text-carbon-textMuted">{label}</span>
-      <Selector
-        items={options.map((o) => ({ id: o.key, label: o.label }))}
-        label={label}
-        variant="well"
-        select="one"
-        active={value}
-        onChange={(id) => onChange(id as K)}
-      />
-    </div>
+  return loadStoredFilterKey(
+    BACKUP_FILTER_STORAGE_KEY,
+    ["all", "backedUp", "neverBackedUp"] as const,
+    "all",
   );
 }
 
@@ -294,6 +286,7 @@ function VMBackupButton({
   t,
   onBackedUp,
   running,
+  onRunCorrelated,
 }: {
   name: string;
   t: T;
@@ -301,6 +294,13 @@ function VMBackupButton({
   /** Whether any operation is running (anyActive). It blocks this backup
    *  while another one runs, but never because of its own (isPending). */
   running?: { active: boolean; phase?: string };
+  /** Optional correlated-run deep-link. useBackupWatch's `onRun` fires on
+   *  EVERY poll with the baseline-id-correlated run; the mobile card host
+   *  feeds it the block's component-local RunDetailSheet (with the dismissed
+   *  latch — the same mechanism Containers.tsx's mobile detail hosts).
+   *  Desktop callers omit it and stay byte-identical, exactly as
+   *  BackupButton.tsx's own passthrough pins. */
+  onRunCorrelated?: (run: Run) => void;
 }) {
   // The server backs the VM up detached and answers at once, so the outcome
   // comes from watching the "vm:<name>" progress and the recorded run.
@@ -309,6 +309,7 @@ function VMBackupButton({
     start: () => backupVMNow(name),
     matchRun: (r) => r.domain === "vm" && r.target === name,
     onDone: onBackedUp,
+    onRun: onRunCorrelated,
   });
   const blockedByOther = !!running?.active && !isPending;
   const { push } = useToast();
@@ -1176,10 +1177,23 @@ function VMBackupOrderPanel({
 
 export function VMs() {
   const { t } = useT();
-  // Read directly rather than relying on <Advanced>: the order panel's
-  // hueIndex={nextHue()} is evaluated when the element is built, even if
-  // <Advanced> then renders nothing, so nextHue() may only run when the panel
-  // will render.
+  // ONE responsive layout (the Dashboard.tsx/Containers.tsx rewrite pattern):
+  // every block below is JSX-gated on `isDesktop` or `!isDesktop`, so exactly
+  // one face of the page ever mounts — there is no CSS-hidden twin. The
+  // dual-block shape this page's mobile port arrived in (hidden-by-utility
+  // wrappers over a second mobile gate) double-rendered the list and kept a
+  // hidden DOM copy in sync for nothing; killing it is the point of the
+  // rewrite. jsdom's matchMedia stub answers "desktop", so unit tests pin the
+  // desktop face and the phone face is exercised by the Playwright harness
+  // (web/e2e/destination-vms.spec.ts).
+  const isDesktop = useIsDesktop();
+  // Advanced-mode flag read directly (not just via the <Advanced> wrapper
+  // below): VMBackupOrderPanel's own hueIndex must only be resolved via
+  // `nextHue()` when the panel will ACTUALLY render — see this function's
+  // own `nextHue()` comment below for why a JSX child's props (including a
+  // `hueIndex={nextHue()}` expression) evaluate eagerly as part of building
+  // the <Advanced> element, regardless of whether <Advanced> itself goes on
+  // to render null.
   const { advanced } = useAdvanced();
   const { confirm, confirmDialog } = useConfirm();
   const { push } = useToast();
@@ -1264,14 +1278,14 @@ export function VMs() {
   // before sorting and the split into live VMs and orphans. VMs have no image,
   // so the search matches the name only.
   const query = search.trim().toLowerCase();
-  const filtered = vms.filter((v) => {
+  const filtered = useMemo(() => vms.filter((v) => {
     if (query && !v.name.toLowerCase().includes(query)) return false;
     if (scheduleFilter === "scheduled" && !v.includeInSchedule) return false;
     if (scheduleFilter === "notScheduled" && v.includeInSchedule) return false;
     if (backupFilter === "backedUp" && v.lastBackup == null) return false;
     if (backupFilter === "neverBackedUp" && v.lastBackup != null) return false;
     return true;
-  });
+  }), [vms, query, scheduleFilter, backupFilter]);
 
   // The filters persist in localStorage, so a restored value could shrink the
   // list behind the collapsed Filters button; the trigger's dot shows it. Sort
@@ -1279,7 +1293,7 @@ export function VMs() {
   const filtersActive =
     query !== "" || scheduleFilter !== "all" || backupFilter !== "all";
 
-  const sorted = sortVMs(filtered, sortKey);
+  const sorted = useMemo(() => sortVMs(filtered, sortKey), [filtered, sortKey]);
   const live = sorted.filter((v) => v.state !== "not-installed");
   const orphans = sorted.filter((v) => v.state === "not-installed");
   // Unfiltered, so a search cannot hide the entry to link. An entry under
@@ -1383,8 +1397,22 @@ export function VMs() {
   const nextHue = () => hueSeq++;
 
   return (
-    <div className={PAGE_SHELL}>
-      {/* Page heading + Discover (disaster-recovery) action */}
+    // PAGE_SHELL (jdp live-review, "Können wir die nicht überall gleich breit
+    // machen?"): was `gap-6 max-w-5xl`, the same off-standard pair Containers
+    // carried — this page is Containers' structural twin and drifted with it.
+    // jdp did not name this page (it has no sidebar entry on a host without
+    // VMs, so he could not have), which is exactly why it gets swept here in
+    // the same pass rather than surfacing as the same complaint a round later.
+    // See lib/pageShell.ts for the measurement table behind 1152px/40px.
+    //   Responsive rhythm: PAGE_SHELL_RESPONSIVE keeps that settled desktop
+    // shell byte-identical at/above 48rem by construction and steps the Card
+    // rhythm down to 24px below it for the phone's card list — the same
+    // switch Containers.tsx made. Exception declared in eslint.config.js.
+    <div className={PAGE_SHELL_RESPONSIVE}>
+      {/* Page heading + Discover (disaster-recovery) action. The action is
+          desktop-only: on a phone the Fab inside the mobile block below hosts
+          the same handleDiscover with unchanged semantics, and the surface's
+          ONE accent reservation belongs to it there. */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-semibold text-carbon-text">
@@ -1395,20 +1423,22 @@ export function VMs() {
           </p>
           <div className="mt-2"><OffsiteIndicator domain="vms" /></div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Button
-            key={shakeDiscover}
-            label={t("containers.discover")}
-            labelKey="containers.discover"
-            hueIndex={BULK_HUE.discover}
-            tone="accent"
-            onClick={() => void handleDiscover()}
-            disabled={discovering}
-            busy={discovering}
-            title={t("vms.discoverHint")}
-            className={shakeDiscover ? "glim-shake" : ""}
-          />
-        </div>
+        {isDesktop && (
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              key={shakeDiscover}
+              label={t("containers.discover")}
+              labelKey="containers.discover"
+              hueIndex={BULK_HUE.discover}
+              tone="accent"
+              onClick={() => void handleDiscover()}
+              disabled={discovering}
+              busy={discovering}
+              title={t("vms.discoverHint")}
+              className={shakeDiscover ? "glim-shake" : ""}
+            />
+          </div>
+        )}
       </div>
 
       {loading && (
@@ -1419,24 +1449,45 @@ export function VMs() {
       )}
       {!loading && !error && vms.length === 0 && (
         <div className="bg-carbon-surface rounded-card p-6 text-center flex flex-col items-center gap-3">
-          {/* No Add action: the list is what libvirt reports, and Discover
-              above is the action for an empty result. */}
+          {/* No "Add" action here (unlike Receiver/Fleet/Files): this list is a
+              live enumeration of what libvirt/KVM actually reports, not a
+              BombVault-managed list to add to. The page's own Discover action
+              (disaster-recovery re-scan — the header button above on desktop,
+              the Fab in the mobile block below on a phone) is already the
+              relevant action for an empty result, so a second button here
+              would be redundant. */}
           <EmptyStateIcon icon={IconVM} />
           <p className="text-sm text-carbon-textMuted">{t("vms.empty")}</p>
         </div>
       )}
 
-      {/* Gated on `advanced` as well: the hueIndex expression is evaluated
-          even when <Advanced> renders nothing, and would push the
-          not-installed heading one position late. */}
-      {!loading && !error && (
+      {/* VM backup-order panel (#119, VMs) — advanced, DESKTOP-ONLY: a
+          drag-reorder editor has no phone face (mobile edits each VM's
+          schedule on the card's own sheet instead), and the phone never
+          mounts it — exactly one face per width.
+          `advanced ? nextHue() : undefined`, not a bare `nextHue()` inside
+          <Advanced>: a JSX child's own props (this `hueIndex` expression
+          included) evaluate eagerly as part of building the <Advanced>
+          element itself, before <Advanced> ever runs its own `advanced &&
+          when` check — so an unconditional `nextHue()` here would burn a
+          slot every render regardless of whether the panel actually paints,
+          landing the not-installed section's own notch below one index late
+          whenever Advanced mode is off. Gating on the same `advanced` flag
+          read directly above keeps the counter honest: only increment for a
+          notch that will actually render, exactly like Dashboard.tsx's own
+          advancedOnly blocks pre-filtering before ever calling nextHue(). */}
+      {isDesktop && !loading && !error && (
         <Advanced>
           <VMBackupOrderPanel vms={vms} t={t} hueIndex={advanced ? nextHue() : undefined} />
         </Advanced>
       )}
 
-      {/* Controls: Filters popover (search + schedule/backup filters + sort) + select-all. */}
-      {!loading && vms.length > 0 && (
+      {/* Controls: Filters popover (search + schedule/backup filters + sort) + select-all.
+          Desktop face — below the breakpoint the mobile block's ListToolbar
+          carries the SAME state (search/chips/sort) on the shared primitives.
+          One predicate, two presentations; the `isDesktop` gate mounts exactly
+          one of them per width. */}
+      {isDesktop && !loading && vms.length > 0 && (
         <div className="flex items-center gap-x-6 gap-y-2 flex-wrap">
           <FilterPopover label={t("filter.button")} active={filtersActive}>
             <input
@@ -1490,8 +1541,9 @@ export function VMs() {
         </div>
       )}
 
-      {/* Bulk action bar */}
-      {!loading && selected.size > 0 && (
+      {/* Bulk action bar — desktop face; mobile cards carry their own per-VM
+          triggers, and bulk selection has no phone surface. */}
+      {isDesktop && !loading && selected.size > 0 && (
         <div className="flex items-center gap-3 flex-wrap rounded-card bg-carbon-surface2 px-3 py-2">
           <span className="text-xs text-carbon-textSub">
             {selected.size} {t("containers.selectedCount")}
@@ -1533,8 +1585,11 @@ export function VMs() {
         </div>
       )}
 
-      {/* Live VMs */}
-      {!loading && live.length > 0 && (
+      {/* Live VMs — the desktop list, JSX-gated: at >=48rem this is the list;
+          below it the phone gets the card list in the mobile block instead and
+          these full row cards (with their inline editors' weight) never mount
+          at all — the point of the gate, versus a CSS-hidden second copy. */}
+      {isDesktop && !loading && live.length > 0 && (
         <div className="flex flex-col gap-3 glim-content-fade">
           {live.map((v, i) => (
             <VMRow
@@ -1551,8 +1606,10 @@ export function VMs() {
         </div>
       )}
 
-      {/* VMs gone from the host that still have backups. */}
-      {!loading && orphans.length > 0 && (
+      {/* Orphan VMs — no longer defined on the host but still have backups.
+          Desktop face — the phone's card list renders its own not-installed
+          section inline (see the mobile block below). */}
+      {isDesktop && !loading && orphans.length > 0 && (
         <div className="flex flex-col gap-3 glim-content-fade">
           <NotInstalledHeading tip={t("vms.notInstalledHint")} hueIndex={nextHue()} t={t} />
           {/* Continues the live list's colour sequence, so the first orphan
@@ -1563,11 +1620,645 @@ export function VMs() {
         </div>
       )}
 
-      {/* No VM matches the active search / schedule / backup filters. */}
+      {/* The phone face: the card block, mounted ONLY under !isDesktop (not
+          just hidden) so the desktop makes no new requests and its DOM and
+          network traffic stay identical — the block owns every mobile-only
+          fetch (settings gate, schedule next-fire) inside itself. One gate,
+          one face: this replaces the CSS-hidden dual-block pair. */}
+      {!isDesktop && (
+        <MobileVMsBlock
+          sorted={sorted}
+          liveCount={live.length}
+          loading={loading}
+          error={error !== null}
+          onRetry={() => void loadVMs()}
+          search={search}
+          onSearch={setSearch}
+          scheduleFilter={scheduleFilter}
+          onScheduleFilterChange={handleScheduleFilterChange}
+          backupFilter={backupFilter}
+          onBackupFilterChange={handleBackupFilterChange}
+          sortKey={sortKey}
+          onSortChange={handleSortChange}
+          running={running}
+          onRefresh={() => void loadVMs()}
+          onDiscover={() => void handleDiscover()}
+          discovering={discovering}
+        />
+      )}
+
+      {/* No VM matches the active search / schedule / backup filters. Shared:
+          rendered at every width, the same sentence either face's own filter
+          chrome sits above. */}
       {!loading && !error && noMatch && (
         <p className="text-sm text-carbon-textMuted">{t("filter.noMatch")}</p>
       )}
       {confirmDialog}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Mobile VMs block — the VMs page's card presentation below the 48rem
+// breakpoint (the `!isDesktop` gate in VMs() above is the other half of the
+// mount discipline).
+//
+// WHY A SEPARATE COMPONENT: the block owns every mobile-only fetch — the
+// destinations gate (getSettings → settings.vmsEnabled) and the next-fire
+// read (getScheduleNext) — and because the desktop never mounts this
+// component, the desktop makes no new requests and its DOM and network
+// traffic stay identical. The FILTER STATE is the page's own: the ListToolbar
+// below binds the same search/schedule/backup/sort state the desktop
+// FilterPopover does, so there is exactly ONE predicate (the memoized
+// filtered/sorted chain, see VMs()) with two presentations and no parallel
+// mobile filter state to drift.
+//
+// DEEP-LINK: each card's VMBackupButton reports its baseline-id-correlated
+// run through onRunCorrelated; THIS component hosts the one RunDetailSheet
+// (component-local) with the Containers.tsx mobile-detail latch verbatim —
+// onRun fires on every poll, so sheetRun always holds the freshest record,
+// and a sheet the user dismissed is never re-opened by later polls of the
+// same watch (the terminal toast still fires from the button).
+// ---------------------------------------------------------------------------
+function MobileVMsBlock({
+  sorted,
+  liveCount,
+  loading,
+  error,
+  onRetry,
+  search,
+  onSearch,
+  scheduleFilter,
+  onScheduleFilterChange,
+  backupFilter,
+  onBackupFilterChange,
+  sortKey,
+  onSortChange,
+  running,
+  onRefresh,
+  onDiscover,
+  discovering,
+}: {
+  /** The page's memoized filtered+sorted list — useLoadMore's identity
+   *  contract needs a stable array identity across unrelated renders. */
+  sorted: VM[];
+  /** Live (non not-installed) count for the summary line. */
+  liveCount: number;
+  /** The list is still loading (gates the toolbar, mirroring the desktop
+   *  controls row's own `!loading` condition). */
+  loading: boolean;
+  /** Page-level load failure (the shared error paragraph carries the text;
+   *  this block adds the mobile retry row). */
+  error: boolean;
+  onRetry: () => void;
+  search: string;
+  onSearch: (next: string) => void;
+  scheduleFilter: ScheduleFilterKey;
+  onScheduleFilterChange: (k: ScheduleFilterKey) => void;
+  backupFilter: BackupFilterKey;
+  onBackupFilterChange: (k: BackupFilterKey) => void;
+  sortKey: SortKey;
+  onSortChange: (k: SortKey) => void;
+  running: { active: boolean; phase?: string };
+  onRefresh: () => void;
+  onDiscover: () => void;
+  discovering: boolean;
+}) {
+  const { t } = useT();
+  // GATE-OFF HONESTY: an unknown gate state must read as "on". A failed
+  // settings fetch renders the real list — whose own error surfaces are
+  // honest — rather than ever claiming the feature is disabled when we
+  // simply don't know.
+  const [gate, setGate] = useState<"unknown" | "on" | "off">("unknown");
+  useEffect(() => {
+    let alive = true;
+    getSettings()
+      .then((r) => {
+        if (alive) setGate(r.ok && r.settings.vmsEnabled === false ? "off" : "on");
+      })
+      .catch(() => {
+        if (alive) setGate("on");
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // The domain-level next-fire read. ScheduleNext is DOMAIN granularity
+  // (backend jobDomainFromName: the "vms" schedule job), and it is
+  // SERVER-derived: no client cadence math anywhere in this block.
+  // scheduleTick is bumped after a card saves an override (the next fire may
+  // have moved).
+  //
+  // THE SINGLE-ROW GUARD (#121): per-item overrides each register their own
+  // cron entry, and both they and the domain job land on the wire IDENTICALLY
+  // labeled (job "backup", domain "vms" — addPerItemEntry vs
+  // jobDomainFromName), with NextRuns sorted soonest-first — so with more
+  // than one vms row a find() hands every override card whichever row fires
+  // soonest: another VM's fire, or the domain job's, a fire that does not
+  // back that VM up at all (an overridden VM rides its own entry, not the
+  // domain run). The wire carries no per-item identity to match on, so the
+  // chip is fed a row only when exactly ONE vms row exists; ambiguity never
+  // renders as a specific — and possibly wrong — fire. Until the backend
+  // gives NextRun an item identity, an override-bearing fleet shows the
+  // cadence label alone.
+  const [scheduleNext, setScheduleNext] = useState<ScheduleNext | null>(null);
+  const [scheduleTick, setScheduleTick] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    getScheduleNext()
+      .then((rows) => {
+        if (!alive) return;
+        const vmsRows = rows.filter((r) => r.domain === "vms");
+        setScheduleNext(vmsRows.length === 1 ? vmsRows[0] : null);
+      })
+      .catch(() => {
+        if (alive) setScheduleNext(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [scheduleTick]);
+
+  // The run-sheet latch — Containers.tsx's mobile detail verbatim.
+  const [sheetRun, setSheetRun] = useState<Run | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const sheetDismissed = useRef(false);
+  // The run id the watch last correlated: polls refresh the SAME run, so only
+  // a DIFFERENT id is a new fire — the latch's re-arm signal.
+  const lastCorrelatedRun = useRef<string | null>(null);
+
+  // The one pagination primitive over the page's own sorted list.
+  const { visible, showMore, hasMore } = useLoadMore(sorted);
+  const mobileLive = visible.filter((v) => v.state !== "not-installed");
+  const mobileOrphans = visible.filter((v) => v.state === "not-installed");
+  const scheduledCount = sorted.filter((v) => v.includeInSchedule).length;
+
+  return (
+    <div className="flex flex-col gap-4 glim-content-fade">
+      {/* Page-level load failure: the shared error paragraph above carries the
+          message; this >=44px tonal row is the mobile recovery affordance.
+          folders.retry ("Try again") is the sanctioned existing label — no
+          new key needed. */}
+      {error && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
+        >
+          {t("folders.retry")}
+        </button>
+      )}
+
+      {gate === "off" ? (
+        // The destinations gate, mobile face: the block says plainly that VM
+        // backups are off and links to the settings row that turns them on.
+        // No toolbar, no cards, no Fab — a gated surface shows nothing else.
+        <div>
+          <MobileSectionLabel t={t} labelKey="settings.vmsEnabled" />
+          <div className="mt-2 flex flex-col gap-2 rounded-card border border-carbon-border bg-carbon-surface p-4">
+            <p className="text-sm text-carbon-textSub">{t("settings.vmsEnabledHint")}</p>
+            <Link
+              to="/settings"
+              className="flex min-h-[2.75rem] items-center rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
+            >
+              {t("nav.settings")}
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Summary counts line — Containers.tsx's mobile list precedent:
+              derived from the same list payload the desktop reads, no new
+              endpoint, no new key. */}
+          {liveCount > 0 && (
+            <p className="text-xs text-carbon-textMuted">
+              {`${liveCount} ${t("nav.vms")}${
+                scheduledCount > 0 ? ` · ${scheduledCount} ${t("filter.scheduled")}` : ""
+              }`}
+            </p>
+          )}
+
+          {/* The ONE toolbar: lifted page state, shared chip filters. Rendered
+              once the first load has settled (mirrors the desktop controls
+              row), including when filters currently match nothing — a cleared
+              search must remain clearable. */}
+          {!loading && !error && (
+            <ListToolbar search={search} onSearch={onSearch} placeholder="vms.searchPlaceholder">
+              <ChipFilter<ScheduleFilterKey>
+                label={t("filter.schedule")}
+                value={scheduleFilter}
+                onChange={onScheduleFilterChange}
+                options={[
+                  { key: "all", label: t("filter.all") },
+                  { key: "scheduled", label: t("filter.scheduled") },
+                  { key: "notScheduled", label: t("filter.notScheduled") },
+                ]}
+              />
+              <ChipFilter<BackupFilterKey>
+                label={t("filter.backup")}
+                value={backupFilter}
+                onChange={onBackupFilterChange}
+                options={[
+                  { key: "all", label: t("filter.all") },
+                  { key: "backedUp", label: t("filter.backedUp") },
+                  { key: "neverBackedUp", label: t("filter.neverBackedUp") },
+                ]}
+              />
+              <SortControl value={sortKey} onChange={onSortChange} t={t} />
+            </ListToolbar>
+          )}
+
+          {mobileLive.map((v, i) => (
+            <MobileVMCard
+              key={v.libvirtName}
+              vm={v}
+              t={t}
+              index={i}
+              running={running}
+              onRefresh={onRefresh}
+              scheduleNext={scheduleNext}
+              onScheduleChanged={() => {
+                onRefresh();
+                setScheduleTick((n) => n + 1);
+              }}
+              onRunCorrelated={(run) => {
+                if (lastCorrelatedRun.current !== run.id) {
+                  lastCorrelatedRun.current = run.id;
+                  sheetDismissed.current = false; // new fire re-arms the deep-link
+                }
+                setSheetRun(run);
+                if (!sheetDismissed.current) setSheetOpen(true);
+              }}
+            />
+          ))}
+
+          {mobileOrphans.length > 0 && (
+            <div className="flex flex-col gap-4 pt-2">
+              <MobileSectionLabel t={t} labelKey="containers.notInstalledTitle" />
+              <p className="-mt-2 text-xs text-carbon-textMuted">{t("vms.notInstalledHint")}</p>
+              {mobileOrphans.map((v, i) => (
+                <MobileVMCard
+                  key={v.libvirtName}
+                  vm={v}
+                  t={t}
+                  index={liveCount + i}
+                  running={running}
+                  onRefresh={onRefresh}
+                  scheduleNext={scheduleNext}
+                  onScheduleChanged={() => {
+                    onRefresh();
+                    setScheduleTick((n) => n + 1);
+                  }}
+                  onRunCorrelated={(run) => {
+                    if (lastCorrelatedRun.current !== run.id) {
+                      lastCorrelatedRun.current = run.id;
+                      sheetDismissed.current = false;
+                    }
+                    setSheetRun(run);
+                    if (!sheetDismissed.current) setSheetOpen(true);
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* The one load-more affordance, gated on hasMore — no rows beyond
+              the window, no button (hasMore is the ONLY signal this may gate
+              on). */}
+          {hasMore && (
+            <button
+              type="button"
+              onClick={showMore}
+              className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
+            >
+              {t("common.loadMore")}
+            </button>
+          )}
+        </>
+      )}
+
+      {/* The surface's ONE accent reservation hosts its ONE primary action —
+          Discover (disaster-recovery re-scan), the desktop page's accent
+          trigger, with unchanged semantics (busy/shake/toast live in the
+          page's handleDiscover). In-flow, never fixed. */}
+      {!error && gate !== "off" && (
+        <div className="flex justify-end pt-1">
+          <Fab
+            label={t("containers.discover")}
+            icon={<IconVM />}
+            onClick={() => {
+              if (!discovering) onDiscover();
+            }}
+          />
+        </div>
+      )}
+
+      {/* The run sheet, hosted component-locally: one sheet for the whole
+          block, fed by the latch above. */}
+      {sheetRun && (
+        <RunDetailSheet
+          run={sheetRun}
+          open={sheetOpen}
+          onClose={() => {
+            sheetDismissed.current = true;
+            setSheetOpen(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// MobileVMCard — one VM as a mobile card. The card is PRESENTATION over the
+// same data and the same controls the desktop VMRow renders: the trigger IS
+// VMBackupButton (its correlated-run callback deep-links the block's sheet),
+// the schedule sheet edits with the SAME CadenceBuilder ItemScheduleOverride
+// renders (restricted to EXACT_CADENCE_MODES — #166: the backend refuses
+// everyN on per-item VM overrides), restore rides RestoreAction untouched,
+// and snapshots browse through the one useLoadMore primitive.
+// ---------------------------------------------------------------------------
+function MobileVMCard({
+  vm,
+  t,
+  index,
+  running,
+  onRefresh,
+  onRunCorrelated,
+  scheduleNext,
+  onScheduleChanged,
+}: {
+  vm: VM;
+  t: T;
+  index: number;
+  running: { active: boolean; phase?: string };
+  onRefresh: () => void;
+  onRunCorrelated: (run: Run) => void;
+  /** The vms-domain entry of /api/schedule/next (domain-granular), or null. */
+  scheduleNext: ScheduleNext | null;
+  /** An override was saved: the page reloads its list and the block refreshes
+   *  the next-fire read (the server, not this card, decides when things run). */
+  onScheduleChanged: () => void;
+}) {
+  const { push } = useToast();
+  // Schedule sheet state: draft + explicit apply (the sheet owns its Save —
+  // the desktop override editor's 800ms debounce is a form discipline, not a
+  // sheet one), seeded from the stored override on every open.
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [draft, setDraft] = useState("off");
+  const [saving, setSaving] = useState(false);
+  // GlimStone standing rule: a failed save toasts AND shakes its button.
+  const [shakeSave, setShakeSave] = useState(0);
+
+  const scheduleRaw = (vm.scheduleCadence ?? "").trim();
+  const scheduleActive = scheduleStatus(scheduleRaw) !== "off";
+
+  // Restore + snapshots disclosures (VMSnapshotRow's showRestore pattern,
+  // lifted to card level for the 44px tonal-row language).
+  const [showRestore, setShowRestore] = useState(false);
+  const [showSnaps, setShowSnaps] = useState(false);
+  const [snaps, setSnaps] = useState<Snapshot[]>([]);
+  const [snapsError, setSnapsError] = useState(false);
+  const snapsLoaded = useRef(false);
+  const { visible: visibleSnaps, showMore: showMoreSnaps, hasMore: hasMoreSnaps } = useLoadMore(snaps);
+
+  function openSheet() {
+    // Seed the draft from the stored override ("" = the domain default = the
+    // builder's "off" mode — ItemScheduleOverride's toStore normalization,
+    // inverted here).
+    setDraft(scheduleRaw !== "" && scheduleRaw !== "off" ? scheduleRaw : "off");
+    setSheetOpen(true);
+  }
+
+  async function applySchedule() {
+    setSaving(true);
+    try {
+      // Same normalization ItemScheduleOverride persists: "off" stores "".
+      const toStore = draft.trim() === "off" ? "" : draft.trim();
+      const res = await setVMScheduleCadence(vm.libvirtName, toStore);
+      if (res.ok) {
+        push(t("schedule.overrideSaved"), "success");
+        setSheetOpen(false);
+        onScheduleChanged();
+      } else {
+        push(res.error ?? t("schedule.updateFailed"), "fail");
+        setShakeSave((n) => n + 1);
+      }
+    } catch (err) {
+      push(err instanceof Error ? err.message : t("schedule.updateFailed"), "fail");
+      setShakeSave((n) => n + 1);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function toggleSnaps() {
+    const next = !showSnaps;
+    setShowSnaps(next);
+    // Fetch once per mount, on first open — the same lazy pattern the desktop
+    // VMRestorePanel uses for its snapshot list.
+    if (next && !snapsLoaded.current) {
+      snapsLoaded.current = true;
+      listVMSnapshots(vm.libvirtName)
+        .then((r) => {
+          if (r.ok) setSnaps(r.snapshots ?? []);
+          else setSnapsError(true);
+        })
+        .catch(() => setSnapsError(true));
+    }
+  }
+
+  return (
+    <div
+      className="glim-hue glim-content-fade relative flex flex-col gap-2 overflow-hidden rounded-card bg-carbon-surface p-4"
+      style={hueVars(index)}
+    >
+      {/* Header: monogram + display name + meta + state badge. The identity
+          discipline mirrors the desktop row: vm.libvirtName is THE identifier
+          (every call below uses it), vm.name is display-only. */}
+      <div className="flex items-center gap-2">
+        <span
+          aria-hidden
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-carbon-surface2 text-sm font-semibold text-carbon-textSub"
+        >
+          {vm.name.slice(0, 1).toUpperCase()}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-carbon-text">{vm.name}</p>
+          <p className="truncate text-xs text-carbon-textMuted">
+            {vm.method === "live" ? t("vm.method.live") : t("vm.method.graceful")}
+            {" · "}
+            {vm.includeInSchedule ? t("filter.scheduled") : t("filter.notScheduled")}
+          </p>
+        </div>
+        <Badge tone={stateTone(vm.state)}>{stateLabel(t, vm.state)}</Badge>
+      </div>
+
+      {/* Last-run line — the desktop row's combined line, verbatim keys. */}
+      <p className="text-xs text-carbon-textMuted">
+        {`${t("containers.lastBackup")}: ${vm.lastBackup ? formatTs(vm.lastBackup) : t("containers.never")}`}
+      </p>
+
+      {/* The trigger: the desktop row's own VMBackupButton; a fired run
+          deep-links into the block's sheet through onRunCorrelated. */}
+      <div className="flex justify-end">
+        <VMBackupButton
+          name={vm.libvirtName}
+          t={t}
+          running={running}
+          onBackedUp={onRefresh}
+          onRunCorrelated={onRunCorrelated}
+        />
+      </div>
+
+      {/* Schedule entry row → the per-VM override sheet. Tonal, never accent —
+          the accent reservation on this surface belongs to the backup trigger.
+          The right side shows the SERVER-derived next fire (the accent-soft
+          chip) when the schedule is active, else the off badge; the badge's
+          label grammar is ScheduleBadge's own (cadenceLabel). */}
+      <button
+        type="button"
+        onClick={openSheet}
+        aria-expanded={sheetOpen}
+        className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-2 text-start text-sm text-carbon-text"
+      >
+        <span className="truncate">{t("schedule.overrideTitle")}</span>
+        <span className="flex shrink-0 items-center gap-2">
+          {scheduleActive && scheduleNext ? (
+            <span className="rounded-pill bg-accentSoft px-2 py-1 text-xs font-semibold text-accentText">
+              {formatTs(new Date(scheduleNext.next).getTime() / 1000)}
+            </span>
+          ) : null}
+          <ScheduleBadge
+            status={scheduleStatus(scheduleRaw)}
+            label={scheduleActive ? cadenceLabel(scheduleRaw, t) : t("schedule.overrideUsesDefault")}
+          />
+        </span>
+      </button>
+
+      {/* The schedule sheet, fullHeight: the SAME CadenceBuilder the desktop
+          override editor renders, modes restricted to the exact-cadence set
+          (#166), with an explicit apply/cancel in the StickyActionBar. The
+          bar is the LAST child of the scroll body (its sticky bottom-0 pins
+          it during scroll; the min-h-full wrapper + flex-1 spacer push it to
+          the panel floor when the content is shorter than the sheet). */}
+      <BottomSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        title={t("schedule.overrideTitle")}
+        fullHeight
+      >
+        <div className="flex min-h-full flex-col">
+          <div className="pt-4">
+            <CadenceBuilder
+              label={t("schedule.overrideTitle")}
+              value={draft}
+              modes={EXACT_CADENCE_MODES}
+              onChange={setDraft}
+            />
+          </div>
+          <div className="min-h-4 flex-1" />
+          <StickyActionBar>
+            <Button
+              label={t("common.cancel")}
+              labelKey="common.cancel"
+              tone="neutral"
+              onClick={() => setSheetOpen(false)}
+              disabled={saving}
+              className="w-full"
+            />
+            <Button
+              key={shakeSave}
+              label={t("common.done")}
+              labelKey="common.done"
+              tone="accent"
+              onClick={() => void applySchedule()}
+              busy={saving}
+              disabled={saving}
+              className={`w-full ${shakeSave ? "glim-shake" : ""}`}
+            />
+          </StickyActionBar>
+        </div>
+      </BottomSheet>
+
+      {/* Restore entry: a tonal disclosure row revealing the shared
+          RestoreAction beneath it. The ENTRY is deliberately not accent — the
+          surface's one accent reservation is the backup trigger;
+          RestoreAction's own internals are the desktop component, inherited
+          verbatim (domain="vm", latest snapshot, modal confirm like Recovery's
+          rows via requireConfirm=false + confirmMessage, no leave-stopped
+          checkbox on a card). */}
+      <button
+        type="button"
+        onClick={() => setShowRestore((s) => !s)}
+        aria-expanded={showRestore}
+        className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-2 text-start text-sm text-carbon-text"
+      >
+        <span className="truncate">{t("snapshots.restore")}</span>
+        <IconRestore />
+      </button>
+      {showRestore && (
+        <div className="ps-4">
+          <RestoreAction
+            domain="vm"
+            name={vm.libvirtName}
+            displayName={vm.name}
+            snapshotId="latest"
+            otherActive={running}
+            successMessage={t("restore.completeVM")}
+            requireConfirm={false}
+            confirmMessage={t("vms.restoreSelectedConfirm")}
+            showLeaveStopped={false}
+            t={t}
+          />
+        </div>
+      )}
+
+      {/* Snapshots entry: tonal disclosure row → the VM's snapshot list,
+          fetched lazily on first open and paginated through the one
+          useLoadMore primitive. */}
+      <button
+        type="button"
+        onClick={toggleSnaps}
+        aria-expanded={showSnaps}
+        className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-2 text-start text-sm text-carbon-text"
+      >
+        <span className="truncate">{t("snapshots.title")}</span>
+        <IconDownload />
+      </button>
+      {showSnaps && (
+        <div className="flex flex-col gap-1">
+          {snapsError && (
+            <p className="text-xs text-statusFail">{t("vms.loadFailed")}</p>
+          )}
+          {!snapsError && snaps.length === 0 && (
+            <p className="text-xs text-carbon-textMuted">{t("flash.none")}</p>
+          )}
+          {visibleSnaps.map((snap) => (
+            <div
+              key={snap.id}
+              className="flex min-h-[2.75rem] items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-1.5"
+            >
+              <span dir="ltr" className="font-mono text-xs text-carbon-text">
+                {snap.id.slice(0, 8)}
+              </span>
+              <span className="text-xs text-carbon-textMuted">
+                {new Date(snap.time).toLocaleString()}
+              </span>
+            </div>
+          ))}
+          {hasMoreSnaps && (
+            <button
+              type="button"
+              onClick={showMoreSnaps}
+              className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
+            >
+              {t("common.loadMore")}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
