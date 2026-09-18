@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"syscall"
 	"testing"
 	"time"
 )
@@ -44,50 +45,59 @@ func TestConfigureProcGroup_KillsOnCancel(t *testing.T) {
 }
 
 // TestConfigureProcGroup_SendsSIGTERMNotSIGKILL checks that Cancel sends
-// SIGTERM, which restic handles as a clean abort without writing a snapshot,
-// and not SIGKILL, which can leave a snapshot whose tree references a blob
-// that never finished uploading (see configureProcGroup). SIGKILL cannot be
-// caught, so a shell that traps TERM and writes a marker file tells the two
-// apart: the marker exists only if the trap ran.
+// SIGTERM to the whole process group. restic handles SIGTERM as a clean abort
+// without writing a snapshot; SIGKILL can leave a snapshot whose tree
+// references a blob that never finished uploading (see configureProcGroup),
+// and a signal to the leader alone leaves an rclone child running. A shell
+// and a child shell each trap TERM and write a marker, so SIGKILL leaves no
+// marker at all and a leader-only signal leaves the child's missing.
 func TestConfigureProcGroup_SendsSIGTERMNotSIGKILL(t *testing.T) {
 	shBin, err := exec.LookPath("sh")
 	if err != nil {
 		t.Skip("sh not found on PATH, skipping")
 	}
 	dir := t.TempDir()
-	marker := filepath.Join(dir, "caught-term")
-	ready := filepath.Join(dir, "trap-installed")
+	leaderMarker := filepath.Join(dir, "leader-caught-term")
+	childMarker := filepath.Join(dir, "child-caught-term")
+	ready := filepath.Join(dir, "traps-installed")
 
 	ctx, cancel := context.WithCancel(context.Background())
-	// The shell touches `ready` after installing the trap, and the test waits
-	// for it before cancelling: cmd.Start only proves the fork succeeded, and a
-	// TERM that arrives before the trap line hits the default disposition,
-	// which looks the same as a failed fix.
+	// The child touches `ready` once both traps are installed, and the test
+	// waits for it before cancelling: cmd.Start only proves the fork
+	// succeeded, and a TERM that arrives before a trap line hits the default
+	// disposition, which looks the same as a failed fix.
 	//
-	// The wait is a loop of short sleeps. A shell runs a trap only once its
-	// foreground command has finished, and the group kill reaches only the
-	// processes that exist at that instant, so a TERM that lands between
-	// `touch` and the fork of the next sleep leaves that sleep running. With
-	// 50ms sleeps the trap runs within 50ms instead of after the whole wait.
-	// The loop also keeps BusyBox ash from exec()-replacing the shell with its
-	// final command, which would take the trap with it.
-	script := "trap 'touch " + marker + "; exit 0' TERM; touch " + ready + "; while :; do sleep 0.05; done"
+	// Both shells wait in loops of short sleeps. A shell runs a trap only once
+	// its foreground command has finished, and the group kill reaches only the
+	// processes that exist at that instant, so a TERM that lands just before a
+	// shell forks its next sleep leaves that sleep running. With 50ms sleeps
+	// the trap runs about 50ms later instead of after the whole wait.
+	child := "trap 'touch " + childMarker + "; exit 0' TERM; touch " + ready + "; while :; do sleep 0.05; done"
+	script := "trap 'touch " + leaderMarker + "; exit 0' TERM; " + shBin + " -c \"" + child + "\" & while :; do sleep 0.05; done"
 	cmd := exec.CommandContext(ctx, shBin, "-c", script) //nolint:gosec // G204: fixed script, no user input
 	configureProcGroup(cmd)
 
 	if err := cmd.Start(); err != nil {
 		t.Fatalf("start: %v", err)
 	}
-	waitUntil := time.Now().Add(2 * time.Second)
-	for {
-		if _, err := os.Stat(ready); err == nil {
-			break
+	// The loops never end on their own, so whatever a failed run leaves
+	// behind goes with the test.
+	t.Cleanup(func() { _ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL) })
+
+	waitFor := func(path, what string, limit time.Duration) {
+		t.Helper()
+		deadline := time.Now().Add(limit)
+		for {
+			if _, err := os.Stat(path); err == nil {
+				return
+			}
+			if time.Now().After(deadline) {
+				t.Fatalf("%s (%s missing after %v)", what, filepath.Base(path), limit)
+			}
+			time.Sleep(5 * time.Millisecond)
 		}
-		if time.Now().After(waitUntil) {
-			t.Fatal("shell never reached the trap line (ready marker missing) within 2s")
-		}
-		time.Sleep(5 * time.Millisecond)
 	}
+	waitFor(ready, "the shells never installed their traps", 2*time.Second)
 	cancel()
 
 	done := make(chan error, 1)
@@ -98,7 +108,8 @@ func TestConfigureProcGroup_SendsSIGTERMNotSIGKILL(t *testing.T) {
 		t.Fatal("cmd.Wait did not return within 5s of ctx cancel")
 	}
 
-	if _, err := os.Stat(marker); err != nil {
-		t.Fatalf("TERM trap did not run (marker file missing) - Cancel is not sending a catchable SIGTERM: %v", err)
+	if _, err := os.Stat(leaderMarker); err != nil {
+		t.Fatalf("TERM trap did not run in the leader - Cancel is not sending a catchable SIGTERM: %v", err)
 	}
+	waitFor(childMarker, "TERM trap did not run in the child - Cancel is not signalling the whole process group", 2*time.Second)
 }

@@ -18,9 +18,9 @@ const resticWaitDelay = 10 * time.Second
 // restic spawns an rclone child for cloud backends; without a process group, ctx
 // cancel/timeout kills only the direct restic child and the rclone grandchild
 // (and restic's lock refresh) can linger. Setpgid puts restic in its own group;
-// Cancel SIGTERMs the whole group (-pid) first. WaitDelay bounds how long Wait
-// gives it to exit on its own before Go force-SIGKILLs the group — same escape
-// hatch as before, just no longer the FIRST signal sent.
+// Cancel SIGTERMs the whole group (-pid). WaitDelay bounds how long Wait gives
+// it to exit on its own before Go SIGKILLs restic itself; that kill reaches
+// only the leader, not the rest of the group.
 //
 // SIGTERM, not SIGKILL, matters: restic treats SIGTERM/SIGINT as a clean-abort
 // request — it stops starting new uploads and exits WITHOUT writing the final
