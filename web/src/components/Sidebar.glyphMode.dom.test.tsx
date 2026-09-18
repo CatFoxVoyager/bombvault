@@ -22,7 +22,7 @@
 // Sidebar.tabColor.dom.test.tsx's own header describes.
 // ---------------------------------------------------------------------------
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { I18nProvider } from "../lib/i18n";
@@ -132,7 +132,8 @@ describe("glyph mode names the rows in a real bubble", () => {
     expect(document.querySelector(".glim-bubble")).toBeNull();
 
     // Keyboard reachable, which the native balloon never was.
-    fireEvent.focus(dashboard);
+    fireEvent.keyDown(document.body, { key: "Tab" });
+    act(() => dashboard.focus());
     expect(document.querySelector(".glim-bubble")?.textContent).toBe("Dashboard");
   });
 

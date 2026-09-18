@@ -14,7 +14,7 @@
 // ---------------------------------------------------------------------------
 import { useRef } from "react";
 import { afterEach, beforeEach, expect, it } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Button } from "./Button";
 import { setLabelMode } from "../lib/controls";
 
@@ -107,9 +107,42 @@ it("opens the same bubble on keyboard focus, not only on hover", () => {
   setLabelMode("buttons", "glyph");
   renderButton();
   const el = screen.getByRole("button");
-  fireEvent.focus(el);
+  fireEvent.keyDown(document.body, { key: "Tab" });
+  act(() => el.focus());
   expect(document.querySelector(".glim-bubble")?.textContent).toBe("Clear");
-  fireEvent.blur(el);
+  act(() => el.blur());
+  expect(document.querySelector(".glim-bubble")).toBeNull();
+});
+
+// Focus after a pointer press comes from a click, or from a dialog handing it
+// back after one. No keyboard user asked, so no bubble.
+it("does not open on focus when the pointer was used last", () => {
+  setLabelMode("buttons", "glyph");
+  renderButton();
+  const el = screen.getByRole("button");
+  fireEvent.pointerDown(el);
+  act(() => el.focus());
+  expect(document.querySelector(".glim-bubble")).toBeNull();
+});
+
+// A button disabled under its open bubble is swapped for a new element inside
+// the wrapper, and the old one never reports losing the focus or the pointer.
+it("closes an open bubble when the button is disabled under it, and again when it comes back", () => {
+  setLabelMode("buttons", "text");
+  const props = { label: "Prune", title: "Apply your retention policy", onClick: () => {} };
+  const { rerender } = render(<Button {...props} />);
+  fireEvent.keyDown(document.body, { key: "Tab" });
+  act(() => screen.getByRole("button").focus());
+  expect(document.querySelector(".glim-bubble")?.textContent).toBe("Apply your retention policy");
+
+  rerender(<Button {...props} disabled busy />);
+  expect(document.querySelector(".glim-bubble"), "the bubble outlived the button it belonged to").toBeNull();
+
+  // Opened again on the disabled one, through the wrapper as a pointer would...
+  fireEvent.mouseEnter(screen.getByRole("button").parentElement as HTMLElement);
+  expect(document.querySelector(".glim-bubble")).not.toBeNull();
+  // ...and the job ending swaps the element back, which closes it too.
+  rerender(<Button {...props} />);
   expect(document.querySelector(".glim-bubble")).toBeNull();
 });
 

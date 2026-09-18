@@ -11,7 +11,7 @@
 // instead of a native `title=` balloon.
 // ---------------------------------------------------------------------------
 import { describe, expect, it, vi, afterEach } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { IconTipButton } from "./IconTipButton";
 
 afterEach(() => {
@@ -50,9 +50,10 @@ describe("IconTipButton", () => {
       </IconTipButton>
     );
     const button = screen.getByRole("button", { name: "Download recovery kit" });
-    fireEvent.focus(button);
+    fireEvent.keyDown(document.body, { key: "Tab" });
+    act(() => button.focus());
     expect(document.querySelector(".glim-bubble")?.textContent).toBe("Download recovery kit");
-    fireEvent.blur(button);
+    act(() => button.blur());
     expect(document.querySelector(".glim-bubble")).toBeNull();
   });
 

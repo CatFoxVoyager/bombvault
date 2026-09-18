@@ -23,7 +23,7 @@
 // ---------------------------------------------------------------------------
 import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Selector, MIN_PINNED_WIDTH, type SelectorItem } from "./Selector";
 import { RAINBOW_OFF, applyRainbow } from "../lib/appearance";
 import { setLabelMode } from "../lib/controls";
@@ -635,10 +635,11 @@ describe("Selector — iconOnly/tip (PathModeSwitch's Local/Remote pair, GlimSto
   it("focusing an item with `tip` also reveals the tooltip (keyboard-accessible, same as InfoBubble)", () => {
     render(<Selector items={ICON_ITEMS} label="Path mode" active="local" onChange={() => {}} />);
     const remote = screen.getByRole("tab", { name: "Remote" });
-    fireEvent.focus(remote);
+    fireEvent.keyDown(document.body, { key: "Tab" });
+    act(() => remote.focus());
     const bubble = document.querySelector(".glim-bubble");
     expect(bubble?.textContent).toBe("Remote restic repository");
-    fireEvent.blur(remote);
+    act(() => remote.blur());
     expect(document.querySelector(".glim-bubble")).toBeNull();
   });
 
