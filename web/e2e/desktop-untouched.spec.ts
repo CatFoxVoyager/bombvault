@@ -24,11 +24,12 @@
 // internal/api/spa.go, serves index.html for client routes).
 //
 // The second, per-page half: each page that has been given a phone face
-// (/dashboard in the shell PR, /containers in this one) additionally asserts
-// the absence of every phone-only surface its PR put below the breakpoint
-// (the StickyActionBar chrome and the filled full-width primary triggers).
-// Same discipline as the route loop: fresh-DB empty states, chrome not data.
-// The page routes (not the / redirect) keep the loop's canonical form.
+// (/dashboard in the shell PR, /containers in the containers PR, /vms in this
+// one) additionally asserts the absence of every phone-only surface its PR
+// put below the breakpoint (the StickyActionBar chrome and the filled
+// full-width primary triggers). Same discipline as the route loop: fresh-DB
+// empty states, chrome not data. The page routes (not the / redirect) keep
+// the loop's canonical form.
 //
 // SCOPE NOTE: the Files, Settings-family and Recovery mobile surfaces carry
 // their own per-page leakage batteries with their own commits (their
@@ -183,9 +184,9 @@ for (const route of DASHBOARD_ROUTES) {
 }
 
 // ---------------------------------------------------------------------------
-// The >=48rem leakage pass for /containers: the page this PR gives a phone
-// face (the card list, the stacked detail, the Save bar). Same discipline as
-// the Dashboard pass above.
+// The >=48rem leakage pass for /containers: the page the containers PR gave
+// a phone face (the card list, the stacked detail, the Save bar). Same
+// discipline as the Dashboard pass above.
 //
 // The files.emptyRule needle from the same upstream battery deliberately
 // does NOT travel with this file: its subject matter is the Files page's
@@ -214,6 +215,36 @@ for (const route of CONTAINER_ROUTES) {
     await expect(page.getByRole("button", { name: /, Back$/ })).toHaveCount(0);
     // The Save bar's live count statement (folders.handedToRestic).
     await expect(page.getByText(/folders handed to restic/)).toHaveCount(0);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// The >=48rem leakage pass for /vms: the page this PR gives a phone face
+// (the card list, the per-card schedule sheets, the Fab). Same discipline as
+// the Dashboard and Containers passes above. The needles are the phone
+// face's exact class signatures, each verified to exist ONLY on the mobile
+// side when this pass landed: `button.h-13` is the Fab's 52px stage (the
+// only h-13 button in src/), `div.sticky.top-0.z-10.bg-carbon-sidebar` is
+// the ListToolbar's sticky search strip (no desktop element carries it —
+// the Desktop pass's own 10-route loop proves the sidebar twin separately),
+// and the two role/name queries are the mobile-only surfaces proper (the
+// per-card schedule rows, the load-more window chrome).
+// ---------------------------------------------------------------------------
+const VM_ROUTES = ["/vms"];
+
+for (const route of VM_ROUTES) {
+  test(`desktop untouched of the VMs phone chrome at ${route}`, async ({ page }, testInfo) => {
+    test.skip(!DESKTOP_PROJECTS.has(testInfo.project.name), "desktop-only: the >=48rem leakage contract");
+    await page.goto(route);
+
+    // The Fab — the phone face's 52px filled primary trigger.
+    await expect(page.locator("button.h-13")).toHaveCount(0);
+    // The ListToolbar's sticky search strip.
+    await expect(page.locator("div.sticky.top-0.z-10.bg-carbon-sidebar")).toHaveCount(0);
+    // The mobile-only surfaces proper: the load-more window chrome and the
+    // per-card schedule rows.
+    await expect(page.getByText("Load more")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Schedule override" })).toHaveCount(0);
   });
 }
 
