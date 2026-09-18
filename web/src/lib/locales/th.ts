@@ -175,6 +175,10 @@ const th: Partial<Translations> = {
   "run.colStarted": "เริ่มต้น",
   "run.colFinished": "เสร็จสิ้น",
   "run.colContainer": "Container",
+  "home.newBackup": "สำรองข้อมูลใหม่",
+  "home.newBackupConfirm": "เริ่มสำรองข้อมูลทุกโดเมนที่เปิดใช้งานตอนนี้หรือไม่? คอนเทนเนอร์จะหยุดและเริ่มใหม่ทีละตัวระหว่างการสำรองข้อมูลของตน การกู้คืนจะเก็บเฉพาะสิ่งที่รอบถัดไปบันทึก",
+  "run.statVolume": "ปริมาณข้อมูล",
+  "run.statSnapshot": "สแนปช็อต",
 
   // Settings
   "settings.title": "การตั้งค่า",

@@ -175,6 +175,10 @@ const it: Partial<Translations> = {
   "run.colStarted": "Avviato",
   "run.colFinished": "Terminato",
   "run.colContainer": "Container",
+  "home.newBackup": "Nuovo backup",
+  "home.newBackupConfirm": "Avviare ora un backup di tutti i domini attivati? I container vengono fermati e riavviati uno alla volta, mentre il loro backup è in esecuzione. Il ripristino conserva solo ciò che salverà la prossima esecuzione.",
+  "run.statVolume": "Volume dati",
+  "run.statSnapshot": "Snapshot",
 
   // Settings
   "settings.title": "Impostazioni",

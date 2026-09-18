@@ -245,6 +245,10 @@ const hi: Partial<Translations> = {
   "run.colStarted": "शुरू हुआ",
   "run.colFinished": "पूरा हुआ",
   "run.colContainer": "कंटेनर",
+  "home.newBackup": "नया बैकअप",
+  "home.newBackupConfirm": "क्या अभी सभी सक्रिय डोमेन का बैकअप शुरू करें? कंटेनर एक-एक करके उनके बैकअप चलने के दौरान रोके जाते हैं और फिर से शुरू किए जाते हैं. रीस्टोर केवल वही रखता है जो अगला रन सेव करता है.",
+  "run.statVolume": "डेटा आयतन",
+  "run.statSnapshot": "स्नैपशॉट",
 
   // Settings
   "settings.title": "सेटिंग्स",

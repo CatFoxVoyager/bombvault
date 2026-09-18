@@ -175,6 +175,10 @@ const sv: Partial<Translations> = {
   "run.colStarted": "Startad",
   "run.colFinished": "Avslutad",
   "run.colContainer": "Container",
+  "home.newBackup": "Ny säkerhetskopia",
+  "home.newBackupConfirm": "Starta en säkerhetskopia av alla aktiverade domäner nu? Containrar stoppas och startas om en i taget medan deras säkerhetskopia körs. Återställningen behåller bara det som nästa körning sparar.",
+  "run.statVolume": "Datamängd",
+  "run.statSnapshot": "Snapshot",
 
   // Settings
   "settings.title": "Inställningar",

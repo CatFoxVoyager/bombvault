@@ -245,6 +245,10 @@ const ms: Partial<Translations> = {
   "run.colStarted": "Dimulakan",
   "run.colFinished": "Selesai",
   "run.colContainer": "Bekas",
+  "home.newBackup": "Sandaran baharu",
+  "home.newBackupConfirm": "Mulakan sandaran untuk semua domain yang diaktifkan sekarang? Bekas dihentikan dan dimulakan semula satu demi satu semasa sandarannya berjalan. Pemulihan hanya menyimpan apa yang disimpan oleh jalan seterusnya.",
+  "run.statVolume": "Isipadu data",
+  "run.statSnapshot": "Snapshot",
 
   // Settings
   "settings.title": "Tetapan",

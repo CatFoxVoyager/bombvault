@@ -245,6 +245,10 @@ const ca: Partial<Translations> = {
   "run.colStarted": "Iniciat",
   "run.colFinished": "Finalitzat",
   "run.colContainer": "Contenidor",
+  "home.newBackup": "Còpia de seguretat nova",
+  "home.newBackupConfirm": "Vols iniciar una còpia de seguretat de tots els dominis activats ara? Els contenidors s'aturen i es reinicien d'un en un mentre s'executa la seva còpia. La restauració només conserva el que desi la propera execució.",
+  "run.statVolume": "Volum de dades",
+  "run.statSnapshot": "Instantània",
 
   // Settings
   "settings.title": "Configuració",

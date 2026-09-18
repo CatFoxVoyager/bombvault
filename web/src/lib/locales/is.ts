@@ -245,6 +245,10 @@ const is: Partial<Translations> = {
   "run.colStarted": "Hafið",
   "run.colFinished": "Lokið",
   "run.colContainer": "Gámur",
+  "home.newBackup": "Nýtt öryggisafrit",
+  "home.newBackupConfirm": "Hefja öryggisafrit af öllum virkum svæðum núna? Gámar eru stöðvaðir og endurræstir einn í senn á meðan öryggisafrit þeirra stendur. Endurheimtur geymist aðeins það sem næsta keyrsla vistar.",
+  "run.statVolume": "Gagnamagn",
+  "run.statSnapshot": "Skyndimynd",
 
   // Settings
   "settings.title": "Stillingar",

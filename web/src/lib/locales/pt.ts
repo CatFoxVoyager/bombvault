@@ -174,6 +174,10 @@ const pt: Partial<Translations> = {
   "run.colStarted": "Iniciado",
   "run.colFinished": "Terminado",
   "run.colContainer": "Container",
+  "home.newBackup": "Nova cópia de segurança",
+  "home.newBackupConfirm": "Iniciar agora uma cópia de segurança de todos os domínios ativados? Os contentores são parados e reiniciados um a um, enquanto a sua cópia de segurança é executada. O restauro mantém apenas o que a próxima execução guardar.",
+  "run.statVolume": "Volume de dados",
+  "run.statSnapshot": "Instantâneo",
 
   // Settings
   "settings.title": "Definições",

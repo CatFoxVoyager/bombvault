@@ -245,6 +245,10 @@ const eu: Partial<Translations> = {
   "run.colStarted": "Hasita",
   "run.colFinished": "Amaituta",
   "run.colContainer": "Edukiontzia",
+  "home.newBackup": "Babeskopia berria",
+  "home.newBackupConfirm": "Aktibatutako domeinu guztien babeskopia hastu orain? Edukiontiak banan-banan gelditu eta berrabiarazten dira beren babeskopia exekutatzen den bitartean. Leheneratzeak hurrengo exekuzioak gordetzen duena soilik gordetzen du.",
+  "run.statVolume": "Datu-bolumena",
+  "run.statSnapshot": "Snapshot",
 
   // Settings
   "settings.title": "Ezarpenak",

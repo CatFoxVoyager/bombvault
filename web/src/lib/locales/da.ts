@@ -175,6 +175,10 @@ const da: Partial<Translations> = {
   "run.colStarted": "Startet",
   "run.colFinished": "Afsluttet",
   "run.colContainer": "Container",
+  "home.newBackup": "Ny backup",
+  "home.newBackupConfirm": "Vil du starte en backup af alle aktiverede domæner nu? Containere stoppes og genstartes én ad gangen, mens deres backup kører. En gendannelse beholder kun det, den næste køring gemmer.",
+  "run.statVolume": "Datamængde",
+  "run.statSnapshot": "Snapshot",
 
   // Settings
   "settings.title": "Indstillinger",

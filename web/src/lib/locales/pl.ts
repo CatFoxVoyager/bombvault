@@ -173,6 +173,10 @@ const pl: Partial<Translations> = {
   "run.colStarted": "Uruchomiono",
   "run.colFinished": "Zakończono",
   "run.colContainer": "Kontener",
+  "home.newBackup": "Nowa kopia zapasowa",
+  "home.newBackupConfirm": "Rozpocząć teraz kopię zapasową wszystkich włączonych obszarów? Kontenery są zatrzymywane i ponownie uruchamiane pojedynczo, podczas gdy ich kopia zapasowa działa. Przywracanie zachowa tylko to, co zapisze następne uruchomienie.",
+  "run.statVolume": "Ilość danych",
+  "run.statSnapshot": "Migawka",
 
   // Settings
   "settings.title": "Ustawienia",

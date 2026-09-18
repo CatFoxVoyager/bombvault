@@ -174,6 +174,10 @@ const ro: Partial<Translations> = {
   "run.colStarted": "Început",
   "run.colFinished": "Terminat",
   "run.colContainer": "Container",
+  "home.newBackup": "Copie de siguranță nouă",
+  "home.newBackupConfirm": "Începi acum o copie de siguranță a tuturor domeniilor activate? Containerele sunt oprite și repornite pe rând, în timp ce rulează copia lor de siguranță. Restaurarea păstrează doar ce va salva următoarea rulare.",
+  "run.statVolume": "Volum de date",
+  "run.statSnapshot": "Instantaneu",
 
   // Settings
   "settings.title": "Setări",

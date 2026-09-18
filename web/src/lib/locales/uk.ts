@@ -174,6 +174,10 @@ const uk: Partial<Translations> = {
   "run.colStarted": "Початок",
   "run.colFinished": "Завершення",
   "run.colContainer": "Контейнер",
+  "home.newBackup": "Нова резервна копія",
+  "home.newBackupConfirm": "Запустити резервне копіювання всіх увімкнених областей зараз? Контейнери зупиняються та запускаються заново по одному, поки триває їхнє резервне копіювання. Відновлення збереже лише те, що запише наступний запуск.",
+  "run.statVolume": "Обсяг даних",
+  "run.statSnapshot": "Знімок",
 
   // Settings
   "settings.title": "Налаштування",

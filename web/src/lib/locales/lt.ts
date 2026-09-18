@@ -245,6 +245,10 @@ const lt: Partial<Translations> = {
   "run.colStarted": "Pradėta",
   "run.colFinished": "Baigta",
   "run.colContainer": "Konteineris",
+  "home.newBackup": "Nauja atsarginė kopija",
+  "home.newBackupConfirm": "Pradėti dabar visų įjungtų sričių atsarginę kopiją? Konteineriai sustabdomi ir paleidžiami iš naujo po vieną, kol vyksta jų atsarginė kopija. Atkūrimas išsaugo tik tai, ką įrašys kitas vykdymas.",
+  "run.statVolume": "Duomenų apimtis",
+  "run.statSnapshot": "Momentinė kopija",
 
   // Settings
   "settings.title": "Nustatymai",

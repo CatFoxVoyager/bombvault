@@ -175,6 +175,10 @@ const he: Partial<Translations> = {
   "run.colStarted": "התחיל",
   "run.colFinished": "הסתיים",
   "run.colContainer": "Container",
+  "home.newBackup": "גיבוי חדש",
+  "home.newBackupConfirm": "להתחיל גיבוי של כל התחומים המופעלים עכשיו? הקונטיינרים נעצרים ומופעלים מחדש אחד בכל פעם בזמן שהגיבוי שלהם רץ. השחזור שומר רק את מה שהריצה הבאה תשמור.",
+  "run.statVolume": "נפח נתונים",
+  "run.statSnapshot": "תמונת מצב",
 
   // Settings
   "settings.title": "הגדרות",

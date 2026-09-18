@@ -175,6 +175,10 @@ const tr: Partial<Translations> = {
   "run.colStarted": "Başladı",
   "run.colFinished": "Bitti",
   "run.colContainer": "Konteyner",
+  "home.newBackup": "Yeni yedek",
+  "home.newBackupConfirm": "Şimdi etkinleştirilmiş tüm alanların yedeğini başlat? Kapsayıcılar, yedeklemeleri çalışırken tek tek durdurulup yeniden başlatılır. Geri yükleme yalnızca bir sonraki çalıştırmanın kaydettiklerini tutar.",
+  "run.statVolume": "Veri hacmi",
+  "run.statSnapshot": "Anlık görüntü",
 
   // Settings
   "settings.title": "Ayarlar",

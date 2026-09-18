@@ -245,6 +245,10 @@ const fa: Partial<Translations> = {
   "run.colStarted": "شروع",
   "run.colFinished": "پایان",
   "run.colContainer": "کانتینر",
+  "home.newBackup": "پشتیبان‌گیری جدید",
+  "home.newBackupConfirm": "شروع پشتیبان‌گیری از همه بخش‌های فعال اکنون؟ کانتینرها یکی‌یکی هنگام اجرای پشتیبان‌گیری‌شان متوقف و دوباره راه‌اندازی می‌شوند. بازیابی فقط چیزی را نگه می‌دارد که اجرای بعدی ذخیره می‌کند.",
+  "run.statVolume": "حجم داده‌ها",
+  "run.statSnapshot": "اسنپ‌شات",
 
   // Settings
   "settings.title": "تنظیمات",

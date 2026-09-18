@@ -175,6 +175,10 @@ const fr: Partial<Translations> = {
   "run.colStarted": "Démarré",
   "run.colFinished": "Terminé",
   "run.colContainer": "Conteneur",
+  "home.newBackup": "Nouvelle sauvegarde",
+  "home.newBackupConfirm": "Lancer une sauvegarde de tous les domaines activés maintenant ? Les conteneurs sont arrêtés puis redémarrés un à un, pendant leur sauvegarde. La restauration ne conserve que ce que la prochaine exécution sauvegardera.",
+  "run.statVolume": "Volume de données",
+  "run.statSnapshot": "Instantané",
 
   // Settings
   "settings.title": "Paramètres",

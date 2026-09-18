@@ -245,6 +245,10 @@ const bg: Partial<Translations> = {
   "run.colStarted": "Започнато",
   "run.colFinished": "Завършено",
   "run.colContainer": "Контейнер",
+  "home.newBackup": "Ново резервно копие",
+  "home.newBackupConfirm": "Да започна ли резервно копие на всички активирани области сега? Контейнерите се спират и рестартират един по един, докато върви тяхното резервно копие. Възстановяването запазва само това, което следващото изпълнение запази.",
+  "run.statVolume": "Обем данни",
+  "run.statSnapshot": "Снимка",
 
   // Settings
   "settings.title": "Настройки",

@@ -173,6 +173,10 @@ const nl: Partial<Translations> = {
   "run.colStarted": "Gestart",
   "run.colFinished": "Voltooid",
   "run.colContainer": "Container",
+  "home.newBackup": "Nieuwe back-up",
+  "home.newBackupConfirm": "Nu een back-up van alle ingeschakelde domeinen starten? Containers worden één voor één gestopt en opnieuw gestart terwijl hun back-up loopt. Herstel bewaart alleen wat de volgende run opslaat.",
+  "run.statVolume": "Datavolume",
+  "run.statSnapshot": "Momentopname",
 
   // Settings
   "settings.title": "Instellingen",

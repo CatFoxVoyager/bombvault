@@ -245,6 +245,10 @@ const et: Partial<Translations> = {
   "run.colStarted": "Alustatud",
   "run.colFinished": "Lõpetatud",
   "run.colContainer": "Konteiner",
+  "home.newBackup": "Uus varukoopia",
+  "home.newBackupConfirm": "Käivitada kohe varukoopia kõigist lubatud valdkondadest? Konteinerid peatatakse ja taaskäivitatakse ükshaaval, samal ajal kui nende varukoopia töötab. Taastamine säilitab ainult selle, mida salvestab järgmine käik.",
+  "run.statVolume": "Andmete maht",
+  "run.statSnapshot": "Hetktõmmis",
 
   // Settings
   "settings.title": "Seaded",

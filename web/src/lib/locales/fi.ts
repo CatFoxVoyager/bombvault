@@ -175,6 +175,10 @@ const fi: Partial<Translations> = {
   "run.colStarted": "Aloitettu",
   "run.colFinished": "Valmis",
   "run.colContainer": "Kontti",
+  "home.newBackup": "Uusi varmuuskopio",
+  "home.newBackupConfirm": "Aloita varmuuskopio kaikista käytössä olevista alueista nyt? Kontit pysäytetään ja käynnistetään uudelleen yksi kerrallaan niiden varmuuskopion aikana. Palautus säilyttää vain sen, mitä seuraava ajo tallentaa.",
+  "run.statVolume": "Datamäärä",
+  "run.statSnapshot": "Snapshot",
 
   // Settings
   "settings.title": "Asetukset",

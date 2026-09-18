@@ -245,6 +245,10 @@ const sr: Partial<Translations> = {
   "run.colStarted": "Почето",
   "run.colFinished": "Завршено",
   "run.colContainer": "Контејнер",
+  "home.newBackup": "Нова резервна копија",
+  "home.newBackupConfirm": "Започнути сада резервну копију свих укључених области? Контејнери се заустављају и поново покрећу један по један док траје њихова резервна копија. Обнова чува само оно што ће следећи покретач сачувати.",
+  "run.statVolume": "Volumen podataka",
+  "run.statSnapshot": "Snimak",
 
   // Settings
   "settings.title": "Подешавања",

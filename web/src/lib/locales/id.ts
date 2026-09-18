@@ -245,6 +245,10 @@ const id: Partial<Translations> = {
   "run.colStarted": "Dimulai",
   "run.colFinished": "Selesai",
   "run.colContainer": "Container",
+  "home.newBackup": "Pencadangan baru",
+  "home.newBackupConfirm": "Mulai pencadangan untuk semua domain yang diaktifkan sekarang? Kontainer dihentikan dan dimulai ulang satu per satu selama pencadangannya berjalan. Pemulihan hanya menyimpan apa yang disimpan oleh proses berikutnya.",
+  "run.statVolume": "Volume data",
+  "run.statSnapshot": "Snapshot",
 
   // Settings
   "settings.title": "Pengaturan",

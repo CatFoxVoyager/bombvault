@@ -9,8 +9,9 @@ import { useT } from "../../lib/i18n";
 //
 // This is the stateful mechanism of lib/useConfirm.tsx re-expressed as a
 // bottom-anchored sheet, NOT a third modal implementation. The repo's
-// two-half doctrine (useConfirm.tsx <-> ConfirmDialog.tsx, useReveal <->
-// RevealInput) is exactly how modal logic is allowed to propagate: the
+// hook-plus-presentation split (useConfirm.tsx <-> ConfirmDialog.tsx,
+// useReveal <-> RevealInput) is exactly how modal logic is allowed to
+// propagate: the
 // portal / document-level Escape / FOCUSABLE_SELECTOR Tab trap / focus
 // restore below is lifted from useConfirm.tsx with only the deltas a
 // viewport change forces, each cited inline. A trap re-derived from scratch

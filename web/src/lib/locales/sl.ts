@@ -245,6 +245,10 @@ const sl: Partial<Translations> = {
   "run.colStarted": "Začeto",
   "run.colFinished": "Končano",
   "run.colContainer": "Vsebnik",
+  "home.newBackup": "Nova varnostna kopija",
+  "home.newBackupConfirm": "Želite zdaj začeti varnostno kopijo vseh omogočenih področij? Vsebniki se med delom njihove varnostne kopije enega za drugim ustavijo in znova zaženejo. Obnovitev ohrani samo tisto, kar shrani naslednji zagon.",
+  "run.statVolume": "Količina podatkov",
+  "run.statSnapshot": "Posnetek",
 
   // Settings
   "settings.title": "Nastavitve",

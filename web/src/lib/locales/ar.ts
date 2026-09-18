@@ -175,6 +175,10 @@ const ar: Partial<Translations> = {
   "run.colStarted": "بدأ",
   "run.colFinished": "انتهى",
   "run.colContainer": "Container",
+  "home.newBackup": "نسخة احتياطية جديدة",
+  "home.newBackupConfirm": "هل تريد بدء نسخة احتياطية لكل نطاق ممكّن الآن؟ تُوقف الحاويات وتُعاد تشغيلتها واحدًا تلو الآخر أثناء تشغيل النسخ الاحتياطي لها. تحتفظ الاستعادة فقط بما يحفظه التشغيل التالي.",
+  "run.statVolume": "حجم البيانات",
+  "run.statSnapshot": "لقطة",
 
   // Settings
   "settings.title": "الإعدادات",

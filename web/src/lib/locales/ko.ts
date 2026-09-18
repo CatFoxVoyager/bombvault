@@ -175,6 +175,10 @@ const ko: Partial<Translations> = {
   "run.colStarted": "시작",
   "run.colFinished": "완료",
   "run.colContainer": "컨테이너",
+  "home.newBackup": "새 백업",
+  "home.newBackupConfirm": "지금 활성화된 모든 도메인의 백업을 시작할까요? 컨테이너는 백업이 실행되는 동안 하나씩 중지되었다가 다시 시작됩니다. 복원에는 다음 실행이 저장한 것만 남습니다.",
+  "run.statVolume": "데이터 용량",
+  "run.statSnapshot": "스냅샷",
 
   // Settings
   "settings.title": "설정",

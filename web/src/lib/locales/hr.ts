@@ -245,6 +245,10 @@ const hr: Partial<Translations> = {
   "run.colStarted": "Pokrenuto",
   "run.colFinished": "Završeno",
   "run.colContainer": "Kontejner",
+  "home.newBackup": "Nova sigurnosna kopija",
+  "home.newBackupConfirm": "Započeti sada sigurnosnu kopiju svih omogućenih domena? Kontejneri se zaustavljaju i ponovno pokreću jedan po jedan dok traje njihova sigurnosna kopija. Obnova čuva samo ono što sljedeći zapis sprema.",
+  "run.statVolume": "Volumen podataka",
+  "run.statSnapshot": "Snimka",
 
   // Settings
   "settings.title": "Postavke",

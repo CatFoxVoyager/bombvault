@@ -245,6 +245,10 @@ const lv: Partial<Translations> = {
   "run.colStarted": "Sākts",
   "run.colFinished": "Pabeigts",
   "run.colContainer": "Konteiners",
+  "home.newBackup": "Jauns dublējums",
+  "home.newBackupConfirm": "Sākt tagad visu iespējoto jomu dublējumu? Konteineri tiek apturēti un pārstartēti pa vienam, kamēr darbojas to dublējums. Atjaunošana saglabā tikai to, ko saglabās nākamā izpilde.",
+  "run.statVolume": "Datu apjoms",
+  "run.statSnapshot": "Momentuzņēmums",
 
   // Settings
   "settings.title": "Iestatījumi",

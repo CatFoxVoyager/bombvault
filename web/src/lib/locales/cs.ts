@@ -175,6 +175,10 @@ const cs: Partial<Translations> = {
   "run.colStarted": "Spuštěno",
   "run.colFinished": "Dokončeno",
   "run.colContainer": "Kontejner",
+  "home.newBackup": "Nová záloha",
+  "home.newBackupConfirm": "Spustit nyní zálohu všech povolených oblastí? Kontejnery jsou zastaveny a znovu spuštěny postupně, zatímco jejich záloha běží. Obnova zachová jen to, co uloží další běh.",
+  "run.statVolume": "Objem dat",
+  "run.statSnapshot": "Snímek",
 
   // Settings
   "settings.title": "Nastavení",

@@ -175,6 +175,10 @@ const hu: Partial<Translations> = {
   "run.colStarted": "Indítva",
   "run.colFinished": "Befejezve",
   "run.colContainer": "Konténer",
+  "home.newBackup": "Új biztonsági mentés",
+  "home.newBackupConfirm": "Elindítod most az összes engedélyezett terület biztonsági mentését? A konténerek a saját mentésük alatt egyenként leállnak és újraindulnak. A helyreállítás csak azt őrzi meg, amit a következő futás ment.",
+  "run.statVolume": "Adatmennyiség",
+  "run.statSnapshot": "Pillanatkép",
 
   // Settings
   "settings.title": "Beállítások",
