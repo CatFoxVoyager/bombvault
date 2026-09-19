@@ -108,6 +108,14 @@ export function runTargetText(t: ReturnType<typeof useT>["t"], run: Run): string
   if (isDomainOpRunKind(run.kind)) {
     return runDomainLabel(t, run.targetId);
   }
+  // The Backup Everything parent run's target carries the backend's own
+  // server-side literal, English text whatever the UI language. One action,
+  // one name: settings.everythingTitle, the same key the effective-schedule
+  // sentence resolves, so the run sheet's title reads Gesamt-Backup in
+  // German instead of pairing a translated kind with the raw name.
+  if (run.domain === "everything") {
+    return t("settings.everythingTitle");
+  }
   return run.target || `${run.targetId.slice(0, 12)}…`;
 }
 

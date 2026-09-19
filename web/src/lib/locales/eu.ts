@@ -702,7 +702,7 @@ const eu: Partial<Translations> = {
   "settings.labels.sidebar": "Alboko barra",
   "settings.labels.tabs": "Fitxak",
   "settings.labels.bottombar": "Beheko barra",
-  "settings.axisBottombarHint": "Telefonoaren diseinari bakarrik eragiten dio.",
+  "settings.axisBottombarHint": "Telefonoaren diseinuari bakarrik eragiten dio.",
   "settings.labels.mode.text": "Testua",
   "settings.labels.mode.textGlyph": "Testua eta ikurra",
   "settings.labels.mode.glyph": "Ikurra",

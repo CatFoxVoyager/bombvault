@@ -201,7 +201,10 @@ describe("Dashboard phone run sheet", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(700);
     });
-    expect(within(screen.getByRole("dialog")).getByText(/all-domains/i)).toBeTruthy();
+    // The sheet names the everything run by its one display name
+    // (settings.everythingTitle via runTargetText), never the raw
+    // server-side target the fixture carries.
+    expect(within(screen.getByRole("dialog")).getByText(/backup everything/i)).toBeTruthy();
 
     // The user now opens a different run's sheet from Recent runs.
     fireEvent.click(recentRunRow("plex"));
@@ -218,7 +221,7 @@ describe("Dashboard phone run sheet", () => {
     });
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getAllByText(/plex/i).length).toBeGreaterThan(0);
-    expect(within(dialog).queryByText(/all-domains/i)).toBeNull();
+    expect(within(dialog).queryByText(/backup everything/i)).toBeNull();
   });
 
   it("follows a run opened from Recent runs as its status changes", async () => {
