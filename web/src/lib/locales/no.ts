@@ -354,7 +354,7 @@ const no: Partial<Translations> = {
   "auth.invalidPassword": "Ugyldig passord",
   "auth.loginError": "Innlogging mislyktes",
 
-  // Settings; Security card
+  // Settings — Security card
   "auth.security": "Passord",
   "auth.authOff": "Autentisering er av. Alle LAN-brukere har full tilgang.",
   "auth.authOn": "Autentisering er aktivert.",
@@ -837,7 +837,7 @@ const no: Partial<Translations> = {
   "settings.dashTileRemoving": "Fjerner…",
   "settings.dashTileRemoveOk": "Plugin fjernet. Det vises ikke lenger på Unraid-dashbordet.",
 
-  // Notifications; email (SMTP)
+  // Notifications — email (SMTP)
   "notify.smtp": "E-post (SMTP)",
   "notify.smtpHost": "SMTP-host",
   "notify.smtpPort": "Port",
@@ -1139,7 +1139,7 @@ const no: Partial<Translations> = {
   "drill.manualOnly": "Off-site DR: kun manuelt",
   "drill.manualOnlyTitle": "Den planlagte off-site DR-øvelsen er av. Kjør off-site-sjekken manuelt med knappen.",
 
-  // Settings; section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "Generelt",
   "settings.tab.storage": "Stier og lagring",
   "settings.tab.schedules": "Tidsplaner",
@@ -1238,7 +1238,7 @@ const no: Partial<Translations> = {
   "dashboard.domainFiles": "Mapper",
   "recovery.filesFound": "Fant {f} mappesett.",
   "recovery.filesRestoreHint": "Gjenoppdagede mappesett kjenner ikke sin opprinnelige mappe. Hvert sett gjenopprettes til en mappe du velger.",
-  // Restore from another BombVault repo; Recovery page
+  // Restore from another BombVault repo — Recovery page (#61 task 11)
   "recovery.foreignTitle": "Gjenopprett fra et annet BombVault-repo",
   "recovery.foreignIntro": "Hent enkeltcontainere, VM-er eller mappesett ut av sikkerhetskopiene til en ANNEN BombVault-instans: koble til skrivebeskyttet, bla i innholdet og gjenopprett det du velger. Det andre repoet blir bare lest, ingenting endres der, og dine egne sikkerhetskopiinnstillinger forblir urørte.",
   "recovery.foreignStepConnect": "Koble til det andre repoet",
@@ -1276,7 +1276,7 @@ const no: Partial<Translations> = {
   "recovery.foreignExpired": "Økten er utløpt (økter varer i 30 minutter). Koble til på nytt for å fortsette å bla.",
   "recovery.foreignReconnect": "Koble til på nytt",
 
-  // Dashboard activity log
+  // Dashboard activity log (Task 4)
   "activityLog.title": "Aktivitetslogg",
   "activityLog.filterPlaceholder": "Filtrer… (f.eks. plex, mislyktes, off-site)",
   "activityLog.filterAllDomains": "Alle domener",
@@ -1333,7 +1333,7 @@ const no: Partial<Translations> = {
   "activityLog.dayFilterChip": "Viser {date}",
   "activityLog.clearDayFilter": "Fjern dagsfilteret",
 
-  // i18n wave; Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "Replikering startet - den kjører i bakgrunnen; aktivitetsindikatoren viser fremdriften.",
   "whatsnew.retry": "Prøv igjen",

@@ -357,7 +357,7 @@ const ko: Partial<Translations> = {
   "auth.invalidPassword": "잘못된 비밀번호",
   "auth.loginError": "로그인 실패",
 
-  // Settings; Security card
+  // Settings — Security card
   "auth.security": "비밀번호",
   "auth.authOff": "인증이 꺼져 있습니다. 모든 LAN 사용자가 전체 액세스 권한을 가집니다.",
   "auth.authOn": "인증이 활성화되어 있습니다.",
@@ -687,7 +687,7 @@ const ko: Partial<Translations> = {
   "export.exportedTo": "내보낸 위치:",
   "backup.configOnly": "구성만, 데이터 폴더 없음 (재생성을 위해 정의 저장됨)",
 
-  // Backups; delete all
+  // Backups — delete all
   "snapshots.deleteAll": "모든 백업 삭제",
   "snapshots.deleteAllConfirm": "선택한 소스(로컬 또는 오프사이트)에서 이 VM의 모든 백업을 삭제하시겠습니까? 스냅샷이 영구적으로 제거되고 저장소가 정리됩니다. 되돌릴 수 없습니다.",
   "snapshots.deletingAll": "삭제 중…",
@@ -763,7 +763,7 @@ const ko: Partial<Translations> = {
   "recovery.freshNudge": "이전 서버나 재구축에서 복원하시나요? 기존 백업을 복구하세요.",
   "recovery.freshNudgeCta": "복구로 이동",
 
-  // Recovery; restore BombVault's own settings (config)
+  // Recovery — restore BombVault's own settings (config)
   "recovery.stepConfig": "BombVault 자체 설정 복원",
   "recovery.configHint": "재구축된 서버에서는 먼저 BombVault 자체 설정(백업 경로, 오프사이트 대상, 자격 증명)을 복원하면 아래 단계가 미리 채워집니다. 이전에 설정한 설정 백업을 지정하세요. 설정 백업이 없나요? 이 단계를 건너뛰고 아래에서 백업을 수동으로 연결하세요.",
   "recovery.configAppKeyReminder": "APP_KEY가 이 백업과 일치해야 합니다. 위 1단계의 확인 항목입니다.",
@@ -1131,7 +1131,7 @@ const ko: Partial<Translations> = {
   "drill.manualOnly": "오프사이트 DR: 수동 전용",
   "drill.manualOnlyTitle": "예약된 오프사이트 DR 훈련이 꺼져 있습니다. 버튼으로 오프사이트 검사를 수동으로 실행하세요.",
 
-  // Settings; section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "일반",
   "settings.tab.storage": "경로 및 저장소",
   "settings.tab.schedules": "일정",
@@ -1230,7 +1230,7 @@ const ko: Partial<Translations> = {
   "dashboard.domainFiles": "폴더",
   "recovery.filesFound": "폴더 세트 {f}개를 찾았습니다.",
   "recovery.filesRestoreHint": "다시 발견된 폴더 세트는 원본 폴더 정보가 없습니다. 각 세트는 선택한 폴더로 복원됩니다.",
-  // Restore from another BombVault repo; Recovery page
+  // Restore from another BombVault repo — Recovery page (#61 task 11)
   "recovery.foreignTitle": "다른 BombVault 저장소에서 복원",
   "recovery.foreignIntro": "다른 BombVault 인스턴스의 백업에서 개별 컨테이너, VM 또는 폴더 세트를 가져옵니다. 읽기 전용으로 연결하고, 내용을 살펴본 뒤, 선택한 항목을 복원하세요. 상대 저장소는 읽기만 하며 그쪽에서는 아무것도 바뀌지 않습니다. 내 백업 설정도 그대로 유지됩니다.",
   "recovery.foreignStepConnect": "다른 저장소에 연결",
@@ -1268,7 +1268,7 @@ const ko: Partial<Translations> = {
   "recovery.foreignExpired": "세션이 만료되었습니다(세션은 30분간 유지됩니다). 계속 살펴보려면 다시 연결하세요.",
   "recovery.foreignReconnect": "다시 연결",
 
-  // Dashboard activity log
+  // Dashboard activity log (Task 4)
   "activityLog.title": "활동 로그",
   "activityLog.filterPlaceholder": "필터… (예: plex, 실패, 오프사이트)",
   "activityLog.filterAllDomains": "모든 도메인",
@@ -1325,7 +1325,7 @@ const ko: Partial<Translations> = {
   "activityLog.dayFilterChip": "{date} 표시 중",
   "activityLog.clearDayFilter": "날짜 필터 지우기",
 
-  // i18n wave; Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "복제가 시작되었습니다 - 백그라운드에서 실행되며, 실행 표시기에 진행 상황이 표시됩니다.",
   "whatsnew.retry": "다시 시도",

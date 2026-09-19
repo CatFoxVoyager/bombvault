@@ -908,7 +908,7 @@ const et: Partial<Translations> = {
   "auth.invalidPassword": "Vale parool",
   "auth.loginError": "Sisselogimine ebaõnnestus",
 
-  // Settings; Security card
+  // Settings — Security card
   "auth.security": "Parool",
   "auth.authOff": "Autentimine on väljas: kõigil kohaliku võrgu kasutajatel on täielik ligipääs.",
   "auth.authOn": "Autentimine on sees.",
@@ -1334,7 +1334,7 @@ const et: Partial<Translations> = {
   "recovery.freshNudge": "Taastad varasemast serverist või pärast ülesehitust? Taasta oma olemasolevad varundused.",
   "recovery.freshNudgeCta": "Mine Taastamise juurde",
 
-  // Settings; section tabs
+  // Settings — section tabs
   "settings.tab.general": "Üldine",
   "settings.tab.storage": "Rajad ja salvestusruum",
   "settings.tab.schedules": "Ajakavad",
@@ -1360,7 +1360,7 @@ const et: Partial<Translations> = {
   // Filter drawer trigger
   "filter.button": "Filtrid",
 
-  // Settings; weekly digest, backup-engine cache, revoke-all sessions
+  // Settings — weekly digest, backup-engine cache, revoke-all sessions
   "settings.digestTitle": "Nädalakokkuvõte",
   "settings.digestHint": "Üks kokkuvõtvane sõnum nädalas: käivituste arv, uued varundatud andmed, väline ajakohasus ja peamised vead, saadetud ülaltoodud teavituskanalite kaudu.",
   "settings.digestToggle": "Nädalakokkuvõte",

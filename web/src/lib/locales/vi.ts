@@ -357,7 +357,7 @@ const vi: Partial<Translations> = {
   "auth.invalidPassword": "Mật khẩu không đúng",
   "auth.loginError": "Đăng nhập thất bại",
 
-  // Settings; Security card
+  // Settings — Security card
   "auth.security": "Mật khẩu",
   "auth.authOff": "Xác thực đang tắt. Tất cả người dùng LAN có toàn quyền truy cập.",
   "auth.authOn": "Xác thực đã bật.",
@@ -687,7 +687,7 @@ const vi: Partial<Translations> = {
   "export.exportedTo": "Đã xuất tới:",
   "backup.configOnly": "Chỉ cấu hình, không có thư mục dữ liệu (đã lưu định nghĩa để tạo lại)",
 
-  // Backups; delete all
+  // Backups — delete all
   "snapshots.deleteAll": "Xóa tất cả bản sao lưu",
   "snapshots.deleteAllConfirm": "Xóa TẤT CẢ bản sao lưu của VM này từ nguồn đã chọn (cục bộ hoặc off-site)? Các snapshot bị xóa vĩnh viễn và kho được dọn bớt. Không thể hoàn tác.",
   "snapshots.deletingAll": "Đang xóa…",
@@ -763,7 +763,7 @@ const vi: Partial<Translations> = {
   "recovery.freshNudge": "Đang khôi phục từ một máy chủ trước đây hoặc sau khi dựng lại? Hãy khôi phục các bản sao lưu hiện có của bạn.",
   "recovery.freshNudgeCta": "Đến Khôi phục",
 
-  // Recovery; restore BombVault's own settings (config)
+  // Recovery — restore BombVault's own settings (config)
   "recovery.stepConfig": "Khôi phục cài đặt của chính BombVault",
   "recovery.configHint": "Trên một máy chủ dựng lại, hãy khôi phục cài đặt của chính BombVault trước (đường dẫn sao lưu, đích off-site và thông tin đăng nhập) để các bước bên dưới được điền sẵn. Trỏ nó tới bản sao lưu cài đặt mà bạn đã thiết lập trước đó. Không có bản sao lưu cài đặt? Bỏ qua bước này và đính kèm các bản sao lưu của bạn thủ công bên dưới.",
   "recovery.configAppKeyReminder": "APP_KEY của bạn phải khớp với bản sao lưu này. Đó là bước kiểm tra ở Bước 1 phía trên.",
@@ -852,7 +852,7 @@ const vi: Partial<Translations> = {
   "settings.dashTileRemoving": "Đang gỡ…",
   "settings.dashTileRemoveOk": "Đã gỡ plugin. Nó không còn xuất hiện trên bảng điều khiển Unraid nữa.",
 
-  // Notifications; Email (SMTP)
+  // Notifications — Email (SMTP)
   "notify.smtp": "Email (SMTP)",
   "notify.smtpHost": "Máy chủ SMTP",
   "notify.smtpPort": "Cổng",
@@ -1131,7 +1131,7 @@ const vi: Partial<Translations> = {
   "drill.manualOnly": "DR ngoài site: chỉ thủ công",
   "drill.manualOnlyTitle": "Diễn tập DR ngoài site theo lịch đang tắt. Chạy kiểm tra ngoài site thủ công bằng nút bấm.",
 
-  // Settings; section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "Chung",
   "settings.tab.storage": "Đường dẫn và lưu trữ",
   "settings.tab.schedules": "Lịch trình",
@@ -1230,7 +1230,7 @@ const vi: Partial<Translations> = {
   "dashboard.domainFiles": "Thư mục",
   "recovery.filesFound": "Tìm thấy {f} bộ thư mục.",
   "recovery.filesRestoreHint": "Các bộ thư mục được phát hiện lại không biết thư mục gốc của chúng. Mỗi bộ được khôi phục vào thư mục bạn chọn.",
-  // Restore from another BombVault repo; Recovery page
+  // Restore from another BombVault repo — Recovery page (#61 task 11)
   "recovery.foreignTitle": "Khôi phục từ một kho BombVault khác",
   "recovery.foreignIntro": "Lấy từng container, máy ảo hoặc bộ thư mục từ bản sao lưu của một phiên bản BombVault KHÁC: kết nối chỉ đọc, duyệt nội dung và khôi phục những gì bạn chọn. Kho bên kia chỉ được đọc, không có gì thay đổi ở đó, và cài đặt sao lưu của riêng bạn vẫn nguyên vẹn.",
   "recovery.foreignStepConnect": "Kết nối với kho bên kia",
@@ -1268,7 +1268,7 @@ const vi: Partial<Translations> = {
   "recovery.foreignExpired": "Phiên đã hết hạn (mỗi phiên kéo dài 30 phút). Hãy kết nối lại để tiếp tục duyệt.",
   "recovery.foreignReconnect": "Kết nối lại",
 
-  // Dashboard activity log
+  // Dashboard activity log (Task 4)
   "activityLog.title": "Nhật ký hoạt động",
   "activityLog.filterPlaceholder": "Lọc… (vd. plex, thất bại, ngoài site)",
   "activityLog.filterAllDomains": "Tất cả các miền",
@@ -1325,7 +1325,7 @@ const vi: Partial<Translations> = {
   "activityLog.dayFilterChip": "Đang hiển thị {date}",
   "activityLog.clearDayFilter": "Xóa bộ lọc ngày",
 
-  // i18n wave; Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "Đã bắt đầu sao chép - chạy trong nền; chỉ báo đang chạy hiển thị tiến trình.",
   "whatsnew.retry": "Thử lại",

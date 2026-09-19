@@ -908,7 +908,7 @@ const lt: Partial<Translations> = {
   "auth.invalidPassword": "Neteisingas slaptažodis",
   "auth.loginError": "Prisijungti nepavyko",
 
-  // Settings; Security card
+  // Settings — Security card
   "auth.security": "Slaptažodis",
   "auth.authOff": "Autentifikavimas išjungtas. Visi vietinio tinklo naudotojai turi visą prieigą.",
   "auth.authOn": "Autentifikavimas įjungtas.",
@@ -1334,7 +1334,7 @@ const lt: Partial<Translations> = {
   "recovery.freshNudge": "Atkuriate iš ankstesnio serverio arba po pakartotinio kūrimo? Atkurkite savo esamas atsargines kopijas.",
   "recovery.freshNudgeCta": "Eiti į Atkūrimą",
 
-  // Settings; section tabs
+  // Settings — section tabs
   "settings.tab.general": "Bendra",
   "settings.tab.storage": "Keliai ir saugykla",
   "settings.tab.schedules": "Tvarkaraščiai",
@@ -1360,7 +1360,7 @@ const lt: Partial<Translations> = {
   // Filter drawer trigger
   "filter.button": "Filtrai",
 
-  // Settings; weekly digest, backup-engine cache, revoke-all sessions
+  // Settings — weekly digest, backup-engine cache, revoke-all sessions
   "settings.digestTitle": "Savaitinė suvestinė",
   "settings.digestHint": "Viena suvestinė žinutė per savaitę: vykdymų skaičius, nauji atsarginio kopijavimo duomenys, nuotolinis aktualumas ir pagrindinės nesėkmės, siunčiama aukščiau esančiais pranešimų kanalais.",
   "settings.digestToggle": "Savaitinė suvestinė",

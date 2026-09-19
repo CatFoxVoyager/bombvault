@@ -357,7 +357,7 @@ const el: Partial<Translations> = {
   "auth.invalidPassword": "Μη έγκυρος κωδικός",
   "auth.loginError": "Αποτυχία σύνδεσης",
 
-  // Settings; Security card
+  // Settings — Security card
   "auth.security": "Συνθηματικό",
   "auth.authOff": "Η αυθεντικοποίηση είναι ανενεργή. Όλοι οι χρήστες LAN έχουν πλήρη πρόσβαση.",
   "auth.authOn": "Η αυθεντικοποίηση είναι ενεργή.",
@@ -447,7 +447,7 @@ const el: Partial<Translations> = {
   "state.pmsuspended":  "Σε αναστολή",
   "state.notInstalled": "Μη εγκατεστημένο",
 
-  // Backups; files
+  // Backups — files
   "snapshots.files": "Αρχεία",
   "snapshots.delete": "Διαγραφή",
   "snapshots.deleteConfirm": "Διαγραφή αυτού του αντιγράφου; Το στιγμιότυπο αφαιρείται από το αποθετήριο (εκτελέστε Εκκαθάριση στις Ρυθμίσεις για ανάκτηση χώρου). Μη αναστρέψιμο.",
@@ -695,7 +695,7 @@ const el: Partial<Translations> = {
   "export.exportedTo": "Εξήχθη σε:",
   "backup.configOnly": "Μόνο ρυθμίσεις: χωρίς φακέλους δεδομένων (ο ορισμός αποθηκεύτηκε για επαναδημιουργία)",
 
-  // Backups; delete all
+  // Backups — delete all
   "snapshots.deleteAll": "Διαγραφή όλων των αντιγράφων",
   "snapshots.deleteAllConfirm": "Διαγραφή ΟΛΩΝ των αντιγράφων αυτού του VM από την επιλεγμένη πηγή (τοπική ή εκτός τόπου); Τα στιγμιότυπα αφαιρούνται μόνιμα και το αποθετήριο κλαδεύεται. Μη αναστρέψιμο.",
   "snapshots.deletingAll": "Διαγραφή…",
@@ -791,7 +791,7 @@ const el: Partial<Translations> = {
   "config.snapshotsHint": "Για να επαναφέρετε αυτές τις ρυθμίσεις σε έναν ανακατασκευασμένο διακομιστή, χρησιμοποιήστε την καρτέλα Ανάκτηση. Η επαναφορά των ρυθμίσεων επανεκκινεί το BombVault για να τις εφαρμόσει, γι' αυτό βρίσκεται εκεί μαζί με την υπόλοιπη ροή ανάκτησης από καταστροφή.",
   "config.none": "Δεν υπάρχουν ακόμα αντίγραφα ρυθμίσεων. Εκτελέστε ένα αντίγραφο παραπάνω.",
 
-  // Recovery; restore BombVault's own settings step
+  // Recovery — restore BombVault's own settings step
   "recovery.stepConfig": "Επαναφορά των ρυθμίσεων του ίδιου του BombVault",
   "recovery.configHint": "Σε έναν ανακατασκευασμένο διακομιστή, επαναφέρετε πρώτα τις ρυθμίσεις του ίδιου του BombVault (τις διαδρομές αντιγράφων, τους στόχους εκτός τόπου και τα διαπιστευτήρια), ώστε τα παρακάτω βήματα να είναι προσυμπληρωμένα. Κατευθύνετέ το στο αντίγραφο ρυθμίσεων που ρυθμίσατε νωρίτερα. Δεν έχετε αντίγραφο ρυθμίσεων; Παραλείψτε το και επισυνάψτε τα αντίγραφά σας χειροκίνητα παρακάτω.",
   "recovery.configAppKeyReminder": "Το APP_KEY σας πρέπει να ταιριάζει με αυτό το αντίγραφο. Αυτός είναι ο έλεγχος στο Βήμα 1 παραπάνω.",
@@ -860,7 +860,7 @@ const el: Partial<Translations> = {
   "settings.dashTileRemoving": "Αφαίρεση…",
   "settings.dashTileRemoveOk": "Το πρόσθετο αφαιρέθηκε. Δεν εμφανίζεται πλέον στον πίνακα ελέγχου του Unraid.",
 
-  // Notifications; SMTP
+  // Notifications — SMTP
   "notify.smtp": "Email (SMTP)",
   "notify.smtpHost": "Host SMTP",
   "notify.smtpPort": "Θύρα",
@@ -1139,7 +1139,7 @@ const el: Partial<Translations> = {
   "drill.manualOnly": "DR εκτός τόπου: μόνο χειροκίνητα",
   "drill.manualOnlyTitle": "Η προγραμματισμένη δοκιμή DR εκτός τόπου είναι απενεργοποιημένη. Εκτελέστε τον έλεγχο εκτός τόπου χειροκίνητα με το κουμπί.",
 
-  // Settings; section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "Γενικά",
   "settings.tab.storage": "Διαδρομές και αποθήκευση",
   "settings.tab.schedules": "Προγραμματισμοί",
@@ -1238,7 +1238,7 @@ const el: Partial<Translations> = {
   "dashboard.domainFiles": "Φάκελοι",
   "recovery.filesFound": "Βρέθηκαν {f} σύνολα φακέλων.",
   "recovery.filesRestoreHint": "Τα σύνολα φακέλων που επανεντοπίστηκαν δεν γνωρίζουν τον αρχικό τους φάκελο. Καθένα επαναφέρεται σε φάκελο της επιλογής σας.",
-  // Restore from another BombVault repo; Recovery page
+  // Restore from another BombVault repo — Recovery page (#61 task 11)
   "recovery.foreignTitle": "Επαναφορά από άλλο αποθετήριο BombVault",
   "recovery.foreignIntro": "Ανακτήστε μεμονωμένα containers, VMs ή σύνολα φακέλων από τα αντίγραφα ΜΙΑΣ ΑΛΛΗΣ εγκατάστασης BombVault: συνδεθείτε μόνο για ανάγνωση, περιηγηθείτε στο περιεχόμενο και επαναφέρετε ό,τι επιλέξετε. Το άλλο αποθετήριο μόνο διαβάζεται, τίποτα δεν αλλάζει εκεί, και οι δικές σας ρυθμίσεις αντιγράφων παραμένουν ανέγγιχτες.",
   "recovery.foreignStepConnect": "Σύνδεση με το άλλο αποθετήριο",
@@ -1276,7 +1276,7 @@ const el: Partial<Translations> = {
   "recovery.foreignExpired": "Η συνεδρία έληξε (οι συνεδρίες διαρκούν 30 λεπτά). Συνδεθείτε ξανά για να συνεχίσετε την περιήγηση.",
   "recovery.foreignReconnect": "Επανασύνδεση",
 
-  // Dashboard activity log
+  // Dashboard activity log (Task 4)
   "activityLog.title": "Αρχείο καταγραφής δραστηριότητας",
   "activityLog.filterPlaceholder": "Φιλτράρισμα… (π.χ. plex, απέτυχε, εκτός τόπου)",
   "activityLog.filterAllDomains": "Όλοι οι τομείς",
@@ -1333,7 +1333,7 @@ const el: Partial<Translations> = {
   "activityLog.dayFilterChip": "Εμφάνιση: {date}",
   "activityLog.clearDayFilter": "Καθαρισμός φίλτρου ημέρας",
 
-  // i18n wave; Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "Η αναπαραγωγή ξεκίνησε - εκτελείται στο παρασκήνιο· η ένδειξη εκτέλεσης δείχνει την πρόοδο.",
   "whatsnew.retry": "Δοκιμάστε ξανά",

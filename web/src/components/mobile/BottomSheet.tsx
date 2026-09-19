@@ -23,7 +23,8 @@ import { useT } from "../../lib/i18n";
 // React 19's boolean `inert` on the scrim was probed and rejected: inert
 // elements are skipped in hit-testing, so a scrim click lands behind the
 // sheet. The scrim is `aria-hidden` instead, and panel and scrim are
-// siblings (a DOM child of an aria-hidden element is hidden from at).
+// siblings (a DOM child of an aria-hidden element is hidden from
+// assistive technology).
 // ---------------------------------------------------------------------------
 
 export interface BottomSheetProps {
@@ -156,12 +157,12 @@ export function BottomSheet({ open, onClose, title, children, fullHeight, footer
   if (!open) return null;
   return createPortal(
     <>
-      {/* The scrim: decoration, hidden from at; .glim-modal-backdrop paints
-          var(--glim-scrim) (index.css), the one token every modal shares; an
-          inline bg-black/60 beside it duplicates the value and the
-          modalBackdrop guard rejects it. The click closes only on the scrim
-          itself (target === currentTarget; ConfirmDialog's guard). Not
-          `inert`: see the header note. */}
+      {/* The scrim: decoration, hidden from assistive technology;
+          .glim-modal-backdrop paints var(--glim-scrim) (index.css), the one
+          token every modal shares; an inline bg-black/60 beside it duplicates
+          the value and the modalBackdrop guard rejects it. The click closes
+          only on the scrim itself (target === currentTarget; ConfirmDialog's
+          guard). Not `inert`: see the header note. */}
       <div
         aria-hidden="true"
         className="glim-modal-backdrop fixed inset-0 z-50"
@@ -169,7 +170,9 @@ export function BottomSheet({ open, onClose, title, children, fullHeight, footer
           if (e.target === e.currentTarget) onClose();
         }}
       />
-      {/* Bottom-anchored panel; a scrim sibling, not its DOM child (an aria-hidden element's child is hidden from at too). */}
+      {/* Bottom-anchored panel; a scrim sibling, not its DOM child (an
+          aria-hidden element's child is hidden from assistive technology
+          too). */}
       <div
         ref={panelRef}
         role="dialog"
