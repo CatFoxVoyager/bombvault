@@ -14,8 +14,9 @@
 //
 // Why the wipe at all: .playwright-data/ is gitignored and otherwise never
 // cleaned, so the harness DB persisted across runs and the specs' fresh-DB
-// assumptions (auth disabled, every domain gate off, bar = 4 slots, sheet =
-// Recovery-only) silently degraded into "fresh only after a manual delete" —
+// assumptions (auth disabled, every domain gate off, bar = Dashboard,
+// Recovery, Containers + More, sheet = Settings + the view toggle) silently
+// degraded into "fresh only after a manual delete" —
 // the narrow-viewport backstop observed a de/fr bv-lang display pref
 // surviving on it into later runs.
 //

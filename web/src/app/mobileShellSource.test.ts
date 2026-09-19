@@ -433,13 +433,22 @@ describe("FILLED-TAB — the active bottom-bar slot is a filled accent surface, 
 
   it("fills the WHOLE active slot with the accent and pairs every mark on it with the contrast ink", () => {
     expect(
-      bottomNav.includes('isActive ? "bg-accent text-accentContrast" : "text-carbon-textMuted"'),
+      bottomNav.includes('isActive ? "bg-accent text-accentContrast glim-active" : "text-carbon-textMuted"'),
       "BottomNav.tsx's active branch no longer fills the slot. The active tab " +
         "must read as FILLED: bg-accent over the entire NavLink — glyph and " +
         "caption sit on the fill together — with the ink paired to that fill " +
         "(text-accentContrast; glyphs inherit it because every navGlyph draws " +
         'fill="currentColor"). Accent-coloured text on the bar ground is the ' +
         "link idiom, not the selected idiom (user design note, 2026-09-15)."
+    ).toBe(true);
+    // The More trigger fills by the same idiom while a More-side route is
+    // current — its own active branch must not drift back to coloured text.
+    expect(
+      bottomNav.includes('moreActive ? "bg-accent text-accentContrast glim-active" : "text-carbon-textMuted"'),
+      "BottomNav.tsx's More trigger no longer fills while its side of the " +
+        "registry is current. The same FILLED contract applies: a filled " +
+        "trigger is how this language says \"you are on one of the More " +
+        "sheet's routes\", coloured text would read as a link."
     ).toBe(true);
   });
 

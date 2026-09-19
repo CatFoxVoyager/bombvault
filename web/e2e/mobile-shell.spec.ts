@@ -64,26 +64,28 @@ test("the bar renders EXACTLY the registry slots: enabled destinations + More, n
   test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "mobile-only: bar exactness is the mobile contract");
   await bootWithoutServerLook(page);
   const bar = page.getByTestId("bottom-nav");
-  // The slot row is the bar's only inline child (the More sheet is a portal
-  // to document.body, never a slot); its direct children ARE the slots.
+  // The slot row is the only child of the bar-card (the More sheet is a portal
+  // to document.body, never a slot); the row's direct children ARE the slots.
   const slots = bar.locator("div.flex.h-14 > *");
   // Fresh-DB gating is the environment under test: every domain gate off —
   // files_enabled defaults false (internal/store/settings_test.go pins it) —
-  // so the registry yields Dashboard, Containers, Settings as bar
-  // destinations, plus the always-contentful More trigger = 4 slots.
-  // ("Exactly 5" holds only once files is enabled; the substance of the
-  // exactness contract is the EXACTNESS — the bar renders the enabled
+  // so the registry yields Dashboard, Recovery and Containers as bar
+  // destinations, plus the always-rendered More trigger = 4 slots. Settings
+  // lives in the More sheet, not the bar ("Recovery is what people open on a
+  // phone when something went wrong", so it rides the bar). The substance of
+  // the exactness contract is the EXACTNESS — the bar renders the enabled
   // destinations + More and never a hand-added or leaked slot, per the ONE
-  // nav registry's gate semantics.)
+  // nav registry's gate semantics.
   await expect(slots).toHaveCount(4);
   await expect(bar.getByRole("link", { name: "Dashboard" })).toHaveCount(1);
+  await expect(bar.getByRole("link", { name: "Recovery" })).toHaveCount(1);
   await expect(bar.getByRole("link", { name: "Containers" })).toHaveCount(1);
-  await expect(bar.getByRole("link", { name: "Settings" })).toHaveCount(1);
   await expect(bar.getByRole("button", { name: "More" })).toHaveCount(1);
   // And nothing else: zero destination links beyond the three named above —
   // no gated destination (files among them) leaks into the bar while its
-  // desktop Sidebar gate is off.
+  // desktop Sidebar gate is off, and Settings is not a bar destination.
   await expect(bar.getByRole("link")).toHaveCount(3);
+  await expect(bar.getByRole("link", { name: "Settings" })).toHaveCount(0);
 });
 
 test("the More sheet opens with the fresh-DB registry and closes via all three paths", async ({ page }, testInfo) => {
@@ -99,13 +101,16 @@ test("the More sheet opens with the fresh-DB registry and closes via all three p
   await moreTrigger.click();
   await expect(sheet).toBeVisible();
 
-  // Fresh-DB rows: every gate off, Recovery always-on, so the sheet holds
-  // EXACTLY one destination link — and none of the bar destinations leak
-  // into it (the duplicate-destination drift the sheet's contract forbids).
-  await expect(sheet.getByRole("link", { name: "Recovery" })).toBeVisible();
+  // Fresh-DB rows: every gate off, so the sheet holds EXACTLY one destination
+  // link — Settings (Recovery rides the bar, the gated tabs are off) — plus
+  // the Simple/Advanced view toggle that gives the sheet permanent content,
+  // and none of the bar destinations leak into it (the duplicate-destination
+  // drift the sheet's contract forbids).
+  await expect(sheet.getByRole("link", { name: "Settings" })).toBeVisible();
   expect(await sheet.getByRole("link").count()).toBe(1);
+  await expect(sheet.getByRole("link", { name: "Recovery" })).toHaveCount(0);
   await expect(sheet.getByRole("link", { name: "Dashboard" })).toHaveCount(0);
-  await expect(sheet.getByRole("link", { name: "Settings" })).toHaveCount(0);
+  await expect(sheet.getByRole("button", { name: /view/i })).toHaveCount(1);
 
   // Close path 1 of 3: Escape (document-level, works wherever focus sits).
   await page.keyboard.press("Escape");

@@ -10,6 +10,15 @@
 // the scroller ends above it by construction, in both orientations and under
 // the Android keyboard's viewport resize.
 //
+// The bar reads as a CARD, in the same language as the desktop rail: the
+// <nav> host is transparent and reserves the full bar height from the screen
+// edge, and the surface itself is a rounded sidebar-token card inset from
+// all four edges — horizontal insets are the fixed gutter widened by the
+// left/right safe areas, and the bottom gutter sits above the bottom safe
+// area. Separation from the page comes from shade alone (the app's ground
+// token shows around the card); no border, ring or hairline anywhere on the
+// bar, because surfaces in this app are separated by tint, never by lines.
+//
 // Slots are NEVER hand-typed: every destination slot is derived from the ONE
 // nav registry (lib/navModel.ts) the desktop Sidebar reads — same order, same
 // settings gates — so bar and Sidebar cannot drift apart about which
@@ -22,7 +31,11 @@
 // Simple/Advanced view toggle (and, with a password set, sign-out) render
 // below the destination rows — so a content-based emptiness rule would only
 // make the trigger flicker in and out across settings flips while the sheet
-// it opens always has something to show.
+// it opens always has something to show. The trigger announces itself to
+// assistive tech (haspopup/expanded, like any disclosure that opens a
+// dialog) and reads as ACTIVE while the current route lives on the More
+// side of the registry — Recovery, the gated tabs and Settings — so a user
+// on one of those routes can still see where they are.
 //
 // Label axis: the bar has its OWN axis in the control label engine
 // ("bottombar", lib/controls.ts) — the same four modes as buttons/sidebar/
@@ -36,14 +49,17 @@
 // never follows the label mode, which is what keeps the shell's chrome
 // geometry stable across the whole settings surface.
 //
-// Active/rest language: the active slot is FILLED — the whole slot carries
-// the accent edge to edge, and every mark on it (caption and glyph alike)
-// takes the ink paired to that fill via ordinary currentColor inheritance;
-// resting slots stay the muted text token with no fill. Accent-coloured text
-// on the bar ground reads as a link, not as a selection, which is why the
-// earlier coloured-label treatment was replaced — filled is how this language
-// says "selected" (anchored on .glim-coin-tile.glim-active in index.css).
-// Status colors never touch controls; tokens only, no hex.
+// Colour engine: every slot carries `glim-hue` + `hueVars(rainbowAt(i))`
+// exactly like a Sidebar row — position i being the slot's own rank among
+// the slots actually rendered, so hiding a gated slot shifts later slots
+// the same way a hidden Sidebar tab does. The active slot adds
+// `glim-active` and FILLS with the accent edge to edge, and every mark on
+// it (caption and glyph alike) takes the ink paired to that fill via
+// ordinary currentColor inheritance; resting slots stay tinted by their own
+// hue. Accent-coloured text on the bar ground reads as a link, not as a
+// selection — filled is how this language says "selected" (anchored on
+// .glim-coin-tile.glim-active in index.css). Status colors never touch
+// controls; tokens only, no hex.
 //
 // Tap-on-active: tapping the ALREADY-active destination scrolls the scroller
 // back to the top instead of navigating — and the navigation is actively
@@ -57,8 +73,9 @@ import { useState, type CSSProperties, type MouseEvent } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import type { Settings } from "../../lib/api";
 import { useT } from "../../lib/i18n";
-import { barDestinations, type NavDestination } from "../../lib/navModel";
+import { barDestinations, moreDestinations, type NavDestination } from "../../lib/navModel";
 import { hidesLabel, labelWidth } from "../../lib/controls";
+import { hueVars, rainbowAt } from "../../lib/appearance";
 import { useLabelMode } from "../../lib/useLabelMode";
 import { IconEllipsis } from "../navGlyphs";
 import { MoreSheet } from "./MoreSheet";
@@ -95,6 +112,12 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
   const labelMode = useLabelMode("bottombar");
   const showLabel = !hidesLabel(labelMode);
   const reactive = labelMode === "reactive";
+  // The More trigger reads as active while the current route lives on the
+  // More side of the registry (the non-bar destinations, Settings included)
+  // — the same "you can see where you are" contract the destination slots
+  // get from NavLink's isActive.
+  const moreActive =
+    location.pathname === "/settings" || moreDestinations(settings).some((d) => d.to === location.pathname);
 
   // NavLink's onClick fires BEFORE react-router's own Link handler, and Link
   // checks event.defaultPrevented before navigating (verified against the
@@ -122,40 +145,63 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
       // app/mobileShellSource.test.ts.
       aria-label={t("nav.mobileNavigation")}
       // Normal flow (see header): shrink-0 keeps the bar at its own height
-      // while `main` flexes; the hairline rides the bar's TOP edge (border
-      // token, never a shadow on an edge that must read as a surface
-      // boundary), and the safe-area padding sits below the content so the
-      // slots themselves stay a full h-14 on notched devices. The surface is
-      // the SAME token the desktop rail reads — one nav-surface token.
-      className="shrink-0 border-t border-carbon-border bg-carbon-sidebar pb-[var(--safe-area-bottom)]"
+      // while `main` flexes. The host paints NOTHING — the app's ground token
+      // (the shell root's bg-carbon-background) is what shows around the
+      // card — and the bottom safe-area padding sits below the card so the
+      // card itself lifts off the screen edge on notched devices while the
+      // slots stay a full h-14.
+      className="shrink-0 bg-transparent pb-[var(--safe-area-bottom)]"
     >
-      {/* h-14 static height: svh semantics by construction — a fixed-height
-          row never resizes when the DYNAMIC viewport does (browser chrome,
-          keyboard), which is the property that keeps the bar visible: static
-          chrome sizes against svh semantics, in every label mode. */}
-      <div className="flex h-14">
-        {slots.map((d) => (
-          <BarSlot key={d.to} destination={d} labelMode={labelMode} onTap={(e) => tapDestination(e, d.to)} />
-        ))}
-        <button
-          type="button"
-          onClick={() => setMoreOpen(true)}
-          title={showLabel ? undefined : t("nav.more")}
-          aria-label={showLabel ? undefined : t("nav.more")}
-          className={`${slotBase} ${reactive && !showLabel ? "glim-reactive" : ""} text-carbon-textMuted`}
-        >
-          {/* The glyph box is the 24px slot-icon box (the 16px generated
-              glyph scales up to it, the same scaling the rail applies). */}
-          <span className="flex h-6 w-6 items-center justify-center rounded-control [&_svg]:h-6 [&_svg]:w-6">
-            <IconEllipsis />
-          </span>
-          <span
-            className={`max-w-full truncate ${showLabel ? "" : reactive ? "glim-label-reactive" : "sr-only"}`}
-            style={reactive && !showLabel ? ({ "--reactive-chars": labelWidth(t("nav.more")) } as CSSProperties) : undefined}
+      {/* The bar-card (see the header): the same surface token and radius the
+          desktop rail reads, inset from all four edges — each side takes the
+          fixed gutter widened by its own safe area, so an edge never slides
+          under a notch in landscape. Separation is shade, not a line: no
+          border or ring on the card. */}
+      <div className="ml-[max(0.5rem,var(--safe-area-left))] mr-[max(0.5rem,var(--safe-area-right))] mb-2 rounded-card bg-carbon-sidebar">
+        {/* h-14 static height: svh semantics by construction — a fixed-height
+            row never resizes when the DYNAMIC viewport does (browser chrome,
+            keyboard), which is the property that keeps the bar visible: static
+            chrome sizes against svh semantics, in every label mode. */}
+        <div className="flex h-14">
+          {slots.map((d, i) => (
+            <BarSlot
+              key={d.to}
+              destination={d}
+              hueIndex={i}
+              labelMode={labelMode}
+              onTap={(e) => tapDestination(e, d.to)}
+            />
+          ))}
+          {/* The More trigger: a disclosure that opens a dialog, so it
+              announces haspopup/expanded; its hue position follows the
+              enabled destination slots, exactly like the rail's own counter. */}
+          <button
+            type="button"
+            onClick={() => setMoreOpen(true)}
+            title={showLabel ? undefined : t("nav.more")}
+            aria-label={showLabel ? undefined : t("nav.more")}
+            aria-haspopup="dialog"
+            aria-expanded={moreOpen}
+            className={`${slotBase} rounded-control ${reactive && !showLabel ? "glim-reactive" : ""} glim-hue glim-hue-icon ${moreActive ? "bg-accent text-accentContrast glim-active" : "text-carbon-textMuted"}`}
+            style={
+              {
+                ...(hueVars(rainbowAt(slots.length)) as CSSProperties),
+                ...(reactive && !showLabel ? { "--reactive-chars": labelWidth(t("nav.more")) } : {}),
+              } as CSSProperties
+            }
           >
-            {t("nav.more")}
-          </span>
-        </button>
+            {/* The glyph box is the 24px slot-icon box (the 16px generated
+                glyph scales up to it, the same scaling the rail applies). */}
+            <span className="flex h-6 w-6 items-center justify-center rounded-control [&_svg]:h-6 [&_svg]:w-6">
+              <IconEllipsis />
+            </span>
+            <span
+              className={`max-w-full truncate ${showLabel ? "" : reactive ? "glim-label-reactive" : "sr-only"}`}
+            >
+              {t("nav.more")}
+            </span>
+          </button>
+        </div>
       </div>
       <MoreSheet
         open={moreOpen}
@@ -171,16 +217,23 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
 // One destination slot. NavLink drives the active language off the route
 // (native aria-current), the same className-by-isActive shape the desktop
 // rail's NavItem uses — no parallel active-state bookkeeping to keep in sync.
-// The label mode comes from the bar's own "bottombar" axis: hiding modes keep
-// the caption in the DOM but out of view (sr-only) — or reveal-on-hover in
-// reactive mode — while aria-label + title carry the slot's name and hover
-// bubble, so a glyph-mode bar never becomes eleven unnamed pictures.
+// `glim-hue`/`glim-hue-icon` ride unconditionally with the slot's own
+// `hueIndex` (the caller's render-order rank, Sidebar's nextHue() semantics),
+// and `glim-active` joins only the filled branch so index.css's
+// `.glim-hue-icon:not(.glim-active)` guard leaves the filled slot's ink to
+// currentColor — the rail's exact convention. The label mode comes from the
+// bar's own "bottombar" axis: hiding modes keep the caption in the DOM but
+// out of view (sr-only) — or reveal-on-hover in reactive mode — while
+// aria-label + title carry the slot's name and hover bubble, so a glyph-mode
+// bar never becomes eleven unnamed pictures.
 function BarSlot({
   destination,
+  hueIndex,
   labelMode,
   onTap,
 }: {
   destination: NavDestination;
+  hueIndex: number;
   labelMode: ReturnType<typeof useLabelMode>;
   onTap: (e: MouseEvent) => void;
 }) {
@@ -196,9 +249,14 @@ function BarSlot({
       title={showLabel ? undefined : label}
       aria-label={showLabel ? undefined : label}
       className={({ isActive }) =>
-        `${slotBase} rounded-control ${reactive && !showLabel ? "glim-reactive" : ""} ${isActive ? "bg-accent text-accentContrast" : "text-carbon-textMuted"}`
+        `${slotBase} rounded-control ${reactive && !showLabel ? "glim-reactive" : ""} glim-hue glim-hue-icon ${isActive ? "bg-accent text-accentContrast glim-active" : "text-carbon-textMuted"}`
       }
-      style={reactive && !showLabel ? ({ "--reactive-chars": labelWidth(label) } as CSSProperties) : undefined}
+      style={
+        {
+          ...(hueVars(rainbowAt(hueIndex)) as CSSProperties),
+          ...(reactive && !showLabel ? { "--reactive-chars": labelWidth(label) } : {}),
+        } as CSSProperties
+      }
     >
       {({ isActive }) => (
         <>
