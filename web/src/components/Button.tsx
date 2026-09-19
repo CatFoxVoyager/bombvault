@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
-import { hueVars, rainbowAt } from "../lib/appearance";
+import { hueVars } from "../lib/appearance";
 import { hidesLabel, labelWidth, widthStage, type WidthStage } from "../lib/controls";
 import { useLabelMode } from "../lib/useLabelMode";
 import { useTipBubble } from "../lib/useTipBubble";
@@ -165,7 +165,7 @@ export function Button({
 
   const hueOn = hueIndex !== undefined;
   const hueStyle = {
-    ...(hueOn ? (hueVars(rainbowAt(hueIndex)) as CSSProperties) : {}),
+    ...(hueOn ? (hueVars(hueIndex) as CSSProperties) : {}),
     // Caps the reveal width; see `.glim-label-reactive` in index.css.
     ...(reactive ? ({ "--reactive-chars": labelWidth(label) } as CSSProperties) : {}),
     // An explicit stage promises that two buttons match, so it sets a real

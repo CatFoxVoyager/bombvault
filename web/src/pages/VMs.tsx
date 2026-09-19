@@ -27,8 +27,7 @@ import { IncludeToggle } from "../components/IncludeToggle";
 import { useProgress, anyActive, busyPhraseKey } from "../lib/progress";
 import { useBackupWatch, fireAndWaitRun } from "../lib/backupWatch";
 import { useConfirm } from "../lib/useConfirm";
-import { hueVars, rainbowAt } from "../lib/appearance";
-import { useRainbow } from "../lib/useRainbow";
+import { hueVars } from "../lib/appearance";
 import { Selector } from "../components/Selector";
 import { useToast } from "../lib/toast";
 import { RepoPicker } from "../components/RepoPicker";
@@ -650,7 +649,7 @@ export function VMRow({
 
   return (
     <div
-      style={{ ...hueVars(rainbowAt(index)), "--row-i": String(index) } as CSSProperties}
+      style={{ ...hueVars(index), "--row-i": String(index) } as CSSProperties}
       // glim-active while this VM's own backup or restore runs, so reactive
       // mode shows the hue without hover, as on ContainerRow.
       className={`relative overflow-hidden bg-carbon-surface rounded-card p-4 flex flex-col gap-3 glim-hue glim-stagger-row ${
@@ -1019,7 +1018,7 @@ function VMBackupOrderPanel({
       className={`relative glim-notch-card bg-carbon-surface rounded-card p-4 flex flex-col gap-3${
         hueIndex !== undefined ? " glim-hue" : ""
       }`}
-      style={hueIndex !== undefined ? (hueVars(rainbowAt(hueIndex)) as CSSProperties) : undefined}
+      style={hueIndex !== undefined ? (hueVars(hueIndex) as CSSProperties) : undefined}
     >
       {/* The Badge is the h2's only child: size="heading" positions it
           absolutely, so a sibling would land in its vacated slot. The count
@@ -1142,8 +1141,6 @@ function VMBackupOrderPanel({
 
 export function VMs() {
   const { t } = useT();
-  // One subscription for the whole list rather than one per row.
-  useRainbow();
   // Read directly rather than relying on <Advanced>: the order panel's
   // hueIndex={nextHue()} is evaluated when the element is built, even if
   // <Advanced> then renders nothing, so nextHue() may only run when the panel

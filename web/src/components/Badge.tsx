@@ -25,7 +25,7 @@
 // StepCard.tsx).
 
 import type { CSSProperties, ReactNode } from "react";
-import { hueVars, rainbowAt } from "../lib/appearance";
+import { hueVars } from "../lib/appearance";
 import { IconTipButton } from "./IconTipButton";
 
 export type BadgeTone = "ok" | "fail" | "warn" | "active" | "neutral" | "heading" | "muted";
@@ -223,17 +223,15 @@ export function Badge({
   insetStart,
   inFlow,
 }: BadgeProps) {
-  // Badge stays hookless, so no useRainbow() here: Badge.test.ts calls it as a
-  // plain function, where a hook has no dispatcher. hueVars() and rainbowAt()
-  // read module state, and Settings re-renders the page when the rainbow mode
-  // changes.
+  // Badge stays hookless: Badge.test.ts calls it as a plain function, where a
+  // hook has no dispatcher.
   const hueOn = hueIndex !== undefined && (tone === "heading" || tone === "active");
   // index.css's card-wide reactive hover keys off `.glim-notch-hue`, so only
   // a notch may carry it.
   const isNotchHue = hueOn && size === "heading";
   const shared = badgeClassName({ tone, size, shape, wrap, className, iconOnly: tip !== undefined, inFlow, insetStart });
   const merged = hueOn ? `glim-hue ${isNotchHue ? "glim-notch-hue " : ""}${shared}` : shared;
-  const hueStyle = hueOn ? (hueVars(rainbowAt(hueIndex)) as CSSProperties) : undefined;
+  const hueStyle = hueOn ? (hueVars(hueIndex) as CSSProperties) : undefined;
 
   if (as === "button") {
     const buttonClassName = `appearance-none transition-opacity hover:opacity-80 disabled:opacity-50 disabled:hover:opacity-50 ${merged}`;

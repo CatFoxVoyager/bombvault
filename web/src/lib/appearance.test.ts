@@ -2,7 +2,6 @@
 // math, hueVars and isValidPalette. The DOM half is in appearance.dom.test.tsx.
 import { describe, expect, it } from "vitest";
 import { RAINBOW, hueVars, isValidPalette, rainbowColorAt } from "./appearance";
-import { contrastOn } from "./accent";
 
 describe("RAINBOW", () => {
   it("is a fixed set of eight valid hex colours", () => {
@@ -67,32 +66,29 @@ describe("rainbowColorAt", () => {
 });
 
 describe("hueVars", () => {
-  it("returns the full custom-property set for a valid hex", () => {
-    const vars = hueVars("#1D99F3");
-    expect(vars["--item-hue"]).toBe("#1D99F3");
-    expect(vars["--item-hue-ink"]).toBe(contrastOn("#1D99F3"));
-    expect(vars["--item-hue-soft"]).toBe("rgba(29, 153, 243, 0.14)");
-    expect(vars["--item-hue-wash"]).toBe("rgba(29, 153, 243, 0.07)");
-    expect(vars["--item-hue-ring"]).toBe("rgba(29, 153, 243, 0.55)");
+  // No colour is baked into the element: a palette or rotation change, and
+  // disco's glide, reach it only through the root.
+  it("points every property at the root's palette position", () => {
+    const vars = hueVars(5);
+    expect(vars["--item-hue"]).toBe("var(--rb-5)");
+    expect(vars["--item-hue-ink"]).toBe("var(--rb-ink-5)");
+    expect(vars["--item-hue-soft"]).toBe("color-mix(in srgb, var(--rb-5) 14%, transparent)");
+    expect(vars["--item-hue-wash"]).toBe("color-mix(in srgb, var(--rb-5) 7%, transparent)");
+    expect(vars["--item-hue-ring"]).toBe("color-mix(in srgb, var(--rb-5) 55%, transparent)");
+  });
+
+  it("wraps a position past either end of the palette, as rainbowColorAt does", () => {
+    expect(hueVars(RAINBOW.length + 2)).toEqual(hueVars(2));
+    expect(hueVars(-1)).toEqual(hueVars(RAINBOW.length - 1));
   });
 
   // Nothing shades a hued fill away from its own ink. Code that starts to would
   // need contrast work an inverse-ink token skips, and failing here is cheaper
   // than finding that on screen.
   it("hands out no inverse-ink token", () => {
-    for (const hex of RAINBOW) {
-      expect(hueVars(hex)).not.toHaveProperty("--item-hue-ink-inv");
+    for (let i = 0; i < RAINBOW.length; i++) {
+      expect(hueVars(i)).not.toHaveProperty("--item-hue-ink-inv");
     }
-    expect(hueVars("#0F1B33")).not.toHaveProperty("--item-hue-ink-inv");
-  });
-
-  it("returns an empty object for an invalid hex, not a partial set", () => {
-    expect(hueVars("not-a-color")).toEqual({});
-    expect(hueVars("#12345")).toEqual({});
-  });
-
-  it("returns an empty object for undefined (no position owned)", () => {
-    expect(hueVars(undefined)).toEqual({});
   });
 });
 

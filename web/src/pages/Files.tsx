@@ -47,9 +47,8 @@ import { useProgress, anyActive, busyPhraseKey } from "../lib/progress";
 import { useBackupWatch } from "../lib/backupWatch";
 import { loadErrorMessage } from "../lib/errors";
 import { useConfirm } from "../lib/useConfirm";
-import { hueVars, rainbowAt } from "../lib/appearance";
+import { hueVars } from "../lib/appearance";
 import { Selector, type SelectorItem } from "../components/Selector";
-import { useRainbow } from "../lib/useRainbow";
 import { Badge } from "../components/Badge";
 import { Button } from "../components/Button";
 import { InfoBubble } from "../components/InfoBubble";
@@ -1187,7 +1186,7 @@ export function FileSetRow({
 
   return (
     <div
-      style={{ ...hueVars(rainbowAt(index)), "--row-i": String(index) } as CSSProperties}
+      style={{ ...hueVars(index), "--row-i": String(index) } as CSSProperties}
       // glim-active while this set's own backup or restore runs, as in
       // ContainerRow and VMRow.
       className={`relative overflow-hidden bg-carbon-surface rounded-card p-4 flex flex-col gap-3 glim-hue glim-stagger-row ${
@@ -1324,8 +1323,6 @@ export function FileSetRow({
 export function Files() {
   const { t } = useT();
   const { push } = useToast();
-  // One rainbow subscription for the whole list rather than one per row.
-  useRainbow();
   // Any backup, restore or replication in flight disables the bulk buttons.
   const running = anyActive(useProgress());
   const [sets, setSets] = useState<FileSetView[]>([]);
@@ -1507,7 +1504,7 @@ export function Files() {
       {showEmptyState && (
         <div
           className="relative glim-notch-card glim-hue bg-carbon-surface rounded-card p-6 text-center flex flex-col items-center gap-3"
-          style={hueVars(rainbowAt(0)) as CSSProperties}
+          style={hueVars(0) as CSSProperties}
         >
           <h2 className="flex items-center">
             <Badge tone="heading" size="heading" wrap hueIndex={0} insetStart={6}>

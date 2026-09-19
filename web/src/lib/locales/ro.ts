@@ -251,7 +251,7 @@ const ro: Partial<Translations> = {
   "settings.rainbow": "Mod curcubeu",
   "settings.rainbowHint": "Fiecare rând dintr-o listă primește propria culoare dintr-un set de opt, în loc ca totul să împartă o singură culoare de accent. Face listele lungi mai ușor de distins dintr-o privire.",
   "settings.disco": "Mod disco",
-  "settings.discoHint": "Fiecare rând și element colorat trece la următoarea culoare din paletă o dată pe secundă, cât timp modul curcubeu este activ.",
+  "settings.discoHint": "Fiecare rând și element colorat alunecă lin spre următoarea culoare din paletă, câte una la fiecare trei secunde, cât timp modul curcubeu este activ.",
   "settings.rainbowReactive": "Mod reactiv",
   "settings.rainbowReactiveHint": "Când e activat, un rând sau element își arată culoarea doar la trecerea cu mouse-ul, sau cât timp rulează sau e selectat, altfel rămâne neutru. Când e dezactivat, fiecare rând și element colorat își arată culoarea tot timpul.",
   "settings.rainbowRotate": "Rotația culorilor",

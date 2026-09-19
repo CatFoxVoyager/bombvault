@@ -12,15 +12,8 @@ import Recovery from "../pages/Recovery";
 import { GlyphSheet } from "../pages/Glyphs";
 import { I18nProvider } from "../lib/i18n";
 import { ToastProvider } from "../lib/toast";
-import { useRainbow } from "../lib/useRainbow";
 
 export function AppRouter() {
-  // Hues are inline styles computed during render, so an element only changes
-  // colour when its component renders again, and many hue consumers do not
-  // subscribe themselves. Subscribing here repaints the whole tree whenever the
-  // palette changes, which disco does every second. See
-  // app/rootRepaintsOnHue.test.ts.
-  useRainbow();
   return (
     <I18nProvider>
       {/* Inside I18nProvider: the dismiss button's aria-label is translated. */}

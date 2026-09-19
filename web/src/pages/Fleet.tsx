@@ -39,8 +39,7 @@ import { RevealInput } from "../components/RevealInput";
 import { useReveal } from "../lib/useReveal";
 import { copyText } from "../lib/clipboard";
 import { useToast } from "../lib/toast";
-import { hueVars, rainbowAt } from "../lib/appearance";
-import { useRainbow } from "../lib/useRainbow";
+import { hueVars } from "../lib/appearance";
 import { Button } from "../components/Button";
 
 import { ToggleRow } from "./settings/shared";
@@ -491,7 +490,7 @@ function FleetPeerCard({
 
   return (
     <div
-      style={{ ...hueVars(rainbowAt(index)), "--row-i": String(index) } as CSSProperties}
+      style={{ ...hueVars(index), "--row-i": String(index) } as CSSProperties}
       // The same hued shell as ContainerRow, without glim-active: polling and
       // proposing are quick requests, not a tracked job.
       className="relative overflow-hidden bg-carbon-surface rounded-card p-4 flex flex-col gap-3 glim-hue glim-stagger-row"
@@ -753,9 +752,6 @@ function FleetDialog({
  *  the heading; the subtitle stays. */
 export function Fleet({ embedded = false }: { embedded?: boolean } = {}) {
   const { t } = useT();
-  // The peer cards read rainbowAt() during render, so any rainbow change has
-  // to re-render the page.
-  useRainbow();
   const [peers, setPeers] = useState<FleetPeer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -849,7 +845,7 @@ export function Fleet({ embedded = false }: { embedded?: boolean } = {}) {
         return (
           <div
             className="relative glim-notch-card glim-hue bg-carbon-surface rounded-card p-6 text-center flex flex-col items-center gap-3"
-            style={hueVars(rainbowAt(emptyHue)) as CSSProperties}
+            style={hueVars(emptyHue) as CSSProperties}
           >
             <h2 className="flex items-center">
               <Badge tone="heading" size="heading" wrap hueIndex={emptyHue} insetStart={6}>

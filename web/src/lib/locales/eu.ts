@@ -707,7 +707,7 @@ const eu: Partial<Translations> = {
   "settings.rainbow": "Ostadar modua",
   "settings.rainbowHint": "Zerrenda bateko errenkada bakoitzak zortzikako multzo bateko bere kolorea jasotzen du, guztiek azentu-kolore bakarra partekatu ordez. Horrek zerrenda luzeak begirada batean errazago bereizten laguntzen du.",
   "settings.disco": "Disko modua",
-  "settings.discoHint": "Koloreztatutako lerro eta elementu bakoitzak paletaren hurrengo kolorera egiten du jauzi segundoko behin, ostadar modua aktibatuta dagoen bitartean.",
+  "settings.discoHint": "Koloreztatutako lerro eta elementu bakoitza poliki igarotzen da paletaren hurrengo kolorera, bat hiru segundoro, ostadar modua aktibatuta dagoen bitartean.",
   "settings.rainbowReactive": "Modu erreaktiboa",
   "settings.rainbowReactiveHint": "Piztuta dagoenean, errenkada edo elementu baten kolorea kurtsorearekin gainean zauden bitartean bakarrik agertzen da, edo exekutatzen edo hautatuta dagoen bitartean. Bestela neutro geratzen da. Itzalita dagoenean, kolorezko errenkada eta elementu guztiek beren kolorea beti erakusten dute.",
   "settings.rainbowRotate": "Kolore-biraketa",

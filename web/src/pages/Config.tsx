@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { hueVars, rainbowAt } from "../lib/appearance";
+import { hueVars } from "../lib/appearance";
 import {
   backupConfigNow,
   listConfigSnapshots,
@@ -151,7 +151,7 @@ function ConfigSettingsCard({
       className={`relative glim-notch-card bg-carbon-surface rounded-card p-5 flex flex-col gap-4${
         hueIndex !== undefined ? " glim-hue" : ""
       }`}
-      style={hueIndex !== undefined ? (hueVars(rainbowAt(hueIndex)) as CSSProperties) : undefined}
+      style={hueIndex !== undefined ? (hueVars(hueIndex) as CSSProperties) : undefined}
     >
       <h2 className="flex items-center">
         <Badge tone="heading" size="heading" wrap hueIndex={hueIndex}>
@@ -311,7 +311,7 @@ export function Config() {
       {/* The heading badge pokes out above the card, so it lives on this outer
           div rather than inside the overflow-hidden box that ProgressBar clips
           to. insetStart={5} lines it up with that box's padding. */}
-      <div className="relative glim-notch-card glim-hue" style={hueVars(rainbowAt(1)) as CSSProperties}>
+      <div className="relative glim-notch-card glim-hue" style={hueVars(1) as CSSProperties}>
         <h2 className="flex items-center">
           <Badge tone="heading" size="heading" wrap hueIndex={1} insetStart={5}>
             {t("config.backupTitle")}
@@ -343,7 +343,7 @@ export function Config() {
 
       <div
         className="relative glim-notch-card glim-hue bg-carbon-surface rounded-card p-5 flex flex-col gap-4"
-        style={hueVars(rainbowAt(2)) as CSSProperties}
+        style={hueVars(2) as CSSProperties}
       >
         <h2 className="flex items-center">
           <Badge tone="heading" size="heading" wrap hueIndex={2}>

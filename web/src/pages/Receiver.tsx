@@ -30,8 +30,7 @@ import { InfoBubble } from "../components/InfoBubble";
 import { RevealInput } from "../components/RevealInput";
 import { useReveal } from "../lib/useReveal";
 import { useToast } from "../lib/toast";
-import { hueVars, rainbowAt } from "../lib/appearance";
-import { useRainbow } from "../lib/useRainbow";
+import { hueVars } from "../lib/appearance";
 import { Button } from "../components/Button";
 import { Toggle } from "../components/Toggle";
 import { ToggleRow } from "./settings/shared";
@@ -204,7 +203,7 @@ function ReceivedRepoCard({
 
   return (
     <div
-      style={{ ...hueVars(rainbowAt(index)), "--row-i": String(index) } as CSSProperties}
+      style={{ ...hueVars(index), "--row-i": String(index) } as CSSProperties}
       // Unlike ContainerRow, no glim-active: a check is a quick request, not a
       // tracked backup or restore job.
       className="relative overflow-hidden bg-carbon-surface rounded-card p-4 flex flex-col gap-3 glim-hue glim-stagger-row"
@@ -537,8 +536,6 @@ function ReceiverDialog({
  *  shell and the heading, so the tab does not repeat the strip's label. */
 export function Receiver({ embedded = false }: { embedded?: boolean } = {}) {
   const { t } = useT();
-  // Re-renders on rainbow changes; the cards read rainbowAt() during render.
-  useRainbow();
   const [repos, setRepos] = useState<ReceivedRepoStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -594,7 +591,7 @@ export function Receiver({ embedded = false }: { embedded?: boolean } = {}) {
       {showEmptyState && (
         <div
           className="relative glim-notch-card glim-hue bg-carbon-surface rounded-card p-6 text-center flex flex-col items-center gap-3"
-          style={hueVars(rainbowAt(0)) as CSSProperties}
+          style={hueVars(0) as CSSProperties}
         >
           <h2 className="flex items-center">
             <Badge tone="heading" size="heading" wrap hueIndex={0} insetStart={6}>

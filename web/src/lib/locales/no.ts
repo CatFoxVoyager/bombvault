@@ -251,7 +251,7 @@ const no: Partial<Translations> = {
   "settings.rainbow": "Regnbuemodus",
   "settings.rainbowHint": "Hver rad i en liste får sin egen farge fra et sett med åtte, i stedet for at alt deler én aksentfarge. Gjør lange lister lettere å skille fra hverandre på et blikk.",
   "settings.disco": "Diskomodus",
-  "settings.discoHint": "Hver farget rad og hvert farget element går til neste farge i paletten én gang i sekundet, så lenge regnbuemodus er slått på.",
+  "settings.discoHint": "Hver farget rad og hvert farget element glir sakte over i neste farge i paletten, én hvert tredje sekund, så lenge regnbuemodus er slått på.",
   "settings.rainbowReactive": "Reaktiv modus",
   "settings.rainbowReactiveHint": "Når på viser en rad eller et element kun fargen sin ved hover, eller mens den kjører eller er valgt, ellers forblir den nøytral. Når av viser hver fargede rad og element fargen sin hele tiden.",
   "settings.rainbowRotate": "Fargerotasjon",

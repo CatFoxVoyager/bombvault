@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Badge } from "../Badge";
 import { InfoBubble } from "../InfoBubble";
-import { hueVars, rainbowAt } from "../../lib/appearance";
+import { hueVars } from "../../lib/appearance";
 
 export type StepState = "idle" | "ok" | "warn" | "bad";
 
@@ -31,7 +31,7 @@ export function StepCard({
   // glim-notch-card lets the reactive rainbow mode reveal the hue on hover
   // anywhere in the card.
   const hueOn = hueIndex !== undefined;
-  const hueStyle = hueOn ? (hueVars(rainbowAt(hueIndex)) as CSSProperties) : undefined;
+  const hueStyle = hueOn ? (hueVars(hueIndex) as CSSProperties) : undefined;
   return (
     <div
       className={`relative glim-notch-card rounded-card bg-carbon-surface p-4${hueOn ? " glim-hue" : ""}`}

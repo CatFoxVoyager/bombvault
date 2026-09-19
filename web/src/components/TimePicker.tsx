@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import { computeBubblePosition } from "../lib/bubblePosition";
-import { hueVars, rainbowAt } from "../lib/appearance";
-import { useRainbow } from "../lib/useRainbow";
+import { hueVars } from "../lib/appearance";
 import { useT } from "../lib/i18n";
 
 const HOURS: number[] = Array.from({ length: 24 }, (_, i) => i);
@@ -88,8 +87,6 @@ export function TimePicker({
   className?: string;
 }) {
   const { t } = useT();
-  // Subscribes so the hue repaints when the rainbow settings change.
-  useRainbow();
 
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
@@ -249,7 +246,7 @@ export function TimePicker({
 
   const hue = hueIndex !== undefined;
   // Compared again here because `hue` does not narrow `hueIndex`.
-  const hueStyle = hueIndex !== undefined ? (hueVars(rainbowAt(hueIndex)) as CSSProperties) : undefined;
+  const hueStyle = hueIndex !== undefined ? (hueVars(hueIndex) as CSSProperties) : undefined;
   const optionCls = `glim-time-option${hue ? " glim-hue" : ""}`;
 
   const triggerCls =

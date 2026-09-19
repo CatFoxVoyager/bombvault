@@ -254,7 +254,7 @@ const fi: Partial<Translations> = {
   "settings.rainbow": "Sateenkaaritila",
   "settings.rainbowHint": "Jokainen listan rivi saa oman värinsä kahdeksan värin joukosta sen sijaan, että kaikki jakaisivat saman korostusvärin. Pitkät listat erottuvat näin yhdellä silmäyksellä.",
   "settings.disco": "Disko-tila",
-  "settings.discoHint": "Jokainen värillinen rivi ja elementti siirtyy palettin seuraavaan väriin kerran sekunnissa niin kauan kuin sateenkaaritila on käytössä.",
+  "settings.discoHint": "Jokainen värillinen rivi ja elementti liukuu hitaasti paletin seuraavaan väriin, yksi väri kolmen sekunnin välein, niin kauan kuin sateenkaaritila on käytössä.",
   "settings.rainbowReactive": "Reaktiivinen tila",
   "settings.rainbowReactiveHint": "Kun päällä, rivi tai kohde näyttää värinsä vain kohdistettaessa hiirellä tai kun se on käynnissä tai valittuna. Muuten se pysyy neutraalina. Kun pois päältä, jokainen väritetty rivi ja kohde näyttää värinsä koko ajan.",
   "settings.rainbowRotate": "Värikierto",

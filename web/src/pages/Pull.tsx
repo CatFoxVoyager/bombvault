@@ -27,7 +27,7 @@ import { SelectField } from "../components/SelectField";
 import { useReveal } from "../lib/useReveal";
 import { useCloudCredSets } from "../lib/useCloudCredSets";
 import { useToast } from "../lib/toast";
-import { hueVars, rainbowAt } from "../lib/appearance";
+import { hueVars } from "../lib/appearance";
 import { Button } from "../components/Button";
 import { ToggleRow } from "./settings/shared";
 
@@ -106,7 +106,7 @@ function PullSourceCard({
   return (
     <div
       className="relative glim-notch-card glim-hue bg-carbon-surface rounded-card p-4 flex flex-col gap-3"
-      style={hueVars(rainbowAt(index)) as CSSProperties}
+      style={hueVars(index) as CSSProperties}
     >
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="min-w-0">
@@ -464,7 +464,7 @@ export function Pull({ embedded = false }: { embedded?: boolean } = {}) {
       {showEmptyState && (
         <div
           className="relative glim-notch-card glim-hue bg-carbon-surface rounded-card p-6 text-center flex flex-col items-center gap-3"
-          style={hueVars(rainbowAt(0)) as CSSProperties}
+          style={hueVars(0) as CSSProperties}
         >
           <h2 className="flex items-center">
             <Badge tone="heading" size="heading" wrap hueIndex={0} insetStart={6}>

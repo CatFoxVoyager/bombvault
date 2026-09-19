@@ -90,6 +90,6 @@ describe("Sidebar sign-out and the labelling engine", () => {
     draw(true);
     const out = screen.getByRole("button", { name: /sign out/i });
     expect(out.className).toContain("glim-hue");
-    expect(out.style.getPropertyValue("--item-hue")).toMatch(/^#/);
+    expect(out.style.getPropertyValue("--item-hue")).toMatch(/^var\(--rb-[0-7]\)$/);
   });
 });

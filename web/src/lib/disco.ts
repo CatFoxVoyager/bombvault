@@ -1,22 +1,24 @@
-// Disco walks the rainbow palette. Once a second it steps the seed that
+// Disco walks the rainbow palette. Every DISCO_TICK_MS it steps the seed that
 // rainbowAt() rotates the palette by, and it holds `rotate` on while it runs,
 // because the seed is only read as `rotate ? seed : 0`.
 //
-// Nothing is animated: a seed change re-renders the colour subscribers, which
-// is a paint and adds no compositing layer.
+// A seed change moves the root's --rb-* properties, and index.css glides them
+// to their new colours over the same length, so the colours travel round the
+// wheel without stopping.
 //
 // The switch is stored like the other look settings (localStorage plus
-// saveDisplayPrefs), the tick is not. There is no prefers-reduced-motion gate:
-// this is a hidden mode, and finding it is a statement of intent. The storm
-// level in index.css follows the same reasoning.
+// saveDisplayPrefs), the tick is not. The walk has no prefers-reduced-motion
+// gate: this is a hidden mode, and finding it is a statement of intent. The
+// storm level in index.css follows the same reasoning. The glide is a colour
+// fade and does follow the motion engine, so with reduced motion disco steps.
 import { applyRainbow, applyStoredRainbow, rainbowState } from "./appearance";
 import { save as saveDisplayPrefs } from "./displayPrefs";
 
 const STORAGE_KEY = "bv-disco";
 
-/** One colour step a second, well below the 3 Hz flicker limit named in
- *  photosensitivity guidance. */
-export const DISCO_TICK_MS = 1000;
+/** One palette step every three seconds, so a full turn of eight colours
+ *  takes 24 seconds. The glide in index.css reads the same number. */
+export const DISCO_TICK_MS = 3000;
 
 /** Turn-ons needed to unlock, like STORM_CLICKS in motion.ts. */
 export const DISCO_UNLOCK_CLICKS = 5;
@@ -45,6 +47,15 @@ export function stopDisco(): void {
   }
 }
 
+// A running transition on a registered property outlives the rule that started
+// it, so without this a stopped walk glides on for up to a tick before the
+// restored palette lands. jsdom has no getAnimations.
+function cancelGlide(root: HTMLElement): void {
+  for (const a of root.getAnimations?.() ?? []) {
+    if ((a as CSSTransition).transitionProperty?.startsWith("--rb-")) a.cancel();
+  }
+}
+
 /**
  * applyStoredDisco starts or stops the walk to match the switch and sets
  * `data-disco` on the root element. It runs at boot and whenever the switch or
@@ -52,7 +63,7 @@ export function stopDisco(): void {
  * once.
  *
  * The tick calls applyRainbow, not setRainbow: setRainbow also writes
- * localStorage and syncs to the server, which would happen every second and
+ * localStorage and syncs to the server, which would happen on every tick and
  * move the user's stored seed.
  */
 export function applyStoredDisco(on: boolean = getDisco()): void {
@@ -60,8 +71,13 @@ export function applyStoredDisco(on: boolean = getDisco()): void {
   stopDisco();
 
   const root = document.documentElement;
-  if (on) root.setAttribute("data-disco", "on");
-  else root.removeAttribute("data-disco");
+  if (on) {
+    root.setAttribute("data-disco", "on");
+    root.style.setProperty("--disco-step", `${DISCO_TICK_MS}ms`);
+  } else {
+    root.removeAttribute("data-disco");
+    root.style.removeProperty("--disco-step");
+  }
 
   // With rainbow off nothing on screen is hued. The switch stays on, and the
   // walk resumes when main.tsx re-applies both after rainbow comes back.
@@ -69,7 +85,10 @@ export function applyStoredDisco(on: boolean = getDisco()): void {
     // A finished walk leaves a live seed and a forced `rotate`; re-reading the
     // stored rainbow gives the user their own rotation back. At boot main.tsx
     // has just applied it, so only do this after a real walk.
-    if (wasWalking) applyStoredRainbow({ animate: false });
+    if (wasWalking) {
+      cancelGlide(root);
+      applyStoredRainbow({ animate: false });
+    }
     return;
   }
 

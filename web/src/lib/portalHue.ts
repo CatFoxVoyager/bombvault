@@ -12,9 +12,9 @@
 import { useLayoutEffect, useState, type RefObject } from "react";
 import { hueVars } from "./appearance";
 
-/** The exact set `hueVars()` writes. Any hex parses to the same key set, so
- *  the sample colour is arbitrary and never rendered. */
-const HUE_VARS = Object.keys(hueVars("#000000"));
+/** The exact set `hueVars()` writes. Every position gives the same key set,
+ *  so the sample is arbitrary and never rendered. */
+const HUE_VARS = Object.keys(hueVars(0));
 
 /** What a portalled panel needs to stand in its trigger's palette position. */
 export interface PortalHue {
@@ -27,8 +27,11 @@ export interface PortalHue {
 /**
  * Copies the trigger's rainbow position onto a portalled panel.
  *
- * It reads the trigger's computed style rather than taking a prop, so call
- * sites pass nothing and the panel matches whatever hue its trigger stands in.
+ * It reads the hue off the trigger or the nearest ancestor that sets it
+ * rather than taking a prop, so call sites pass nothing and the panel matches
+ * whatever hue its trigger stands in. The inline values are copied, not the
+ * computed ones: they are `var(--rb-N)` references, so the open panel keeps
+ * following a palette change or the disco glide on the root.
  * `.glim-hue` travels with the properties because index.css's
  * `[data-rainbow] .glim-hue` rules derive `--accent` from them, which keeps
  * every rainbow mode working without this hook knowing about modes.
@@ -50,10 +53,11 @@ export function usePortalHue(
     }
     const trigger = triggerRef.current;
     if (!trigger) return;
-    const cs = getComputedStyle(trigger);
+    let owner: HTMLElement | null = trigger;
+    while (owner && !owner.style.getPropertyValue("--item-hue")) owner = owner.parentElement;
     const vars: Record<string, string> = {};
     for (const name of HUE_VARS) {
-      const value = cs.getPropertyValue(name).trim();
+      const value = owner?.style.getPropertyValue(name);
       if (value) vars[name] = value;
     }
     setHue(Object.keys(vars).length > 0 ? vars : null);

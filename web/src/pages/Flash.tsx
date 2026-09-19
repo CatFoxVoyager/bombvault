@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { hueVars, rainbowAt } from "../lib/appearance";
+import { hueVars } from "../lib/appearance";
 import { backupFlashNow, listFlashSnapshots, flashDownloadURL, deleteSnapshot } from "../lib/api";
 import type { Snapshot } from "../lib/api";
 import { useT } from "../lib/i18n";
@@ -230,7 +230,7 @@ export function Flash() {
           inner box for the badge's top-0. insetStart={5} lines the badge up
           with the inner p-5. The inner box is what ProgressBar clips to, as
           in Config.tsx's backup card. */}
-      <div className="relative glim-notch-card glim-hue" style={hueVars(rainbowAt(0)) as CSSProperties}>
+      <div className="relative glim-notch-card glim-hue" style={hueVars(0) as CSSProperties}>
         <h2 className="flex items-center">
           <Badge tone="heading" size="heading" wrap hueIndex={0} insetStart={5}>
             {t("flash.backupTitle")}
@@ -265,7 +265,7 @@ export function Flash() {
       {/* The snapshot rows' badges take this card's hue through the cascade. */}
       <div
         className="relative glim-notch-card glim-hue bg-carbon-surface rounded-card p-5 flex flex-col gap-4"
-        style={hueVars(rainbowAt(1)) as CSSProperties}
+        style={hueVars(1) as CSSProperties}
       >
         <h2 className="flex items-center">
           <Badge tone="heading" size="heading" wrap hueIndex={1}>
