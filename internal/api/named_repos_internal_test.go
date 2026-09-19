@@ -10,13 +10,10 @@ import (
 	"github.com/junkerderprovinz/bombvault/internal/store"
 )
 
-// TestNamedRepoRoleIsInvisibleToTheOffsiteQueries is the load-bearing claim
-// behind putting named repositories (#204) in offsite_targets at all: a third
-// role is free because every query in that file filters on an explicit one.
-//
-// If it were not true, the replication loop would start copying backups INTO
-// what is meant to be a primary location, and the off-site CRUD would offer it
-// as a destination. That is why this is pinned rather than argued.
+// Named repositories share the offsite_targets table, which only works because
+// every off-site query filters on its role. Otherwise replication would copy
+// backups into a primary location and the off-site CRUD would offer it as a
+// target.
 func TestNamedRepoRoleIsInvisibleToTheOffsiteQueries(t *testing.T) {
 	st := newTestStore(t)
 
@@ -26,8 +23,7 @@ func TestNamedRepoRoleIsInvisibleToTheOffsiteQueries(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create named repo: %v", err)
 	}
-	// A real off-site destination beside it, so the queries have something to
-	// return and "empty" cannot pass for "filtered".
+	// A real off-site target, so an empty result cannot pass for a filtered one.
 	if _, err := st.UpsertOffsiteTarget(store.OffsiteTarget{
 		Domain: "containers", Name: "Offsite", Repo: "b2:bucket/offsite", Enabled: true,
 	}); err != nil {
@@ -52,7 +48,6 @@ func TestNamedRepoRoleIsInvisibleToTheOffsiteQueries(t *testing.T) {
 		t.Fatal("a named repository must not be reachable through GetOffsiteTarget")
 	}
 
-	// And the other way round: the named-repo queries see only their own rows.
 	repos, err := st.ListNamedRepos()
 	if err != nil {
 		t.Fatal(err)
@@ -62,14 +57,9 @@ func TestNamedRepoRoleIsInvisibleToTheOffsiteQueries(t *testing.T) {
 	}
 }
 
-// TestItemRepoPathRefusesRatherThanFallingBack pins the decision that matters
-// most here. An override that cannot be resolved is an ERROR; it never quietly
-// becomes the domain repository.
-//
-// A fallback would send the next backup somewhere else and look exactly like a
-// working backup - the run is green, the snapshot exists, it is simply in the
-// wrong place, and nobody finds out until they go looking for a snapshot that
-// is not where they expect it.
+// An override that cannot be resolved is an error, never the domain
+// repository. A fallback would look exactly like a working backup with the
+// snapshot in the wrong place, and nobody would notice until a restore.
 func TestItemRepoPathRefusesRatherThanFallingBack(t *testing.T) {
 	dir := t.TempDir()
 	st := newTestStore(t)
@@ -137,10 +127,9 @@ func TestItemRepoPathRefusesRatherThanFallingBack(t *testing.T) {
 	})
 }
 
-// TestDomainReposInUseCoversEveryItemsRepository pins what the dashboard reads.
-// A container pointed at a named repository keeps its snapshots there, so an
-// overview that only read the domain repository would report it as never backed
-// up - the most alarming thing a backup tool can say, and wrong.
+// A container pointed at a named repository keeps its snapshots there. An
+// overview that read only the domain repository would report it as never
+// backed up.
 func TestDomainReposInUseCoversEveryItemsRepository(t *testing.T) {
 	dir := t.TempDir()
 	st := newTestStore(t)
@@ -165,8 +154,7 @@ func TestDomainReposInUseCoversEveryItemsRepository(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// A second one that NOTHING points at: it must not be scanned, or every
-	// overview pays for repositories nobody uses.
+	// Nothing points at this one, so the overview must not scan it.
 	if _, err := st.UpsertOffsiteTarget(store.OffsiteTarget{
 		Role: store.RoleRepo, Name: "Unused", Repo: "backups/unused", Enabled: true,
 	}); err != nil {
@@ -197,15 +185,8 @@ func TestDomainReposInUseCoversEveryItemsRepository(t *testing.T) {
 	}
 }
 
-// TestRepoCanBeChosenBeforeTheFirstBackup pins the case that only showed up
-// when the picker was actually clicked.
-//
-// A container or VM gets its stored row on its FIRST backup. The repository
-// setters updated an existing row and reported "no such target" otherwise, so
-// choosing a destination failed for exactly the item that most needs it: one
-// that has never run, where the point is to decide where the data goes BEFORE
-// the first run puts it somewhere else. Everything compiled and every test was
-// green; the save just silently bounced.
+// A container or VM gets its stored row on its first backup, but its
+// repository has to be chosen before that run puts the data somewhere else.
 func TestRepoCanBeChosenBeforeTheFirstBackup(t *testing.T) {
 	st := newTestStore(t)
 	named, err := st.UpsertOffsiteTarget(store.OffsiteTarget{
@@ -242,27 +223,19 @@ func TestRepoCanBeChosenBeforeTheFirstBackup(t *testing.T) {
 	})
 }
 
-// TestContainerViewCarriesTheRepoOnBothBranches pins a gap that cost a build.
-//
-// The container list assembles its view in TWO places: one for containers Docker
-// reports, one for stored targets Docker no longer knows about. Only the second
-// carried the new field, so the picker on a LIVE container always read back "the
-// domain repository" no matter what was stored - the save landed, the interface
-// said it had not, and clicking it was the only way to find out.
-//
-// A source scan because the two branches sit forty lines apart in one function
-// and are edited for different reasons; a behavioural test would have to build a
-// fake Docker to reach the first one.
+// The container list builds its view in two places: for containers Docker
+// reports and for stored targets Docker no longer knows. Both must carry the
+// item's repository, or the picker on a live container reads back the domain
+// repository whatever was stored. This scans the source because reaching the
+// first branch otherwise needs a fake Docker.
 func TestContainerViewCarriesTheRepoOnBothBranches(t *testing.T) {
 	raw, err := os.ReadFile("handlers.go")
 	if err != nil {
 		t.Fatalf("read handlers.go: %v", err)
 	}
 	src := string(raw)
-	// Matched with the run of spaces left OPEN. A struct literal's field values
-	// are aligned by gofmt, so pinning the exact column would make this guard
-	// fail the day somebody adds a longer field name beside it - a failure about
-	// nothing, in a test whose whole job is to be believed when it speaks.
+	// Any run of spaces matches, because gofmt realigns struct literal values
+	// when a longer field name is added.
 	for _, want := range []*regexp.Regexp{
 		regexp.MustCompile(`v\.Repo\s*=\s*t\.Repo`), // the live-container merge
 		regexp.MustCompile(`Repo:\s+t\.Repo,`),      // the not-installed literal
@@ -275,21 +248,10 @@ func TestContainerViewCarriesTheRepoOnBothBranches(t *testing.T) {
 	}
 }
 
-// TestRepoRefusedOnceAnItemHasBackups pins the refusal that three comments
-// described and no code performed.
-//
-// The review proved the gap by driving the real handler: a container with a
-// successful run was re-pointed from one repository to another, answer ok:true,
-// stored value the new one. The consequence is a split history - the snapshots
-// already written stay where they are, the interface then shows only the new
-// half, and the old half is never pruned and unreachable except through restic
-// by hand.
-//
-// The interface's own lock is not a substitute, which is why this lives on the
-// server: an item rebuilt by Discover after a /config loss has real snapshots
-// and no run rows, so its lastBackup is null and the picker stands open on
-// exactly the item that must not move. The file-set twin documents that case as
-// its own reason for looking past the runs table.
+// Moving an item that already has backups splits its history: the old
+// snapshots stay behind, unseen by the interface and never pruned. The server
+// has to refuse, because an item rebuilt by Discover after losing /config has
+// snapshots but no run rows, and the interface's lock stays open for it.
 func TestRepoRefusedOnceAnItemHasBackups(t *testing.T) {
 	raw, err := os.ReadFile("handlers.go")
 	if err != nil {
