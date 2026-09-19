@@ -4,25 +4,14 @@ import { useT } from "../lib/i18n";
 import { InfoBubble } from "./InfoBubble";
 import { SelectField } from "./SelectField";
 
-// RepoPicker — "which repository do this item's backups go to" (#204).
+// RepoPicker chooses the repository an item's backups go to, for containers,
+// VMs and folder sets alike. Repositories are defined once in Settings and
+// picked here. The empty value, the domain repository, is named, because a
+// blank entry reads as an unanswered question.
 //
-// One control for containers, VMs and folder sets, because the question and the
-// consequence of getting it wrong are identical in all three. Issue #204 asked
-// to back a VM or a folder up straight to a B2 bucket or a NAS share, past the
-// domain's own repository; the first cut was a free-text location typed into
-// each item, which meant typing the same bucket path into ten containers and
-// then finding all ten again to correct it. So locations are written down once
-// in Settings and PICKED here.
-//
-// The empty value is the default and is spelled out rather than left blank: "the
-// domain repository" is a real answer, and a blank line in a picker reads as an
-// unanswered question.
-//
-// LOCKED once the item has backups. They stay in the repository they were
-// written to and nothing re-homes them, so pointing the item elsewhere would
-// split its history across two places with nothing on screen to say so. The
-// server refuses it too; this only keeps the interface from offering something
-// that cannot happen.
+// Locked once the item has backups: they stay where they were written, so
+// pointing the item elsewhere would split its history. The server refuses the
+// change as well.
 export function RepoPicker({
   value,
   onChange,
@@ -67,28 +56,21 @@ export function RepoPicker({
     };
   }, []);
 
-  // A repository that is switched off cannot be picked, but one ALREADY chosen
-  // stays listed even when off: hiding it would silently show "the domain
-  // repository" for an item that is not on it, which is the misreading this
-  // whole control exists to prevent.
+  // A switched-off repository cannot be picked, but the one already chosen
+  // stays listed, or the item would appear to be on the domain repository.
   const options = [
     { value: "", label: t(defaultLabelKey) },
     ...repos
       .filter((r) => r.enabled || r.id === value)
       .map((r) => ({
         value: r.id,
-        // "switched off", NOT "not in use": those are opposite statements. The
-        // badge in Settings counts the ITEMS pointing at a repository; this says
-        // its switch is off. Labelling an off repository "not in use" told the
-        // one person who most needs the truth - the owner of the item that IS on
-        // it - that nothing uses it.
+        // "off", not "not in use": this item may well be on it.
         label: r.enabled ? r.name : `${r.name} (${t("repos.off")})`,
         disabled: !r.enabled && r.id !== value,
       })),
   ];
-  // A stored id whose repository is gone must not disappear into the default
-  // entry: the item is NOT on the domain repository, and its next backup will
-  // fail rather than land there. Name it so the state is visible.
+  // A stored id whose repository is gone is listed by its id. The item is not
+  // on the domain repository, and its next backup will fail.
   if (value !== "" && !repos.some((r) => r.id === value)) {
     options.push({ value, label: value, disabled: false });
   }
