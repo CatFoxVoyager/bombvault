@@ -86,12 +86,12 @@ for (const route of DASHBOARD_ROUTES) {
     // The sticky-in-flow action bar (the thumb-zone trigger's host): its
     // exact class signature exists nowhere on desktop.
     await expect(page.locator("div.sticky.bottom-0.z-10.bg-carbon-sidebar")).toHaveCount(0);
-    // The filled full-width accent control — the New-backup trigger's
+    // The filled full-width accent control — the Backup Everything trigger's
     // signature (Button tone="accent" over the caller's w-full stage); no
     // desktop control carries it.
     await expect(page.locator("button.w-full.bg-accent")).toHaveCount(0);
     // The Home thumb-zone trigger.
-    await expect(page.getByRole("button", { name: "New backup" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Backup Everything" })).toHaveCount(0);
   });
 }
 

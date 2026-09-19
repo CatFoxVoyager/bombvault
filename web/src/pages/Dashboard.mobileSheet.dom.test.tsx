@@ -154,17 +154,17 @@ function recentRunRow(target: string): HTMLElement {
 /** Fire Backup Everything from the thumb-zone trigger, walking through the
  *  consequence sheet. Returns after the start POST has been accepted. */
 async function fireEverything() {
-  fireEvent.click(screen.getByRole("button", { name: en["home.newBackup"] }));
+  fireEvent.click(screen.getByRole("button", { name: en["settings.everythingTitle"] }));
   await settle();
   // The trigger button and the consequence sheet's confirm button share the
-  // name home.newBackup (the confirm names the outcome); the confirm lives
-  // inside its own dialog.
+  // name settings.everythingTitle (the confirm names the outcome); the
+  // confirm lives inside its own dialog.
   const dialogs = screen.getAllByRole("dialog");
   const confirmDialog = dialogs.find((d) =>
-    within(d).queryByRole("button", { name: en["home.newBackup"] })
+    within(d).queryByRole("button", { name: en["settings.everythingTitle"] })
   );
   expect(confirmDialog).toBeDefined();
-  fireEvent.click(within(confirmDialog as HTMLElement).getByRole("button", { name: en["home.newBackup"] }));
+  fireEvent.click(within(confirmDialog as HTMLElement).getByRole("button", { name: en["settings.everythingTitle"] }));
   // confirm resolution + fire()'s baseline listRuns + start POST — all
   // promise hops, no timers needed yet.
   await act(async () => {
@@ -263,12 +263,12 @@ describe("Dashboard phone run sheet", () => {
 
     fireEvent.click(recentRunRow("plex"));
     expect(screen.getByRole("dialog")).toBeTruthy();
-    expect(screen.getByRole("button", { name: en["home.newBackup"] })).toBeTruthy();
+    expect(screen.getByRole("button", { name: en["settings.everythingTitle"] })).toBeTruthy();
 
     setDesktop(true);
     await act(async () => {});
 
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(screen.queryByRole("button", { name: en["home.newBackup"] })).toBeNull();
+    expect(screen.queryByRole("button", { name: en["settings.everythingTitle"] })).toBeNull();
   });
 });

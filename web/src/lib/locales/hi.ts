@@ -245,8 +245,7 @@ const hi: Partial<Translations> = {
   "run.colStarted": "शुरू हुआ",
   "run.colFinished": "पूरा हुआ",
   "run.colContainer": "कंटेनर",
-  "home.newBackup": "नया बैकअप",
-  "home.newBackupConfirm": "क्या अभी सभी सक्रिय डोमेन का बैकअप शुरू करें? कंटेनर एक-एक करके उनके बैकअप चलने के दौरान रोके जाते हैं और फिर से शुरू किए जाते हैं. रीस्टोर केवल वही रखता है जो अगला रन सेव करता है.",
+  "home.newBackupConfirm": "क्या अभी सभी सक्रिय डोमेन का बैकअप शुरू करें? कंटेनर एक-एक करके उनके बैकअप चलने के दौरान रोके जाते हैं और फिर से शुरू किए जाते हैं.",
   "run.statVolume": "डेटा आयतन",
   "run.statSnapshot": "स्नैपशॉट",
 
@@ -703,6 +702,7 @@ const hi: Partial<Translations> = {
   "settings.labels.sidebar": "साइडबार",
   "settings.labels.tabs": "टैब",
   "settings.labels.bottombar": "बॉटम बार",
+  "settings.axisBottombarHint": "केवल फ़ोन लेआउट पर लागू होता है.",
   "settings.labels.mode.text": "पाठ",
   "settings.labels.mode.textGlyph": "पाठ और प्रतीक",
   "settings.labels.mode.glyph": "प्रतीक",

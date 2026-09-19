@@ -245,8 +245,7 @@ const is: Partial<Translations> = {
   "run.colStarted": "Hafið",
   "run.colFinished": "Lokið",
   "run.colContainer": "Gámur",
-  "home.newBackup": "Nýtt öryggisafrit",
-  "home.newBackupConfirm": "Hefja öryggisafrit af öllum virkum svæðum núna? Gámar eru stöðvaðir og endurræstir einn í senn á meðan öryggisafrit þeirra stendur. Endurheimtur geymist aðeins það sem næsta keyrsla vistar.",
+  "home.newBackupConfirm": "Hefja öryggisafrit af öllum virkum svæðum núna? Gámar eru stöðvaðir og endurræstir einn í senn á meðan öryggisafrit þeirra stendur.",
   "run.statVolume": "Gagnamagn",
   "run.statSnapshot": "Skyndimynd",
 
@@ -703,6 +702,7 @@ const is: Partial<Translations> = {
   "settings.labels.sidebar": "Hliðarstika",
   "settings.labels.tabs": "Flipar",
   "settings.labels.bottombar": "Neðri stika",
+  "settings.axisBottombarHint": "Gildir aðeins um útlit símans.",
   "settings.labels.mode.text": "Texti",
   "settings.labels.mode.textGlyph": "Texti og tákn",
   "settings.labels.mode.glyph": "Tákn",

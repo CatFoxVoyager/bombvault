@@ -245,8 +245,7 @@ const lt: Partial<Translations> = {
   "run.colStarted": "Pradėta",
   "run.colFinished": "Baigta",
   "run.colContainer": "Konteineris",
-  "home.newBackup": "Nauja atsarginė kopija",
-  "home.newBackupConfirm": "Pradėti dabar visų įjungtų sričių atsarginę kopiją? Konteineriai sustabdomi ir paleidžiami iš naujo po vieną, kol vyksta jų atsarginė kopija. Atkūrimas išsaugo tik tai, ką įrašys kitas vykdymas.",
+  "home.newBackupConfirm": "Pradėti dabar visų įjungtų sričių atsarginę kopiją? Konteineriai sustabdomi ir paleidžiami iš naujo po vieną, kol vyksta jų atsarginė kopija.",
   "run.statVolume": "Duomenų apimtis",
   "run.statSnapshot": "Momentinė kopija",
 
@@ -703,6 +702,7 @@ const lt: Partial<Translations> = {
   "settings.labels.sidebar": "Šoninė juosta",
   "settings.labels.tabs": "Kortelės",
   "settings.labels.bottombar": "Apatinė juosta",
+  "settings.axisBottombarHint": "Taikoma tik telefono išdėstymui.",
   "settings.labels.mode.text": "Tekstas",
   "settings.labels.mode.textGlyph": "Tekstas ir simbolis",
   "settings.labels.mode.glyph": "Simbolis",

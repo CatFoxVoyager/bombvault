@@ -173,8 +173,7 @@ const nl: Partial<Translations> = {
   "run.colStarted": "Gestart",
   "run.colFinished": "Voltooid",
   "run.colContainer": "Container",
-  "home.newBackup": "Nieuwe back-up",
-  "home.newBackupConfirm": "Nu een back-up van alle ingeschakelde domeinen starten? Containers worden één voor één gestopt en opnieuw gestart terwijl hun back-up loopt. Herstel bewaart alleen wat de volgende run opslaat.",
+  "home.newBackupConfirm": "Nu een back-up van alle ingeschakelde domeinen starten? Containers worden één voor één gestopt en opnieuw gestart terwijl hun back-up loopt.",
   "run.statVolume": "Datavolume",
   "run.statSnapshot": "Momentopname",
 
@@ -245,6 +244,7 @@ const nl: Partial<Translations> = {
   "settings.labels.sidebar": "Zijbalk",
   "settings.labels.tabs": "Tabbladen",
   "settings.labels.bottombar": "Onderbalk",
+  "settings.axisBottombarHint": "Geldt alleen voor de telefoonlay-out.",
   "settings.labels.mode.text": "Tekst",
   "settings.labels.mode.textGlyph": "Tekst en symbool",
   "settings.labels.mode.glyph": "Symbool",

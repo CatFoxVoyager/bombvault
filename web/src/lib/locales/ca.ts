@@ -245,8 +245,7 @@ const ca: Partial<Translations> = {
   "run.colStarted": "Iniciat",
   "run.colFinished": "Finalitzat",
   "run.colContainer": "Contenidor",
-  "home.newBackup": "Còpia de seguretat nova",
-  "home.newBackupConfirm": "Vols iniciar una còpia de seguretat de tots els dominis activats ara? Els contenidors s'aturen i es reinicien d'un en un mentre s'executa la seva còpia. La restauració només conserva el que desi la propera execució.",
+  "home.newBackupConfirm": "Vols iniciar una còpia de seguretat de tots els dominis activats ara? Els contenidors s'aturen i es reinicien d'un en un mentre s'executa la seva còpia.",
   "run.statVolume": "Volum de dades",
   "run.statSnapshot": "Instantània",
 
@@ -703,6 +702,7 @@ const ca: Partial<Translations> = {
   "settings.labels.sidebar": "Barra lateral",
   "settings.labels.tabs": "Pestanyes",
   "settings.labels.bottombar": "Barra inferior",
+  "settings.axisBottombarHint": "Només afecta la disposició del telèfon.",
   "settings.labels.mode.text": "Text",
   "settings.labels.mode.textGlyph": "Text i símbol",
   "settings.labels.mode.glyph": "Símbol",

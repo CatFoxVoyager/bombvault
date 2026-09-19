@@ -245,8 +245,7 @@ const fa: Partial<Translations> = {
   "run.colStarted": "شروع",
   "run.colFinished": "پایان",
   "run.colContainer": "کانتینر",
-  "home.newBackup": "پشتیبان‌گیری جدید",
-  "home.newBackupConfirm": "شروع پشتیبان‌گیری از همه بخش‌های فعال اکنون؟ کانتینرها یکی‌یکی هنگام اجرای پشتیبان‌گیری‌شان متوقف و دوباره راه‌اندازی می‌شوند. بازیابی فقط چیزی را نگه می‌دارد که اجرای بعدی ذخیره می‌کند.",
+  "home.newBackupConfirm": "شروع پشتیبان‌گیری از همه بخش‌های فعال اکنون؟ کانتینرها یکی‌یکی هنگام اجرای پشتیبان‌گیری‌شان متوقف و دوباره راه‌اندازی می‌شوند.",
   "run.statVolume": "حجم داده‌ها",
   "run.statSnapshot": "اسنپ‌شات",
 
@@ -703,6 +702,7 @@ const fa: Partial<Translations> = {
   "settings.labels.sidebar": "نوار کناری",
   "settings.labels.tabs": "زبانه‌ها",
   "settings.labels.bottombar": "نوار پایینی",
+  "settings.axisBottombarHint": "فقط بر چیدمان گوشی تأثیر می‌گذارد.",
   "settings.labels.mode.text": "متن",
   "settings.labels.mode.textGlyph": "متن و نماد",
   "settings.labels.mode.glyph": "نماد",

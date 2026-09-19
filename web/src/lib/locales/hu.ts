@@ -175,8 +175,7 @@ const hu: Partial<Translations> = {
   "run.colStarted": "Indítva",
   "run.colFinished": "Befejezve",
   "run.colContainer": "Konténer",
-  "home.newBackup": "Új biztonsági mentés",
-  "home.newBackupConfirm": "Elindítod most az összes engedélyezett terület biztonsági mentését? A konténerek a saját mentésük alatt egyenként leállnak és újraindulnak. A helyreállítás csak azt őrzi meg, amit a következő futás ment.",
+  "home.newBackupConfirm": "Elindítod most az összes engedélyezett terület biztonsági mentését? A konténerek a saját mentésük alatt egyenként leállnak és újraindulnak.",
   "run.statVolume": "Adatmennyiség",
   "run.statSnapshot": "Pillanatkép",
 
@@ -250,6 +249,7 @@ const hu: Partial<Translations> = {
   "settings.labels.sidebar": "Oldalsáv",
   "settings.labels.tabs": "Lapok",
   "settings.labels.bottombar": "Alsó sáv",
+  "settings.axisBottombarHint": "Csak a telefon elrendezésére vonatkozik.",
   "settings.labels.mode.text": "Szöveg",
   "settings.labels.mode.textGlyph": "Szöveg és szimbólum",
   "settings.labels.mode.glyph": "Szimbólum",

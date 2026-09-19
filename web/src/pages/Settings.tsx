@@ -4822,10 +4822,10 @@ export function SettingsPage() {
       {tab === "general" && (
       <>
       {/* Control labels (#178) — how much of a control's identity is shown.
-          Three axes rather than one switch, because the right answer differs
-          per axis: a sidebar reduced to glyphs narrows the whole page, tabs do
-          not, and action buttons are a density preference. jdp asked for one
-          selector each, sharing the same three options.
+          Per-axis selectors rather than one switch, because the right answer
+          differs per axis: a sidebar reduced to glyphs narrows the whole page,
+          tabs do not, and action buttons are a density preference. jdp asked
+          for one selector each, sharing the same options.
           Placed straight after Animations on purpose: both are per-viewer
           appearance dials kept in this browser rather than server settings,
           and they read as a pair. */}
@@ -4863,6 +4863,14 @@ export function SettingsPage() {
                 // start in the settings tree comes out of the same table.
                 hueOffset={HUE_OFFSET.labels + axisIndex}
               />
+              {/* The bottombar row is the one axis with no desktop face, so
+                  it is also the only one that needs the scope spelled out
+                  (maintainer review: the label reads as global). */}
+              {axis === "bottombar" && (
+                <span className="text-xs text-carbon-textMuted">
+                  {t("settings.axisBottombarHint")}
+                </span>
+              )}
             </div>
           ))}
         </div>

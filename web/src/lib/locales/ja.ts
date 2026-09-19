@@ -175,8 +175,7 @@ const ja: Partial<Translations> = {
   "run.colStarted": "開始",
   "run.colFinished": "完了",
   "run.colContainer": "コンテナ",
-  "home.newBackup": "新規バックアップ",
-  "home.newBackupConfirm": "有効なすべてのドメインのバックアップを今すぐ開始しますか？コンテナーは、バックアップの実行中に1つずつ停止して再起動されます。復元で残るのは、次回の実行が保存したものだけです。",
+  "home.newBackupConfirm": "有効なすべてのドメインのバックアップを今すぐ開始しますか？コンテナーは、バックアップの実行中に1つずつ停止して再起動されます。",
   "run.statVolume": "データ量",
   "run.statSnapshot": "スナップショット",
 
@@ -250,6 +249,7 @@ const ja: Partial<Translations> = {
   "settings.labels.sidebar": "サイドバー",
   "settings.labels.tabs": "タブ",
   "settings.labels.bottombar": "ボトムバー",
+  "settings.axisBottombarHint": "スマートフォンのレイアウトにのみ適用されます。",
   "settings.labels.mode.text": "文字",
   "settings.labels.mode.textGlyph": "文字と記号",
   "settings.labels.mode.glyph": "記号",

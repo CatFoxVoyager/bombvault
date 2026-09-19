@@ -294,7 +294,7 @@ test("Confirm fires the everything pass; the correlated run deep-links into the 
 
   // The destructive control carries the trigger's own verb; one tap starts
   // the pass and arms the correlated run into /api/runs.
-  await confirm.getByRole("button", { name: "New backup" }).tap();
+  await confirm.getByRole("button", { name: "Backup Everything" }).tap();
 
   // The watch correlates the new "everything" run by baseline-id (never a
   // client clock) and the page deep-links it into the component-local
@@ -335,6 +335,6 @@ test("desktop Home: no mobile blocks, no sticky trigger", async ({ page }, testI
   // full-width-accent signature.
   await expect(page.getByRole("heading", { name: "Recent Runs", exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "OK · Backup plex" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "New backup" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Backup Everything" })).toHaveCount(0);
   await expect(newBackupTrigger(page)).toHaveCount(0);
 });

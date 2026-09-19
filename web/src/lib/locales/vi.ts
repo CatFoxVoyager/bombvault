@@ -175,8 +175,7 @@ const vi: Partial<Translations> = {
   "run.colStarted": "Bắt đầu",
   "run.colFinished": "Kết thúc",
   "run.colContainer": "Container",
-  "home.newBackup": "Sao lưu mới",
-  "home.newBackupConfirm": "Bắt đầu sao lưu tất cả miền đang bật ngay bây giờ? Container sẽ dừng và khởi động lại từng cái trong khi sao lưu của chúng đang chạy. Phục hồi chỉ giữ lại những gì lần chạy tiếp theo lưu.",
+  "home.newBackupConfirm": "Bắt đầu sao lưu tất cả miền đang bật ngay bây giờ? Container sẽ dừng và khởi động lại từng cái trong khi sao lưu của chúng đang chạy.",
   "run.statVolume": "Dung lượng dữ liệu",
   "run.statSnapshot": "Bản chụp",
 
@@ -250,6 +249,7 @@ const vi: Partial<Translations> = {
   "settings.labels.sidebar": "Thanh bên",
   "settings.labels.tabs": "Thẻ",
   "settings.labels.bottombar": "Thanh dưới",
+  "settings.axisBottombarHint": "Chỉ ảnh hưởng đến bố cục điện thoại.",
   "settings.labels.mode.text": "Chữ",
   "settings.labels.mode.textGlyph": "Chữ và biểu tượng",
   "settings.labels.mode.glyph": "Biểu tượng",

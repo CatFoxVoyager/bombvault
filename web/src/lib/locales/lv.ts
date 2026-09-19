@@ -245,8 +245,7 @@ const lv: Partial<Translations> = {
   "run.colStarted": "Sākts",
   "run.colFinished": "Pabeigts",
   "run.colContainer": "Konteiners",
-  "home.newBackup": "Jauns dublējums",
-  "home.newBackupConfirm": "Sākt tagad visu iespējoto jomu dublējumu? Konteineri tiek apturēti un pārstartēti pa vienam, kamēr darbojas to dublējums. Atjaunošana saglabā tikai to, ko saglabās nākamā izpilde.",
+  "home.newBackupConfirm": "Sākt tagad visu iespējoto jomu dublējumu? Konteineri tiek apturēti un pārstartēti pa vienam, kamēr darbojas to dublējums.",
   "run.statVolume": "Datu apjoms",
   "run.statSnapshot": "Momentuzņēmums",
 
@@ -703,6 +702,7 @@ const lv: Partial<Translations> = {
   "settings.labels.sidebar": "Sānjosla",
   "settings.labels.tabs": "Cilnes",
   "settings.labels.bottombar": "Apakšjosla",
+  "settings.axisBottombarHint": "Attiecas tikai uz telefona izkārtojumu.",
   "settings.labels.mode.text": "Teksts",
   "settings.labels.mode.textGlyph": "Teksts un simbols",
   "settings.labels.mode.glyph": "Simbols",

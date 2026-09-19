@@ -2525,12 +2525,13 @@ function PhoneEverythingTrigger({
   // The consequence sheet stands between the press and the POST — useConfirm
   // presents it below the breakpoint automatically (the fail-toned
   // ConfirmSheet, destructive control on top, safe cancel in the thumb-default
-  // slot). The confirm button reuses home.newBackup so its press names the
-  // outcome; cancel is the shared safe default.
+  // slot). The confirm button reads settings.everythingTitle so its press
+  // names the outcome with the same words as the trigger itself; cancel is
+  // the shared safe default.
   const { confirm, confirmDialog } = useConfirm();
   const confirmThenFire = useCallback(async () => {
     const ok = await confirm(t("home.newBackupConfirm"), {
-      confirmLabel: t("home.newBackup"),
+      confirmLabel: t("settings.everythingTitle"),
       cancelLabel: t("common.cancel"),
     });
     if (!ok) return;
@@ -2548,8 +2549,8 @@ function PhoneEverythingTrigger({
       <StickyActionBar className="md:hidden">
         <Button
           key={shake}
-          label={t("home.newBackup")}
-          labelKey="home.newBackup"
+          label={t("settings.everythingTitle")}
+          labelKey="settings.everythingTitle"
           glyph={<IconBackupNow />}
           tone="accent"
           keepLabel
@@ -2590,7 +2591,7 @@ export function Dashboard() {
   const sheetDismissed = useRef(false);
   // The run id the watch last correlated: polls refresh the SAME run, so only
   // a DIFFERENT id is a new fire — the latch's re-arm signal. Without it, one
-  // dismissal would silence every later "New backup" press (the latch would
+  // dismissal would silence every later "Backup Everything" press (the latch would
   // never re-arm outside openRun), and the user would wait out the whole run
   // for nothing but the terminal toast.
   const lastCorrelatedRun = useRef<string | null>(null);

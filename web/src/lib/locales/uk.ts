@@ -174,8 +174,7 @@ const uk: Partial<Translations> = {
   "run.colStarted": "Початок",
   "run.colFinished": "Завершення",
   "run.colContainer": "Контейнер",
-  "home.newBackup": "Нова резервна копія",
-  "home.newBackupConfirm": "Запустити резервне копіювання всіх увімкнених областей зараз? Контейнери зупиняються та запускаються заново по одному, поки триває їхнє резервне копіювання. Відновлення збереже лише те, що запише наступний запуск.",
+  "home.newBackupConfirm": "Запустити резервне копіювання всіх увімкнених областей зараз? Контейнери зупиняються та запускаються заново по одному, поки триває їхнє резервне копіювання.",
   "run.statVolume": "Обсяг даних",
   "run.statSnapshot": "Знімок",
 
@@ -248,6 +247,7 @@ const uk: Partial<Translations> = {
   "settings.labels.sidebar": "Бічна панель",
   "settings.labels.tabs": "Вкладки",
   "settings.labels.bottombar": "Нижня панель",
+  "settings.axisBottombarHint": "Впливає лише на макет телефону.",
   "settings.labels.mode.text": "Текст",
   "settings.labels.mode.textGlyph": "Текст і символ",
   "settings.labels.mode.glyph": "Символ",

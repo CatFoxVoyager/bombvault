@@ -175,8 +175,7 @@ const ar: Partial<Translations> = {
   "run.colStarted": "بدأ",
   "run.colFinished": "انتهى",
   "run.colContainer": "Container",
-  "home.newBackup": "نسخة احتياطية جديدة",
-  "home.newBackupConfirm": "هل تريد بدء نسخة احتياطية لكل نطاق ممكّن الآن؟ تُوقف الحاويات وتُعاد تشغيلتها واحدًا تلو الآخر أثناء تشغيل النسخ الاحتياطي لها. تحتفظ الاستعادة فقط بما يحفظه التشغيل التالي.",
+  "home.newBackupConfirm": "هل تريد بدء نسخة احتياطية لكل نطاق ممكّن الآن؟ تُوقف الحاويات وتُعاد تشغيلها واحدًا تلو الآخر أثناء تشغيل النسخ الاحتياطي لها.",
   "run.statVolume": "حجم البيانات",
   "run.statSnapshot": "لقطة",
 
@@ -250,6 +249,7 @@ const ar: Partial<Translations> = {
   "settings.labels.sidebar": "الشريط الجانبي",
   "settings.labels.tabs": "علامات التبويب",
   "settings.labels.bottombar": "الشريط السفلي",
+  "settings.axisBottombarHint": "يؤثر على تخطيط الهاتف فقط.",
   "settings.labels.mode.text": "نص",
   "settings.labels.mode.textGlyph": "نص ورمز",
   "settings.labels.mode.glyph": "رمز",

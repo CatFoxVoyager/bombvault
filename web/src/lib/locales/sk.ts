@@ -245,8 +245,7 @@ const sk: Partial<Translations> = {
   "run.colStarted": "Spustené",
   "run.colFinished": "Dokončené",
   "run.colContainer": "Kontajner",
-  "home.newBackup": "Nová záloha",
-  "home.newBackupConfirm": "Spustiť teraz zálohu všetkých povolených oblastí? Kontajnery sa po jednom zastavia a znova spustia, kým beží ich záloha. Obnova zachová iba to, čo uloží ďalší priebeh.",
+  "home.newBackupConfirm": "Spustiť teraz zálohu všetkých povolených oblastí? Kontajnery sa po jednom zastavia a znova spustia, kým beží ich záloha.",
   "run.statVolume": "Objem dát",
   "run.statSnapshot": "Snímka",
 
@@ -703,6 +702,7 @@ const sk: Partial<Translations> = {
   "settings.labels.sidebar": "Bočný panel",
   "settings.labels.tabs": "Karty",
   "settings.labels.bottombar": "Spodný panel",
+  "settings.axisBottombarHint": "Vzťahuje sa iba na rozloženie telefónu.",
   "settings.labels.mode.text": "Text",
   "settings.labels.mode.textGlyph": "Text a symbol",
   "settings.labels.mode.glyph": "Symbol",

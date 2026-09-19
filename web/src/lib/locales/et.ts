@@ -245,8 +245,7 @@ const et: Partial<Translations> = {
   "run.colStarted": "Alustatud",
   "run.colFinished": "Lõpetatud",
   "run.colContainer": "Konteiner",
-  "home.newBackup": "Uus varukoopia",
-  "home.newBackupConfirm": "Käivitada kohe varukoopia kõigist lubatud valdkondadest? Konteinerid peatatakse ja taaskäivitatakse ükshaaval, samal ajal kui nende varukoopia töötab. Taastamine säilitab ainult selle, mida salvestab järgmine käik.",
+  "home.newBackupConfirm": "Käivitada kohe varukoopia kõigist lubatud valdkondadest? Konteinerid peatatakse ja taaskäivitatakse ükshaaval, samal ajal kui nende varukoopia töötab.",
   "run.statVolume": "Andmete maht",
   "run.statSnapshot": "Hetktõmmis",
 
@@ -703,6 +702,7 @@ const et: Partial<Translations> = {
   "settings.labels.sidebar": "Külgriba",
   "settings.labels.tabs": "Vahekaardid",
   "settings.labels.bottombar": "Alumine riba",
+  "settings.axisBottombarHint": "Mõjutab ainult telefoni paigutust.",
   "settings.labels.mode.text": "Tekst",
   "settings.labels.mode.textGlyph": "Tekst ja sümbol",
   "settings.labels.mode.glyph": "Sümbol",

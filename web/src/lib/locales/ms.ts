@@ -245,8 +245,7 @@ const ms: Partial<Translations> = {
   "run.colStarted": "Dimulakan",
   "run.colFinished": "Selesai",
   "run.colContainer": "Bekas",
-  "home.newBackup": "Sandaran baharu",
-  "home.newBackupConfirm": "Mulakan sandaran untuk semua domain yang diaktifkan sekarang? Bekas dihentikan dan dimulakan semula satu demi satu semasa sandarannya berjalan. Pemulihan hanya menyimpan apa yang disimpan oleh jalan seterusnya.",
+  "home.newBackupConfirm": "Mulakan sandaran untuk semua domain yang diaktifkan sekarang? Bekas dihentikan dan dimulakan semula satu demi satu semasa sandarannya berjalan.",
   "run.statVolume": "Isipadu data",
   "run.statSnapshot": "Snapshot",
 
@@ -703,6 +702,7 @@ const ms: Partial<Translations> = {
   "settings.labels.sidebar": "Bar sisi",
   "settings.labels.tabs": "Tab",
   "settings.labels.bottombar": "Bar bawah",
+  "settings.axisBottombarHint": "Hanya mempengaruhi susun atur telefon.",
   "settings.labels.mode.text": "Teks",
   "settings.labels.mode.textGlyph": "Teks dan simbol",
   "settings.labels.mode.glyph": "Simbol",

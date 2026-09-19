@@ -174,8 +174,7 @@ const pt: Partial<Translations> = {
   "run.colStarted": "Iniciado",
   "run.colFinished": "Terminado",
   "run.colContainer": "Container",
-  "home.newBackup": "Nova cópia de segurança",
-  "home.newBackupConfirm": "Iniciar agora uma cópia de segurança de todos os domínios ativados? Os contentores são parados e reiniciados um a um, enquanto a sua cópia de segurança é executada. O restauro mantém apenas o que a próxima execução guardar.",
+  "home.newBackupConfirm": "Iniciar agora uma cópia de segurança de todos os domínios ativados? Os contentores são parados e reiniciados um a um, enquanto a sua cópia de segurança é executada.",
   "run.statVolume": "Volume de dados",
   "run.statSnapshot": "Instantâneo",
 
@@ -247,6 +246,7 @@ const pt: Partial<Translations> = {
   "settings.labels.sidebar": "Barra lateral",
   "settings.labels.tabs": "Separadores",
   "settings.labels.bottombar": "Barra inferior",
+  "settings.axisBottombarHint": "Afeta apenas o esquema do telefone.",
   "settings.labels.mode.text": "Texto",
   "settings.labels.mode.textGlyph": "Texto e símbolo",
   "settings.labels.mode.glyph": "Símbolo",

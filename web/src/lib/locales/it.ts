@@ -175,8 +175,7 @@ const it: Partial<Translations> = {
   "run.colStarted": "Avviato",
   "run.colFinished": "Terminato",
   "run.colContainer": "Container",
-  "home.newBackup": "Nuovo backup",
-  "home.newBackupConfirm": "Avviare ora un backup di tutti i domini attivati? I container vengono fermati e riavviati uno alla volta, mentre il loro backup è in esecuzione. Il ripristino conserva solo ciò che salverà la prossima esecuzione.",
+  "home.newBackupConfirm": "Avviare ora un backup di tutti i domini attivati? I container vengono fermati e riavviati uno alla volta, mentre il loro backup è in esecuzione.",
   "run.statVolume": "Volume dati",
   "run.statSnapshot": "Snapshot",
 
@@ -250,6 +249,7 @@ const it: Partial<Translations> = {
   "settings.labels.sidebar": "Barra laterale",
   "settings.labels.tabs": "Schede",
   "settings.labels.bottombar": "Barra inferiore",
+  "settings.axisBottombarHint": "Interessa solo il layout del telefono.",
   "settings.labels.mode.text": "Testo",
   "settings.labels.mode.textGlyph": "Testo e simbolo",
   "settings.labels.mode.glyph": "Simbolo",

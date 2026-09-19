@@ -306,11 +306,11 @@ export const en = {
   "run.colStarted": "Started",
   "run.colFinished": "Finished",
   "run.colContainer": "Container",
-  // Phone Dashboard additions: the home.newBackup pair drives the
-  // "back up everything now" trigger and its confirm; run.statVolume/
+  // Phone Dashboard additions: home.newBackupConfirm drives the "back up
+  // everything now" confirm (the trigger button itself reads the existing
+  // settings.everythingTitle — one name for the one action); run.statVolume/
   // run.statSnapshot label the run-detail sheet's stat tiles.
-  "home.newBackup": "New backup",
-  "home.newBackupConfirm": "Start a backup of every enabled domain now? Containers are stopped and restarted one at a time while their backup runs. Restore keeps only what the next run saves.",
+  "home.newBackupConfirm": "Start a backup of every enabled domain now? Containers are stopped and restarted one at a time while their backup runs.",
   "run.statVolume": "Data volume",
   "run.statSnapshot": "Snapshot",
 
@@ -907,6 +907,7 @@ export const en = {
   "settings.labels.sidebar": "Sidebar",
   "settings.labels.tabs": "Tabs",
   "settings.labels.bottombar": "Bottom bar",
+  "settings.axisBottombarHint": "Affects the phone layout only.",
   "settings.labels.mode.text": "Text",
   "settings.labels.mode.textGlyph": "Text and symbol",
   "settings.labels.mode.glyph": "Symbol",
@@ -2257,8 +2258,7 @@ export const de: Translations = {
   "run.colStarted": "Gestartet",
   "run.colFinished": "Abgeschlossen",
   "run.colContainer": "Container",
-  "home.newBackup": "Neues Backup",
-  "home.newBackupConfirm": "Jetzt ein Backup aller aktivierten Bereiche starten? Container werden während ihrer Sicherung nacheinander gestoppt und neu gestartet. Eine Wiederherstellung behält nur, was der nächste Lauf sichert.",
+  "home.newBackupConfirm": "Jetzt ein Backup aller aktivierten Bereiche starten? Container werden während ihrer Sicherung nacheinander gestoppt und neu gestartet.",
   "run.statVolume": "Datenmenge",
   "run.statSnapshot": "Snapshot",
 
@@ -2720,6 +2720,7 @@ export const de: Translations = {
   "settings.labels.sidebar": "Seitenleiste",
   "settings.labels.tabs": "Tabs",
   "settings.labels.bottombar": "Untere Leiste",
+  "settings.axisBottombarHint": "Betrifft nur das Telefon-Layout.",
   "settings.labels.mode.text": "Text",
   "settings.labels.mode.textGlyph": "Text und Symbol",
   "settings.labels.mode.glyph": "Symbol",

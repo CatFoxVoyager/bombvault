@@ -245,8 +245,7 @@ const eu: Partial<Translations> = {
   "run.colStarted": "Hasita",
   "run.colFinished": "Amaituta",
   "run.colContainer": "Edukiontzia",
-  "home.newBackup": "Babeskopia berria",
-  "home.newBackupConfirm": "Aktibatutako domeinu guztien babeskopia hastu orain? Edukiontiak banan-banan gelditu eta berrabiarazten dira beren babeskopia exekutatzen den bitartean. Leheneratzeak hurrengo exekuzioak gordetzen duena soilik gordetzen du.",
+  "home.newBackupConfirm": "Aktibatutako domeinu guztien babeskopia hasi orain? Edukiontziak banan-banan gelditu eta berrabiarazten dira beren babeskopia exekutatzen den bitartean.",
   "run.statVolume": "Datu-bolumena",
   "run.statSnapshot": "Snapshot",
 
@@ -703,6 +702,7 @@ const eu: Partial<Translations> = {
   "settings.labels.sidebar": "Alboko barra",
   "settings.labels.tabs": "Fitxak",
   "settings.labels.bottombar": "Beheko barra",
+  "settings.axisBottombarHint": "Telefonoaren diseinari bakarrik eragiten dio.",
   "settings.labels.mode.text": "Testua",
   "settings.labels.mode.textGlyph": "Testua eta ikurra",
   "settings.labels.mode.glyph": "Ikurra",

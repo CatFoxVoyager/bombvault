@@ -175,8 +175,7 @@ const zh: Partial<Translations> = {
   "run.colStarted": "开始时间",
   "run.colFinished": "完成时间",
   "run.colContainer": "容器",
-  "home.newBackup": "新建备份",
-  "home.newBackupConfirm": "立即开始备份所有已启用的域？容器会在备份运行期间逐个停止并重新启动。恢复只保留下一次运行所保存的内容。",
+  "home.newBackupConfirm": "立即开始备份所有已启用的域？容器会在备份运行期间逐个停止并重新启动。",
   "run.statVolume": "数据量",
   "run.statSnapshot": "快照",
 
@@ -250,6 +249,7 @@ const zh: Partial<Translations> = {
   "settings.labels.sidebar": "侧边栏",
   "settings.labels.tabs": "标签页",
   "settings.labels.bottombar": "底栏",
+  "settings.axisBottombarHint": "仅影响手机布局。",
   "settings.labels.mode.text": "文字",
   "settings.labels.mode.textGlyph": "文字和符号",
   "settings.labels.mode.glyph": "符号",

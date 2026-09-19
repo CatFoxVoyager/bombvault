@@ -175,8 +175,7 @@ const el: Partial<Translations> = {
   "run.colStarted": "Έναρξη",
   "run.colFinished": "Ολοκλήρωση",
   "run.colContainer": "Container",
-  "home.newBackup": "Νέο αντίγραφο ασφαλείας",
-  "home.newBackupConfirm": "Να ξεκινήσει τώρα αντίγραφο ασφαλείας για όλους τους ενεργούς τομείς; Τα containers σταματούν και επανεκκινούνται ένα τη φορά, όσο εκτελείται το αντίγραφό τους. Η επαναφορά κρατά μόνο όσα θα αποθηκεύσει η επόμενη εκτέλεση.",
+  "home.newBackupConfirm": "Να ξεκινήσει τώρα αντίγραφο ασφαλείας για όλους τους ενεργούς τομείς; Τα containers σταματούν και επανεκκινούνται ένα τη φορά, όσο εκτελείται το αντίγραφό τους.",
   "run.statVolume": "Όγκος δεδομένων",
   "run.statSnapshot": "Στιγμιότυπο",
 
@@ -250,6 +249,7 @@ const el: Partial<Translations> = {
   "settings.labels.sidebar": "Πλαϊνή μπάρα",
   "settings.labels.tabs": "Καρτέλες",
   "settings.labels.bottombar": "Κάτω μπάρα",
+  "settings.axisBottombarHint": "Ισχύει μόνο για τη διάταξη του τηλεφώνου.",
   "settings.labels.mode.text": "Κείμενο",
   "settings.labels.mode.textGlyph": "Κείμενο και σύμβολο",
   "settings.labels.mode.glyph": "Σύμβολο",

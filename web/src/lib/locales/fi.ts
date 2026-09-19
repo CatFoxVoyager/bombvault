@@ -175,8 +175,7 @@ const fi: Partial<Translations> = {
   "run.colStarted": "Aloitettu",
   "run.colFinished": "Valmis",
   "run.colContainer": "Kontti",
-  "home.newBackup": "Uusi varmuuskopio",
-  "home.newBackupConfirm": "Aloita varmuuskopio kaikista käytössä olevista alueista nyt? Kontit pysäytetään ja käynnistetään uudelleen yksi kerrallaan niiden varmuuskopion aikana. Palautus säilyttää vain sen, mitä seuraava ajo tallentaa.",
+  "home.newBackupConfirm": "Aloita varmuuskopio kaikista käytössä olevista alueista nyt? Kontit pysäytetään ja käynnistetään uudelleen yksi kerrallaan niiden varmuuskopion aikana.",
   "run.statVolume": "Datamäärä",
   "run.statSnapshot": "Snapshot",
 
@@ -250,6 +249,7 @@ const fi: Partial<Translations> = {
   "settings.labels.sidebar": "Sivupalkki",
   "settings.labels.tabs": "Välilehdet",
   "settings.labels.bottombar": "Alapalkki",
+  "settings.axisBottombarHint": "Koskee vain puhelinasettelua.",
   "settings.labels.mode.text": "Teksti",
   "settings.labels.mode.textGlyph": "Teksti ja symboli",
   "settings.labels.mode.glyph": "Symboli",

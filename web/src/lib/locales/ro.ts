@@ -174,8 +174,7 @@ const ro: Partial<Translations> = {
   "run.colStarted": "Început",
   "run.colFinished": "Terminat",
   "run.colContainer": "Container",
-  "home.newBackup": "Copie de siguranță nouă",
-  "home.newBackupConfirm": "Începi acum o copie de siguranță a tuturor domeniilor activate? Containerele sunt oprite și repornite pe rând, în timp ce rulează copia lor de siguranță. Restaurarea păstrează doar ce va salva următoarea rulare.",
+  "home.newBackupConfirm": "Începi acum o copie de siguranță a tuturor domeniilor activate? Containerele sunt oprite și repornite pe rând, în timp ce rulează copia lor de siguranță.",
   "run.statVolume": "Volum de date",
   "run.statSnapshot": "Instantaneu",
 
@@ -247,6 +246,7 @@ const ro: Partial<Translations> = {
   "settings.labels.sidebar": "Bară laterală",
   "settings.labels.tabs": "File",
   "settings.labels.bottombar": "Bară inferioară",
+  "settings.axisBottombarHint": "Se aplică doar aspectului de telefon.",
   "settings.labels.mode.text": "Text",
   "settings.labels.mode.textGlyph": "Text și simbol",
   "settings.labels.mode.glyph": "Simbol",

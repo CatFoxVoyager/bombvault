@@ -245,8 +245,7 @@ const bg: Partial<Translations> = {
   "run.colStarted": "Започнато",
   "run.colFinished": "Завършено",
   "run.colContainer": "Контейнер",
-  "home.newBackup": "Ново резервно копие",
-  "home.newBackupConfirm": "Да започна ли резервно копие на всички активирани области сега? Контейнерите се спират и рестартират един по един, докато върви тяхното резервно копие. Възстановяването запазва само това, което следващото изпълнение запази.",
+  "home.newBackupConfirm": "Да започна ли резервно копие на всички активирани области сега? Контейнерите се спират и рестартират един по един, докато върви тяхното резервно копие.",
   "run.statVolume": "Обем данни",
   "run.statSnapshot": "Снимка",
 
@@ -703,6 +702,7 @@ const bg: Partial<Translations> = {
   "settings.labels.sidebar": "Странична лента",
   "settings.labels.tabs": "Раздели",
   "settings.labels.bottombar": "Долна лента",
+  "settings.axisBottombarHint": "Отнася се само за оформлението на телефона.",
   "settings.labels.mode.text": "Текст",
   "settings.labels.mode.textGlyph": "Текст и символ",
   "settings.labels.mode.glyph": "Символ",

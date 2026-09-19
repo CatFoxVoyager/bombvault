@@ -245,10 +245,9 @@ const sr: Partial<Translations> = {
   "run.colStarted": "Почето",
   "run.colFinished": "Завршено",
   "run.colContainer": "Контејнер",
-  "home.newBackup": "Нова резервна копија",
-  "home.newBackupConfirm": "Започнути сада резервну копију свих укључених области? Контејнери се заустављају и поново покрећу један по један док траје њихова резервна копија. Обнова чува само оно што ће следећи покретач сачувати.",
-  "run.statVolume": "Volumen podataka",
-  "run.statSnapshot": "Snimak",
+  "home.newBackupConfirm": "Започнути сада резервну копију свих укључених области? Контејнери се заустављају и поново покрећу један по један док траје њихова резервна копија.",
+  "run.statVolume": "Волумен података",
+  "run.statSnapshot": "Снимак",
 
   // Settings
   "settings.title": "Подешавања",
@@ -701,6 +700,7 @@ const sr: Partial<Translations> = {
   "settings.labels.sidebar": "Бочна трака",
   "settings.labels.tabs": "Картице",
   "settings.labels.bottombar": "Доња трака",
+  "settings.axisBottombarHint": "Односи се само на распоред на телефону.",
   "settings.labels.mode.text": "Текст",
   "settings.labels.mode.textGlyph": "Текст и симбол",
   "settings.labels.mode.glyph": "Симбол",

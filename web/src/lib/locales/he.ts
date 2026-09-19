@@ -175,8 +175,7 @@ const he: Partial<Translations> = {
   "run.colStarted": "התחיל",
   "run.colFinished": "הסתיים",
   "run.colContainer": "Container",
-  "home.newBackup": "גיבוי חדש",
-  "home.newBackupConfirm": "להתחיל גיבוי של כל התחומים המופעלים עכשיו? הקונטיינרים נעצרים ומופעלים מחדש אחד בכל פעם בזמן שהגיבוי שלהם רץ. השחזור שומר רק את מה שהריצה הבאה תשמור.",
+  "home.newBackupConfirm": "להתחיל גיבוי של כל התחומים המופעלים עכשיו? הקונטיינרים נעצרים ומופעלים מחדש אחד בכל פעם בזמן שהגיבוי שלהם רץ.",
   "run.statVolume": "נפח נתונים",
   "run.statSnapshot": "תמונת מצב",
 
@@ -250,6 +249,7 @@ const he: Partial<Translations> = {
   "settings.labels.sidebar": "סרגל צד",
   "settings.labels.tabs": "לשוניות",
   "settings.labels.bottombar": "סרגל תחתון",
+  "settings.axisBottombarHint": "משפיע על פריסת הטלפון בלבד.",
   "settings.labels.mode.text": "טקסט",
   "settings.labels.mode.textGlyph": "טקסט וסמל",
   "settings.labels.mode.glyph": "סמל",

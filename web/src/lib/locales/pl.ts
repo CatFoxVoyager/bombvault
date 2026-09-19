@@ -173,8 +173,7 @@ const pl: Partial<Translations> = {
   "run.colStarted": "Uruchomiono",
   "run.colFinished": "Zakończono",
   "run.colContainer": "Kontener",
-  "home.newBackup": "Nowa kopia zapasowa",
-  "home.newBackupConfirm": "Rozpocząć teraz kopię zapasową wszystkich włączonych obszarów? Kontenery są zatrzymywane i ponownie uruchamiane pojedynczo, podczas gdy ich kopia zapasowa działa. Przywracanie zachowa tylko to, co zapisze następne uruchomienie.",
+  "home.newBackupConfirm": "Rozpocząć teraz kopię zapasową wszystkich włączonych obszarów? Kontenery są zatrzymywane i ponownie uruchamiane pojedynczo, podczas gdy ich kopia zapasowa działa.",
   "run.statVolume": "Ilość danych",
   "run.statSnapshot": "Migawka",
 
@@ -245,6 +244,7 @@ const pl: Partial<Translations> = {
   "settings.labels.sidebar": "Panel boczny",
   "settings.labels.tabs": "Karty",
   "settings.labels.bottombar": "Panel dolny",
+  "settings.axisBottombarHint": "Dotyczy tylko układu telefonu.",
   "settings.labels.mode.text": "Tekst",
   "settings.labels.mode.textGlyph": "Tekst i symbol",
   "settings.labels.mode.glyph": "Symbol",

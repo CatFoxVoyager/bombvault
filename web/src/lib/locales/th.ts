@@ -175,8 +175,7 @@ const th: Partial<Translations> = {
   "run.colStarted": "เริ่มต้น",
   "run.colFinished": "เสร็จสิ้น",
   "run.colContainer": "Container",
-  "home.newBackup": "สำรองข้อมูลใหม่",
-  "home.newBackupConfirm": "เริ่มสำรองข้อมูลทุกโดเมนที่เปิดใช้งานตอนนี้หรือไม่? คอนเทนเนอร์จะหยุดและเริ่มใหม่ทีละตัวระหว่างการสำรองข้อมูลของตน การกู้คืนจะเก็บเฉพาะสิ่งที่รอบถัดไปบันทึก",
+  "home.newBackupConfirm": "เริ่มสำรองข้อมูลทุกโดเมนที่เปิดใช้งานตอนนี้หรือไม่? คอนเทนเนอร์จะหยุดและเริ่มใหม่ทีละตัวระหว่างการสำรองข้อมูลของตน",
   "run.statVolume": "ปริมาณข้อมูล",
   "run.statSnapshot": "สแนปช็อต",
 
@@ -250,6 +249,7 @@ const th: Partial<Translations> = {
   "settings.labels.sidebar": "แถบด้านข้าง",
   "settings.labels.tabs": "แท็บ",
   "settings.labels.bottombar": "แถบด้านล่าง",
+  "settings.axisBottombarHint": "มีผลเฉพาะกับเลย์เอาต์โทรศัพท์เท่านั้น",
   "settings.labels.mode.text": "ข้อความ",
   "settings.labels.mode.textGlyph": "ข้อความและสัญลักษณ์",
   "settings.labels.mode.glyph": "สัญลักษณ์",

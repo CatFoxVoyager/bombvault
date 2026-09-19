@@ -175,8 +175,7 @@ const fr: Partial<Translations> = {
   "run.colStarted": "Démarré",
   "run.colFinished": "Terminé",
   "run.colContainer": "Conteneur",
-  "home.newBackup": "Nouvelle sauvegarde",
-  "home.newBackupConfirm": "Lancer une sauvegarde de tous les domaines activés maintenant ? Les conteneurs sont arrêtés puis redémarrés un à un, pendant leur sauvegarde. La restauration ne conserve que ce que la prochaine exécution sauvegardera.",
+  "home.newBackupConfirm": "Lancer une sauvegarde de tous les domaines activés maintenant ? Les conteneurs sont arrêtés puis redémarrés un à un, pendant leur sauvegarde.",
   "run.statVolume": "Volume de données",
   "run.statSnapshot": "Instantané",
 
@@ -250,6 +249,7 @@ const fr: Partial<Translations> = {
   "settings.labels.sidebar": "Barre latérale",
   "settings.labels.tabs": "Onglets",
   "settings.labels.bottombar": "Barre inférieure",
+  "settings.axisBottombarHint": "Concerne uniquement la mise en page du téléphone.",
   "settings.labels.mode.text": "Texte",
   "settings.labels.mode.textGlyph": "Texte et symbole",
   "settings.labels.mode.glyph": "Symbole",

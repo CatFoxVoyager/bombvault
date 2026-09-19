@@ -174,8 +174,7 @@ const no: Partial<Translations> = {
   "run.colStarted": "Startet",
   "run.colFinished": "Fullført",
   "run.colContainer": "Kontainer",
-  "home.newBackup": "Ny sikkerhetskopi",
-  "home.newBackupConfirm": "Start en sikkerhetskopi av alle aktiverte domener nå? Containere stoppes og startes på nytt én om gangen mens sikkerhetskopien deres kjører. Gjenoppretting beholder bare det den neste kjøringen lagrer.",
+  "home.newBackupConfirm": "Start en sikkerhetskopi av alle aktiverte domener nå? Containere stoppes og startes på nytt én om gangen mens sikkerhetskopien deres kjører.",
   "run.statVolume": "Datamengde",
   "run.statSnapshot": "Snapshot",
 
@@ -247,6 +246,7 @@ const no: Partial<Translations> = {
   "settings.labels.sidebar": "Sidefelt",
   "settings.labels.tabs": "Faner",
   "settings.labels.bottombar": "Bunnfelt",
+  "settings.axisBottombarHint": "Påvirker kun telefonlayouten.",
   "settings.labels.mode.text": "Tekst",
   "settings.labels.mode.textGlyph": "Tekst og symbol",
   "settings.labels.mode.glyph": "Symbol",
