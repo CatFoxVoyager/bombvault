@@ -1,14 +1,7 @@
-// ---------------------------------------------------------------------------
-// Vitest config — pure-logic tests by default (node environment, no DOM
-// library). Test files live next to their subject as src/**/*.test.ts; they
-// are excluded from the tsc program (see tsconfig.json "exclude") — esbuild
-// transpiles them for the test run.
-//
-// src/**/*.test.tsx is the deliberate exception: a component that needs a
-// real DOM (e.g. clicking a button and asserting which API call it made) opts
-// into jsdom via a per-file `// @vitest-environment jsdom` docblock at the top
-// of that test file — the default stays "node" for every plain .test.ts file.
-// ---------------------------------------------------------------------------
+// Tests run in the node environment by default. A test that needs a real DOM
+// opts into jsdom with a `// @vitest-environment jsdom` docblock at the top of
+// its file. Test files are excluded from the tsc program (tsconfig.json) and
+// transpiled by esbuild for the run.
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
