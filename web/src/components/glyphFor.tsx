@@ -58,14 +58,14 @@ const RULES: Rule[] = [
   [/replicate|sync|refreshStatus|pollNow/i, () => <IconSync />],
 
   // Destructive and corrective actions.
-  [/\.(delete|remove)|removeExclusion|assistRemove|forget/i, () => <IconTrash />],
+  [/\.(delete|remove)|confirmRemove|removeExclusion|assistRemove|forget/i, () => <IconTrash />],
   [/prune|reclaim/i, () => <IconPrune />],
   [/unlock/i, () => <IconUnlock />],
 
   // Creation and editing.
   [/\.add|addSet|addPreset|addTarget|addTag|credSets\.add|registryAdd|passkeyAdd|passkeyCreate/i, () => <IconAdd />],
   [/edit|rename|editSet/i, () => <IconPencil />],
-  [/save|apply|confirm(?!Password)/i, () => <IconSave />],
+  [/save|apply/i, () => <IconSave />],
 
   // Selection. "Exclude all" and "Include all" are clear and select all under
   // other names.
@@ -82,9 +82,9 @@ const RULES: Rule[] = [
   // connects first and previews after, gets the link.
   [/connect|pair|link|reconnect/i, () => <IconLink />],
 
-  // Probing and inspection. "accept" and "resolveAll" agree to what is on
-  // screen, so they take the same check.
-  [/test|verify|check|drill|appendOnly|tamper|accept|approve|resolveAll|\.stored$/i, () => <IconCheckCircle />],
+  // Probing and inspection. "accept", "confirm" and "resolveAll" agree to what
+  // is on screen, so they take the same check.
+  [/test|verify|check|drill|appendOnly|tamper|accept|approve|confirm(?!Password)|resolveAll|\.stored$/i, () => <IconCheckCircle />],
   [/scan|discover|browse|search/i, () => <IconSearch />],
   [/show|reveal|preview|view/i, () => <IconEye />],
   [/hint|info|explain|examples/i, () => <IconInfo />],

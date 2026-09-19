@@ -76,9 +76,7 @@ export function BackupButton({ name, t, onBackedUp, running }: BackupButtonProps
       // Without storage (private window, blocked site data) it asks every time.
     }
     if (!acked) {
-      const ok = await confirm(t("containers.stopWarning"), {
-        confirmLabel: t("containers.backupNow"),
-      });
+      const ok = await confirm(t("containers.stopWarning"), { confirmKey: "containers.backupNow" });
       if (!ok) return;
       try {
         localStorage.setItem(STOP_ACK_KEY, "1");

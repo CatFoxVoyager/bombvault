@@ -4,7 +4,7 @@
 // not know. Only a component test sees how a prop reaches an API call, hence
 // jsdom.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, cleanup, within } from "@testing-library/react";
 import { VMRow } from "./VMs";
 import type { VM } from "../lib/api";
 
@@ -168,7 +168,7 @@ describe("VMRow when the VM is no longer defined", () => {
     expect(screen.queryByRole("button", { name: "containers.deleteBackups" })).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "vms.removeEntry" }));
-    fireEvent.click(await screen.findByRole("button", { name: en["common.confirm"] }));
+    fireEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: en["vms.removeEntry"] }));
 
     await waitFor(() => expect(forgetVM).toHaveBeenCalledWith(orphan.libvirtName));
     expect(deleteBackupsVM).not.toHaveBeenCalled();
@@ -179,7 +179,7 @@ describe("VMRow when the VM is no longer defined", () => {
     expect(screen.queryByRole("button", { name: "vms.removeEntry" })).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "containers.deleteBackups" }));
-    fireEvent.click(await screen.findByRole("button", { name: en["common.confirm"] }));
+    fireEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: en["containers.deleteBackups"] }));
 
     await waitFor(() => expect(deleteBackupsVM).toHaveBeenCalledWith(orphan.libvirtName, "local"));
     expect(forgetVM).not.toHaveBeenCalled();

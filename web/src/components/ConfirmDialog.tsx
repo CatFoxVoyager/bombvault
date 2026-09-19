@@ -1,6 +1,8 @@
 // ConfirmDialog is the app's styled replacement for window.confirm(): a modal
 // card with a header, a scrolling message and a Cancel/Confirm footer. The
-// backdrop, the header close button and Cancel all call onCancel.
+// backdrop and Cancel both call onCancel. The header carries no close button,
+// because the footer already answers and two ways to cancel read as a choice
+// between two answers.
 //
 // It is a pure component, so tests can call it without a DOM. The stateful
 // half (request queue, promise, portal, Escape, focus trap and focus return)
@@ -9,7 +11,6 @@
 import type { ReactNode, Ref } from "react";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
-import { IconClose } from "./Sidebar";
 import { IconCancel } from "./glyphs";
 
 export interface ConfirmDialogProps {
@@ -22,11 +23,6 @@ export interface ConfirmDialogProps {
    *  a glyph. A composed or data label has none. */
   confirmLabelKey?: string;
   cancelLabel: string;
-  /** Accessible name of the header close button, separate from cancelLabel
-   *  so the two controls are not announced alike. Leave it out to draw no
-   *  close button, since two controls that both cancel read as a choice
-   *  between two answers. */
-  closeLabel?: string;
   /** Glyph for a confirm label that has no translation key to pick one
    *  from. Wins over `confirmLabelKey`. */
   confirmGlyph?: ReactNode;
@@ -44,7 +40,6 @@ export function ConfirmDialog({
   confirmLabel,
   confirmLabelKey,
   cancelLabel,
-  closeLabel,
   confirmGlyph,
   extra,
   onConfirm,
@@ -66,23 +61,13 @@ export function ConfirmDialog({
         aria-describedby="confirmdialog-message"
         className="glim-modal-card relative flex max-h-[85vh] w-full max-w-md flex-col rounded-card bg-carbon-surface shadow-2xl"
       >
-        <div className="flex items-start justify-between gap-4 px-5 py-4">
+        <div className="flex items-start px-5 py-4">
           {/* The heading Badge overlaps the card's top edge. It is positioned
               against the outer card, which has no overflow of its own, so it
               is not clipped; see Badge.tsx. */}
           <h2 id="confirmdialog-title" className="flex items-center">
             <Badge tone="heading" size="heading" wrap>{title}</Badge>
           </h2>
-          {closeLabel !== undefined && (
-            <Button
-              label={closeLabel}
-              labelKey="common.close"
-              glyph={<IconClose />}
-              tone="neutral"
-              onClick={onCancel}
-              className="shrink-0"
-            />
-          )}
         </div>
 
         {/* The message is also the dialog's accessible description, so the
@@ -101,7 +86,7 @@ export function ConfirmDialog({
             label={cancelLabel}
             labelKey="common.cancel"
             glyph={<IconCancel />}
-            tone="neutral"
+            tone="accent"
             autoFocus
             onClick={onCancel}
           />
@@ -113,7 +98,7 @@ export function ConfirmDialog({
             // overwrite), so there is no fixed key.
             labelKey={confirmLabelKey ?? null}
             glyph={confirmGlyph}
-            tone="neutral"
+            tone="accent"
             onClick={onConfirm}
           />
         </div>

@@ -487,7 +487,7 @@ function FileSetSnapshotRow({
   const [shake, setShake] = useState(0);
 
   async function handleDelete() {
-    if (!(await confirm(t("snapshots.deleteConfirm")))) return;
+    if (!(await confirm(t("snapshots.deleteConfirm"), { confirmKey: "snapshots.delete" }))) return;
     setDeleting(true);
     try {
       const res = await deleteSnapshot("files", snap.id, source);
@@ -602,7 +602,7 @@ function FileSetRestorePanel({
     // TODO: name the stake in the confirm ("N snapshots, X GB"); this one
     // deletes every backup the set has. OrphanRemoveButton.tsx and VMs.tsx
     // need the same.
-    if (!(await confirm(t("files.deleteBackupsConfirm")))) return;
+    if (!(await confirm(t("files.deleteBackupsConfirm"), { confirmKey: "snapshots.deleteAll" }))) return;
     setDeletingAll(true);
     deleteFileSetBackups(set.id)
       .then((res) => {
@@ -1155,7 +1155,7 @@ export function FileSetRow({
   const pathMissing = !noPath && !set.pathExists;
 
   async function handleRemove() {
-    if (!(await confirm(t("files.deleteSetConfirm")))) return;
+    if (!(await confirm(t("files.deleteSetConfirm"), { confirmKey: "common.delete" }))) return;
     setRemoving(true);
     try {
       const res = await deleteFileSet(set.id);

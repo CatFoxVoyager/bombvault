@@ -383,7 +383,7 @@ function VMSnapshotRow({
   const { confirm, confirmDialog } = useConfirm();
 
   async function handleDelete() {
-    if (!(await confirm(t("snapshots.deleteConfirm")))) return;
+    if (!(await confirm(t("snapshots.deleteConfirm"), { confirmKey: "snapshots.delete" }))) return;
     setDeleting(true);
     try {
       const res = await deleteSnapshot("vms", snap.id, source);
@@ -505,7 +505,7 @@ function VMRestorePanel({
   // clears `error` again straight away.
   async function handleDeleteAll() {
     // TODO: name the stake in the confirmation ("N snapshots, X GB").
-    if (!(await confirm(t("snapshots.deleteAllConfirm")))) return;
+    if (!(await confirm(t("snapshots.deleteAllConfirm"), { confirmKey: "snapshots.deleteAll" }))) return;
     setDeletingAll(true);
     deleteBackupsVM(name, source)
       .then((res) => {

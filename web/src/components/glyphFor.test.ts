@@ -24,6 +24,12 @@ describe("glyphFor", () => {
     expect(glyphFor("integrity.unlock")).not.toEqual(glyphFor("cloud.credSets.add"));
   });
 
+  it("gives a confirmation the symbol of what it confirms", () => {
+    expect(glyphFor("fleet.confirmRemove")).toEqual(glyphFor("fleet.remove"));
+    expect(glyphFor("common.confirm")).toEqual(glyphFor("fleet.mesh.accept"));
+    expect(glyphFor("common.confirm")).not.toEqual(glyphFor("common.save"));
+  });
+
   it("returns undefined rather than a meaningless symbol", () => {
     // A key nothing sensible matches keeps its text in glyph mode, which is
     // the better failure: a wrong symbol is worse than a word.

@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ConfirmDialog } from "../components/ConfirmDialog";
-import { useT } from "./i18n";
+import { useT, type TranslationKey } from "./i18n";
 
 // useConfirm replaces window.confirm() with ConfirmDialog. It keeps the
 // one-string-in, boolean-out shape, only async:
 //
 //   const { confirm, confirmDialog } = useConfirm();
-//   if (!(await confirm(t("x.deleteConfirm")))) return;
+//   if (!(await confirm(t("x.deleteConfirm"), { confirmKey: "x.delete" }))) return;
 //   return (<>... {confirmDialog}</>);
 //
 // The hook owns everything that needs `document` or hooks, so ConfirmDialog
@@ -18,7 +18,9 @@ import { useT } from "./i18n";
 // One pending request per instance is enough: the dialog is modal, so a second
 // confirm() cannot be triggered while one is open.
 export interface ConfirmOptions {
-  confirmLabel?: string;
+  /** The key of the button that asked, so the answer repeats its words and
+   *  glyph ("Delete") rather than a bare "Confirm". */
+  confirmKey?: TranslationKey;
   cancelLabel?: string;
 }
 
@@ -100,9 +102,9 @@ export function useConfirm() {
           ref={dialogRef}
           title={t("confirmDialog.title")}
           message={pending.message}
-          confirmLabel={pending.confirmLabel ?? t("common.confirm")}
+          confirmLabel={t(pending.confirmKey ?? "common.confirm")}
+          confirmLabelKey={pending.confirmKey ?? "common.confirm"}
           cancelLabel={pending.cancelLabel ?? t("common.cancel")}
-          closeLabel={t("common.close")}
           onConfirm={() => settle(true)}
           onCancel={() => settle(false)}
         />,

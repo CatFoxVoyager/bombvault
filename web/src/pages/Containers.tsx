@@ -812,9 +812,8 @@ export function FoldersEditor({
   // persisted: no server-side include-count history exists to restore it
   // from, and reopening the section re-derives truth from the served state.
   const [narrowed, setNarrowed] = useState(false);
-  // D-05 reset confirm — fail tone with both consequences named in the
-  // message itself (ConfirmDialog's own precedent: the dialog carries the
-  // destructive weight, the trigger stays neutral).
+  // The reset confirm names both consequences in its message, so the dialog
+  // carries the weight and the trigger stays neutral.
   const { confirm, confirmDialog } = useConfirm();
 
   // Closing the section clears the note: the editor session it belongs to is

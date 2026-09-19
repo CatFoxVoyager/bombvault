@@ -4,8 +4,9 @@
  * a browser starts warns about it; later ones must not, or the warning gets
  * clicked away unread.
  */
-import { render, screen, cleanup, waitFor, fireEvent, act } from "@testing-library/react";
+import { render, screen, cleanup, waitFor, fireEvent, act, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { en } from "../lib/i18n";
 
 const backupNow = vi.fn(async () => ({ ok: true }));
 vi.mock("../lib/api", () => ({ backupNow: (...a: unknown[]) => backupNow(...a) }));
@@ -38,25 +39,19 @@ describe("BackupButton stop warning", () => {
   it("runs the backup once the warning is accepted", async () => {
     render(<BackupButton name="plex" t={t} onBackedUp={() => {}} />);
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: /backupNow/i })); });
-    await screen.findByText("containers.stopWarning");
-    const confirm = screen
-      .getAllByRole("button")
-      .find((b) => b.textContent?.includes("containers.backupNow") && b.closest("[role=dialog]"));
-    await act(async () => { fireEvent.click(confirm!); });
+    // The dialog translates its own labels, and its commit repeats the trigger.
+    const dialog = await screen.findByRole("dialog");
+    const confirm = within(dialog).getByRole("button", { name: en["containers.backupNow"] });
+    await act(async () => { fireEvent.click(confirm); });
     await waitFor(() => expect(fire).toHaveBeenCalledTimes(1));
   });
 
   it("does not run it when the warning is declined", async () => {
     render(<BackupButton name="plex" t={t} onBackedUp={() => {}} />);
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: /backupNow/i })); });
-    await screen.findByText("containers.stopWarning");
-    // The dialog translates its own cancel label, so pick the dialog button
-    // that is not the confirm button.
-    const cancel = screen
-      .getAllByRole("button")
-      .filter((b) => b.closest("[role=dialog]"))
-      .find((b) => !b.textContent?.includes("containers.backupNow"));
-    await act(async () => { fireEvent.click(cancel!); });
+    const dialog = await screen.findByRole("dialog");
+    const cancel = within(dialog).getByRole("button", { name: en["common.cancel"] });
+    await act(async () => { fireEvent.click(cancel); });
     await waitFor(() => expect(fire).not.toHaveBeenCalled());
   });
 

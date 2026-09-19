@@ -44,7 +44,7 @@ ruleTester.run("icon-badge-needs-tooltip", rules["icon-badge-needs-tooltip"], {
     // components/Toggle.tsx: an icon-only switch with an aria-label and no
     // tooltip, because its visible label sits beside it.
     `<button type="button" role="switch" aria-checked={checked} aria-label={label} onClick={f}><span className="knob" /></button>`,
-    // The aria-labelled close X of Toast, ConfirmDialog and WhatsNewDialog.
+    // An aria-labelled close X, as on Toast's dismiss button.
     `<button type="button" onClick={onClose} aria-label={t("common.close")}><svg /></button>`,
     // The disclosure chevron in components/SnapshotFileTree.tsx.
     `<button onClick={toggle} aria-label={expanded ? "collapse" : "expand"}><svg /></button>`,
