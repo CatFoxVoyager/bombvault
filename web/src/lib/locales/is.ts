@@ -1262,7 +1262,6 @@ const is: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Endurheimt",
-  "recovery.pageTitle": "Neyðarendurheimt",
   "recovery.intro": "Endurheimtu gáma og sýndarvélar úr fyrirliggjandi afriti á þessari uppsetningu.",
   // Step 1
   "recovery.step1": "Getur BombVault lesið afritin þín?",

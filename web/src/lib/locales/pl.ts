@@ -712,7 +712,6 @@ const pl: Partial<Translations> = {
   "recovery.stored": "Bezpiecznie zapisałem",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "Odzyskiwanie po awarii",
   "recovery.intro": "Odzyskaj swoje kontenery i maszyny wirtualne z istniejącej kopii zapasowej na tę instalację.",
   "recovery.step1": "Czy BombVault może odczytać Twoje kopie zapasowe?",
   "recovery.appKeyExplain": "Aby odczytać istniejące kopie zapasowe, ten kontener potrzebuje TEGO SAMEGO APP_KEY, którego używał wcześniej. Znajdziesz go w swoim zestawie odzyskiwania. Ustaw go w szablonie kontenera Unraid, jeśli jeszcze go nie ma, a następnie sprawdź ponownie.",

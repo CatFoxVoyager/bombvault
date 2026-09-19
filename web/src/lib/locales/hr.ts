@@ -1262,7 +1262,6 @@ const hr: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Oporavak",
-  "recovery.pageTitle": "Oporavak od katastrofe",
   "recovery.intro": "Vratite svoje kontejnere i VM-ove iz postojeće sigurnosne kopije na ovu instalaciju.",
   // Step 1
   "recovery.step1": "Može li BombVault pročitati vaše sigurnosne kopije?",

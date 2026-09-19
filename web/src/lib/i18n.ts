@@ -1556,11 +1556,9 @@ export const en = {
   "vm.ssh.copyCmd": "Copy command",
   "vm.ssh.guide": "Full setup & networking guide",
 
-  // Guided Recovery tab (disaster-recovery walkthrough) — note: the `recovery.*`
-  // prefix above is the encryption *kit*; the page title uses `recovery.pageTitle`
-  // to avoid colliding with the existing `recovery.title` ("Recovery kit").
+  // Guided Recovery tab. The `recovery.*` keys above belong to the encryption
+  // kit; the page heading reads `nav.recovery`, the same word as the sidebar.
   "nav.recovery": "Recovery",
-  "recovery.pageTitle": "Disaster recovery",
   "recovery.intro": "Recover your containers and VMs from an existing backup onto this install.",
   // Step 1 — connection / APP_KEY readability check
   "recovery.step1": "Can BombVault read your backups?",
@@ -3269,7 +3267,6 @@ export const de: Translations = {
 
   // Guided Recovery tab (disaster-recovery walkthrough)
   "nav.recovery": "Wiederherstellung",
-  "recovery.pageTitle": "Notfall-Wiederherstellung",
   "recovery.intro": "Stelle deine Container und VMs aus einem vorhandenen Backup auf dieser Installation wieder her.",
   // Schritt 1 — Verbindungs-/APP_KEY-Lesbarkeitsprüfung
   "recovery.step1": "Kann BombVault deine Backups lesen?",

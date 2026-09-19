@@ -1262,7 +1262,6 @@ const sk: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Obnova",
-  "recovery.pageTitle": "Obnova po havárii",
   "recovery.intro": "Obnovte svoje kontajnery a VM z existujúcej zálohy na tejto inštalácii.",
   // Step 1
   "recovery.step1": "Dokáže BombVault prečítať vaše zálohy?",

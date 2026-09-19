@@ -712,7 +712,6 @@ const ja: Partial<Translations> = {
   "recovery.stored": "安全に保管しました",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "災害復旧",
   "recovery.intro": "既存のバックアップからコンテナと VM をこのインストールに復元します。",
   "recovery.step1": "BombVault はバックアップを読み取れますか？",
   "recovery.appKeyExplain": "既存のバックアップを読み取るには、このコンテナに以前と同じ APP_KEY が必要です。リカバリーキットに記載されています。まだ設定していなければ Unraid のコンテナテンプレートで設定し、再確認してください。",

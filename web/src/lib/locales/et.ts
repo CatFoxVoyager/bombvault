@@ -1262,7 +1262,6 @@ const et: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Taastamine",
-  "recovery.pageTitle": "Õnnetusjärgne taastamine",
   "recovery.intro": "Taasta oma konteinerid ja VM-id olemasolevast varundusest sellele paigaldusele.",
   // Step 1
   "recovery.step1": "Kas BombVault suudab su varundusi lugeda?",

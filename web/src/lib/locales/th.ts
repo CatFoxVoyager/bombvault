@@ -723,7 +723,6 @@ const th: Partial<Translations> = {
   "recovery.stored": "ฉันเก็บไว้อย่างปลอดภัยแล้ว",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "การกู้คืนจากภัยพิบัติ",
   "recovery.intro": "กู้คืนคอนเทนเนอร์และ VMs ของคุณจากการสำรองข้อมูลที่มีอยู่มายังการติดตั้งนี้",
   "recovery.step1": "BombVault อ่านการสำรองข้อมูลของคุณได้หรือไม่?",
   "recovery.appKeyExplain": "ในการอ่านการสำรองข้อมูลที่มีอยู่ คอนเทนเนอร์นี้ต้องใช้ APP_KEY เดิมที่เคยใช้ ซึ่งอยู่ในชุดกู้คืนของคุณ ตั้งค่าใน container template ของ Unraid หากยังไม่ได้ตั้ง แล้วตรวจสอบอีกครั้ง",

@@ -1262,7 +1262,6 @@ const id: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Pemulihan",
-  "recovery.pageTitle": "Pemulihan bencana",
   "recovery.intro": "Pulihkan container dan VM Anda dari cadangan yang sudah ada ke instalasi ini.",
   // Step 1
   "recovery.step1": "Bisakah BombVault membaca cadangan Anda?",

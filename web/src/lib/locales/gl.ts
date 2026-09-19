@@ -1262,7 +1262,6 @@ const gl: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Recuperación",
-  "recovery.pageTitle": "Recuperación de desastres",
   "recovery.intro": "Restaura os teus contedores e MV a partir dunha copia existente nesta instalación.",
   // Step 1
   "recovery.step1": "Pode BombVault ler as túas copias?",

@@ -720,7 +720,6 @@ const el: Partial<Translations> = {
   "recovery.stored": "Το αποθήκευσα με ασφάλεια",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "Ανάκτηση από καταστροφή",
   "recovery.intro": "Ανακτήστε τα containers και τα VMs σας από ένα υπάρχον αντίγραφο ασφαλείας σε αυτή την εγκατάσταση.",
   "recovery.step1": "Μπορεί το BombVault να διαβάσει τα αντίγραφά σας;",
   "recovery.appKeyExplain": "Για να διαβάσει υπάρχοντα αντίγραφα, αυτό το container χρειάζεται το ΙΔΙΟ APP_KEY που χρησιμοποιούσε πριν. Βρίσκεται στο κιτ ανάκτησής σας. Ορίστε το στο πρότυπο container του Unraid αν δεν έχει ήδη οριστεί και μετά ελέγξτε ξανά.",

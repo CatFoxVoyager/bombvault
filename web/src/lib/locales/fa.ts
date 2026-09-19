@@ -1262,7 +1262,6 @@ const fa: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "بازیابی",
-  "recovery.pageTitle": "بازیابی از فاجعه",
   "recovery.intro": "کانتینرها و ماشین‌های مجازی خود را از یک پشتیبان موجود روی این نصب بازیابی کنید.",
   // Step 1
   "recovery.step1": "آیا BombVault می‌تواند پشتیبان‌های شما را بخواند؟",

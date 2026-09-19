@@ -1262,7 +1262,6 @@ const hi: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "रिकवरी",
-  "recovery.pageTitle": "डिज़ास्टर रिकवरी",
   "recovery.intro": "इस इंस्टॉलेशन पर मौजूद बैकअप से अपने कंटेनर और VM रिकवर करें।",
   // Step 1
   "recovery.step1": "क्या BombVault आपके बैकअप पढ़ सकता है?",

@@ -720,7 +720,6 @@ const sv: Partial<Translations> = {
   "recovery.stored": "Jag har förvarat det säkert",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "Katastrofåterställning",
   "recovery.intro": "Återställ dina containrar och VMs från en befintlig säkerhetskopia till den här installationen.",
   "recovery.step1": "Kan BombVault läsa dina säkerhetskopior?",
   "recovery.appKeyExplain": "För att läsa befintliga säkerhetskopior behöver den här containern SAMMA APP_KEY som den använde tidigare. Den finns i ditt återställningskit. Ange den i Unraid-containermallen om den inte redan är satt, och kontrollera sedan igen.",

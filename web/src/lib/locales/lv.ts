@@ -1262,7 +1262,6 @@ const lv: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Atkopšana",
-  "recovery.pageTitle": "Katastrofu atkopšana",
   "recovery.intro": "Atjaunojiet konteinerus un VM no esošas rezerves kopijas šajā instalācijā.",
   // Step 1
   "recovery.step1": "Vai BombVault var nolasīt jūsu rezerves kopijas?",

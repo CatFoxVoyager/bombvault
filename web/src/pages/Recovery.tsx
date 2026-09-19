@@ -1593,7 +1593,7 @@ export default function Recovery() {
   return (
     <div className={PAGE_SHELL}>
       <div>
-        <h1 className="text-2xl font-semibold text-carbon-text">{t("recovery.pageTitle")}</h1>
+        <h1 className="text-2xl font-semibold text-carbon-text">{t("nav.recovery")}</h1>
         <p className="mt-1 text-sm text-carbon-textSub max-w-2xl">{t("recovery.intro")}</p>
       </div>
 

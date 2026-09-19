@@ -717,7 +717,6 @@ const pt: Partial<Translations> = {
   "recovery.stored": "Já o guardei em segurança",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "Recuperação de desastres",
   "recovery.intro": "Recupere os seus containers e VMs de um backup existente para esta instalação.",
   "recovery.step1": "O BombVault consegue ler os seus backups?",
   "recovery.appKeyExplain": "Para ler backups existentes, este container precisa da MESMA APP_KEY que usava antes. Está no seu kit de recuperação. Defina-a no modelo de container do Unraid caso ainda não esteja, e verifique novamente.",

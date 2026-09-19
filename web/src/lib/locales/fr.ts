@@ -720,7 +720,6 @@ const fr: Partial<Translations> = {
   "recovery.stored": "Je l'ai conservé en lieu sûr",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "Récupération après sinistre",
   "recovery.intro": "Récupérez vos conteneurs et VMs depuis une sauvegarde existante vers cette installation.",
   "recovery.step1": "BombVault peut-il lire vos sauvegardes ?",
   "recovery.appKeyExplain": "Pour lire des sauvegardes existantes, ce conteneur a besoin de la MÊME APP_KEY qu'auparavant : elle figure dans votre kit de récupération. Définissez-la dans le modèle de conteneur Unraid si ce n'est pas déjà fait, puis relancez la vérification.",

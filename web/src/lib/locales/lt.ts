@@ -1262,7 +1262,6 @@ const lt: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Atkūrimas",
-  "recovery.pageTitle": "Nelaimių atkūrimas",
   "recovery.intro": "Atkurkite savo konteinerius ir VM iš esamos atsarginės kopijos šioje diegtyje.",
   // Step 1
   "recovery.step1": "Ar BombVault gali perskaityti jūsų atsargines kopijas?",

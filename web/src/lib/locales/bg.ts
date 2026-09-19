@@ -1262,7 +1262,6 @@ const bg: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Възстановяване",
-  "recovery.pageTitle": "Възстановяване при срив",
   "recovery.intro": "Възстанови контейнерите и ВМ-те си от съществуващо архивиране на тази инсталация.",
   // Step 1
   "recovery.step1": "Може ли BombVault да прочете архивиранията ти?",

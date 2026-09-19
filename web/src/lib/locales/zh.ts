@@ -712,7 +712,6 @@ const zh: Partial<Translations> = {
   "recovery.stored": "我已妥善保存",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "灾难恢复",
   "recovery.intro": "将你的容器和虚拟机从现有备份恢复到此安装。",
   "recovery.step1": "BombVault 能读取你的备份吗？",
   "recovery.appKeyExplain": "要读取现有备份，此容器需要与之前相同的 APP_KEY，它就在你的恢复工具包中。若尚未设置，请在 Unraid 容器模板中设置它，然后重新检查。",

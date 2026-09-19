@@ -720,7 +720,6 @@ const da: Partial<Translations> = {
   "recovery.stored": "Jeg har gemt det sikkert",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "Katastrofegendannelse",
   "recovery.intro": "Gendan dine containers og VMs fra en eksisterende sikkerhedskopi til denne installation.",
   "recovery.step1": "Kan BombVault læse dine sikkerhedskopier?",
   "recovery.appKeyExplain": "For at læse eksisterende sikkerhedskopier skal denne container bruge den SAMME APP_KEY, som den brugte før. Den findes i dit gendannelseskit. Angiv den i Unraid-containerskabelonen, hvis den ikke allerede er sat, og tjek så igen.",

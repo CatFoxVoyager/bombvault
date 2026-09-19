@@ -1262,7 +1262,6 @@ const eu: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Berreskuratzea",
-  "recovery.pageTitle": "Hondamendi-berreskuratzea",
   "recovery.intro": "Berrezarri zure edukiontziak eta MB instalazio honetan dagoen babeskopia batetik.",
   // Step 1
   "recovery.step1": "BombVaultek zure babeskopiak irakur ditzake?",
