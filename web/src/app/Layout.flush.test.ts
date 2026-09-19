@@ -1,9 +1,6 @@
 // The page column ends where the rail ends: bottom padding inside the scroll
 // container can never be scrolled away and leaves the last card short of the
-// rail. The same property holds one branch down on the phone: a kept bottom
-// padding on the phone scroller clamps a sticky action bar 16px short of the
-// bottom bar and leaves a strip of scrolling page visible between the two.
-// This reads Layout.tsx, because jsdom does no layout and a render test
+// rail. This reads Layout.tsx, because jsdom does no layout and a render test
 // could only compare the same class string.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";

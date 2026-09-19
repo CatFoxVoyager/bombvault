@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// i18n: React Context-based, 42 locales, flag switcher support
+// i18n — React Context-based, 42 locales, flag switcher support
 // ---------------------------------------------------------------------------
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
@@ -48,7 +48,7 @@ export async function loadLocale(code: string): Promise<Partial<Translations>> {
 }
 
 // ---------------------------------------------------------------------------
-// Translation key set: en is the source of truth
+// Translation key set — en is the source of truth
 // (exported so the locale-parity test can import the base table)
 // ---------------------------------------------------------------------------
 
@@ -110,7 +110,7 @@ export const en = {
   "dashboard.checking": "Checking…",
   "dashboard.noContainers": "No containers found.",
 
-  // Dashboard customization (#46): reorder + hide cards, persisted per-browser
+  // Dashboard customization (#46) — reorder + hide cards, persisted per-browser
   "dashboard.customize": "Customize",
   "dashboard.customizeDone": "Done",
   "dashboard.customizeHint": "Drag a card to reorder it, or hide the ones you don't need. Saved in this browser.",
@@ -355,7 +355,7 @@ export const en = {
   "settings.pathMode.local": "Local",
   "settings.pathMode.remote": "Remote",
   // Hover/focus explanation for the icon-only Local/Remote segments above
-  // (GlimStone follow-up round, point 2), removing the text label loses the
+  // (GlimStone follow-up round, point 2) — removing the text label loses the
   // meaning, so each glyph gets a fuller InfoBubble-style tooltip instead.
   "settings.pathMode.localTip": "Local path on this host",
   "settings.pathMode.remoteTip": "Remote restic repository",
@@ -368,7 +368,7 @@ export const en = {
   "source.local": "Local",
   "source.offsite": "Off-site",
   // Hover/focus explanation for SourceToggle's icon-only Local/Off-site
-  // segments (jdp, live-review, icon-badge standing rule), same reasoning
+  // segments (jdp, live-review, icon-badge standing rule) — same reasoning
   // as settings.pathMode.localTip/remoteTip above: losing the visible text
   // label needs a fuller tooltip to carry the same meaning.
   "source.localTip": "Local repository on this host",
@@ -379,15 +379,15 @@ export const en = {
   "source.hint": "Restore and delete act on the selected source only: deleting a local backup never touches the off-site copy, and vice versa.",
   // jdp (live-review, offsite tab card split): "Können wir für Container, VMs,
   // Flash, Ordner jeweils eine eigene Card machen? ... Titel dann jeweils
-  // OFFSITE-KOPIE CONTAINER, OFFSITE-KOPIE VMS, etc.", one templated key
+  // OFFSITE-KOPIE CONTAINER, OFFSITE-KOPIE VMS, etc." — one templated key
   // (not four discrete ones) reused across all four new per-domain Cards,
-  // {domain} filled in via .replace() at each call site with the same
+  // {domain} filled in via .replace() at each call site with the SAME
   // nav.containers/vms/flash/files label the row already showed before the
-  // split (see Settings.tsx's offsite-tab map), matching this file's own
+  // split (see Settings.tsx's offsite-tab map) — matching this file's own
   // `.replace("{x}", ...)` convention (settings.pathsHint, jobs.cadenceDaily,
   // etc.) rather than translating "Containers"/"VMs"/"Flash"/"Folders" a
   // second time across 26 locales. The group heading (offsite.sectionTitle)
-  // this replaces is now gone, see that call site's own comment for why.
+  // this replaces is now gone — see that call site's own comment for why.
   "offsite.copyDomainTitle": "Off-site copy {domain}",
   "offsite.schedulePlaceholder": "blank = after each backup · e.g. weekly Sun 03:00",
   "offsite.replicateNow": "Replicate now",
@@ -395,31 +395,31 @@ export const en = {
   "offsite.replicating": "Replicating…",
   // Issue #159: appended next to offsite.replicating when the live progress
   // event carries a startedAt (see OffsiteIndicator) but no live per-snapshot
-  // percentage is available yet (e.g. restic is still walking the source tree
-  // before it starts copying packs), a live elapsed duration is shown in its
+  // percentage is available YET (e.g. restic is still walking the source tree
+  // before it starts copying packs) — a live elapsed duration is shown in its
   // place, same as before percentage support existed.
   "offsite.replicatingWithDuration": "Replicating… ({duration})",
-  // Issue #159: restic copy does print a real, parseable per-snapshot
+  // Issue #159: restic copy DOES print a real, parseable per-snapshot
   // pack-copy percentage (see restic.Copy's doc comment), and lib/progress.ts's
-  // offsiteRunProgress folds it into the snapshot count to get one run-level
+  // offsiteRunProgress folds it into the snapshot count to get ONE run-level
   // figure. Word order matters here and is not free styling: the first cut read
   // "Replicating snapshot 15 of 126 (55%)", where the parenthetical was the
   // CURRENT snapshot's own pack progress but every reader took it as
-  // "15/126 = 55%": two correct numbers rendered as one wrong claim. With the
+  // "15/126 = 55%" — two correct numbers rendered as one wrong claim. With the
   // percentage leading and "snapshot k of N" demoted to the parenthetical, the
   // two now agree (~12% either way) instead of fighting. Do not reorder them
-  // back. The "overall" wording is what makes the scope explicit, keep an
+  // back. The "overall" wording is what makes the scope explicit — keep an
   // equivalent in every locale.
   "offsite.replicatingSnapshotPercent": "Replicating… {percent}% overall (snapshot {index} of {total})",
   "offsite.replicatingSnapshotPercentWithDuration": "Replicating… {percent}% overall (snapshot {index} of {total}) · {duration}",
   // The (i) next to that readout (OffsiteIndicator). The percentage counts
-  // SNAPSHOTS against a best-effort estimate, not bytes, house rule says that
+  // SNAPSHOTS against a best-effort estimate, not bytes — house rule says that
   // caveat belongs behind an info bubble, not as permanent prose on the line.
   "offsite.overallPercentHint": "Overall progress for this replication run, counted in snapshots: restic only ever reports progress for one snapshot at a time, never for a whole copy. Snapshots differ in size, so treat this as an estimate.",
   "offsite.replicateFailed": "Replication failed",
   "offsite.test": "Test connection",
   // Shown instead of offsite.test once the domain has additional targets: that
-  // button probes the PRIMARY target only, and saying so is the whole point.
+  // button probes the PRIMARY target ONLY, and saying so is the whole point.
   "offsite.testPrimary": "Test primary",
   "offsite.testing": "Testing…",
   "offsite.testOk": "reachable + initialised",
@@ -460,7 +460,7 @@ export const en = {
   "offsite.s3Unverified": "Note: S3 append-only can't be verified automatically. Set bucket versioning + deny-delete manually; the scorecard keeps this domain marked unverified.",
   "offsite.tamperTestNow": "Test append-only now",
   "offsite.tamperTesting": "Testing…",
-  // Tamper verdicts carry NO ✓/✗ glyph, OffsiteWizard.tsx renders the glyph
+  // Tamper verdicts carry NO ✓/✗ glyph — OffsiteWizard.tsx renders the glyph
   // as its own JSX node so RTL locales (ar/he) place it correctly.
   "offsite.tamperOk": "delete refused, append-only active",
   "offsite.tamperFail": "NOT protected",
@@ -477,7 +477,7 @@ export const en = {
   "offsite.prune.budgetInfo": "Raises an alarm once the off-site repository grows past this many gigabytes. It never deletes anything, so it is the safety net for a copy nothing prunes.",
   "settings.retentionImmutableNotPruned": "An append-only off-site destination is never pruned from here, whatever these values say. Its own step in the off-site assistant explains how to prune it from the storage side.",
 
-  // Additional off-site targets (multi-off-site): extra per-domain copies
+  // Additional off-site targets (multi-off-site) — extra per-domain copies
   "offsite.targets.title": "Additional off-site targets",
   "offsite.targets.hint": "Replicate this domain to more than one off-site location. The primary target above is edited separately; the ones you add here are extra copies.",
   "offsite.targets.scheduleNote": "All targets for this domain replicate on this domain's off-site schedule. There is no separate per-target schedule.",
@@ -527,7 +527,7 @@ export const en = {
   "settings.retentionTitle": "Snapshot retention",
   "settings.retentionHint": "How many backups to keep per item. After each backup, restic prunes older snapshots to this policy. All zero = keep everything (off).",
   // Merged card (GlimStone follow-up round, Paths & Storage tab rework, merge
-  // A): image cleanup, Unraid's own update-status reconciliation, and
+  // A) — image cleanup, Unraid's own update-status reconciliation, and
   // private registry credentials all sit under one roof: everything the
   // post-backup container update pull touches.
   "settings.imageMaintenanceTitle": "Image Cleanup & Update Status",
@@ -679,7 +679,7 @@ export const en = {
   "integrity.failed": "Check failed",
   // Minimal per-button fail glyph (GlimStone standing rule: failures toast,
   // the button itself only shows a brief fixed indicator matching
-  // integrity.ok's own visual weight: see IntegrityCard's run()).
+  // integrity.ok's own visual weight — see IntegrityCard's run()).
   "integrity.failedShort": "✗ Failed",
   "integrity.unlock": "Unlock",
   "integrity.prune": "Prune",
@@ -753,7 +753,7 @@ export const en = {
   "folders.save": "Save folders",
   "folders.saved": "Saved",
   "folders.empty": "No mapped folders found for this container.",
-  // Selection tree (Phase 2): aria-label on the role="tree" element.
+  // Selection tree (Phase 2) — aria-label on the role="tree" element.
   "folders.treeLabel": "Backup folder selection",
   // Truncated listing notice (D-06): the server caps listings at 500 entries.
   "folders.truncatedList": "First 500 entries shown",
@@ -774,20 +774,20 @@ export const en = {
   // Phase 3 plan 03 (D-05, INTEG-04): the reset control and its fail-tone
   // confirm. The confirm message names every consequence (auto-detection
   // returns, remembered exclusions are removed, and the per-root cache-folder
-  // settings go with them: review WR-04 made the reset body clear the
-  // CACHEDIR map, so the copy must promise exactly that), the dialog carries
+  // settings go with them — review WR-04 made the reset body clear the
+  // CACHEDIR map, so the copy must promise exactly that) — the dialog carries
   // the destructive weight, the trigger stays neutral.
   "folders.resetSelection": "Reset selection",
   "folders.resetConfirm":
     "Reset the folder selection? The container returns to automatic detection (appdata default) and all remembered exclusions and cache-folder settings are removed.",
-  // Phase 3 plan 03 (D-02, SELECT-03): the narrowing note, event-driven
+  // Phase 3 plan 03 (D-02, SELECT-03): the narrowing note — event-driven
   // (attempted < last-saved includes, gated on a prior backup), transient
   // for the editor session. The message scopes the change to FUTURE
   // snapshots explicitly; existing snapshots are named as unchanged.
   "folders.narrowedNote":
     "The selection now covers fewer folders than before. From the next backup on, snapshots will contain only the selected folders. Existing snapshots are unchanged.",
   // Phase 3 plan 03 Task 2 (D-06, RESTIC-01): the per-root CACHEDIR.TAG
-  // switch. The scope line is the honest disclosure, the flag compiles into
+  // switch. The scope line is the honest disclosure — the flag compiles into
   // the backup argv for the WHOLE container, so a per-folder reading would
   // over-promise what the switch does.
   "folders.cachedirToggle": "Skip cache folders (CACHEDIR.TAG)",
@@ -813,7 +813,7 @@ export const en = {
   // Exclude preview status (#38)
   "excludes.willExclude": "will be excluded from the backup",
   "excludes.matchesAnywhere": "will be excluded wherever it appears",
-  // Exclusion assistant: server-side junk/large-folder scan with one-click exclude
+  // Exclusion assistant — server-side junk/large-folder scan with one-click exclude
   "excludes.assistTitle": "Exclusion assistant",
   "excludes.assistHint": "Scans this container's backup folders for well-known cache/temp/log folders and unusually large directories, so you can exclude them and shrink the backup.",
   "excludes.assistScan": "Scan for junk & large folders",
@@ -854,13 +854,13 @@ export const en = {
 
   // Appearance / Accent
   // ("settings.appearance", the old umbrella Card title, was removed here and
-  // from every locale in the GlimStone follow-up pass, the shared Appearance
+  // from every locale in the GlimStone follow-up pass — the shared Appearance
   // Card it titled was split into one Card per sub-topic (live-review point
   // 5), and nothing else ever read this key.)
   //   "settings.colors" is a LATER live-review round's own new key (jdp:
   // "Die card von Akzentfarbe und Regenbogenmodus in eine mergen. Gehört ja
-  // zusammen"): the merged accent+rainbow Card's own title. Deliberately a
-  // third string, not a repurposed "settings.accentColor"/"settings.rainbow":
+  // zusammen") — the merged accent+rainbow Card's own title. Deliberately a
+  // THIRD string, not a repurposed "settings.accentColor"/"settings.rainbow":
   // those two keep their existing meaning as the merged Card's own two
   // sub-topic row labels below, so the Card's own heading needed its own
   // "colour, broadly" word that doesn't collide with either.
@@ -874,9 +874,9 @@ export const en = {
   // for the rainbow palette's 8 swatches.
   //   "settings.accentReset" REPLACES the former "settings.accentPresetsReset"
   // ("Reset presets") in every locale. That key existed because the accent row
-  // used to carry two reset controls, an icon badge for the preset swatches
-  // and a separate "Reset" text button for the active accent, and the two
-  // needed distinguishable labels. The row now has exactly one control that
+  // used to carry TWO reset controls — an icon badge for the preset swatches
+  // and a separate "Reset" text button for the active accent — and the two
+  // needed distinguishable labels. The row now has exactly ONE control that
   // does both jobs (see AccentCard's own header comment in Settings.tsx for
   // why the split was the defect), so the label has to name both halves;
   // "Reset presets" on a control that also throws away the user's chosen
@@ -884,7 +884,7 @@ export const en = {
   // reader can keep the old, now-wrong meaning in mind.
   "settings.accentPreset": "Preset",
   "settings.accentReset": "Reset accent color and presets",
-  // Shape (GlimStone form-engine: shape engine): round/soft/square corner
+  // Shape (GlimStone form-engine — shape engine): round/soft/square corner
   // radius, applied everywhere via one attribute (index.css's [data-shape]
   // rules, lib/shape.ts's applyShape()). Wording matches KnightLoader's own
   // copy of this exact picker, the same "one product, every language" reason
@@ -894,7 +894,7 @@ export const en = {
   "settings.shape.round": "Round",
   "settings.shape.soft": "Soft",
   "settings.shape.square": "Square",
-  // Motion intensity (GlimStone motion-engine): a deliberate reversal of
+  // Motion intensity (GlimStone motion-engine) — a deliberate reversal of
   // design-language.md's own prior "OS-controlled only, no fifth user
   // switch" decision; see that doc's Motion Intensity section and
   // lib/motion.ts's own header for the full course-correction note. Same
@@ -916,14 +916,14 @@ export const en = {
   "settings.motion.subtle": "Subtle",
   "settings.motion.wild": "Wild",
   "settings.motion.storm": "Storm",
-  // Rainbow (GlimStone form-engine Phase 2, Task 1), the accent, plural:
+  // Rainbow (GlimStone form-engine Phase 2, Task 1) — the accent, plural:
   // an eight-colour palette handed out by list position instead of one
   // accent everywhere. Originally matched the same keys in KnightLoader (the
   // other shipped app using this exact mechanism) verbatim; the GlimStone
   // follow-up pass renamed "settings.rainbow"/"settings.rainbowReactive"/
   // "settings.rainbowRotate" per live-review feedback (short verb-phrase
-  // labels, their old descriptive sentences moved into InfoBubbles instead,
-  // see Settings.tsx's Rainbow Card comment), a deliberate, accepted
+  // labels, their old descriptive sentences moved into InfoBubbles instead —
+  // see Settings.tsx's Rainbow Card comment) — a deliberate, accepted
   // divergence from KnightLoader's wording, not an oversight.
   "settings.rainbow": "Rainbow Mode",
   "settings.rainbowHint": "Each row in a list gets its own colour from a set of eight, instead of everything sharing one accent colour, which makes long lists easier to tell apart at a glance.",
@@ -934,7 +934,7 @@ export const en = {
   "settings.rainbowRotate": "Colour Rotation",
   "settings.rainbowRotateHint": "Shifts which colour in the palette counts as position 0, so the same list of rows doesn't always start on the exact same colour every time you turn Rainbow Mode on or reload the page.",
   "settings.rainbowPalette": "Palette colour",
-  // Row label in front of the 8 swatches (live-review round 4), a
+  // Row label in front of the 8 swatches (live-review round 4) — a
   // DIFFERENT string from settings.rainbowPalette above on purpose: that one
   // stays a per-swatch aria-label ("Palette colour 1", "...2", …), this one
   // is the whole row's own opening caption ("Colour palette:"). See the
@@ -943,23 +943,23 @@ export const en = {
   "settings.rainbowPaletteLabel": "Colour palette",
   // The palette row's own reset badge, which used to borrow the generic
   // "common.reset". Given its own string in the same round that unified the
-  // accent row's two resets above: that Card now holds two identical-looking
+  // accent row's two resets above: that Card now holds TWO identical-looking
   // neutral square reset badges a few rows apart, and a bare "Reset" bubble on
   // both would leave the user guessing which one throws away which work.
   // Each names its own target instead. ("Colour", matching this row's own
   // settings.rainbowPaletteLabel right above, not the "color" spelling the
-  // accent keys use: the en table's existing, deliberate split, untouched
+  // accent keys use — the en table's existing, deliberate split, untouched
   // here rather than half-normalised in passing.)
   "settings.rainbowPaletteReset": "Reset colour palette",
-  // Quiet toasts (form-engine Task 9), severity-based quiet mode for the
+  // Quiet toasts (form-engine Task 9) — severity-based quiet mode for the
   // toast system; "success" toasts are suppressed, "warn"/"fail" never are
-  // (lib/toastEngine.ts's shouldShowToast). Copy reworded (jdp, live review,
+  // (lib/toastEngine.ts's shouldShowToast). Copy reworded (jdp, live review —
   // "same as KnightLoader's quiet-notifications toggle, adapted to
-  // BombVault's own always-shown category") to name both always-shown
+  // BombVault's own always-shown category") to name BOTH always-shown
   // severities instead of only "failures": an offsite-target test that
   // hasn't run yet, or a batch action that partly failed, push a "warn"
   // toast (see toastEngine.ts's ToastSeverity) and must stay visible in
-  // quiet mode exactly like a save error does, the old copy's "only for
+  // quiet mode exactly like a save error does — the old copy's "only for
   // failures" undersold that.
   "settings.quietToasts": "Quiet toasts",
   "settings.quietToastsHint": "Hides success notices like save and copy confirmations. Errors, and anything else that needs your attention, still show.",
@@ -973,7 +973,7 @@ export const en = {
   "dashboard.statMissingContainers": "Missing containers",
   "dashboard.statMissingVMs": "Missing VMs",
 
-  // Error detail panel (#126): the modal opened from the dashboard error count
+  // Error detail panel (#126) — the modal opened from the dashboard error count
   "errorPanel.title": "Backup errors",
   "errorPanel.resolve": "Resolve",
   "errorPanel.resolveAll": "Mark all resolved",
@@ -1096,7 +1096,7 @@ export const en = {
   "cadence.cronExWeekdays": "weekdays at 02:30",
   "cadence.cronExMonthly": "on the 1st of each month",
   "cadence.fmtCron": "cron: {expr}",
-  // TimePicker (GlimStone form-engine: new shared component, design-language.md
+  // TimePicker (GlimStone form-engine — new shared component, design-language.md
   // "The time picker"): aria-labels for the popover's two scrollable listbox
   // columns. The trigger's own accessible name reuses whatever `label` the
   // caller already passes (e.g. cadence.time), so no separate key is needed
@@ -1126,7 +1126,7 @@ export const en = {
   // button was deleted and the rainbow palette's badge got its own named
   // string. Nothing read it afterwards, so it was dropped from all 42 tables
   // rather than left as a key that looks generic-and-shared but is used
-  // nowhere: the next person to need a reset label would have reached for it
+  // nowhere — the next person to need a reset label would have reached for it
   // and reintroduced exactly the ambiguity this round removed.)
   "containers.subtitle": "Manage container backups, schedules, and restores.",
   "containers.emptyDocker": "No containers found. Is Docker running?",
@@ -1158,7 +1158,7 @@ export const en = {
   "auth.invalidPassword": "Invalid password",
   "auth.loginError": "Login failed",
 
-  // Settings: Security card
+  // Settings — Security card
   "auth.security": "Password",
   "auth.authOff": "Authentication is off. All LAN users have full access.",
   "auth.authOn": "Authentication is enabled.",
@@ -1236,24 +1236,24 @@ export const en = {
   "common.showValue": "Show value",
   "common.hideValue": "Hide value",
   // ConfirmDialog (form-engine Task 7): the generic, reusable dialog chrome
-  // labels: not per-call-site copy. Every confirm() call site keeps its own
+  // labels — NOT per-call-site copy. Every confirm() call site keeps its own
   // existing message string; only these three boilerplate labels are new.
   "confirmDialog.title": "Confirm",
   "common.confirm": "Confirm",
   "common.cancel": "Cancel",
   // Toast (form-engine Task 9): generic dismiss label for every toast's
-  // close button: not per-message copy.
+  // close button — not per-message copy.
   "toast.dismiss": "Dismiss notification",
 
   // Failure fallbacks. Every one of these replaced a HARDCODED English literal
-  // sitting in a `res.error ?? "…"` or `err instanceof Error ? … : "…"` tail,
+  // sitting in a `res.error ?? "…"` or `err instanceof Error ? … : "…"` tail —
   // 56 of them across seven files, each rendering untranslated English into
   // whatever language the user had picked, and only ever at the moment
   // something had already gone wrong.
   //   They live under `common.` when the same sentence genuinely fits every
   // caller (a delete that failed is a delete that failed) and under their own
   // page's namespace when naming the thing that failed is the whole value of
-  // the message: "Failed to load VMs" against "Failed to load containers"
+  // the message — "Failed to load VMs" against "Failed to load containers"
   // tells the user which half of the app is broken, which a shared
   // "Failed to load" would throw away.
   //   The server's own `res.error` still wins wherever it is present; these are
@@ -1308,7 +1308,7 @@ export const en = {
   "flash.restoreNote": "Restore downloads a ZIP of the snapshot. The running /boot is never touched. Drop the .zip straight into the Unraid USB creator, or unzip it onto a fresh USB to rebuild your flash.",
   "flash.none": "No flash backups yet. Run a backup above.",
   // Merged card (GlimStone follow-up round, Paths & Storage tab rework, merge
-  // B): the flash zip export, plain-export encryption, and the restic
+  // B) — the flash zip export, plain-export encryption, and the restic
   // repositories' own encryption all sit under one roof: how backup exports
   // and repositories are protected.
   "settings.exportsEncryptionTitle": "Export & Repository Encryption",
@@ -1328,14 +1328,14 @@ export const en = {
   "flash.zipExport.plaintextWarn": "The exported .zip is not encrypted, even if your flash repository is. Only sync it somewhere you trust.",
   "flash.zipExport.pathRequired": "Choose an export folder to turn this on.",
   // GlimStone follow-up round, Paths & Storage tab rework, merge B: "(age)"
-  // dropped from the visible title, design-language.md's own "explanations
+  // dropped from the visible title — design-language.md's own "explanations
   // live in a bubble" rule, same as every other Card title in this file. What
-  // age is moved to export.encrypt.ageInfo below, an InfoBubble on the
+  // age IS moved to export.encrypt.ageInfo below, an InfoBubble on the
   // merged card's sub-heading, so the information wasn't lost, just relocated.
   //   `export.encrypt.title` itself ("Encrypt plain exports"/"Plain-Exporte
   // verschlüsseln") is RETIRED (jdp, live-review, GlimStone follow-up round:
   // "Export und Verschlüsselung: Texte normal formatieren, es sind keine
-  // Überschriften mehr"): the standalone <h3> it used to head is gone;
+  // Überschriften mehr") — the standalone <h3> it used to head is gone;
   // ToggleRow's own `export.encrypt.enable` label is now this sub-section's
   // only visible caption (Settings.tsx's own comment on that ToggleRow has
   // the full writeup), so a second, now-unused heading string would just be
@@ -1378,7 +1378,7 @@ export const en = {
   "receiver.subtitle": "Monitor the off-site copies other BombVault instances push to this box, read-only.",
   "receiver.addRepo": "Add received repo",
   // Card-title Badge headline for the empty-state list card (GlimStone
-  // follow-up pass, "half-overlap card notch"), distinct from receiver.title
+  // follow-up pass, "half-overlap card notch") — distinct from receiver.title
   // (the page's own h1) since the two sit right on top of each other.
   "receiver.emptyTitle": "Received repos",
   "receiver.empty": "No received repositories yet. Add the repo another BombVault pushes its off-site copies to, and BombVault watches it read-only: what arrived, when the last backup came in, and an independent integrity check on this hardware.",
@@ -1402,7 +1402,7 @@ export const en = {
   "receiver.remove": "Remove",
   "receiver.removing": "Removing…",
   // Downgraded from window.confirm() to the two-click inline-confirm pattern
-  // (form-engine Task 7): removing a monitoring entry is reversible (the
+  // (form-engine Task 7) — removing a monitoring entry is reversible (the
   // repo is never touched, only re-added later), so it no longer gets a full
   // dialog. Matches OffsiteTargetsSection's "offsite.targets.confirmRemove".
   "receiver.confirmRemove": "Confirm remove",
@@ -1435,7 +1435,7 @@ export const en = {
   "receiver.nameRequired": "Enter a name.",
   "receiver.repoRequired": "Enter a repository location.",
   "receiver.saveError": "Could not save the received repo.",
-  // Pull sources (#227): fetching backups out of another instance's repository
+  // Pull sources (#227): fetching backups OUT of another instance's repository
   // into this one. The mirror image of off-site replication.
   "pull.name": "Name",
   "pull.title": "Pull",
@@ -1472,7 +1472,7 @@ export const en = {
   "fleet.subtitle": "Watch the protection status of peer BombVault instances, read-only.",
   "fleet.addPeer": "Add peer",
   // Card-title Badge headline for the empty-state list card (GlimStone
-  // follow-up pass, "half-overlap card notch"), distinct from fleet.title
+  // follow-up pass, "half-overlap card notch") — distinct from fleet.title
   // (the page's own h1) since the two sit right on top of each other.
   "fleet.emptyTitle": "Fleet peers",
   "fleet.empty": "No fleet peers yet. Add another BombVault instance's URL and fleet token, and this box polls it read-only for its protection scorecard, nothing more.",
@@ -1489,7 +1489,7 @@ export const en = {
   "fleet.remove": "Remove",
   "fleet.removing": "Removing…",
   // Downgraded from window.confirm() to the two-click inline-confirm pattern
-  // (form-engine Task 7): same rationale as receiver.confirmRemove above.
+  // (form-engine Task 7) — same rationale as receiver.confirmRemove above.
   "fleet.confirmRemove": "Confirm remove",
   "fleet.scorecardTitle": "Protection scorecard",
   "fleet.noScorecard": "No cached scorecard yet. Poll this peer to fetch one.",
@@ -1571,13 +1571,13 @@ export const en = {
   "vm.ssh.copyCmd": "Copy command",
   "vm.ssh.guide": "Full setup & networking guide",
 
-  // Guided Recovery tab (disaster-recovery walkthrough), note: the `recovery.*`
+  // Guided Recovery tab (disaster-recovery walkthrough) — note: the `recovery.*`
   // prefix above is the encryption *kit*; the page title uses `recovery.pageTitle`
   // to avoid colliding with the existing `recovery.title` ("Recovery kit").
   "nav.recovery": "Recovery",
   "recovery.pageTitle": "Disaster recovery",
   "recovery.intro": "Recover your containers and VMs from an existing backup onto this install.",
-  // Step 1: connection / APP_KEY readability check
+  // Step 1 — connection / APP_KEY readability check
   "recovery.step1": "Can BombVault read your backups?",
   "recovery.appKeyExplain": "To read existing backups this container needs the SAME APP_KEY it used before. It's in your recovery kit. Set it in the Unraid container template if it isn't already, then re-check.",
   "recovery.appKeyRemedy": "The encryption key doesn't match these backups. Set the original APP_KEY (from your recovery kit) in the container template, then re-check.",
@@ -1585,7 +1585,7 @@ export const en = {
   "recovery.readFrom": "Read from:",
   "recovery.notReachable": "Couldn't reach your backups yet. Attach the location below, then re-check.",
   "recovery.recheck": "Check",
-  // Step 2: restore BombVault's own settings first (optional, before attach)
+  // Step 2 — restore BombVault's own settings first (optional, before attach)
   "recovery.stepConfig": "Restore BombVault's own settings",
   "recovery.configHint": "On a rebuilt server, restore BombVault's own settings first (its backup paths, off-site targets and credentials) so the steps below come pre-filled. Point it at the settings backup you set up earlier. No settings backup? Skip this and attach your backups manually below.",
   "recovery.configAppKeyReminder": "Your APP_KEY must match this backup. That's the check in Step 1 above.",
@@ -1600,14 +1600,14 @@ export const en = {
   "recovery.configReload": "Reload now",
   "recovery.configSkip": "Skip: I don't have a settings backup",
   "recovery.configSkipped": "Skipped. Attach your backups manually below.",
-  // Step 3: attach your backups
+  // Step 3 — attach your backups
   "recovery.step2": "Attach your backups",
   "recovery.cloudCreds": "Cloud credentials (optional)",
   "recovery.cloudCredsHint": "Only needed when a backup path points at S3, a restic REST server or an rclone remote. A local path or a mounted share needs nothing here.",
   "recovery.attachHint": "Point BombVault at your existing backups: a local path under the host mount, or an off-site repo (rest / S3 / B2 / sftp / rclone) with its credentials. Then connect to confirm.",
   "recovery.credsSaveHint": "Off-site credentials save with each card's own Save button. Save them before you connect & preview.",
   "recovery.connectPreview": "Connect & preview",
-  // Encryption mode: DETECTED, not asserted. The repositories themselves say
+  // Encryption mode — DETECTED, not asserted. The repositories themselves say
   // whether they need the APP_KEY-derived password, so the common path (attach
   // an existing repo) asks the user nothing; only the genuinely undecidable
   // cases still offer the switch. These are live status readouts, not
@@ -1628,18 +1628,18 @@ export const en = {
   "recovery.encStateUnreachable": "couldn't be read",
   "recovery.encSourceLocal": "local",
   "recovery.encSourceOffsite": "off-site",
-  // Step 3: discover everything
+  // Step 3 — discover everything
   "recovery.step3": "Discover what's in your backups",
   "recovery.discover": "Discover backups",
   "recovery.foundCounts": "Found {c} containers and {v} VMs.",
   "recovery.foundNone": "Nothing found yet. Check the connection and attachment above. If you expected backups here, make sure your APP_KEY matches these backups.",
-  // Step 4: review & restore all (left stopped)
+  // Step 4 — review & restore all (left stopped)
   "recovery.step4": "Review and restore",
   "recovery.restoreAll": "Restore all (left stopped)",
   "recovery.restoreAllResult": "Restored {ok}, failed {fail}. Start them from the Containers/VMs tabs when ready.",
   "recovery.vmSshNote": "VM restore needs the libvirt SSH link. Set it up under Settings → VM Backup over SSH.",
   "recovery.noneDiscovered": "Run Discover above first.",
-  // Step 5: recovery kit (safety net for next time)
+  // Step 5 — recovery kit (safety net for next time)
   "recovery.step5": "Your recovery kit",
   "recovery.kitHint": "Download and store your recovery kit somewhere safe. It holds the encryption key and the exact restic commands to restore even without BombVault.",
   "recovery.kitDownload": "Download recovery kit",
@@ -1647,7 +1647,7 @@ export const en = {
   "recovery.freshNudge": "Restoring from a previous server or a rebuild? Recover your existing backups.",
   "recovery.freshNudgeCta": "Go to Recovery",
 
-  // Settings: section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "General",
   "settings.tab.storage": "Paths & Storage",
   "settings.tab.schedules": "Schedules",
@@ -1674,11 +1674,11 @@ export const en = {
   // Filter drawer trigger (v5 redesign)
   "filter.button": "Filters",
 
-  // Settings: weekly digest card, backup-engine cache card, revoke-all sessions
+  // Settings — weekly digest card, backup-engine cache card, revoke-all sessions
   "settings.digestTitle": "Weekly digest",
   "settings.digestHint": "One summary message per week: run counts, new backup data, off-site currency and the top failures, sent through the notification channels above.",
   "settings.digestToggle": "Weekly digest",
-  // Settings: missed-schedule catch-up (schedules tab) + overdue-backup watchdog (notifications tab)
+  // Settings — missed-schedule catch-up (schedules tab) + overdue-backup watchdog (notifications tab)
   "settings.missedSchedulesTitle": "Missed schedules",
   "settings.catchUpMissed": "Catch up missed backups after start",
   "settings.catchUpMissedHint": "If the server was off when a schedule was due, run that backup about two minutes after BombVault starts.",
@@ -1692,7 +1692,7 @@ export const en = {
   "settings.cacheHint": "The backup engine keeps a cache of repository data under /config so incremental and off-site runs stay fast. When it grows past this limit, the least-recently-used per-repository caches are removed after scheduled runs.",
   "settings.cacheLimitLabel": "Cache size limit (MB, 0 = unlimited)",
 
-  // What's new dialog (#48): shown once when a new version is running
+  // What's new dialog (#48) — shown once when a new version is running
   "whatsnew.title": "What's new in {version}",
   "whatsnew.loading": "Loading release notes…",
   "whatsnew.loadFailed": "Couldn't load the release notes here. Open them on GitHub.",
@@ -1700,14 +1700,14 @@ export const en = {
   "whatsnew.viewOnGitHub": "View full release on GitHub",
   "whatsnew.close": "Close",
 
-  // Files domain (folder-set backups, #62), shown to the user as "Folders".
+  // Files domain (folder-set backups, #62) — shown to the user as "Folders".
   // The files.* KEY names, the "files" domain literal, routes and types are
   // technical identifiers and deliberately keep the historical name.
   "nav.files": "Folders",
   "files.title": "Folders",
   "files.subtitle": "Back up any folders on this server, with schedules, off-site copies and restores.",
   // Card-title Badge headline for the empty-state list card (GlimStone
-  // follow-up pass, "half-overlap card notch"), distinct from files.title
+  // follow-up pass, "half-overlap card notch") — distinct from files.title
   // (the page's own h1) since the two sit right on top of each other.
   "files.setsTitle": "Folder sets",
   "files.empty": "No folder sets yet. Add a folder (shares, documents, photos, anything under your mounts) and BombVault protects it like everything else: schedules, off-site copies, integrity checks and restores. No separate file-backup tool needed.",
@@ -1775,14 +1775,14 @@ export const en = {
   "files.backupAll": "Back up all now",
   "files.discoverHint": "Lost the set list? Rebuild it from the backups in storage.",
   "files.cancel": "Cancel",
-  // "Host system config" preset (generic/TrueNAS only, Unraid already has the
+  // "Host system config" preset (generic/TrueNAS only — Unraid already has the
   // flash domain for this). Platform-expansion plan Task 7.
   "files.addPreset": "Add preset: Host system config",
   "files.addPresetHint": "A conservative starting point for host-level configuration outside your containers, not a claim of completeness. Review the folder before saving.",
   // Phase 4 (INTEG-02): the Files-page selection tree, mounted per the UI-SPEC
   // reuse contract with one root (the set's resolved Path, D-02). Copy is the
   // UI-SPEC Copywriting Contract's en source of truth, pinned byte-exact by
-  // i18n.filesSelection.test.ts. Deliberately not the container folders.*
+  // i18n.filesSelection.test.ts. Deliberately NOT the container folders.*
   // wordings: folders.emptySelectionBlocked teaches "Reset selection", which
   // does not exist here (D-06 - the files domain has no auto-detection to
   // reset to, so the refusal orients to Delete folder set instead).
@@ -1796,7 +1796,7 @@ export const en = {
   // so the consequence is named before it happens. Rendered under the
   // FolderBrowser in FileSetDialog (plan 04-04).
   "files.pathChangeHint": "Changing the folder clears the ticked sub-folder selection.",
-  // Files domain integration: Settings, Dashboard, Recovery (#62 task 7)
+  // Files domain integration — Settings, Dashboard, Recovery (#62 task 7)
   "settings.filesEnabled": "Folders",
   "settings.filesEnabledHint": "Back up arbitrary folders under your mounts as file sets, independent of the other domains.",
   "settings.filesPath": "Folders path",
@@ -1806,7 +1806,7 @@ export const en = {
   "dashboard.domainFiles": "Folders",
   "recovery.filesFound": "Found {f} folder sets.",
   "recovery.filesRestoreHint": "Rediscovered folder sets carry no original folder. Each one restores into a folder you choose.",
-  // Restore from another BombVault repo, Recovery page (#61 task 11)
+  // Restore from another BombVault repo — Recovery page (#61 task 11)
   "recovery.foreignTitle": "Restore from another BombVault repo",
   "recovery.foreignIntro": "Pull single containers, VMs or folder sets out of a DIFFERENT BombVault instance's backups: connect read-only, browse what's inside, restore what you pick. This reads the other repository, changes nothing over there, and leaves your own backup settings untouched.",
   "recovery.foreignStepConnect": "Connect to the other repository",
@@ -1846,7 +1846,7 @@ export const en = {
   "recovery.foreignVMDest": "VM disk destination",
   "recovery.foreignVMDestHint": "Where the VM's disks are written. The disk images go to <destination>/<vm-name>/, so pick a folder on a real mounted pool, not the RAM disk. A foreign VM is restored left stopped, so start it yourself once you have checked it.",
 
-  // Dashboard activity log (Task 4), a flat, docker-logs-style merged view of
+  // Dashboard activity log (Task 4) — a flat, docker-logs-style merged view of
   // run history + live SSE progress + the next scheduled run.
   "activityLog.title": "Activity Log",
   "activityLog.filterPlaceholder": "Filter… (e.g. plex, failed, off-site)",
@@ -1888,7 +1888,7 @@ export const en = {
   // buildLiveLines) but no live per-snapshot percentage is available yet.
   "activityLog.lineOffsiteRunningWithDuration": "Off-site upload: {domain} … ({duration})",
   // Issue #159: the RUN-LEVEL percentage (lib/progress.ts's offsiteRunProgress),
-  // with the snapshot count as the parenthetical detail behind it, {total} is
+  // with the snapshot count as the parenthetical detail behind it — {total} is
   // a best-effort candidate count, since restic never reports a whole-run total
   // across snapshots. Same word-order rule as offsite.replicatingSnapshotPercent
   // above, for the same reason; that key's comment has the full story.
@@ -1946,7 +1946,7 @@ export const en = {
   // one mirrored pair. chooseFile is gone from all 42 tables with it: the
   // assumption that the hidden <input type="file"> would still want it as a
   // name did not survive i18n.orphans.test.ts. Nothing reaches that input
-  // directly: the button clicks it, so an aria-label there would only have
+  // directly — the button clicks it — so an aria-label there would only have
   // been a way to keep a dead key alive.
   "settingsIO.importButton": "Import settings",
   "settingsIO.exporting": "Exporting…",
@@ -1982,7 +1982,7 @@ export const en = {
   "settingsIO.group.language": "Language",
   "settingsIO.group.exportEncryption": "Export encryption",
 
-  // Backup order (#119): manual per-container backup sequence, Containers page.
+  // Backup order (#119) — manual per-container backup sequence, Containers page.
   "backupOrder.title": "Backup order",
   "backupOrder.hint": "Set the sequence scheduled and batch backups run in. Containers left off the list run afterwards, most overdue first.",
   "backupOrder.moveUp": "Move up",
@@ -1996,14 +1996,14 @@ export const en = {
   "vmBackupOrder.empty": "No scheduled VMs to order yet.",
   "backupOrder.reset": "Clear order",
 
-  // Health-gated restart (#119): Settings, Schedules tab.
+  // Health-gated restart (#119) — Settings, Schedules tab.
   "settings.restartHealthTitle": "Restart after backup",
   "settings.restartHealthWait": "Wait for dependencies to be healthy before starting the next",
   "settings.restartHealthWaitHint": "When 'Stop other containers during backup' stops containers, they restart in dependency order after the backup (and after any post-backup update). With this on, each container must report healthy or running before the ones that depend on it start.",
   "settings.restartHealthTimeoutLabel": "Per-container health timeout (seconds)",
   "settings.restartHealthTimeoutHint": "How long to wait for one container to become healthy before its dependents start anyway. Range 5 to 3600.",
 
-  // Reconcile Unraid update status (#116), Settings, Storage tab. After the
+  // Reconcile Unraid update status (#116) — Settings, Storage tab. After the
   // post-backup container update recreates a container, ask Unraid to refresh
   // its own cached update status so the Docker tab's stale banner clears.
   "settings.reconcileUnraidStatus": "Refresh Unraid's update status after updating a container",
@@ -2372,7 +2372,7 @@ export const de: Translations = {
   "offsite.prune.budgetInfo": "Schlägt Alarm, sobald das Off-site-Repository über so viele Gigabyte wächst. Es löscht nie etwas, ist also das Sicherheitsnetz für eine Kopie, die niemand prunt.",
   "settings.retentionImmutableNotPruned": "Ein Append-only-Off-site-Ziel wird von hier nie geprunt, egal was hier steht. Der zugehörige Schritt im Off-site-Assistenten erklärt, wie man es von der Gegenseite aus prunt.",
 
-  // Additional off-site targets (multi-off-site): extra per-domain copies
+  // Additional off-site targets (multi-off-site) — extra per-domain copies
   "offsite.targets.title": "Weitere Off-site-Ziele",
   "offsite.targets.hint": "Diese Domäne an mehr als einen Off-site-Ort replizieren. Das primäre Ziel oben wird separat bearbeitet; die hier hinzugefügten sind zusätzliche Kopien.",
   "offsite.targets.scheduleNote": "Alle Ziele dieser Domäne replizieren nach dem Off-site-Zeitplan dieser Domäne. Es gibt keinen separaten Zeitplan pro Ziel.",
@@ -2672,7 +2672,7 @@ export const de: Translations = {
   // Exclude preview status (#38)
   "excludes.willExclude": "wird vom Backup ausgeschlossen",
   "excludes.matchesAnywhere": "wird überall ausgeschlossen, wo es vorkommt",
-  // Ausschluss-Assistent: serverseitiger Junk/Groß-Ordner-Scan mit Ein-Klick-Ausschluss
+  // Ausschluss-Assistent — serverseitiger Junk/Groß-Ordner-Scan mit Ein-Klick-Ausschluss
   "excludes.assistTitle": "Ausschluss-Assistent",
   "excludes.assistHint": "Durchsucht die gesicherten Ordner dieses Containers nach bekannten Cache-/Temp-/Log-Ordnern und ungewöhnlich großen Verzeichnissen, damit du sie ausschließen und das Backup verkleinern kannst.",
   "excludes.assistScan": "Nach Junk- und großen Ordnern suchen",
@@ -2753,7 +2753,7 @@ export const de: Translations = {
   "dashboard.statMissingContainers": "Fehlende Container",
   "dashboard.statMissingVMs": "Fehlende VMs",
 
-  // Error detail panel (#126): the modal opened from the dashboard error count
+  // Error detail panel (#126) — the modal opened from the dashboard error count
   "errorPanel.title": "Sicherungsfehler",
   "errorPanel.resolve": "Erledigt",
   "errorPanel.resolveAll": "Alle als erledigt markieren",
@@ -2927,7 +2927,7 @@ export const de: Translations = {
   "auth.invalidPassword": "Falsches Passwort",
   "auth.loginError": "Anmeldung fehlgeschlagen",
 
-  // Settings: Security card
+  // Settings — Security card
   "auth.security": "Passwort",
   "auth.authOff": "Authentifizierung ist deaktiviert. Alle LAN-Nutzer haben vollen Zugriff.",
   "auth.authOn": "Authentifizierung ist aktiviert.",
@@ -3007,7 +3007,7 @@ export const de: Translations = {
   "common.confirm": "Bestätigen",
   "common.cancel": "Abbrechen",
 
-  // Fehler-Rückfalltexte: siehe den englischen Block für die Herkunft.
+  // Fehler-Rückfalltexte — siehe den englischen Block für die Herkunft.
   "common.actionFailed": "Aktion fehlgeschlagen",
   "common.deleteFailed": "Löschen fehlgeschlagen",
   "common.edit": "Bearbeiten",
@@ -3294,7 +3294,7 @@ export const de: Translations = {
   "nav.recovery": "Wiederherstellung",
   "recovery.pageTitle": "Notfall-Wiederherstellung",
   "recovery.intro": "Stelle deine Container und VMs aus einem vorhandenen Backup auf dieser Installation wieder her.",
-  // Schritt 1: Verbindungs-/APP_KEY-Lesbarkeitsprüfung
+  // Schritt 1 — Verbindungs-/APP_KEY-Lesbarkeitsprüfung
   "recovery.step1": "Kann BombVault deine Backups lesen?",
   "recovery.appKeyExplain": "Um vorhandene Backups zu lesen, braucht dieser Container denselben APP_KEY wie zuvor. Er steht in deinem Recovery-Kit. Setze ihn im Unraid-Container-Template, falls noch nicht geschehen, und prüfe erneut.",
   "recovery.appKeyRemedy": "Der Verschlüsselungsschlüssel passt nicht zu diesen Backups. Trage den ursprünglichen APP_KEY (aus deinem Recovery-Kit) im Container-Template ein und prüfe erneut.",
@@ -3302,7 +3302,7 @@ export const de: Translations = {
   "recovery.readFrom": "Gelesen aus:",
   "recovery.notReachable": "Deine Backups waren noch nicht erreichbar. Hänge den Speicherort unten an und prüfe erneut.",
   "recovery.recheck": "Prüfen",
-  // Schritt 2: zuerst BombVaults eigene Einstellungen wiederherstellen (optional)
+  // Schritt 2 — zuerst BombVaults eigene Einstellungen wiederherstellen (optional)
   "recovery.stepConfig": "BombVaults eigene Einstellungen wiederherstellen",
   "recovery.configHint": "Stelle auf einem neu aufgesetzten Server zuerst BombVaults eigene Einstellungen wieder her (Backup-Pfade, Off-site-Ziele und Zugangsdaten), damit die Schritte unten schon vorausgefüllt sind. Richte es auf das zuvor eingerichtete Einstellungs-Backup aus. Kein Einstellungs-Backup? Überspringe dies und hänge deine Backups unten manuell an.",
   "recovery.configAppKeyReminder": "Dein APP_KEY muss zu diesem Backup passen. Das ist die Prüfung in Schritt 1 oben.",
@@ -3317,14 +3317,14 @@ export const de: Translations = {
   "recovery.configReload": "Jetzt neu laden",
   "recovery.configSkip": "Überspringen: ich habe kein Einstellungs-Backup",
   "recovery.configSkipped": "Übersprungen. Hänge deine Backups unten manuell an.",
-  // Schritt 3: Backups anhängen
+  // Schritt 3 — Backups anhängen
   "recovery.step2": "Backups anhängen",
   "recovery.cloudCreds": "Cloud-Zugangsdaten (optional)",
   "recovery.cloudCredsHint": "Nur nötig, wenn ein Backup-Pfad auf S3, einen restic-REST-Server oder ein rclone-Remote zeigt. Für einen lokalen Pfad oder eine eingebundene Freigabe brauchst du hier nichts.",
   "recovery.attachHint": "Richte BombVault auf deine vorhandenen Backups aus: einen lokalen Pfad unter dem Host-Mount oder ein Off-site-Repo (rest / S3 / B2 / sftp / rclone) mit den zugehörigen Zugangsdaten. Verbinde dich dann, um es zu bestätigen.",
   "recovery.credsSaveHint": "Off-site-Zugangsdaten werden über den eigenen Speichern-Button der jeweiligen Karte gespeichert. Speichere sie, bevor du „Verbinden & prüfen“ klickst.",
   "recovery.connectPreview": "Verbinden & prüfen",
-  // Verschlüsselungsmodus: ERKANNT, nicht behauptet. Die Repositories sagen
+  // Verschlüsselungsmodus — ERKANNT, nicht behauptet. Die Repositories sagen
   // selbst, ob sie das aus dem APP_KEY abgeleitete Passwort brauchen. Der
   // Normalfall (vorhandenes Repo anhängen) fragt dich also nichts mehr; nur die
   // wirklich unentscheidbaren Fälle zeigen den Schalter noch.
@@ -3343,18 +3343,18 @@ export const de: Translations = {
   "recovery.encStateUnreachable": "nicht lesbar",
   "recovery.encSourceLocal": "lokal",
   "recovery.encSourceOffsite": "off-site",
-  // Schritt 3: alles entdecken
+  // Schritt 3 — alles entdecken
   "recovery.step3": "Entdecke, was in deinen Backups steckt",
   "recovery.discover": "Backups entdecken",
   "recovery.foundCounts": "{c} Container und {v} VMs gefunden.",
   "recovery.foundNone": "Noch nichts gefunden. Prüfe Verbindung und Anhang oben. Falls du hier Backups erwartest, stelle sicher, dass dein APP_KEY zu diesen Backups passt.",
-  // Schritt 4: prüfen & alle wiederherstellen (gestoppt lassen)
+  // Schritt 4 — prüfen & alle wiederherstellen (gestoppt lassen)
   "recovery.step4": "Prüfen und wiederherstellen",
   "recovery.restoreAll": "Alle wiederherstellen (gestoppt lassen)",
   "recovery.restoreAllResult": "{ok} wiederhergestellt, {fail} fehlgeschlagen. Starte sie bei Bedarf über die Tabs Container/VMs.",
   "recovery.vmSshNote": "Für die VM-Wiederherstellung wird die libvirt-SSH-Verbindung benötigt. Richte sie unter Einstellungen → VM-Backup über SSH ein.",
   "recovery.noneDiscovered": "Führe zuerst oben „Entdecken“ aus.",
-  // Schritt 5: Recovery-Kit (Sicherheitsnetz fürs nächste Mal)
+  // Schritt 5 — Recovery-Kit (Sicherheitsnetz fürs nächste Mal)
   "recovery.step5": "Dein Recovery-Kit",
   "recovery.kitHint": "Lade dein Recovery-Kit herunter und bewahre es sicher auf. Es enthält den Verschlüsselungsschlüssel und die genauen restic-Befehle, um selbst ohne BombVault wiederherzustellen.",
   "recovery.kitDownload": "Recovery-Kit herunterladen",
@@ -3362,7 +3362,7 @@ export const de: Translations = {
   "recovery.freshNudge": "Wiederherstellung von einem früheren Server oder nach einem Neuaufbau? Stelle deine vorhandenen Backups wieder her.",
   "recovery.freshNudgeCta": "Zur Wiederherstellung",
 
-  // Einstellungen: Bereichs-Tabs + Zeitplan-Überschriften + Untertitel (v5-Redesign)
+  // Einstellungen — Bereichs-Tabs + Zeitplan-Überschriften + Untertitel (v5-Redesign)
   "settings.tab.general": "Allgemein",
   "settings.tab.storage": "Pfade & Speicher",
   "settings.tab.schedules": "Zeitpläne",
@@ -3389,11 +3389,11 @@ export const de: Translations = {
   // Filter-Auslöser (v5-Redesign)
   "filter.button": "Filter",
 
-  // Einstellungen: Wochenbericht-Karte, Backup-Engine-Cache, Alle-Sitzungen-Abmeldung
+  // Einstellungen — Wochenbericht-Karte, Backup-Engine-Cache, Alle-Sitzungen-Abmeldung
   "settings.digestTitle": "Wochenbericht",
   "settings.digestHint": "Eine Zusammenfassung pro Woche: Anzahl der Läufe, neue Backup-Daten, Off-site-Aktualität und die wichtigsten Fehler, gesendet über die oben konfigurierten Benachrichtigungskanäle.",
   "settings.digestToggle": "Wochenbericht",
-  // Einstellungen: Nachholen verpasster Zeitpläne (Zeitpläne-Tab) + Wächter für überfällige Backups (Benachrichtigungen-Tab)
+  // Einstellungen — Nachholen verpasster Zeitpläne (Zeitpläne-Tab) + Wächter für überfällige Backups (Benachrichtigungen-Tab)
   "settings.missedSchedulesTitle": "Verpasste Zeitpläne",
   "settings.catchUpMissed": "Verpasste Backups nach dem Start nachholen",
   "settings.catchUpMissedHint": "War der Server aus, als ein Zeitplan fällig war, wird dieses Backup etwa zwei Minuten nach dem Start von BombVault nachgeholt.",
@@ -3407,7 +3407,7 @@ export const de: Translations = {
   "settings.cacheHint": "Die Backup-Engine hält unter /config einen Cache mit Repository-Daten, damit inkrementelle und Off-site-Läufe schnell bleiben. Wächst er über dieses Limit, werden nach geplanten Läufen die am längsten ungenutzten Repository-Caches entfernt.",
   "settings.cacheLimitLabel": "Cache-Größenlimit (MB, 0 = unbegrenzt)",
 
-  // Neu-Dialog (#48): einmalig bei einer neuen laufenden Version
+  // Neu-Dialog (#48) — einmalig bei einer neuen laufenden Version
   "whatsnew.title": "Neu in {version}",
   "whatsnew.loading": "Lade Release-Notes…",
   "whatsnew.loadFailed": "Release-Notes konnten hier nicht geladen werden. Auf GitHub öffnen.",
@@ -3415,7 +3415,7 @@ export const de: Translations = {
   "whatsnew.viewOnGitHub": "Vollständige Release-Notes auf GitHub",
   "whatsnew.close": "Schließen",
 
-  // Ordner-Domäne (Ordner-Set-Backups, #62): der Ordner-Tab (Keys behalten
+  // Ordner-Domäne (Ordner-Set-Backups, #62) — der Ordner-Tab (Keys behalten
   // die historischen files.*-Namen; nur die angezeigten Werte heißen "Ordner")
   "nav.files": "Ordner",
   "files.title": "Ordner",
@@ -3492,7 +3492,7 @@ export const de: Translations = {
   "files.emptySelectionBlocked":
     "Ein Set braucht mindestens einen Ordner, deshalb kann der letzte Haken nicht entfernt werden. Nutze Set entfernen, wenn du dieses Set nicht mehr brauchst.",
   "files.pathChangeHint": "Wenn du den Ordner änderst, wird die angekreuzte Unterordner-Auswahl gelöscht.",
-  // Files domain integration: Settings, Dashboard, Recovery (#62 task 7)
+  // Files domain integration — Settings, Dashboard, Recovery (#62 task 7)
   "settings.filesEnabled": "Ordner",
   "settings.filesEnabledHint": "Beliebige Ordner unter deinen Mounts als Datei-Sets sichern, unabhängig von den anderen Domänen.",
   "settings.filesPath": "Ordner-Pfad",
@@ -3502,7 +3502,7 @@ export const de: Translations = {
   "dashboard.domainFiles": "Ordner",
   "recovery.filesFound": "{f} Ordner-Sets gefunden.",
   "recovery.filesRestoreHint": "Wiederentdeckte Ordner-Sets kennen ihren Ursprungsordner nicht. Jedes wird in einen Ordner deiner Wahl wiederhergestellt.",
-  // Restore from another BombVault repo, Recovery page (#61 task 11)
+  // Restore from another BombVault repo — Recovery page (#61 task 11)
   "recovery.foreignTitle": "Aus einem anderen BombVault-Repo wiederherstellen",
   "recovery.foreignIntro": "Hole einzelne Container, VMs oder Ordner-Sets aus den Backups einer ANDEREN BombVault-Instanz: schreibgeschützt verbinden, Inhalt durchstöbern, Auswahl wiederherstellen. Das andere Repository wird dabei nur gelesen: dort ändert sich nichts, und deine eigenen Backup-Einstellungen bleiben unangetastet.",
   "recovery.foreignStepConnect": "Mit dem anderen Repository verbinden",
@@ -3686,14 +3686,14 @@ export const de: Translations = {
 };
 
 // ---------------------------------------------------------------------------
-// Locale registry: 42 languages, all fully translated (en is the source of
+// Locale registry — 42 languages, all fully translated (en is the source of
 // truth; every other table is checked against it by i18n.parity.test.ts).
 // ---------------------------------------------------------------------------
 
 export interface Language {
   /** BCP-47 language code used as the locale key. */
   code: string;
-  /** Endonym, the language's own name, shown in the picker. */
+  /** Endonym — the language's own name, shown in the picker. */
   label: string;
   /** ISO 3166-1 alpha-2 region code used by flag-icons (fi fi-XX). */
   flag: string;
@@ -3831,7 +3831,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     }
     let current = true;
     // `current` rather than an AbortController: two quick switches would
-    // otherwise race, and the last one has to win regardless of which chunk
+    // otherwise race, and the LAST one has to win regardless of which chunk
     // happens to arrive first.
     void loadLocale(lang).then((t) => {
       if (current) setTable(t);
@@ -3843,7 +3843,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   // Switch the running tree to a language. Everything setLanguage does EXCEPT
   // writing it down, because this same path also runs when the language is
-  // adopted from the server, where writing it back would echo it straight
+  // adopted FROM the server, where writing it back would echo it straight
   // home again.
   const adopt = useCallback((code: string) => {
     const offered = OFFERED_LANGUAGES.map((l) => l.code);
@@ -3868,7 +3868,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   // `lang` was read once, at mount. When this browser adopts the server's look
   // afterwards the stored code changes with nobody watching, and the tree would
-  // stay in the language it booted in, English, on a browser whose data was
+  // stay in the language it booted in — English, on a browser whose data was
   // just cleared, which is half of what #191 looked like.
   useEffect(() => {
     const onAdopted = () => adopt(storedCode());
@@ -3889,7 +3889,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 }
 
 /**
- * useT(), reads from the shared I18nContext.
+ * useT() — reads from the shared I18nContext.
  * Must be called inside <I18nProvider>. Any setLanguage call re-renders the whole tree.
  */
 export function useT(): I18nContextValue {
@@ -3897,7 +3897,7 @@ export function useT(): I18nContextValue {
 }
 
 // ---------------------------------------------------------------------------
-// stateLabel: maps a raw Docker / libvirt state string to a translated label.
+// stateLabel — maps a raw Docker / libvirt state string to a translated label.
 // Normalises the raw value (lowercase, spaces→"", dashes→"") then looks up
 // the matching state.* key.  Falls back to the raw string for unknown states.
 // ---------------------------------------------------------------------------

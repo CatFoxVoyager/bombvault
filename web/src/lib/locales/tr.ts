@@ -357,7 +357,7 @@ const tr: Partial<Translations> = {
   "auth.invalidPassword": "Geçersiz parola",
   "auth.loginError": "Oturum açılamadı",
 
-  // Settings: Security card
+  // Settings — Security card
   "auth.security": "Parola",
   "auth.authOff": "Kimlik doğrulama kapalı. Tüm LAN kullanıcıları tam erişime sahip.",
   "auth.authOn": "Kimlik doğrulama etkin.",
@@ -447,7 +447,7 @@ const tr: Partial<Translations> = {
   "state.pmsuspended":  "Askıya alındı",
   "state.notInstalled": "Kurulu değil",
 
-  // Backups: files
+  // Backups — files
   "snapshots.files": "Dosyalar",
   "snapshots.delete": "Sil",
   "snapshots.deleteConfirm": "Bu yedek silinsin mi? Anlık görüntü depodan kaldırılır (alanı geri kazanmak için Ayarlar'da Buda'yı çalıştırın). Geri alınamaz.",
@@ -695,7 +695,7 @@ const tr: Partial<Translations> = {
   "export.exportedTo": "Şuraya aktarıldı:",
   "backup.configOnly": "Yalnızca yapılandırma, veri klasörü yok (tanım yeniden oluşturma için kaydedildi)",
 
-  // Backups: delete all
+  // Backups — delete all
   "snapshots.deleteAll": "Tüm yedekleri sil",
   "snapshots.deleteAllConfirm": "Bu VM'nin seçili kaynaktaki (yerel veya site dışı) TÜM yedekleri silinsin mi? Anlık görüntüler kalıcı olarak kaldırılır ve depo budanır. Bu işlem geri alınamaz.",
   "snapshots.deletingAll": "Siliniyor…",
@@ -771,7 +771,7 @@ const tr: Partial<Translations> = {
   "recovery.freshNudge": "Önceki bir sunucudan ya da yeniden kurulumdan mı geri yüklüyorsunuz? Mevcut yedeklerinizi kurtarın.",
   "recovery.freshNudgeCta": "Kurtarma'ya git",
 
-  // Recovery: restore BombVault's own settings (config)
+  // Recovery — restore BombVault's own settings (config)
   "recovery.stepConfig": "BombVault'un kendi ayarlarını geri yükle",
   "recovery.configHint": "Yeniden oluşturulan bir sunucuda önce BombVault'un kendi ayarlarını geri yükleyin (yedekleme yolları, site dışı hedefler ve kimlik bilgileri), böylece aşağıdaki adımlar önceden doldurulur. Daha önce kurduğunuz ayar yedeğine yönlendirin. Ayar yedeği yok mu? Bunu atlayın ve yedeklerinizi aşağıdan elle ekleyin.",
   "recovery.configAppKeyReminder": "APP_KEY'iniz bu yedekle eşleşmelidir. Yukarıdaki 1. Adımdaki denetim budur.",
@@ -860,7 +860,7 @@ const tr: Partial<Translations> = {
   "settings.dashTileRemoving": "Kaldırılıyor…",
   "settings.dashTileRemoveOk": "Eklenti kaldırıldı. Artık Unraid kontrol panelinde görünmüyor.",
 
-  // Notifications: Email (SMTP)
+  // Notifications — Email (SMTP)
   "notify.smtp": "E-posta (SMTP)",
   "notify.smtpHost": "SMTP sunucusu",
   "notify.smtpPort": "Port",
@@ -1140,7 +1140,7 @@ const tr: Partial<Translations> = {
   "drill.manualOnly": "Site dışı DR: yalnızca elle",
   "drill.manualOnlyTitle": "Zamanlanmış site dışı DR tatbikatı kapalı. Site dışı denetimi düğmeyle elle çalıştırın.",
 
-  // Settings: section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "Genel",
   "settings.tab.storage": "Yollar ve depolama",
   "settings.tab.schedules": "Zamanlamalar",
@@ -1239,7 +1239,7 @@ const tr: Partial<Translations> = {
   "dashboard.domainFiles": "Klasörler",
   "recovery.filesFound": "{f} klasör seti bulundu.",
   "recovery.filesRestoreHint": "Yeniden keşfedilen klasör setleri özgün klasörünü bilmez. Her biri seçtiğiniz bir klasöre geri yüklenir.",
-  // Restore from another BombVault repo, Recovery page (#61 task 11)
+  // Restore from another BombVault repo — Recovery page (#61 task 11)
   "recovery.foreignTitle": "Başka bir BombVault deposundan geri yükle",
   "recovery.foreignIntro": "BAŞKA bir BombVault örneğinin yedeklerinden tek tek kapsayıcıları, sanal makineleri veya klasör setlerini alın: salt okunur bağlanın, içeriğe göz atın ve seçtiklerinizi geri yükleyin. Diğer depo yalnızca okunur, orada hiçbir şey değişmez ve kendi yedekleme ayarlarınız olduğu gibi kalır.",
   "recovery.foreignStepConnect": "Diğer depoya bağlan",
@@ -1334,7 +1334,7 @@ const tr: Partial<Translations> = {
   "activityLog.dayFilterChip": "{date} gösteriliyor",
   "activityLog.clearDayFilter": "Gün filtresini temizle",
 
-  // i18n wave: Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "Çoğaltma başlatıldı - arka planda çalışır; çalışma göstergesi ilerlemeyi gösterir.",
   "whatsnew.retry": "Tekrar dene",

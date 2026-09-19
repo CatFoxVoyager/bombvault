@@ -909,7 +909,7 @@ const hr: Partial<Translations> = {
   "auth.invalidPassword": "Neispravna lozinka",
   "auth.loginError": "Prijava nije uspjela",
 
-  // Settings: Security card
+  // Settings — Security card
   "auth.security": "Lozinka",
   "auth.authOff": "Autentifikacija je isključena. Svi LAN korisnici imaju puni pristup.",
   "auth.authOn": "Autentifikacija je omogućena.",
@@ -1335,7 +1335,7 @@ const hr: Partial<Translations> = {
   "recovery.freshNudge": "Vraćate podatke s prethodnog poslužitelja ili nakon ponovne izgradnje? Vratite svoje postojeće sigurnosne kopije.",
   "recovery.freshNudgeCta": "Idi na Oporavak",
 
-  // Settings: section tabs
+  // Settings — section tabs
   "settings.tab.general": "Opće",
   "settings.tab.storage": "Putanje i pohrana",
   "settings.tab.schedules": "Rasporedi",
@@ -1361,7 +1361,7 @@ const hr: Partial<Translations> = {
   // Filter drawer trigger
   "filter.button": "Filtri",
 
-  // Settings: weekly digest, backup-engine cache, revoke-all sessions
+  // Settings — weekly digest, backup-engine cache, revoke-all sessions
   "settings.digestTitle": "Tjedni sažetak",
   "settings.digestHint": "Jedna sažeta poruka tjedno: broj izvršavanja, novi podaci sigurnosne kopije, izvanmrežna ažurnost i najveći neuspjesi, poslana putem gore navedenih kanala obavijesti.",
   "settings.digestToggle": "Tjedni sažetak",

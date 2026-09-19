@@ -357,7 +357,7 @@ const es: Partial<Translations> = {
   "auth.invalidPassword": "Contraseña incorrecta",
   "auth.loginError": "Error al iniciar sesión",
 
-  // Settings: Security card
+  // Settings — Security card
   "auth.security": "Contraseña",
   "auth.authOff": "La autenticación está desactivada: todos los usuarios de la LAN tienen acceso completo.",
   "auth.authOn": "La autenticación está habilitada.",
@@ -447,7 +447,7 @@ const es: Partial<Translations> = {
   "state.pmsuspended":  "Suspendido",
   "state.notInstalled": "No instalado",
 
-  // Backups: files
+  // Backups — files
   "snapshots.files": "Archivos",
   "snapshots.delete": "Eliminar",
   "snapshots.deleteConfirm": "¿Eliminar esta copia? La instantánea se quita del repositorio (ejecuta Podar en Ajustes para recuperar el espacio). No se puede deshacer.",
@@ -703,7 +703,7 @@ const es: Partial<Translations> = {
   "export.exportedTo": "Exportado a:",
   "backup.configOnly": "Solo configuración, sin carpetas de datos (definición guardada para recrear)",
 
-  // Backups: delete all
+  // Backups — delete all
   "snapshots.deleteAll": "Eliminar todas las copias",
   "snapshots.deleteAllConfirm": "¿Eliminar TODAS las copias de esta VM de la fuente seleccionada (local o externa)? Las instantáneas se eliminan permanentemente y el repositorio se poda. No se puede deshacer.",
   "snapshots.deletingAll": "Eliminando…",
@@ -799,7 +799,7 @@ const es: Partial<Translations> = {
   "config.snapshotsHint": "Para restaurar estos ajustes en un servidor reconstruido, usa la pestaña Recuperación. Restaurar los ajustes reinicia BombVault para aplicarlos, por eso vive ahí junto con el resto del flujo de recuperación ante desastres.",
   "config.none": "Aún no hay copias de configuración. Inicia una copia arriba.",
 
-  // Recovery: restore BombVault's own settings step
+  // Recovery — restore BombVault's own settings step
   "recovery.stepConfig": "Restaurar la propia configuración de BombVault",
   "recovery.configHint": "En un servidor reconstruido, restaura primero la propia configuración de BombVault (sus rutas de copia, destinos externos y credenciales) para que los pasos de abajo vengan rellenados. Apúntalo a la copia de configuración que preparaste antes. ¿No tienes copia de configuración? Omite esto y adjunta tus copias manualmente abajo.",
   "recovery.configAppKeyReminder": "Tu APP_KEY debe coincidir con esta copia. Es la comprobación del Paso 1 de arriba.",
@@ -1138,7 +1138,7 @@ const es: Partial<Translations> = {
   "drill.manualOnly": "DR externo: solo manual",
   "drill.manualOnlyTitle": "El simulacro DR externo programado está desactivado. Ejecuta la comprobación externa manualmente con el botón.",
 
-  // Settings: section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "General",
   "settings.tab.storage": "Rutas y almacenamiento",
   "settings.tab.schedules": "Programaciones",
@@ -1237,7 +1237,7 @@ const es: Partial<Translations> = {
   "dashboard.domainFiles": "Carpetas",
   "recovery.filesFound": "Se encontraron {f} conjuntos de carpetas.",
   "recovery.filesRestoreHint": "Los conjuntos de carpetas redescubiertos no conservan su carpeta original. Cada uno se restaura en una carpeta que elijas.",
-  // Restore from another BombVault repo, Recovery page (#61 task 11)
+  // Restore from another BombVault repo — Recovery page (#61 task 11)
   "recovery.foreignTitle": "Restaurar desde otro repo de BombVault",
   "recovery.foreignIntro": "Extrae contenedores, VMs o conjuntos de carpetas individuales de las copias de OTRA instancia de BombVault: conéctate en solo lectura, explora el contenido y restaura lo que elijas. El otro repositorio solo se lee, allí no cambia nada, y tus propios ajustes de copia de seguridad quedan intactos.",
   "recovery.foreignStepConnect": "Conectar con el otro repositorio",
@@ -1332,7 +1332,7 @@ const es: Partial<Translations> = {
   "activityLog.dayFilterChip": "Mostrando {date}",
   "activityLog.clearDayFilter": "Quitar el filtro de día",
 
-  // i18n wave: Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "Replicación iniciada - se ejecuta en segundo plano; el indicador de actividad muestra el progreso.",
   "whatsnew.retry": "Reintentar",

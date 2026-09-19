@@ -909,7 +909,7 @@ const hi: Partial<Translations> = {
   "auth.invalidPassword": "अमान्य पासवर्ड",
   "auth.loginError": "लॉगिन विफल हुआ",
 
-  // Settings: Security card
+  // Settings — Security card
   "auth.security": "पासवर्ड",
   "auth.authOff": "ऑथेंटिकेशन बंद है। सभी LAN उपयोगकर्ताओं को पूरी पहुँच है।",
   "auth.authOn": "ऑथेंटिकेशन सक्षम है।",
@@ -1335,7 +1335,7 @@ const hi: Partial<Translations> = {
   "recovery.freshNudge": "किसी पुराने सर्वर से या फिर से बनाने के बाद रीस्टोर कर रहे हैं? अपने मौजूदा बैकअप रीस्टोर करें।",
   "recovery.freshNudgeCta": "Recovery पर जाएँ",
 
-  // Settings: section tabs
+  // Settings — section tabs
   "settings.tab.general": "सामान्य",
   "settings.tab.storage": "पथ और स्टोरेज",
   "settings.tab.schedules": "शेड्यूल",
@@ -1361,7 +1361,7 @@ const hi: Partial<Translations> = {
   // Filter drawer trigger
   "filter.button": "फ़िल्टर",
 
-  // Settings: weekly digest, backup-engine cache, revoke-all sessions
+  // Settings — weekly digest, backup-engine cache, revoke-all sessions
   "settings.digestTitle": "साप्ताहिक सारांश",
   "settings.digestHint": "प्रति सप्ताह एक सारांश संदेश: रन की संख्या, नया बैकअप डेटा, ऑफ़-साइट की समयबद्धता और मुख्य विफलताएँ, ऊपर सेट किए गए सूचना चैनलों से भेजी जाती हैं।",
   "settings.digestToggle": "साप्ताहिक सारांश",

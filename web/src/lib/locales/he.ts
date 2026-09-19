@@ -357,7 +357,7 @@ const he: Partial<Translations> = {
   "auth.invalidPassword": "סיסמה שגויה",
   "auth.loginError": "הכניסה נכשלה",
 
-  // Settings: Security card
+  // Settings — Security card
   "auth.security": "סיסמה",
   "auth.authOff": "האימות מושבת: לכל משתמשי ה-LAN גישה מלאה.",
   "auth.authOn": "האימות מופעל.",
@@ -447,7 +447,7 @@ const he: Partial<Translations> = {
   "state.pmsuspended":  "מושעה",
   "state.notInstalled": "לא מותקן",
 
-  // Backups: files
+  // Backups — files
   "snapshots.files": "קבצים",
   "snapshots.delete": "מחיקה",
   "snapshots.deleteConfirm": "למחוק את הגיבוי הזה? תמונת המצב מוסרת מהמאגר (הרץ גיזום בהגדרות לשחרור המקום). לא ניתן לבטל.",
@@ -695,7 +695,7 @@ const he: Partial<Translations> = {
   "export.exportedTo": "יוצא אל:",
   "backup.configOnly": "תצורה בלבד, אין תיקיות נתונים (ההגדרה נשמרה לשחזור)",
 
-  // Backups: delete all
+  // Backups — delete all
   "snapshots.deleteAll": "מחק את כל הגיבויים",
   "snapshots.deleteAllConfirm": "למחוק את כל הגיבויים של VM זו מהמקור הנבחר (מקומי או מחוץ לאתר)? ה-snapshots יוסרו לצמיתות והמאגר ייגזם. לא ניתן לבטל פעולה זו.",
   "snapshots.deletingAll": "מוחק…",
@@ -771,7 +771,7 @@ const he: Partial<Translations> = {
   "recovery.freshNudge": "משחזר משרת קודם או מהתקנה מחדש? שחזר את הגיבויים הקיימים שלך.",
   "recovery.freshNudgeCta": "עבור להתאוששות",
 
-  // Recovery: restore BombVault's own settings (config)
+  // Recovery — restore BombVault's own settings (config)
   "recovery.stepConfig": "שחזר את ההגדרות של BombVault עצמו",
   "recovery.configHint": "בשרת שנבנה מחדש, שחזר תחילה את ההגדרות של BombVault עצמו (נתיבי הגיבוי, היעדים מחוץ לאתר ופרטי ההתחברות שלו) כדי שהשלבים שלמטה יגיעו מלאים מראש. הפנה אותו אל גיבוי ההגדרות שהגדרת קודם. אין גיבוי הגדרות? דלג על זה וצרף את הגיבויים שלך ידנית למטה.",
   "recovery.configAppKeyReminder": "ה-APP_KEY שלך חייב להתאים לגיבוי הזה: זו הבדיקה בשלב 1 למעלה.",
@@ -840,7 +840,7 @@ const he: Partial<Translations> = {
   "settings.dashTileRemoving": "מסיר…",
   "settings.dashTileRemoveOk": "התוסף הוסר. הוא כבר לא מופיע בלוח הבקרה של Unraid.",
 
-  // Notifications: SMTP
+  // Notifications — SMTP
   "notify.smtp": "אימייל (SMTP)",
   "notify.smtpHost": "שרת SMTP",
   "notify.smtpPort": "פורט",
@@ -1140,7 +1140,7 @@ const he: Partial<Translations> = {
   "drill.manualOnly": "DR מחוץ לאתר: ידני בלבד",
   "drill.manualOnlyTitle": "תרגיל ה-DR המתוזמן מחוץ לאתר כבוי. הרץ את הבדיקה מחוץ לאתר ידנית באמצעות הכפתור.",
 
-  // Settings: section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "כללי",
   "settings.tab.storage": "נתיבים ואחסון",
   "settings.tab.schedules": "תזמונים",
@@ -1239,7 +1239,7 @@ const he: Partial<Translations> = {
   "dashboard.domainFiles": "תיקיות",
   "recovery.filesFound": "נמצאו {f} ערכות תיקיות.",
   "recovery.filesRestoreHint": "ערכות תיקיות שהתגלו מחדש אינן יודעות את תיקיית המקור שלהן: כל אחת משוחזרת לתיקייה שתבחרו.",
-  // Restore from another BombVault repo, Recovery page (#61 task 11)
+  // Restore from another BombVault repo — Recovery page (#61 task 11)
   "recovery.foreignTitle": "שחזור ממאגר BombVault אחר",
   "recovery.foreignIntro": "משכו קונטיינרים, מכונות וירטואליות או ערכות תיקיות בודדות מהגיבויים של מופע BombVault אחר: התחברו לקריאה בלבד, עיינו בתוכן ושחזרו את מה שתבחרו. המאגר האחר רק נקרא, שם דבר לא משתנה, והגדרות הגיבוי שלכם נשארות ללא שינוי.",
   "recovery.foreignStepConnect": "התחברות למאגר האחר",
@@ -1334,7 +1334,7 @@ const he: Partial<Translations> = {
   "activityLog.dayFilterChip": "מציג את {date}",
   "activityLog.clearDayFilter": "ניקוי סינון היום",
 
-  // i18n wave: Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "השכפול החל - הוא פועל ברקע; מחוון הריצה מציג את ההתקדמות.",
   "whatsnew.retry": "נסה שוב",

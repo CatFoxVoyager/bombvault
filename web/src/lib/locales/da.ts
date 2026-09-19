@@ -357,7 +357,7 @@ const da: Partial<Translations> = {
   "auth.invalidPassword": "Ugyldig adgangskode",
   "auth.loginError": "Login mislykkedes",
 
-  // Settings: Security card
+  // Settings — Security card
   "auth.security": "Adgangskode",
   "auth.authOff": "Godkendelse er slået fra. Alle LAN-brugere har fuld adgang.",
   "auth.authOn": "Godkendelse er aktiveret.",
@@ -791,7 +791,7 @@ const da: Partial<Translations> = {
   "config.snapshotsHint": "For at gendanne disse indstillinger på en genopbygget server skal du bruge fanen Gendannelse. Gendannelse af indstillinger genstarter BombVault for at anvende dem, så det hører til der sammen med resten af katastrofegendannelsesforløbet.",
   "config.none": "Ingen indstillingssikkerhedskopier endnu. Kør en sikkerhedskopiering ovenfor.",
 
-  // Recovery: restore BombVault's own settings step
+  // Recovery — restore BombVault's own settings step
   "recovery.stepConfig": "Gendan BombVaults egne indstillinger",
   "recovery.configHint": "På en genopbygget server skal du først gendanne BombVaults egne indstillinger (dens sikkerhedskopistier, off-site-mål og legitimationsoplysninger), så trinene nedenfor kommer forudfyldt. Peg den mod den indstillingssikkerhedskopi, du opsatte tidligere. Ingen indstillingssikkerhedskopi? Spring dette over, og tilknyt dine sikkerhedskopier manuelt nedenfor.",
   "recovery.configAppKeyReminder": "Din APP_KEY skal matche denne sikkerhedskopi. Det er tjekket i trin 1 ovenfor.",
@@ -860,7 +860,7 @@ const da: Partial<Translations> = {
   "settings.dashTileRemoving": "Fjerner…",
   "settings.dashTileRemoveOk": "Plugin fjernet. Det vises ikke længere på Unraid-dashboardet.",
 
-  // Notifications: email (SMTP)
+  // Notifications — email (SMTP)
   "notify.smtp": "E-mail (SMTP)",
   "notify.smtpHost": "SMTP-vært",
   "notify.smtpPort": "Port",
@@ -1140,7 +1140,7 @@ const da: Partial<Translations> = {
   "drill.manualOnly": "Off-site DR: kun manuelt",
   "drill.manualOnlyTitle": "Den planlagte off-site DR-test er slået fra. Kør off-site-tjekket manuelt med knappen.",
 
-  // Settings: section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "Generelt",
   "settings.tab.storage": "Stier og lagring",
   "settings.tab.schedules": "Tidsplaner",
@@ -1239,7 +1239,7 @@ const da: Partial<Translations> = {
   "dashboard.domainFiles": "Mapper",
   "recovery.filesFound": "Fandt {f} mappesæt.",
   "recovery.filesRestoreHint": "Genopdagede mappesæt kender ikke deres oprindelige mappe. Hvert sæt gendannes til en mappe, du vælger.",
-  // Restore from another BombVault repo, Recovery page (#61 task 11)
+  // Restore from another BombVault repo — Recovery page (#61 task 11)
   "recovery.foreignTitle": "Gendan fra et andet BombVault-repo",
   "recovery.foreignIntro": "Hent enkelte containere, VM'er eller mappesæt ud af sikkerhedskopierne fra en ANDEN BombVault-instans: forbind skrivebeskyttet, gennemse indholdet og gendan det, du vælger. Det andet repo læses kun, intet ændres der, og dine egne backup-indstillinger forbliver urørte.",
   "recovery.foreignStepConnect": "Forbind til det andet repo",
@@ -1334,7 +1334,7 @@ const da: Partial<Translations> = {
   "activityLog.dayFilterChip": "Viser {date}",
   "activityLog.clearDayFilter": "Ryd dagsfilteret",
 
-  // i18n wave: Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "Replikering startet - den kører i baggrunden; aktivitetsindikatoren viser fremdriften.",
   "whatsnew.retry": "Prøv igen",

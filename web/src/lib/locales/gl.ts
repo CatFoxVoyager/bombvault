@@ -909,7 +909,7 @@ const gl: Partial<Translations> = {
   "auth.invalidPassword": "Contrasinal incorrecto",
   "auth.loginError": "O inicio de sesión fallou",
 
-  // Settings: Security card
+  // Settings — Security card
   "auth.security": "Contrasinal",
   "auth.authOff": "A autenticación está desactivada: todos os usuarios da LAN teñen acceso completo.",
   "auth.authOn": "A autenticación está activada.",
@@ -1335,7 +1335,7 @@ const gl: Partial<Translations> = {
   "recovery.freshNudge": "Restaurando desde un servidor anterior ou despois dunha reconstrución? Restaura as túas copias existentes.",
   "recovery.freshNudgeCta": "Ir a Recuperación",
 
-  // Settings: section tabs
+  // Settings — section tabs
   "settings.tab.general": "Xeral",
   "settings.tab.storage": "Camiños e almacenamento",
   "settings.tab.schedules": "Horarios",
@@ -1361,7 +1361,7 @@ const gl: Partial<Translations> = {
   // Filter drawer trigger
   "filter.button": "Filtros",
 
-  // Settings: weekly digest, backup-engine cache, revoke-all sessions
+  // Settings — weekly digest, backup-engine cache, revoke-all sessions
   "settings.digestTitle": "Resumo semanal",
   "settings.digestHint": "Unha mensaxe de resumo por semana: número de execucións, novos datos de copia, actualidade externa e os principais erros, enviada polas canles de notificación de arriba.",
   "settings.digestToggle": "Resumo semanal",

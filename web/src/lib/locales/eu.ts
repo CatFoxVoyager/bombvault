@@ -909,7 +909,7 @@ const eu: Partial<Translations> = {
   "auth.invalidPassword": "Pasahitz baliogabea",
   "auth.loginError": "Saioa hastean huts egin du",
 
-  // Settings: Security card
+  // Settings — Security card
   "auth.security": "Pasahitza",
   "auth.authOff": "Autentifikazioa itzalita dago: LAN erabiltzaile guztiek sarbide osoa dute.",
   "auth.authOn": "Autentifikazioa gaituta dago.",
@@ -1335,7 +1335,7 @@ const eu: Partial<Translations> = {
   "recovery.freshNudge": "Aurreko zerbitzari batetik edo berreraikitze baten ondoren berrezartzen? Berrezarri zure dauden babeskopiak.",
   "recovery.freshNudgeCta": "Joan Berreskuratzera",
 
-  // Settings: section tabs
+  // Settings — section tabs
   "settings.tab.general": "Orokorra",
   "settings.tab.storage": "Bideak eta biltegiratzea",
   "settings.tab.schedules": "Egutegiak",
@@ -1361,7 +1361,7 @@ const eu: Partial<Translations> = {
   // Filter drawer trigger
   "filter.button": "Iragazkiak",
 
-  // Settings: weekly digest, backup-engine cache, revoke-all sessions
+  // Settings — weekly digest, backup-engine cache, revoke-all sessions
   "settings.digestTitle": "Asteko laburpena",
   "settings.digestHint": "Laburpen-mezu bat astean: exekuzio-kopurua, babeskopia-datu berriak, kanpoko eguneratasuna eta errore nagusiak, goiko jakinarazpen-kanalen bidez bidalita.",
   "settings.digestToggle": "Asteko laburpena",

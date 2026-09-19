@@ -352,7 +352,7 @@ const pl: Partial<Translations> = {
   "auth.invalidPassword": "Nieprawidłowe hasło",
   "auth.loginError": "Logowanie nieudane",
 
-  // Settings: Security card
+  // Settings — Security card
   "auth.security": "Hasło",
   "auth.authOff": "Uwierzytelnianie jest wyłączone. Wszyscy użytkownicy sieci LAN mają pełny dostęp.",
   "auth.authOn": "Uwierzytelnianie jest włączone.",
@@ -687,7 +687,7 @@ const pl: Partial<Translations> = {
   "export.exportedTo": "Wyeksportowano do:",
   "backup.configOnly": "Tylko konfiguracja, brak folderów danych (definicja zapisana do odtworzenia)",
 
-  // Backups: delete all
+  // Backups — delete all
   "snapshots.deleteAll": "Usuń wszystkie kopie zapasowe",
   "snapshots.deleteAllConfirm": "Usunąć WSZYSTKIE kopie zapasowe tej maszyny wirtualnej z wybranego źródła (lokalnego lub poza siedzibą)? Migawki zostaną trwale usunięte, a repozytorium przycięte. Nie można cofnąć.",
   "snapshots.deletingAll": "Usuwanie…",
@@ -832,7 +832,7 @@ const pl: Partial<Translations> = {
   "settings.dashTileRemoving": "Usuwanie…",
   "settings.dashTileRemoveOk": "Wtyczka usunięta. Nie pojawia się już na panelu Unraid.",
 
-  // Notifications: SMTP
+  // Notifications — SMTP
   "notify.smtp": "E-mail (SMTP)",
   "notify.smtpHost": "Host SMTP",
   "notify.smtpPort": "Port",
@@ -1135,7 +1135,7 @@ const pl: Partial<Translations> = {
   "drill.manualOnly": "DR poza siedzibą: tylko ręcznie",
   "drill.manualOnlyTitle": "Zaplanowana próba DR poza siedzibą jest wyłączona. Uruchom sprawdzenie poza siedzibą ręcznie za pomocą przycisku.",
 
-  // Settings: section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "Ogólne",
   "settings.tab.storage": "Ścieżki i pamięć",
   "settings.tab.schedules": "Harmonogramy",
@@ -1234,7 +1234,7 @@ const pl: Partial<Translations> = {
   "dashboard.domainFiles": "Foldery",
   "recovery.filesFound": "Znaleziono {f} zestawów folderów.",
   "recovery.filesRestoreHint": "Ponownie odkryte zestawy folderów nie znają swojego pierwotnego folderu. Każdy jest przywracany do wybranego folderu.",
-  // Restore from another BombVault repo, Recovery page (#61 task 11)
+  // Restore from another BombVault repo — Recovery page (#61 task 11)
   "recovery.foreignTitle": "Przywracanie z innego repo BombVault",
   "recovery.foreignIntro": "Wyciągnij pojedyncze kontenery, maszyny wirtualne lub zestawy folderów z kopii INNEJ instancji BombVault: połącz się w trybie tylko do odczytu, przejrzyj zawartość i przywróć, co wybierzesz. Drugie repozytorium jest tylko odczytywane, nic się tam nie zmienia, a Twoje własne ustawienia kopii zapasowych pozostają nietknięte.",
   "recovery.foreignStepConnect": "Połącz z innym repozytorium",
@@ -1329,7 +1329,7 @@ const pl: Partial<Translations> = {
   "activityLog.dayFilterChip": "Wyświetlanie: {date}",
   "activityLog.clearDayFilter": "Usuń filtr dnia",
 
-  // i18n wave: Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "Replikacja rozpoczęta - działa w tle; wskaźnik aktywności pokazuje postęp.",
   "whatsnew.retry": "Spróbuj ponownie",

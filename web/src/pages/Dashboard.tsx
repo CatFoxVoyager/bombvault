@@ -75,7 +75,7 @@ function StatCard({
   value: number;
   danger?: boolean;
   /** When set, the card becomes a real button (pointer cursor, hover, focus
-   *  ring), used to open the error-detail panel from the errors tile. */
+   *  ring) — used to open the error-detail panel from the errors tile. */
   onClick?: () => void;
 }) {
   const base = "bg-carbon-surface rounded-card px-4 py-3 flex flex-col gap-1 min-w-0 overflow-hidden";
@@ -108,7 +108,7 @@ function StatCard({
 // computeStatData fetches the four inputs the stat cards need and derives the
 // tile values. Extracted from the component so it can be re-run on demand (after
 // the error panel acknowledges failures) as well as on mount. Rejects if any
-// fetch rejects: the caller then leaves the last known data in place.
+// fetch rejects — the caller then leaves the last known data in place.
 async function computeStatData(): Promise<StatData> {
   const [contRes, settingsRes, runsRes, vmsRes] = await Promise.all([
     listContainers(),
@@ -119,7 +119,7 @@ async function computeStatData(): Promise<StatData> {
   const containers = contRes.ok ? (contRes.containers ?? []) : [];
   const settings: Settings | null = settingsRes.ok ? settingsRes.settings : null;
   const runs = runsRes.ok ? (runsRes.runs ?? []) : [];
-  // listVMs fails/returns empty when the VMs domain is off, treat as none.
+  // listVMs fails/returns empty when the VMs domain is off — treat as none.
   const vms = vmsRes.ok ? (vmsRes.vms ?? []) : [];
 
   const installed = containers.filter((c) => c.installed);
@@ -255,7 +255,7 @@ function StatCardsRow({ t, advanced }: { t: ReturnType<typeof useT>["t"]; advanc
     computeStatData()
       .then((d) => setData(d))
       .catch(() => {
-        /* non-fatal, keep the current tile values */
+        /* non-fatal — keep the current tile values */
       });
   }, []);
 
@@ -300,68 +300,68 @@ function Card({
   title: string;
   children: React.ReactNode;
   action?: React.ReactNode;
-  /** Rainbow position for this Card's own heading notch, GlimStone
+  /** Rainbow position for THIS Card's own heading notch — GlimStone
    *  follow-up pass, jdp's live review of this page specifically: "Dashboard:
    *  Cardtitelbadges sind falsch platziert. Alle sind nicht im
    *  Regenbogenmodus." Every one of this page's Cards was still the ORIGINAL
    *  Task 5 flat-accent-only heading, never migrated to the `hueIndex` opt-in
-   *  Settings.tsx's own Card already got, same prop, same Badge.tsx
+   *  Settings.tsx's own Card already got — same prop, same Badge.tsx
    *  mechanism, just never threaded through on this file. Assigned by the
    *  caller's own running `nextHue()` counter, in the CURRENT rendered order
    *  of the user's customizable/reorderable block layout (see the main
    *  component's own `hueSeq`/`nextHue` comment for why that has to be a
    *  counter passed through the block-render callbacks rather than a static
    *  per-Card literal, the way Settings.tsx's own fixed tab layout can get
-   *  away with). Omit for a genuine singleton, same rule as Settings.tsx's
+   *  away with). Omit for a genuine singleton — same rule as Settings.tsx's
    *  Card. */
   hueIndex?: number;
 }) {
   return (
     // GlimStone follow-up pass (live-review round, "half-overlap card
     // notch"): the heading Badge is now `position: absolute`, straddling
-    // This card's own top edge (see Badge.tsx's badgeClassName comment),
-    // it needs a `relative` ancestor whose edge is the card's real visual
+    // THIS card's own top edge (see Badge.tsx's badgeClassName comment) —
+    // it needs a `relative` ancestor whose edge IS the card's real visual
     // edge, which the bg-carbon-surface box below can no longer provide on
     // its own: that box's own `overflow-hidden` (there so a Card containing
     // a ProgressBar clips the bar's square ends to the card's rounded
-    // corners: see ProgressBar.tsx) would just as happily clip the badge's
+    // corners — see ProgressBar.tsx) would just as happily clip the badge's
     // own -11px poke above it. So `relative` moves to this new, purely
-    // structural OUTER div (no bg/radius/shadow of its own, all of that
+    // structural OUTER div (no bg/radius/shadow of its own — all of that
     // stays on the inner div below), with the badge rendering as its direct
     // child: it escapes the inner div's clipping entirely while still
     // measuring its offset against a box whose top edge is pixel-identical
     // to the visual card's own (this outer div has no padding/border, so it
     // hugs the inner div exactly).
     // `glim-notch-card` (same live-review round's rainbow-hue follow-up as
-    // Settings.tsx's own Card: index.css's `[data-rainbow="reactive"]
+    // Settings.tsx's own Card — index.css's `[data-rainbow="reactive"]
     // .glim-notch-card:hover .glim-notch-hue` rule keys off this marker):
-    // this page's Card never carried it before now, a genuine instance of
-    // the same gap jdp is naming here, not a new one invented for this
-    // fix: a hued heading on this page would have lit up on hovering only
+    // this page's Card never carried it before now — a genuine instance of
+    // the SAME gap jdp is naming here, not a new one invented for this
+    // fix — a hued heading on this page would have lit up on hovering only
     // its own ~22px glyph, not this card's whole body, in reactive mode.
     //
     // insetStart={5} (GlimStone follow-up pass, jdp emphatic: "Dashboard-
     // Badges sind immer noch falsch platziert, links buendig mit der Card")
-    //: the outer div above is deliberately unpadded (that's the whole point
+    // — the outer div above is deliberately unpadded (that's the whole point
     // of this split, see above), which left the badge's horizontal position
-    //: the CSS static-position fallback Badge.tsx uses by default, flush
-    // with this outer div's bare edge instead of the inner p-5 box's content
+    // — the CSS static-position fallback Badge.tsx uses by default — flush
+    // with THIS outer div's bare edge instead of the inner p-5 box's content
     // edge below. `insetStart={5}` states the inner box's own p-5 explicitly
     // on the Badge instead of leaving it to be re-derived from ambient DOM
-    // shape: see Badge.tsx's own `insetStart` doc for the full mechanism
+    // shape — see Badge.tsx's own `insetStart` doc for the full mechanism
     // and the four OTHER call sites (SummaryCell below, ActivityLog.tsx,
     // Flash.tsx's and Config.tsx's backup Cards) that independently hit the
     // identical mismatch.
     //
-    // `.glim-hue` also added (rainbow-mode completeness sweep, jdp live
+    // `.glim-hue` ALSO added (rainbow-mode completeness sweep, jdp live
     // review: "Es sind nicht alle Buttons in den Regenbogen-Modus
     // eingepflegt"): `glim-notch-card` alone never redefines
     // --accent/--focus-ring, only the reactive-mode hover reveal, so every
     // action button/control rendered as this Card's `children` (e.g.
     // RansomwareCard's "Run off-site DR check" button) stayed the flat theme
-    // accent regardless of rainbow, even though this same Card's own
+    // accent regardless of rainbow, even though this SAME Card's own
     // heading notch was already correctly hued. Same hueIndex prop the
-    // Badge already uses: custom properties cascade to every descendant
+    // Badge already uses — custom properties cascade to every descendant
     // once redefined here, no per-button change needed at any of this
     // Card's many call sites.
     <div
@@ -533,8 +533,8 @@ export function ProtectionCard({
     });
     void runDrill(domain, "offsite", "dr")
       .then((res) => {
-        // A drill that actually ran (pass or fail) is recorded and surfaced by the
-        // status refetch below via d.drillDetail, don't duplicate it here. Only a
+        // A drill that actually ran (pass OR fail) is recorded and surfaced by the
+        // status refetch below via d.drillDetail — don't duplicate it here. Only a
         // run that produced NO recorded row (e.g. the repo was busy) needs its own
         // transient message next to the button.
         if (!res.ok && !res.drill) {
@@ -605,12 +605,12 @@ export function ProtectionCard({
             // ("manual only"): but only when there is no failing result to show.
             const drUnscheduled = drCapable && d.offsiteConfigured && !d.offsiteDrillScheduled;
             // The red "proven restorable off-site" state: a recorded off-site DR drill
-            // that failed. A real failure (scheduled or a manual run) is always shown,
+            // that failed. A real failure (scheduled OR a manual run) is ALWAYS shown,
             // never masked by the opt-out, only "never drilled" goes neutral.
             const drFailed = !off && drCapable && d.lastDrDrillAt > 0 && !d.lastDrDrillOK;
             return (
               <div key={d.domain} className="flex flex-col gap-1 rounded-control bg-carbon-surface2 px-2 py-2.5 text-sm">
-                {/* Two-mode row layout (#66 follow-up). Wide card (container query
+                {/* Two-mode row layout (#66 follow-up). WIDE card (container query
                     @[44rem] on the rows wrapper): every row lays its cells on the
                     Same shared grid track template so the same kind of info sits in
                     the same column down the whole card, regardless of which cells a
@@ -641,7 +641,7 @@ export function ProtectionCard({
                     </span>
                   ) : (
                     <>
-                      {/* Col 2, status: the RPO chip + its label kept together so the
+                      {/* Col 2 — status: the RPO chip + its label kept together so the
                           pill never drifts from the words it qualifies. */}
                       <div className="col-start-2 flex min-w-0 items-center gap-2">
                         <span className="shrink-0">
@@ -662,14 +662,14 @@ export function ProtectionCard({
                           ? t("dashboard.rpoViaEverything").replace("{cadence}", formatCadence(d.coveredBy, t, lang))
                           : formatCadence(d.schedule, t, lang)}
                       </span>
-                      {/* Col 4, last successful run. */}
+                      {/* Col 4 — last successful run. */}
                       <span
                         className="col-start-4 text-start @[44rem]:text-end text-carbon-textMuted text-xs"
                         title={formatTs(d.lastSuccess)}
                       >
                         {d.lastSuccess ? relativeTime(t, d.lastSuccess) : t("containers.never")}
                       </span>
-                      {/* Col 5, local-verify shield badge. */}
+                      {/* Col 5 — local-verify shield badge. */}
                       {d.lastVerified ? (
                         <div className="col-start-5 min-w-0">
                           <Badge
@@ -724,7 +724,7 @@ export function ProtectionCard({
                           </Badge>
                         </div>
                       ) : null}
-                      {/* Col 7, Off-site restorability (DR) badge, mirrors the
+                      {/* Col 7 — Off-site restorability (DR) badge — mirrors the
                           local-verify shield above (same pills), but proves the backup
                           is recoverable from the off-site repo (a real DR sandbox
                           restore). Only containers + flash + files ever run a DR drill,
@@ -732,7 +732,7 @@ export function ProtectionCard({
                           failure the tooltip names which check + the reason. */}
                       <div className="col-start-7 min-w-0">
                         {drCapable && d.lastDrDrillAt && d.lastDrDrillOK ? (
-                          // GREEN: proven restorable off-site. A real passed run (even
+                          // GREEN — proven restorable off-site. A real passed run (even
                           // a MANUAL one) is honest proof, so it's kept even when the
                           // scheduled DR drill is opted out.
                           <Badge
@@ -744,9 +744,9 @@ export function ProtectionCard({
                             ✓ {t("drill.provenOffsite")} · {relativeTime(t, d.lastDrDrillAt)}
                           </Badge>
                         ) : drFailed ? (
-                          // RED: a recorded off-site DR drill FAILED (scheduled or a
+                          // RED — a recorded off-site DR drill FAILED (scheduled or a
                           // manual run). Always shown; the opt-out never masks a real
-                          // failure: only "never drilled" goes neutral below.
+                          // failure — only "never drilled" goes neutral below.
                           <Badge
                             tone="fail"
                             wrap
@@ -760,7 +760,7 @@ export function ProtectionCard({
                             ✗ {t("drill.provenOffsite")} · {relativeTime(t, d.lastDrDrillAt)}
                           </Badge>
                         ) : drUnscheduled ? (
-                          // NEUTRAL: off-site DR not scheduled (manual only) and nothing
+                          // NEUTRAL — off-site DR not scheduled (manual only) and nothing
                           // failing to show: muted, never red. File's no-claim styling.
                           <Badge tone="neutral" wrap className="max-w-full" title={t("drill.manualOnlyTitle")}>
                             {t("drill.manualOnly")}
@@ -830,8 +830,8 @@ function protectionChip(level: string): string {
 }
 
 // A checklist row: "ok" (proven, green), "amber" (a currency lapse that mirrors
-// the chip's amber: stale/overdue), "bad" (a red gap → deep-links to Settings),
-// or "muted" (not applicable / never run, no claim made, so not a failure).
+// the chip's amber — stale/overdue), "bad" (a red gap → deep-links to Settings),
+// or "muted" (not applicable / never run — no claim made, so not a failure).
 type RowState = "ok" | "amber" | "bad" | "muted";
 
 // Exported for Dashboard.ransomwareCard.dom.test.tsx, the same way
@@ -851,7 +851,7 @@ export function RansomwareCard({
 }) {
   // Pure renderer: every row is derived from the extended /api/status domain
   // fields (tamperState/replicationState/drillState/encryptionOn/pruneStrategySet),
-  // which the backend computes from the same inputs as the aggregate chip, so a
+  // which the backend computes from the SAME inputs as the aggregate chip — so a
   // row can never contradict it, and the card needs no /api/settings round-trip.
   const domainLabel = (domain: string): string => {
     switch (domain) {
@@ -889,7 +889,7 @@ export function RansomwareCard({
   // appendOnly/replication/drill rows are pure maps of the backend state string
   // (which is kept consistent with the chip). The ✓/!/✗/— icon + label + color all
   // follow the state, so a red/never row never reads "verified". The single
-  // documented divergence is appendOnlyRow's "" arm, see the comment there for
+  // documented divergence is appendOnlyRow's "" arm — see the comment there for
   // why that one colours the row without moving the chip.
   const appendOnlyRow = (d: DomainStatus): { label: string; state: RowState; at?: number } => {
     switch (d.tamperState) {
@@ -902,7 +902,7 @@ export function RansomwareCard({
       case "never":
         return { label: t("ransomware.appendOnlyNever"), state: "bad" };
       default:
-        // "": the off-site copy carries no append-only flag, so the backend
+        // "" — the off-site copy carries no append-only flag, so the backend
         // makes no claim to prove (protectionChecks sets Tamper="" exactly when
         // !offsiteImmutable). This row used to be a grey dash for that, which on
         // a card titled "ransomware protection" reads as "does not apply". It
@@ -910,10 +910,10 @@ export function RansomwareCard({
         // the credentials on this box, which is the whole scenario the card is
         // about. Amber says "gap" without claiming a failure.
         //
-        // Deliberately amber without downgrading the chip, which is the one
+        // Deliberately amber WITHOUT downgrading the chip, which is the one
         // place a row's colour and the chip's diverge. Every other amber row is
-        // a currency signal: something that was supposed to happen and has not
-        //: and protectionLevel is right to fold those in. This one reports a
+        // a currency signal — something that was supposed to happen and has not
+        // — and protectionLevel is right to fold those in. This one reports a
         // configuration the user may well have chosen on purpose (plenty of
         // cloud targets cannot do append-only at all), and a chip that reads
         // "Needs attention" forever over a deliberate choice stops being a
@@ -937,7 +937,7 @@ export function RansomwareCard({
       case "never":
         return { label: t("ransomware.replicationNever"), state: "muted" };
       default:
-        // "": replication is coupled to each backup (no independent expectation).
+        // "" — replication is coupled to each backup (no independent expectation).
         return { label: t("ransomware.replicationCurrent"), state: "muted" };
     }
   };
@@ -946,16 +946,16 @@ export function RansomwareCard({
       case "ok":
         return { label: t("ransomware.drillOffsite"), state: "ok", at: d.lastDrDrillAt };
       case "failed":
-        // The latest off-site DR drill FAILED, red, matching the "proven
+        // The latest off-site DR drill FAILED — red, matching the "proven
         // restorable" pill, regardless of how recently it ran. Carry the scrubbed
-        // reason so the row can say why (and which check) it failed.
+        // reason so the row can say WHY (and WHICH check) it failed.
         return { label: t("ransomware.drillFailed"), state: "bad", at: d.lastDrDrillAt, detail: d.drillDetail };
       case "overdue":
         return { label: t("ransomware.drillOverdue"), state: "amber", at: d.lastDrDrillAt };
       case "never":
         return { label: t("ransomware.drillNever"), state: "muted" };
       default:
-        // "": no drill schedule set, so no claim.
+        // "" — no drill schedule set, so no claim.
         return { label: t("ransomware.drillOffsite"), state: "muted" };
     }
   };
@@ -1030,12 +1030,12 @@ export function RansomwareCard({
                           // Task 5 (rule 13) deliberate exception, documented
                           // rather than converted: this is a status-LIST-ROW
                           // label that only sometimes (state === "bad") also
-                          // navigates: its non-clickable siblings above/below
-                          // render at the same plain text-sm size (the `else`
+                          // navigates — its non-clickable siblings above/below
+                          // render at the SAME plain text-sm size (the `else`
                           // branch right below). Forcing only the clickable
                           // state into a fixed-height Badge chip would make
                           // row height/typography jump depending on which
-                          // domain is currently faulted: a worse, more
+                          // domain is currently faulted — a worse, more
                           // visible inconsistency than the plain-link issue
                           // rule 13 targets (which is about a link sitting
                           // among ALREADY-badge-styled siblings; nothing else
@@ -1053,7 +1053,7 @@ export function RansomwareCard({
                           <span className="text-xs text-carbon-textMuted shrink-0">{ageText(row.at)}</span>
                         )}
                       </div>
-                      {/* which check + WHY it failed (off-site DR reason from /api/status). */}
+                      {/* WHICH check + WHY it failed (off-site DR reason from /api/status). */}
                       {row.detail && (
                         <span className="text-xs text-statusFail wrap-break-word ps-6" title={row.detail}>
                           {t("drill.checkOffsiteDr")} · {t("drill.failReasonPrefix")} {row.detail}
@@ -1424,7 +1424,7 @@ type HeatDomain = "containers" | "vms" | "flash" | "config" | "files";
 function cellColor(stat: DayStat | undefined): string {
   if (!stat || (stat.ok === 0 && stat.failed === 0)) return "var(--carbon-surface2, #262626)";
   if (stat.failed > 0) return "var(--status-fail-solid, #ff8389)";
-  // All ok: deeper green for more runs that day.
+  // All ok — deeper green for more runs that day.
   if (stat.ok >= 3) return "var(--heat-ok-3, #42be65)";
   if (stat.ok === 2) return "var(--heat-ok-2, #6fdc8c)";
   return "var(--heat-ok-1, #a7f0ba)";
@@ -1442,10 +1442,10 @@ function HealthHeatmapCard({
   hueIndex,
 }: {
   t: ReturnType<typeof useT>["t"];
-  /** The Activity Log's active day filter (ISO YYYY-MM-DD, local), the
+  /** The Activity Log's active day filter (ISO YYYY-MM-DD, local) — the
    *  matching cell renders an accent outline; clicking it again clears. */
   selectedDay: string | null;
-  /** Fired with a cell's local ISO day, the Dashboard toggles the Activity
+  /** Fired with a cell's local ISO day — the Dashboard toggles the Activity
    *  Log day filter and scrolls the log into view. Zero-run days fire too:
    *  the log then honestly shows nothing for that day. */
   onSelectDay: (isoDay: string) => void;
@@ -1518,22 +1518,22 @@ function HealthHeatmapCard({
     }
   };
 
-  // reversed (jdp, live-review, extremely emphatic, "Es soll immer alles in
+  // REVERSED (jdp, live-review, extremely emphatic — "Es soll immer alles in
   // die Farb- und Formengine integriert werden!! IMMER!!"): this used to
   // carry `hue={false}`, justified as "a small, fixed set of 5 where each
   // entry already has its own durable identity, and a 5-way rainbow strip
   // competing with the heatmap's own fixed red/green state hues would hurt
   // legibility for no tracking benefit." That reasoning is exactly the kind
   // of self-authored aesthetic exception jdp has now ruled out categorically
-  //: a plausible-sounding taste judgement is never grounds to unilaterally
+  // — a plausible-sounding taste judgement is never grounds to unilaterally
   // exclude a control from the colour engine, no matter how reasonable it
   // reads in isolation. This strip is a genuine "select one of several"
   // Selector like every other hue-enabled one in this app, so it gets the
-  // same default `hue` (true) as the rest, no opt-out prop at all now.
+  // same default `hue` (true) as the rest — no opt-out prop at all now.
   //   KNOWN COINCIDENCE, not a reason to exclude: RAINBOW[0] (#FF8389) and
   // RAINBOW[3] (#6FDC8C) happen to match this page's own fixed --status-fail/
   // --status-ok hues in dark theme (see lib/appearance.ts's own documented
-  // KNOWN LIMITATION for the full writeup), a coincidence, not a WCAG
+  // KNOWN LIMITATION for the full writeup) — a coincidence, not a WCAG
   // failure (every cell still carries its own count as text, not colour
   // alone), and not grounds for a fresh opt-out either.
   const toggle = (
@@ -1569,7 +1569,7 @@ function HealthHeatmapCard({
                   const stat = cell.stat ?? { ok: 0, failed: 0 };
                   const active = selectedDay === date;
                   // A real <button> for free keyboard operability (Enter/
-                  // Space): Tailwind's preflight strips the browser button
+                  // Space) — Tailwind's preflight strips the browser button
                   // chrome, so only the cell's own size/fill classes remain.
                   // The tooltip stays the plain "<date>: N ok, N failed" data
                   // line (it doubles as the accessible name).
@@ -1614,7 +1614,7 @@ function HealthHeatmapCard({
 }
 
 // ---------------------------------------------------------------------------
-// Sparkline: hand-rolled inline SVG trend line (no charting lib)
+// Sparkline — hand-rolled inline SVG trend line (no charting lib)
 // ---------------------------------------------------------------------------
 
 function Sparkline({
@@ -1648,12 +1648,12 @@ function Sparkline({
 
   return (
     // Task 7: was text-statusInfo (the old fifth hue). glimstone/docs/
-    // design-language.md's Charts section is explicit here, "one colour
-    // source: the accent, never rainbow or status hues", so this isn't a
+    // design-language.md's Charts section is explicit here — "one colour
+    // source: the accent, never rainbow or status hues" — so this isn't a
     // semantic judgment call like the rest of Task 7, it's the spec's own
     // fixed rule for every hand-drawn chart in the app. text-accentText, not
     // the flat text-accent: a spec-compliance review measured the flat
-    // accent gold at 1.61:1 against this card's light-theme background,
+    // accent gold at 1.61:1 against this card's light-theme background —
     // the trend line effectively disappeared, badly under the 3:1 non-text
     // minimum. See index.css's --accent-text comment for the fix.
     <span className="text-accentText shrink-0">
@@ -1678,7 +1678,7 @@ function Sparkline({
 }
 
 // ---------------------------------------------------------------------------
-// Storage card: repo size + dedup trend per domain
+// Storage card — repo size + dedup trend per domain
 // ---------------------------------------------------------------------------
 
 type StorageDomain = "containers" | "vms" | "flash" | "files";
@@ -1924,7 +1924,7 @@ function StorageCard({
 }
 
 // ---------------------------------------------------------------------------
-// Recovery-kit nag: shown only when encryption is on and the kit has not been
+// Recovery-kit nag — shown only when encryption is ON and the kit has not been
 // acknowledged. Prompts the user to download + safely store the encryption
 // recovery kit so disaster recovery works even without a running BombVault.
 // ---------------------------------------------------------------------------
@@ -2011,11 +2011,11 @@ function RecoveryNag({ t, suppressed }: { t: ReturnType<typeof useT>["t"]; suppr
 }
 
 // ---------------------------------------------------------------------------
-// Fresh-install nudge: on a brand-new or rebuilt install (no domain has ever
+// Fresh-install nudge — on a brand-new or rebuilt install (no domain has ever
 // backed up successfully) point the user at the guided Recovery tab to recover
 // their existing backups. Dismissible; the dismissal persists in localStorage.
 // The fresh signal is derived purely from the shared /api/status domains the
-// dashboard already fetched: no extra round-trip, and nothing is fetched or
+// dashboard already fetched — no extra round-trip, and nothing is fetched or
 // computed once dismissed.
 // ---------------------------------------------------------------------------
 
@@ -2100,10 +2100,10 @@ function SummaryCell({
 }: {
   label: string;
   children: React.ReactNode;
-  /** Rainbow position for this cell's own heading notch, see Card's own
+  /** Rainbow position for THIS cell's own heading notch — see Card's own
    *  `hueIndex` doc above for the full history. SummaryTier (this cell's one
    *  caller) assigns all three of its cells consecutive positions, each
-   *  resolved by its own caller's `nextHue()` at the same synchronous point
+   *  resolved by ITS OWN caller's `nextHue()` at the same synchronous point
    *  every other block's heading is (see SummaryTier's own `healthHueIndex`
    *  doc for why that has to be a plain number, not a function passed down
    *  for this cell's caller to call later), so the three cells read as one
@@ -2112,29 +2112,29 @@ function SummaryCell({
 }) {
   return (
     // GlimStone follow-up pass ("half-overlap card notch"): same outer/inner
-    // split as Card() above: `relative` moves to this structural outer div
+    // split as Card() above — `relative` moves to this structural outer div
     // so the heading Badge's -11px poke above the card isn't clipped by the
     // inner div's own overflow-hidden (#98's fix for a status chip + a
     // relative-time pair that doesn't fit on one line in this narrow
-    // sm:grid-cols-3 cell: unrelated to the heading, but sharing the same
+    // sm:grid-cols-3 cell — unrelated to the heading, but sharing the same
     // box before this pass). `min-w-0` stays on the outer too: it's a grid
     // item, and Chromium/Firefox's grid-track sizing reads min-width off
-    // whatever box is the direct grid child, which is now this outer div.
-    // `glim-notch-card`: same rainbow-hue hover-reveal gap as Card() above,
+    // whatever box IS the direct grid child, which is now this outer div.
+    // `glim-notch-card` — same rainbow-hue hover-reveal gap as Card() above,
     // never carried here either.
     //
-    // insetStart={5}: the exact same bare-outer-div/padded-inner-div split
-    // as Card() above, so the exact same bug: the badge's own -11px poke
+    // insetStart={5} — the EXACT same bare-outer-div/padded-inner-div split
+    // as Card() above, so the EXACT same bug: the badge's own -11px poke
     // needed to escape this cell's inner overflow-hidden box (see the
     // comment above), leaving its horizontal static position measured
     // against this now-unpadded OUTER div instead of the inner p-5 box's own
-    // content edge: this specific cell (Gesamtzustand/Nächstes Backup/
+    // content edge — this specific cell (Gesamtzustand/Nächstes Backup/
     // Letztes Ergebnis) is the one jdp measured live and flagged by name
     // ("Dashboard-Badges... links buendig mit der Card"). See Badge.tsx's
     // own `insetStart` doc for the mechanism this fixes at the source
     // instead of re-patching per Card.
     //
-    // `.glim-hue` also added, same rainbow-mode completeness fix as Card()
+    // `.glim-hue` ALSO added, same rainbow-mode completeness fix as Card()
     // above (jdp live review): this cell's own status Badges read
     // tone={statusTone(...)}: load-bearing status signals that read
     // --status-* tokens, never --accent: so they stay untouched; this only
@@ -2799,7 +2799,7 @@ export function Dashboard() {
     try {
       localStorage.setItem(RECOVERY_NUDGE_DISMISSED, "1");
     } catch {
-      /* storage unavailable, dismiss for this session only */
+      /* storage unavailable — dismiss for this session only */
     }
     setFreshDismissed(true);
   };
@@ -2839,9 +2839,9 @@ export function Dashboard() {
   }, []);
 
   // Heatmap → Activity Log drilldown: clicking a heatmap cell narrows the log
-  // to that LOCAL calendar day (ISO YYYY-MM-DD, the same en-CA local mapping
+  // to that LOCAL calendar day (ISO YYYY-MM-DD — the same en-CA local mapping
   // the heatmap cells are keyed by) and scrolls the log card into view.
-  // Clicking the active day again, or the chip's × inside ActivityLog,
+  // Clicking the active day again — or the chip's × inside ActivityLog —
   // clears it. State lives here because the two cards are independent,
   // individually hideable dashboard blocks with no other shared parent.
   const [logDayFilter, setLogDayFilter] = useState<string | null>(null);
@@ -2863,20 +2863,20 @@ export function Dashboard() {
   // Ordered block list. Each block has a stable id, a label, a `render`
   // callback that produces the node (props preserved exactly from the
   // original render) and an advancedOnly flag. advancedOnly blocks are
-  // dropped from both the render and the customize list when not in Advanced
-  // view: their order/hidden state still persists.
+  // dropped from BOTH the render and the customize list when not in Advanced
+  // view — their order/hidden state still persists.
   //
-  // `render`: GlimStone follow-up pass, jdp's live review of this page:
+  // `render` — GlimStone follow-up pass, jdp's live review of this page:
   // "Cardtitelbadges sind falsch platziert. Alle sind nicht im
   // Regenbogenmodus." Was `node: React.ReactNode`, a pre-built element
-  // constructed eagerly, in this array's own FIXED definition order, which
+  // constructed eagerly, in this array's own FIXED definition order — which
   // cannot give a Card heading a correct rainbow position, because the
   // block a user actually SEES at position N depends on their own persisted
   // drag-reorder + hide/show state (`visibleBlocks` below), not this
   // array's literal order. Deferred to a function so each Card's hueIndex
   // can be assigned from the shared `nextHue()` counter (declared right
   // before `visibleBlocks.map()` in the JSX below) at the point each block
-  // is ACTUALLY rendered, in the user's own current visible order, the
+  // is ACTUALLY rendered, in the user's own current visible order — the
   // exact same "own running counter, consumed in rendered order" contract
   // Settings.tsx's `nextHue()` already uses, just passed through explicitly
   // here instead of called inline, since the render order here isn't a
@@ -2884,7 +2884,7 @@ export function Dashboard() {
   //   Most blocks consume exactly one hue slot (one Card, one `nextHue()`
   // call); "summary" consumes three (its own three SummaryCells, via the
   // `nextHue` callback threaded into SummaryTier); "stats" consumes none
-  // (StatCardsRow's tiles have no heading badge of their own, nothing to
+  // (StatCardsRow's tiles have no heading badge of their own — nothing to
   // hue).
   const blocks: {
     id: string;
@@ -2897,7 +2897,7 @@ export function Dashboard() {
       label: t("dashboard.blockSummary"),
       // Three DIRECT nextHue() calls, eagerly resolved to plain numbers here
       // rather than a `nextHue` function handed to SummaryTier to call from
-      // its own component body: see SummaryTier's own `healthHueIndex` doc
+      // its own component body — see SummaryTier's own `healthHueIndex` doc
       // for the live ordering bug that shape caused (React doesn't invoke a
       // child component's body until after this whole `blocks` array/render
       // pass has already returned, so calls made from inside SummaryTier ran
@@ -3012,7 +3012,7 @@ export function Dashboard() {
   const visibleBlocks = orderedAvailable.filter((b) => !hidden.has(b.id));
   const hiddenBlocks = orderedAvailable.filter((b) => hidden.has(b.id));
 
-  // Native HTML5 drag-and-drop: the dragged id lives in a ref (no re-render
+  // Native HTML5 drag-and-drop — the dragged id lives in a ref (no re-render
   // mid-drag); onDrop reorders relative to the drop-target block. The move
   // up/down buttons on each block are the accessible + touch fallback.
   const draggingId = useRef<string | null>(null);
@@ -3023,7 +3023,7 @@ export function Dashboard() {
       try {
         e.dataTransfer.setData("text/plain", blockId);
       } catch {
-        /* some browsers restrict setData during dragstart, the ref suffices */
+        /* some browsers restrict setData during dragstart — the ref suffices */
       }
     },
     onDragOver: (e) => {
@@ -3051,14 +3051,14 @@ export function Dashboard() {
   return (
     // GlimStone follow-up pass (live-review round, jdp emphatic: "Die
     // Abstände der Cards passen nicht. Bitte systemweit anpassen!"): this
-    // page's own block-to-block rhythm was gap-6 (24px), measured live via
+    // page's own block-to-block rhythm was gap-6 (24px) — measured live via
     // getBoundingClientRect, every adjacent pair of stacked cards sat exactly
-    // 24px apart, so it wasn't a mix of ad-hoc values within this page. The
+    // 24px apart, so it wasn't a mix of ad-hoc values WITHIN this page. The
     // actual drift is against the rest of the app: Settings.tsx's own
     // tab-panels wrapper already settled on gap-10 (40px) as "the same 40px
     // rhythm every Card-to-Card gap already uses" (see that file's own
     // comment, live-review round) and even bumped its heading-to-first-card
-    // gap to match it for the identical reason this pass now applies here,
+    // gap to match it for the identical reason this pass now applies here —
     // a smaller gap right before the first card read as visually mismatched
     // next to the wider rhythm below it. Splitting this outer wrapper into
     // its own gap-6 header/banner group plus an outer gap-10 mirrors that
@@ -3068,7 +3068,7 @@ export function Dashboard() {
     //   PAGE_SHELL (jdp live-review, "Können wir die nicht überall gleich
     // breit machen?"): this page's `gap-10 max-w-6xl` is now that shared
     // constant, unchanged in value: it is the page the app-wide 1152px was
-    // chosen from, because it owns the only content dense enough to have a
+    // chosen FROM, because it owns the only content dense enough to have a
     // measurable opinion about width (a md:grid-cols-2 block grid, 7-column
     // container-query run rows, and the Advanced 7-across stat tier, whose
     // longest German label needs exactly 136px of a 136px cell at 1024px,
@@ -3207,7 +3207,7 @@ export function Dashboard() {
         </IconTipButton>
       </div>
 
-      {/* Fresh/rebuilt install nudge to the guided Recovery tab, fixed
+      {/* Fresh/rebuilt install nudge to the guided Recovery tab — fixed
           (contextual). Reuses the shared /api/status fetch below. */}
       <FreshInstallNudge
         t={t}

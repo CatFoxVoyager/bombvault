@@ -1234,7 +1234,7 @@ const uk: Partial<Translations> = {
   "dashboard.domainFiles": "Папки",
   "recovery.filesFound": "Знайдено {f} наборів папок.",
   "recovery.filesRestoreHint": "Повторно виявлені набори папок не знають своєї початкової папки — кожен відновлюється до вибраної вами папки.",
-  // Restore from another BombVault repo, Recovery page (#61 task 11)
+  // Restore from another BombVault repo — Recovery page (#61 task 11)
   "recovery.foreignTitle": "Відновлення з іншого репозиторію BombVault",
   "recovery.foreignIntro": "Витягайте окремі контейнери, ВМ або набори папок із резервних копій ІНШОГО екземпляра BombVault: підключіться лише для читання, перегляньте вміст і відновіть вибране. Інший репозиторій лише читається, там нічого не змінюється — а ваші власні налаштування резервного копіювання залишаються недоторканими.",
   "recovery.foreignStepConnect": "Підключитися до іншого репозиторію",

@@ -1,7 +1,6 @@
-// ESLint flat config for `npm run lint` (`eslint src e2e playwright.config.ts`):
-// @eslint/js and typescript-eslint recommended, without type information
-// (type-aware linting would pull the whole DOM lib into the lint program), plus
-// react-hooks.
+// ESLint flat config for `npm run lint` (`eslint src`): @eslint/js and
+// typescript-eslint recommended, without type information (type-aware linting
+// would pull the whole DOM lib into the lint program), plus react-hooks.
 //
 // The project's `typescript` devDependency is the native TS 7 compiler, which
 // ships no JS compiler API, and typescript-eslint refuses to run on TS 7. Its

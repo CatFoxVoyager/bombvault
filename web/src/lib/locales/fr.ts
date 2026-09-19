@@ -357,7 +357,7 @@ const fr: Partial<Translations> = {
   "auth.invalidPassword": "Mot de passe invalide",
   "auth.loginError": "Échec de la connexion",
 
-  // Settings: Security card
+  // Settings — Security card
   "auth.security": "Mot de passe",
   "auth.authOff": "L'authentification est désactivée : tous les utilisateurs LAN ont un accès complet.",
   "auth.authOn": "L'authentification est activée.",
@@ -447,7 +447,7 @@ const fr: Partial<Translations> = {
   "state.pmsuspended":  "Suspendu",
   "state.notInstalled": "Non installé",
 
-  // Backups: files
+  // Backups — files
   "snapshots.files": "Fichiers",
   "snapshots.delete": "Supprimer",
   "snapshots.deleteConfirm": "Supprimer cette sauvegarde ? L'instantané est retiré du dépôt (lancez Élaguer dans les Réglages pour récupérer l'espace). Irréversible.",
@@ -695,7 +695,7 @@ const fr: Partial<Translations> = {
   "export.exportedTo": "Exporté vers :",
   "backup.configOnly": "Configuration uniquement, aucun dossier de données (définition enregistrée pour recréation)",
 
-  // Backups: delete all
+  // Backups — delete all
   "snapshots.deleteAll": "Supprimer toutes les sauvegardes",
   "snapshots.deleteAllConfirm": "Supprimer TOUTES les sauvegardes de cette VM depuis la source sélectionnée (locale ou hors site) ? Les instantanés sont supprimés définitivement et le dépôt est élagué. Cette action est irréversible.",
   "snapshots.deletingAll": "Suppression…",
@@ -771,7 +771,7 @@ const fr: Partial<Translations> = {
   "recovery.freshNudge": "Vous restaurez depuis un serveur précédent ou une réinstallation ? Récupérez vos sauvegardes existantes.",
   "recovery.freshNudgeCta": "Aller à Récupération",
 
-  // Recovery: restore BombVault's own settings (config)
+  // Recovery — restore BombVault's own settings (config)
   "recovery.stepConfig": "Restaurer les propres réglages de BombVault",
   "recovery.configHint": "Sur un serveur reconstruit, restaurez d'abord les propres réglages de BombVault (ses chemins de sauvegarde, ses cibles hors site et ses identifiants) pour que les étapes ci-dessous soient préremplies. Pointez-le vers la sauvegarde des réglages que vous aviez configurée. Pas de sauvegarde des réglages ? Passez cette étape et attachez vos sauvegardes manuellement ci-dessous.",
   "recovery.configAppKeyReminder": "Votre APP_KEY doit correspondre à cette sauvegarde : c'est la vérification de l'étape 1 ci-dessus.",
@@ -840,7 +840,7 @@ const fr: Partial<Translations> = {
   "settings.dashTileRemoving": "Retrait…",
   "settings.dashTileRemoveOk": "Plugin supprimé. Il n'apparaît plus sur le tableau de bord Unraid.",
 
-  // Notifications: SMTP
+  // Notifications — SMTP
   "notify.smtp": "E-mail (SMTP)",
   "notify.smtpHost": "Hôte SMTP",
   "notify.smtpPort": "Port",
@@ -1140,7 +1140,7 @@ const fr: Partial<Translations> = {
   "drill.manualOnly": "DR hors site : manuel uniquement",
   "drill.manualOnlyTitle": "L'exercice DR hors site planifié est désactivé. Lancez la vérification hors site manuellement avec le bouton.",
 
-  // Settings: section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "Général",
   "settings.tab.storage": "Chemins et stockage",
   "settings.tab.schedules": "Plannings",
@@ -1239,7 +1239,7 @@ const fr: Partial<Translations> = {
   "dashboard.domainFiles": "Dossiers",
   "recovery.filesFound": "{f} jeux de dossiers trouvés.",
   "recovery.filesRestoreHint": "Les jeux de dossiers redécouverts ne connaissent pas leur dossier d'origine : chacun est restauré dans un dossier de votre choix.",
-  // Restore from another BombVault repo, Recovery page (#61 task 11)
+  // Restore from another BombVault repo — Recovery page (#61 task 11)
   "recovery.foreignTitle": "Restaurer depuis un autre dépôt BombVault",
   "recovery.foreignIntro": "Récupérez des conteneurs, VMs ou jeux de dossiers individuels depuis les sauvegardes d'une AUTRE instance BombVault : connexion en lecture seule, parcours du contenu, restauration de votre sélection. L'autre dépôt est seulement lu, rien n'y change, et vos propres réglages de sauvegarde restent intacts.",
   "recovery.foreignStepConnect": "Se connecter à l'autre dépôt",
@@ -1334,7 +1334,7 @@ const fr: Partial<Translations> = {
   "activityLog.dayFilterChip": "Affichage du {date}",
   "activityLog.clearDayFilter": "Effacer le filtre de jour",
 
-  // i18n wave: Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "Réplication démarrée - elle s'exécute en arrière-plan ; l'indicateur d'activité montre la progression.",
   "whatsnew.retry": "Réessayer",

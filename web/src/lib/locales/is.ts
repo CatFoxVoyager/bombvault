@@ -909,7 +909,7 @@ const is: Partial<Translations> = {
   "auth.invalidPassword": "Rangt lykilorð",
   "auth.loginError": "Innskráning mistókst",
 
-  // Settings: Security card
+  // Settings — Security card
   "auth.security": "Lykilorð",
   "auth.authOff": "Auðkenning er slökkt. Allir notendur á staðarnetinu hafa fullan aðgang.",
   "auth.authOn": "Auðkenning er virk.",
@@ -1335,7 +1335,7 @@ const is: Partial<Translations> = {
   "recovery.freshNudge": "Ertu að endurheimta frá fyrri netþjóni eða eftir endurbyggingu? Endurheimtu fyrirliggjandi afritin þín.",
   "recovery.freshNudgeCta": "Fara í Endurheimt",
 
-  // Settings: section tabs
+  // Settings — section tabs
   "settings.tab.general": "Almennt",
   "settings.tab.storage": "Slóðir og geymsla",
   "settings.tab.schedules": "Tímaáætlanir",
@@ -1361,7 +1361,7 @@ const is: Partial<Translations> = {
   // Filter drawer trigger
   "filter.button": "Síur",
 
-  // Settings: weekly digest, backup-engine cache, revoke-all sessions
+  // Settings — weekly digest, backup-engine cache, revoke-all sessions
   "settings.digestTitle": "Vikuyfirlit",
   "settings.digestHint": "Eitt samandregið skilaboð á viku: fjöldi keyrslna, ný afritunargögn, fjarlæg uppfærsla og helstu mistök, send í gegnum tilkynningaleiðirnar hér að ofan.",
   "settings.digestToggle": "Vikuyfirlit",

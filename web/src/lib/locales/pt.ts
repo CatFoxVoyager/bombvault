@@ -354,7 +354,7 @@ const pt: Partial<Translations> = {
   "auth.invalidPassword": "Palavra-passe inválida",
   "auth.loginError": "Falha ao iniciar sessão",
 
-  // Settings: Security card
+  // Settings — Security card
   "auth.security": "Palavra-passe",
   "auth.authOff": "A autenticação está desativada. Todos os utilizadores da LAN têm acesso total.",
   "auth.authOn": "A autenticação está ativada.",
@@ -444,7 +444,7 @@ const pt: Partial<Translations> = {
   "state.pmsuspended":  "Suspenso",
   "state.notInstalled": "Não instalado",
 
-  // Backups: files
+  // Backups — files
   "snapshots.files": "Ficheiros",
   "snapshots.delete": "Excluir",
   "snapshots.deleteConfirm": "Excluir este backup? O snapshot é removido do repositório (execute Podar nas Configurações para recuperar o espaço). Não pode ser desfeito.",
@@ -692,7 +692,7 @@ const pt: Partial<Translations> = {
   "export.exportedTo": "Exportado para:",
   "backup.configOnly": "Apenas configuração: sem pastas de dados (definição guardada para recriação)",
 
-  // Backups: delete all
+  // Backups — delete all
   "snapshots.deleteAll": "Eliminar todos os backups",
   "snapshots.deleteAllConfirm": "Eliminar TODOS os backups desta VM da origem selecionada (local ou externa)? Os instantâneos são removidos permanentemente e o repositório é podado. Não pode ser desfeito.",
   "snapshots.deletingAll": "A eliminar…",
@@ -837,7 +837,7 @@ const pt: Partial<Translations> = {
   "settings.dashTileRemoving": "Removendo…",
   "settings.dashTileRemoveOk": "Plugin removido. Ele não aparece mais no painel do Unraid.",
 
-  // Notifications: email (SMTP)
+  // Notifications — email (SMTP)
   "notify.smtp": "E-mail (SMTP)",
   "notify.smtpHost": "Host SMTP",
   "notify.smtpPort": "Porta",
@@ -1140,7 +1140,7 @@ const pt: Partial<Translations> = {
   "drill.manualOnly": "DR externo: apenas manual",
   "drill.manualOnlyTitle": "O teste DR externo agendado está desativado. Execute a verificação externa manualmente com o botão.",
 
-  // Settings: section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "Geral",
   "settings.tab.storage": "Caminhos e armazenamento",
   "settings.tab.schedules": "Agendamentos",
@@ -1239,7 +1239,7 @@ const pt: Partial<Translations> = {
   "dashboard.domainFiles": "Pastas",
   "recovery.filesFound": "Encontrados {f} conjuntos de pastas.",
   "recovery.filesRestoreHint": "Conjuntos de pastas redescobertos não conhecem a sua pasta original. Cada um é restaurado para uma pasta à sua escolha.",
-  // Restore from another BombVault repo, Recovery page (#61 task 11)
+  // Restore from another BombVault repo — Recovery page (#61 task 11)
   "recovery.foreignTitle": "Restaurar de outro repo BombVault",
   "recovery.foreignIntro": "Recupere contentores, VMs ou conjuntos de pastas individuais dos backups de OUTRA instância BombVault: ligue-se em modo só de leitura, explore o conteúdo e restaure o que escolher. O outro repositório é apenas lido, nada muda lá, e as suas próprias definições de backup ficam intactas.",
   "recovery.foreignStepConnect": "Ligar ao outro repositório",
@@ -1334,7 +1334,7 @@ const pt: Partial<Translations> = {
   "activityLog.dayFilterChip": "A mostrar {date}",
   "activityLog.clearDayFilter": "Limpar o filtro de dia",
 
-  // i18n wave: Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "Replicação iniciada - corre em segundo plano; o indicador de atividade mostra o progresso.",
   "whatsnew.retry": "Tentar novamente",

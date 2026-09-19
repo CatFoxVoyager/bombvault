@@ -357,7 +357,7 @@ const ja: Partial<Translations> = {
   "auth.invalidPassword": "パスワードが無効です",
   "auth.loginError": "ログインに失敗しました",
 
-  // Settings: Security card
+  // Settings — Security card
   "auth.security": "パスワード",
   "auth.authOff": "認証が無効です。LAN ユーザー全員がフルアクセスを持っています。",
   "auth.authOn": "認証が有効です。",
@@ -687,7 +687,7 @@ const ja: Partial<Translations> = {
   "export.exportedTo": "エクスポート先:",
   "backup.configOnly": "設定のみ、データフォルダなし (再作成用に定義を保存しました)",
 
-  // Backups: delete all
+  // Backups — delete all
   "snapshots.deleteAll": "バックアップをすべて削除",
   "snapshots.deleteAllConfirm": "選択中のソース（ローカルまたはオフサイト）からこの VM のバックアップをすべて削除しますか？スナップショットは完全に削除され、リポジトリが整理されます。元に戻せません。",
   "snapshots.deletingAll": "削除中…",
@@ -763,7 +763,7 @@ const ja: Partial<Translations> = {
   "recovery.freshNudge": "以前のサーバーや再構築からの復元ですか？既存のバックアップを復元しましょう。",
   "recovery.freshNudgeCta": "リカバリーへ移動",
 
-  // Recovery: restore BombVault's own settings (config)
+  // Recovery — restore BombVault's own settings (config)
   "recovery.stepConfig": "BombVault 自身の設定を復元",
   "recovery.configHint": "再構築したサーバーでは、まず BombVault 自身の設定（バックアップパス、オフサイトのターゲット、認証情報）を復元すると、下の手順があらかじめ入力された状態になります。以前に設定した設定バックアップを指定してください。設定バックアップがありませんか？これをスキップして、下でバックアップを手動で接続してください。",
   "recovery.configAppKeyReminder": "APP_KEY はこのバックアップと一致している必要があります。これは上のステップ 1 のチェックです。",
@@ -1132,7 +1132,7 @@ const ja: Partial<Translations> = {
   "drill.manualOnly": "オフサイト DR: 手動のみ",
   "drill.manualOnlyTitle": "スケジュールされたオフサイト DR ドリルはオフです。ボタンでオフサイトチェックを手動で実行してください。",
 
-  // Settings: section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "一般",
   "settings.tab.storage": "パスとストレージ",
   "settings.tab.schedules": "スケジュール",
@@ -1231,7 +1231,7 @@ const ja: Partial<Translations> = {
   "dashboard.domainFiles": "フォルダー",
   "recovery.filesFound": "フォルダーセット {f} 個が見つかりました。",
   "recovery.filesRestoreHint": "再発見されたフォルダーセットは元のフォルダー情報を持ちません。それぞれ選択したフォルダーに復元されます。",
-  // Restore from another BombVault repo, Recovery page (#61 task 11)
+  // Restore from another BombVault repo — Recovery page (#61 task 11)
   "recovery.foreignTitle": "別の BombVault リポジトリから復元",
   "recovery.foreignIntro": "別の BombVault インスタンスのバックアップから、個々のコンテナ・VM・フォルダーセットを取り出せます。読み取り専用で接続し、中身を閲覧して、選んだものを復元します。相手のリポジトリは読み取りのみで、そちらでは何も変わりません。自分のバックアップ設定にも一切触れません。",
   "recovery.foreignStepConnect": "相手のリポジトリに接続",
@@ -1326,7 +1326,7 @@ const ja: Partial<Translations> = {
   "activityLog.dayFilterChip": "{date} を表示中",
   "activityLog.clearDayFilter": "日付フィルターを解除",
 
-  // i18n wave: Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "レプリケーションを開始しました - バックグラウンドで実行され、実行中インジケーターに進捗が表示されます。",
   "whatsnew.retry": "再試行",

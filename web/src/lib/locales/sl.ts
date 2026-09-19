@@ -904,7 +904,7 @@ const sl: Partial<Translations> = {
   "auth.invalidPassword": "Napačno geslo",
   "auth.loginError": "Prijava ni uspela",
 
-  // Settings: Security card
+  // Settings — Security card
   "auth.security": "Geslo",
   "auth.authOff": "Preverjanje pristnosti je izklopljeno. Vsi uporabniki v LAN-u imajo poln dostop.",
   "auth.authOn": "Preverjanje pristnosti je omogočeno.",
@@ -1322,7 +1322,7 @@ const sl: Partial<Translations> = {
   "recovery.freshNudge": "Obnavljaš iz prejšnjega strežnika ali po ponovni izdelavi? Obnovi svoje obstoječe varnostne kopije.",
   "recovery.freshNudgeCta": "Pojdi na Obnovo",
 
-  // Settings: section tabs + schedule group headings + subtitle
+  // Settings — section tabs + schedule group headings + subtitle
   "settings.tab.general": "Splošno",
   "settings.tab.storage": "Poti in shramba",
   "settings.tab.schedules": "Urniki",
@@ -1347,7 +1347,7 @@ const sl: Partial<Translations> = {
   "settings.subtitle": "Konfiguracija BombVault. Spremembe se uveljavijo takoj.",
   "filter.button": "Filtri",
 
-  // Settings: weekly digest card, backup-engine cache card, revoke-all sessions
+  // Settings — weekly digest card, backup-engine cache card, revoke-all sessions
   "settings.digestTitle": "Tedenski povzetek",
   "settings.digestHint": "Eno povzetno sporočilo na teden: števci zagonov, novi podatki varnostnih kopij, ažurnost zunanje kopije in največje napake, poslano prek zgornjih obvestilnih kanalov.",
   "settings.digestToggle": "Tedenski povzetek",

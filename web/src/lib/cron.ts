@@ -133,7 +133,7 @@ export function isValidCronExpression(expr: string): boolean {
 
 // dayMatches mirrors robfig's dom/dow combination: when either field carries
 // the star bit both must match (the starred one trivially does); when both
-// are restricted, either one matching is enough (classic cron or).
+// are restricted, either one matching is enough (classic cron OR).
 function dayMatches(s: CronSchedule, t: Date): boolean {
   const dom = s.dom.values.has(t.getDate());
   const dow = s.dow.values.has(t.getDay());
