@@ -17,12 +17,16 @@
 // keep new page wrappers clean (.glim-page-enter, the per-route wrapper
 // Layout renders, is verified clean).
 //
-// Chrome mirrors the BottomNav precedent (BottomNav.tsx): sidebar surface +
-// top hairline, padded below by max(0.75rem, var(--safe-area-bottom)) so the
-// home-indicator / gesture-bar inset never swallows the action row. Deliberately
-// NO negative margins and no fixed positioning — the bar spans the page
-// column's own width inside the scroller gutter (the phone's 16px `main`
-// padding), the mobile shell's convention.
+// Chrome mirrors the BottomNav precedent (BottomNav.tsx): sidebar surface,
+// padded below by max(0.75rem, var(--safe-area-bottom)) so the home-indicator
+// / gesture-bar inset never swallows the action row. Deliberately NO separator
+// line of its own: the shell's one edge line lives on the BottomNav sitting
+// directly below, and a second rule on this bar read as a double border once
+// the page ends flush against the nav — the surface tone alone separates the
+// bar from the page it overlays. Deliberately NO negative margins and no
+// fixed positioning — the bar spans the page column's own width inside the
+// scroller gutter (the phone's 16px `main` padding), the mobile shell's
+// convention.
 // ---------------------------------------------------------------------------
 
 import type { ReactNode } from "react";
@@ -30,7 +34,7 @@ import type { ReactNode } from "react";
 export function StickyActionBar({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <div
-      className={`sticky bottom-0 z-10 bg-carbon-sidebar border-t border-carbon-border pt-3 pb-[max(0.75rem,var(--safe-area-bottom))] ${className}`}
+      className={`sticky bottom-0 z-10 bg-carbon-sidebar pt-3 pb-[max(0.75rem,var(--safe-area-bottom))] ${className}`}
     >
       {/* Rows stack: count/busy row, then the primary action, then the
           plain-language second row (the save-bar anatomy). */}

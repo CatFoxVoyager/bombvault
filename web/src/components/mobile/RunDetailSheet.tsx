@@ -184,8 +184,14 @@ function LogList({ lines }: { lines: LogLine[] }) {
     <div className="rounded-card bg-black/20 font-mono text-xs leading-relaxed px-4 py-2 flex flex-col gap-0.5">
       {lines.map((l) => (
         <div key={l.id} className="flex items-start gap-2">
+          {/* Minute precision, always: the sheet is phone-only (it unmounts
+              at the desktop switch) and narrower than the dashboard card, so
+              the seconds are precisely the characters that sink the message
+              span under one-word width and break words mid-word. The
+              dashboard card keeps its seconds on the desktop face — same
+              call, split by the face that can afford them. */}
           <span className="text-carbon-textMuted shrink-0 tabular-nums">
-            {formatLogDate(l.atMs)} {formatClockTime(l.atMs / 1000, true)}
+            {formatLogDate(l.atMs)} {formatClockTime(l.atMs / 1000, false)}
           </span>
           <span className={`shrink-0 w-4 text-center ${colorFor(l.status)}`} aria-label={t(glyphLabelKey(l.status))}>
             {glyphFor(l.status)}

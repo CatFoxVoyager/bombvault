@@ -22,6 +22,7 @@ import { buildLogLines, domainLabel, filterLogLines, formatLogDate, LOG_FILTER_D
 import type { LogFilterDomain, LogFilterKind, LogStatus, ResolveName } from "../lib/activityLog";
 import { Badge } from "./Badge";
 import { formatClockTime } from "../lib/reltime";
+import { useIsDesktop } from "../lib/useMediaQuery";
 import { Button } from "./Button";
 
 const POLL_RUNS_MS = 10000;
@@ -145,6 +146,10 @@ export function ActivityLog({
   hueIndex?: number;
 } = {}) {
   const { t } = useT();
+  // The desktop face keeps the full-precision clock; below the switch the
+  // log drops to minute precision (the clock span below) — same breakpoint
+  // every other block switch uses, never a second width literal.
+  const isDesktop = useIsDesktop();
   const [runs, setRuns] = useState<Run[]>([]);
   const [scheduleNext, setScheduleNext] = useState<ScheduleNext[]>([]);
   const [now, setNow] = useState<number>(() => Date.now());
@@ -375,8 +380,15 @@ export function ActivityLog({
         >
           {filteredLines.map((l) => (
             <div key={l.id} className="flex items-start gap-2">
+              {/* The clock's seconds are only free on the desktop face. At
+                  phone width the row's fixed prefix (date + clock + glyph +
+                  domain) leaves the message span barely one long word wide,
+                  and a column narrower than its longest word is what breaks
+                  words mid-word — minute precision hands three characters
+                  back to the message, whose own wrapping stays
+                  word-boundary (min-w-0 + overflow-wrap below). */}
               <span className="text-carbon-textMuted shrink-0 tabular-nums">
-                {formatLogDate(l.atMs)} {formatClockTime(l.atMs / 1000, true)}
+                {formatLogDate(l.atMs)} {formatClockTime(l.atMs / 1000, isDesktop)}
               </span>
               <span className={`shrink-0 w-4 text-center ${colorFor(l.status)}`} aria-label={t(glyphLabelKey(l.status))}>
                 {glyphFor(l.status)}

@@ -355,8 +355,13 @@ export function Layout() {
     // Mobile: `main` carries the 16px gutter itself and the per-route wrapper
     // stays padding-free — the byte-form of the phone shell (the hard
     // guarantee on the desktop branch is that not one class token moves;
-    // this is the mobile half of that swap).
-    <main id="bv-main" className="flex-1 flex flex-col overflow-y-auto p-4 min-w-0">
+    // this is the mobile half of that swap). NO bottom padding, the same
+    // call the desktop branch makes above: a scroller that keeps 16px under
+    // the column clamps a sticky action bar 16px short of the bottom bar and
+    // leaves a strip of scrolling page visible between the two. With the
+    // column ending ON the bar, the page's flush end reaches the nav exactly
+    // when its scroll does.
+    <main id="bv-main" className="flex-1 flex flex-col overflow-y-auto p-4 pb-0 min-w-0">
       <div key={location.pathname} className="glim-page-enter flex-1 flex flex-col">
         <Outlet />
       </div>
