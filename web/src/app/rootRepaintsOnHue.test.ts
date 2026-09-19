@@ -1,29 +1,10 @@
-// ---------------------------------------------------------------------------
-// The app root subscribes to the colour engine, and that is load-bearing.
-//
-// A hue reaches an element as an INLINE STYLE computed during render:
-// `hueVars(rainbowAt(n))` bakes a concrete hex plus four derived rgba strings
-// into a style object (contrastOn() and the soft/wash/ring tints cannot be
-// expressed as a CSS var reference, which is why they are baked). So an
-// element only changes colour when its component RENDERS again.
-//
-// About a dozen components compute that style without calling useRainbow()
-// themselves, and until Disco that was invisible: rainbow is edited on the
-// Settings page, and every other page mounts fresh afterwards, so it read its
-// colours at first render and was never asked to change them mid-life.
-//
-// Disco turns the colour engine into a writer that fires once a second while
-// the user is looking at some other page. Without a subscription above the
-// routes, the parts that do subscribe (the sidebar, the selectors) walk while
-// the parts that do not (dashboard cards, buttons, badges in a log) stay on
-// the colour they were born with - and "position three is teal" stops being
-// true across one screen, which is the entire promise of the mode.
-//
-// One subscription at the root repaints everything below it, which is also
-// the pre-existing fix for a mounted page never noticing a palette edit.
-//
-// Node environment: this reads source, it does not render.
-// ---------------------------------------------------------------------------
+// The app root subscribes to the colour engine. A hue reaches an element as an
+// inline style computed during render (`hueVars(rainbowAt(n))` bakes a hex and
+// four derived tints that cannot be CSS var references), so an element only
+// changes colour when its component renders again. Many components compute
+// that style without calling useRainbow(), and disco changes the palette every
+// second while any page is open, so without the root subscription those parts
+// would keep their first colour while the subscribed ones moved on.
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -46,10 +27,8 @@ describe("the colour engine's root subscription", () => {
     expect(router).toMatch(/useRainbow\s*\(\s*\)/);
   });
 
-  it("is load-bearing: consumers that never subscribe themselves exist", () => {
-    // Without this, somebody could read the root subscription as redundant
-    // ("every list subscribes already") and remove it. These are the files
-    // that would silently stop following the palette if they did.
+  it("is needed: some hue consumers do not subscribe themselves", () => {
+    // The files that would stop following the palette without the root.
     const unsubscribed = sources(SRC)
       .filter((f) => !f.endsWith(join("app", "router.tsx")))
       .filter((f) => {

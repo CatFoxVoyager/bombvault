@@ -13700,41 +13700,23 @@ func isLockErr(err error) bool {
 	return strings.Contains(msg, "unable to create lock") || strings.Contains(msg, "already locked")
 }
 
-// isRepoUninitialized reports whether a restic error is the "repository not
-// initialised yet" signal (as opposed to a genuine auth/connectivity failure).
-// restic phrases it as "repository does not exist" or, when it cannot read the
-// config marker, "unable to open config file". Used to treat a not-yet-replicated
-// REMOTE off-site repo as simply empty rather than surfacing restic's raw fatal
-// (issue #117). Scoped to remote repos by the caller — local repos are guarded
-// upstream by localRepoMissing.
+// isRepoUninitialized reports whether a restic error means the backend was
+// reached and holds no repository yet, which a remote off-site repo is until its
+// first replication. restic says so as "repository does not exist". It prefixes
+// "unable to open config file" onto every failure to reach the backend as well,
+// a name that does not resolve or a 401 included, so that phrase alone counts
+// only when the backend named a missing object, such as a bucket restic init
+// will create, and no transport failure is named with it.
 func isRepoUninitialized(err error) bool {
 	if err == nil {
 		return false
 	}
 	msg := strings.ToLower(err.Error())
-	// A REJECTED request is not an empty repository, however similar the
-	// wrapper text looks.
-	// -------------------------------------------------------------------------
-	// restic prefixes "unable to open config file" onto the transport failure
-	// too, so the phrase below matches an authentication failure just as
-	// happily as a missing repository. Measured against a real rest-server with
-	// --private-repos and an htpasswd file:
-	//
-	//   wrong password        unable to open config file: unexpected HTTP response (401): 401 Unauthorized
-	//   right password, no repo   repository does not exist: unable to open config file: <config/> does not exist
-	//   right password, wrong path (private-repos)  ... (401): 401 Unauthorized
-	//
-	// Treating the first and third as "reachable, not initialised" told the user
-	// the destination was fine when the server had actively refused them, and it
-	// hid the two commonest mistakes: credentials that live under Off-site even
-	// for a primary repo, and a --private-repos URL whose first path segment is
-	// not the htpasswd user. Reported as a primary repo stuck on "reachable, not
-	// initialized" with no way forward (issue #192).
-	if strings.Contains(msg, "401") || strings.Contains(msg, "403") ||
-		strings.Contains(msg, "unauthorized") || strings.Contains(msg, "forbidden") {
-		return false
+	if strings.Contains(msg, "repository does not exist") {
+		return true
 	}
-	return strings.Contains(msg, "repository does not exist") || strings.Contains(msg, "unable to open config file")
+	return strings.Contains(msg, "unable to open config file") &&
+		containsAny(msg, repoAbsenceMarkers) && !containsAny(msg, transportFailureMarkers)
 }
 
 // unlockStale best-effort clears stale locks (plain restic unlock: only locks

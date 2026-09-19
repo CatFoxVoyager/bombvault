@@ -1,16 +1,8 @@
 // @vitest-environment jsdom
 /**
- * The stop warning (#197), and the three things about it that matter.
- *
- * A container backup takes the container offline for the duration of the run.
- * That is the right default, because it is what makes the appdata consistent,
- * and it was stated nowhere: somebody pressing this on Plex in the afternoon
- * loses the service for as long as the first full backup takes and reads the
- * result as the tool misbehaving.
- *
- * Said once is the whole design. A warning on every press is one people click
- * away without reading, which lands back where we started, so "the second press
- * does not ask" is asserted here as firmly as "the first press does".
+ * A container backup takes the container offline for the run. The first backup
+ * a browser starts warns about it; later ones must not, or the warning gets
+ * clicked away unread.
  */
 import { render, screen, cleanup, waitFor, fireEvent, act } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -35,12 +27,11 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-describe("BackupButton, the stop warning", () => {
+describe("BackupButton stop warning", () => {
   it("asks before the first backup this browser has ever started", async () => {
     render(<BackupButton name="plex" t={t} onBackedUp={() => {}} />);
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: /backupNow/i })); });
     expect(await screen.findByText("containers.stopWarning")).toBeTruthy();
-    // Nothing has run yet: the dialog is a question, not a notice after the fact.
     expect(fire).not.toHaveBeenCalled();
   });
 
@@ -55,13 +46,12 @@ describe("BackupButton, the stop warning", () => {
     await waitFor(() => expect(fire).toHaveBeenCalledTimes(1));
   });
 
-  it("does NOT run it when the warning is declined", async () => {
+  it("does not run it when the warning is declined", async () => {
     render(<BackupButton name="plex" t={t} onBackedUp={() => {}} />);
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: /backupNow/i })); });
     await screen.findByText("containers.stopWarning");
-    // The dialog fetches its own cancel/close wording, so it carries the REAL
-    // translation rather than this file's key-echoing t. Picked by exclusion:
-    // whatever is not the confirm button, whose label this component passes in.
+    // The dialog translates its own cancel label, so pick the dialog button
+    // that is not the confirm button.
     const cancel = screen
       .getAllByRole("button")
       .filter((b) => b.closest("[role=dialog]"))
@@ -79,7 +69,6 @@ describe("BackupButton, the stop warning", () => {
   });
 
   it("asks every time when the browser refuses storage, rather than never", async () => {
-    // A private window or blocked site data: annoying beats silent downtime.
     const spy = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
       throw new Error("blocked");
     });

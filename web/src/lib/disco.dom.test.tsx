@@ -1,23 +1,8 @@
 // @vitest-environment jsdom
-// ---------------------------------------------------------------------------
-// Disco: the hidden fourth thing the colour engine can do.
-//
-// Rainbow gives every row its own colour from a set of eight. Disco walks
-// that set, one step a second, so the colours a list is already wearing keep
-// moving. It reuses the seed the palette is already read through rather than
-// animating anything, which is the whole reason it is cheap: no keyframes, no
-// extra compositing layers, and after #228 that distinction is not academic.
-//
-// Four things here are easy to get wrong and every one of them is quiet:
-//   - A tick that PERSISTS would write to localStorage and sync to the server
-//     once a second, forever. The tick applies; only the switch stores.
-//   - Disco without rainbow has nothing to colour, so it must not run.
-//   - A hidden tab keeps its interval unless somebody stops it.
-//   - An unlock gesture that counts plain toggle clicks fires while somebody
-//     is merely comparing the mode on and off. It counts turn-ONs, inside a
-//     time window, and lands on "on" so the reward arrives in a state that
-//     can show it.
-// ---------------------------------------------------------------------------
+// Disco: a persisted tick would write localStorage and sync to the server
+// every second, so only the switch is stored. The unlock gesture counts
+// turn-ons inside a time window, so comparing rainbow on and off does not
+// trigger it.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DISCO_TICK_MS,
@@ -77,7 +62,7 @@ describe("the tick", () => {
     expect(rainbowState().seed).not.toBe(after);
   });
 
-  it("never persists, so a second of disco is not a write", () => {
+  it("does not persist the ticking seed", () => {
     setRainbow({ on: true, seed: 0 });
     setDisco(true);
     applyStoredDisco();
@@ -87,7 +72,7 @@ describe("the tick", () => {
     expect(getRainbow().seed).toBe(0);
   });
 
-  it("does not run while rainbow is off, since there is nothing to colour", () => {
+  it("does not run while rainbow is off", () => {
     setRainbow({ on: false, seed: 0 });
     setDisco(true);
     applyStoredDisco();
@@ -112,8 +97,7 @@ describe("the tick", () => {
     applyStoredDisco();
     applyStoredDisco();
     vi.advanceTimersByTime(DISCO_TICK_MS);
-    // One step, not three: a second apply must replace the interval rather
-    // than add a second one racing it.
+    // One step, not three: each apply replaces the interval.
     expect(rainbowState().seed).toBe(1);
   });
 
@@ -123,20 +107,14 @@ describe("the tick", () => {
     applyStoredDisco();
     vi.advanceTimersByTime(DISCO_TICK_MS);
     setDisco(false);
-    // Read AFTER the switch-off, because switching off also hands the user
-    // their own rotation back (see the two tests below). What this one is
-    // about is that no further tick moves anything.
+    // Read after the switch-off, which restores the stored rotation.
     const parked = rainbowState().seed;
     vi.advanceTimersByTime(DISCO_TICK_MS * 3);
     expect(rainbowState().seed).toBe(parked);
   });
 
-  // The seed is only HALF of what makes a colour: rainbowColorAt() applies it
-  // as an offset `rotate ? seed : 0`, and `rotate` is a switch of its own that
-  // defaults to off. A tick that walks the seed and nothing else therefore
-  // renders identically forever for anybody who never found that switch -
-  // which is to say for almost everybody. Disco IS rotation over time, so it
-  // rotates; the tests above watch the seed and would all have stayed green.
+  // The seed only applies with `rotate` on, which defaults to off, so a tick
+  // that walked the seed alone would change nothing on screen.
   it("moves the colours even when the user's own rotate switch is off", () => {
     setRainbow({ on: true, rotate: false, seed: 0 });
     const resting = rainbowAt(0);
@@ -145,10 +123,7 @@ describe("the tick", () => {
     expect(rainbowAt(0)).not.toBe(resting);
   });
 
-  it("hands the rotate switch back when it stops, instead of leaving the palette turned", () => {
-    // Otherwise a stopped disco looks exactly like the rotate toggle having
-    // switched itself on: the palette sits at whatever offset the last tick
-    // left, and the switch in Settings says off.
+  it("restores the stored rotate switch and palette when it stops", () => {
     setRainbow({ on: true, rotate: false, seed: 0 });
     const resting = rainbowAt(0);
     setDisco(true);
@@ -158,9 +133,7 @@ describe("the tick", () => {
     expect(rainbowAt(0)).toBe(resting);
   });
 
-  it("leaves a real rotate choice alone when it stops", () => {
-    // The restore reads the STORED state, so somebody who did find the
-    // rotate switch keeps it, seed and all.
+  it("keeps a chosen rotation and seed when it stops", () => {
     setRainbow({ on: true, rotate: true, seed: 3 });
     const chosen = rainbowAt(0);
     setDisco(true);
@@ -171,7 +144,7 @@ describe("the tick", () => {
     expect(rainbowAt(0)).toBe(chosen);
   });
 
-  it("marks the document so a reader can tell disco from plain rainbow", () => {
+  it("sets data-disco on the document while it is on", () => {
     setRainbow({ on: true });
     setDisco(true);
     applyStoredDisco();
@@ -192,7 +165,7 @@ describe("the unlock gesture", () => {
     expect(discoTap(s, true, at(DISCO_UNLOCK_CLICKS * 500))).toBe(true);
   });
 
-  it("ignores turn-offs, so the gesture ends in a state that can show it", () => {
+  it("ignores turn-offs", () => {
     const s = { taps: 0, last: 0 };
     for (let i = 0; i < DISCO_UNLOCK_CLICKS * 2; i += 1) {
       expect(discoTap(s, false, at(i * 500))).toBe(false);
@@ -204,12 +177,11 @@ describe("the unlock gesture", () => {
     const s = { taps: 0, last: 0 };
     discoTap(s, true, at(0));
     discoTap(s, true, at(DISCO_UNLOCK_WINDOW_MS + 1));
-    // The second click restarted the run rather than continuing it, so this
-    // is click two of five, not four of five.
+    // The second click starts a new run.
     expect(s.taps).toBe(1);
   });
 
-  it("starts over after it has opened, so a sixth turn-on is not a seventh", () => {
+  it("resets the count once it opens", () => {
     const s = { taps: 0, last: 0 };
     for (let i = 1; i <= DISCO_UNLOCK_CLICKS; i += 1) discoTap(s, true, at(i * 500));
     expect(s.taps).toBe(0);

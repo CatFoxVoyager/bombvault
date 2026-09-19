@@ -8,26 +8,17 @@ TZ: Etc/UTC
 bombvault:
   app_key: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
   http_only: false
-  backup_max_hours: null
-  libvirt_uri: ""
-  libvirt_host: host.docker.internal
-  libvirt_ssh_user: root
-  libvirt_ssh_port: 22
   additional_envs: []
 
 network:
   host_network: false
   web_port:
     bind_mode: published
-    port_number: 30443
-    host_ips: []
-  http_port:
-    bind_mode: published
-    port_number: 30300
-    host_ips: []
+    port_number: 38080
 
 ix_volumes:
   config: /opt/tests/mnt/bombvault/config
+  host_data: /opt/tests/mnt/bombvault/host_data
 
 storage:
   config:
@@ -36,8 +27,10 @@ storage:
       dataset_name: config
       create_host_path: true
   host_data:
-    path: /opt/tests/mnt/bombvault/hostdata
-    create_host_path: true
+    type: ix_volume
+    ix_volume_config:
+      dataset_name: host_data
+      create_host_path: true
   additional_storage: []
 
 labels: []

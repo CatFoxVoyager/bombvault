@@ -8,35 +8,30 @@ import { LoginPage } from "../pages/Login";
 import { WhatsNewDialog } from "../components/WhatsNewDialog";
 import { sync as syncDisplayPrefs } from "../lib/displayPrefs";
 
-// Per-browser record of the last BombVault version this browser saw. When the
-// running version differs, the "What's new" dialog (#48) is shown once.
+// The last BombVault version this browser has seen. The "What's new" dialog
+// opens once when the running version differs.
 const LAST_SEEN_VERSION_KEY = "bombvault.lastSeenVersion";
 
-// releaseTag reduces a build version to its GitHub release tag. :latest builds
-// carry SemVer build metadata (e.g. "v5.0.0+main.fcc0544", issue #22); both the
-// release-notes lookup and the seen-version comparison want the plain tag
-// "v5.0.0"; otherwise the dialog fetches a tag that doesn't exist (404) and the
-// changing short SHA re-nags on every :latest rebuild (issue #48). Returns null
-// for "dev" / "0.0.0" / anything without an x.y.z core, so those never nag.
+// releaseTag reduces a build version such as "v5.0.0+main.fcc0544" to the
+// release tag "v5.0.0". The release notes are published under that tag, and
+// comparing tags keeps a :latest rebuild with a new short SHA from reopening
+// the dialog. It returns null for "dev", "0.0.0" and anything without an x.y.z
+// core.
 function releaseTag(version: string): string | null {
   const m = version.match(/\d+\.\d+\.\d+/);
   if (!m || m[0] === "0.0.0") return null;
   return `v${m[0]}`;
 }
 
-// Auth probe state: null = not yet fetched, false = auth off or authed,
-// true = auth on and not authed (show login).
+// "blocked" means a password is set and this browser is not signed in.
 type AuthGateState = "loading" | "pass" | "blocked";
 
 export function Layout() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [authGate, setAuthGate] = useState<AuthGateState>("loading");
-  // Whether a login password is set at all. Separate from authGate, which only
-  // answers "may this browser in": the sidebar needs a sign-out row exactly when
-  // there is something to sign out of, and on an instance with no password
-  // there is not.
+  // Whether a password is set at all, which decides if the sidebar offers a
+  // sign-out row. authGate only says whether this browser may enter.
   const [authEnabled, setAuthEnabled] = useState(false);
-  // The version to show the "What's new" dialog for (null = don't show).
   const [whatsNewVersion, setWhatsNewVersion] = useState<string | null>(null);
   const location = useLocation();
   // the one chrome switch: at/above Tailwind's md breakpoint the
@@ -49,7 +44,7 @@ export function Layout() {
 
   // Tap-on-active: tapping the already-active destination scrolls
   // the main scroller back to the top instead of navigating. The scroller is
-  // This component's <main id="bv-main"> below, so the mechanism lives here
+  // this component's <main id="bv-main"> below, so the mechanism lives here
   // and the chrome surfaces receive it as a prop; they never query the DOM
   // for the scroller themselves. `?.` guards the guarded: the element exists
   // in every state this can be called from, but a callback that throws because
@@ -59,7 +54,7 @@ export function Layout() {
   }, []);
 
   // Ref on the shell root: the keyboard mechanism's focus listeners attach
-  // Here (not document-wide), so they exist only while a shell is rendered.
+  // here (not document-wide), so they exist only while a shell is rendered.
   const shellRef = useRef<HTMLDivElement>(null);
 
   // The keyboard mechanism; one listener set at Layout level:
@@ -144,7 +139,7 @@ export function Layout() {
     };
   }, [isDesktop, authGate]);
 
-  // Check auth state; used on mount and after a successful login.
+  // Runs on mount and again after a successful login.
   const checkAuth = useCallback(() => {
     getAuth()
       .then((res) => {
@@ -156,8 +151,8 @@ export function Layout() {
         }
       })
       .catch(() => {
-        // If the auth check itself fails (network error, server down) treat as
-        // pass so the app doesn't get stuck in a permanent login screen.
+        // A failed probe lets the app through instead of stranding it on the
+        // login screen; the server still enforces auth on every call.
         setAuthGate("pass");
       });
   }, []);
@@ -166,95 +161,61 @@ export function Layout() {
     checkAuth();
   }, [checkAuth]);
 
-  // Load settings to drive the chrome's destination lists (desktop sidebar and
-  // mobile bar/sheet alike; both read the one registry through this state).
+  // Settings decide which domain tabs the sidebar shows.
   const loadSettings = useCallback(() => {
     getSettings()
       .then((res) => {
         if (res.ok) setSettings(res.settings);
       })
       .catch(() => {
-        // Non-fatal: chrome simply won't reveal VMs/Flash tabs. The mobile
-        // surfaces inherit exactly this degradation (the chrome performs no
-        // fetches; settings stays non-fatal here).
+        // Without settings the sidebar only leaves out the VMs and Flash tabs.
       });
   }, []);
 
-  // Initial load once auth is cleared.
   useEffect(() => {
     if (authGate !== "pass") return;
     loadSettings();
   }, [authGate, loadSettings]);
 
-  // The look, once auth is cleared; and this is the whole of issue #191 on an
-  // instance with a password set.
-  //
-  // main.tsx calls sync() as the page boots, which is right for an instance
-  // with no password and for a session that is already valid. On a password-
-  // Protected instance whose cookie is gone, that call lands on the login
-  // screen: /api/display-prefs is not in the auth gate's public list, so it
-  // answers 401, sync() sees a non-ok response and returns. Signing in then
-  // flips this state and renders the app without reloading the page, so nothing
-  // ever asked again. The server had every setting the whole time and the
-  // browser never received one.
-  //
-  // That is why clearing site data reset everything for the reporter three
-  // times over: clearing cookies signs you out, and signing back in was the
-  // step that skipped the reconcile. It is also why it never reproduced here
-  // until an instance with a password was tried, and why the two earlier fixes,
-  // both real bugs, changed nothing for him: neither was on a path his browser
-  // reached.
-  //
-  // Running for every "pass" is deliberate rather than only after a login: it
-  // costs one GET, it is idempotent, and a state machine that has to know why
-  // it opened is the kind of thing that quietly stops being true.
+  // Reconcile the look with the server whenever the gate opens. On a
+  // password-protected instance the boot-time sync in main.tsx runs before the
+  // login and gets a 401, and signing in does not reload the page, so without
+  // this the browser would never receive the stored settings. Doing it on every
+  // "pass" costs one idempotent GET and keeps this effect from having to know
+  // why the gate opened.
   useEffect(() => {
     if (authGate !== "pass") return;
     void syncDisplayPrefs();
   }, [authGate]);
 
-  // The delegated <select> wheel listener that used to sit here is gone, and
-  // that is the end of a story rather than a deletion: this app has no native
-  // <select> left (#3425), so it had nothing to attach to. The rule it served
-  // (rule 14, a closed picker answers the wheel) is now SelectField's own, and
-  // the reason it cannot come back is lib/noNativeSelect.test.ts, which fails
-  // the build over a native one. A listener kept "just in case" against a case
-  // a test already forbids is dead code with an alibi.
-
-  // Live-refresh when settings change elsewhere (e.g. enabling a domain on the
-  // Settings page) so a newly-enabled tab appears immediately; no page reload.
+  // Refresh when settings change elsewhere, such as enabling a domain on the
+  // Settings page, so the new tab appears without a reload.
   useEffect(() => {
     const onChange = () => loadSettings();
     window.addEventListener("bv:settings-changed", onChange);
     return () => window.removeEventListener("bv:settings-changed", onChange);
   }, [loadSettings]);
 
-  // "What's new" detection (#48): once past the auth gate, compare the running
-  // version against the last one this browser saw. Show the dialog when it
-  // differs from a previously stored value; on a brand-new browser just record
-  // the version silently (don't nag a first-time user). "dev"/unknown builds are
-  // ignored. lastSeenVersion is updated the moment we decide to show it, so a
-  // new version can never re-nag on the next mount.
+  // Show "What's new" when the running release differs from the last one this
+  // browser saw. A browser's first visit only records the version. The stored
+  // value is updated as soon as the dialog is shown, so it opens once per
+  // release.
   useEffect(() => {
     if (authGate !== "pass") return;
     let active = true;
     getHealth()
       .then((h) => {
         if (!active) return;
-        // Compare + store the plain release tag, not the raw build string, so
-        // the dialog looks up an existing GitHub tag and :latest's changing
-        // short SHA doesn't re-nag on every rebuild (issue #48).
         const tag = h.version ? releaseTag(h.version) : null;
         if (!tag) return;
         let last: string | null;
         try {
           last = localStorage.getItem(LAST_SEEN_VERSION_KEY);
         } catch {
-          /* localStorage unavailable; skip the dialog entirely */
+          /* no localStorage, so no dialog */
           return;
         }
         if (last === null) {
-          // First ever open on this browser: remember it, don't show the dialog.
           try {
             localStorage.setItem(LAST_SEEN_VERSION_KEY, tag);
           } catch {
@@ -279,7 +240,7 @@ export function Layout() {
     };
   }, [authGate]);
 
-  // While loading the auth state show nothing (avoids flash of app content).
+  // Render nothing until the auth probe answers, so app content never flashes.
   if (authGate === "loading") {
     return null;
   }
@@ -291,76 +252,31 @@ export function Layout() {
     return <LoginPage onLogin={checkAuth} />;
   }
 
-  // The page gutter lives on the frame that holds the rail and the content,
-  // rather than on either of them (GlimStone 1.8.0, "the rail is a card, not a
-  // wall"). One number then produces three gaps that used to be two settings:
-  // around the rail, around the content, and between them. The rail used to be
-  // welded to the window edge while every card beside it floated, which made
-  // the one element that was neither read as window chrome rather than as part
-  // of the app.
-  //
-  // The number is 1rem, and it is the house's, not this app's (GlimStone's
-  // `--page-gutter`; `p-4` is that number, and it is what the sibling app
-  // writes too). It shipped here as 1.5rem, which is what the content padding
-  // happened to be, and side by side the difference was the whole impression:
-  // the rail sat further from the edge and, at 0.5rem off the top and the
-  // bottom each, visibly shorter than the same 14rem rail there (jdp: "die
-  // sidebar in BV hat größere abstände zum fensterrand und ist kleiner als in
-  // AL. Sie soll aber exakt wie in AL sein"). A gutter that is picked per app
-  // is not a gutter, it is a coincidence, so the language names the number now.
-  //
-  // Measured side by side at 1440x900 after the change, both live: rail at
-  // x=16, y=16, 224x868, radius 16, no shadow, 16 to the content. Identical.
-  //
-  // Desktop only. The mobile shell stacks the scroller over its bottom bar
-  // (a normal-flow flex sibling, never a fixed overlay) and the phone carries
-  // its own 16px gutter on `main` instead; the desktop 24px gutter is half a
-  // 360px phone's width wasted on air around the same Cards.
-  //
   // The scroller; per-page content (the Outlet subtree) must never know which
   // chrome is mounted around it, so each branch keeps its own `main` contract
   // and both carry the `bv-main` id, the stable scroll target the bottom bar
   // addresses (tap-on-active). A page cannot tell, and a resize across the
   // breakpoint re-attaches to the same id either way.
-  //
-  // `flex flex-col` on the per-route wrapper (sticky-footer page-shell fix,
-  // jdp live review; "die Versionsnummer soll unterhalb der untersten Card
-  // stehen, nicht die Cards durchfahren lassen"): the wrapper fills `main`'s
-  // available height (a definite size, since it's now a flex item of a sized
-  // flex column) and passes a flex column context down to whichever page
-  // Outlet renders; Settings.tsx is the one page that currently uses this to
-  // push its own AboutFooter to the bottom of the column instead of leaving
-  // it fixed to the viewport (see AboutFooter's own header comment for the
-  // full before/after). Harmless for every other route: a page that doesn't
-  // opt into filling that height just renders at its own natural height with
-  // invisible blank flex space below it; no visible change.
   const scroller = isDesktop ? (
-    // Desktop: the frame owns the gutter (`gap-4 p-4` on the shell root below)
-    // and the page's own 1.5rem padding lives on the per-route wrapper;
-    // No padding at the bottom, and that is the point: the rail ends flush
-    // with the frame's own gutter, so 1.5rem of padding inside the scroll
-    // container stopped the last card 24 measured pixels short of it. At
-    // the end of a scroll the two columns have to end on one line, and a
-    // gutter that only one of them has is what makes it read as unfinished.
-    // The frame's p-4 still keeps both off the window edge.
     <main id="bv-main" className="flex-1 flex flex-col overflow-y-auto min-w-0">
+      {/* `main` is the scroll container. It and the route wrapper are flex
+          columns so a short page can fill the height and push a footer to the
+          bottom (Settings does this with AboutFooter); other pages render at
+          their natural height. */}
+      {/* The page padding lives inside the scroll container. There is none
+          at the bottom, so at the end of a scroll the last card ends level
+          with the rail instead of 24px above it. */}
       <div key={location.pathname} className="glim-page-enter flex-1 flex flex-col p-6 pb-0">
-        {/* …which leaves the last element sitting on the container's edge.
-            That is what flush means, and it is only true at the very end of
-            the scroll: everywhere else the content simply continues. */}
         <Outlet />
       </div>
     </main>
   ) : (
     // Mobile: `main` carries the 16px gutter itself and the per-route wrapper
-    // stays padding-free; the byte-form of the phone shell (the hard
-    // guarantee on the desktop branch is that not one class token moves;
-    // this is the mobile half of that swap). No bottom padding, the same
-    // call the desktop branch makes above: a scroller that keeps 16px under
-    // the column clamps a sticky action bar 16px short of the bottom bar and
-    // leaves a strip of scrolling page visible between the two. With the
-    // column ending on the bar, the page's flush end reaches the nav exactly
-    // when its scroll does.
+    // stays padding-free. No bottom padding, the same call the desktop branch
+    // makes above: a scroller that keeps 16px under the column clamps a
+    // sticky action bar 16px short of the bottom bar and leaves a strip of
+    // scrolling page visible between the two. With the column ending on the
+    // bar, the page's flush end reaches the nav exactly when its scroll does.
     <main id="bv-main" className="flex-1 flex flex-col overflow-y-auto p-4 pb-0 min-w-0">
       <div key={location.pathname} className="glim-page-enter flex-1 flex flex-col">
         <Outlet />
@@ -368,16 +284,19 @@ export function Layout() {
     </main>
   );
 
-  // The shell root. `h-dvh` tracks the visual viewport as mobile
-  // browser chrome collapses/expands; the static screen-height class it
-  // replaced kept the largest viewport height and stranded bottom-docked
-  // content under expanded browser chrome. On desktop dvh equals the viewport
+  // The gutter sits on the frame around the rail and the content, so one value
+  // spaces both from the window edge and from each other. It is GlimStone's
+  // --page-gutter (1rem, `p-4`), the same in every app that uses the design
+  // language. The content's 1.5rem padding is a separate distance on top.
+  //
+  // The shell root uses `h-dvh` so it tracks the visual viewport as mobile
+  // browser chrome collapses and expands; on desktop dvh equals the viewport
   // height, so the desktop shell renders unchanged. The flex direction is the
   // chrome switch's other half: desktop is the historical row (rail | main)
-  // plus the house gutter (`gap-4 p-4`, the GlimStone 1.8.0 frame above);
-  // mobile stacks the scroller over its normal-flow bottom bar (the bar is a
-  // flex sibling of `main`, never a fixed overlay, so the browser reserves
-  // its height and the scroller ends above it by construction).
+  // plus the house gutter; mobile stacks the scroller over its normal-flow
+  // bottom bar (the bar is a flex sibling of `main`, never a fixed overlay,
+  // so the browser reserves its height and the scroller ends above it by
+  // construction).
   return (
     <div ref={shellRef} className={`flex h-dvh overflow-hidden bg-carbon-background ${isDesktop ? "gap-4 p-4" : "flex-col"}`}>
       {/* the one chrome switch; exactly one chrome surface renders at a time.
