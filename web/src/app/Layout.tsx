@@ -277,7 +277,17 @@ export function Layout() {
     // sticky action bar 16px short of the bottom bar and leaves a strip of
     // scrolling page visible between the two. With the column ending on the
     // bar, the page's flush end reaches the nav exactly when its scroll does.
-    <main id="bv-main" className="flex-1 flex flex-col overflow-y-auto p-4 pb-0 min-w-0">
+    //
+    // The side paddings take the safe-area insets over the same 1rem floor,
+    // the pattern the bottom bar's card uses: with viewport-fit=cover the
+    // layout viewport runs under a landscape phone's side notch, and the
+    // scroller is the surface whose content would slide beneath it. max()
+    // with the 1rem gutter floor renders identically wherever the inset is
+    // 0px, so plain phones and desktops are unchanged.
+    <main
+      id="bv-main"
+      className="flex-1 flex flex-col overflow-y-auto p-4 pb-0 pl-[max(1rem,var(--safe-area-left))] pr-[max(1rem,var(--safe-area-right))] min-w-0"
+    >
       <div key={location.pathname} className="glim-page-enter flex-1 flex flex-col">
         <Outlet />
       </div>
@@ -298,7 +308,21 @@ export function Layout() {
   // so the browser reserves its height and the scroller ends above it by
   // construction).
   return (
-    <div ref={shellRef} className={`flex h-dvh overflow-hidden bg-carbon-background ${isDesktop ? "gap-4 p-4" : "flex-col"}`}>
+    // The desktop frame's side paddings take the same safe-area max() the
+    // phone main does: the frame is the chrome a landscape phone renders once
+    // the width breakpoint matches, and viewport-fit=cover puts its rail and
+    // content under the side notch without it. On a real desktop env() reads
+    // 0px and max() leaves the 1rem gutter, so the desktop rendering is
+    // unchanged. The phone branch keeps its plain flex-col; its main and the
+    // bottom bar's card each carry their own insets.
+    <div
+      ref={shellRef}
+      className={`flex h-dvh overflow-hidden bg-carbon-background ${
+        isDesktop
+          ? "gap-4 p-4 pl-[max(1rem,var(--safe-area-left))] pr-[max(1rem,var(--safe-area-right))]"
+          : "flex-col"
+      }`}
+    >
       {/* the one chrome switch; exactly one chrome surface renders at a time.
           The desktop branch is upstream's desktop tree verbatim (same Sidebar,
           same frame gutter, same wrapper padding); the mobile branch is the

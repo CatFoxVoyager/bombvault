@@ -50,8 +50,10 @@ const moreSheet = readFileSync(join(SRC, "components", "mobile", "MoreSheet.tsx"
 // `h-dvh` (the viewport-discipline guard below), and an includes() positive
 // would pass forever on that dead text even after the root itself changed.
 // The root also carries the shell ref (the keyboard mechanism's focus
-// listeners attach to it), which is what makes the ref anchor stable.
-const SHELL_ROOT = /<div ref=\{shellRef\} className=\{`flex h-dvh/;
+// listeners attach to it), which is what makes the ref anchor stable. The
+// `\s+` joints tolerate the root's attributes wrapping across lines; the
+// className stays a template literal (the desktop/mobile ternary).
+const SHELL_ROOT = /<div\s+ref=\{shellRef\}\s+className=\{`flex h-dvh/;
 
 // The banned viewport-height literals. h-screen joins 100vh and min-h-screen:
 // it is the same static-largest-viewport trap in Tailwind's vocabulary, and a
@@ -115,6 +117,44 @@ describe("safe-area custom properties exist and are env-paired", () => {
           `padding a valid length where env() resolves to nothing, and the env() ` +
           `pairing is what makes the inset real on notched devices.`
       ).toBe(true);
+    }
+  );
+});
+
+// Side insets reach every surface that touches the screen's left/right edge.
+// The bottom bar carried them from the start, but the phone main and the
+// desktop frame (the chrome a landscape phone renders once the width
+// breakpoint matches) did not: with viewport-fit=cover the layout viewport
+// extends under the side notch, so page content and the rail slide beneath
+// it. Each consumer floors the inset at the surface's own gutter (1rem, the
+// page gutter), which keeps the rendering byte-identical wherever env()
+// reads 0px; max() with a 0px floor is the token's own clamp, the pairing
+// the guards above pin. Declarative classes carry the contract, so it is
+// pinned at source level like every guard in this file.
+describe("side safe-area insets reach the phone main and the desktop frame", () => {
+  it("is reading the real Layout component (self-guard)", () => {
+    expect(
+      layout,
+      "Layout.tsx no longer exports Layout; the side-inset asserts below are " +
+        "running against a file that no longer contains the component, so " +
+        "they would pass against dead text."
+    ).toContain("export function Layout");
+  });
+
+  it.each(["left", "right"])(
+    "pads both edge-touching surfaces by max(1rem, var(--safe-area-%s))",
+    (side) => {
+      const needle = `[max(1rem,var(--safe-area-${side}))]`;
+      const uses = layout.split(needle).length - 1;
+      expect(
+        uses,
+        `Layout.tsx applies --safe-area-${side} ${uses} time(s). Two surfaces ` +
+          "touch the screen's side edges: the phone main and the desktop " +
+          "frame a landscape phone renders; both need the inset or " +
+          "viewport-fit=cover puts their content under the side notch. The " +
+          "1rem floor is the page gutter, so devices without an inset " +
+          "render exactly as before. Restore the missing consumer."
+      ).toBeGreaterThanOrEqual(2);
     }
   );
 });
