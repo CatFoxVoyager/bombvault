@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 // ---------------------------------------------------------------------------
-// StickyActionBar dom tests — the chrome contract of the shared sticky-in-flow
-// bar. Assert CLASS, not computed layout — jsdom has no layout engine, so
+// StickyActionBar dom tests; the chrome contract of the shared sticky-in-flow
+// bar. Assert class, not computed layout; jsdom has no layout engine, so
 // "sticky works" is pinned as (a) the sticky/bottom-0 classes present and (b)
-// the fixed-positioning anti-pattern ABSENT (the locked shell discipline),
-// plus the chrome trio (sidebar surface, top hairline, safe-area bottom
-// padding) that the BottomNav precedent shares.
+// the fixed-positioning anti-pattern absent (the locked shell discipline),
+// plus the chrome contract it shares with the BottomNav precedent (sidebar
+// surface, safe-area bottom padding) and the one deliberate divergence (no
+// top hairline of its own; the nav directly below carries the shell's edge
+// line).
 // ---------------------------------------------------------------------------
 
 import { render } from "@testing-library/react";
@@ -25,7 +27,7 @@ describe("StickyActionBar", () => {
     expect(getByText("Save folders")).toBeTruthy();
   });
 
-  it("is a normal-flow sticky element — sticky bottom-0 classes present, position:fixed absent", () => {
+  it("is a normal-flow sticky element; sticky bottom-0 classes present, position:fixed absent", () => {
     const { container } = render(
       <StickyActionBar>
         <div>row</div>
@@ -39,7 +41,7 @@ describe("StickyActionBar", () => {
     expect(bar.className).not.toMatch(/(^|\s)fixed(\s|$)/);
   });
 
-  it("carries the chrome classes — sidebar surface, top hairline, safe-area bottom padding", () => {
+  it("carries the chrome classes; sidebar surface, no hairline of its own, safe-area bottom padding", () => {
     const { container } = render(
       <StickyActionBar>
         <div>row</div>
@@ -47,8 +49,13 @@ describe("StickyActionBar", () => {
     );
     const bar = container.firstElementChild as HTMLElement;
     expect(bar.className).toContain("bg-carbon-sidebar");
-    expect(bar.className).toContain("border-t");
-    expect(bar.className).toContain("border-carbon-border");
+    // Deliberately NO top hairline (the component header documents why): the
+    // shell's one edge line lives on the BottomNav sitting directly below,
+    // and a second rule here read as a double border once the page ends
+    // flush against the nav; the surface tone alone separates the bar from
+    // the page it overlays.
+    expect(bar.className).not.toContain("border-t");
+    expect(bar.className).not.toContain("border-carbon-border");
     // Safe area: the BottomNav padding recipe, clamped to a 12px floor so a
     // browser reporting no inset still leaves real breathing room.
     expect(bar.className).toContain("pb-[max(0.75rem,var(--safe-area-bottom))]");
