@@ -52,8 +52,10 @@ const MOBILE_PROJECTS = new Set(["mobile-iphone", "mobile-android"]);
 // English fallback instead of the stress-case strings.
 const LOCALE_STORAGE_KEY = "bv-lang";
 const MORE_LABEL = { de: "Mehr", fr: "Plus" } as const;
-// The sheet's fresh-DB stress-case row: the always-on Recovery destination.
-const RECOVERY_LABEL = { de: "Wiederherstellung", fr: "Récupération" } as const;
+// The sheet's fresh-DB stress-case row: Settings, the one always-on More
+// destination since Recovery moved into the bar (its equally long caption
+// stays covered by the bar-caption sweep below).
+const SETTINGS_LABEL = { de: "Einstellungen", fr: "Paramètres" } as const;
 
 // Explicit single-line box used for the height arithmetic (see header).
 const LINE_BOX = 20;
@@ -142,12 +144,12 @@ for (const locale of locales) {
       ).toBeLessThanOrEqual(barOverflow.clientWidth + 1);
 
       // Same single-line contract inside the More sheet: open it and measure
-      // every destination row's label span (the long de/fr Recovery label is
+      // every destination row's label span (the long de/fr Settings label is
       // the fresh-DB stress case; the sheet is where >1 row lands later).
       await moreTrigger.click();
       const sheet = page.getByTestId("more-sheet");
       await expect(sheet).toBeVisible();
-      await expect(sheet.getByRole("link", { name: RECOVERY_LABEL[locale] })).toBeVisible();
+      await expect(sheet.getByRole("link", { name: SETTINGS_LABEL[locale] })).toBeVisible();
 
       const rowStats = await sheet
         .getByRole("link")
