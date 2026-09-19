@@ -179,6 +179,54 @@ function failedRunsNeedingAttention(runs: Run[]): Run[] {
   return Array.from(latestCompletedByTarget.values()).filter((r) => r.status === "failed");
 }
 
+/**
+ * The one acknowledgeable-failure counter, two densities: the desktop stat
+ * tile and the phone runs block's full-width row both render a count of
+ * failedRunsNeedingAttention and both open the error detail panel, the only
+ * place in the app where a failure can be read and acknowledged. The count
+ * itself is the caller's (the desktop tile reads computeStatData, the phone
+ * row the page's polled runs; both bottom out in the same derivation, so the
+ * two surfaces cannot disagree). The status colour rides the Badge, not the
+ * row.
+ */
+function FailureCounter({
+  t,
+  count,
+  dense,
+  onOpen,
+}: {
+  t: ReturnType<typeof useT>["t"];
+  count: number;
+  /** Phone glance face: a full-width >=44px row instead of the stat tile. */
+  dense?: boolean;
+  onOpen: () => void;
+}) {
+  if (dense) {
+    return (
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={`${t("dashboard.statErrors")}: ${count}`}
+        className="mb-1 flex min-h-[2.75rem] w-full items-center gap-2 rounded-control bg-carbon-surface2 px-2 py-2 text-start"
+      >
+        <Badge tone="fail">{count}</Badge>
+        <span className="min-w-0 flex-1 truncate text-sm text-carbon-text">
+          {t("dashboard.statErrors")}
+        </span>
+      </button>
+    );
+  }
+  return (
+    <StatCard
+      label={t("dashboard.statErrors")}
+      value={count}
+      danger
+      // Clickable only when there are errors to show.
+      onClick={count > 0 ? onOpen : undefined}
+    />
+  );
+}
+
 function StatCardsRow({ t, advanced }: { t: ReturnType<typeof useT>["t"]; advanced: boolean }) {
   const [data, setData] = useState<StatData | null>(null);
   const [errorPanelOpen, setErrorPanelOpen] = useState(false);
@@ -220,13 +268,7 @@ function StatCardsRow({ t, advanced }: { t: ReturnType<typeof useT>["t"]; advanc
             <StatCard label={t("dashboard.statPausedJobs")} value={data.pausedJobs} />
           </>
         )}
-        {/* Clickable only when there are errors to show — opens the detail panel. */}
-        <StatCard
-          label={t("dashboard.statErrors")}
-          value={data.errors}
-          danger
-          onClick={data.errors > 0 ? () => setErrorPanelOpen(true) : undefined}
-        />
+        <FailureCounter t={t} count={data.errors} onOpen={() => setErrorPanelOpen(true)} />
         {advanced && (
           <>
             <StatCard label={t("dashboard.statMissingContainers")} value={data.missingContainers} danger />
@@ -918,7 +960,9 @@ export function RansomwareCard({
     <Card title={t("ransomware.title")} hueIndex={hueIndex}>
       {loading && <p className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</p>}
       {!loading && (
-      <div className="glim-content-fade">
+      // Rows separated by shade (soft tiles), never divider lines; the same
+      // surface token every other Dashboard list uses.
+      <div className="flex flex-col gap-1 glim-content-fade">
       {shown.map((d) => {
           // Each row: label, state, and an optional age stamp. A "bad" row is a red
           // gap the user should fix — it deep-links into Settings. Every state comes
@@ -948,7 +992,7 @@ export function RansomwareCard({
           ];
 
           return (
-            <div key={d.domain} className="flex flex-col gap-1.5 py-2 border-b border-carbon-border last:border-0">
+            <div key={d.domain} className="flex flex-col gap-1.5 rounded-control bg-carbon-surface2 px-2 py-2.5">
               <div className="flex items-center gap-2">
                 <span className="font-medium text-carbon-text w-28 shrink-0 truncate">
                   {domainLabel(d.domain)}
@@ -1028,6 +1072,112 @@ export function RansomwareCard({
 // Recent Runs card
 // ---------------------------------------------------------------------------
 
+/** The scrubbed, direction-fixed reason line a failed or skipped run shows
+ *  under its summary; nothing renders for other statuses, or when the backend
+ *  recorded no readable reason. One definition for both run-row faces: the
+ *  dir contract ([377]) and the fail/muted tone split live here, so the
+ *  desktop history card and the phone glance list cannot drift on what a
+ *  failure says. */
+function RunReasonLine({
+  t,
+  run,
+  dense,
+}: {
+  t: ReturnType<typeof useT>["t"];
+  run: Run;
+  /** The phone face seats the line inside its stacked label column, where it
+   *  needs its own top margin; the desktop row's flex-col gap already
+   *  separates it. */
+  dense?: boolean;
+}) {
+  if ((run.status !== "failed" && run.status !== "skipped") || !run.error) return null;
+  return (
+    <span
+      dir={isOwnReason(run.error) ? undefined : "ltr"}
+      className={`${dense ? "mt-0.5 " : ""}block text-xs wrap-break-word text-start ${
+        run.status === "failed" ? "text-statusFail" : "text-carbon-textMuted"
+      }`}
+    >
+      {runReason(run.error, t)}
+    </span>
+  );
+}
+
+/** One run row for both faces of RunsCard: the status badge, the kind/target
+ *  summary, the relative age, and the reason line are written here once, so
+ *  the two densities cannot disagree on what a row says. The faces stay two
+ *  arrangements of that one content: the phone row is a >=44px touch target
+ *  whose tap opens the run detail sheet (min-h-[2.75rem], relative age, byte
+ *  volume), the desktop row is a static grid line with exact timestamps (the
+ *  precise clock lives in the run detail the phone taps through to). */
+function RunRow({
+  t,
+  run,
+  dense,
+  onTap,
+}: {
+  t: ReturnType<typeof useT>["t"];
+  run: Run;
+  /** The phone glance face. */
+  dense?: boolean;
+  /** Phone only: opens the page-hosted run detail sheet for this run. */
+  onTap?: () => void;
+}) {
+  const badge = <Badge tone={statusTone(run.status)}>{statusLabel(run.status, t)}</Badge>;
+  const kind = runKindLabel(t, run.kind);
+  const target = runTargetText(t, run);
+  const age = relativeTime(t, run.startedAt);
+  if (dense) {
+    return (
+      <button
+        type="button"
+        onClick={onTap}
+        aria-label={`${statusLabel(run.status, t)} · ${kind} ${target}`}
+        className="flex min-h-[2.75rem] w-full items-center gap-2 rounded-control bg-carbon-surface2 px-2 py-2 text-start"
+      >
+        <span className="shrink-0">{badge}</span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-carbon-text">
+            {kind} · {target}
+          </span>
+          <span className="mt-0.5 block truncate text-xs text-carbon-textMuted">
+            {age}
+            {run.bytes > 0 ? ` · ${humanBytes(run.bytes)}` : ""}
+          </span>
+          <RunReasonLine t={t} run={run} dense />
+        </span>
+      </button>
+    );
+  }
+  const dur = run.finishedAt != null ? formatDuration(run.finishedAt - run.startedAt) : "";
+  return (
+    <div className="flex flex-col gap-0.5 rounded-control bg-carbon-surface2 px-2 py-2.5 text-sm">
+      <div className="flex items-center gap-3">
+        {badge}
+        <span className="text-carbon-text font-medium w-16 shrink-0 truncate">{kind}</span>
+        <span className="text-carbon-text flex-1 truncate min-w-0">{target}</span>
+        {/* Start → end + duration, with the relative age underneath (#45/#50). */}
+        <span className="flex flex-col items-end shrink-0 text-xs leading-tight">
+          <span className="text-carbon-textSub whitespace-nowrap">
+            {formatTs(run.startedAt)}
+            {run.finishedAt != null && (
+              <>
+                {" "}
+                <span className="inline-block rtl:-scale-x-100">→</span> {formatTs(run.finishedAt)}
+              </>
+            )}
+          </span>
+          <span className="text-carbon-textMuted whitespace-nowrap">
+            {dur ? `(${dur}) · ` : ""}
+            {age}
+          </span>
+        </span>
+      </div>
+      <RunReasonLine t={t} run={run} />
+    </div>
+  );
+}
+
 function RunsCard({
   t,
   hueIndex,
@@ -1062,34 +1212,16 @@ function RunsCard({
   const failures = failedRunsNeedingAttention(runs);
 
   if (dense) {
-    // The four most recent runs, newest first. Each row is a >=44px touch
-    // target (min-h-[2.75rem]) whose tap opens the shared RunDetailSheet for
-    // That run, hosted by the page component-locally; no route. Four-status
-    // badges always carry their text label (never color alone, WCAG 1.4.1);
-    // failed/skipped rows keep the desktop card's scrubbed-reason treatment
-    // (runReason + the dir contract) so the phone never shows a red line the
-    // user cannot read.
+    // The four most recent runs, newest first, through the shared RunRow so
+    // the glance face and the desktop history card say the same thing about
+    // a run (the tap opens the page-hosted RunDetailSheet; no route).
     const recent = runs.slice(0, 4);
     return (
       <section className="relative flex flex-col gap-2 glim-hue" style={hueVars(rainbowAt(hueIndex ?? 0)) as CSSProperties}>
         <MobileSectionLabel t={t} labelKey="dashboard.recentRuns" />
         <div className="rounded-card bg-carbon-surface p-2">
-          {/* The acknowledgeable-failure affordance: the counter opens the
-              error detail panel, the only place in the app where a failure can
-              be read and acknowledged. The status colour rides the Badge, not
-              the row. */}
           {failures.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setPanelOpen(true)}
-              aria-label={`${t("dashboard.statErrors")}: ${failures.length}`}
-              className="mb-1 flex min-h-[2.75rem] w-full items-center gap-2 rounded-control bg-carbon-surface2 px-2 py-2 text-start"
-            >
-              <Badge tone="fail">{failures.length}</Badge>
-              <span className="min-w-0 flex-1 truncate text-sm text-carbon-text">
-                {t("dashboard.statErrors")}
-              </span>
-            </button>
+            <FailureCounter t={t} count={failures.length} dense onOpen={() => setPanelOpen(true)} />
           )}
           {panelOpen && (
             <ErrorDetailPanel onClose={() => setPanelOpen(false)} onChanged={refreshRuns} />
@@ -1102,46 +1234,7 @@ function RunsCard({
             // Rows separated by shade (soft tiles), never divider lines.
             <div className="flex flex-col gap-1">
               {recent.map((run) => (
-                <button
-                  key={run.id}
-                  type="button"
-                  onClick={() => onOpenRun?.(run)}
-                  aria-label={`${statusLabel(run.status, t)} · ${runKindLabel(t, run.kind)} ${runTargetText(t, run)}`}
-                  className="flex min-h-[2.75rem] w-full items-center gap-2 rounded-control bg-carbon-surface2 px-2 py-2 text-start"
-                >
-                  <span className="shrink-0">
-                    <Badge tone={statusTone(run.status)}>{statusLabel(run.status, t)}</Badge>
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-carbon-text">
-                      {runKindLabel(t, run.kind)} · {runTargetText(t, run)}
-                    </span>
-                    <span className="mt-0.5 block truncate text-xs text-carbon-textMuted">
-                      {relativeTime(t, run.startedAt)}
-                      {run.bytes > 0 ? ` · ${humanBytes(run.bytes)}` : ""}
-                    </span>
-                    {/* dir stays "ltr" for a restic/rclone/Docker message
-                        (Latin technical text, which has to read left-to-right
-                        even on an Arabic page) and follows the page for one of
-                        Our sentences ([377]). */}
-                    {run.status === "failed" && run.error && (
-                      <span
-                        dir={isOwnReason(run.error) ? undefined : "ltr"}
-                        className="mt-0.5 block text-xs text-statusFail wrap-break-word text-start"
-                      >
-                        {runReason(run.error, t)}
-                      </span>
-                    )}
-                    {run.status === "skipped" && run.error && (
-                      <span
-                        dir={isOwnReason(run.error) ? undefined : "ltr"}
-                        className="mt-0.5 block text-xs text-carbon-textMuted wrap-break-word text-start"
-                      >
-                        {runReason(run.error, t)}
-                      </span>
-                    )}
-                  </span>
-                </button>
+                <RunRow key={run.id} t={t} run={run} dense onTap={() => onOpenRun?.(run)} />
               ))}
             </div>
           )}
@@ -1188,58 +1281,9 @@ function RunsCard({
           {/* Scrollable list; all runs in the window (filtered by day). Rows
               separated by shade (soft tiles), never divider lines. */}
           <div className="flex flex-col gap-1 max-h-128 overflow-y-auto pe-2">
-            {shown.map((run) => {
-              const dur = run.finishedAt != null ? formatDuration(run.finishedAt - run.startedAt) : "";
-              return (
-              <div key={run.id} className="flex flex-col gap-0.5 rounded-control bg-carbon-surface2 px-2 py-2.5 text-sm">
-                <div className="flex items-center gap-3">
-                  <Badge tone={statusTone(run.status)}>{statusLabel(run.status, t)}</Badge>
-                  <span className="text-carbon-text font-medium w-16 shrink-0 truncate">
-                    {runKindLabel(t, run.kind)}
-                  </span>
-                  <span className="text-carbon-text flex-1 truncate min-w-0">
-                    {runTargetText(t, run)}
-                  </span>
-                  {/* Start → end + duration, with the relative age underneath (#45/#50). */}
-                  <span className="flex flex-col items-end shrink-0 text-xs leading-tight">
-                    <span className="text-carbon-textSub whitespace-nowrap">
-                      {formatTs(run.startedAt)}
-                      {run.finishedAt != null && (
-                        <>
-                          {" "}
-                          <span className="inline-block rtl:-scale-x-100">→</span> {formatTs(run.finishedAt)}
-                        </>
-                      )}
-                    </span>
-                    <span className="text-carbon-textMuted whitespace-nowrap">
-                      {dur ? `(${dur}) · ` : ""}
-                      {relativeTime(t, run.startedAt)}
-                    </span>
-                  </span>
-                </div>
-                {/* dir stays "ltr" for a restic/rclone/Docker message (Latin
-                    technical text, which has to read left-to-right even on an
-                    Arabic page) and follows the page for one of our sentences,
-                    which is now actually in the reader's language ([377]). */}
-                {run.status === "failed" && run.error && (
-                  <p
-                    dir={isOwnReason(run.error) ? undefined : "ltr"}
-                    className="text-xs text-statusFail wrap-break-word text-start"
-                  >
-                    {runReason(run.error, t)}
-                  </p>
-                )}
-                {run.status === "skipped" && run.error && (
-                  <p
-                    dir={isOwnReason(run.error) ? undefined : "ltr"}
-                    className="text-xs text-carbon-textMuted wrap-break-word text-start"
-                  >
-                    {runReason(run.error, t)}
-                  </p>
-                )}
-              </div>
-              );
-            })}
+            {shown.map((run) => (
+              <RunRow key={run.id} t={t} run={run} />
+            ))}
           </div>
         </div>
       )}
@@ -1734,16 +1778,12 @@ function StorageCard({
       : "—";
 
   if (dense) {
-    // Four-status language for repo state: the same worst-RPO derivation the
-    // summary tier's health cell uses; Badge + text label, never color
-    // alone. Off-site copy age: the most recent replication across the
-    // configured domains, in the OffsiteIndicator line language (↗ +
-    // relative age, text-statusOffsite; the token is text-only by design),
-    // never a fifth status hue. With a repo configured but nothing
-    // replicated yet, the replication line's own "not replicated yet" says
-    // so; with none configured, the protection card's existing "No off-site
-    // copy".
-    const health = worstRpoStatus(domains);
+    // Off-site copy age: the most recent replication across the configured
+    // domains, in the OffsiteIndicator line language (↗ + relative age,
+    // text-statusOffsite; the token is text-only by design), never a fifth
+    // status hue. With a repo configured but nothing replicated yet, the
+    // replication line's own "not replicated yet" says so; with none
+    // configured, the protection card's existing "No off-site copy".
     const configured = domains.filter((d) => d.offsiteConfigured);
     const newestReplication = configured.reduce<DomainStatus | null>(
       (newest, d) =>
@@ -1757,16 +1797,7 @@ function StorageCard({
         <MobileSectionLabel t={t} labelKey="dashboard.storageTitle" />
         <div className="flex flex-col gap-2 rounded-card bg-carbon-surface p-4">
           <div className="flex flex-wrap items-center gap-2">
-            {statusLoading ? (
-              <span className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</span>
-            ) : (
-              <>
-                {health !== "off" && (
-                  <Badge tone={statusTone(chipForRpo(health))}>{statusLabel(chipForRpo(health), t)}</Badge>
-                )}
-                <span className="truncate text-sm text-carbon-text">{worstRpoLabel(t, health)}</span>
-              </>
-            )}
+            <WorstRpoHealthLine t={t} domains={domains} loading={statusLoading} />
           </div>
           <p className="text-xs text-carbon-textMuted">
             {loading
@@ -2263,32 +2294,17 @@ function SummaryTier({
    *  and the Unraid widget uses (issue #187, [545]). */
   scheduleNext: ScheduleNext[];
 }) {
-  // Cell 1; worst RPO status across enabled, non-off domains (the shared
-  // worstRpoStatus/worstRpoLabel derivation above; identical mapping to the
-  // pre-extraction inline version). The representative status reuses chipForRpo
-  // + the existing rpo* labels.
-  const health = worstRpoStatus(domains);
-  const healthLabel = worstRpoLabel(t, health);
-
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
       {/* Overall health — worst RPO status across enabled domains */}
       <SummaryCell label={t("dashboard.summaryHealth")} hueIndex={healthHueIndex}>
-        {loading ? (
-          <span className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</span>
-        ) : (
-          <>
-            {health !== "off" && <Badge tone={statusTone(chipForRpo(health))}>{statusLabel(chipForRpo(health), t)}</Badge>}
-            <span className="text-sm text-carbon-text truncate min-w-0">{healthLabel}</span>
-          </>
-        )}
+        <WorstRpoHealthLine t={t} domains={domains} loading={loading} />
       </SummaryCell>
 
       {/* Next backup; the soonest real fire time from the scheduler, as a
           countdown. One component for both densities (the phone glance block
           is this same NextRunCard at dense): the derivation lives once, in
-          the card, so the two faces cannot disagree (they are the same
-          render). */}
+          the card, so the two faces cannot disagree. */}
       <NextRunCard
         t={t}
         dense={false}
@@ -2318,6 +2334,36 @@ function SummaryTier({
         )}
       </SummaryCell>
     </div>
+  );
+}
+
+/** The worst-RPO health line: a Badge plus plain-text label from the shared
+ *  worstRpoStatus derivation, written once for its two consumers (the summary
+ *  tier's health cell and the phone storage block's health row) so the two
+ *  surfaces cannot disagree on what repo health says. Four-status language
+ *  throughout: Badge + text label, never color alone. */
+function WorstRpoHealthLine({
+  t,
+  domains,
+  loading,
+}: {
+  t: ReturnType<typeof useT>["t"];
+  domains: DomainStatus[];
+  /** True until the caller's /api/status load settles; the line reads
+   *  "checking" rather than guessing from an empty list. */
+  loading: boolean;
+}) {
+  if (loading) {
+    return <span className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</span>;
+  }
+  const health = worstRpoStatus(domains);
+  return (
+    <>
+      {health !== "off" && (
+        <Badge tone={statusTone(chipForRpo(health))}>{statusLabel(chipForRpo(health), t)}</Badge>
+      )}
+      <span className="text-sm text-carbon-text truncate min-w-0">{worstRpoLabel(t, health)}</span>
+    </>
   );
 }
 
