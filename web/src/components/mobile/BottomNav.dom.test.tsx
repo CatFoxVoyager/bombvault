@@ -14,7 +14,10 @@
 //     current route lives on the More side of the registry (Settings, the
 //     gated tabs) and never while a bar destination is current;
 //   - every slot carries the colour engine (glim-hue + its own --item-hue)
-//     with the active/filled slot additionally carrying glim-active.
+//     with the active/filled slot additionally carrying glim-active;
+//   - in glyph mode the slot's name lives in aria-label and opens the app's
+//     tip bubble (lib/useTipBubble), the sidebar's mechanism; the native
+//     title attribute is retired.
 // ---------------------------------------------------------------------------
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
@@ -127,7 +130,7 @@ describe("BottomNav More trigger", () => {
 // change what a slot's caption is: visible text, or sr-only words behind an
 // aria-label, or the reactive at-rest reveal. The contract that matters most:
 // a hiding mode never leaves a slot unnamed; the caption's words move into
-// aria-label (and the hover bubble's title), so a glyph bar is never eleven
+// aria-label (and open the tip bubble), so a glyph bar is never eleven
 // unnamed pictures. jsdom computes no layout, and nothing here needs it: the
 // modes' observable surface in a dom environment is exactly classes and
 // attributes. The axis preference arrives the way the real app delivers it;
@@ -163,12 +166,21 @@ describe("BottomNav label axis (bottombar)", () => {
     expect(within(bar()).getByRole("link", { name: "Dashboard" })).toBeTruthy();
   });
 
-  it("glyph mode hides the captions and keeps every slot named (aria-label plus title)", () => {
+  it("glyph mode hides the captions and keeps every slot named (aria-label plus the tip bubble)", () => {
     drawInMode("glyph");
     for (const slot of allSlots()) {
       expect(slot.querySelector("span.sr-only")).not.toBeNull();
       expect(slot.getAttribute("aria-label")).toBeTruthy();
-      expect(slot.getAttribute("title")).toBeTruthy();
+      // The native title is retired here the way the sidebar retired it
+      // (lib/useTipBubble): the slot opens the app's own bubble on hover and
+      // focus, and the bubble says what the aria-label says.
+      expect(slot.getAttribute("title")).toBeNull();
+      fireEvent.mouseEnter(slot);
+      const bubble = document.body.querySelector(".glim-bubble");
+      expect(bubble).not.toBeNull();
+      expect(bubble!.textContent).toBe(slot.getAttribute("aria-label"));
+      fireEvent.mouseLeave(slot);
+      expect(document.body.querySelector(".glim-bubble")).toBeNull();
     }
     // The accessible names survive the hiding: role queries resolve through
     // aria-label exactly as assistive tech reads them.

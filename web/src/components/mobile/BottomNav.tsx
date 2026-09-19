@@ -20,11 +20,14 @@
 // bar, because surfaces in this app are separated by tint, never by lines.
 //
 // Slots are never hand-typed: every destination slot is derived from the one
-// nav registry (lib/navModel.ts) the desktop Sidebar reads; same order, same
-// settings gates; so bar and Sidebar cannot drift apart about which
-// destinations exist. The registry's `bar` members fill the destination
-// slots; the fifth slot is the More trigger, which opens the MoreSheet (inside
-// the BottomSheet primitive).
+// nav registry (lib/navModel.ts); same order, same settings gates. The
+// desktop rail keeps its own hand-written JSX (its render-order hue counter
+// and inline gates are the part the registry deliberately cannot own), so
+// the two listings are held equal by test rather than by construction:
+// Sidebar.navModel.dom.test.tsx fails the moment Sidebar and the registry
+// disagree about which destinations exist. The registry's `bar` members fill
+// the destination slots; the fifth slot is the More trigger, which opens the
+// MoreSheet (inside the BottomSheet primitive).
 //
 // More trigger: always rendered under the breakpoint, never gated on the
 // sheet's content. The sheet keeps content on every instance; the
@@ -41,7 +44,7 @@
 // ("bottombar", lib/controls.ts); the same four modes as buttons/sidebar/
 // tabs, consumed here the way Sidebar consumes "sidebar": hiding modes gate
 // the 11px caption under the glyph while the label survives as the slot's
-// aria-label and native title, never as nothing. "reactive" pairs with the
+// aria-label and opens the tip bubble, never as nothing. "reactive" pairs with the
 // coarse-pointer at-rest reveal rules in index.css (a tap fires before any
 // hover state can exist on a touch screen, so a reactive bar slot reads as
 // text at rest under coarse pointers and reveals on hover/focus on fine
@@ -77,6 +80,7 @@ import { barDestinations, moreDestinations, type NavDestination } from "../../li
 import { hidesLabel, labelWidth } from "../../lib/controls";
 import { hueVars, rainbowAt } from "../../lib/appearance";
 import { useLabelMode } from "../../lib/useLabelMode";
+import { useTipBubble } from "../../lib/useTipBubble";
 import { IconEllipsis } from "../navGlyphs";
 import { MoreSheet } from "./MoreSheet";
 
@@ -120,6 +124,9 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
   // get from NavLink's isActive.
   const moreActive =
     location.pathname === "/settings" || moreDestinations(settings).some((d) => d.to === location.pathname);
+  // The More trigger's bubble: worded only in hiding modes, the same rule
+  // the sidebar's rows follow (reactive mode brings the word back on hover).
+  const moreTip = useTipBubble(showLabel || reactive ? undefined : t("nav.more"));
 
   // NavLink's onClick fires before react-router's own Link handler, and Link
   // checks event.defaultPrevented before navigating (verified against the
@@ -156,10 +163,13 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
     >
       {/* The bar-card (see the header): the same surface token and radius the
           desktop rail reads, inset from all four edges; each side takes the
-          fixed gutter widened by its own safe area, so an edge never slides
-          under a notch in landscape. Separation is shade, not a line: no
-          border or ring on the card. */}
-      <div className="ml-[max(0.5rem,var(--safe-area-left))] mr-[max(0.5rem,var(--safe-area-right))] mb-2 rounded-card bg-carbon-sidebar">
+          page gutter (1rem, the same floor the scroller's side paddings use)
+          widened by its own safe area, so an edge never slides under a notch
+          in landscape. The top margin is the card's own ground: the scroller
+          above ends flush (its pb-0 contract), so without it the last card of
+          every page would rest on the bar card's edge. Separation is shade,
+          not a line: no border or ring on the card. */}
+      <div className="mt-2 ml-[max(1rem,var(--safe-area-left))] mr-[max(1rem,var(--safe-area-right))] mb-2 rounded-card bg-carbon-sidebar">
         {/* h-14 static height: svh semantics by construction; a fixed-height
             row never resizes when the dynamic viewport does (browser chrome,
             keyboard), which is the property that keeps the bar visible: static
@@ -176,12 +186,17 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
           ))}
           {/* The More trigger: a disclosure that opens a dialog, so it
               announces haspopup/expanded; its hue position follows the
-              enabled destination slots, exactly like the rail's own counter. */}
+              enabled destination slots, exactly like the rail's own counter.
+              In hiding modes its name lives in the aria-label and opens the
+              same tip bubble the sidebar's rows use; the native title is the
+              mechanism useTipBubble exists to replace. */}
           <button
             type="button"
+            ref={moreTip.ref}
             onClick={() => setMoreOpen(true)}
-            title={showLabel ? undefined : t("nav.more")}
             aria-label={showLabel ? undefined : t("nav.more")}
+            aria-describedby={moreTip.describedBy}
+            {...moreTip.handlers}
             aria-haspopup="dialog"
             aria-expanded={moreOpen}
             className={`${slotBase} rounded-control ${reactive && !showLabel ? "glim-reactive" : ""} glim-hue glim-hue-icon ${moreActive ? "bg-accent text-accentContrast glim-active" : "text-carbon-textMuted"}`}
@@ -203,6 +218,7 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
               {t("nav.more")}
             </span>
           </button>
+          {moreTip.bubble}
         </div>
       </div>
       <MoreSheet
@@ -225,8 +241,8 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
 // `.glim-hue-icon:not(.glim-active)` guard leaves the filled slot's ink to
 // currentColor; the rail's exact convention. The label mode comes from the
 // bar's own "bottombar" axis: hiding modes keep the caption in the DOM but
-// out of view (sr-only); or reveal-on-hover in reactive mode; while
-// aria-label + title carry the slot's name and hover bubble, so a glyph-mode
+// out of view (sr-only); or reveal-on-hover in reactive mode; while the
+// aria-label and the tip bubble carry the slot's name, so a glyph-mode
 // bar never becomes eleven unnamed pictures.
 function BarSlot({
   destination,
@@ -244,45 +260,54 @@ function BarSlot({
   const label = t(destination.labelKey);
   const showLabel = !hidesLabel(labelMode);
   const reactive = labelMode === "reactive";
+  // A slot whose caption is hidden names itself in the tip bubble, the
+  // sidebar row's own mechanism; reactive mode needs none, since hovering
+  // brings the word back.
+  const tooltip = useTipBubble(showLabel || reactive ? undefined : label);
   return (
-    <NavLink
-      to={destination.to}
-      onClick={onTap}
-      title={showLabel ? undefined : label}
-      aria-label={showLabel ? undefined : label}
-      className={({ isActive }) =>
-        `${slotBase} rounded-control ${reactive && !showLabel ? "glim-reactive" : ""} glim-hue glim-hue-icon ${isActive ? "bg-accent text-accentContrast glim-active" : "text-carbon-textMuted"}`
-      }
-      style={
-        {
-          ...(hueVars(rainbowAt(hueIndex)) as CSSProperties),
-          ...(reactive && !showLabel ? { "--reactive-chars": labelWidth(label) } : {}),
-        } as CSSProperties
-      }
-    >
-      {({ isActive }) => (
-        <>
-          {/* The fill is the slot's, edge to edge; glyph and caption sit on
-              the accent fill and both take the ink it was paired with
-              (text-accentContrast): glyphs draw fill="currentColor" per
-              navGlyphs' contract, so no svg utility is needed. Anchored on
-              .glim-coin-tile.glim-active / .glim-hue-icon in index.css;
-              filled is how this language says "this one is selected". The
-              fill is paint-only: no padding, height, width or gap token
-              changed, which is what keeps the narrow-viewport single-line /
-              no-overflow asserts and the 44px touch floor true by
-              construction. */}
-          <span className="flex h-6 w-6 items-center justify-center rounded-control [&_svg]:h-6 [&_svg]:w-6">
-            <Icon />
-          </span>
-          {/* 400 rest, 600 active; the caption's two sanctioned weights. */}
-          <span
-            className={`max-w-full truncate ${isActive ? "font-semibold" : ""} ${showLabel ? "" : reactive ? "glim-label-reactive" : "sr-only"}`}
-          >
-            {label}
-          </span>
-        </>
-      )}
-    </NavLink>
+    <>
+      <NavLink
+        to={destination.to}
+        onClick={onTap}
+        ref={tooltip.ref}
+        aria-label={showLabel ? undefined : label}
+        aria-describedby={tooltip.describedBy}
+        {...tooltip.handlers}
+        className={({ isActive }) =>
+          `${slotBase} rounded-control ${reactive && !showLabel ? "glim-reactive" : ""} glim-hue glim-hue-icon ${isActive ? "bg-accent text-accentContrast glim-active" : "text-carbon-textMuted"}`
+        }
+        style={
+          {
+            ...(hueVars(rainbowAt(hueIndex)) as CSSProperties),
+            ...(reactive && !showLabel ? { "--reactive-chars": labelWidth(label) } : {}),
+          } as CSSProperties
+        }
+      >
+        {({ isActive }) => (
+          <>
+            {/* The fill is the slot's, edge to edge; glyph and caption sit on
+                the accent fill and both take the ink it was paired with
+                (text-accentContrast): glyphs draw fill="currentColor" per
+                navGlyphs' contract, so no svg utility is needed. Anchored on
+                .glim-coin-tile.glim-active / .glim-hue-icon in index.css;
+                filled is how this language says "this one is selected". The
+                fill is paint-only: no padding, height, width or gap token
+                changed, which is what keeps the narrow-viewport single-line /
+                no-overflow asserts and the 44px touch floor true by
+                construction. */}
+            <span className="flex h-6 w-6 items-center justify-center rounded-control [&_svg]:h-6 [&_svg]:w-6">
+              <Icon />
+            </span>
+            {/* 400 rest, 600 active; the caption's two sanctioned weights. */}
+            <span
+              className={`max-w-full truncate ${isActive ? "font-semibold" : ""} ${showLabel ? "" : reactive ? "glim-label-reactive" : "sr-only"}`}
+            >
+              {label}
+            </span>
+          </>
+        )}
+      </NavLink>
+      {tooltip.bubble}
+    </>
   );
 }

@@ -1,12 +1,16 @@
 // ---------------------------------------------------------------------------
 // Nav model; the one ordered navigation registry for the whole app.
 //
-// The desktop Sidebar and every mobile chrome surface (bottom bar, More
-// sheet) must derive their destinations from this list, because two
-// hand-written orderings describing the same navigation is exactly the drift
-// this registry exists to kill. Extracted from Sidebar.tsx's inline
-// destination JSX (main <nav> list + footer Settings row): same order, same
-// gates, now shared instead of maintained twice.
+// The mobile chrome (bottom bar, More sheet) derives its destinations from
+// this list. The desktop rail still evaluates its own hand-written NavItem
+// JSX (its render-order hue counter and inline settings gates are the part
+// this registry deliberately cannot own), so the rail and the registry are
+// two listings of one navigation, held equal by test rather than by
+// construction: Sidebar.navModel.dom.test.tsx renders the rail and compares
+// it against destinations(settings) filtered to enabled; any divergence on
+// either side fails there instead of silently shipping a rail this list no
+// longer describes. Extracted from Sidebar.tsx's inline destination JSX
+// (main <nav> list + footer Settings row): same order, same gates.
 //
 // never assign hues here, ever. Sidebar's rainbow positions come from its own
 // `nextHue()` render counter, incremented in actual JSX evaluation order,
