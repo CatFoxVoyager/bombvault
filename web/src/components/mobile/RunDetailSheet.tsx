@@ -29,25 +29,20 @@ import { BottomSheet } from "./BottomSheet";
 // router.tsx is frozen; the sheet opens over whatever surface invoked it,
 // which is the hosting contract.
 //
-// Recorded deviation vs the screen spec's verbatim wording (the frozen-API
-// data adaptations contract; binding): the spec's
-// "new / changed / unchanged" stat triad and its per-file exclusion-reason log
-// lines have no source on the frozen Run record (web/src/lib/api.ts;
-// id, targetId, kind, status, startedAt, finishedAt, snapshotId, bytes,
-// error, acknowledged, target, domain; progress events carry only
-// key/phase/percent/active/startedAt/snapshotIndex/snapshotTotal). There are
-// no per-file counts and no exclusion lines anywhere on the wire, and this
-// milestone may not change that. The contracted substitutes, and only these,
-// are rendered:
+// The Run record carries no per-file counts and no exclusion lines (see
+// web/src/lib/api.ts: id, targetId, kind, status, startedAt, finishedAt,
+// snapshotId, bytes, error, acknowledged, target, domain; progress events
+// carry only key/phase/percent/active/startedAt/snapshotIndex/snapshotTotal),
+// so exactly the substitutes below are rendered, and nothing beyond them:
 //   - Data volume  = humanBytes(run.bytes)          (lib/forecast formatter)
 //   - Duration     = formatDuration(finishedAt − startedAt) (lib/reltime)
 //   - Snapshot     = run.snapshotId.slice(0, 8), mono, full id as title
 //   - activity log = the existing buildLogLines output (same lib the desktop
 //     ActivityLog uses; reuse, no duplication, mono timestamp pattern verbatim)
-// The per-file triad and the unticked / CACHEDIR.TAG attributions live where
-// the truth lives today (the selection surfaces' own copy) and are a recorded
-// v2 data candidate (they need a runs schema extension, i.e. an API-bearing
-// milestone). Numbers are never fabricated here; repo honesty culture.
+// The per-file counts and the unticked / CACHEDIR.TAG attributions live where
+// the truth lives today (the selection surfaces' own copy); surfacing them
+// here would need a runs schema extension first. Numbers are never fabricated
+// here; repo honesty culture.
 //
 // Every presentation decision reuses an existing piece:
 //   - title/status: lib/runDisplay's shared helpers (extracted from Dashboard
@@ -65,7 +60,7 @@ import { BottomSheet } from "./BottomSheet";
 //     ("snapshots.restore"), secondary/tonal, never accent; restore is
 //     deliberate (design-bible product rule). The guided restore flow is not
 //     wired here; this entry stays reveal-only
-//     by the recorded research default; it reveals the snapshot file
+//     by design; it reveals the snapshot file
 //     tree, the surface the desktop restore flow itself starts from, and
 //     deliberately adds no deep link into the wizard.
 //
@@ -207,7 +202,7 @@ function LogList({ lines }: { lines: LogLine[] }) {
 // The in-flight half of the log section: the only place this sheet subscribes
 // to the shared progress singleton. Mounting is the subscription; the parent
 // renders this conditionally on useVisibilityGate() (`{visible && ...}`,
-// below), so hiding the page unmounts it and the frozen singleton's ref-count
+// below), so hiding the page unmounts it and the singleton's ref-count
 // drops the shared EventSource (whose reconnect replays the server snapshot;
 // progress.ts's closeSource contract).
 function LiveRunSection({ run, progressKey }: { run: Run; progressKey: string | null }) {
@@ -437,18 +432,18 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
 
   if (!open) return null;
 
-  // Stat triad; the Frozen-API substitutes only (see the header deviation
-  // note). Duration falls back to the same "—" degraded meta mark formatTs
-  // uses for a missing timestamp rather than a blank tile, muted so the
-  // absence reads as intentional.
+  // Stat tiles; the Run-record substitutes only (see the header note).
+  // Duration falls back to the same muted absent-data mark formatTs uses
+  // for a missing timestamp rather than a blank tile, so the absence reads
+  // as intentional.
   const durationSecs = run.finishedAt != null ? run.finishedAt - run.startedAt : null;
   const durationText = durationSecs == null ? "—" : formatDuration(durationSecs) || "—";
   const durationMissing = durationText === "—";
   // Runs with no snapshot (the Backup Everything parent, prune, verify) have
   // no volume and no snapshot id to show. humanBytes(0) would claim a
   // measured "0 B" and an empty mono slice would render a blank tile; both
-  // read as data, not as absence. The "—" placeholder is the same mark the
-  // duration tile uses, muted. A real zero-byte backup that has a snapshot
+  // read as data, not as absence. The placeholder is the same muted mark
+  // the duration tile uses. A real zero-byte backup that has a snapshot
   // keeps its honest "0 B": the snapshot exists, the number is true.
   const hasSnapshot = run.snapshotId !== "";
   const volumeText = hasSnapshot ? humanBytes(run.bytes) : "—";
@@ -567,7 +562,7 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
 
         {/* Live section; in-flight runs get the progress bar + live log tail,
             conditionally on the visibility gate: hiding the
-            page unmounts this subtree, which is the unsubscribe; the frozen
+            page unmounts this subtree, which is the unsubscribe; the
             singleton's ref-count drops the shared EventSource and drops its
             cached state; showing the page remounts + resubscribes into the
             backend's snapshot replay. While hidden the slot renders nothing
@@ -609,7 +604,7 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
             "restore is deliberate" rule). It reveals the same snapshot file
             surface the desktop restore flow starts from; this entry deliberately
             stays reveal-only and adds no deep link into the guided restore
-            flow (the recorded research default). */}
+            flow. */}
         {browseSupported && (
           <SheetActionRow
             label={t("snapshots.restore")}

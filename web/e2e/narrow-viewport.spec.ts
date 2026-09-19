@@ -1,54 +1,52 @@
 // ---------------------------------------------------------------------------
-// Narrow-viewport backstop — the UI-considerations long-text row,
+// Narrow-viewport backstop: the UI-considerations long-text row,
 // operationalized.
 //
 // The one backstop state, made executable evidence: German and French chrome
-// must fit 320-360px — the de compound words ("Einstellungen",
+// must fit 320-360px: the de compound words ("Einstellungen",
 // "Wiederherstellung") and fr accented long labels ("Paramètres",
 // "Récupération") are the stress cases. For every combination of {de, fr} x
 // {320px, 360px}, every bottom-bar slot caption and every More-sheet row
-// label stays on a SINGLE line box and the bar container shows NO horizontal
-// overflow — the min-w-0 + truncate CSS contract's visible outcome.
+// label stays on a single line box and the bar container shows no horizontal
+// overflow: the min-w-0 + truncate CSS contract's visible outcome.
 //
 // Geometry, not screenshots (fast + non-flaky): each caption's height is
-// measured against an explicitly normalized 20px line box — with the
-// truncate contract intact (white-space: nowrap) a caption IS one line box;
+// measured against an explicitly normalized 20px line box, with the
+// truncate contract intact (white-space: nowrap) a caption is one line box;
 // a dropped contract lets a long label wrap into a second box (~40px),
 // which is the exact failure mode the 1.5x bound cannot pass. Overflow is
 // scrollWidth vs clientWidth on the bar itself. Both measurements tolerate
 // subpixel rounding (+0.5/+1px) and nothing else.
 //
-// The locale is seeded the way a returning visitor's browser carries it —
+// The locale is seeded the way a returning visitor's browser carries it,
 // the persisted `bv-lang` localStorage key (web/src/lib/i18n.ts STORAGE_KEY;
-// not exported, kept in sync by hand) — via addInitScript BEFORE the first
+// not exported, kept in sync by hand), via addInitScript before the first
 // page script runs. The mobile chrome has no language control (the switcher
 // lives in the desktop-only Sidebar controls), so there is no UI-driven
 // path; seeding is the only honest way to boot the page in de/fr.
 //
 // The boot-time display-prefs reconciliation is cut (see bootSeededPage):
 // the server is the truth for the look (#191), so a stored bv-lang on the
-// harness DB would silently overwrite this page's seed — and with de/fr
+// harness DB would silently overwrite this page's seed, and with de/fr
 // workers running in parallel, each page would see whichever locale booted
 // first, not its own.
 //
-// SCOPE NOTE: on the fork branch this file also sweeps the phase's other
-// destination surfaces (the six route surfaces, the Files editor header, the
-// populated guided-restore step 5) with their read models staged at the
-// route layer. Those pages' mobile treatments are not part of this PR, so
-// their sweeps travel with those pages' PRs. What remains here is the chrome
-// backstop (bar + More sheet), the Dashboard log-block sweep — the Dashboard
-// IS ported — and the landscape boundary pair.
+// SCOPE NOTE: this file sweeps the shell chrome (bar + More sheet), the
+// Dashboard log block and the landscape boundary pair. The other destination
+// surfaces (the six route surfaces, the Files editor header, the populated
+// guided-restore step 5) carry their narrow sweeps beside their own
+// treatments, in the specs where the surfaces they guard actually exist.
 // ---------------------------------------------------------------------------
 import { expect, test, type Page } from "@playwright/test";
 
-// The two device projects from playwright.config.ts — the backstop targets
+// The two device projects from playwright.config.ts, the backstop targets
 // the mobile chrome, which only exists below the 48rem switch.
 const MOBILE_PROJECTS = new Set(["mobile-iphone", "mobile-android"]);
 
 // Persisted-locale localStorage key (i18n.ts STORAGE_KEY) + the localized
 // "More" trigger label per locale. Waiting on the localized trigger before
-// measuring proves the locale TABLE is live (de ships inline; fr arrives via
-// its async locale chunk) — measuring before that would silently assert the
+// measuring proves the locale table is live (de ships inline; fr arrives via
+// its async locale chunk): measuring before that would silently assert the
 // English fallback instead of the stress-case strings.
 const LOCALE_STORAGE_KEY = "bv-lang";
 const MORE_LABEL = { de: "Mehr", fr: "Plus" } as const;
@@ -60,15 +58,15 @@ const SETTINGS_LABEL = { de: "Einstellungen", fr: "Paramètres" } as const;
 // Explicit single-line box used for the height arithmetic (see header).
 const LINE_BOX = 20;
 
-// Boot the page with THIS test's locale standing, immune to the server-side
+// Boot the page with this test's locale standing, immune to the server-side
 // look and to the other workers: seed the persisted key before any page
 // script runs (a returning visitor's localStorage), then abort the
 // boot-time display-prefs reconciliation. sync()'s fetch failing is the
 // app's own documented degradation path ("offline: the cache is the look",
-// displayPrefs.ts / #191), so the seeded locale renders — and nothing is
+// displayPrefs.ts / #191), so the seeded locale renders, and nothing is
 // PUT back to the shared harness server, which is what makes parallel de/fr
 // workers deterministic (a booted de page otherwise seeds bv-lang=de on the
-// server and every later fr boot adopts it — observed live).
+// server and every later fr boot adopts it, observed live).
 async function bootSeededPage(
   page: Page,
   locale: string,
@@ -131,7 +129,7 @@ for (const locale of locales) {
         ).toBeLessThanOrEqual(LINE_BOX * 1.5 + 0.5);
       }
 
-      // No-overflow contract: the bar never scrolls horizontally — with
+      // No-overflow contract: the bar never scrolls horizontally, with
       // min-w-0 + truncate the slots shrink/ellipsis instead of pushing the
       // bar wider than the viewport. (+1px subpixel tolerance.)
       const barOverflow = await bar.evaluate((el) => ({
@@ -180,17 +178,17 @@ for (const locale of locales) {
 }
 
 // ---------------------------------------------------------------------------
-// Helpers shared by the geometry sweeps below — the measurement approach in
+// Helpers shared by the geometry sweeps below, the measurement approach in
 // full, so any sweep that later joins this file inherits the exact same
 // contracts (and tolerances, and nothing looser).
 //
 // Three contracts, all geometry not screenshots:
-//   1. the PAGE never scrolls horizontally — checked on documentElement AND
+//   1. the page never scrolls horizontally, checked on documentElement and
 //      on #bv-main, because the app scrolls inside #bv-main and the
 //      page-pan bug class is exactly that scroller growing a horizontal axis;
 //   2. every rendered control sits inside the viewport, unless it lives in a
-//      genuinely scrollable INLINE container (a chip strip: reachable by
-//      scrolling it — the sanctioned case). The exemption requires
+//      genuinely scrollable inline container (a chip strip: reachable by
+//      scrolling it: the sanctioned case). The exemption requires
 //      overflow-x: auto/scroll with the container actually overflowing:
 //      #bv-main scrolls vertically, so a horizontal overflow there is the
 //      bug, never a sanctioned scroller.
@@ -257,7 +255,7 @@ async function assertNoHorizontalPan(page: Page, label: string): Promise<void> {
   expect(m.doc.sw, `${label}: documentElement scrolls horizontally`).toBeLessThanOrEqual(m.doc.cw + 1);
   expect(
     m.main,
-    `${label}: #bv-main is missing — the sweep must run against the real app shell`,
+    `${label}: #bv-main is missing: the sweep must run against the real app shell`,
   ).not.toBeNull();
   expect(
     m.main!.sw,
@@ -266,8 +264,8 @@ async function assertNoHorizontalPan(page: Page, label: string): Promise<void> {
 }
 
 /** Contract 2: no control clips a viewport edge unless a real inline
- *  x-scroller (overflow-x auto/scroll AND actually overflowing) contains it
- *  — those are reachable by scrolling, the sanctioned chip-row case. There
+ *  x-scroller (overflow-x auto/scroll and actually overflowing) contains it
+ * : those are reachable by scrolling, the sanctioned chip-row case. There
  *  is no overflow-y condition: CSS resolves `overflow-y: visible` to `auto`
  *  whenever overflow-x is non-visible, so every sanctioned scroller computes
  *  overflow-y: auto too (observed live in this sweep's first run). The
@@ -403,13 +401,13 @@ for (const locale of locales) {
 }
 
 // ---------------------------------------------------------------------------
-// The landscape boundary — one proof, two viewports, the seeded-locale boot
-// reused with real landscape heights. The mobile-chrome query is WIDTH-ONLY
-// ("min-width: 48rem", resolved deliberately): 740px stays mobile, 844x390 —
-// a modern phone in landscape, 844 CSS px wide — crosses 48rem and gets the
-// DESKTOP chrome. Both run on the mobile projects only: the projects just
+// The landscape boundary: one proof, two viewports, the seeded-locale boot
+// reused with real landscape heights. The mobile-chrome query is width-only
+// ("min-width: 48rem", resolved deliberately): 740px stays mobile, 844x390,
+// a modern phone in landscape, 844 CSS px wide, crosses 48rem and gets the
+// desktop chrome. Both run on the mobile projects only: the projects just
 // supply the base device context, and setViewportSize overrides it either
-// way. The needles are the chrome itself (bottom nav vs desktop Sidebar) —
+// way. The needles are the chrome itself (bottom nav vs desktop Sidebar),
 // the surfaces every width owns, independent of any page's data.
 // ---------------------------------------------------------------------------
 
@@ -424,12 +422,12 @@ test("landscape 740x360: below 48rem the mobile chrome owns the shell", async ({
   await expect(page.locator("#bv-main")).toHaveCount(1);
 });
 
-test("landscape 844x390: at >=48rem the DESKTOP chrome owns the shell", async ({ page }, testInfo) => {
+test("landscape 844x390: at >=48rem the desktop chrome owns the shell", async ({ page }, testInfo) => {
   test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "mobile-only: the boundary pair rides the mobile projects");
   await bootSeededPage(page, "en", 844, "/dashboard", 390);
 
-  // 844 CSS px >= 768 (48rem): the desktop shell renders and NO mobile
-  // chrome exists — the width-only switch did its job at a landscape height.
+  // 844 CSS px >= 768 (48rem): the desktop shell renders and no mobile
+  // chrome exists: the width-only switch did its job at a landscape height.
   await expect(page.getByTestId("desktop-sidebar")).toBeVisible();
   await expect(page.getByTestId("bottom-nav")).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();

@@ -37,7 +37,7 @@
 // it opens always has something to show. The trigger announces itself to
 // assistive tech (haspopup/expanded, like any disclosure that opens a
 // dialog) and reads as active while the current route lives on the More
-// side of the registry; Recovery, the gated tabs and Settings; so a user
+// side of the registry (the gated tabs, Instances and Settings), so a user
 // on one of those routes can still see where they are.
 //
 // Label axis: the bar has its own axis in the control label engine

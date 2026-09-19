@@ -183,7 +183,7 @@ describe("the viewport meta carries the mobile directives", () => {
     expect(
       viewport?.[1],
       'viewport-fit=cover is missing from the viewport meta. Without it the layout ' +
-        "viewport is inset by the system chrome and EVERY env(safe-area-inset-*); " +
+        "viewport is inset by the system chrome and every env(safe-area-inset-*); " +
         "and therefore every --safe-area-* custom property in index.css; silently " +
         "reads 0px. The meta line and the CSS block are one contract."
     ).toContain("viewport-fit=cover");
@@ -206,7 +206,7 @@ describe("the FOUC script's bytes are guarded", () => {
     expect(
       region?.[1],
       'no bare `<script>` block found in index.html, or it is not the FOUC script. ' +
-        "The FOUC killer is the FIRST bare script in <head>; if it moved or grew " +
+        "The FOUC killer is the first bare script in <head>; if it moved or grew " +
         "attributes, update FOUC_REGION deliberately."
     ).toContain("bv-theme");
   });
@@ -241,7 +241,7 @@ describe("the static theme-color fallback sits below the FOUC script", () => {
   it("orders the fallback after the script", () => {
     expect(
       themeColor,
-      "the static theme-color meta sits ABOVE the FOUC script's close. It must stay " +
+      "the static theme-color meta sits above the FOUC script's close. It must stay " +
         "below: the script region is byte-guarded (this suite fails on any edit " +
         "there), and the fallback's place is after it, beside the viewport meta."
     ).toBeGreaterThan(foucClose);
@@ -314,7 +314,7 @@ describe("the shell root's viewport discipline", () => {
       found,
       "Layout.tsx contains a banned viewport-height literal. The mobile shell uses " +
         "dvh/svh exclusively: the static forms (100vh, min-h-screen, h-screen) keep " +
-        "the LARGEST viewport height, which is exactly the trap that strands content " +
+        "the largest viewport height, which is exactly the trap that strands content " +
         "under the iOS keyboard or expanded browser chrome. Use the dynamic unit."
     ).toEqual([]);
   });
@@ -341,12 +341,12 @@ describe("the shell root's viewport discipline", () => {
   });
 });
 
-describe("the ONE keyboard mechanism lives at Layout level", () => {
+describe("the one keyboard mechanism lives at Layout level", () => {
   it("guards the mechanism on visualViewport presence, so jsdom and old browsers no-op", () => {
     expect(
       /typeof window\.visualViewport\s*===\s*"undefined"/.test(layout),
       "Layout.tsx's keyboard mechanism lost the visualViewport presence guard. The " +
-        "guard IS the contract (the jsdom discipline, lib/testSetup/matchMedia.ts): " +
+        "guard is the contract (the jsdom discipline, lib/testSetup/matchMedia.ts): " +
         "environments without the API must no-op the whole mechanism, not throw; " +
         "without it every Layout-rendering dom test crashes and old browsers break."
     ).toBe(true);
@@ -357,7 +357,7 @@ describe("the ONE keyboard mechanism lives at Layout level", () => {
     expect(
       count,
       "Layout.tsx wires addEventListener(\"focusin\") more than once (or not at " +
-        "all). ONE listener set at Layout level is the locked decision: a " +
+        "all). Exactly one listener set at Layout level is the rule: a " +
         "per-component listener would multiply with every new input-bearing page " +
         "and drift exactly the way duplicated logic does."
     ).toBe(1);
@@ -393,9 +393,9 @@ describe("the ONE keyboard mechanism lives at Layout level", () => {
     ] as const) {
       expect(
         source.includes("visualViewport"),
-        `${name} touches visualViewport. The keyboard mechanism is ONE Layout-level ` +
+        `${name} touches visualViewport. The keyboard mechanism is one Layout-level ` +
           "listener set; a second viewport-resize consumer in a chrome component " +
-          "is exactly the drift the locked decision forbids."
+          "is exactly the drift the single-listener rule forbids."
       ).toBe(false);
     }
   });
@@ -443,12 +443,12 @@ describe("the chrome testids live in the mobile component sources", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Filled-tab (user design note); the bottom bar's active tab is
+// Filled-tab contract; the bottom bar's active tab is
 // filled, not accent-coloured text.
 //
-// The note decides it verbatim: the active tab in the bottom bar should be
-// filled, not coloured text; coloured text is how a link looks, filled is
-// how this language says "this one is selected". The language's own canonical
+// The reason is the design language's own selection statement: the active
+// tab in the bottom bar is filled, not coloured text; coloured text is how
+// a link looks, filled is how this language says "this one is selected". The language's own canonical
 // statement of the filled state already exists in index.css:
 // .glim-coin-tile.glim-active ("the tile is filled with the accent, so every
 // mark drops its brand colour and takes the ink that fill was paired with")
@@ -465,32 +465,32 @@ describe("the chrome testids live in the mobile component sources", () => {
 // which is exactly why the component's own comments paraphrase the retired
 // treatments instead of citing the literals.
 // ---------------------------------------------------------------------------
-describe("FILLED-TAB; the active bottom-bar slot is a filled accent surface, not coloured text", () => {
+describe("Filled tab; the active bottom-bar slot is a filled accent surface, not coloured text", () => {
   it("is reading the real BottomNav source (self-guard)", () => {
     expect(
       bottomNav,
-      "BottomNav.tsx no longer exports BottomNav; the FILLED-TAB asserts below " +
+      "BottomNav.tsx no longer exports BottomNav; the filled-tab asserts below " +
         "are running against a file that no longer contains the component, so " +
         "the negatives would pass against dead text."
     ).toContain("export function BottomNav");
   });
 
-  it("fills the WHOLE active slot with the accent and pairs every mark on it with the contrast ink", () => {
+  it("fills the whole active slot with the accent and pairs every mark on it with the contrast ink", () => {
     expect(
       bottomNav.includes('isActive ? "bg-accent text-accentContrast glim-active" : "text-carbon-textMuted"'),
       "BottomNav.tsx's active branch no longer fills the slot. The active tab " +
-        "must read as FILLED: bg-accent over the entire NavLink; glyph and " +
+        "must read as filled: bg-accent over the entire NavLink; glyph and " +
         "caption sit on the fill together; with the ink paired to that fill " +
         "(text-accentContrast; glyphs inherit it because every navGlyph draws " +
         'fill="currentColor"). Accent-coloured text on the bar ground is the ' +
-        "link idiom, not the selected idiom (user design note)."
+        "link idiom, not the selected idiom."
     ).toBe(true);
     // The More trigger fills by the same idiom while a More-side route is
     // current; its own active branch must not drift back to coloured text.
     expect(
       bottomNav.includes('moreActive ? "bg-accent text-accentContrast glim-active" : "text-carbon-textMuted"'),
       "BottomNav.tsx's More trigger no longer fills while its side of the " +
-        "registry is current. The same FILLED contract applies: a filled " +
+        "registry is current. The same filled contract applies: a filled " +
         "trigger is how this language says \"you are on one of the More " +
         "sheet's routes\", coloured text would read as a link."
     ).toBe(true);
@@ -502,11 +502,11 @@ describe("FILLED-TAB; the active bottom-bar slot is a filled accent surface, not
   ] as const)("keeps the retired link-idiom literal out of the bar: %s", (needle) => {
     expect(
       bottomNav.includes(needle),
-      `${needle} reappeared in BottomNav.tsx. The active tab is a FILLED accent ` +
-        "slot (user design note): accent-coloured text on the bar " +
+      `${needle} reappeared in BottomNav.tsx. The active tab is a filled accent ` +
+        "slot: accent-coloured text on the bar " +
         "ground reads as a link, and the soft glyph-box backdrop wash is gone " +
         "with it; both belong to the retired treatment this guard bans. The " +
-        "scan runs on RAW text (comments included), so paraphrase in prose; " +
+        "scan runs on raw text (comments included), so paraphrase in prose; " +
         "never cite the literal."
     ).toBe(false);
   });
@@ -514,20 +514,22 @@ describe("FILLED-TAB; the active bottom-bar slot is a filled accent surface, not
 
 // reactive-at-rest; reactive labels reveal on coarse pointers without a
 // hover. A tap fires before any reveal state can exist, so under
-// `(pointer: coarse)` reactive mode used to degenerate into permanent
-// icon-only; the recovery wizard's step-1 CTA was an unlabeled check glyph
-// (a tap fires before any reveal state can exist on a touch screen). index.css reveals at rest on coarse
-// pointers, and; because every reveal state must also reset the lively
-// motion levels' resting `translateX`/`scaleX` (the [467]-bug-[527] pair);
-// carries a companion coarse reset after the reduced-motion gate. These
-// asserts read the source so the pair cannot be removed independently.
-describe("REACTIVE-AT-REST; coarse pointers reveal reactive labels at rest, with the motion companion", () => {
+// `(pointer: coarse)` reactive mode degenerates into permanent icon-only
+// unless the reveal happens at rest; the recovery wizard's step-1 CTA was
+// an unlabeled check glyph on a touch screen otherwise.
+// index.css reveals at rest on coarse pointers, and because every reveal
+// state must also reset the lively motion levels' resting
+// `translateX`/`scaleX` (a revealed label left displaced and squashed
+// without it), it carries a companion coarse reset after the reduced-motion
+// gate. These asserts read the source so the reset cannot be removed
+// independently.
+describe("Reactive at rest; coarse pointers reveal reactive labels at rest, with the motion companion", () => {
   it("is reading the real reactive-label source (self-guard)", () => {
     expect(
       indexCss.includes("max-width: 0"),
       "index.css no longer contains the resting collapse (`max-width: 0` in " +
         "the .glim-label-reactive rule). The positives below prove nothing " +
-        "without it: they assert the coarse REVEAL exists, which is only " +
+        "without it: they assert the coarse reveal exists, which is only " +
         "meaningful against the collapse it must override. The resting rule " +
         "was renamed or removed; restore it or rewrite this guard's needle " +
         "to the new resting declaration."
@@ -560,9 +562,9 @@ describe("REACTIVE-AT-REST; coarse pointers reveal reactive labels at rest, with
         .test(indexCss),
       "index.css no longer resets the resting transform for the coarse " +
         "at-rest reveal. In the lively motion levels the revealed label would " +
-        "then sit displaced and squashed; the revealed-but-still-displaced " +
-        "shape [527] repaired for `.glim-active`. A reveal state added to the " +
-        "(pointer: coarse) block MUST have its reset in a block combining " +
+        "sit displaced and squashed, the revealed-but-still-displaced shape " +
+        "the `.glim-active` repair already fixed on the hover path. A reveal " +
+        "state added to the (pointer: coarse) block must have its reset in a block combining " +
         "prefers-reduced-motion: no-preference with (pointer: coarse); the " +
         "two lists move together or not at all."
     ).toBe(true);

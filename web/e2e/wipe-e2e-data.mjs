@@ -1,13 +1,13 @@
 // ---------------------------------------------------------------------------
-// Playwright webServer pre-command — the fresh-DB half of the harness
+// Playwright webServer pre-command: the fresh-DB half of the harness
 // guarantee. playwright.config.ts composes `node web/e2e/wipe-e2e-data.mjs &&
 // <binary>` so this runs immediately before the binary boots, in the
 // webServer's cwd (the repo root).
 //
 // Why a pre-command and not globalSetup: Playwright starts the webServer
-// BEFORE globalSetup runs (the server is a plugin in the global-setup task
+// before globalSetup runs (the server is a plugin in the global-setup task
 // list), so a wipe there would land after the binary has already created and
-// opened its SQLite file — an EBUSY failure on Windows, and on POSIX a
+// opened its SQLite file: an EBUSY failure on Windows, and on POSIX a
 // silent no-op where the server keeps writing to the unlinked inode. Before
 // the process exists is the only moment the wipe is both possible and
 // complete.
@@ -16,7 +16,7 @@
 // cleaned, so the harness DB persisted across runs and the specs' fresh-DB
 // assumptions (auth disabled, every domain gate off, bar = Dashboard,
 // Recovery, Containers + More, sheet = Settings + the view toggle) silently
-// degraded into "fresh only after a manual delete" —
+// degraded into "fresh only after a manual delete",
 // the narrow-viewport backstop observed a de/fr bv-lang display pref
 // surviving on it into later runs.
 //

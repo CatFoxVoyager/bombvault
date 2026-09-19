@@ -1,33 +1,33 @@
 // ---------------------------------------------------------------------------
-// Home e2e — the real-binary contract for the phone Home.
+// Home e2e: the real-binary contract for the phone Home.
 //
 // The dom twins prove the block semantics in jsdom (and stay on the desktop
-// page — jsdom matchMedia answers desktop); this spec proves the four
+// page: jsdom matchMedia answers desktop); this spec proves the four
 // glanceable blocks, the thumb-zone trigger and the backup trace on the real
 // binary in real device emulation. Five scenarios:
 //
 //   1. Home is glanceable at 360x800: identity -> next run -> recent runs ->
 //      repo health in the contracted order, the off-site copy-age chip in the
 //      repo-health card, and the New-backup trigger visible in the thumb zone
-//      WITHOUT scrolling (the sticky bar holds it on screen),
+//      without scrolling (the sticky bar holds it on screen),
 //   2. the trigger tap presents the fail-toned confirm sheet carrying the
 //      consequence copy, and Cancel keeps the server untouched,
 //   3. Confirm fires POST /api/backup-everything and the correlated
 //      "everything" run deep-links into the RunDetailSheet,
-//   4. a recent-run row tap opens THAT run's detail sheet (component-local
+//   4. a recent-run row tap opens that run's detail sheet (component-local
 //      host, no route),
-//   5. desktop-1280/768 (>=48rem): NO mobile blocks, NO sticky trigger — the
+//   5. desktop-1280/768 (>=48rem): no mobile blocks, no sticky trigger, the
 //      >=48rem leakage guard for the Home surface.
 //
-// Harness honesty — what is mocked and why: the e2e webServer is the real
+// Harness honesty: what is mocked and why: the e2e webServer is the real
 // bombvault binary over a wiped fresh DB, but the harness has no restic repo
 // and no Docker, so the read models the Home blocks render are fulfilled at
-// the Playwright route layer — Go JSON shapes field-for-field (api.ts), the
+// the Playwright route layer: Go JSON shapes field-for-field (api.ts), the
 // same route-layer staging discipline the rest of the suite uses. The one
-// WRITE the backup trace needs (POST /api/backup-everything) is fulfilled the
+// write the backup trace needs (POST /api/backup-everything) is fulfilled the
 // same way: the harness DB stays untouched by a spec, and the run the watch
-// correlates is staged into GET /api/runs only AFTER the POST (the
-// baseline-id correlation contract — a run present before the fire must never
+// correlates is staged into get /api/runs only after the POST (the
+// baseline-id correlation contract: a run present before the fire must never
 // correlate). The SPA, its fetches, the binary and every route shape are real.
 // ---------------------------------------------------------------------------
 import { expect, test, type Locator, type Page } from "@playwright/test";
@@ -40,7 +40,7 @@ const MOBILE_PROJECTS = new Set(["mobile-iphone", "mobile-android"]);
 
 const NOW = () => Math.floor(Date.now() / 1000);
 
-/** A full DomainStatus record — every field the interface carries, so no
+/** A full DomainStatus record: every field the interface carries, so no
  *  rendering path can trip over an undefined the real server would never
  *  send. Overrides layer the per-scenario facts on top. */
 function domainStatus(overrides: Record<string, unknown>) {
@@ -97,7 +97,7 @@ function stagedDomains() {
   ];
 }
 
-/** A Run record (api.ts:341) — field-for-field. */
+/** A Run record (api.ts:341): field-for-field. */
 function run(overrides: Record<string, unknown>) {
   return {
     id: "a".repeat(32),
@@ -116,7 +116,7 @@ function run(overrides: Record<string, unknown>) {
   };
 }
 
-// The served baseline: the two recent runs the Recent-runs card lists BEFORE
+// The served baseline: the two recent runs the Recent-runs card lists before
 // anything fires. Newest first, as listRuns returns them.
 const BASE_RUNS = () => [
   run({ id: "a".repeat(32) }),
@@ -133,8 +133,8 @@ const BASE_RUNS = () => [
   }),
 ];
 
-// The correlated pass: the "Backup Everything" PARENT run (domain "everything",
-// target "Backup Everything" — store.EverythingTargetID's human name). It only
+// The correlated pass: the "Backup Everything" parent run (domain "everything",
+// target "Backup Everything": store.EverythingTargetID's human name). It only
 // ever appears in /api/runs after the POST armed the route (see stageHome).
 const EVERYTHING_RUN = () =>
   run({
@@ -154,14 +154,14 @@ const EVERYTHING_RUN = () =>
  *  regardless of worker order). The backup POST is staged here too because the
  *  Cancel scenario must prove it never fires: `fired` flips only on a real
  *  request, and `armed` makes the correlated run appear in /api/runs only
- *  after that request — the baseline-id correlation contract. */
+ *  after that request: the baseline-id correlation contract. */
 async function stageHome(page: Page): Promise<{ fired: () => boolean }> {
   let postFired = false;
   let armed = false;
 
   await page.route("**/api/display-prefs*", (route) => route.abort());
   await page.route("**/api/status", (route) => route.fulfill({ json: { ok: true, domains: stagedDomains() } }));
-  // One scheduled entry, a container-domain backup ~2h out — the next-run
+  // One scheduled entry, a container-domain backup ~2h out, the next-run
   // card's name + "in 2h" chip derivation. (nextBackupFireAt takes the first
   // job==="backup" entry whose domain is on.)
   await page.route("**/api/schedule/next", (route) =>
@@ -194,8 +194,8 @@ async function stageHome(page: Page): Promise<{ fired: () => boolean }> {
 // --- shared locators ---------------------------------------------------------
 
 /** The thumb-zone trigger: the Button engine's accent tone on the caller's
- *  full-width stage — the same signature selector the desktop leakage guard
- *  uses, now asserted PRESENT on the phone. */
+ *  full-width stage: the same signature selector the desktop leakage guard
+ *  uses, now asserted present on the phone. */
 function newBackupTrigger(page: Page) {
   return page.locator("button.w-full.bg-accent");
 }
@@ -223,7 +223,7 @@ test("Home is glanceable: blocks in order, offsite chip, trigger in the thumb zo
   await expect(page.getByText("BombVault")).toBeVisible();
 
   // The four blocks in the contracted order (the heading role only matches
-  // the mobile section labels — the desktop grid is unmounted below the
+  // the mobile section labels: the desktop grid is unmounted below the
   // breakpoint, the isDesktop gate, and so out of the accessibility tree).
   const nextY = await yOf(page.getByRole("heading", { name: "Next backup", exact: true }));
   const runsY = await yOf(page.getByRole("heading", { name: "Recent Runs", exact: true }));
@@ -238,10 +238,10 @@ test("Home is glanceable: blocks in order, offsite chip, trigger in the thumb zo
 
   // Recent-runs card: the two served runs, each row a >=44px labelled target.
   await expect(page.getByRole("button", { name: "OK · Backup plex" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "FAIL · Backup photos" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "fail · Backup photos" })).toBeVisible();
 
   // Repo-health card: the four-status line (badge + label, never color alone)
-  // and the off-site copy-age chip in the offsite DOMAIN color treatment —
+  // and the off-site copy-age chip in the offsite domain color treatment,
   // the "↗ <relative age>" line language.
   const storageCard = sectionWith(page, "Storage");
   await expect(storageCard.getByText("OK", { exact: true })).toBeVisible();
@@ -249,7 +249,7 @@ test("Home is glanceable: blocks in order, offsite chip, trigger in the thumb zo
   await expect(storageCard.getByText(/↗/)).toBeVisible();
   await expect(storageCard.getByText(/Dedup 0\.\dx/)).toBeVisible();
 
-  // The trigger sits in the thumb zone WITHOUT scrolling: the sticky bar
+  // The trigger sits in the thumb zone without scrolling: the sticky bar
   // pins to the scrollport bottom, so at 360x800 / 390x844 it is fully
   // inside the viewport and in its lower half.
   const trigger = newBackupTrigger(page);
@@ -269,8 +269,8 @@ test("trigger tap presents the consequence confirm; Cancel keeps the server unto
   await newBackupTrigger(page).tap();
 
   // The fail-toned ConfirmSheet: titled by the shared confirm dialog title,
-  // body carrying the consequence copy (containers stop and restart — the
-  // accident mitigation is this copy being UNSKIPPABLE on the path to the
+  // body carrying the consequence copy (containers stop and restart, the
+  // accident mitigation is this copy being unskippable on the path to the
   // trigger's effect).
   const confirm = page.getByRole("dialog", { name: "Confirm" });
   await expect(confirm).toBeVisible();
@@ -298,13 +298,13 @@ test("Confirm fires the everything pass; the correlated run deep-links into the 
 
   // The watch correlates the new "everything" run by baseline-id (never a
   // client clock) and the page deep-links it into the component-local
-  // RunDetailSheet — the live run's own sheet, titled by the shared run
+  // RunDetailSheet: the live run's own sheet, titled by the shared run
   // vocabulary. Poll belt ticks at 2s; allow a few cycles.
   const sheet = page.getByRole("dialog", { name: "Backup · Backup Everything" });
   await expect(sheet).toBeVisible({ timeout: 15_000 });
   // The live statement: the correlated run is in flight. The "everything"
   // parent streams no SSE key of its own (RunDetailSheet's own domain-honesty
-  // note), so the sheet's live face is the status Badge + running log tail —
+  // note), so the sheet's live face is the status Badge + running log tail,
   // both carry the shared statusLabel word; .first() because either matching
   // satisfies the claim.
   await expect(sheet.getByText("Running").first()).toBeVisible();
@@ -330,7 +330,7 @@ test("desktop Home: no mobile blocks, no sticky trigger", async ({ page }, testI
   await page.goto("/");
 
   await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
-  // The phone-only surfaces exist NOWHERE in the desktop DOM: the mobile
+  // The phone-only surfaces exist nowhere in the desktop DOM: the mobile
   // section labels, the labelled run rows, the trigger and its exact
   // full-width-accent signature.
   await expect(page.getByRole("heading", { name: "Recent Runs", exact: true })).toHaveCount(0);

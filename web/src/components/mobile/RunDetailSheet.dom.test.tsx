@@ -349,7 +349,7 @@ describe("RunDetailSheet", () => {
     renderSheet(
       makeRun({
         status: "running",
-        finishedAt: null, // duration tile falls back to the muted "—" mark
+        finishedAt: null, // duration tile falls back to the muted absent-data mark
       })
     );
     // No SSE frame yet: the bar renders nothing (inactive), the live section
@@ -363,7 +363,7 @@ describe("RunDetailSheet", () => {
     });
     const bar = screen.getByRole("progressbar");
     expect(bar.getAttribute("aria-valuenow")).toBeNull(); // indeterminate at 0%
-    // The duration tile degrades to the "—" meta mark, muted; never blank.
+    // The duration tile degrades to the muted absent-data mark; never blank.
     // (The completion-time span carries the same mark for a null finishedAt;
     // what matters here is that the duration tile's mark is the muted one.)
     const marks = screen.getAllByText("—");

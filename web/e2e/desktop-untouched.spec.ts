@@ -1,11 +1,11 @@
 // ---------------------------------------------------------------------------
-// Desktop-untouched — the per-page desktop invariance contract.
+// Desktop-untouched: the per-page desktop invariance contract.
 //
 // The headline guarantee, made executable: for every one of the eleven routed
-// destinations, on BOTH desktop projects (desktop-768 = the 48rem breakpoint
+// destinations, on both desktop projects (desktop-768 = the 48rem breakpoint
 // boundary, desktop-1280 = comfortable desktop), today's shell is exactly
-// what renders — the desktop Sidebar is visible, the mobile bottom bar has
-// ZERO matches in the DOM (not CSS-hidden: the Layout chrome switch never
+// what renders: the desktop Sidebar is visible, the mobile bottom bar has
+// zero matches in the DOM (not CSS-hidden: the Layout chrome switch never
 // renders it), and the `bv-main` scroller is present.
 //
 // Parameterized as an 11-route loop rather than spot checks: a future route
@@ -19,11 +19,11 @@
 // The assertions deliberately run on the fresh-DB empty states the harness
 // boots (playwright.config.ts): this is a chrome/layout contract, never a
 // data contract. Gated destinations (/vms, /flash, ...) render their pages'
-// empty states — the route tree is not gated, only the nav entries are, so
+// empty states: the route tree is not gated, only the nav entries are, so
 // every destination is directly reachable by goto (the Go SPA fallback,
 // internal/api/spa.go, serves index.html for client routes).
 //
-// The second, per-page half: /dashboard additionally asserts the ABSENCE of
+// The second, per-page half: /dashboard additionally asserts the absence of
 // every phone-only surface the phone work put below the breakpoint (the
 // StickyActionBar chrome and the filled full-width New-backup trigger). Same
 // discipline as the route loop: fresh-DB empty states, chrome not data.
@@ -38,8 +38,8 @@
 import { expect, test, type Page } from "@playwright/test";
 
 // The two desktop projects from playwright.config.ts (>= the 48rem chrome
-// switch). Branching on the project name — the mobile-shell.spec.ts pattern —
-// keeps every assertion honest about WHICH contract each project verifies.
+// switch). Branching on the project name, the mobile-shell.spec.ts pattern,
+// keeps every assertion honest about which contract each project verifies.
 const DESKTOP_PROJECTS = new Set(["desktop-1280", "desktop-768"]);
 
 // The route paths the loop pins, verbatim from the frozen route table
@@ -85,8 +85,8 @@ for (const route of ROUTES) {
 // ---------------------------------------------------------------------------
 const GEOMETRY_TOLERANCE_PX = 1;
 
-/** The shell's two structural boxes — the sidebar rail and the `bv-main`
- *  scroller — as x/width only: y/height legitimately vary per page content,
+/** The shell's two structural boxes, the sidebar rail and the `bv-main`
+ *  scroller: as x/width only: y/height legitimately vary per page content,
  *  horizontal geometry may not. */
 async function shellGeometry(page: Page) {
   return page.evaluate(() => {
@@ -128,7 +128,7 @@ test("desktop shell geometry is identical across every routed destination", asyn
   );
   await page.goto("/dashboard");
   // The SPA mounts after the document loads, and evaluate() does not
-  // auto-wait — anchor both elements first, exactly like the presence
+  // auto-wait: anchor both elements first, exactly like the presence
   // checks above, or the measure races the mount and finds nothing.
   await expect(page.getByTestId("desktop-sidebar")).toBeVisible();
   await expect(page.locator("#bv-main")).toBeVisible();
@@ -159,7 +159,7 @@ test("desktop shell geometry is identical across every routed destination", asyn
 // Role/text-based wherever possible so a restyle of the mobile chrome
 // cannot silently outdate the guard; the one class-signature check is the
 // StickyActionBar's exact chrome combination, which no desktop element
-// carries (verified app-wide when this pass landed — the only
+// carries (verified app-wide when this pass landed, the only
 // `sticky bottom-0 z-10 bg-carbon-sidebar` element in src/ is the bar).
 // ---------------------------------------------------------------------------
 const DASHBOARD_ROUTES = ["/dashboard"];
@@ -172,7 +172,7 @@ for (const route of DASHBOARD_ROUTES) {
     // The sticky-in-flow action bar (the thumb-zone trigger's host): its
     // exact class signature exists nowhere on desktop.
     await expect(page.locator("div.sticky.bottom-0.z-10.bg-carbon-sidebar")).toHaveCount(0);
-    // The filled full-width accent control — the Backup Everything trigger's
+    // The filled full-width accent control, the Backup Everything trigger's
     // signature (Button tone="accent" over the caller's w-full stage); no
     // desktop control carries it.
     await expect(page.locator("button.w-full.bg-accent")).toHaveCount(0);
@@ -182,8 +182,8 @@ for (const route of DASHBOARD_ROUTES) {
 }
 
 // Positive half for the Dashboard page: the desktop customizable grid is not
-// merely free of mobile chrome — it is present. The customize pencil is
-// desktop-only chrome IN SERVICE of that grid (it mounts only at md+), so it
+// merely free of mobile chrome, it is present. The customize pencil is
+// desktop-only chrome in service of that grid (it mounts only at md+), so it
 // being visible proves the desktop page rendered rather than the phone's
 // fixed Home block order (where the pencil has nothing to edit and is gated
 // away entirely).

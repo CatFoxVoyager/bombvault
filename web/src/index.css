@@ -472,7 +472,7 @@
    exist to keep together. The `(pointer: coarse)` block before the gate
    reveals reactive labels at rest; in the lively motion levels that revealed
    label would otherwise sit 6.4px displaced and squashed to 82%, the exact
-   revealed-but-still-displaced shape [467]-bug-[527] repaired for `.glim-active`.
+   revealed-but-still-displaced shape the `.glim-active` repair already fixed.
    Same combined query and same selector shape as the reset list above, so the
    at-rest coarse reveal reads like any other reveal state. */
 @media (prefers-reduced-motion: no-preference) and (pointer: coarse) {
