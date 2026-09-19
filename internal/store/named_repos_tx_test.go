@@ -6,10 +6,6 @@ import (
 	"github.com/junkerderprovinz/bombvault/internal/store"
 )
 
-// The two guarded writes that protect a named repository (#204) had no test at
-// all: the guard over them asserted only that the handler CALLS them. These run
-// against a real database and assert the refusal and the write.
-
 func namedRepoStore(t *testing.T) *store.Repo {
 	t.Helper()
 	db := store.OpenMem(t)
@@ -30,10 +26,10 @@ func aNamedRepo(t *testing.T, r *store.Repo, name, loc string) store.OffsiteTarg
 	return row
 }
 
-// TestDeleteNamedRepoIfUnusedRefusesWhileAnItemPointsAtIt pins the refusal that
-// keeps an item from silently falling back to its domain repository - where its
-// next backup would land looking exactly like a working one.
-func TestDeleteNamedRepoIfUnusedRefusesWhileAnItemPointsAtIt(t *testing.T) {
+// TestDeleteNamedRepoIfUnusedRefusesWhileInUse expects a refusal, because
+// without the repository the item's next backup would silently go to its domain
+// repository and look like a working one.
+func TestDeleteNamedRepoIfUnusedRefusesWhileInUse(t *testing.T) {
 	r := namedRepoStore(t)
 	repo := aNamedRepo(t, r, "Cold", "backups/cold")
 	if _, err := r.UpsertTarget(store.Target{ContainerName: "plex"}); err != nil {
@@ -55,9 +51,7 @@ func TestDeleteNamedRepoIfUnusedRefusesWhileAnItemPointsAtIt(t *testing.T) {
 	}
 }
 
-// TestDeleteNamedRepoIfUnusedDeletesWhenNothingPointsAtIt is the other half: the
-// refusal must not become a repository that can never be removed.
-func TestDeleteNamedRepoIfUnusedDeletesWhenNothingPointsAtIt(t *testing.T) {
+func TestDeleteNamedRepoIfUnusedDeletesWhenUnused(t *testing.T) {
 	r := namedRepoStore(t)
 	repo := aNamedRepo(t, r, "Cold", "backups/cold")
 
@@ -73,9 +67,9 @@ func TestDeleteNamedRepoIfUnusedDeletesWhenNothingPointsAtIt(t *testing.T) {
 	}
 }
 
-// TestSetNamedRepoLocationIfUnusedRefusesWhileInUse pins the move refusal.
-// Everything written so far stays where it is, so a move under a live item makes
-// the next backup succeed into an empty repository.
+// TestSetNamedRepoLocationIfUnusedRefusesWhileInUse expects the move to be
+// refused: existing snapshots stay where they are, so a live item's next backup
+// would succeed into an empty repository.
 func TestSetNamedRepoLocationIfUnusedRefusesWhileInUse(t *testing.T) {
 	r := namedRepoStore(t)
 	repo := aNamedRepo(t, r, "Cold", "backups/cold")
@@ -102,7 +96,6 @@ func TestSetNamedRepoLocationIfUnusedRefusesWhileInUse(t *testing.T) {
 	}
 }
 
-// TestSetNamedRepoLocationIfUnusedWritesWhenUnused is its other half.
 func TestSetNamedRepoLocationIfUnusedWritesWhenUnused(t *testing.T) {
 	r := namedRepoStore(t)
 	repo := aNamedRepo(t, r, "Cold", "backups/cold")
@@ -123,10 +116,10 @@ func TestSetNamedRepoLocationIfUnusedWritesWhenUnused(t *testing.T) {
 	}
 }
 
-// TestTheGuardedWritesCountEveryDomain pins that a folder set counts too. The
-// in-use query sums three tables, and a domain missing from it would make the
-// refusal silently inapplicable for that domain's items.
-func TestTheGuardedWritesCountEveryDomain(t *testing.T) {
+// TestGuardedWritesCountEveryDomain covers all three tables the in-use query
+// sums; a domain missing from it would let that domain's items lose their
+// repository.
+func TestGuardedWritesCountEveryDomain(t *testing.T) {
 	for _, tc := range []struct {
 		domain string
 		point  func(*store.Repo, string) error
@@ -168,10 +161,10 @@ func TestTheGuardedWritesCountEveryDomain(t *testing.T) {
 	}
 }
 
-// TestCreateFileSetStoresTheRepository pins that the repository rides along in
-// the INSERT. It used to be a second statement, which left a window in which the
-// set existed on the domain repository while the caller believed otherwise.
-func TestCreateFileSetStoresTheRepository(t *testing.T) {
+// TestCreateFileSetStoresRepository checks that the repository is part of the
+// INSERT, so there is no window in which the new set sits on the domain
+// repository.
+func TestCreateFileSetStoresRepository(t *testing.T) {
 	r := namedRepoStore(t)
 	repo := aNamedRepo(t, r, "Cold", "backups/cold")
 
