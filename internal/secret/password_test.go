@@ -42,7 +42,7 @@ func TestSaltMakesTwoHashesOfOnePasswordDiffer(t *testing.T) {
 	a := mustHash(t, appKey, "same password")
 	b := mustHash(t, appKey, "same password")
 	if a == b {
-		t.Fatal("two hashes of one password must differ — that is what the salt is for")
+		t.Fatal("two hashes of one password must differ because of the salt")
 	}
 	if !VerifyPassword(appKey, "same password", a) || !VerifyPassword(appKey, "same password", b) {
 		t.Fatal("both must still verify")

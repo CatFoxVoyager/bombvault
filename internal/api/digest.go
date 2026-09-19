@@ -190,7 +190,7 @@ func digestAge(now, at int64) string {
 // composeDigest renders stats as the plaintext digest message.
 func composeDigest(stats digestStats) string {
 	var b strings.Builder
-	b.WriteString("BombVault weekly digest — last 7 days\n")
+	b.WriteString("BombVault weekly digest, last 7 days\n")
 
 	if len(stats.Kinds) == 0 {
 		b.WriteString("No finished runs in this window.\n")
@@ -228,7 +228,7 @@ func composeDigest(stats digestStats) string {
 			case line.LastOK == 0:
 				fmt.Fprintf(&b, "- %s: no successful copy yet\n", line.Domain)
 			case line.Stale:
-				fmt.Fprintf(&b, "- %s: STALE — last successful copy %s\n", line.Domain, digestAge(stats.Now, line.LastOK))
+				fmt.Fprintf(&b, "- %s: stale, last successful copy %s\n", line.Domain, digestAge(stats.Now, line.LastOK))
 			default:
 				fmt.Fprintf(&b, "- %s: current (last copy %s)\n", line.Domain, digestAge(stats.Now, line.LastOK))
 			}

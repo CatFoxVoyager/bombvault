@@ -55,7 +55,7 @@ func TestOffsiteScheduleComesFromSettingsNotTarget(t *testing.T) {
 	}
 
 	if got := s.offsiteScheduleFor("files", settings); got != "" {
-		t.Fatalf("offsiteScheduleFor(files) = %q, want %q — the Settings column is the single source of truth for the off-site cadence; a stray target-row schedule must not override it (#150)", got, "")
+		t.Fatalf("offsiteScheduleFor(files) = %q, want %q; the Settings column is the single source of truth for the off-site cadence; a stray target-row schedule must not override it (#150)", got, "")
 	}
 	if s.offsiteReplicatesOnOwnSchedule("files", settings) {
 		t.Fatal("files must NOT be treated as replicating on its own off-site schedule: Settings › Schedules is blank, so no cron entry exists and the coupled after-backup copy is the only thing that can replicate it (#150)")

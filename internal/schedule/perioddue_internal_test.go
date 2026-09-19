@@ -25,7 +25,7 @@ func TestPeriodDueSurvivesTheChecksOwnRuntime(t *testing.T) {
 	}
 	if !PeriodDue(finished, sweepDay1, day) {
 		t.Fatal("a daily check whose previous run finished after the sweep fired must be due on the NEXT day's sweep, " +
-			"not the one after it — this is the every-other-day skip")
+			"not the one after it, which is the every-other-day skip")
 	}
 }
 
@@ -86,7 +86,7 @@ func TestEveryNDueFutureStampIsNotAFreeze(t *testing.T) {
 		t.Fatal("test premise broken: the stamp is not in the future")
 	}
 	if !EveryNDue(fromABrokenClock, now, 7) {
-		t.Fatal("a last-run stamp from the FUTURE must read as \"never ran\" and let the pass through — " +
+		t.Fatal("a last-run stamp from the future must read as \"never ran\" and let the pass through; " +
 			"otherwise the schedule is frozen permanently with nothing but a \"last run -78840h ago\" log line")
 	}
 	// PeriodDue shares the guard.

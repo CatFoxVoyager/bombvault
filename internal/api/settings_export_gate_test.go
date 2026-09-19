@@ -73,7 +73,7 @@ func TestCredentialedExportRefusedWhenAuthDisabled(t *testing.T) {
 	for _, q := range []string{"true", "1", "yes", "on", "TRUE", "On"} {
 		w := getRaw(t, h, "/api/settings/export?includeCredentials="+q, nil)
 		if w.Code != http.StatusForbidden {
-			t.Fatalf("includeCredentials=%s: status = %d, want 403 — the credentialed export must fail closed when auth is off", q, w.Code)
+			t.Fatalf("includeCredentials=%s: status = %d, want 403; the credentialed export must fail closed when auth is off", q, w.Code)
 		}
 		body := w.Body.String()
 		for _, secret := range allSeededSecrets() {
@@ -108,7 +108,7 @@ func TestPlainExportWorksWithoutAuth(t *testing.T) {
 		body := w.Body.String()
 		for _, secret := range allSeededSecrets() {
 			if strings.Contains(body, secret) {
-				t.Fatalf("plain export%q leaked a stored secret — it must never carry credentials at all", q)
+				t.Fatalf("plain export%q leaked a stored secret; it must not carry credentials at all", q)
 			}
 		}
 	}

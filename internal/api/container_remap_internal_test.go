@@ -63,7 +63,7 @@ func TestContainerAppdataRemapBasenameCollisionIsDeduped(t *testing.T) {
 		t.Fatalf("want 2 dirs, got %+v", dirs)
 	}
 	if dirs[0].Target == dirs[1].Target {
-		t.Fatalf("collision: both sources mapped to the same Target %q — would merge data", dirs[0].Target)
+		t.Fatalf("collision: both sources mapped to the same Target %q, which would merge data", dirs[0].Target)
 	}
 	seenTarget := map[string]bool{}
 	for _, d := range dirs {
@@ -75,7 +75,7 @@ func TestContainerAppdataRemapBasenameCollisionIsDeduped(t *testing.T) {
 	seenDest := map[string]bool{}
 	for _, v := range remap {
 		if seenDest[v] {
-			t.Fatalf("duplicate remap dest %q — binds would collide", v)
+			t.Fatalf("duplicate remap dest %q; the binds would collide", v)
 		}
 		seenDest[v] = true
 	}
@@ -149,7 +149,7 @@ func TestContainerAppdataRemapMultiBindKeepsSharedContainerFolder(t *testing.T) 
 	}
 	for _, d := range dirs {
 		if want[d.Subtree] != d.Target {
-			t.Fatalf("dir %+v: want Target %q — the shared SnapOtter folder must be preserved, not flattened to its leaf", d, want[d.Subtree])
+			t.Fatalf("dir %+v: want Target %q; the shared SnapOtter folder must keep its path, not be flattened to its leaf", d, want[d.Subtree])
 		}
 	}
 	// The recreated container's binds must follow to the nested locations.
@@ -233,14 +233,14 @@ func TestContainerAppdataRemapTargetsAlwaysUnique(t *testing.T) {
 		seenTarget := map[string]bool{}
 		for _, d := range dirs {
 			if seenTarget[d.Target] {
-				t.Fatalf("case %d (%v): duplicate Target %q — restoring both would merge their data", i, in, d.Target)
+				t.Fatalf("case %d (%v): duplicate Target %q; restoring both would merge their data", i, in, d.Target)
 			}
 			seenTarget[d.Target] = true
 		}
 		seenDest := map[string]bool{}
 		for _, v := range remap {
 			if seenDest[v] {
-				t.Fatalf("case %d (%v): duplicate bindRemap dest %q — two binds would collide", i, in, v)
+				t.Fatalf("case %d (%v): duplicate bindRemap dest %q; two binds would collide", i, in, v)
 			}
 			seenDest[v] = true
 		}

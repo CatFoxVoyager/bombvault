@@ -63,11 +63,11 @@ func (s *Service) repoPathError(loc string, err error) error {
 	switch {
 	case errors.Is(err, paths.ErrAbsoluteSub):
 		return &repoPathErr{cause: err, msg: fmt.Sprintf(
-			"%q is an absolute host path. Backup and off-site locations are relative to %s, so enter %q instead — %s.",
+			"%q is an absolute host path. Backup and off-site locations are relative to %s, so enter %q instead, %s.",
 			loc, s.hostRootName(), s.hostRelativeSuggestion(loc), remoteURLHint)}
 	case errors.Is(err, paths.ErrTraversal):
 		return &repoPathErr{cause: err, msg: fmt.Sprintf(
-			"%q points outside %s. Enter a path inside it — %s.",
+			"%q points outside %s. Enter a path inside it, %s.",
 			loc, s.hostRootName(), remoteURLHint)}
 	}
 	return fmt.Errorf("resolve repo path: %w", err)

@@ -43,7 +43,7 @@ func TestDomainStatusCoveredByEverything(t *testing.T) {
 	}
 	for _, d := range statuses {
 		if d.Status == "off" {
-			t.Errorf("%s: status = %q, want a real status — the Everything pass backs it up nightly", d.Domain, d.Status)
+			t.Errorf("%s: status = %q, want a real status because the Everything pass backs it up nightly", d.Domain, d.Status)
 		}
 		if d.PeriodSeconds != 86400 {
 			t.Errorf("%s: PeriodSeconds = %d, want 86400 (the pass's daily cadence)", d.Domain, d.PeriodSeconds)
@@ -121,7 +121,7 @@ func TestDomainStatusEverythingOffStaysOff(t *testing.T) {
 			continue
 		}
 		if d.Status != "off" {
-			t.Fatalf("containers: status = %q, want %q — nothing is scheduled", d.Status, "off")
+			t.Fatalf("containers: status = %q, want %q because nothing is scheduled", d.Status, "off")
 		}
 		if d.CoveredBy != "" {
 			t.Fatalf("containers: CoveredBy = %q, want empty", d.CoveredBy)

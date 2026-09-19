@@ -28,7 +28,7 @@ func TestRunTamperTestScrubsCredentialsFromURLParseFailure(t *testing.T) {
 	// The raw error has to contain the password, or the checks below would pass
 	// trivially.
 	if !strings.Contains(err.Error(), password) {
-		t.Fatalf("test setup did not reproduce a raw url.Parse failure containing the password (got %v) — adjust badRepo so it does", err)
+		t.Fatalf("test setup did not reproduce a raw url.Parse failure containing the password (got %v); adjust badRepo so it does", err)
 	}
 
 	run := latestTamperRun(t, st)
@@ -72,7 +72,7 @@ func TestRunPrimaryTamperTestScrubsCredentialsFromURLParseFailure(t *testing.T) 
 		t.Fatal("a malformed probe URL must return a non-nil error (inconclusive probe)")
 	}
 	if !strings.Contains(err.Error(), password) {
-		t.Fatalf("test setup did not reproduce a raw url.Parse failure containing the password (got %v) — adjust badRepo so it does", err)
+		t.Fatalf("test setup did not reproduce a raw url.Parse failure containing the password (got %v); adjust badRepo so it does", err)
 	}
 
 	run := latestTamperRun(t, st)

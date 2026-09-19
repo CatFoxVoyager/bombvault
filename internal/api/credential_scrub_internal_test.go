@@ -75,12 +75,12 @@ func TestTruncateRunErrScrubsCredentials(t *testing.T) {
 // passes it through verbatim via scrubBypassMessage, and truncateRunErr has to
 // do the same.
 func TestTruncateRunErrBypassesRestoreConflict(t *testing.T) {
-	err := fmt.Errorf("%w — free these and retry: %s", backup.ErrRestoreConflict,
+	err := fmt.Errorf("%w. Free these and retry: %s", backup.ErrRestoreConflict,
 		`host port 8080/tcp is already used by container "other-app"`)
 
 	// scrubError is the baseline.
 	if got := scrubError(err); strings.Contains(got, "[path]") {
-		t.Fatalf("test setup: scrubError itself mangled the conflict text, got %q — fix the fixture", got)
+		t.Fatalf("test setup: scrubError itself mangled the conflict text, got %q; fix the fixture", got)
 	}
 
 	got := truncateRunErr(err)
@@ -99,7 +99,7 @@ func TestTruncateRunErrBypassesZvolRebaseFailed(t *testing.T) {
 	err := fmt.Errorf("rebase dataset %q onto pool %q: %w", "tank/vms/zvolvm/disk1", "-badpool", errZvolRebaseFailed)
 
 	if got := scrubError(err); strings.Contains(got, "[path]") {
-		t.Fatalf("test setup: scrubError itself mangled the dataset name, got %q — fix the fixture", got)
+		t.Fatalf("test setup: scrubError itself mangled the dataset name, got %q; fix the fixture", got)
 	}
 
 	got := truncateRunErr(err)

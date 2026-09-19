@@ -182,7 +182,7 @@ describe("declared fragments vs. the real locale tables", () => {
           for (const frag of frags) {
             expect(
               value.includes(frag),
-              `locales.${code}["${key}"] no longer contains "${frag}" — withLtrFragments() would silently stop pinning it LTR for this locale`
+              `locales.${code}["${key}"] does not contain "${frag}", so withLtrFragments() would stop pinning it LTR for this locale`
             ).toBe(true);
           }
           // Every fragment becomes its own span, with no text lost or
@@ -265,9 +265,9 @@ const PATH_IN_PROSE = /(?<![A-Za-z0-9:/])\/[A-Za-z0-9._*{}<>-]+(?:\/[A-Za-z0-9._
 const NOT_A_PATH: Record<string, string> = {
   "dashboard.forecastGrowth": "a unit, not a path: {bytes}/week, and 'week' is translated per locale",
   "dashboard.forecastShrink": "same unit as forecastGrowth",
-  "rclone.pathHint": "the example is rclone:<remote>:<bucket>/path — it BEGINS with letters, which are a strong LTR class that anchors the whole run; only a leading `/` misrenders",
+  "rclone.pathHint": "the example is rclone:<remote>:<bucket>/path. It begins with letters, a strong LTR class that anchors the whole run; only a leading `/` misrenders",
   "recovery.foreignVMDestHint": "the run is <destination>/<vm-name>/ and BOTH placeholder words are translated (sl 'ime-vm', sr 'naziv-vm'), so no literal fragment can match in every locale; the leading character is `<`, not `/`",
-  "folders.customPlaceholder": "orphaned key — rendered nowhere (see i18n.orphans.test.ts's ratchet)",
+  "folders.customPlaceholder": "orphaned key, rendered nowhere (see i18n.orphans.test.ts's ratchet)",
 };
 
 describe("coverage: every en string that embeds a path is accounted for", () => {

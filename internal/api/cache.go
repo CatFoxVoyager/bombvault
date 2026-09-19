@@ -88,11 +88,11 @@ func trimCacheDirLRU(dir string, limitBytes int64) {
 			continue
 		}
 		total -= subs[i].size
-		log.Printf("api: cache trim: evicted repo cache %s (%d MB, last used %s) — cache was over the limit",
+		log.Printf("api: cache trim: evicted repo cache %s (%d MB, last used %s) because the cache was over the limit",
 			filepath.Base(subs[i].path), subs[i].size/(1024*1024), subs[i].lastUsed.Format("2006-01-02"))
 	}
 	if total > limitBytes {
-		log.Printf("api: cache trim: still %d MB over the limit — only the most recently used repo cache remains (never evicted)",
+		log.Printf("api: cache trim: still %d MB over the limit; only the most recently used repo cache remains, and it is never evicted",
 			(total-limitBytes)/(1024*1024)+1)
 	}
 }

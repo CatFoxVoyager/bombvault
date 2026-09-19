@@ -107,6 +107,6 @@ func TestScheduledFilesRunReplicatesOffsite(t *testing.T) {
 		}
 	}
 	if !found {
-		t.Fatalf("no kind=offsite run recorded for the files domain — the activity log would never show \"Off-site replication done — Folders\" (#150); runs=%+v", runs)
+		t.Fatalf("no kind=offsite run recorded for the files domain, so the activity log would never show the finished replication; runs=%+v", runs)
 	}
 }

@@ -70,7 +70,7 @@ func TestScheduledJobSkipsOverlappingRun(t *testing.T) {
 	select {
 	case <-secondDone:
 	case <-time.After(5 * time.Second):
-		t.Fatal("second (overlapping) Run() did not return promptly — SkipIfStillRunning did not skip it")
+		t.Fatal("second (overlapping) Run() did not return promptly; SkipIfStillRunning did not skip it")
 	}
 
 	if got := atomic.LoadInt32(&entered); got != 1 {

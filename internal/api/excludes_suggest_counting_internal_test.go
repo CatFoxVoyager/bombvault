@@ -48,7 +48,7 @@ func TestSuggestCollectorSkipsExcludedFiles(t *testing.T) {
 		c := newSuggestCollector("/host/user", nil, suggestOpts{maxDepth: 3, largeBytes: 1})
 		feed(c, tree)
 		if got := c.byRel["appdata"].size; got != 1000 {
-			t.Fatalf("appdata size = %d, want 1000 — the guard must only drop what a pattern covers", got)
+			t.Fatalf("appdata size = %d, want 1000; the guard must only drop what a pattern covers", got)
 		}
 	})
 
@@ -126,6 +126,6 @@ func TestDropNestedRoots(t *testing.T) {
 	// A shared prefix is not nesting; only a path boundary counts.
 	sibling := dropNestedRoots([]string{"/appdata/plex", "/appdata/plex-extra"})
 	if len(sibling) != 2 {
-		t.Fatalf("dropNestedRoots kept %v — /appdata/plex-extra is a sibling, not a child", sibling)
+		t.Fatalf("dropNestedRoots kept %v; /appdata/plex-extra is a sibling, not a child", sibling)
 	}
 }

@@ -61,13 +61,13 @@ func TestMutateSettingsChangesOnlyWhatItSets(t *testing.T) {
 		t.Fatal("the mutation's own field was not applied")
 	}
 	if after.ContainersPath != "user/backups/containers-NEW" {
-		t.Fatalf("ContainersPath = %q — the in-between save was reverted", after.ContainersPath)
+		t.Fatalf("ContainersPath = %q; the in-between save was reverted", after.ContainersPath)
 	}
 	if after.InstanceName != "saved-in-between" {
-		t.Fatalf("InstanceName = %q — the in-between save was reverted", after.InstanceName)
+		t.Fatalf("InstanceName = %q; the in-between save was reverted", after.InstanceName)
 	}
 	if after.AuthPasswordHash != "hash-set-in-between" {
-		t.Fatalf("AuthPasswordHash = %q — the in-between save was reverted", after.AuthPasswordHash)
+		t.Fatalf("AuthPasswordHash = %q; the in-between save was reverted", after.AuthPasswordHash)
 	}
 
 	stored, err := r.GetSettings()
@@ -114,7 +114,7 @@ func TestMutateSettingsLosesNoConcurrentUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 	if want := goroutines * bumps; got.RetentionKeepLast != want {
-		t.Fatalf("RetentionKeepLast = %d, want %d — %d update(s) were lost", got.RetentionKeepLast, want, want-got.RetentionKeepLast)
+		t.Fatalf("RetentionKeepLast = %d, want %d (%d update(s) lost)", got.RetentionKeepLast, want, want-got.RetentionKeepLast)
 	}
 }
 

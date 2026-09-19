@@ -59,7 +59,7 @@ func TestNextRunsSkipsFiresTheEveryNGateWillClose(t *testing.T) {
 	// Checked against the gate itself rather than a hand-computed date, so the
 	// two cannot drift apart.
 	if !EveryNDue(last, drill.Next, 7) {
-		t.Fatalf("NextRuns reported %v, which the due-gate would SKIP — the dashboard is promising a run that will not happen", drill.Next)
+		t.Fatalf("NextRuns reported %v, which the due-gate would skip; the dashboard is promising a run that will not happen", drill.Next)
 	}
 	tomorrow := time.Now().Add(24 * time.Hour)
 	if drill.Next.Before(tomorrow) {

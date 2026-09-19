@@ -206,7 +206,7 @@ func TestEmptyDomainRunSkipsJobAndBatchedTail(t *testing.T) {
 				}
 			}
 			if !fired {
-				t.Fatalf("no %s entry registered — an enabled cadence must stay on the schedule even with no items", tc.domain)
+				t.Fatalf("no %s entry registered; an enabled cadence must stay on the schedule even with no items", tc.domain)
 			}
 
 			mu.Lock()

@@ -517,7 +517,7 @@ func TestLastEverythingPass(t *testing.T) {
 		t.Fatal(err)
 	}
 	if failedAt.IsZero() {
-		t.Fatal("a completed pass must satisfy the gate even when an item failed — otherwise the pass runs every night")
+		t.Fatal("a completed pass must satisfy the gate even when an item failed; otherwise the pass runs every night")
 	}
 
 	okID, err := r.StartRun(store.EverythingTargetID, "backup")
@@ -590,7 +590,7 @@ func TestLastEverythingPassIgnoresAbandonedRuns(t *testing.T) {
 				t.Fatal(err)
 			}
 			if !ts.IsZero() {
-				t.Fatalf("an abandoned pass must not satisfy the everyN gate, got %v — the next interval of whole-server backups would be skipped", ts)
+				t.Fatalf("an abandoned pass must not satisfy the everyN gate, got %v; the next interval of whole-server backups would be skipped", ts)
 			}
 		})
 	}

@@ -267,7 +267,7 @@ func TestPerItemSuccessPathsUseTheRoundAwareHook(t *testing.T) {
 		}
 		if strings.Contains(string(src), `s.maybeCollectStats(ctx, "`+domain+`")`) {
 			t.Errorf("%s's success path calls maybeCollectStats(ctx, ...) directly, which samples "+
-				"once per item during a round — use collectStatsAfterItem", domain)
+				"once per item during a round; use collectStatsAfterItem", domain)
 		}
 	}
 	// The round itself samples once at the end, with the batch context.

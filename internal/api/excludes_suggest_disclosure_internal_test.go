@@ -138,7 +138,7 @@ func TestLsStreamSelfHealNeverReplaysIntoFedCollectors(t *testing.T) {
 		t.Fatalf("err = %v, want an index-read failure: a lock error after nodes were emitted cannot be retried onto collectors that already hold them", err)
 	}
 	if eng.streamCalls != 1 {
-		t.Fatalf("LsStream calls = %d, want 1 — replaying a partially consumed stream double-counts every node it had already emitted", eng.streamCalls)
+		t.Fatalf("LsStream calls = %d, want 1; replaying a partially consumed stream double-counts every node it had already emitted", eng.streamCalls)
 	}
 	if len(res.Suggestions) != 0 {
 		t.Fatalf("suggestions = %+v, want none (all-or-nothing)", res.Suggestions)
@@ -259,7 +259,7 @@ func TestUnexaminedRootsAreNamed(t *testing.T) {
 	got := strings.Join(res.UnexaminedRoots, ",")
 	want := roots[1] + "," + roots[2]
 	if got != want {
-		t.Fatalf("unexamined roots = [%s], want [%s] — StoppedAt names ONE place and claims nothing about the backup folders that were never opened at all", got, want)
+		t.Fatalf("unexamined roots = [%s], want [%s]; StoppedAt names one place and claims nothing about the backup folders that were never opened at all", got, want)
 	}
 }
 

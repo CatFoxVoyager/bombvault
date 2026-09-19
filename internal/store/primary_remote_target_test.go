@@ -84,7 +84,7 @@ func TestPrimaryRemoteTargetIsolatedFromOffsiteQueries(t *testing.T) {
 		t.Fatalf("DeleteOffsiteTarget(primary id) should be a no-op, got err: %v", err)
 	}
 	if _, ok, err := r.PrimaryRemoteTarget("containers"); err != nil || !ok {
-		t.Fatalf("primary row was deleted via DeleteOffsiteTarget — isolation broken (ok=%v err=%v)", ok, err)
+		t.Fatalf("primary row was deleted via DeleteOffsiteTarget; isolation broken (ok=%v err=%v)", ok, err)
 	}
 
 	back, ok, err := r.PrimaryRemoteTarget("containers")

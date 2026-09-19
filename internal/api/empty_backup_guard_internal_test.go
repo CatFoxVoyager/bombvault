@@ -60,7 +60,7 @@ func TestEmptyBackupAllowedAfterDeselectingEveryFolder(t *testing.T) {
 	}
 
 	if s.emptyBackupIsUnreachable("myapp", nil) {
-		t.Fatal("refused a backup after the user deselected every folder, with the folder still on disk — this is #181")
+		t.Fatal("refused a backup after the user deselected every folder, with the folder still on disk")
 	}
 }
 

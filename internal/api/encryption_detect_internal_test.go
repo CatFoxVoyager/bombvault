@@ -304,7 +304,7 @@ func TestFoldEncryptionUnknownBeatsAbsent(t *testing.T) {
 		{Domain: "vms", Source: "offsite", State: RepoUnreachable, Err: "401"},
 	})
 	if got != VerdictUnknown {
-		t.Fatalf("fold = %q, want unknown — an unreachable repo must not be read as a fresh install", got)
+		t.Fatalf("fold = %q, want unknown; an unreachable repo must not be read as a fresh install", got)
 	}
 }
 
@@ -342,7 +342,7 @@ func TestClassifyClosedRepoLocalWithConfigIsUnreachable(t *testing.T) {
 
 	state, msg := s.classifyClosedRepo(repo, errors.New("Fatal: wrong password or no key found"))
 	if state != RepoUnreachable {
-		t.Fatalf("state = %q, want unreachable — a present config that opens under neither mode is not an empty location", state)
+		t.Fatalf("state = %q, want unreachable; a present config that opens under neither mode is not an empty location", state)
 	}
 	if msg == "" {
 		t.Fatal("expected the probe failure to be reported")
@@ -459,7 +459,7 @@ func TestDetectProbeNeverLocks(t *testing.T) {
 		t.Fatal("expected at least one probe")
 	}
 	if eng.locking > 0 {
-		t.Fatalf("%d probe(s) ran without NoLock — detection must never lock a repository", eng.locking)
+		t.Fatalf("%d probe(s) ran without NoLock; detection must not lock a repository", eng.locking)
 	}
 }
 

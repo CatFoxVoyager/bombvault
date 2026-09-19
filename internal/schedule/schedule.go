@@ -1105,7 +1105,7 @@ func (s *Scheduler) ReloadWithDueChecks(
 			off:     !settings.VMsEnabled,
 			fn: func() {
 				if s.backupVM == nil || s.listVMsFn == nil {
-					log.Print("schedule: vms job skipped — VM backup not wired (SetVMJob)")
+					log.Print("schedule: vms job skipped, VM backup not wired (SetVMJob)")
 					return
 				}
 				vms, err := s.listVMsFn()
@@ -1136,7 +1136,7 @@ func (s *Scheduler) ReloadWithDueChecks(
 			off:     !settings.FlashEnabled,
 			fn: func() {
 				if s.backupFlash == nil {
-					log.Print("schedule: flash job skipped — flash backup not wired (SetFlashJob)")
+					log.Print("schedule: flash job skipped, flash backup not wired (SetFlashJob)")
 					return
 				}
 				if err := s.backupFlash(); err != nil {
@@ -1151,7 +1151,7 @@ func (s *Scheduler) ReloadWithDueChecks(
 			off:     !settings.ConfigEnabled,
 			fn: func() {
 				if s.configJob == nil {
-					log.Print("schedule: config job skipped — config backup not wired (SetConfigJob)")
+					log.Print("schedule: config job skipped, config backup not wired (SetConfigJob)")
 					return
 				}
 				if err := s.configJob(); err != nil {
@@ -1166,7 +1166,7 @@ func (s *Scheduler) ReloadWithDueChecks(
 			off:     !settings.FilesEnabled,
 			fn: func() {
 				if s.backupFiles == nil || s.listFileSetsFn == nil {
-					log.Print("schedule: files job skipped — file-set backup not wired (SetFilesJob)")
+					log.Print("schedule: files job skipped, file-set backup not wired (SetFilesJob)")
 					return
 				}
 				sets, err := s.listFileSetsFn()
@@ -1195,7 +1195,7 @@ func (s *Scheduler) ReloadWithDueChecks(
 			name:    "everything",
 			fn: func() {
 				if s.everythingFn == nil {
-					log.Print("schedule: everything job skipped — Backup Everything not wired (SetEverythingJob)")
+					log.Print("schedule: everything job skipped, Backup Everything not wired (SetEverythingJob)")
 					return
 				}
 				if err := s.everythingFn(); err != nil {
@@ -1217,7 +1217,7 @@ func (s *Scheduler) ReloadWithDueChecks(
 			off:     !enabled,
 			fn: func() {
 				if s.replicateOffFn == nil {
-					log.Printf("schedule: %s-offsite job skipped — off-site not wired (SetOffsiteJob)", domain)
+					log.Printf("schedule: %s-offsite job skipped, off-site not wired (SetOffsiteJob)", domain)
 					return
 				}
 				if err := s.replicateOffFn(domain); err != nil {
@@ -1241,7 +1241,7 @@ func (s *Scheduler) ReloadWithDueChecks(
 			name:    "drills",
 			fn: func() {
 				if s.drillFn == nil {
-					log.Print("schedule: drills job skipped — drills not wired (SetDrillJob)")
+					log.Print("schedule: drills job skipped, drills not wired (SetDrillJob)")
 					return
 				}
 				if len(tasks) == 0 {
@@ -1273,7 +1273,7 @@ func (s *Scheduler) ReloadWithDueChecks(
 			name:    "tamper",
 			fn: func() {
 				if s.tamperFn == nil {
-					log.Print("schedule: tamper job skipped — tamper test not wired (SetTamperJob)")
+					log.Print("schedule: tamper job skipped, tamper test not wired (SetTamperJob)")
 					return
 				}
 				for _, dom := range tamperDomains {
@@ -1296,7 +1296,7 @@ func (s *Scheduler) ReloadWithDueChecks(
 			name:    "digest",
 			fn: func() {
 				if s.digestFn == nil {
-					log.Print("schedule: digest job skipped — digest not wired (SetDigestJob)")
+					log.Print("schedule: digest job skipped, digest not wired (SetDigestJob)")
 					return
 				}
 				if err := s.digestFn(); err != nil {
@@ -1320,7 +1320,7 @@ func (s *Scheduler) ReloadWithDueChecks(
 			name:    "watchdog",
 			fn: func() {
 				if s.watchdogFn == nil {
-					log.Print("schedule: watchdog job skipped — watchdog not wired (SetWatchdogJob)")
+					log.Print("schedule: watchdog job skipped, watchdog not wired (SetWatchdogJob)")
 					return
 				}
 				if err := s.watchdogFn(); err != nil {
@@ -1336,7 +1336,7 @@ func (s *Scheduler) ReloadWithDueChecks(
 			name:    "receiver",
 			fn: func() {
 				if s.receiverFn == nil {
-					log.Print("schedule: receiver job skipped — receiver not wired (SetReceiverJob)")
+					log.Print("schedule: receiver job skipped, receiver not wired (SetReceiverJob)")
 					return
 				}
 				if err := s.receiverFn(); err != nil {
@@ -1368,7 +1368,7 @@ func (s *Scheduler) ReloadWithDueChecks(
 			name:    "fleet",
 			fn: func() {
 				if s.fleetFn == nil {
-					log.Print("schedule: fleet job skipped — fleet not wired (SetFleetJob)")
+					log.Print("schedule: fleet job skipped, fleet not wired (SetFleetJob)")
 					return
 				}
 				if err := s.fleetFn(); err != nil {
@@ -1391,7 +1391,7 @@ func (s *Scheduler) ReloadWithDueChecks(
 		// domain is logged. A schedule the user believes is running, and is not,
 		// is the mistake that costs backups.
 		if d.off {
-			log.Printf("schedule: %s NOT registered — the domain is switched off in Settings; its schedule stays inert until the domain is switched back on", d.name)
+			log.Printf("schedule: %s not registered: the domain is switched off in Settings, so its schedule stays inert until the domain is switched back on", d.name)
 			continue
 		}
 
@@ -1404,7 +1404,7 @@ func (s *Scheduler) ReloadWithDueChecks(
 		// older stored values, imported settings and a domain wired up without
 		// its gate.
 		if cad.IntervalDays > 0 && d.lastRun == nil {
-			log.Printf("schedule: %s NOT registered — an 'everyN' cadence needs a last-run query to enforce its interval and this schedule has none; it would fire daily. Use daily/weekly/cron instead.", d.name)
+			log.Printf("schedule: %s not registered: an 'everyN' cadence needs a last-run query to enforce its interval and this schedule has none, so it would fire daily. Use daily/weekly/cron instead.", d.name)
 			continue
 		}
 
@@ -1424,7 +1424,7 @@ func (s *Scheduler) ReloadWithDueChecks(
 				}
 				now := time.Now()
 				if !EveryNDue(last, now, intervalDays) {
-					log.Printf("schedule: %s everyN skipped — last run %v ago (%d calendar day(s)), interval %d days",
+					log.Printf("schedule: %s everyN skipped, last run %v ago (%d calendar day(s)), interval %d days",
 						domainName, now.Sub(last).Round(time.Second), calendarDaysBetween(last, now), intervalDays)
 					return
 				}

@@ -73,11 +73,11 @@ func TestBrowseStatusMissing(t *testing.T) {
 // itself is tested on every OS in browse_contract_internal_test.go.
 func TestBrowseStatusRestricted(t *testing.T) {
 	if runtime.GOOS == "windows" {
-		t.Skip("chmod 0o000 does not restrict access on Windows — this fixture proves on Linux CI (house POSIX-skip convention)")
+		t.Skip("chmod 0o000 does not restrict access on Windows; this runs on Linux CI")
 	}
 	// Root ignores permission bits (CAP_DAC_OVERRIDE).
 	if os.Geteuid() == 0 {
-		t.Skip("permission bits unenforced for root — restricted-status path requires a non-root runner")
+		t.Skip("root ignores permission bits; the restricted status needs a non-root runner")
 	}
 	root := t.TempDir()
 	locked := filepath.Join(root, "locked")
@@ -112,7 +112,7 @@ func TestBrowseStatusRestricted(t *testing.T) {
 // cannot catch this; os.Root does.
 func TestBrowseSymlinkEscapeRejected(t *testing.T) {
 	if runtime.GOOS == "windows" {
-		t.Skip("symlink creation requires privileges on Windows — this fixture proves on Linux CI (house POSIX-skip convention)")
+		t.Skip("creating a symlink needs privileges on Windows; this runs on Linux CI")
 	}
 	root := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(root, "appdata"), 0o700); err != nil {

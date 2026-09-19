@@ -130,7 +130,7 @@ func TestConfigJobScheduledAndExcludedFromDrills(t *testing.T) {
 		}
 	}
 	if !haveVMDr {
-		t.Fatal("expected a {vms, offsite, dr} task under this settings shape — config's exclusion should not depend on vms also being excluded")
+		t.Fatal("expected a {vms, offsite, dr} task under this settings shape; config's exclusion should not depend on vms also being excluded")
 	}
 
 	var haveConfigSubset bool

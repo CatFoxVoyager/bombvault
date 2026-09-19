@@ -70,7 +70,7 @@ func TestBothReceiverCheckCallersAreGuarded(t *testing.T) {
 			t.Errorf("%s runs a received-repo check without the in-flight guard", f)
 		}
 		if strings.Contains(string(src), ".receiverCheck(") {
-			t.Errorf("%s calls receiverCheck directly — use receiverCheckExclusive", f)
+			t.Errorf("%s calls receiverCheck directly; use receiverCheckExclusive", f)
 		}
 	}
 }

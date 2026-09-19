@@ -499,11 +499,11 @@ export function OffsiteWizard({
   // against the real repo URL.
   const cronHint =
     urlBackend === "rest"
-      ? `# Run on the storage box itself — BombVault stays append-only:
+      ? `# Run on the storage box itself, so BombVault stays append-only:
 0 4 * * 0 restic -r /path/on/storage-box/restic/bombvault-${domain}/${domain} forget \\
   --keep-within 14d --keep-weekly 8 --keep-monthly 12 --prune
 # note: watch for a sudden snapshot-count drop (retention-policy timestamp attack)`
-      : `# Run from a SEPARATE machine with this remote configured — BombVault itself
+      : `# Run from a separate machine with this remote configured. BombVault itself
 # never prunes an immutable off-site repo:
 0 4 * * 0 restic -r ${repoURL || "<repo-url>"} forget \\
   --keep-within 14d --keep-weekly 8 --keep-monthly 12 --prune

@@ -33,7 +33,7 @@ it("has no native <select> left anywhere in src", () => {
   }
   expect(
     offenders,
-    "Use SelectField (components/SelectField.tsx) instead — it is the app's own " +
+    "Use SelectField (components/SelectField.tsx) instead; it is the app's own " +
       "replacement, and GlimStone rule 18 says a native control gets replaced, not persuaded.",
   ).toEqual([]);
 });

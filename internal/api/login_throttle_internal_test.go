@@ -139,7 +139,7 @@ func TestLoginThrottleSweepsStaleOneOffKeys(t *testing.T) {
 	// "driver" has no failures, so its own prune removes it; anything left is a
 	// one-off key the sweep missed.
 	if remaining != 0 {
-		t.Fatalf("loginFails still holds %d stale one-off entries after %d loginThrottled calls (>= loginSweepEvery=%d) — the periodic sweep did not run", remaining, loginSweepEvery, loginSweepEvery)
+		t.Fatalf("loginFails still holds %d stale one-off entries after %d loginThrottled calls (>= loginSweepEvery=%d); the periodic sweep did not run", remaining, loginSweepEvery, loginSweepEvery)
 	}
 }
 
@@ -185,12 +185,12 @@ func TestLoginThrottleEvictionNeverUnthrottlesAnActiveAttacker(t *testing.T) {
 	mapSize := len(h.loginFails)
 	h.loginMu.Unlock()
 	if mapSize > loginMaxTracked+50 {
-		t.Fatalf("loginFails held %d entries after a %d-entry flood, want roughly <= loginMaxTracked=%d — the hard cap did not evict", mapSize, flood, loginMaxTracked)
+		t.Fatalf("loginFails held %d entries after a %d-entry flood, want roughly <= loginMaxTracked=%d; the hard cap did not evict", mapSize, flood, loginMaxTracked)
 	}
 
 	code, ok, errMsg := doLogin(t, h, attacker, "hunter2")
 	if code != http.StatusTooManyRequests || ok {
-		t.Fatalf("attacker still throttled after the flood triggered eviction: want 429, got code=%d ok=%v err=%q — eviction un-throttled an active attacker", code, ok, errMsg)
+		t.Fatalf("attacker still throttled after the flood triggered eviction: want 429, got code=%d ok=%v err=%q; eviction un-throttled an active attacker", code, ok, errMsg)
 	}
 }
 
@@ -214,6 +214,6 @@ func TestLoginThrottleCapsMapSize(t *testing.T) {
 	size := len(h.loginFails)
 	h.loginMu.Unlock()
 	if size > loginMaxTracked {
-		t.Fatalf("loginFails held %d entries after exceeding loginMaxTracked=%d, want <= %d — the hard cap did not evict", size, loginMaxTracked, loginMaxTracked)
+		t.Fatalf("loginFails held %d entries after exceeding loginMaxTracked=%d, want <= %d; the hard cap did not evict", size, loginMaxTracked, loginMaxTracked)
 	}
 }

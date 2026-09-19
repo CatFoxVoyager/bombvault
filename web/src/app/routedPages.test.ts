@@ -58,7 +58,7 @@ describe("routed pages stay inside the page-shell rule's scope", () => {
     ).toBeDefined();
     expect(
       source,
-      `<${name} /> is routed from "${source}". bombvault/page-uses-page-shell only governs src/pages/*.tsx, so a page anywhere else silently escapes the shared page shell — move it to src/pages/.`
+      `<${name} /> is routed from "${source}". bombvault/page-uses-page-shell only governs src/pages/*.tsx, so a page anywhere else escapes the shared page shell. Move it to src/pages/.`
     ).toMatch(/^\.\.\/pages\//);
   });
 
@@ -94,7 +94,7 @@ describe("the page-shell exception list is real", () => {
       expect(
         existsSync(join(SRC, "pages", f)),
         `eslint.config.js exempts src/pages/${f} from the page shell, but that file does not exist. ` +
-          `A stale exception quietly exempts nothing and hides that the list is out of date — remove it.`
+          `A stale exception quietly exempts nothing and hides that the list is out of date. Remove it.`
       ).toBe(true);
     }
   });

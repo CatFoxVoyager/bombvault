@@ -255,7 +255,7 @@ func tamperProbe(ctx context.Context, url, user, pass string) (protected bool, d
 		return false, fmt.Sprintf("the server accepted a delete (HTTP %d)", resp.StatusCode), nil
 	case resp.StatusCode == http.StatusNotFound:
 		// Not a verdict; see the doc comment.
-		return false, "", fmt.Errorf("inconclusive tamper probe: the far side does not serve this path (HTTP 404) — check that the repository URL is the one restic itself uses")
+		return false, "", fmt.Errorf("inconclusive tamper probe: the far side does not serve this path (HTTP 404); check that the repository URL is the one restic itself uses")
 	default:
 		// A rotated credential or far-side maintenance must not look like lost
 		// protection.
@@ -282,8 +282,8 @@ func (s *Service) notifyProtectionLost(ctx context.Context, domain, detail strin
 		return
 	}
 	subject := "Off-site protection LOST for " + domain
-	msg := fmt.Sprintf("The off-site tamper test for %s reports the append-only protection is GONE — the far side accepted a delete: %s", domain, detail)
-	notify.Send(ctx, c, domain, notify.Event{Title: "BombVault", Message: subject + " — " + msg, OK: false})
+	msg := fmt.Sprintf("The off-site tamper test for %s reports that the append-only protection is gone. The far side accepted a delete: %s", domain, detail)
+	notify.Send(ctx, c, domain, notify.Event{Title: "BombVault", Message: subject + ": " + msg, OK: false})
 	if s.unraidGate(c.Unraid) {
 		if e := s.sendUnraidNotify(ctx, "BombVault: "+subject, msg, "warning"); e != nil {
 			log.Printf("notify: unraid: %v", e)

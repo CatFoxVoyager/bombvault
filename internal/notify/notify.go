@@ -409,7 +409,7 @@ func SendTest(ctx context.Context, c Config) error {
 	ctx, cancel := context.WithTimeout(ctx, sendTimeout)
 	defer cancel()
 	client := &http.Client{Timeout: sendTimeout}
-	ev := Event{Title: "BombVault", Message: "Test notification — notifications are working.", OK: true}
+	ev := Event{Title: "BombVault", Message: "Test notification: notifications are working.", OK: true}
 
 	if c.webhookReady() {
 		if err := sendWebhook(ctx, client, c, ev); err != nil {

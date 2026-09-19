@@ -146,7 +146,7 @@ func TestRecoveryCodesMatchOnlyThemselves(t *testing.T) {
 		t.Fatal("an invented code must not match")
 	}
 	if MatchRecoveryCode(appKey, "", hashed) >= 0 {
-		t.Fatal("an empty code must not match — every stored hash would be a target")
+		t.Fatal("an empty code must not match, or every stored hash would be a target")
 	}
 }
 

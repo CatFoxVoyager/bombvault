@@ -104,16 +104,16 @@ func TestDetectEncryptionKeepsConcurrentSettingsSave(t *testing.T) {
 		t.Fatal("the detected mode was not applied")
 	}
 	if after.VMsPath != "user/backups/vms-CHOSEN-BY-THE-USER" {
-		t.Fatalf("VMsPath = %q — the save made during the probe was reverted", after.VMsPath)
+		t.Fatalf("VMsPath = %q; the save made during the probe was reverted", after.VMsPath)
 	}
 	if after.FilesPath != "user/backups/files-CHOSEN-BY-THE-USER" {
-		t.Fatalf("FilesPath = %q — the save made during the probe was reverted", after.FilesPath)
+		t.Fatalf("FilesPath = %q; the save made during the probe was reverted", after.FilesPath)
 	}
 	if after.RestoreFolder != "user/restores" {
-		t.Fatalf("RestoreFolder = %q — the save made during the probe was reverted", after.RestoreFolder)
+		t.Fatalf("RestoreFolder = %q; the save made during the probe was reverted", after.RestoreFolder)
 	}
 	if after.AuthPasswordHash != "set-while-the-probe-was-running" {
-		t.Fatalf("AuthPasswordHash = %q — a password set during the probe was reverted, i.e. auth silently turned back off", after.AuthPasswordHash)
+		t.Fatalf("AuthPasswordHash = %q; a password set during the probe was reverted and auth turned back off", after.AuthPasswordHash)
 	}
 	// The detection reports the row as it stands after the save, not the
 	// snapshot it read before the probe.
@@ -174,7 +174,7 @@ func TestDetectEncryptionUndecidedWritesNothing(t *testing.T) {
 		t.Fatal(err)
 	}
 	if after.InstanceName != "renamed-during-an-undecidable-probe" {
-		t.Fatalf("InstanceName = %q — an undecided detection still clobbered a concurrent save", after.InstanceName)
+		t.Fatalf("InstanceName = %q; an undecided detection still clobbered a concurrent save", after.InstanceName)
 	}
 }
 
@@ -235,7 +235,7 @@ func TestDetectEncryptionSharesOneProbePass(t *testing.T) {
 	// The repository opens under the first (encrypted) probe, so one pass
 	// probes once.
 	if eng.probes != 1 {
-		t.Fatalf("%d probes — two concurrent callers must share one pass, not run one each", eng.probes)
+		t.Fatalf("%d probes; two concurrent callers must share one pass, not run one each", eng.probes)
 	}
 }
 
@@ -320,7 +320,7 @@ func TestDetectEncryptionSurvivesTheLeadersCancelledRequest(t *testing.T) {
 		t.Fatalf("follower detect: %v", got.err)
 	}
 	if got.det.Verdict != VerdictEncrypted {
-		t.Fatalf("follower verdict = %q (repos: %+v) — the leader's disconnect cancelled the shared probes, so a live caller was told the repositories are unreachable", got.det.Verdict, got.det.Repos)
+		t.Fatalf("follower verdict = %q (repos: %+v); the leader's disconnect cancelled the shared probes, so a live caller was told the repositories are unreachable", got.det.Verdict, got.det.Repos)
 	}
 	if !got.det.EncryptionEnabled {
 		t.Fatal("the detected mode reached no one: a cancelled leader must not cost the followers their answer")
@@ -337,7 +337,7 @@ func TestDetectEncryptionSurvivesTheLeadersCancelledRequest(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !after.EncryptionEnabled {
-		t.Fatal("the detected mode was never applied — the pass died with its leader's request")
+		t.Fatal("the detected mode was never applied; the pass died with its leader's request")
 	}
 }
 

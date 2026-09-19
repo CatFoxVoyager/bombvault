@@ -127,10 +127,10 @@ func TestEverythingIdleDomainSkipsPingAndTail(t *testing.T) {
 	}
 
 	if hc.pinged("/vm") {
-		t.Fatalf("no VM is eligible — its check must not be pinged, pings = %v", hc.seen())
+		t.Fatalf("no VM is eligible, so its check must not be pinged, pings = %v", hc.seen())
 	}
 	if hc.pinged("/files") {
-		t.Fatalf("no file set is eligible — its check must not be pinged, pings = %v", hc.seen())
+		t.Fatalf("no file set is eligible, so its check must not be pinged, pings = %v", hc.seen())
 	}
 	if !hc.pinged("/container") {
 		t.Fatalf("containers HAS work and must still ping its check, pings = %v", hc.seen())

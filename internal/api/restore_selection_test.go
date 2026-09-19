@@ -185,7 +185,7 @@ func TestRestoreSelectionChangePerPathSkip(t *testing.T) {
 		t.Fatalf("run error note = %q, want exactly 1 scrubbed [path] token, got %d", row.Error, n)
 	}
 	if strings.Contains(row.Error, "/host/") || strings.Contains(row.Error, "jellyfin") {
-		t.Fatalf("run error note = %q leaks a raw path — must be scrubbed to [path] first", row.Error)
+		t.Fatalf("run error note = %q leaks a raw path; it must be scrubbed to [path] first", row.Error)
 	}
 }
 

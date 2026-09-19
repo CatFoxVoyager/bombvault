@@ -174,7 +174,7 @@ func TestMigrationVersionsAreStrictlySequential(t *testing.T) {
 	seen := map[int]string{}
 	for i, m := range migrations {
 		if prev, dup := seen[m.version]; dup {
-			t.Fatalf("duplicate migration version %d: %q and %q — Migrate would silently skip the second", m.version, prev, m.name)
+			t.Fatalf("duplicate migration version %d: %q and %q; Migrate would skip the second", m.version, prev, m.name)
 		}
 		seen[m.version] = m.name
 		if want := i + 1; m.version != want {
@@ -205,7 +205,7 @@ func TestContestedMigrationsCarryTheirGuard(t *testing.T) {
 			continue
 		}
 		if m.version == old {
-			t.Fatalf("v%d (%s) no longer differs from the number it shipped under — update this test's premise", m.version, m.name)
+			t.Fatalf("v%d (%s) no longer differs from the number it shipped under; update this test's premise", m.version, m.name)
 		}
 		if m.alreadySatisfied == nil {
 			t.Fatalf("v%d (%s) shipped under v%d as well and has no alreadySatisfied guard: it will re-run its ALTER on every :latest database and abort the boot",
@@ -294,7 +294,7 @@ func TestUpgradeConvergesFromEveryShippedDatabase(t *testing.T) {
 			tc.seed(t, db)
 
 			if err := Migrate(db); err != nil {
-				t.Fatalf("Migrate on %s failed — this is a container that does not boot: %v", tc.name, err)
+				t.Fatalf("Migrate on %s failed, so this container would not boot: %v", tc.name, err)
 			}
 
 			// Named checks before the fingerprint, so a failure says which
@@ -381,19 +381,19 @@ func TestUpgradeFromMainLatestKeepsUserData(t *testing.T) {
 		t.Fatalf("run lost in the upgrade: %v", err)
 	}
 	if group != "grp-1" {
-		t.Fatalf("runs.group_id = %q, want grp-1 — the guard must skip the ALTER, never rebuild the table", group)
+		t.Fatalf("runs.group_id = %q, want grp-1; the guard must skip the ALTER, not rebuild the table", group)
 	}
 	var sched string
 	if err := db.QueryRow(`SELECT everything_schedule FROM settings WHERE id = 1`).Scan(&sched); err != nil {
 		t.Fatalf("settings lost in the upgrade: %v", err)
 	}
 	if sched != "0 3 * * *" {
-		t.Fatalf("everything_schedule = %q, want the configured cron — the guard must not reset the column to its default", sched)
+		t.Fatalf("everything_schedule = %q, want the configured cron; the guard must not reset the column to its default", sched)
 	}
 
 	after := appliedVersions(t, db)
 	if after[89] != "settings_everything" {
-		t.Fatalf("v89 changed identity to %q — an already-recorded version must never be rewritten", after[89])
+		t.Fatalf("v89 changed identity to %q; an already-recorded version must not be rewritten", after[89])
 	}
 	if after[92] != "renumbering_recovery" {
 		t.Fatalf("v92 = %q, want renumbering_recovery", after[92])
@@ -438,7 +438,7 @@ func TestUpgradeFromPreMergeBranchDatabase(t *testing.T) {
 		t.Fatalf("v91 = %q, want runs_group_id", after[91])
 	}
 	if after[89] != "schedule_job_runs" {
-		t.Fatalf("v89 changed identity to %q — an already-applied version must never be reused", after[89])
+		t.Fatalf("v89 changed identity to %q; an already-applied version must not be reused", after[89])
 	}
 
 	// The recovery migration must not drop the branch's table or recreate it

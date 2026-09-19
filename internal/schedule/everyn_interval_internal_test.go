@@ -27,7 +27,7 @@ func TestEveryNFiresOnTheNthDayDespiteRunDuration(t *testing.T) {
 	nextFire := at(9, 3, 0) // the following Monday's 03:00 trigger
 
 	if elapsed := nextFire.Sub(finished); elapsed >= 7*24*time.Hour {
-		t.Fatalf("precondition: the gap must be SHORT of 7x24h (%v) — that is the trap being guarded", elapsed)
+		t.Fatalf("precondition: the gap must be short of 7x24h (%v), which is the case under test", elapsed)
 	}
 	if !EveryNDue(finished, nextFire, 7) {
 		t.Fatal("a 7-day schedule must fire on the 7th day, not the 8th")
@@ -41,7 +41,7 @@ func TestEveryNOneRunsEveryDay(t *testing.T) {
 	nextFire := at(3, 3, 0)
 
 	if !EveryNDue(finished, nextFire, 1) {
-		t.Fatal("everyN 1 must run on every daily trigger — it IS the daily cadence")
+		t.Fatal("everyN 1 is the daily cadence and must run on every daily trigger")
 	}
 }
 
@@ -68,7 +68,7 @@ func TestEveryNSurvivesAPassThatCrossesMidnight(t *testing.T) {
 	nextFire := at(9, 23, 30) // the 7th day's fire
 
 	if days := calendarDaysBetween(finished, nextFire); days >= 7 {
-		t.Fatalf("precondition: the stamp must be one calendar day short of the interval (%d) — that is the trap being guarded", days)
+		t.Fatalf("precondition: the stamp must be one calendar day short of the interval (%d), which is the case under test", days)
 	}
 	if !EveryNDue(finished, nextFire, 7) {
 		t.Fatal("a pass that ran past midnight must not cost its schedule a day: the 7th day's fire must run, not the 8th's")
@@ -93,7 +93,7 @@ func TestMissedRunAsksTheGateAboutTheFire(t *testing.T) {
 	finished := at(3, 0, 10)
 
 	if lastFire, missed := missedRun(cad, finished, at(9, 8, 0)); missed {
-		t.Fatalf("the last fire (%s) is six days after the pass's own fire — nothing was missed yet",
+		t.Fatalf("the last fire (%s) is six days after the pass's own fire, so nothing was missed yet",
 			lastFire.Format(time.RFC3339))
 	}
 	if _, missed := missedRun(cad, finished, at(10, 8, 0)); !missed {

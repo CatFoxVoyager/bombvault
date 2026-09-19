@@ -43,7 +43,7 @@ func TestImportCarriesEverythingSchedule(t *testing.T) {
 		t.Fatal(err)
 	}
 	if got.EverythingSchedule != "daily 04:00" {
-		t.Fatalf("everythingSchedule = %q after import, want \"daily 04:00\" — an import that clears it switches the whole-server pass off", got.EverythingSchedule)
+		t.Fatalf("everythingSchedule = %q after import, want \"daily 04:00\"; an import that clears it switches the whole-server pass off", got.EverythingSchedule)
 	}
 }
 
@@ -64,10 +64,10 @@ func TestImportKeepsDestinationEverythingHooks(t *testing.T) {
 		t.Fatal(err)
 	}
 	if got.EverythingPostHook != "curl -fsS https://hc-ping.com/dst-uuid" {
-		t.Fatalf("post-hook = %q — the dead-man's-switch ping was deleted by an import", got.EverythingPostHook)
+		t.Fatalf("post-hook = %q; the dead-man's-switch ping was deleted by an import", got.EverythingPostHook)
 	}
 	if got.EverythingPreHook != "/usr/local/bin/pre.sh" {
-		t.Fatalf("pre-hook = %q — an import must not clear it", got.EverythingPreHook)
+		t.Fatalf("pre-hook = %q; an import must not clear it", got.EverythingPreHook)
 	}
 }
 
@@ -187,7 +187,7 @@ func TestImportKeepsFieldsTheFileDoesNotSet(t *testing.T) {
 		{"EverythingPostHook", out.EverythingPostHook, "post.sh"},
 	} {
 		if c.got != c.want {
-			t.Errorf("%s = %q, want %q — an import wiped a field it does not carry", c.name, c.got, c.want)
+			t.Errorf("%s = %q, want %q; an import wiped a field it does not carry", c.name, c.got, c.want)
 		}
 	}
 	if !out.FleetEnabled || !out.RecoveryKitAck || out.SessionEpoch != "epoch-7" {

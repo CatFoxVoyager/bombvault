@@ -722,7 +722,7 @@ describe("page-uses-page-shell sees every routed page", () => {
     expect(from, `${name} is routed but not imported in router.tsx`).toBeDefined();
     expect(
       from,
-      `${name} is routed from "${from}" — page-uses-page-shell only visits src/pages/*.tsx, ` +
+      `${name} is routed from "${from}", but page-uses-page-shell only visits src/pages/*.tsx, ` +
         `so a routed page outside it is unchecked`
     ).toMatch(/^\.\.\/pages\//);
 
@@ -738,7 +738,7 @@ describe("page-uses-page-shell sees every routed page", () => {
     expect(
       hasDefault || named.test(source),
       `src/pages/${stem}.tsx must export its page component as the default export or as ` +
-        `"${stem}"/"${stem}Page" — page-uses-page-shell finds the component by that name and ` +
+        `"${stem}"/"${stem}Page"; page-uses-page-shell finds the component by that name and ` +
         `silently checks nothing otherwise`
     ).toBe(true);
 

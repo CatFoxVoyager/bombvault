@@ -86,7 +86,7 @@ func TestReceiverDailyCheckRunsTheNextDayNotTheDayAfter(t *testing.T) {
 		t.Fatalf("runReceiverChecksAt: %v", err)
 	}
 	if !checked(t, st, rr.ID) {
-		t.Fatal("a repo on a DAILY check cadence was not checked on the next day's sweep — " +
+		t.Fatal("a repo on a daily check cadence was not checked on the next day's sweep; " +
 			"it is being checked every 48h, at half the configured frequency, and the skipped day logs nothing")
 	}
 }

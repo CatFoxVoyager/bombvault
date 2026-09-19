@@ -83,7 +83,7 @@ func TestLatestSuccessfulOffsiteRunForTarget(t *testing.T) {
 	if _, found, err := r.LatestSuccessfulOffsiteRunForTarget("containers", "t2"); err != nil {
 		t.Fatalf("LatestSuccessfulOffsiteRunForTarget(t2): %v", err)
 	} else if found {
-		t.Fatal("t2 has no SUCCESSFUL run yet — must not be found")
+		t.Fatal("t2 has no successful run yet and must not be found")
 	}
 	// An empty targetID falls back to the domain-wide query and finds t1's run.
 	if _, found, err := r.LatestSuccessfulOffsiteRunForTarget("containers", ""); err != nil || !found {

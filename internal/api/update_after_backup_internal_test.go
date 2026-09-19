@@ -97,7 +97,7 @@ func TestUpdateAfterBackup_RecreatesOnNewerImage(t *testing.T) {
 	}
 	// Pruning is off by default, so the old image stays.
 	if strings.Contains(calls, "imageRemove:") {
-		t.Fatalf("prune is off by default — the old image must NOT be removed; calls %v", f.calls)
+		t.Fatalf("prune is off by default, so the old image must stay; calls %v", f.calls)
 	}
 	runs, err := st.ListRuns(10)
 	if err != nil {
@@ -219,7 +219,7 @@ func TestUpdateAfterBackup_NoReconcileWhenUpToDate(t *testing.T) {
 	svc.updateContainerAfterBackup(context.Background(), "plex", in, tg.ID)
 
 	if _, ok := unraidReconcilePHPRun(ssh.runs); ok {
-		t.Fatalf("no update happened — Unraid status must not be reconciled; runs %v", ssh.runs)
+		t.Fatalf("no update happened, so the Unraid status must not be reconciled; runs %v", ssh.runs)
 	}
 }
 
@@ -246,7 +246,7 @@ func TestUpdateAfterBackup_ReconcileSkippedWhenDisabled(t *testing.T) {
 	svc.updateContainerAfterBackup(context.Background(), "plex", in, tg.ID)
 
 	if _, ok := unraidReconcilePHPRun(ssh.runs); ok {
-		t.Fatalf("reconcile is disabled — it must not run; runs %v", ssh.runs)
+		t.Fatalf("reconcile is disabled, so it must not run; runs %v", ssh.runs)
 	}
 }
 

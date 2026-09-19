@@ -125,7 +125,7 @@ func (s *Service) backupEverythingHoldingGuard(ctx context.Context) (EverythingS
 	results := make([]EverythingDomainResult, 0, len(steps))
 	for _, step := range steps {
 		if !step.enabled {
-			log.Printf("api: backup everything: %s skipped — the domain is switched off in Settings", step.domain)
+			log.Printf("api: backup everything: %s skipped, the domain is switched off in Settings", step.domain)
 			continue
 		}
 		results = append(results, step.run())
@@ -133,7 +133,7 @@ func (s *Service) backupEverythingHoldingGuard(ctx context.Context) (EverythingS
 	if len(results) == 0 {
 		// Not an error, but a "Backup Everything" schedule with every domain off
 		// looks like protection on the dashboard, so it gets logged.
-		log.Print("api: backup everything: no domain is switched on — the pass backed up nothing")
+		log.Print("api: backup everything: no domain is switched on, so the pass backed up nothing")
 	}
 
 	// The post-hook runs exactly once after every step, whatever the outcome;

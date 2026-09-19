@@ -83,7 +83,7 @@ func TestTransportVetoBeatsAbsenceWording(t *testing.T) {
 	cases := []string{
 		"Fatal: unable to open config file: dial tcp: lookup backup.example: no such host",
 		"Fatal: unable to open config file: open /mnt/remote/config: permission denied: no such file or directory",
-		`Fatal: unable to open config file: Head "https://x/config": context deadline exceeded — object not found`,
+		`Fatal: unable to open config file: Head "https://x/config": context deadline exceeded: object not found`,
 	}
 	for _, msg := range cases {
 		if isRepoDefinitelyAbsent(errors.New(msg)) {

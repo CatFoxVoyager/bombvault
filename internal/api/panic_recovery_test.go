@@ -80,7 +80,7 @@ func TestStartBackupPanicRecordsFailedRunAndReleasesGuard(t *testing.T) {
 		t.Fatal("the shared guard must be released after a recovered panic, not left stuck")
 	}
 	if started, _ := svc.StartBackup(context.Background(), "radarr"); !started {
-		t.Fatal("a later backup must be able to start — the guard must not be stuck from the earlier panic")
+		t.Fatal("a later backup must be able to start; the guard must not be stuck from the earlier panic")
 	}
 	waitForBackupDone(t, svc) // before t.Cleanup closes the store
 }
@@ -293,7 +293,7 @@ func TestStartRestoreStackMemberPanicRecordsFailedRunAndContinues(t *testing.T) 
 		t.Fatal("the shared guard must be released after a recovered panic, not left stuck")
 	}
 	if started, _ := svc.StartBackup(context.Background(), "web"); !started {
-		t.Fatal("a later operation must be able to start — the guard must not be stuck from the earlier panic")
+		t.Fatal("a later operation must be able to start; the guard must not be stuck from the earlier panic")
 	}
 	waitForBackupDone(t, svc) // before t.Cleanup closes the store
 }
@@ -339,7 +339,7 @@ func TestStartRestoreConfigPanicRecordsFailedRunAndReleasesGuard(t *testing.T) {
 	}
 	eng.restorePanic = false
 	if started, _, err := svc.StartRestoreConfig(context.Background(), "", "local"); err != nil || !started {
-		t.Fatalf("a later config restore must be able to start — the guard must not be stuck from the earlier panic: started=%v err=%v", started, err)
+		t.Fatalf("a later config restore must be able to start; the guard must not be stuck from the earlier panic: started=%v err=%v", started, err)
 	}
 }
 
@@ -385,7 +385,7 @@ func TestStartBackupEverythingPanicRecordsFailedRunAndReleasesGuard(t *testing.T
 	}
 	svc.SetHostShell(&everythingFakeHostShell{})
 	if started, err := svc.StartBackupEverything(context.Background()); err != nil || !started {
-		t.Fatalf("a later pass must be able to start — the guard must not be stuck from the earlier panic: started=%v err=%v", started, err)
+		t.Fatalf("a later pass must be able to start; the guard must not be stuck from the earlier panic: started=%v err=%v", started, err)
 	}
 	waitForEverythingDone(t, svc)
 }

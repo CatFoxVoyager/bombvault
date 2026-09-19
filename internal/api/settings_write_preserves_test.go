@@ -96,7 +96,7 @@ func TestSettingsSaveKeepsNamedCloudCredentialSets(t *testing.T) {
 		t.Fatal(err)
 	}
 	if after.CloudCredSets != before.CloudCredSets {
-		t.Fatalf("cloud_cred_sets = %q after a settings save (was %q) — saving unrelated settings destroyed every named credential set",
+		t.Fatalf("cloud_cred_sets = %q after a settings save (was %q); saving unrelated settings destroyed every named credential set",
 			after.CloudCredSets, before.CloudCredSets)
 	}
 	sets, err := svc.CloudCredSets()
@@ -154,7 +154,7 @@ func TestSettingsSaveKeepsInstanceOwnedColumns(t *testing.T) {
 		{"FleetToken", seeded.FleetToken, after.FleetToken},
 	} {
 		if c.got != c.want {
-			t.Errorf("%s = %q after a settings save, want %q — the form wrote a column it does not own", c.name, c.got, c.want)
+			t.Errorf("%s = %q after a settings save, want %q; the form wrote a column it does not own", c.name, c.got, c.want)
 		}
 	}
 	// The form's own fields were saved.
@@ -241,7 +241,7 @@ func TestSettingsSaveMergesRegistryTokensAgainstTheCurrentRow(t *testing.T) {
 		t.Fatalf("registry auths = %+v, want exactly the one seeded host", auths)
 	}
 	if auths[0].Token != "rotated-token" {
-		t.Fatalf("registry token = %q, want %q — the blank token was resolved against a stale snapshot, so an unrelated save reverted the rotation",
+		t.Fatalf("registry token = %q, want %q; the blank token was resolved against a stale snapshot, so an unrelated save reverted the rotation",
 			auths[0].Token, "rotated-token")
 	}
 }

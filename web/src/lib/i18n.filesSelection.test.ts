@@ -36,7 +36,7 @@ describe("files selection-tree copy", () => {
       en["files.emptySelectionBlocked"],
       en["files.pathChangeHint"],
     ]) {
-      expect(key).not.toMatch(/—|–/);
+      expect(key).not.toMatch(/[\u2013\u2014]/);
     }
   });
 });

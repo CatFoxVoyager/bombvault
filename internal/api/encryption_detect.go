@@ -197,7 +197,7 @@ func (s *Service) detectEncryption(ctx context.Context) (EncryptionDetection, er
 		return det, fmt.Errorf("apply detected encryption mode: %w", mErr)
 	}
 	if applied {
-		log.Printf("api: encryption mode auto-detected as %s — Settings.EncryptionEnabled set to %v", verdict, want)
+		log.Printf("api: encryption mode auto-detected as %s, Settings.EncryptionEnabled set to %v", verdict, want)
 	}
 	det.Applied = applied
 	det.EncryptionEnabled = current.EncryptionEnabled

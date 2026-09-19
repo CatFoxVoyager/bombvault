@@ -81,7 +81,7 @@ func TestParseDomainTPMExternalBackendHasNoPath(t *testing.T) {
 		t.Fatalf("ParseDomain: %v", err)
 	}
 	if d.TPMPath != "" {
-		t.Fatalf("TPMPath = %q, want empty (external backend's socket path is not treated as usable state — see tpm.go)", d.TPMPath)
+		t.Fatalf("TPMPath = %q, want empty (an external backend's socket path is not usable state, see tpm.go)", d.TPMPath)
 	}
 }
 
@@ -129,7 +129,7 @@ func TestParseDomainTPMPassthroughRejectsUnsafePath(t *testing.T) {
 		t.Fatalf("ParseDomain: %v", err)
 	}
 	if d.TPMPath != "" {
-		t.Fatalf("TPMPath = %q, want empty — an unsafe device path must never be trusted", d.TPMPath)
+		t.Fatalf("TPMPath = %q, want empty; an unsafe device path must not be trusted", d.TPMPath)
 	}
 }
 

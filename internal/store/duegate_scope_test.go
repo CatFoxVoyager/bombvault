@@ -93,7 +93,7 @@ func TestContainersDueGateIgnoresItemsTheDomainRunSkips(t *testing.T) {
 		t.Fatal(err)
 	}
 	if schedule.EveryNDue(anyItem, now, 7) {
-		t.Fatal("precondition: 'newest success anywhere' is expected to read NOT due here — that is the starvation being guarded")
+		t.Fatal("precondition: 'newest success anywhere' is expected to read not due here, which is the starvation under test")
 	}
 }
 

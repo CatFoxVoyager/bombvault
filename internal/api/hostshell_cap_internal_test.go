@@ -14,7 +14,7 @@ func TestCappedBufferKeepsHeadAndCountsTheRest(t *testing.T) {
 		t.Fatalf("Write: %v", err)
 	}
 	if n != 16 {
-		t.Fatalf("Write reported %d bytes, want 16 — a short write would EPIPE the hook", n)
+		t.Fatalf("Write reported %d bytes, want 16; a short write would EPIPE the hook", n)
 	}
 
 	got := b.String()

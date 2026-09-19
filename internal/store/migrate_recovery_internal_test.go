@@ -60,7 +60,7 @@ func TestMigrateRecoversSettingsEverythingColumns(t *testing.T) {
 			t.Fatal(err)
 		}
 		if n == 0 {
-			t.Fatalf("settings.%s missing after recovery — getSettings selects it by name", col)
+			t.Fatalf("settings.%s missing after recovery; getSettings selects it by name", col)
 		}
 	}
 	if _, err := New(db).GetSettings(); err != nil {
@@ -119,7 +119,7 @@ func TestPanicClosedRunIsNotCompleted(t *testing.T) {
 		t.Fatal(err)
 	}
 	if panicked != 0 {
-		t.Fatal("a panic-closed run must not count as completed — it never reached its own conclusion")
+		t.Fatal("a panic-closed run never finished and must not count as completed")
 	}
 	if real != 1 {
 		t.Fatal("a run that genuinely finished (and failed) must stay completed")

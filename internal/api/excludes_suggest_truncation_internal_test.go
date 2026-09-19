@@ -85,7 +85,7 @@ func TestScanExcludeCandidatesMidWalkTruncation(t *testing.T) {
 			t.Fatalf("candidate %q is not in the full-walk result at all: %+v", rel, sc.cands)
 		}
 		if c.size != want.size {
-			t.Fatalf("candidate %q is marked complete with size %d, but its real size is %d — "+
+			t.Fatalf("candidate %q is marked complete with size %d, but its real size is %d; "+
 				"a complete flag on a partial number is exactly defect #175", rel, c.size, want.size)
 		}
 	}
