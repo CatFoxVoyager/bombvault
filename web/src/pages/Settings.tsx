@@ -4833,8 +4833,12 @@ export function SettingsPage() {
         <div className="flex flex-col gap-4">
           {CONTROL_AXES.map((axis, axisIndex) => (
             <div key={axis} className="flex flex-col gap-1">
-              <span className="text-xs text-carbon-textSub">
+              <span className="flex items-center gap-1 text-xs text-carbon-textSub">
                 {t(`settings.labels.${axis}` as TranslationKey)}
+                {/* The bottombar row is the one axis with no desktop face, so
+                    it is also the only one that needs the scope spelled out:
+                    without the hint its label reads as global. */}
+                {axis === "bottombar" && <InfoBubble tip={t("settings.axisBottombarHint")} />}
               </span>
               <Selector
                 items={LABEL_MODES.map((m) => ({
@@ -4863,14 +4867,6 @@ export function SettingsPage() {
                 // start in the settings tree comes out of the same table.
                 hueOffset={HUE_OFFSET.labels + axisIndex}
               />
-              {/* The bottombar row is the one axis with no desktop face, so
-                  it is also the only one that needs the scope spelled out:
-                  without the hint its label reads as global. */}
-              {axis === "bottombar" && (
-                <span className="text-xs text-carbon-textMuted">
-                  {t("settings.axisBottombarHint")}
-                </span>
-              )}
             </div>
           ))}
         </div>
