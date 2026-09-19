@@ -266,23 +266,36 @@ export function Config() {
       .catch(() => undefined);
   }, []);
 
-  function load() {
-    setError(null);
-    return listConfigSnapshots(source)
-      .then((res) => {
-        if (res.ok) setSnapshots(res.snapshots ?? []);
-        else setError(res.error ?? t("config.loadBackupsFailed"));
-      })
-      .catch((err: unknown) =>
-        setError(err instanceof Error ? err.message : t("config.loadBackupsFailed"))
-      );
-  }
+  const [reloadTick, setReloadTick] = useState(0);
+  const reload = () => setReloadTick((n) => n + 1);
 
+  // A switch of source hides the list until the new one is in (the toggle sets
+  // `loading`); a reload after a backup or a delete swaps it in place. An
+  // answer that arrives after the next switch is dropped, and a failure
+  // empties the list, whose rows belong to the source just left. t() only
+  // builds the failure message, so a language switch fetches nothing.
   useEffect(() => {
-    setLoading(true);
-    void load().finally(() => setLoading(false));
+    let current = true;
+    const fail = (message: string) => {
+      if (!current) return;
+      setSnapshots([]);
+      setError(message);
+    };
+    setError(null);
+    listConfigSnapshots(source)
+      .then((res) => {
+        if (!res.ok) return fail(res.error ?? t("config.loadBackupsFailed"));
+        if (current) setSnapshots(res.snapshots ?? []);
+      })
+      .catch((err: unknown) => fail(err instanceof Error ? err.message : t("config.loadBackupsFailed")))
+      .finally(() => {
+        if (current) setLoading(false);
+      });
+    return () => {
+      current = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [source]);
+  }, [source, reloadTick]);
 
   return (
     <div className={PAGE_SHELL}>
@@ -309,7 +322,7 @@ export function Config() {
           <div className="flex justify-end">
             <ConfigBackupButton
               t={t}
-              onBackedUp={() => void load()}
+              onBackedUp={reload}
               externallyBusy={running.active}
               busyPhase={running.phase}
             />
@@ -344,7 +357,18 @@ export function Config() {
             {t("source.label")}
             <InfoBubble tip={t("source.hint")} />
           </span>
-          <SourceToggle source={source} onChange={setSource} disabled={loading} domain="config" />
+          <SourceToggle
+            source={source}
+            onChange={(next) => {
+              // The selector reports a click on the active source too, and
+              // no load would follow to clear `loading`.
+              if (next === source) return;
+              setLoading(true);
+              setSource(next);
+            }}
+            disabled={loading}
+            domain="config"
+          />
         </div>
 
         {loading && <p className="text-xs text-carbon-textMuted">{t("dashboard.checking")}</p>}
@@ -359,7 +383,7 @@ export function Config() {
                 key={snap.id}
                 snap={snap}
                 source={source}
-                onDeleted={() => void load()}
+                onDeleted={reload}
                 t={t}
               />
             ))}

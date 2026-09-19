@@ -585,15 +585,28 @@ function FileSetRestorePanel({
 
   useEffect(() => {
     if (!open) return;
+    // An answer that arrives after the next switch is dropped, and a failure
+    // empties the list, whose rows belong to the source just left.
+    let current = true;
+    const fail = (message: string) => {
+      if (!current) return;
+      setSnapshots([]);
+      setError(message);
+    };
     setLoading(true);
     setError(null);
     fileSetSnapshots(set.id, source)
       .then((res) => {
-        if (res.ok) setSnapshots(res.snapshots ?? []);
-        else setError(res.error ?? t("common.loadBackupsFailed"));
+        if (!res.ok) return fail(res.error ?? t("common.loadBackupsFailed"));
+        if (current) setSnapshots(res.snapshots ?? []);
       })
-      .catch(() => setError(t("common.loadBackupsFailed")))
-      .finally(() => setLoading(false));
+      .catch(() => fail(t("common.loadBackupsFailed")))
+      .finally(() => {
+        if (current) setLoading(false);
+      });
+    return () => {
+      current = false;
+    };
   }, [open, set.id, source, reloadTick]); // eslint-disable-line react-hooks/exhaustive-deps -- t() is only read to build a failure message; re-fetching on a language switch would be a wasted round-trip
 
   // A failure goes to a toast: the reload that follows it would clear an

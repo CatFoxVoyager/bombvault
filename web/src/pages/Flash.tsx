@@ -184,24 +184,36 @@ export function Flash() {
   // Any backup, restore or replication in flight disables the backup button
   // up front instead of waiting for the server's 409.
   const running = anyActive(progressMap);
+  const [reloadTick, setReloadTick] = useState(0);
+  const reload = () => setReloadTick((n) => n + 1);
 
-  function load() {
-    setError(null);
-    return listFlashSnapshots(source)
-      .then((res) => {
-        if (res.ok) setSnapshots(res.snapshots ?? []);
-        else setError(res.error ?? t("flash.loadBackupsFailed"));
-      })
-      .catch((err: unknown) =>
-        setError(err instanceof Error ? err.message : t("flash.loadBackupsFailed"))
-      );
-  }
-
+  // A switch of source hides the list until the new one is in (the toggle sets
+  // `loading`); a reload after a backup or a delete swaps it in place. An
+  // answer that arrives after the next switch is dropped, and a failure
+  // empties the list, whose rows belong to the source just left. t() only
+  // builds the failure message, so a language switch fetches nothing.
   useEffect(() => {
-    setLoading(true);
-    void load().finally(() => setLoading(false));
+    let current = true;
+    const fail = (message: string) => {
+      if (!current) return;
+      setSnapshots([]);
+      setError(message);
+    };
+    setError(null);
+    listFlashSnapshots(source)
+      .then((res) => {
+        if (!res.ok) return fail(res.error ?? t("flash.loadBackupsFailed"));
+        if (current) setSnapshots(res.snapshots ?? []);
+      })
+      .catch((err: unknown) => fail(err instanceof Error ? err.message : t("flash.loadBackupsFailed")))
+      .finally(() => {
+        if (current) setLoading(false);
+      });
+    return () => {
+      current = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [source]);
+  }, [source, reloadTick]);
 
   return (
     // The OffsiteIndicator sits inside the heading div, so the shell gap alone
@@ -229,7 +241,7 @@ export function Flash() {
           <div className="flex justify-end">
             <FlashBackupButton
               t={t}
-              onBackedUp={() => void load()}
+              onBackedUp={reload}
               externallyBusy={running.active}
               busyPhase={running.phase}
             />
@@ -267,7 +279,18 @@ export function Flash() {
             {t("source.label")}
             <InfoBubble tip={t("source.hint")} />
           </span>
-          <SourceToggle source={source} onChange={setSource} disabled={loading} domain="flash" />
+          <SourceToggle
+            source={source}
+            onChange={(next) => {
+              // The selector reports a click on the active source too, and
+              // no load would follow to clear `loading`.
+              if (next === source) return;
+              setLoading(true);
+              setSource(next);
+            }}
+            disabled={loading}
+            domain="flash"
+          />
         </div>
 
         {loading && <p className="text-xs text-carbon-textMuted">{t("dashboard.checking")}</p>}
@@ -278,7 +301,7 @@ export function Flash() {
         {!loading && snapshots.length > 0 && (
           <div className="rounded-card bg-carbon-background px-3 py-1">
             {snapshots.map((snap) => (
-              <FlashSnapshotRow key={snap.id} snap={snap} source={source} onDeleted={() => void load()} t={t} />
+              <FlashSnapshotRow key={snap.id} snap={snap} source={source} onDeleted={reload} t={t} />
             ))}
           </div>
         )}
