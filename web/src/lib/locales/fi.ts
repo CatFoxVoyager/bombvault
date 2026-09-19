@@ -885,6 +885,7 @@ const fi: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Suojaustila",
   "dashboard.noOffsite": "Ei etäkopiota",
+  "dashboard.statusLoadFailed": "Tilan lataaminen epäonnistui",
   "dashboard.neverExcluded": "Ei ajastettu",
   "dashboard.neverExcludedTitle": "Jätetty tarkoituksella pois aikataulusta, joten täällä ei ole mitään varmuuskopioitavaa.",
   "dashboard.neverSelf": "Oma säiliö",

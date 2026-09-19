@@ -855,6 +855,7 @@ const it: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Stato di protezione",
   "dashboard.noOffsite": "Nessuna copia off-site",
+  "dashboard.statusLoadFailed": "Impossibile caricare lo stato",
   "dashboard.neverExcluded": "Non pianificato",
   "dashboard.neverExcludedTitle": "Lasciato fuori dalla pianificazione di proposito: qui non c'è nulla da salvare.",
   "dashboard.neverSelf": "Contenitore proprio",

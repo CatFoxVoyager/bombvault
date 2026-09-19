@@ -746,6 +746,7 @@ const eu: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Babes-egoera",
   "dashboard.noOffsite": "Kanpoko kopiarik ez",
+  "dashboard.statusLoadFailed": "Ezin izan da egoera kargatu",
   "dashboard.neverExcluded": "Programatu gabe",
   "dashboard.neverExcludedTitle": "Nahita utzi da egutegitik kanpo, beraz hemen ez dago ezer babesteko.",
   "dashboard.neverSelf": "Bere edukiontzia",

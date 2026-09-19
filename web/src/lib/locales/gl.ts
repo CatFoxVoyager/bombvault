@@ -746,6 +746,7 @@ const gl: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Estado de protección",
   "dashboard.noOffsite": "Sen copia externa",
+  "dashboard.statusLoadFailed": "Non se puido cargar o estado",
   "dashboard.neverExcluded": "Sen programar",
   "dashboard.neverExcludedTitle": "Deixouse fóra da programación a propósito, así que aquí non hai nada que copiar.",
   "dashboard.neverSelf": "Contedor propio",

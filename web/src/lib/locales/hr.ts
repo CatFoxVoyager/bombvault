@@ -746,6 +746,7 @@ const hr: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Status zaštite",
   "dashboard.noOffsite": "Nema kopije izvan lokacije",
+  "dashboard.statusLoadFailed": "Status nije moguće učitati",
   "dashboard.neverExcluded": "Nije zakazano",
   "dashboard.neverExcludedTitle": "Namjerno izostavljeno iz rasporeda, pa ovdje nema što sigurnosno kopirati.",
   "dashboard.neverSelf": "Vlastiti spremnik",

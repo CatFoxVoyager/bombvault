@@ -746,6 +746,7 @@ const hi: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "सुरक्षा स्थिति",
   "dashboard.noOffsite": "कोई ऑफ़-साइट प्रति नहीं",
+  "dashboard.statusLoadFailed": "स्थिति लोड नहीं हो सकी",
   "dashboard.neverExcluded": "निर्धारित नहीं",
   "dashboard.neverExcludedTitle": "जानबूझकर समय-सारणी से बाहर रखा गया है, इसलिए यहाँ बैकअप के लिए कुछ नहीं है।",
   "dashboard.neverSelf": "अपना कंटेनर",

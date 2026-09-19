@@ -746,6 +746,7 @@ const fa: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "وضعیت محافظت",
   "dashboard.noOffsite": "بدون نسخه خارج از محل",
+  "dashboard.statusLoadFailed": "بارگذاری وضعیت ممکن نشد",
   "dashboard.neverExcluded": "زمان‌بندی نشده",
   "dashboard.neverExcludedTitle": "به‌عمد از زمان‌بندی کنار گذاشته شده، پس اینجا چیزی برای پشتیبان‌گیری نیست.",
   "dashboard.neverSelf": "کانتینر خودش",

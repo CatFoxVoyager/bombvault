@@ -865,6 +865,7 @@ const he: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "מצב הגנה",
   "dashboard.noOffsite": "אין עותק מחוץ לאתר",
+  "dashboard.statusLoadFailed": "לא ניתן היה לטעון את המצב",
   "dashboard.neverExcluded": "לא מתוזמן",
   "dashboard.neverExcludedTitle": "הושאר מחוץ ללוח הזמנים בכוונה, ולכן אין כאן מה לגבות.",
   "dashboard.neverSelf": "המכולה שלו",

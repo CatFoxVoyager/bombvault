@@ -885,6 +885,7 @@ const sv: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Skyddsstatus",
   "dashboard.noOffsite": "Ingen kopia utanför platsen",
+  "dashboard.statusLoadFailed": "Det gick inte att läsa in statusen",
   "dashboard.neverExcluded": "Inte schemalagt",
   "dashboard.neverExcludedTitle": "Medvetet utelämnat ur schemat, så här finns inget att säkerhetskopiera.",
   "dashboard.neverSelf": "Egen behållare",

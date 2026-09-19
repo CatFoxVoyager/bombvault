@@ -746,6 +746,7 @@ const ca: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Estat de protecció",
   "dashboard.noOffsite": "Cap còpia externa",
+  "dashboard.statusLoadFailed": "No s'ha pogut carregar l'estat",
   "dashboard.neverExcluded": "No programat",
   "dashboard.neverExcludedTitle": "Deixat fora de la planificació a propòsit, així que aquí no hi ha res per copiar.",
   "dashboard.neverSelf": "Contenidor propi",

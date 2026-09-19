@@ -880,6 +880,7 @@ const uk: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Стан захисту",
   "dashboard.noOffsite": "Немає зовнішньої копії",
+  "dashboard.statusLoadFailed": "Не вдалося завантажити стан",
   "dashboard.neverExcluded": "Не заплановано",
   "dashboard.neverExcludedTitle": "Свідомо залишено поза розкладом, тож тут нема чого копіювати.",
   "dashboard.neverSelf": "Власний контейнер",

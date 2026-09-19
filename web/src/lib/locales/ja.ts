@@ -857,6 +857,7 @@ const ja: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "保護ステータス",
   "dashboard.noOffsite": "オフサイトの複製なし",
+  "dashboard.statusLoadFailed": "状態を読み込めませんでした",
   "dashboard.neverExcluded": "予定なし",
   "dashboard.neverExcludedTitle": "意図的に予定から外してあるため、ここに保存するものはありません。",
   "dashboard.neverSelf": "自身のコンテナー",

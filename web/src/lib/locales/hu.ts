@@ -868,6 +868,7 @@ const hu: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Védelmi állapot",
   "dashboard.noOffsite": "Nincs telephelyen kívüli másolat",
+  "dashboard.statusLoadFailed": "Az állapot nem tölthető be",
   "dashboard.neverExcluded": "Nincs ütemezve",
   "dashboard.neverExcludedTitle": "Szándékosan kimaradt az ütemezésből, így itt nincs mit menteni.",
   "dashboard.neverSelf": "Saját konténer",

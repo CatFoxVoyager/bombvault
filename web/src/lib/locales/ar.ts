@@ -888,6 +888,7 @@ const ar: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "حالة الحماية",
   "dashboard.noOffsite": "لا توجد نسخة خارج الموقع",
+  "dashboard.statusLoadFailed": "تعذر تحميل الحالة",
   "dashboard.neverExcluded": "غير مجدول",
   "dashboard.neverExcludedTitle": "استُثني من الجدول عن قصد، فلا شيء هنا لنسخه احتياطياً.",
   "dashboard.neverSelf": "الحاوية الخاصة",

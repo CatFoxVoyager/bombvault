@@ -885,6 +885,7 @@ const el: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Κατάσταση προστασίας",
   "dashboard.noOffsite": "Κανένα αντίγραφο εκτός τοποθεσίας",
+  "dashboard.statusLoadFailed": "Δεν ήταν δυνατή η φόρτωση της κατάστασης",
   "dashboard.neverExcluded": "Δεν έχει προγραμματιστεί",
   "dashboard.neverExcludedTitle": "Εξαιρέθηκε σκόπιμα από το πρόγραμμα, οπότε δεν υπάρχει τίποτα να αντιγραφεί εδώ.",
   "dashboard.neverSelf": "Δικό του κοντέινερ",

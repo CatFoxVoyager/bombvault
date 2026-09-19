@@ -746,6 +746,7 @@ const ms: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Status perlindungan",
   "dashboard.noOffsite": "Tiada salinan luar tapak",
+  "dashboard.statusLoadFailed": "Tidak dapat memuatkan status",
   "dashboard.neverExcluded": "Tidak dijadualkan",
   "dashboard.neverExcludedTitle": "Sengaja ditinggalkan di luar jadual, jadi tiada apa untuk disandarkan di sini.",
   "dashboard.neverSelf": "Bekas sendiri",

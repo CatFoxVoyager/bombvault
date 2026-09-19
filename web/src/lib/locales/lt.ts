@@ -746,6 +746,7 @@ const lt: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Apsaugos būsena",
   "dashboard.noOffsite": "Nėra kopijos kitoje vietoje",
+  "dashboard.statusLoadFailed": "Nepavyko įkelti būsenos",
   "dashboard.neverExcluded": "Nesuplanuota",
   "dashboard.neverExcludedTitle": "Sąmoningai palikta už tvarkaraščio ribų, tad čia nėra ko kurti atsarginės kopijos.",
   "dashboard.neverSelf": "Savas konteineris",

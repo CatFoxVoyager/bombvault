@@ -885,6 +885,7 @@ const da: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Beskyttelsesstatus",
   "dashboard.noOffsite": "Ingen ekstern kopi",
+  "dashboard.statusLoadFailed": "Kunne ikke indlæse status",
   "dashboard.neverExcluded": "Ikke planlagt",
   "dashboard.neverExcludedTitle": "Bevidst udeladt af planen, så der er intet at sikkerhedskopiere her.",
   "dashboard.neverSelf": "Egen container",

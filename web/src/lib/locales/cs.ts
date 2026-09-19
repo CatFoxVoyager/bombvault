@@ -883,6 +883,7 @@ const cs: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Stav ochrany",
   "dashboard.noOffsite": "Žádná kopie mimo lokalitu",
+  "dashboard.statusLoadFailed": "Stav se nepodařilo načíst",
   "dashboard.neverExcluded": "Není naplánováno",
   "dashboard.neverExcludedTitle": "Záměrně vynecháno z plánu, takže tady není co zálohovat.",
   "dashboard.neverSelf": "Vlastní kontejner",

@@ -985,6 +985,7 @@ export const en = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Protection status",
   "dashboard.noOffsite": "No off-site copy",
+  "dashboard.statusLoadFailed": "Could not load status",
   "dashboard.neverExcluded": "Not scheduled",
   "dashboard.neverExcludedTitle": "Left out of the schedule on purpose, so there is nothing to back up here.",
   "dashboard.neverSelf": "Own container",
@@ -2764,6 +2765,7 @@ export const de: Translations = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Schutzstatus",
   "dashboard.noOffsite": "Keine Off-site-Kopie",
+  "dashboard.statusLoadFailed": "Status konnte nicht geladen werden",
   "dashboard.neverExcluded": "Nicht eingeplant",
   "dashboard.neverExcludedTitle": "Bewusst aus dem Zeitplan gelassen, hier gibt es also nichts zu sichern.",
   "dashboard.neverSelf": "Eigener Container",

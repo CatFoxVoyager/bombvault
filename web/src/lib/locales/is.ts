@@ -746,6 +746,7 @@ const is: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Verndarstaða",
   "dashboard.noOffsite": "Ekkert afrit utan staðar",
+  "dashboard.statusLoadFailed": "Ekki tókst að hlaða stöðu",
   "dashboard.neverExcluded": "Ekki á áætlun",
   "dashboard.neverExcludedTitle": "Vísvitandi skilið eftir utan áætlunar, svo hér er ekkert að afrita.",
   "dashboard.neverSelf": "Eigin gámur",

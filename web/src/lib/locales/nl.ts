@@ -859,6 +859,7 @@ const nl: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Beschermingsstatus",
   "dashboard.noOffsite": "Geen kopie op afstand",
+  "dashboard.statusLoadFailed": "Kan de status niet laden",
   "dashboard.neverExcluded": "Niet ingepland",
   "dashboard.neverExcludedTitle": "Bewust buiten de planning gelaten, dus hier valt niets te back-uppen.",
   "dashboard.neverSelf": "Eigen container",

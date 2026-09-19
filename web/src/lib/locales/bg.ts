@@ -746,6 +746,7 @@ const bg: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Статус на защитата",
   "dashboard.noOffsite": "Няма външно копие",
+  "dashboard.statusLoadFailed": "Състоянието не може да бъде заредено",
   "dashboard.neverExcluded": "Не е планирано",
   "dashboard.neverExcludedTitle": "Съзнателно е извън графика, така че тук няма какво да се архивира.",
   "dashboard.neverSelf": "Собствен контейнер",

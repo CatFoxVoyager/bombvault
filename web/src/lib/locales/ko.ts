@@ -857,6 +857,7 @@ const ko: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "보호 상태",
   "dashboard.noOffsite": "외부 사본 없음",
+  "dashboard.statusLoadFailed": "상태를 불러오지 못했습니다",
   "dashboard.neverExcluded": "예약 안 됨",
   "dashboard.neverExcludedTitle": "의도적으로 일정에서 제외했으므로 여기서 백업할 것은 없습니다.",
   "dashboard.neverSelf": "자기 컨테이너",

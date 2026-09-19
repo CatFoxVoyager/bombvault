@@ -857,6 +857,7 @@ const ru: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Состояние защиты",
   "dashboard.noOffsite": "Нет внешней копии",
+  "dashboard.statusLoadFailed": "Не удалось загрузить состояние",
   "dashboard.neverExcluded": "Не запланировано",
   "dashboard.neverExcludedTitle": "Намеренно оставлено вне расписания, поэтому здесь нечего копировать.",
   "dashboard.neverSelf": "Собственный контейнер",

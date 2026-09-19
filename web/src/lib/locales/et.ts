@@ -746,6 +746,7 @@ const et: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Kaitse olek",
   "dashboard.noOffsite": "Väliskoopiat pole",
+  "dashboard.statusLoadFailed": "Oleku laadimine ei õnnestunud",
   "dashboard.neverExcluded": "Pole ajastatud",
   "dashboard.neverExcludedTitle": "Teadlikult ajakavast välja jäetud, siin pole midagi varundada.",
   "dashboard.neverSelf": "Enda konteiner",

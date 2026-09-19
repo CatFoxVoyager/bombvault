@@ -877,6 +877,7 @@ const zh: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "保护状态",
   "dashboard.noOffsite": "没有异地副本",
+  "dashboard.statusLoadFailed": "无法加载状态",
   "dashboard.neverExcluded": "未安排",
   "dashboard.neverExcludedTitle": "有意排除在计划之外，因此这里没有需要备份的内容。",
   "dashboard.neverSelf": "自身容器",

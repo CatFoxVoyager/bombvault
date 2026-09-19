@@ -746,6 +746,7 @@ const lv: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Aizsardzības statuss",
   "dashboard.noOffsite": "Nav kopijas ārpus vietas",
+  "dashboard.statusLoadFailed": "Nevarēja ielādēt statusu",
   "dashboard.neverExcluded": "Nav ieplānots",
   "dashboard.neverExcludedTitle": "Apzināti atstāts ārpus grafika, tāpēc te nav ko dublēt.",
   "dashboard.neverSelf": "Savs konteiners",

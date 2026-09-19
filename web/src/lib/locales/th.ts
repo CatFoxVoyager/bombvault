@@ -888,6 +888,7 @@ const th: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "สถานะการป้องกัน",
   "dashboard.noOffsite": "ไม่มีสำเนานอกสถานที่",
+  "dashboard.statusLoadFailed": "ไม่สามารถโหลดสถานะได้",
   "dashboard.neverExcluded": "ไม่ได้อยู่ในกำหนดการ",
   "dashboard.neverExcludedTitle": "เว้นไว้นอกกำหนดการโดยตั้งใจ จึงไม่มีอะไรต้องสำรองที่นี่",
   "dashboard.neverSelf": "คอนเทนเนอร์ของตัวเอง",

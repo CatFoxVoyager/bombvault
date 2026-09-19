@@ -885,6 +885,7 @@ const tr: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Koruma durumu",
   "dashboard.noOffsite": "Tesis dışı kopya yok",
+  "dashboard.statusLoadFailed": "Durum yüklenemedi",
   "dashboard.neverExcluded": "Zamanlanmadı",
   "dashboard.neverExcludedTitle": "Bilerek zamanlamanın dışında bırakıldı, burada yedeklenecek bir şey yok.",
   "dashboard.neverSelf": "Kendi kapsayıcısı",

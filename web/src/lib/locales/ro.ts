@@ -865,6 +865,7 @@ const ro: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Stare protecție",
   "dashboard.noOffsite": "Fără copie în afara locației",
+  "dashboard.statusLoadFailed": "Nu s-a putut încărca starea",
   "dashboard.neverExcluded": "Neprogramat",
   "dashboard.neverExcludedTitle": "Lăsat intenționat în afara programării, așa că nu este nimic de salvat aici.",
   "dashboard.neverSelf": "Container propriu",

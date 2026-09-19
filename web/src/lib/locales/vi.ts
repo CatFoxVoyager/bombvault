@@ -877,6 +877,7 @@ const vi: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Trạng thái bảo vệ",
   "dashboard.noOffsite": "Không có bản sao ngoài site",
+  "dashboard.statusLoadFailed": "Không thể tải trạng thái",
   "dashboard.neverExcluded": "Không có lịch",
   "dashboard.neverExcludedTitle": "Được cố ý để ngoài lịch, nên ở đây không có gì để sao lưu.",
   "dashboard.neverSelf": "Vùng chứa của chính nó",

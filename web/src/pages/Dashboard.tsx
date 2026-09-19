@@ -1686,6 +1686,7 @@ function StorageCard({
   dense,
   domains,
   statusLoading,
+  statusFailed,
 }: {
   t: ReturnType<typeof useT>["t"];
   hueIndex?: number;
@@ -1697,6 +1698,10 @@ function StorageCard({
   /** True until the page's /api/status load settles (the phone face's health
    *  row gates on it; the desktop card has nothing to gate on it). */
   statusLoading: boolean;
+  /** True when that load refused or failed; the phone off-site line then
+   *  reports the failed read instead of reading the empty list as "no
+   *  off-site copy". */
+  statusFailed: boolean;
 }) {
   const [data, setData] = useState<DomainStats[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -1807,7 +1812,16 @@ function StorageCard({
                 : t("dashboard.noStats")}
           </p>
           <p className="text-xs">
-            {newestReplication ? (
+            {/* Three states, in order: still checking, could not check, and
+                only then the answer itself. An empty list before the first
+                answer (or after a failed read) must not read as "no off-site
+                copy", which is a claim about the user's setup, not about the
+                request. */}
+            {statusLoading ? (
+              <span className="text-carbon-textMuted">{t("dashboard.checking")}</span>
+            ) : statusFailed ? (
+              <span className="text-carbon-textMuted">{t("dashboard.statusLoadFailed")}</span>
+            ) : newestReplication ? (
               <span className="font-semibold text-statusOffsite">
                 ↗ {relativeTime(t, newestReplication.lastReplicationAt)}
               </span>
@@ -2687,6 +2701,10 @@ export function Dashboard() {
   // duplicate round-trip — both cards read the same extended domain status).
   const [statusDomains, setStatusDomains] = useState<DomainStatus[]>([]);
   const [statusLoading, setStatusLoading] = useState(true);
+  // The last /api/status load refused or failed; cleared by the next
+  // success. The phone off-site line reads it to distinguish "checked, and
+  // genuinely no copy" from "never got an answer".
+  const [statusFailed, setStatusFailed] = useState(false);
 
   // Newest run for the summary tier's "Last result" cell. listRuns returns
   // newest-first, so runs[0] is the latest. Polled (not fetched once) so the
@@ -2773,9 +2791,19 @@ export function Dashboard() {
     const load = () => {
       getStatus()
         .then((res) => {
-          if (active && res.ok) setStatusDomains(res.domains ?? []);
+          if (active && res.ok) {
+            setStatusDomains(res.domains ?? []);
+            setStatusFailed(false);
+          } else if (active) {
+            // A refused read is a failed read: the phone off-site line has to
+            // say "could not load" instead of claiming "no off-site copy"
+            // from an empty list.
+            setStatusFailed(true);
+          }
         })
-        .catch(() => {/* non-fatal */})
+        .catch(() => {
+          if (active) setStatusFailed(true);
+        })
         .finally(() => {
           if (active) setStatusLoading(false);
         });
@@ -2939,7 +2967,7 @@ export function Dashboard() {
       id: "storage",
       label: t("dashboard.storageTitle"),
       render: (nextHue) => (
-        <StorageCard t={t} hueIndex={nextHue()} dense={false} domains={statusDomains} statusLoading={statusLoading} />
+        <StorageCard t={t} hueIndex={nextHue()} dense={false} domains={statusDomains} statusLoading={statusLoading} statusFailed={statusFailed} />
       ),
     },
     {
@@ -3209,7 +3237,7 @@ export function Dashboard() {
             refreshRuns={refreshRuns}
             onOpenRun={openRun}
           />
-          <StorageCard dense t={t} hueIndex={2} domains={statusDomains} statusLoading={statusLoading} />
+          <StorageCard dense t={t} hueIndex={2} domains={statusDomains} statusLoading={statusLoading} statusFailed={statusFailed} />
           {/* The activity log reaches mobile here; the component is
               self-contained (own card chrome + heading, per its header
               comment), so the mount is one line. No hueIndex: this hue counter

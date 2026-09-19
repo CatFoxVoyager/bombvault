@@ -744,6 +744,7 @@ const sl: Partial<Translations> = {
   // Dashboard protection (RPO) status
   "dashboard.protectionTitle": "Stanje zaščite",
   "dashboard.noOffsite": "Ni kopije zunaj lokacije",
+  "dashboard.statusLoadFailed": "Stanja ni bilo mogoče naložiti",
   "dashboard.neverExcluded": "Ni načrtovano",
   "dashboard.neverExcludedTitle": "Namenoma izpuščeno iz urnika, zato tu ni ničesar za varnostno kopiranje.",
   "dashboard.neverSelf": "Lastni vsebnik",
