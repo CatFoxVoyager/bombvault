@@ -31,6 +31,36 @@ import { RunDetailSheet } from "./RunDetailSheet";
 import { en, I18nProvider } from "../../lib/i18n";
 import type { Run } from "../../lib/api";
 
+// The two file-listing endpoints are replaced with manually-resolved
+// deferreds so a test can hold a listing IN FLIGHT and resolve it late —
+// the late-response scenario itself. Every other export (types, ApiError,
+// formatters) stays the real module. checkDomain is never pressed by these
+// tests, so it keeps its real implementation.
+const listingControl = vi.hoisted(() => {
+  const pending: { resolve: (value: unknown) => void }[] = [];
+  return {
+    pending,
+    deferred() {
+      let resolve!: (value: unknown) => void;
+      const promise = new Promise((res) => {
+        resolve = res;
+      });
+      const entry = { resolve, promise };
+      pending.push(entry);
+      return entry.promise;
+    },
+  };
+});
+
+vi.mock("../../lib/api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../lib/api")>();
+  return {
+    ...actual,
+    listSnapshotFiles: () => listingControl.deferred(),
+    listSnapshotFilesFileSet: () => listingControl.deferred(),
+  };
+});
+
 // A finished, successful container backup — every derived string below is
 // computed from these fields by the REAL formatters.
 const DONE_RUN: Run = {
@@ -84,6 +114,7 @@ class FakeEventSource {
 
 beforeEach(() => {
   instances.length = 0;
+  listingControl.pending.length = 0;
   // @ts-expect-error -- test-only global stub; jsdom has no EventSource
   global.EventSource = FakeEventSource;
 });
@@ -214,10 +245,86 @@ describe("RunDetailSheet", () => {
     expect(browse.getAttribute("aria-expanded")).toBe("false");
     fireEvent.click(browse);
     expect(browse.getAttribute("aria-expanded")).toBe("true");
-    // SnapshotFileTree's filter input is the tree's observable mount (the
-    // fetch itself rejects in jsdom and renders the tree's inline error —
-    // also a real state).
+    // SnapshotFileTree's filter input is the tree's observable mount. The
+    // listing here is the test file's controlled deferred (left pending), so
+    // this also pins the in-flight state: the tree is mounted while the
+    // listing has not resolved.
     expect(screen.getByRole("textbox")).toBeTruthy();
+  });
+
+  it("a late listing for the previous run never overwrites the current run's tree", async () => {
+    const runA = makeRun({ id: "a".repeat(32), target: "plex", targetId: "plex-a" });
+    const runB = makeRun({ id: "b".repeat(32), target: "jellyfin", targetId: "jellyfin-b" });
+    const { rerender } = renderSheet(runA);
+    fireEvent.click(screen.getByRole("button", { name: en["recovery.foreignStepBrowse"] }));
+    await act(async () => {});
+    expect(listingControl.pending.length).toBe(1);
+    const listingA = listingControl.pending.shift();
+
+    // The host swaps the sheet's run while A's listing is still in flight —
+    // the Dashboard's single-mounted-sheet contract. The effect re-runs for
+    // B and its listing goes out.
+    rerender(
+      <I18nProvider>
+        <RunDetailSheet run={runB} open onClose={() => {}} />
+      </I18nProvider>
+    );
+    await act(async () => {});
+    expect(listingControl.pending.length).toBe(1);
+    const listingB = listingControl.pending.shift();
+
+    // B resolves first and its files render… (file entries, whose full path
+    // the tree renders as text; directory entries are split into segments)
+    await act(async () => {
+      listingB.resolve({
+        ok: true,
+        files: [{ path: "/config/jellyfin.ini", type: "file", size: 12 }],
+      });
+    });
+    expect(screen.getByTitle("/config/jellyfin.ini")).toBeTruthy();
+
+    // …then A's slow listing finally lands. It must be dropped, not written
+    // into B's tree.
+    await act(async () => {
+      listingA.resolve({
+        ok: true,
+        files: [{ path: "/config/plex.ini", type: "file", size: 12 }],
+      });
+    });
+    expect(screen.queryByTitle("/config/plex.ini")).toBeNull();
+    expect(screen.getByTitle("/config/jellyfin.ini")).toBeTruthy();
+  });
+
+  it("no-snapshot runs render placeholders, never a claimed 0 B or a blank tile", () => {
+    // The Backup Everything parent run shape: kind "backup", empty snapshot
+    // id, zero bytes — nothing was snapshotted by THIS run.
+    renderSheet(
+      makeRun({
+        id: "c".repeat(32),
+        target: "BombVault",
+        targetId: "everything",
+        domain: "everything",
+        snapshotId: "",
+        bytes: 0,
+      })
+    );
+    // Exactly two placeholder marks: volume + snapshot. The duration tile
+    // still shows the real duration (finishedAt is present).
+    const placeholders = screen.getAllByText("—");
+    expect(placeholders.length).toBe(2);
+    for (const p of placeholders) {
+      expect(p.className).toContain("text-carbon-textMuted");
+    }
+    // humanBytes(0) would have claimed a measured "0 B"; the mono slice
+    // would have rendered a blank tile.
+    expect(screen.queryByText("0 B")).toBeNull();
+    expect(screen.queryByText("0f1e2d3c")).toBeNull();
+  });
+
+  it("a real zero-byte backup that HAS a snapshot keeps its honest 0 B", () => {
+    renderSheet(makeRun({ bytes: 0 }));
+    expect(screen.getByText("0 B")).toBeTruthy();
+    expect(screen.getByText("0f1e2d3c")).toBeTruthy();
   });
 
   it("vm runs: verify offered, browse/restore honestly absent (no file-listing API)", () => {

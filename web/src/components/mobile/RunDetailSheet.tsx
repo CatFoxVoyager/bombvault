@@ -315,21 +315,35 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
 
   // Lazy parent-fetch on expand — the RestorePanel.tsx shape (list →
   // {ok, files} → tree props; #129 server reason over the generic message).
+  // The cancelled flag is the late-response guard: hosts keep ONE mounted
+  // sheet and swap its `run` prop (the Dashboard's run-sheet host), so the
+  // effect re-runs per run identity and a SLOW listing for the previous run
+  // must not overwrite the next run's tree when it finally lands.
   useEffect(() => {
     if (!open || !browseOpen) return;
     setFilesLoading(true);
     setFilesError(null);
+    let cancelled = false;
     const req =
       run.domain === "container"
         ? listSnapshotFiles(run.targetId, run.snapshotId)
         : listSnapshotFilesFileSet(run.targetId, run.snapshotId);
     req
       .then((res) => {
+        if (cancelled) return;
         if (res.ok) setFiles(res.files ?? []);
         else setFilesError(loadErrorMessage(res, t("files.loadFailed")));
       })
-      .catch(() => setFilesError(t("files.loadFailed")))
-      .finally(() => setFilesLoading(false));
+      .catch(() => {
+        if (cancelled) return;
+        setFilesError(t("files.loadFailed"));
+      })
+      .finally(() => {
+        if (!cancelled) setFilesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
     // Keyed on the run's identity primitives, not the object: a parent
     // refetch that re-creates the Run object must not re-fetch the tree.
   }, [open, browseOpen, run.domain, run.targetId, run.snapshotId, t]);
@@ -416,6 +430,15 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
   const durationSecs = run.finishedAt != null ? run.finishedAt - run.startedAt : null;
   const durationText = durationSecs == null ? "—" : formatDuration(durationSecs) || "—";
   const durationMissing = durationText === "—";
+  // Runs with NO snapshot (the Backup Everything parent, prune, verify) have
+  // no volume and no snapshot id to show. humanBytes(0) would CLAIM a
+  // measured "0 B" and an empty mono slice would render a blank tile — both
+  // read as data, not as absence. The "—" placeholder is the same mark the
+  // duration tile uses, muted. A REAL zero-byte backup that HAS a snapshot
+  // keeps its honest "0 B": the snapshot exists, the number is true.
+  const hasSnapshot = run.snapshotId !== "";
+  const volumeText = hasSnapshot ? humanBytes(run.bytes) : "—";
+  const volumeMissing = !hasSnapshot;
 
   const footerContent =
     browseSupported || verifyDomain ? (
@@ -501,7 +524,11 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
         <div className="grid grid-cols-3 gap-2">
           <div className="flex min-w-0 flex-col gap-1 rounded-card bg-carbon-background px-2 py-2">
             <span className="text-xs text-carbon-textMuted">{t("run.statVolume")}</span>
-            <span className="truncate text-heading font-semibold tabular-nums">{humanBytes(run.bytes)}</span>
+            <span
+              className={`truncate text-heading font-semibold tabular-nums ${volumeMissing ? "text-carbon-textMuted" : ""}`}
+            >
+              {volumeText}
+            </span>
           </div>
           <div className="flex min-w-0 flex-col gap-1 rounded-card bg-carbon-background px-2 py-2">
             <span className="text-xs text-carbon-textMuted">{t("dashboard.duration")}</span>
@@ -513,8 +540,11 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
           </div>
           <div className="flex min-w-0 flex-col gap-1 rounded-card bg-carbon-background px-2 py-2">
             <span className="text-xs text-carbon-textMuted">{t("run.statSnapshot")}</span>
-            <span className="truncate font-mono text-heading font-semibold tabular-nums" title={run.snapshotId}>
-              {run.snapshotId.slice(0, 8)}
+            <span
+              className={`truncate font-mono text-heading font-semibold tabular-nums ${hasSnapshot ? "" : "text-carbon-textMuted"}`}
+              title={hasSnapshot ? run.snapshotId : undefined}
+            >
+              {hasSnapshot ? run.snapshotId.slice(0, 8) : "—"}
             </span>
           </div>
         </div>
