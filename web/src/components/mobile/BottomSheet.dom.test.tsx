@@ -221,6 +221,16 @@ describe("BottomSheet extensions", () => {
     expect(close.className).toContain("w-11");
   });
 
+  it("renders the close control as an engine Button", () => {
+    // The header close is the shared Button component, not a hand-rolled
+    // <button>: glim-btn is the one class every engine button carries, so
+    // its presence pins the swap — the tone table, the tooltip mechanism and
+    // the --motion-press-scale press all arrive with it.
+    render(<PropsHarness sheetProps={{}} />);
+    const close = screen.getByRole("button", { name: en["common.close"] });
+    expect(close.className).toContain("glim-btn");
+  });
+
   it("keeps the carbon-surface panel by default and tints it only for a tone", () => {
     const { unmount } = render(<PropsHarness sheetProps={{}} />);
     expect(screen.getByRole("dialog").className).toContain("bg-carbon-surface");

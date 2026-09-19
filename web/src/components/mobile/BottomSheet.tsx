@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Badge } from "../Badge";
+import { Button } from "../Button";
 import { IconClose } from "../navGlyphs";
 import { useT } from "../../lib/i18n";
 
@@ -200,8 +201,12 @@ export function BottomSheet({ open, onClose, title, children, fullHeight, footer
   }, [open, onClose]);
 
   // Slide-up entrance under motion-safe: only (see the header note for why
-  // the glim-modal-card pop is not used). The double rAF guarantees the
-  // parked frame is painted before the flip.
+  // the glim-modal-card pop is not used). The transition's duration reads
+  // --motion-page-dur (the page-entrance token, panel className below) so the
+  // app's motion levels govern the slide; at data-motion="off" the global
+  // transition-duration override in index.css zeroes it, so the sheet just
+  // appears. The double rAF guarantees the parked frame is painted before
+  // the flip.
   useEffect(() => {
     if (!open) {
       setEntered(false);
@@ -248,7 +253,7 @@ export function BottomSheet({ open, onClose, title, children, fullHeight, footer
         aria-describedby={describedBy}
         className={`fixed inset-x-0 bottom-0 z-50 flex ${
           fullHeight ? "h-dvh" : "max-h-[85dvh]"
-        } flex-col rounded-t-card ${TONE_PANEL_CLASS[tone ?? "default"]} shadow-2xl motion-safe:transition-transform motion-safe:duration-200 ${
+        } flex-col rounded-t-card ${TONE_PANEL_CLASS[tone ?? "default"]} shadow-2xl motion-safe:transition-transform motion-safe:duration-[var(--motion-page-dur)] ${
           entered ? "translate-y-0" : "translate-y-full"
         }`}
       >
@@ -289,25 +294,28 @@ export function BottomSheet({ open, onClose, title, children, fullHeight, footer
               {title}
             </Badge>
           </h2>
-          {/* A plain icon-only <button> with an aria-label is the sanctioned
-              structural-affordance shape (lint-rules/icon-badge-needs-tooltip
-              .js: "a dialog's close ×" is the rule's own cited exemption) —
-              distinct accessible name per the ConfirmDialog strict-mode
+          {/* The engine's own close control: Button puts the header close on
+              the shared tone table, tooltip mechanism and press motion — the
+              engine's .glim-btn:active already scales by --motion-press-scale,
+              so the app's motion levels govern the press with no class here.
+              Distinct accessible name per the ConfirmDialog strict-mode
               discipline (#178: two identically-named controls broke Playwright
               strict matching). */}
-          {/* bv-convention-exception: one-icon-badge-size -- a mandated >=44px
-              touch tap target, not a square icon badge — the same exception
-              the touch tree chevron carries. The 44px floor is the reuse
-              blocker this primitive had to absorb before any other sheet. */}
-          <button
+          {/* bv-convention-exception: one-icon-badge-size -- the h-11 w-11
+              override is a mandated >=44px touch tap target, not a square
+              icon badge — the same exception the touch tree chevron carries.
+              The 44px floor is the reuse blocker this primitive had to absorb
+              before any other sheet. */}
+          <Button
             ref={closeRef}
-            type="button"
-            aria-label={t("common.close")}
+            label={t("common.close")}
+            labelKey="common.close"
+            glyph={<IconClose />}
+            tone="neutral"
+            variant="icon"
             onClick={onClose}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control text-carbon-textSub hover:bg-carbon-hover motion-safe:active:scale-[.97]"
-          >
-            <IconClose />
-          </button>
+            className="h-11 w-11 shrink-0 rounded-control"
+          />
         </div>
         {/* Body (scrolls) — the sheet's own scroll contains all interaction;
             background content is unreachable through the Tab trap, so there is

@@ -96,9 +96,11 @@ export interface BottomNavProps {
 // One bar slot, destination or More trigger alike: the 24px glyph box over
 // the 11px caption, `flex-1` so the slots split the bar's width equally, and
 // the full 56px (h-14) row as the touch target — comfortably over the 44px
-// floor. min-w-0 + truncate keep de/fr labels single-line at 320px.
+// floor. min-w-0 + truncate keep de/fr labels single-line at 320px. The press
+// scale reads the motion-engine token, so the app's motion levels govern it
+// (--motion-press-scale is 1 at "off": no scale at all there).
 const slotBase =
-  "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 text-caption motion-safe:active:scale-[.97]";
+  "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 text-caption motion-safe:active:scale-[var(--motion-press-scale)]";
 
 export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavProps) {
   const { t } = useT();

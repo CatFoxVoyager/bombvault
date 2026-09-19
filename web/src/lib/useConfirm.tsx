@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ConfirmDialog } from "../components/ConfirmDialog";
-import { ConfirmSheet, type ConfirmTone } from "../components/mobile/ConfirmSheet";
+import { ConfirmSheet } from "../components/mobile/ConfirmSheet";
 import { useT } from "./i18n";
 import { useIsDesktop } from "./useMediaQuery";
 
@@ -67,7 +67,6 @@ import { useIsDesktop } from "./useMediaQuery";
 export interface ConfirmOptions {
   confirmLabel?: string;
   cancelLabel?: string;
-  tone?: ConfirmTone;
 }
 
 interface PendingConfirm extends ConfirmOptions {
@@ -88,8 +87,8 @@ export function useConfirm() {
   const { t } = useT();
   // The presentation half swaps at the ONE width breakpoint — ConfirmDialog
   // (the desktop card, byte-identical to before this hook grew the branch)
-  // at/above 48rem, ConfirmSheet (the fail-toned bottom sheet, destructive
-  // control on top, safe cancel in the thumb-default bottom slot) below it.
+  // at/above 48rem, ConfirmSheet (the bottom sheet, safe cancel stacked above
+  // the confirm in the thumb-default bottom slot) below it.
   // Nothing else about the contract moves: same confirm() promise, same
   // settle paths, same translated strings, zero per-call-site changes.
   const isDesktop = useIsDesktop();
@@ -180,9 +179,9 @@ export function useConfirm() {
             confirmLabel={pending.confirmLabel ?? t("common.confirm")}
             cancelLabel={pending.cancelLabel ?? t("common.cancel")}
             closeLabel={t("common.close")}
-            // No tone prop: GlimStone 1.12.0 removed it — the desktop commit
-            // button takes its siblings' colour. The mobile sheet branch below
-            // keeps the tone mapping (documented divergence).
+            // No tone prop: GlimStone 1.12.0 removed it — the commit button
+            // takes its siblings' colour, on the desktop card and the mobile
+            // sheet alike.
             onConfirm={() => settle(true)}
             onCancel={() => settle(false)}
           />
@@ -192,7 +191,6 @@ export function useConfirm() {
             message={pending.message}
             confirmLabel={pending.confirmLabel ?? t("common.confirm")}
             cancelLabel={pending.cancelLabel ?? t("common.cancel")}
-            tone={pending.tone ?? "fail"}
             onConfirm={() => settle(true)}
             onCancel={() => settle(false)}
           />

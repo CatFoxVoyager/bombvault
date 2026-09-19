@@ -3,12 +3,6 @@ import { Button } from "../Button";
 import { IconCancel } from "../glyphs";
 import { BottomSheet } from "./BottomSheet";
 
-// The tone union the desktop ConfirmDialog dropped (GlimStone 1.12.0: no
-// status colour on the commit button). The mobile sheet keeps it ON PURPOSE —
-// a destructive confirm surfaces as the danger Button here — so the type is
-// owned and exported HERE now; useConfirm imports it from this file.
-export type ConfirmTone = "fail" | "warn";
-
 // ---------------------------------------------------------------------------
 // ConfirmSheet — the MOBILE presentation half of useConfirm.
 //
@@ -52,10 +46,6 @@ export interface ConfirmSheetProps {
   message: string;
   confirmLabel: string;
   cancelLabel: string;
-  /** Fault-red for irreversible actions (the default), warn-amber for the
-   *  "light" branch — the ConfirmTone union, passed straight through to both
-   *  the panel surface (BottomSheet's tone) and the confirm Button. */
-  tone?: ConfirmTone;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -65,7 +55,6 @@ export function ConfirmSheet({
   message,
   confirmLabel,
   cancelLabel,
-  tone = "fail",
   onConfirm,
   onCancel,
 }: ConfirmSheetProps) {
@@ -75,7 +64,6 @@ export function ConfirmSheet({
       open
       onClose={onCancel}
       title={title}
-      tone={tone}
       describedBy={messageId}
       // Stacked actions in BottomSheet's footer slot: chrome pinned while the
       // message scrolls, safe-area bottom inset owned by the primitive. The
@@ -92,23 +80,17 @@ export function ConfirmSheet({
             onClick={onCancel}
             className="glim-btn-key w-full"
           />
-          {/* bv-convention-exception: no-status-color-on-control -- the same
-              sanctioned exception as ConfirmDialog's confirm button, cited by
-              the design language itself: "the destructive control is always
-              the fault colour". The guard exists to stop bespoke red on
-              arbitrary controls; the ONE place status colour IS the meaning is
-              the destructive confirmation, and this is its mobile face —
-              tone is the closed ConfirmTone union, so no third shade can
-              drift in. */}
           <Button
             label={confirmLabel}
             // The confirm button's meaning changes with the action it confirms
             // (delete, prune, overwrite), so no fixed translation key can pick
-            // its glyph — ConfirmDialog passes the identical null. The
-            // destructive control is never default-focused (no autoFocus; the
-            // open effect lands on the header close button).
+            // its glyph — ConfirmDialog passes the identical null. No tone
+            // prop: GlimStone 1.12.0 removed the status colour from the commit
+            // button, and the sheet's commit takes its siblings' colour the
+            // same way the desktop card's does. The destructive control is
+            // never default-focused (no autoFocus; the open effect lands on
+            // the header close button).
             labelKey={null}
-            tone={tone === "fail" ? "danger" : "warn"}
             onClick={onConfirm}
             className="glim-btn-key w-full"
           />

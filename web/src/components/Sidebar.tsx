@@ -220,9 +220,11 @@ const BOOM_PARTICLES = Array.from({ length: 14 }, (_, i) => {
 
 // `transition` (not just `transition-colors`) so the transform-based hover/press
 // micro-interactions below animate too; all transforms are motion-safe-gated so
-// reduced-motion users get colour-only feedback (Item 7a/7d).
+// reduced-motion users get colour-only feedback (Item 7a/7d). The press scale
+// reads the motion-engine token, so the app's motion levels govern it
+// (--motion-press-scale is 1 at "off": no scale at all there).
 const navBase =
-  "glim-nav-row flex items-center gap-3 px-3.5 rounded-control text-[15px] font-medium transition duration-150 select-none motion-safe:active:scale-[.97]";
+  "glim-nav-row flex items-center gap-3 px-3.5 rounded-control text-[15px] font-medium transition duration-150 select-none motion-safe:active:scale-[var(--motion-press-scale)]";
 const navActive =
   "bg-accent text-accentContrast";
 // `rtl:-translate-x-0.5!` — physical `translate-x`, same trap as the Toggle

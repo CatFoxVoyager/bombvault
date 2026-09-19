@@ -283,7 +283,7 @@ function SheetActionRow({
       disabled={disabled}
       aria-expanded={expanded}
       aria-controls={controlsId}
-      className={`flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-control text-sm text-carbon-text hover:bg-carbon-hover motion-safe:active:scale-[.97] disabled:opacity-60 ${
+      className={`flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-control text-sm text-carbon-text hover:bg-carbon-hover motion-safe:active:scale-[var(--motion-press-scale)] disabled:opacity-60 ${
         tone === "neutral" ? "bg-carbon-surface3" : "bg-carbon-surface2"
       }`}
     >

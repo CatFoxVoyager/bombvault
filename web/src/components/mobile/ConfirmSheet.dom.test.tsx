@@ -9,15 +9,14 @@ import { en, I18nProvider } from "../../lib/i18n";
 
 // Behavioral proof of the confirm presentation swap: ONE useConfirm promise
 // API, TWO presentation halves. The sheet half (ConfirmSheet) is asserted
-// directly as observable behavior — stacked action order, tone mapping, close
-// paths, focus discipline — and the swap itself is asserted through the real
-// useConfirm() hook under a controlled matchMedia stub (below).
+// directly as observable behavior — stacked action order, described message,
+// close paths, focus discipline — and the swap itself is asserted through the
+// real useConfirm() hook under a controlled matchMedia stub (below).
 //
-// Class-token assertions (bg-statusFailBg, bg-statusFailSolid, ...) follow
-// the same documented exception as BottomSheet.dom.test.tsx: these are
-// STYLING contracts and jsdom computes no geometry, so the observable form
-// of the contract IS the token. Presence assertions, never whole-class
-// snapshots.
+// Class-token assertions (glim-btn-key, w-full, ...) follow the same
+// documented exception as BottomSheet.dom.test.tsx: these are STYLING
+// contracts and jsdom computes no geometry, so the observable form of the
+// contract IS the token. Presence assertions, never whole-class snapshots.
 
 const MESSAGE = "Delete container plex and everything in it? This cannot be undone.";
 
@@ -81,7 +80,7 @@ describe("ConfirmSheet (the mobile presentation, direct)", () => {
     vi.unstubAllGlobals();
   });
 
-  function renderSheet(tone?: "fail" | "warn") {
+  function renderSheet() {
     const onConfirm = vi.fn();
     const onCancel = vi.fn();
     render(
@@ -91,7 +90,6 @@ describe("ConfirmSheet (the mobile presentation, direct)", () => {
           message={MESSAGE}
           confirmLabel="Delete it"
           cancelLabel={en["common.cancel"]}
-          tone={tone}
           onConfirm={onConfirm}
           onCancel={onCancel}
         />
@@ -100,12 +98,9 @@ describe("ConfirmSheet (the mobile presentation, direct)", () => {
     return { onConfirm, onCancel };
   }
 
-  it("renders the fail-toned sheet with the safe cancel stacked ABOVE the confirm (forward action last)", () => {
+  it("renders the sheet with the safe cancel stacked ABOVE the confirm (forward action last)", () => {
     renderSheet();
     const panel = screen.getByRole("dialog");
-    // BottomSheet's tone surface: the sheet primitive's fail-tone panel.
-    expect(panel.className).toContain("bg-statusFailBg");
-    expect(panel.className).toContain("border-statusFailBorder");
     const message = screen.getByText(MESSAGE);
     expect(message).toBeTruthy();
     // ConfirmDialog parity: the panel describes the message, so screen
@@ -124,23 +119,16 @@ describe("ConfirmSheet (the mobile presentation, direct)", () => {
     expect(confirmButton.className).toContain("glim-btn-key");
     expect(cancelButton.className).toContain("glim-btn-key");
     expect(confirmButton.className).toContain("w-full");
-    // Tone mapping mirrors ConfirmDialog's footer: fail -> danger Button.
-    expect(confirmButton.className).toContain("bg-statusFailSolid");
-    // The safe action carries NO status colour (neutral), never the danger.
-    expect(cancelButton.className).not.toContain("statusFailSolid");
+    // No status colour on the commit control: GlimStone 1.12.0 removed the
+    // tone, and the confirm takes its siblings' (neutral) colour — the exact
+    // treatment the desktop card's commit button gets.
+    expect(confirmButton.className).not.toContain("statusFail");
+    expect(confirmButton.className).not.toContain("statusWarn");
     // Both buttons live OUTSIDE the scrolling body (the footer slot): the
     // message's container is the body's only content child.
     const body = message.parentElement!.parentElement!;
     expect(body.textContent).toContain(MESSAGE);
     expect(body.querySelector("button")).toBeNull();
-  });
-
-  it("maps the warn tone to warn tokens on both the panel and the confirm control", () => {
-    renderSheet("warn");
-    const panel = screen.getByRole("dialog");
-    expect(panel.className).toContain("bg-statusWarnBg");
-    expect(panel.className).toContain("border-statusWarnBorder");
-    expect(screen.getByRole("button", { name: "Delete it" }).className).toContain("bg-statusWarnSolid");
   });
 
   it("starts focus on the sheet's close control, never on the destructive one", () => {
@@ -206,14 +194,12 @@ describe("useConfirm presentation swap", () => {
     expect(panel.className).not.toContain("statusFail");
   });
 
-  it("below 48rem the same pending request renders the fail-toned ConfirmSheet", () => {
+  it("below 48rem the same pending request renders the ConfirmSheet", () => {
     const results: boolean[] = [];
     render(<ConfirmHarness results={results} />);
     fireEvent.click(screen.getByRole("button", { name: "trigger" })); // opens (desktop card first)
     act(() => setDesktopWidth(false));
     const panel = screen.getByRole("dialog");
-    expect(panel.className).toContain("bg-statusFailBg");
-    expect(panel.className).toContain("border-statusFailBorder");
     // The sheet matches the desktop card's described-message contract.
     expect(panel.getAttribute("aria-describedby")).not.toBeNull();
     // Same translated labels on both faces — only the surface changed.
@@ -270,7 +256,8 @@ describe("useConfirm presentation swap", () => {
     fireEvent.click(screen.getByRole("button", { name: "trigger" })); // opens as the desktop card
     expect(screen.getByRole("dialog").getAttribute("aria-describedby")).toBe("confirmdialog-message");
     act(() => setDesktopWidth(false)); // rotate/shrink mid-confirmation
-    expect(screen.getByRole("dialog").className).toContain("bg-statusFailBg");
+    // The sheet face is up (described message), same request.
+    expect(screen.getByRole("dialog").getAttribute("aria-describedby")).not.toBeNull();
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: en["common.cancel"] }));
     });
