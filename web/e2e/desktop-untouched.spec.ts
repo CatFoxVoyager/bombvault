@@ -1,17 +1,20 @@
 // ---------------------------------------------------------------------------
 // Desktop-untouched — the per-page desktop invariance contract.
 //
-// The headline guarantee, made executable: for EVERY one of the ten routed
+// The headline guarantee, made executable: for EVERY one of the eleven routed
 // destinations, on BOTH desktop projects (desktop-768 = the 48rem breakpoint
 // boundary, desktop-1280 = comfortable desktop), today's shell is exactly
 // what renders — the desktop Sidebar is visible, the mobile bottom bar has
 // ZERO matches in the DOM (not CSS-hidden: the Layout chrome switch never
 // renders it), and the `bv-main` scroller is present.
 //
-// Parameterized as a 10-route loop rather than spot checks: a future route
+// Parameterized as an 11-route loop rather than spot checks: a future route
 // added to the frozen router without joining this loop is a visible gap in
 // the report, and any desktop-layout regression on any single destination
-// fails the gate by name.
+// fails the gate by name. /receiver, /pull and /fleet are Navigate
+// redirects into /instances' hash lanes; the loop rides /receiver and
+// /fleet through their redirect, and /instances, the landing surface of
+// all three, holds a slot of its own.
 //
 // The assertions deliberately run on the fresh-DB empty states the harness
 // boots (playwright.config.ts): this is a chrome/layout contract, never a
@@ -21,18 +24,16 @@
 // internal/api/spa.go, serves index.html for client routes).
 //
 // The second, per-page half: /dashboard additionally asserts the ABSENCE of
-// every phone-only surface the Dashboard PR put below the breakpoint — the
-// StickyActionBar chrome and the filled full-width New-backup trigger. Same
-// discipline as the 10-route loop: fresh-DB empty states, chrome not data.
+// every phone-only surface the phone work put below the breakpoint (the
+// StickyActionBar chrome and the filled full-width New-backup trigger). Same
+// discipline as the route loop: fresh-DB empty states, chrome not data.
 // The /dashboard route (not the / redirect) keeps the loop's canonical form.
 //
-// SCOPE NOTE: on the fork branch this file also carries per-page leakage
-// batteries for the Containers, Files, Settings-family and Recovery mobile
-// surfaces (their Fab/ListToolbar/Load-more/chip-strip/wizard needles and
-// the inverse mobile-direction halves). Those pages' mobile treatments are
-// not part of this PR, so their asserts travel with those pages' PRs —
-// asserting against surfaces that do not exist in this tree would guard
-// nothing on the desktop side and fail outright on the mobile side.
+// SCOPE NOTE: the Containers, Files, Settings-family and Recovery mobile
+// surfaces carry their own per-page leakage batteries with their own
+// commits (their Fab/ListToolbar/Load-more/chip-strip/wizard needles and
+// the inverse mobile-direction halves); this file pins the desktop half,
+// and those pages' asserts live beside those pages' phone treatments.
 // ---------------------------------------------------------------------------
 import { expect, test, type Page } from "@playwright/test";
 
@@ -41,8 +42,10 @@ import { expect, test, type Page } from "@playwright/test";
 // keeps every assertion honest about WHICH contract each project verifies.
 const DESKTOP_PROJECTS = new Set(["desktop-1280", "desktop-768"]);
 
-// The ten canonical route paths, verbatim from the frozen route table
-// (web/src/app/router.tsx). The redirect routes (/, /jobs) and the unlisted
+// The route paths the loop pins, verbatim from the frozen route table
+// (web/src/app/router.tsx): every shell destination, plus /receiver and
+// /fleet, whose Navigate redirects land on /instances' hash lanes (the loop
+// rides them through). The pure redirects (/, /jobs, /pull) and the unlisted
 // /glyphs contact sheet are not destinations and are deliberately absent.
 const ROUTES = [
   "/dashboard",
@@ -52,6 +55,7 @@ const ROUTES = [
   "/flash",
   "/files",
   "/config",
+  "/instances",
   "/receiver",
   "/fleet",
   "/settings",
@@ -69,14 +73,15 @@ for (const route of ROUTES) {
 
 // ---------------------------------------------------------------------------
 // The geometry half of "untouched": presence is not invariance. The shell's
-// desktop chrome must not only EXIST on every destination, it must sit at
-// the SAME geometry — a regression that nudges the sidebar or the scroller
-// (a new margin, a width stage, a mobile rule leaking past the breakpoint)
-// changes the numbers while everything still renders and the presence checks
-// above keep passing. Boxes are captured on /dashboard; every other route
-// must reproduce them within a 1px tolerance (subpixel rounding across
-// engines). jsdom computes no layout, so this guard only runs where layout
-// is real.
+// desktop chrome sits at a CONTRACTED geometry on every destination: the
+// sidebar rail starts at the shell's 1rem gutter and ends left of the
+// `bv-main` scroller, and every route must reproduce /dashboard's boxes
+// within a 1px tolerance (subpixel rounding across engines). Two layers
+// hold that line: the absolute asserts pin the contract itself, so a shift
+// applied uniformly everywhere (a base margin change on the shell root)
+// fails exactly like a per-route drift would; the relational asserts pin
+// consistency, so one destination cannot sit differently from the others.
+// jsdom computes no layout, so this guard only runs where layout is real.
 // ---------------------------------------------------------------------------
 const GEOMETRY_TOLERANCE_PX = 1;
 
@@ -97,6 +102,25 @@ async function shellGeometry(page: Page) {
   });
 }
 
+/** The absolute geometry contract, asserted on whichever page is loaded:
+ *  the rail's left edge sits at the 1rem gutter (measured the way the CSS
+ *  means it, from the document root's computed font size) and the rail ends
+ *  left of the scroller. */
+async function assertAbsoluteGeometry(page: Page, label: string) {
+  const { sidebar, main } = await shellGeometry(page);
+  const remPx = await page.evaluate(() =>
+    parseFloat(getComputedStyle(document.documentElement).fontSize)
+  );
+  expect(
+    Math.abs(sidebar.x - remPx),
+    `${label}: the sidebar starts at the shell's 1rem gutter (x=${sidebar.x}, 1rem=${remPx}px)`
+  ).toBeLessThanOrEqual(GEOMETRY_TOLERANCE_PX);
+  expect(
+    sidebar.x + sidebar.width,
+    `${label}: the sidebar ends left of the bv-main scroller`
+  ).toBeLessThanOrEqual(main.x + GEOMETRY_TOLERANCE_PX);
+}
+
 test("desktop shell geometry is identical across every routed destination", async ({ page }, testInfo) => {
   test.skip(
     !DESKTOP_PROJECTS.has(testInfo.project.name),
@@ -108,11 +132,13 @@ test("desktop shell geometry is identical across every routed destination", asyn
   // checks above, or the measure races the mount and finds nothing.
   await expect(page.getByTestId("desktop-sidebar")).toBeVisible();
   await expect(page.locator("#bv-main")).toBeVisible();
+  await assertAbsoluteGeometry(page, "/dashboard");
   const baseline = await shellGeometry(page);
   for (const route of ROUTES) {
     await page.goto(route);
     await expect(page.getByTestId("desktop-sidebar")).toBeVisible();
     await expect(page.locator("#bv-main")).toBeVisible();
+    await assertAbsoluteGeometry(page, route);
     const boxes = await shellGeometry(page);
     for (const key of ["sidebar", "main"] as const) {
       expect(
@@ -128,9 +154,9 @@ test("desktop shell geometry is identical across every routed destination", asyn
 });
 
 // ---------------------------------------------------------------------------
-// The >=48rem leakage pass for /dashboard: the one page this PR gives a
-// phone face asserts that NOTHING its phone half adds exists in the desktop
-// DOM. Role/text-based wherever possible so a restyle of the mobile chrome
+// The >=48rem leakage pass for /dashboard: the one page with a phone face
+// asserts that NOTHING its phone half adds exists in the desktop DOM.
+// Role/text-based wherever possible so a restyle of the mobile chrome
 // cannot silently outdate the guard; the one class-signature check is the
 // StickyActionBar's exact chrome combination, which no desktop element
 // carries (verified app-wide when this pass landed — the only
