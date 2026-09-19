@@ -2,20 +2,20 @@
 // ---------------------------------------------------------------------------
 // Sidebar <-> navModel registry consistency.
 //
-// Sidebar's header comment says the rail derives from the ONE ordered nav
+// Sidebar's header comment says the rail derives from the one ordered nav
 // registry (lib/navModel.ts), but the rail still evaluates its own hand-written
 // NavItem JSX (with a nextHue() counter and inline settings gates, which is the
-// part the registry deliberately cannot own — see navModel.ts's header). Two
+// part the registry deliberately cannot own; see navModel.ts's header). Two
 // lists describing one navigation is exactly the drift the registry exists to
 // kill, so this file pins the two together: whatever Sidebar renders must equal
-// destinations(settings) filtered to enabled — same routes, same order, same
-// gates — across gate combinations, and any divergence on either side fails
+// destinations(settings) filtered to enabled; same routes, same order, same
+// gates; across gate combinations, and any divergence on either side fails
 // here instead of silently becoming a rail the registry no longer describes.
 //
 // Routes are read off the rendered anchors' href (NavLink renders `to` as
 // href), so the comparison is structural and never re-types the labels. The
-// footer's sign-out and view toggle are buttons, not links, so EVERY anchor in
-// the render is a nav destination and DOM order IS the rail's order.
+// footer's sign-out and view toggle are buttons, not links, so every anchor in
+// the render is a nav destination and DOM order is the rail's order.
 // ---------------------------------------------------------------------------
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { cleanup, render } from "@testing-library/react";

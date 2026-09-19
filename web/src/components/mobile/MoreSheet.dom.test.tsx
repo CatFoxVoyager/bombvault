@@ -2,24 +2,24 @@
 /**
  * MoreSheet's dom contract.
  *
- * The sheet is thin by design — the stateful half (portal, Escape, scrim,
- * Tab trap, focus restore) is BottomSheet's, already proven there — so what
+ * The sheet is thin by design; the stateful half (portal, Escape, scrim,
+ * Tab trap, focus restore) is BottomSheet's, already proven there; so what
  * is left to prove here is exactly the content contract:
- *   - rows ARE moreDestinations(settings), in registry order, never a second
+ *   - rows are moreDestinations(settings), in registry order, never a second
  *     hand-written list (the drift the one registry exists to kill), and bar
  *     destinations never leak into the sheet;
  *   - every row sits on the colour engine (glim-hue + its own --item-hue) and
- *     the current route's row is FILLED (accent fill + contrast ink) — on
+ *     the current route's row is filled (accent fill + contrast ink); on
  *     /vms or /flash no bar slot is active, this row is, so a user is never
  *     lost (the locked Interaction Contract);
  *   - the Simple/Advanced view toggle is always rendered with its pressed
- *     state and current-view label — the phone's only path to the
+ *     state and current-view label; the phone's only path to the
  *     advanced-only settings cards, and the permanent content that lets the
  *     bar's More trigger render unconditionally;
  *   - the sign-out row is gated by authEnabled exactly like the desktop
- *     footer, sits LAST behind a hairline, is muted, and fires the Sidebar
- *     sign-out mechanism verbatim — best-effort logout then a location
- *     reload, with NO confirmation dialog anywhere in the flow.
+ *     footer, sits last behind a hairline, is muted, and fires the Sidebar
+ *     sign-out mechanism verbatim; best-effort logout then a location
+ *     reload, with no confirmation dialog anywhere in the flow.
  *
  * The api mock follows Sidebar.signOut.dom.test.tsx's pattern: logout is
  * intercepted so the real network layer never loads in jsdom, and
@@ -48,7 +48,7 @@ import { MoreSheet } from "./MoreSheet";
 
 // A fresh-DB-plus-two-tabs fixture, the navModel.test.ts idiom (`as Settings`
 // partials): only vms and flash are switched on, so moreDestinations() must
-// yield exactly VMs, Flash and the always-on Settings row — in that registry
+// yield exactly VMs, Flash and the always-on Settings row; in that registry
 // order (Recovery rides the phone bar, not this sheet).
 const VMS_FLASH_ON = { vmsEnabled: true, flashEnabled: true } as Settings;
 
@@ -94,10 +94,10 @@ describe("MoreSheet rows are the ONE registry", () => {
   it("hides gated tabs like the desktop Sidebar and never shows bar destinations", () => {
     draw({ settings: null, authEnabled: false });
     // null settings = every gate off: only the always-on Settings row remains
-    // — Recovery rides the phone bar, the gated tabs are off.
+    //; Recovery rides the phone bar, the gated tabs are off.
     expect(within(sheet()).getAllByRole("link").map((row) => row.textContent)).toEqual(["Settings"]);
     // Bar members (dashboard/containers/recovery on a fresh DB) are the
-    // bottom bar's slots — a second copy of them here would be the exact
+    // bottom bar's slots; a second copy of them here would be the exact
     // duplicate-destination drift the registry forbids.
     expect(screen.queryByText("Dashboard")).toBeNull();
     expect(screen.queryByText("Containers")).toBeNull();
@@ -119,7 +119,7 @@ describe("MoreSheet active row accents (the Interaction Contract)", () => {
     expect(active.className).toContain("bg-accent");
     expect(active.className).toContain("text-accentContrast");
     expect(active.className).toContain("glim-active");
-    // Resting rows carry neither the fill nor the active marker — the accent
+    // Resting rows carry neither the fill nor the active marker; the accent
     // belongs to the one row whose route is current.
     const resting = within(sheet()).getByRole("link", { name: /flash/i });
     expect(resting.className).not.toContain("bg-accent");
@@ -148,10 +148,10 @@ describe("MoreSheet colour engine and view toggle", () => {
     expect(toggle.getAttribute("aria-pressed")).toBe("false");
     expect(toggle.className).toContain("glim-hue");
     fireEvent.click(toggle);
-    // Clicking flips the view; the label shows the view it just switched TO.
+    // Clicking flips the view; the label shows the view it just switched to.
     expect(screen.getByRole("button", { name: "Advanced view" }).getAttribute("aria-pressed")).toBe("true");
     // With every gate off (no destination rows beyond Settings) the toggle is
-    // still rendered — the permanent content the More trigger counts on.
+    // still rendered; the permanent content the More trigger counts on.
     expect(within(sheet()).getAllByRole("link").map((r) => r.textContent)).toEqual(["Settings"]);
   });
 });
@@ -167,13 +167,13 @@ describe("MoreSheet sign-out (the desktop mechanism, muted, last)", () => {
     const out = screen.getByRole("button", { name: /sign out/i });
     const content = sheet();
     expect(within(content).getByRole("button", { name: /sign out/i })).toBeTruthy();
-    // LAST row group: the sign-out group is the content root's final child
-    // (destination rows above it, never below — the locked placement).
+    // Last row group: the sign-out group is the content root's final child
+    // (destination rows above it, never below; the locked placement).
     const group = out.parentElement as HTMLElement;
     expect(group.lastElementChild).toBe(out);
     expect(content.lastElementChild).toBe(group);
-    // Hairline separation via the border TOKEN, and the muted text token on
-    // the row — the visually-quiet treatment the desktop footer gets.
+    // Hairline separation via the border token, and the muted text token on
+    // the row; the visually-quiet treatment the desktop footer gets.
     expect(group.className).toContain("border-carbon-border");
     expect(out.className).toContain("text-carbon-textMuted");
     // The power glyph is present (muted styling is the classes above; the

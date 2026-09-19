@@ -1464,7 +1464,7 @@ const sr: Partial<Translations> = {
   "recovery.foreignVMDest": "Одредиште за дискове ВМ-а",
   "recovery.foreignVMDestHint": "Где се уписују дискови ВМ-а. Датотеке диска иду у <odredište>/<naziv-vm>/, зато изабери фасциклу на стварно монтираном скупу, не на RAM диску. Страни ВМ се враћа заустављен, па га сам покрени кад га прегледаш.",
 
-  // Dashboard activity log (Task 4)
+  // Dashboard activity log
   "activityLog.title": "Дневник активности",
   "activityLog.filterPlaceholder": "Филтрирај… (нпр. plex, неуспешно, спољно)",
   "activityLog.filterAllDomains": "Све домене",

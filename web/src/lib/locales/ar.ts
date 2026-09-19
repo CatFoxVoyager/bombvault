@@ -357,7 +357,7 @@ const ar: Partial<Translations> = {
   "auth.invalidPassword": "كلمة مرور غير صحيحة",
   "auth.loginError": "فشل تسجيل الدخول",
 
-  // Settings — Security card
+  // Settings; Security card
   "auth.security": "كلمة المرور",
   "auth.authOff": "المصادقة معطّلة. جميع مستخدمي LAN لديهم وصول كامل.",
   "auth.authOn": "المصادقة مفعّلة.",
@@ -447,7 +447,7 @@ const ar: Partial<Translations> = {
   "state.pmsuspended":  "معلَّق",
   "state.notInstalled": "غير مثبّت",
 
-  // Backups — files
+  // Backups; files
   "snapshots.files": "الملفات",
   "snapshots.delete": "حذف",
   "snapshots.deleteConfirm": "حذف هذه النسخة الاحتياطية؟ تتم إزالة اللقطة من المستودع (شغّل التقليم في الإعدادات لاستعادة المساحة). لا يمكن التراجع.",
@@ -695,7 +695,7 @@ const ar: Partial<Translations> = {
   "export.exportedTo": "تم التصدير إلى:",
   "backup.configOnly": "الإعدادات فقط: لا توجد مجلدات بيانات (تم حفظ التعريف لإعادة الإنشاء)",
 
-  // Backups — delete all
+  // Backups; delete all
   "snapshots.deleteAll": "حذف جميع النسخ الاحتياطية",
   "snapshots.deleteAllConfirm": "حذف جميع النسخ الاحتياطية لهذا الـ VM من المصدر المحدد (محلي أو خارج الموقع)؟ تُزال اللقطات نهائياً ويُقلَّم المستودع. لا يمكن التراجع.",
   "snapshots.deletingAll": "جارٍ الحذف…",
@@ -794,7 +794,7 @@ const ar: Partial<Translations> = {
   "config.snapshotsHint": "لاستعادة هذه الإعدادات على خادم مُعاد بناؤه، استخدم تبويب الاستعادة. استعادة الإعدادات تعيد تشغيل BombVault لتطبيقها، لذا فهي موجودة هناك مع بقية سير التعافي من الكوارث.",
   "config.none": "لا توجد نسخ احتياطية للإعدادات بعد. شغّل نسخاً احتياطياً أعلاه.",
 
-  // Recovery — restore BombVault's own settings step
+  // Recovery; restore BombVault's own settings step
   "recovery.stepConfig": "استعادة إعدادات BombVault الخاصة",
   "recovery.configHint": "على خادم مُعاد بناؤه، استعِد أولاً إعدادات BombVault الخاصة (مسارات النسخ الاحتياطي وأهداف خارج الموقع وبيانات الاعتماد) لتأتي الخطوات أدناه معبّأة مسبقاً. وجّهه إلى نسخة الإعدادات الاحتياطية التي أعددتها سابقاً. لا توجد نسخة إعدادات احتياطية؟ تخطَّ هذا وأرفق نسخك الاحتياطية يدوياً أدناه.",
   "recovery.configAppKeyReminder": "يجب أن يطابق APP_KEY هذه النسخة الاحتياطية، وهذا هو الفحص في الخطوة 1 أعلاه.",
@@ -1142,7 +1142,7 @@ const ar: Partial<Translations> = {
   "drill.manualOnly": "DR خارج الموقع: يدوي فقط",
   "drill.manualOnlyTitle": "تمرين DR المجدول خارج الموقع مُعطَّل. شغِّل فحص خارج الموقع يدويًا باستخدام الزر.",
 
-  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings; section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "عام",
   "settings.tab.storage": "المسارات والتخزين",
   "settings.tab.schedules": "الجداول",
@@ -1241,7 +1241,7 @@ const ar: Partial<Translations> = {
   "dashboard.domainFiles": "المجلدات",
   "recovery.filesFound": "تم العثور على {f} مجموعات مجلدات.",
   "recovery.filesRestoreHint": "مجموعات المجلدات المعاد اكتشافها لا تحمل مجلدها الأصلي. تُستعاد كل منها إلى مجلد تختاره.",
-  // Restore from another BombVault repo — Recovery page (#61 task 11)
+  // Restore from another BombVault repo; Recovery page
   "recovery.foreignTitle": "الاستعادة من مستودع BombVault آخر",
   "recovery.foreignIntro": "استخرج حاويات أو أجهزة افتراضية أو مجموعات مجلدات مفردة من نسخ نسخة BombVault أخرى: اتصل للقراءة فقط، وتصفح المحتوى، واستعد ما تختاره. المستودع الآخر يُقرأ فقط ولا يتغير فيه شيء، وتبقى إعدادات النسخ الاحتياطي الخاصة بك دون مساس.",
   "recovery.foreignStepConnect": "الاتصال بالمستودع الآخر",
@@ -1279,7 +1279,7 @@ const ar: Partial<Translations> = {
   "recovery.foreignExpired": "انتهت صلاحية الجلسة (تستمر الجلسات 30 دقيقة). أعد الاتصال لمواصلة التصفح.",
   "recovery.foreignReconnect": "إعادة الاتصال",
 
-  // Dashboard activity log (Task 4)
+  // Dashboard activity log
   "activityLog.title": "سجل النشاط",
   "activityLog.filterPlaceholder": "تصفية… (مثل plex، فشل، خارج الموقع)",
   "activityLog.filterAllDomains": "كل النطاقات",
@@ -1336,7 +1336,7 @@ const ar: Partial<Translations> = {
   "activityLog.dayFilterChip": "عرض {date}",
   "activityLog.clearDayFilter": "مسح تصفية اليوم",
 
-  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave; Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "بدأ النسخ المتماثل - يعمل في الخلفية؛ ويُظهر مؤشر التشغيل التقدم.",
   "whatsnew.retry": "إعادة المحاولة",

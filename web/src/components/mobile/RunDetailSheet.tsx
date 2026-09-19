@@ -20,74 +20,74 @@ import { SnapshotFileTree } from "../SnapshotFileTree";
 import { BottomSheet } from "./BottomSheet";
 
 // ---------------------------------------------------------------------------
-// RunDetailSheet — the full-screen run-detail sheet.
+// RunDetailSheet; the full-screen run-detail sheet.
 //
-// Hosted COMPONENT-LOCALLY by whichever surface owns the run row (the
+// Hosted component-locally by whichever surface owns the run row (the
 // container/file-set surfaces, the Dashboard): `<RunDetailSheet run={...} open
 // onClose={...} />` with the consumer's own open state. No route is added and
-// router.tsx is frozen — the sheet opens over whatever surface invoked it,
+// router.tsx is frozen; the sheet opens over whatever surface invoked it,
 // which is the hosting contract.
 //
-// RECORDED DEVIATION vs the screen spec's verbatim wording (the frozen-API
-// data adaptations contract — binding): the spec's
+// Recorded deviation vs the screen spec's verbatim wording (the frozen-API
+// data adaptations contract; binding): the spec's
 // "new / changed / unchanged" stat triad and its per-file exclusion-reason log
-// lines have NO source on the frozen Run record (web/src/lib/api.ts —
+// lines have no source on the frozen Run record (web/src/lib/api.ts;
 // id, targetId, kind, status, startedAt, finishedAt, snapshotId, bytes,
 // error, acknowledged, target, domain; progress events carry only
 // key/phase/percent/active/startedAt/snapshotIndex/snapshotTotal). There are
 // no per-file counts and no exclusion lines anywhere on the wire, and this
-// milestone may not change that. The contracted substitutes, and ONLY these,
+// milestone may not change that. The contracted substitutes, and only these,
 // are rendered:
 //   - Data volume  = humanBytes(run.bytes)          (lib/forecast formatter)
 //   - Duration     = formatDuration(finishedAt − startedAt) (lib/reltime)
 //   - Snapshot     = run.snapshotId.slice(0, 8), mono, full id as title
-//   - activity log = the EXISTING buildLogLines output (same lib the desktop
-//     ActivityLog uses — reuse, no duplication, mono timestamp pattern verbatim)
+//   - activity log = the existing buildLogLines output (same lib the desktop
+//     ActivityLog uses; reuse, no duplication, mono timestamp pattern verbatim)
 // The per-file triad and the unticked / CACHEDIR.TAG attributions live where
 // the truth lives today (the selection surfaces' own copy) and are a recorded
 // v2 data candidate (they need a runs schema extension, i.e. an API-bearing
-// milestone). Numbers are never fabricated here — repo honesty culture.
+// milestone). Numbers are never fabricated here; repo honesty culture.
 //
 // Every presentation decision reuses an existing piece:
 //   - title/status: lib/runDisplay's shared helpers (extracted from Dashboard
-//     into the lib — one implementation, two surfaces)
+//     into the lib; one implementation, two surfaces)
 //   - shell: BottomSheet fullHeight + footer, three close paths
 //     and the focus mechanism inherited
 //   - log: buildLogLines + ActivityLog's mono pattern (font-mono text-xs +
-//     formatLogDate/formatClockTime stamps, colorFor/glyphFor vocabulary) —
+//     formatLogDate/formatClockTime stamps, colorFor/glyphFor vocabulary);
 //     never a second log style
 //   - browse: SnapshotFileTree behind a tonal row (the parent-fetch precedent
 //     in Recovery.tsx / Files.tsx; RestorePanel.tsx is the local
 //     container twin)
 //   - verify: checkDomain() with the Settings integrity tab's own labels
 //   - restore entry: the desktop restore surface's own label
-//     ("snapshots.restore"), secondary/tonal, never accent — restore is
-//     deliberate (design-bible product rule). The guided restore flow itself
-//     arrives with the Recovery mobile-flow PR; this entry stays reveal-only
-//     by the recorded research default — it reveals the snapshot file
+//     ("snapshots.restore"), secondary/tonal, never accent; restore is
+//     deliberate (design-bible product rule). The guided restore flow is not
+//     wired here; this entry stays reveal-only
+//     by the recorded research default; it reveals the snapshot file
 //     tree, the surface the desktop restore flow itself starts from, and
 //     deliberately adds no deep link into the wizard.
 //
-// Domain honesty — what each run kind gets:
+// Domain honesty; what each run kind gets:
 //   - browse/restore entry: container + files domains only (the two domains
 //     with a snapshot file-listing endpoint: listSnapshotFiles /
 //     listSnapshotFilesFileSet). vm/flash/config have no file-level browse API
 //     (block storage / singleton paths), so the rows are absent rather than
-//     dead — honest degradation, not a button that cannot work.
+//     dead; honest degradation, not a button that cannot work.
 //   - verify: container/vm/flash/files (checkDomain's domain union). The
 //     "config" and "everything" domains have no check endpoint, so the row is
 //     absent there.
 //   - live section: running/checking runs whose domain has a progress key,
 //     gated on page visibility (the visibility gate): a hidden page unmounts the section,
-//     which IS the SSE unsubscribe (progress.ts's ref-count closes the shared
+//     which is the SSE unsubscribe (progress.ts's ref-count closes the shared
 //     EventSource); on return the remount reconnects into the backend's
 //     snapshot replay, and completion arrives through the consumer's refetched
-//     run record — never extrapolated. The "everything" parent run streams no
+//     run record; never extrapolated. The "everything" parent run streams no
 //     key of its own (its children do), so it shows terminal content only.
 // ---------------------------------------------------------------------------
 export interface RunDetailSheetProps {
   /** The run to render. The consumer refetches it (listRuns) on visibility
-   *  return — the sheet is a pure view over this record and never
+   *  return; the sheet is a pure view over this record and never
    *  extrapolates completion from clocks. */
   run: Run;
   /** Whether the sheet is open. The consumer owns the state (component-local
@@ -104,19 +104,19 @@ const LIVE_TICK_MS = 1000;
 
 /** The shared-SSE progress key for a run's domain, or null when the domain
  *  streams no key of its own ("everything" is the parent run; its per-domain
- *  children are the ones that publish — store.EverythingTargetID). Shapes
+ *  children are the ones that publish; store.EverythingTargetID). Shapes
  *  mirror the wire examples in progress.ts ("container:plex", "vm:win11") and
  *  the consumers (BackupButton.tsx, VMs.tsx, Files.tsx, Config.tsx
  *  "config", flash as the bare "flash").
  *
- *  The suffix is run.target — the NAME — never run.targetId. The backend
- *  RECORDS vm/files runs under the row's 32-hex id (StartRun(tg.ID) /
- *  StartRun(set.ID)) but PUBLISHES progress under the human name: "vm:"+name
+ *  The suffix is run.target; the name; never run.targetId. The backend
+ *  records vm/files runs under the row's 32-hex id (StartRun(tg.ID) /
+ *  StartRun(set.ID)) but publishes progress under the human name: "vm:"+name
  *  (the backup vkey and the restore rkey, internal/api/service.go) and
  *  "files:"+set.Name (the files backup key; both restore rkeys use the set
  *  name too). Keying by targetId looked up entries the backend never
- *  publishes, so the live section stayed dark for both domains — the
- *  container domain only ever worked by coincidence: a container's id IS its
+ *  publishes, so the live section stayed dark for both domains; the
+ *  container domain only ever worked by coincidence: a container's id is its
  *  name. */
 function progressKeyFor(run: Run): string | null {
   switch (run.domain) {
@@ -136,7 +136,7 @@ function progressKeyFor(run: Run): string | null {
 }
 
 /** The checkDomain() domain union a run's domain maps to, or null when the
- *  domain has no verify endpoint ("config", "everything", "" — none are in
+ *  domain has no verify endpoint ("config", "everything", ""; none are in
  *  checkDomain's "containers" | "vms" | "flash" | "files" union). */
 function verifyDomainFor(domain: Run["domain"]): "containers" | "vms" | "flash" | "files" | null {
   switch (domain) {
@@ -153,14 +153,14 @@ function verifyDomainFor(domain: Run["domain"]): "containers" | "vms" | "flash" 
   }
 }
 
-// A run is in flight when it carries the shared "active" status bucket — the
+// A run is in flight when it carries the shared "active" status bucket; the
 // same running/checking definition statusTone gives the Badges, so the sheet's
 // notion of "in flight" can never drift from the status chip two inches above.
 function isInFlight(run: Run): boolean {
   return statusTone(run.status) === "active";
 }
 
-// Resolves a translation key (+ optional {placeholder} params) — the only
+// Resolves a translation key (+ optional {placeholder} params); the only
 // i18n dependency buildLogLines takes (ActivityLog.tsx's exact closure, kept
 // so the merge/dedupe/order logic stays pure and identical between surfaces).
 function makeResolver(t: ReturnType<typeof useT>["t"]): ResolveName {
@@ -173,7 +173,7 @@ function makeResolver(t: ReturnType<typeof useT>["t"]): ResolveName {
   };
 }
 
-// The ActivityLog.tsx mono line rendering, copied CLASS-FOR-CLASS —
+// The ActivityLog.tsx mono line rendering, copied class-for-class;
 // a single scrollable monospace list (the sheet's body scrolls; the extra
 // max-h-96 scroll container of the dashboard widget would nest two scrollers
 // inside the full-height sheet, so only the inner row pattern is reused).
@@ -188,7 +188,7 @@ function LogList({ lines }: { lines: LogLine[] }) {
               at the desktop switch) and narrower than the dashboard card, so
               the seconds are precisely the characters that sink the message
               span under one-word width and break words mid-word. The
-              dashboard card keeps its seconds on the desktop face — same
+              dashboard card keeps its seconds on the desktop face; same
               call, split by the face that can afford them. */}
           <span className="text-carbon-textMuted shrink-0 tabular-nums">
             {formatLogDate(l.atMs)} {formatClockTime(l.atMs / 1000, false)}
@@ -203,11 +203,11 @@ function LogList({ lines }: { lines: LogLine[] }) {
   );
 }
 
-// The in-flight half of the log section: the ONLY place this sheet subscribes
-// to the shared progress singleton. Mounting is the subscription — the parent
+// The in-flight half of the log section: the only place this sheet subscribes
+// to the shared progress singleton. Mounting is the subscription; the parent
 // renders this conditionally on useVisibilityGate() (`{visible && ...}`,
 // below), so hiding the page unmounts it and the frozen singleton's ref-count
-// drops the shared EventSource (whose reconnect replays the server snapshot —
+// drops the shared EventSource (whose reconnect replays the server snapshot;
 // progress.ts's closeSource contract).
 function LiveRunSection({ run, progressKey }: { run: Run; progressKey: string | null }) {
   const { t } = useT();
@@ -221,10 +221,10 @@ function LiveRunSection({ run, progressKey }: { run: Run; progressKey: string | 
   }, []);
 
   const resolveName = makeResolver(t);
-  // Computed per render, deliberately unmemoized: the input is ONE run (the
+  // Computed per render, deliberately unmemoized: the input is one run (the
   // builder is linear in runs), and the live tick re-renders this section
   // every second anyway. An idle "next up" line is dashboard-log furniture;
-  // inside a specific run's detail it would read as run content — the
+  // inside a specific run's detail it would read as run content; the
   // `!l.idle` filter is also what keeps the empty-progress edge (no SSE entry
   // yet) from rendering the activity-log's idle-empty line in the sheet.
   const lines = buildLogLines([run], progressMap, [], resolveName, now, now).filter((l) => !l.idle);
@@ -234,7 +234,7 @@ function LiveRunSection({ run, progressKey }: { run: Run; progressKey: string | 
     <>
       {/* Inline (in-flow) variant, deliberately: the default ProgressBar pins
           to a positioned card's bottom edge, which inside the sheet would be
-          the fixed panel itself — over the footer. Indeterminate until the
+          the fixed panel itself; over the footer. Indeterminate until the
           first SSE frame carries a percent; renders nothing while the entry
           is inactive (the headline Badge and the log tail carry "running"
           until then). */}
@@ -245,7 +245,7 @@ function LiveRunSection({ run, progressKey }: { run: Run; progressKey: string | 
 }
 
 // A finished (or failed/cancelled) run renders its history line from the same
-// builder — an empty progress map and no schedule input, so buildLogLines
+// builder; an empty progress map and no schedule input, so buildLogLines
 // reduces to exactly this run's completed line and nothing else.
 function HistoryLogSection({ run }: { run: Run }) {
   const { t } = useT();
@@ -257,9 +257,9 @@ function HistoryLogSection({ run }: { run: Run }) {
 }
 
 // ---------------------------------------------------------------------------
-// Tonal touch row (>=44px) — the sheet's action-row shape, shared by the
+// Tonal touch row (>=44px); the sheet's action-row shape, shared by the
 // footer's verify/browse rows and the body's restore entry. Hand-rolled rather
-// than Button because the two browse-section controls are DISCLOSURES and need
+// than Button because the two browse-section controls are disclosures and need
 // aria-expanded/aria-controls, which the Button engine does not pass through;
 // the classes are the Button "subtle"/"neutral" tone tokens (bg-carbon-surface2
 // / surface3, rounded-control) so the rows read as the same engine language.
@@ -277,7 +277,7 @@ function SheetActionRow({
   label: string;
   onClick: () => void;
   disabled?: boolean;
-  /** Disclosure state — set only for the rows that expand the browse section. */
+  /** Disclosure state; set only for the rows that expand the browse section. */
   expanded?: boolean;
   controlsId?: string;
   tone?: "subtle" | "neutral";
@@ -306,7 +306,7 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
   const browseSupported = run.domain === "container" || run.domain === "files";
   const verifyDomain = verifyDomainFor(run.domain);
   // The visibility pause gate (kept with the other hooks, above the !open early
-  // return — hooks rules). Gating the LIVE SECTION below, nothing else: the
+  // return; hooks rules). Gating the live section below, nothing else: the
   // sheet's terminal content is a pure view over the `run` record and needs
   // no live connection.
   const visible = useVisibilityGate();
@@ -319,11 +319,11 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
   const [filter, setFilter] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  // Lazy parent-fetch on expand — the RestorePanel.tsx shape (list →
+  // Lazy parent-fetch on expand; the RestorePanel.tsx shape (list →
   // {ok, files} → tree props; #129 server reason over the generic message).
-  // The cancelled flag is the late-response guard: hosts keep ONE mounted
+  // The cancelled flag is the late-response guard: hosts keep one mounted
   // sheet and swap its `run` prop (the Dashboard's run-sheet host), so the
-  // effect re-runs per run identity and a SLOW listing for the previous run
+  // effect re-runs per run identity and a slow listing for the previous run
   // must not overwrite the next run's tree when it finally lands.
   useEffect(() => {
     if (!open || !browseOpen) return;
@@ -387,10 +387,10 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
 
   // --- fresh-success CheckDraw gate -----------------------------------------
   // CheckDraw's own contract (CheckDraw.tsx): it may only appear at the exact
-  // moment state transitions busy → FRESH success, never at initial mount —
+  // moment state transitions busy → fresh success, never at initial mount;
   // a sheet opened on an old successful run must not animate a checkmark as
   // if the run just completed. One ref-carrying effect watches for that
-  // transition — but only counts it WHILE THE SHEET IS OPEN: every host keeps
+  // transition; but only counts it while the sheet is open: every host keeps
   // the sheet mounted when closed and keeps feeding it refreshed records from
   // its own poll, so a running → success flip landing behind a dismissed
   // sheet was never witnessed by the user and must not arm the animation for
@@ -411,7 +411,7 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
   }, [run.status]);
 
   // Everything the sheet holds is per-open-session state; reset on close so a
-  // consumer reusing the same mount for a different run starts clean — the
+  // consumer reusing the same mount for a different run starts clean; the
   // check gate included: a witnessed animation belongs to the open session
   // that saw the transition, never to the next one.
   useEffect(() => {
@@ -429,18 +429,18 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
 
   if (!open) return null;
 
-  // Stat triad — the Frozen-API substitutes ONLY (see the header deviation
+  // Stat triad; the Frozen-API substitutes only (see the header deviation
   // note). Duration falls back to the same "—" degraded meta mark formatTs
   // uses for a missing timestamp rather than a blank tile, muted so the
   // absence reads as intentional.
   const durationSecs = run.finishedAt != null ? run.finishedAt - run.startedAt : null;
   const durationText = durationSecs == null ? "—" : formatDuration(durationSecs) || "—";
   const durationMissing = durationText === "—";
-  // Runs with NO snapshot (the Backup Everything parent, prune, verify) have
-  // no volume and no snapshot id to show. humanBytes(0) would CLAIM a
-  // measured "0 B" and an empty mono slice would render a blank tile — both
+  // Runs with no snapshot (the Backup Everything parent, prune, verify) have
+  // no volume and no snapshot id to show. humanBytes(0) would claim a
+  // measured "0 B" and an empty mono slice would render a blank tile; both
   // read as data, not as absence. The "—" placeholder is the same mark the
-  // duration tile uses, muted. A REAL zero-byte backup that HAS a snapshot
+  // duration tile uses, muted. A real zero-byte backup that has a snapshot
   // keeps its honest "0 B": the snapshot exists, the number is true.
   const hasSnapshot = run.snapshotId !== "";
   const volumeText = hasSnapshot ? humanBytes(run.bytes) : "—";
@@ -467,7 +467,7 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
             />
           )}
         </div>
-        {/* The verify row's own result, adjacent to its control — the same
+        {/* The verify row's own result, adjacent to its control; the same
             vocabulary IntegrityCard renders after a check (CheckDraw +
             integrity.ok / the scrubbed server reason over verify.failed). */}
         {verifyState === "ok" && (
@@ -489,7 +489,7 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
       open={open}
       onClose={onClose}
       fullHeight
-      // Title composes from EXISTING keys only (runKindLabel + runTargetText —
+      // Title composes from existing keys only (runKindLabel + runTargetText;
       // no new title key). The interpunct separator keeps user text free of
       // dashes (the em-dash ban is lint-enforced and a hyphen reads as a
       // hyphenation, not a separator).
@@ -508,8 +508,8 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
           </span>
         </div>
 
-        {/* Failed path — the backend's already-scrubbed reason verbatim
-            (runReason translates only BombVault's OWN sentences; untranslated
+        {/* Failed path; the backend's already-scrubbed reason verbatim
+            (runReason translates only BombVault's own sentences; untranslated
             restic text stays dir="ltr" on any page language, the
             lib/runReason direction contract). */}
         {run.error !== "" && (
@@ -521,12 +521,12 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
           </p>
         )}
 
-        {/* Stat triad — the UI-review fix carried into this file: stat VALUES
-            take the heading role at weight 600 (text-heading font-semibold,
-            the Fab label's typography) with tabular numerals so values don't
-            shimmer while a rerender moves digits; the snapshot tile is mono
-            with the full id as its title (BackupButton toast precedent).
-            Weight law: 400/600 only — the house weight discipline. */}
+        {/* Stat triad: stat values take the heading role at weight 600
+            (text-heading font-semibold, the Fab label's typography) with
+            tabular numerals so values don't shimmer while a rerender moves
+            digits; the snapshot tile is mono with the full id as its title
+            (BackupButton toast precedent). Weight law: 400/600 only; the
+            house weight discipline. */}
         <div className="grid grid-cols-3 gap-2">
           <div className="flex min-w-0 flex-col gap-1 rounded-card bg-carbon-background px-2 py-2">
             <span className="text-xs text-carbon-textMuted">{t("run.statVolume")}</span>
@@ -555,15 +555,15 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
           </div>
         </div>
 
-        {/* Live section — in-flight runs get the progress bar + live log tail,
+        {/* Live section; in-flight runs get the progress bar + live log tail,
             conditionally on the visibility gate: hiding the
-            page unmounts this subtree, which IS the unsubscribe — the frozen
+            page unmounts this subtree, which is the unsubscribe; the frozen
             singleton's ref-count drops the shared EventSource and drops its
             cached state; showing the page remounts + resubscribes into the
             backend's snapshot replay. While hidden the slot renders nothing
             (an in-flight run has no history line to fall back to, and nobody
             is watching). A run that finished while hidden arrives as a
-            refetched `run` record from the consumer — the terminal flip is
+            refetched `run` record from the consumer; the terminal flip is
             server state, never extrapolated here. Terminal runs get the same
             builder's history line. Both render through LogList, so the sheet
             can never grow a second log style. */}
@@ -575,7 +575,7 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
           <HistoryLogSection run={run} />
         )}
 
-        {/* Browse section — the SnapshotFileTree mount (the Recovery.tsx /
+        {/* Browse section; the SnapshotFileTree mount (the Recovery.tsx /
             Files.tsx precedent: purely presentational tree, the parent
             owns the fetch). Revealed by either the footer browse row or the
             restore entry below. */}
@@ -594,13 +594,12 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
           </div>
         )}
 
-        {/* Restore entry — in the scroll body, ABOVE the footer rows
+        {/* Restore entry; in the scroll body, above the footer rows
             (secondary, away from the thumb's default path; the design bible's
             "restore is deliberate" rule). It reveals the same snapshot file
-            surface the desktop restore flow starts from; the guided restore
-            flow itself arrives with the Recovery mobile-flow PR and this
-            entry deliberately stays reveal-only — no deep link (the recorded
-            research default). */}
+            surface the desktop restore flow starts from; this entry deliberately
+            stays reveal-only and adds no deep link into the guided restore
+            flow (the recorded research default). */}
         {browseSupported && (
           <SheetActionRow
             label={t("snapshots.restore")}

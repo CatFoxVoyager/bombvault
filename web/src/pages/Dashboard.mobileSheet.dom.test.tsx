@@ -8,21 +8,21 @@
 // deep-links it). These tests pin the three behaviors the state machine
 // exists for:
 //
-//   1. JUMP GUARD — while the watch is still live, every poll re-reports the
-//      correlated run. A sheet the user has since pointed at a DIFFERENT run
+//   1. Jump guard; while the watch is still live, every poll re-reports the
+//      correlated run. A sheet the user has since pointed at a different run
 //      must not be yanked back to the everything pass by those ticks; only
 //      (a) an empty sheet, (b) a refresh of the run already shown, or (c) the
 //      first correlation of a user-armed fire may replace sheetRun.
-//   2. LIVE REFRESH — a sheet opened from Recent runs resolves its run by id
+//   2. Live refresh; a sheet opened from Recent runs resolves its run by id
 //      out of the page's polled listRuns state at render, so it follows the
 //      run from Running to its terminal status without being re-opened.
-//   3. ROTATION — crossing to desktop unmounts the sheet (and the phone
+//   3. Rotation; crossing to desktop unmounts the sheet (and the phone
 //      trigger): the bottom sheet has no desktop form, so it must not float
 //      over the desktop grid.
 //
-// The page renders through the REAL components against a mocked api module
+// The page renders through the real components against a mocked api module
 // (only the read endpoints are stubbed; ApiError and every type stay the real
-// module's), with the desktop media query held at "phone" — jsdom otherwise
+// module's), with the desktop media query held at "phone"; jsdom otherwise
 // answers desktop and the phone surface would never mount.
 // ---------------------------------------------------------------------------
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -80,7 +80,7 @@ function makeRun(over: Partial<Run> & { id: string }): Run {
 const mqlListeners = new Set<() => void>();
 let desktopMatches = false;
 
-/** matchMedia stub whose ONLY live answer is the desktop width query; the
+/** matchMedia stub whose only live answer is the desktop width query; the
  *  flip helper notifies subscribers the way a real MediaQueryList would. */
 function installMatchMedia() {
   window.matchMedia = ((query: string) => ({
@@ -136,7 +136,7 @@ function renderPage() {
 }
 
 /** Flush the mount-time fetch batch (every mocked read resolves in a
- *  microtask — one empty act hop settles them). */
+ *  microtask; one empty act hop settles them). */
 async function settle() {
   await act(async () => {});
 }
@@ -165,7 +165,7 @@ async function fireEverything() {
   );
   expect(confirmDialog).toBeDefined();
   fireEvent.click(within(confirmDialog as HTMLElement).getByRole("button", { name: en["settings.everythingTitle"] }));
-  // confirm resolution + fire()'s baseline listRuns + start POST — all
+  // confirm resolution + fire()'s baseline listRuns + start POST; all
   // promise hops, no timers needed yet.
   await act(async () => {
     await vi.advanceTimersByTimeAsync(0);
@@ -183,7 +183,7 @@ describe("Dashboard phone run sheet", () => {
     expect(within(screen.getByRole("dialog")).getAllByText(/plex/i).length).toBeGreaterThan(0);
 
     // Fire: baseline seeds with only plex; once the pass's run appears the
-    // correlation deep-links the sheet to it (the armed steal — intended).
+    // correlation deep-links the sheet to it (the armed steal; intended).
     await fireEverything();
     const everything = makeRun({
       id: "run-everything-1",
@@ -203,11 +203,11 @@ describe("Dashboard phone run sheet", () => {
     });
     expect(within(screen.getByRole("dialog")).getByText(/all-domains/i)).toBeTruthy();
 
-    // The user now opens a DIFFERENT run's sheet from Recent runs.
+    // The user now opens a different run's sheet from Recent runs.
     fireEvent.click(recentRunRow("plex"));
     expect(within(screen.getByRole("dialog")).getAllByText(/plex/i).length).toBeGreaterThan(0);
 
-    // Later polls keep re-reporting the still-running everything run — every
+    // Later polls keep re-reporting the still-running everything run; every
     // tick used to replace sheetRun and bounce the sheet back every two
     // seconds. The guard keeps the user's run on screen.
     await act(async () => {

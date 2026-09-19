@@ -25,8 +25,8 @@ import {
 import { labelModeChanged } from "../lib/useLabelMode";
 import { InfoBubble } from "../components/InfoBubble";
 import { OffsiteTargetsSection } from "../components/OffsiteTargetsSection";
-// No EXACT_CADENCE_MODES here any more (#166): every cadence PICKER on this page
-// edits a schedule that can now count an interval — the five domains and Backup
+// No EXACT_CADENCE_MODES here any more (#166): every cadence picker on this page
+// edits a schedule that can now count an interval; the five domains and Backup
 // Everything from their LastSuccessful*Backup gates, and drills/tamper/digest
 // from schedule_job_runs (migration v89). The off-site cadences on this page are
 // raw text inputs, not pickers, so they have no mode list to restrict; their
@@ -56,7 +56,7 @@ import { MOTION_INTENSITIES, getMotionIntensity, setMotionIntensity, stormTap, t
 import { applyStoredDisco, discoTap, getDisco, setDisco } from "../lib/disco";
 import { HUE_OFFSET, Selector } from "../components/Selector";
 import { IconAdd, IconBackupNow, IconDownload, IconTrash, IconCheckCircle, IconSync, IconGear, IconClose } from "../components/Sidebar";
-// The integrity row's own two verbs ([324]). They live in the ACTION set
+// The integrity row's own two verbs ([324]). They live in the action set
 // rather than the nav one, same split IconUpload already crosses.
 // The two tab glyphs that are generated rather than drawn below. Aliased so the
 // wrappers further down keep their own names and TAB_ICON reads the same for
@@ -67,7 +67,7 @@ import {
   IconTabIntegrity as IconTabIntegrityGlyph,
   IconTabStorage as IconTabStorageGlyph,
 } from "../components/navGlyphs";
-// IconUpload lives in the ACTION set while its twin IconDownload sits in the
+// IconUpload lives in the action set while its twin IconDownload sits in the
 // nav set, so the export/import pair ([293]) has to reach across both. Worth a
 // line because the split is by generator file, not by meaning: `upload-box-1`
 // and `download-box-1` are one Streamline drawing with the arrow reversed.
@@ -90,7 +90,7 @@ export function SaveBar({
   disabled = false,
 }: {
   state: SaveState;
-  /** Always null post-migration — see this component's header comment. */
+  /** Always null post-migration; see this component's header comment. */
   error?: string | null;
   onSave: () => void;
   t: ReturnType<typeof useT>["t"];
@@ -112,38 +112,38 @@ export function SaveBar({
 }
 
 // Accent preset swatches: DEFAULT_ACCENT_PRESETS (lib/accent.ts) now owns
-// both the hex values AND the persistence/reset shape — see that module's
+// both the hex values and the persistence/reset shape; see that module's
 // own header comment. AccentCard/AccentPresetSwatch further down are the UI
 // half.
 
 // ---------------------------------------------------------------------------
-// Palette swatch — one editable colour in the rainbow palette editor
+// Palette swatch; one editable colour in the rainbow palette editor
 // (GlimStone form-engine Phase 2, Task 1). Deliberately matches the existing
 // accent-preset swatches' own visual language above (a rounded-pill circle
 // showing the colour, a border) rather than introducing a new component
-// family: ColorPickerSwatch (the shared GlimStone-picker trigger — see its
+// family: ColorPickerSwatch (the shared GlimStone-picker trigger; see its
 // own header comment) opens the same floating popover the Accent Card's
 // custom swatch below uses, pre-synced to this position's own value, instead
-// of a native <input type="color"> (a genuinely separate browser/OS window —
+// of a native <input type="color"> (a genuinely separate browser/OS window;
 // jdp: "kein eigenes Fenster welches sich öffnet"). `disabled` dims the
-// control on its OWN element (native `disabled` + `disabled:opacity-50`),
+// control on its own element (native `disabled` + `disabled:opacity-50`),
 // never via a wrapping container's opacity (rule 15 / this branch's own
-// established "dimmed via disabled, not opacity-on-container" fix from Phase
-// 1 Task 4) — ColorPickerSwatch's own `disabled` prop follows that same
+// established "dimmed via disabled, not opacity-on-container" fix);
+// ColorPickerSwatch's own `disabled` prop follows that same
 // contract.
 //
 // `rounded-pill`, not a hardcoded `rounded-full` (GlimStone follow-up pass,
-// live-review point 4): a literal `rounded-full` is a fixed 50% radius that
+// live review): a literal `rounded-full` is a fixed 50% radius that
 // never moves, so this swatch (and the accent-preset swatches below) used to
-// stay a perfect circle no matter what shape the user picked in Settings —
+// stay a perfect circle no matter what shape the user picked in Settings;
 // the one pair of controls on this page that silently ignored the shape
-// engine. `rounded-pill` is the SAME token every pill-shaped Badge already
+// engine. `rounded-pill` is the same token every pill-shaped Badge already
 // reads (Badge.tsx's shape="pill"/"circle" -> RADIUS_CLASSES.pill/circle),
 // and both swatches here are already fixed equal-width/-height boxes, so no
-// `aspect-square` is needed the way Badge's circle shape needs one — points
+// `aspect-square` is needed the way Badge's circle shape needs one; points
 // at var(--radius-pill), which index.css already varies per data-shape:
 // 9999px (round, a true circle), 0.3125rem (soft, a lightly rounded square),
-// 0 (square, a hard corner) — reactive with zero new CSS.
+// 0 (square, a hard corner); reactive with zero new CSS.
 // ---------------------------------------------------------------------------
 function PaletteSwatch({
   hex,
@@ -163,9 +163,9 @@ function PaletteSwatch({
   // h-7 w-7 this swatch used to be: the reset badge sharing this row is a
   // square icon badge, and every square icon badge in the app is 32px
   // (Badge.tsx, "ONE SIZE FOR SQUARE ICON BADGES"). The swatch follows the
-  // badge, not the other way round — jdp has twice reported this row when the
+  // badge, not the other way round; jdp has twice reported this row when the
   // two disagreed ("der Reset-Badge ist größer als die Farbfelder"), so they
-  // are kept equal by moving whichever side is NOT bound by the app-wide rule.
+  // are kept equal by moving whichever side is not bound by the app-wide rule.
   return (
     <ColorPickerSwatch
       value={hex}
@@ -187,12 +187,12 @@ function ReplicateNowButton({
   /** Offsite-tab card-split follow-up (jdp: "Die Buttons Verbindung testen,
    *  Jetzt replizieren, Einrichten, Ziel hinzufügen in die Farbengine
    *  aufnehmen"): this button's own enclosing per-domain offsite Card's hue
-   *  position, the SAME value that Card's own `hueIndex` already got — not a
+   *  position, the same value that Card's own `hueIndex` already got; not a
    *  second independent value, matching every other "thread the enclosing
    *  Card's own hueIndex straight through" call site in this file (e.g.
    *  ContainersSection's CadenceBuilder). `tone="active"` below (not
    *  "neutral", this button's old plain-grey identity) is what makes a
-   *  passed hueIndex actually visible — see Badge.tsx's own `hueOn` comment
+   *  passed hueIndex actually visible; see Badge.tsx's own `hueOn` comment
    *  for why "active" is the one non-heading tone `hueIndex` drives. Still
    *  true after the icon-badge conversion above: `tone` only ever governed
    *  the background wash, never the (now-neutral) glyph ink. */
@@ -216,7 +216,7 @@ function ReplicateNowButton({
     }
   }
   return (
-    // The label is the STABLE name; the running state rides in `title` and in
+    // The label is the stable name; the running state rides in `title` and in
     // the spinner. A label that changed to "Replicating…" mid-action would
     // resize the button while you look at it, which is what the width stages
     // exist to prevent (#178).
@@ -235,10 +235,10 @@ function ReplicateNowButton({
 }
 
 // TestConnectionButton probes a domain's off-site repo (reachable / initialised)
-// without modifying it, showing the verdict inline — so the user can verify the
+// without modifying it, showing the verdict inline; so the user can verify the
 // configured location before relying on it.
 // GlimStone follow-up round: converted to a square icon-only badge (IconCheckCircle)
-// the same way as ReplicateNowButton above — see that function's own comment for
+// the same way as ReplicateNowButton above; see that function's own comment for
 // the full "coloured text -> neutral glyph, wash -> solid fill" writeup;
 // the multiTarget-dependent "Test connection"/"Test PRIMARY connection" swap
 // survives unchanged, just as `tip` content instead of visible text.
@@ -249,15 +249,15 @@ function TestConnectionButton({
 }: {
   domain: OffsiteDomain;
   t: ReturnType<typeof useT>["t"];
-  /** See ReplicateNowButton's own doc above — identical offsite-tab
+  /** See ReplicateNowButton's own doc above; identical offsite-tab
    *  card-split follow-up, same enclosing Card's hueIndex threaded through,
    *  same tone="active" reasoning. */
   hueIndex?: number;
 }) {
   const { push } = useToast();
   const [busy, setBusy] = useState(false);
-  // This button probes the PRIMARY target only. Once a domain has more than one
-  // off-site copy, say so on the label — an unqualified "Test connection" going
+  // This button probes the primary target only. Once a domain has more than one
+  // off-site copy, say so on the label; an unqualified "Test connection" going
   // green while a second destination was broken is exactly what issue #138
   // reported. Each additional target has its own button in OffsiteTargetsSection.
   const multiTarget = useOffsiteTargets(domain).length > 1;
@@ -288,7 +288,7 @@ function TestConnectionButton({
       onClick={() => void go()}
       disabled={busy}
       busy={busy}
-      // With several destinations this button probes the PRIMARY one, which is
+      // With several destinations this button probes the primary one, which is
       // worth saying but is not a different button: as a label it would change
       // this control's width the moment a second destination is added.
       title={multiTarget ? t("offsite.testPrimary") : undefined}
@@ -318,12 +318,12 @@ function ContainersSection({
   const included = containers.filter((c) => c.installed && c.includeInSchedule && !c.self);
 
   return (
-    // Live-review round 5 REVERSES the previous round's "Bei allen
+    // A later live review reverses the earlier "Bei allen
     // Zeitplanpicker Cards soll der Name raus... das ist redundant" removal
     // (jdp: "Den Text in die Cardtitelbadges wieder einfügen, den habe ich
-    // nicht gemeint. Den 'Titeltext' aus der Zeitplancard entfernen" — put
-    // the heading BADGE text back; the duplicate jdp actually meant was the
-    // plain-text <legend> INSIDE CadenceBuilder, fixed there instead — see
+    // nicht gemeint. Den 'Titeltext' aus der Zeitplancard entfernen"; put
+    // the heading badge text back; the duplicate jdp actually meant was the
+    // plain-text <legend> inside CadenceBuilder, fixed there instead; see
     // CadenceBuilder.tsx's own header comment for that half of this
     // correction). `title` restored; `hint` stays alongside it exactly as
     // every other title+hint Card in this file already composes both.
@@ -331,10 +331,10 @@ function ContainersSection({
       {/* Cadence row */}
       <ScheduleRow schedule={schedule} />
 
-      {/* Editable cadence builder. `hueIndex` passed straight through — the
-          SAME position this Card's own heading notch already got above, not
-          a second independent value — so the TimePicker inside picks up this
-          Card's own stable rainbow colour (Task 3, jdp: "Der Zeitpicker ist
+      {/* Editable cadence builder. `hueIndex` passed straight through; the
+          Same position this Card's own heading notch already got above, not
+          a second independent value; so the TimePicker inside picks up this
+          Card's own stable rainbow colour (jdp: "Der Zeitpicker ist
           nicht im Regenbogenmodus"; see CadenceBuilder's own hueIndex doc). */}
       <div className="rounded-card bg-carbon-surface2 p-4">
         <CadenceBuilder
@@ -384,7 +384,7 @@ function ContainersSection({
   );
 }
 
-// Domain section — VMs (editable schedule)
+// Domain section; VMs (editable schedule)
 function VMsSection({
   settings,
   syncSchedules,
@@ -408,8 +408,8 @@ function VMsSection({
   const included = vms.filter((v) => v.includeInSchedule);
 
   return (
-    // See ContainersSection's own comment above — `title` restored, same
-    // Task 3 `hueIndex` threaded into CadenceBuilder below.
+    // See ContainersSection's own comment above; `title` restored, same
+    // `hueIndex` threaded into CadenceBuilder below.
     <Card title={t("jobs.vmsSection")} hint={t("jobs.vmIncludeHint")} hueIndex={hueIndex}>
       {/* The editor below stays visible and dimmed while the Containers
           schedule owns this domain, because the cadence it shows still runs -
@@ -459,7 +459,7 @@ function VMsSection({
   );
 }
 
-// Domain section — Flash (editable schedule)
+// Domain section; Flash (editable schedule)
 function FlashSection({
   settings,
   syncSchedules,
@@ -476,11 +476,11 @@ function FlashSection({
   const schedule = syncSchedules ? settings.containersSchedule : settings.flashSchedule;
 
   return (
-    // See ContainersSection's own comment above — `title` restored
+    // See ContainersSection's own comment above; `title` restored
     // (jobs.flashScheduleHint's own text, added when the title was dropped,
     // stays too: unlike Containers/VMs/Folders, Flash has no per-item member
     // list, so the hint states what a Flash backup actually covers rather
-    // than explaining a list). Same Task 3 `hueIndex` threaded into
+    // than explaining a list). Same `hueIndex` threaded into
     // CadenceBuilder below.
     <Card title={t("jobs.flashSection")} hint={tLtr(t, "jobs.flashScheduleHint")} hueIndex={hueIndex}>
       {/* Same synced-owner bubble as VMsSection above. */}
@@ -493,18 +493,18 @@ function FlashSection({
           onChange={onChange}
           hueIndex={hueIndex}
         />
-        {/* GlimStone follow-up pass: stays permanent text, NOT bubbled — a
+        {/* GlimStone follow-up pass: stays permanent text, not bubbled; a
             behavioural caveat ("this control looks live but silently does
             nothing yet") someone hits while confused about why a saved
             Flash schedule never runs, not a one-time "what does this do"
             explainer. Same carve-out category as notify.healthchecksLifecycle
             above (NotifyCard's own header comment).
-              Live-review round (jdp, Task 7 — "Wieso steht in der Flash
+              Live review (jdp: "Wieso steht in der Flash
             Zeitplan Card die Zeile mit dem Text 'Unraid Flash-
-            Konfiguration'? Kann das nicht weg?"): that was a SEPARATE
+            Konfiguration'? Kann das nicht weg?"): that was a separate
             trailing "member row" below this paragraph (dot + name +
             "planned" status, styled like a ContainersSection/VMsSection
-            member-list row) — removed outright, along with its now-orphaned
+            member-list row); removed outright, along with its now-orphaned
             jobs.flashRow/jobs.flashPlanned keys, since Flash has no actual
             per-item collection to list and the row conveyed nothing this
             paragraph doesn't already say. The paragraph that stood here is
@@ -526,10 +526,10 @@ function FlashSection({
   );
 }
 
-// Domain section — Files (editable schedule + per-set include list). Mirrors
+// Domain section; Files (editable schedule + per-set include list). Mirrors
 // VMsSection for the cadence and ContainersSection for the member list, except
 // the per-set "include in schedule" toggles PATCH each file set directly (the
-// same {enabled} flag the Files tab edits) — they are not part of the SaveBar.
+// same {enabled} flag the Files tab edits); they are not part of the SaveBar.
 function FilesSection({
   settings,
   syncSchedules,
@@ -541,7 +541,7 @@ function FilesSection({
   hueIndex,
 }: {
   settings: Settings;
-  /** #? — "Container-Zeitplan auch für VMs, Flash und Ordner verwenden"
+  /** #?; "Container-Zeitplan auch für VMs, Flash und Ordner verwenden"
    *  (jdp, live-review): Folders now follows the same sync toggle VMs/Flash
    *  already had, mirroring their exact pattern below (schedule resolves to
    *  the Containers cadence while synced, its own CadenceBuilder disabled
@@ -554,7 +554,7 @@ function FilesSection({
    *  so nobody can set a cadence that the scheduler would then ignore. */
   perItem: boolean;
   onChange: (schedule: string) => void;
-  /** A toggle PATCHed a set — reload the list so the rows reflect the server. */
+  /** A toggle PATCHed a set; reload the list so the rows reflect the server. */
   onSetsChanged: () => void;
   t: ReturnType<typeof useT>["t"];
   hueIndex?: number;
@@ -565,7 +565,7 @@ function FilesSection({
   const [busy, setBusy] = useState<Record<string, boolean>>({});
 
   // GlimStone follow-up pass (v8.0.0): the persistent (never auto-cleared)
-  // error paragraph below is now a toast — a toggle failure is a one-shot
+  // error paragraph below is now a toast; a toggle failure is a one-shot
   // completion notice like every other migrated site here.
   // Mirrors ContainersSection's setScheduleCadence: the PATCH carries only the
   // cadence, so an edit here cannot disturb the set's name, path or excludes,
@@ -590,8 +590,8 @@ function FilesSection({
   }
 
   return (
-    // See ContainersSection's own comment above — `title` restored, same
-    // Task 3 `hueIndex` threaded into CadenceBuilder below.
+    // See ContainersSection's own comment above; `title` restored, same
+    // `hueIndex` threaded into CadenceBuilder below.
     <Card title={t("jobs.filesSection")} hint={t("jobs.filesIncludeHint")} hueIndex={hueIndex}>
       {/* Same synced-owner bubble as VMsSection above. */}
       <ScheduleRow schedule={schedule} hint={syncSchedules ? t("jobs.syncSchedulesHint") : undefined} />
@@ -605,7 +605,7 @@ function FilesSection({
         />
       </div>
 
-      {/* Member list — every file set with its live include-in-schedule toggle. */}
+      {/* Member list; every file set with its live include-in-schedule toggle. */}
       {fileSets.length === 0 ? (
         <p className="text-sm text-carbon-textMuted">{t("jobs.noFileSetsIncluded")}</p>
       ) : (
@@ -630,14 +630,14 @@ function FilesSection({
                 </span>
               )}
               {/* No-empty-toggles audit (jdp): this row used to `hideLabel`
-                  with no visible caption anywhere in the row at all — worse
+                  with no visible caption anywhere in the row at all; worse
                   than the Card-title-redundant pattern found elsewhere, since
                   there wasn't even a duplicate label to point to, only the
-                  set's own NAME (which identifies the row, not what the
+                  set's own name (which identifies the row, not what the
                   switch does). Wrapped in the same `<label>` + sibling
                   `<span>` shape FileSetEnabledToggle then
                   used for a per-row switch: `hideLabel` stays on the bare
-                  Toggle (legitimate here — the caller right beside it now
+                  Toggle (legitimate here; the caller right beside it now
                   draws the same text), but the text is genuinely visible in
                   the row, always, not just conveyed via aria-label. */}
               <label className="flex items-center gap-2 shrink-0 cursor-pointer">
@@ -652,9 +652,9 @@ function FilesSection({
               </label>
             </div>
             {/* #199: the one line that says what actually happens to this set.
-                Rendered ALWAYS, not only under `perItem`, because the worst
+                Rendered always, not only under `perItem`, because the worst
                 outcome ("not backed up automatically") is reachable with the
-                per-item toggle off — that is what "Include in schedule" does
+                per-item toggle off; that is what "Include in schedule" does
                 on its own, and it is exactly the state manilx put three of his
                 four folders into while believing Backup Everything still
                 covered them. */}
@@ -688,12 +688,12 @@ export function EverythingSection({
   const [busy, setBusy] = useState(false);
   const { push } = useToast();
   // GlimStone standing rule (jdp, live review, emphatic, system-wide): a
-  // failed action toasts AND shakes its button. `key={shake}` remounts the
+  // failed action toasts and shakes its button. `key={shake}` remounts the
   // badge so the CSS animation restarts on a repeat failure.
   const [shake, setShake] = useState(0);
 
-  // The overlap this card warns about is only real when THIS cadence is on
-  // AND at least one of the five domain cadences above is too — configSchedule
+  // The overlap this card warns about is only real when this cadence is on
+  // And at least one of the five domain cadences above is too; configSchedule
   // included, since the pass ends with the self-backup.
   const everythingOn = scheduleStatus(settings.everythingSchedule) !== "off";
   const anyDomainOn = [
@@ -738,10 +738,10 @@ export function EverythingSection({
           onChange={(v) => update({ everythingSchedule: v })}
           hueIndex={hueIndex}
         />
-        {/* Conditional overlap warning — see this component's header for why
+        {/* Conditional overlap warning; see this component's header for why
             it is no longer permanent. Same markup as the tamper-schedule-
             inactive warning further down: status amber on a plain readout
-            surface, which rule 5 keeps OUT of the accent/rainbow engine on
+            surface, which rule 5 keeps out of the accent/rainbow engine on
             purpose (a status colour, not control chrome). */}
         {overlapWarning && (
           <div className="mt-3 rounded-card bg-statusWarnBg px-3 py-2.5 text-xs text-statusWarn leading-relaxed">
@@ -753,7 +753,7 @@ export function EverythingSection({
         {/* The group label these two fields never had, carrying the
             what-do-these-do explanation as an InfoBubble instead of the
             permanent paragraph that used to sit here. `hooks.title`
-            ("Backup hooks") is an EXISTING key, already translated in all 42
+            ("Backup hooks") is an existing key, already translated in all 42
             locales, so this adds no new i18n surface. */}
         <span className="flex items-center gap-1 text-xs text-carbon-textSub">
           {t("hooks.title")}
@@ -762,7 +762,7 @@ export function EverythingSection({
         {/* A stored hook is never echoed back, so the field arrives blank with
             ...Set true. It then shows the same "already set" placeholder every
             write-only secret field on this page uses, and a Remove badge, which
-            is the only way to actually delete one — a blank field means "keep"
+            is the only way to actually delete one; a blank field means "keep"
             on save. Both labels are existing keys, so this adds no new i18n. */}
         <label className="flex flex-col gap-1">
           <span className="text-xs text-carbon-textSub">{t("hooks.pre")}</span>
@@ -814,7 +814,7 @@ export function EverythingSection({
       {/* `justify-end` on the row rather than `ms-auto` on the badge: this
           app's flush-right idiom is ms-auto only when the badge has a leading
           sibling to push away from (Containers' BackupButton/ExportButton
-          pair), and there is none here — byte-identical to how Flash's and
+          pair), and there is none here; byte-identical to how Flash's and
           Config's own backup-now cards do it. */}
       <div className="flex justify-end">
         <Button
@@ -847,7 +847,7 @@ type TabKey =
   | "integrity"
   | "system";
 
-/** The tab strip's own left-to-right order — the single source of truth for
+/** The tab strip's own left-to-right order; the single source of truth for
  *  "later" vs "earlier" that both the deep-link hashchange effect (below)
  *  and the tab-slide direction (GlimStone motion-engine animation 7, its own
  *  call site further down) read, instead of each keeping its own duplicate
@@ -863,60 +863,60 @@ const TAB_ORDER: TabKey[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Settings tab icons (GlimStone form-engine Phase 2, Task 3 — design-language
+// Settings tab icons (GlimStone form-engine Phase 2, Task 3; design-language
 // "top, with an icon": "Settings pages line their tabs up horizontally at the
 // top, each with a glyph. A tab with no label is a gap; a tab with the wrong
-// glyph is a lie — no icon beats the wrong one."). 16×16, stroke-based,
+// glyph is a lie; no icon beats the wrong one."). 16×16, stroke-based,
 // matching Sidebar.tsx's own icon weight/style but at the tab strip's smaller
 // scale. Local to Settings.tsx, not Sidebar.tsx's exported icon set: these
-// name Settings' own SECTIONS (domain toggles, storage paths, cadences,
+// name Settings' own sections (domain toggles, storage paths, cadences,
 // off-site targets, alerts, integrity checks, system/SSH), which is a
 // different taxonomy than the sidebar's page destinations, and none of the
 // seven map onto an existing sidebar glyph without lying about what it is.
 // ---------------------------------------------------------------------------
-// FILLED (design-language.md "Icon glyphs" — every icon glyph is a solid
+// Filled (design-language.md "Icon glyphs"; every icon glyph is a solid
 // shape, `fill="currentColor"`, never a stroked outline): all seven tab
 // glyphs below were the last stroke-only holdouts in the app (GlimStone
 // follow-up round, full-area sweep after IconFolder/IconCloud/the off-site
-// action badges were fixed) — each redrawn using this section's own
+// action badges were fixed); each redrawn using this section's own
 // established techniques: a closed silhouette flips directly (rule 218,
 // IconTabOffsite's cloud), a line glyph becomes a filled polygon (rule 219,
 // the shield's checkmark), and a structural detail that has to stay thin
 // (a switch track, a clock's hand, a slider's track) becomes a thin filled
 // shape instead of a stroke (rule 220).
 //
-// REGRESSION FIX (jdp, live review — "die Icons der Einstellungstabs sind,
+// Regression fix (jdp, live review; "die Icons der Einstellungstabs sind,
 // wenn sie ausgewählt sind, bei manchen nicht mehr erkennbar"): that first
 // redraw pass gave the "knob"/"hand"/"checkmark" detail on four of these
-// seven (General, Schedules, Integrity, System) a SECOND colour —
+// seven (General, Schedules, Integrity, System) a second colour;
 // `fill="var(--carbon-surface, transparent)"` painted on top of the
 // silhouette, standing in for what used to be a stroke's own natural gap.
 // Verified live (Playwright, both themes, idle+selected, real running
-// container build): that second colour is a fixed, THEME-scoped token,
-// while the badge's own ink when SELECTED is `text-accentContrast` — a
+// container build): that second colour is a fixed, theme-scoped token,
+// while the badge's own ink when selected is `text-accentContrast`; a
 // value derived from the accent colour alone, constant across both themes.
 // In light theme the pairing (near-black ink, white surface) contrasts
 // fine; in dark theme `--carbon-surface` is `#262626`, which sits right
 // next to that same near-black `#161616` ink (measured contrast ratio
-// ≈1.16:1 — nowhere near WCAG's 3:1 floor for a graphical detail) — the
+// ≈1.16:1; nowhere near WCAG's 3:1 floor for a graphical detail); the
 // knob/hand/checkmark all but disappear into the icon's own fill the
-// instant one of these four tabs is SELECTED in dark theme. Confirmed this
+// instant one of these four tabs is selected in dark theme. Confirmed this
 // never regressed Offsite/Notifications: neither ever used a second fill at
 // all (a closed silhouette and a small solid tab, respectively).
 //
-// FIXED at the geometry level, not by picking a new hardcoded colour (a
+// Fixed at the geometry level, not by picking a new hardcoded colour (a
 // different literal would just move the same coincidence to some other
-// accent/theme pairing later): each detail is now cut as REAL negative
-// space — one compound `<path fill-rule="evenodd">` per icon, silhouette
+// accent/theme pairing later): each detail is now cut as real negative
+// space; one compound `<path fill-rule="evenodd">` per icon, silhouette
 // subpath plus detail subpath, so the "hole" is true transparency showing
 // whatever the badge's own live background actually is. That background is
 // by construction already the one thing this icon's `currentColor` ink is
 // chosen to contrast against (bg-accent + text-accentContrast when
 // selected, bg-carbon-surface2 + text-carbon-textSub when idle), so the cut
-// reads clearly in every theme/state/hue this control can ever carry —
-// including every rainbow-mode accent, not just the yellow default — with
+// reads clearly in every theme/state/hue this control can ever carry;
+// including every rainbow-mode accent, not just the yellow default; with
 // no second token to fall out of sync again.
-// Each of these carries a viewBox cropped to its own INK, not the 0 0 16 16 it
+// Each of these carries a viewBox cropped to its own ink, not the 0 0 16 16 it
 // was drawn on ([285], jdp: "auf den settingstabs ist das offsite icon zu
 // klein. da wirken die glyphen kleiner als auf den sidebar tabs").
 //
@@ -939,7 +939,7 @@ const TAB_ORDER: TabKey[] = [
 // real size since [241], so those attributes only documented a size that had
 // not been true for a while.
 function IconTabGeneral() {
-  // Two stacked switches — the domain on/off toggles this tab actually holds.
+  // Two stacked switches; the domain on/off toggles this tab actually holds.
   // Each pill + its knob is one evenodd path: the knob is a real cut-out,
   // not a second painted colour (see the fix note above this section).
   return (
@@ -962,12 +962,12 @@ function IconTabStorage() {
 }
 
 function IconTabSchedules() {
-  // A clock — cadence/timing. Dial + both hands as one evenodd path — the
+  // A clock; cadence/timing. Dial + both hands as one evenodd path; the
   // hands are a real cut-out, not a second painted colour (see the fix note
   // above this section). Sharp-edged (not rounded-cap) hands: a deliberate
   // simplification over the old cutout's rounded rects, made so the
   // diagonal hour hand's four corners are exact rotated points instead of
-  // needing rotated arc math — verified live, reads identically at this
+  // needing rotated arc math; verified live, reads identically at this
   // icon's actual 15px size.
   return (
     <svg viewBox="1.8 1.8 12.4 12.4" fill="currentColor" className="shrink-0" aria-hidden="true">
@@ -981,16 +981,16 @@ function IconTabSchedules() {
 
 function IconTabOffsite() {
   // Was a hand-drawn cloud silhouette; jdp asked for a nicer one. Now the
-  // generated `cloud-data-transfer`, which is both a better-shaped cloud AND
-  // says what this tab is: a cloud something is copied TO and FROM, not just
+  // generated `cloud-data-transfer`, which is both a better-shaped cloud and
+  // says what this tab is: a cloud something is copied to and from, not just
   // weather. See scripts/gen_glyphs.py.
   return <IconTabOffsiteGlyph />;
 }
 
 function IconTabNotifications() {
-  // A bell — alerts. The bell body was already a closed silhouette (rule
-  // 218 — direct flip). The clapper "ring" beneath it was a short open
-  // stroke — redrawn as a small solid filled tab rather than a line.
+  // A bell; alerts. The bell body was already a closed silhouette (rule
+  // 218; direct flip). The clapper "ring" beneath it was a short open
+  // stroke; redrawn as a small solid filled tab rather than a line.
   return (
     <svg viewBox="2.45 2.5 11.1 11.1" fill="currentColor" className="shrink-0" aria-hidden="true">
       <path d="M4 6.5a4 4 0 0 1 8 0c0 3 1 3.8 1 3.8H3s1-.8 1-3.8Z" />
@@ -1008,7 +1008,7 @@ function IconTabIntegrity() {
 
 function IconTabSystem() {
   // Was inline sliders, which jdp read as too close to IconTabGeneral's
-  // stacked toggles — two rounded horizontal bars with a knob each, at 20px
+  // stacked toggles; two rounded horizontal bars with a knob each, at 20px
   // barely tellable apart. A chip is a different shape entirely and still
   // says "system". See scripts/gen_glyphs.py.
   return <IconTabSystemGlyph />;
@@ -1035,15 +1035,15 @@ export function keepRegistryAuths(
   };
 }
 
-// markRegistryTokensStored — what the SCREEN should show once a registry save
-// lands: EVERY row the user has, including the blank one they have only just
+// markRegistryTokensStored; what the screen should show once a registry save
+// lands: Every row the user has, including the blank one they have only just
 // added, with a freshly typed token marked "stored" so that field switches to
 // its kept-placeholder. It is keepRegistryAuths' tokenSet half without the
 // filter, and the two are deliberately separate functions rather than one with
 // a flag: "what gets persisted" and "what stays under the cursor" are different
 // questions, and merging them is what made a save delete a row.
 //
-// A blank row leaves the screen when the user removes it or reloads the page —
+// A blank row leaves the screen when the user removes it or reloads the page;
 // nothing persisted it, so it does not come back. That is exactly what the
 // add-row badge's own comment already promised.
 export function markRegistryTokensStored(
@@ -1064,24 +1064,24 @@ const TAB_ICON: Record<TabKey, ReactNode> = {
   system: <IconTabSystem />,
 };
 
-// keepRegistryAuths — what the SERVER should store for the Image Cleanup &
+// keepRegistryAuths; what the server should store for the Image Cleanup &
 // Registries card: untouched blank rows dropped, and a freshly typed token
 // marked "stored" so the field shows the kept-placeholder once the save lands.
 // Pulled out as a standalone, exported function (no React, no `save()` side
-// effect) so it's directly unit-testable without mounting SettingsPage — same
+// effect) so it's directly unit-testable without mounting SettingsPage; same
 // "extract the pure decision, test it without a renderer" shape as isRemotePath
 // (PathModeSwitch.tsx) and Selector.tsx's own nextFocusIndex/rovedIndex.
-// `auths`/`rowIds` are always the SAME length and index-aligned by
-// construction (every mutation site keeps them in lockstep) — the caller
+// `auths`/`rowIds` are always the same length and index-aligned by
+// construction (every mutation site keeps them in lockstep); the caller
 // (saveRegistries below) passes the freshly computed pair rather than
 // letting this function read component state directly.
 //
-// It answers for the PAYLOAD only. What stays on SCREEN is
+// It answers for the payload only. What stays on screen is
 // markRegistryTokensStored below, and keeping the two apart is the whole point:
 // this filter used to run only when the user clicked the card's Save button,
 // where "drop the blank rows" and "I am finished" meant the same thing. It now
 // runs from every keystroke-triggered save, and applying it to the visible list
-// deleted the row the user had just added and was about to fill in — a row
+// deleted the row the user had just added and was about to fill in; a row
 // vanishing from under the cursor because a typo was being corrected two rows
 // up. A blank row is worth nothing to the server and everything to the person
 // typing into it.
@@ -1090,26 +1090,26 @@ const TAB_ICON: Record<TabKey, ReactNode> = {
 // ([337]).
 //
 // This file went 9,841 -> 6,177 -> 4,994 by lifting whole cards out, and that
-// is where the cheap wins end: of what is left, THIS component is 3,953 lines.
+// is where the cheap wins end: of what is left, this component is 3,953 lines.
 // The other twenty-odd declarations share the rest. So any further reduction
 // has to come out of SettingsPage, and both obvious ways of doing that are
 // worse than the file:
 //
-//   · One file per tab. The JSX is not seven sections — it is one long list of
-//     cards, each gated on its own `tab === "…"`, and the tabs INTERLEAVE:
+//   · One file per tab. The JSX is not seven sections; it is one long list of
+//     cards, each gated on its own `tab === "…"`, and the tabs interleave:
 //     storage appears six times, general eight, system seven. Splitting by tab
 //     means reordering the render tree, and the hue counter runs in render
 //     order (see nextHue()'s own notes, and [413]). A cosmetic split that
 //     silently recolours the page is a bad trade.
 //
 //   · The logic into a hook. Everything before `return (` is 1,100 lines but
-//     only 445 of code — and 73 useState calls. A useSettingsPage() hook would
+//     only 445 of code; and 73 useState calls. A useSettingsPage() hook would
 //     have to hand all 73 back across a seam, to be destructured again by the
 //     2,852 lines of JSX below. That is the same complexity plus an interface.
 //
 // What actually worked is what keeps working: when a card is next touched for
 // its own reasons, it moves to pages/settings/ then. Seven did this round, each
-// a byte-identical move of a module-level, prop-driven component — no seam, no
+// a byte-identical move of a module-level, prop-driven component; no seam, no
 // reordering, nothing to get wrong.
 export function SettingsPage() {
   const { t } = useT();
@@ -1117,72 +1117,72 @@ export function SettingsPage() {
   const { push, quiet, setQuiet } = useToast();
 
   const [tab, setTab] = useState<TabKey>("general");
-  // Settings tab slide (GlimStone motion-engine animation 7) — 1 = the tab
-  // strip's onChange below just moved to a LATER tab (slide in from the
-  // trailing edge), -1 = an EARLIER one. Computed synchronously in the SAME
+  // Settings tab slide (GlimStone motion-engine animation 7); 1 = the tab
+  // strip's onChange below just moved to a later tab (slide in from the
+  // trailing edge), -1 = an earlier one. Computed synchronously in the same
   // event handler that calls setTab() (see that call site's own comment), so
   // by the time the tab-content wrapper remounts with the new `tab`, this
   // state has already committed alongside it in the same render. A ref, not
-  // state, tracks the CURRENT tab for the hashchange effect below — that
+  // state, tracks the current tab for the hashchange effect below; that
   // effect only ever runs once (mount) and closes over a stale `tab`
   // otherwise; `setTab`/`setTabDir` themselves stay stable across renders
-  // (React guarantees this), so only the VALUE read needs the ref, not the
+  // (React guarantees this), so only the value read needs the ref, not the
   // setters.
   const [tabDir, setTabDir] = useState<1 | -1>(1);
   const tabRef = useRef<TabKey>(tab);
   useEffect(() => {
     tabRef.current = tab;
   }, [tab]);
-  // Tab-strip width tracking (GlimStone follow-up pass, live-review round —
-  // "the equal-width tab fix should match content, not stretch to fill" —
+  // Tab-strip width tracking (GlimStone follow-up pass, live review;
+  // "the equal-width tab fix should match content, not stretch to fill";
   // see Selector.tsx's own `equalWidth`/`stretch` header for the corrected
   // behaviour). The tab strip below now renders at its own hugged content
   // width (sum of 7 fixed, matched-to-the-widest-label segments) instead of
-  // the page's full width, so the Card panels underneath it — which used to
+  // the page's full width, so the Card panels underneath it; which used to
   // rely on "both are plain, unconstrained full-width children, so they
-  // match by construction" (see that wrapper's own comment) — need an
+  // match by construction" (see that wrapper's own comment); need an
   // explicit width to track now that the strip is no longer full-width.
   // This width is measured, not guessed at, because the actual pixel value
   // depends on the active locale's longest label ("Benachrichtigungen" in
   // German is not the same width in every one of the 42 shipped locales) and
-  // on the live font/zoom the browser is actually rendering with — nothing
+  // on the live font/zoom the browser is actually rendering with; nothing
   // about that is a fixed, hard-codable constant.
   //
-  // A CALLBACK ref (state, not a plain useRef) — caught live, not in the
+  // A callback ref (state, not a plain useRef); caught live, not in the
   // harness: this component has an early `if (!settings) return (<...
   // loading placeholder...>)` further down (before the tab strip's own JSX
-  // even exists), so the FIRST commit of this component's lifetime never
+  // even exists), so the first commit of this component's lifetime never
   // renders the strip at all. A plain `useRef` + a mount-only
-  // `useLayoutEffect(fn, [])` runs exactly once, against THAT first
-  // (loading) commit, sees `tabStripRef.current === null`, and exits —
+  // `useLayoutEffect(fn, [])` runs exactly once, against that first
+  // (loading) commit, sees `tabStripRef.current === null`, and exits;
   // permanently, since an empty dependency array never re-fires once
   // `settings` later resolves and the real strip mounts. The ResizeObserver
   // then simply never gets attached, `tabStripWidth` stays `null` forever,
   // and the Card panels wrapper below silently never receives a max-width at
   // all (confirmed live: verified against a real deployed container at a
-  // WIDE viewport where the strip fits on one line — the panels wrapper
+  // wide viewport where the strip fits on one line; the panels wrapper
   // rendered at <main>'s own full content width, not the narrower tab-strip
   // width, because no width was ever actually being applied; a narrower
-  // viewport had merely LOOKED correct by coincidence, since the tab strip's
-  // OWN `max-w-full` clamp and the panels wrapper's un-related default
+  // viewport had merely looked correct by coincidence, since the tab strip's
+  // Own `max-w-full` clamp and the panels wrapper's un-related default
   // full-width block sizing happened to resolve to the identical <main>
-  // content-box number in that specific case). Storing the DOM node in STATE
-  // via the ref CALLBACK below fixes this the standard React way: React
+  // content-box number in that specific case). Storing the DOM node in state
+  // via the ref callback below fixes this the standard React way: React
   // calls that callback exactly when the node is actually attached
   // (regardless of which render pass that happens on), so the effect below,
   // keyed on that state value, correctly (re-)runs once the strip genuinely
-  // exists — not just once at this component's very first commit.
+  // exists; not just once at this component's very first commit.
   const [tabStripEl, setTabStripEl] = useState<HTMLDivElement | null>(null);
   const [tabStripWidth, setTabStripWidth] = useState<number | null>(null);
 
   // ResizeObserver (not a resize-event listener): the strip's rendered width
-  // can change WITHOUT the window resizing at all — a locale swap changes
+  // can change without the window resizing at all; a locale swap changes
   // every label's own natural width, and Selector's own two-pass measurement
   // effect (see its file header) settles onto a new matched width entirely
   // inside a layout-effect flush the window never hears about. Observing the
-  // actual box directly catches both the window-resize case AND this one.
+  // actual box directly catches both the window-resize case and this one.
   // The ref is attached to a plain wrapping <div>, not `Selector` itself
-  // (that component has no forwarded ref) — see the JSX below for why an
+  // (that component has no forwarded ref); see the JSX below for why an
   // `inline-flex self-start` wrapper is also what makes this div hug the
   // strip's own content width rather than the page's full width in the
   // first place.
@@ -1197,16 +1197,16 @@ export function SettingsPage() {
 
   const [settings, setSettings] = useState<Settings | null>(null);
   // savedBaseline is the server's last-confirmed state. Every save persists its
-  // own fields merged onto THIS baseline (not the live, possibly-edited
+  // own fields merged onto this baseline (not the live, possibly-edited
   // `settings`), so saving one field never silently commits another card's
   // unsaved edits.
   //
-  // A REF, not state, and that is load-bearing rather than an optimisation. The
-  // PUT is a FULL settings object, so a save's correctness depends on reading
+  // A ref, not state, and that is load-bearing rather than an optimisation. The
+  // PUT is a full settings object, so a save's correctness depends on reading
   // the newest confirmed baseline at the moment the request is built. A state
   // value is frozen into the render that called save(), so two saves issued
   // inside one request round-trip both built their object from the pre-first
-  // baseline and each overwrote the other's field with a stale value — the
+  // baseline and each overwrote the other's field with a stale value; the
   // later response winning the whole object. The ref is read at send time, and
   // queueSettingsWrite below makes sure "send time" is after the previous
   // write has landed and moved it.
@@ -1215,7 +1215,7 @@ export function SettingsPage() {
   // (and the settings import) runs after the previous one has finished, so a
   // full-object PUT can never be built from a baseline another in-flight PUT is
   // about to invalidate. It is a promise chain rather than a busy flag because
-  // nothing may be DROPPED — a debounced edit that arrives mid-flight has to
+  // nothing may be dropped; a debounced edit that arrives mid-flight has to
   // land, just afterwards.
   const settingsWrites = useRef<Promise<unknown>>(Promise.resolve());
 
@@ -1231,7 +1231,7 @@ export function SettingsPage() {
   }
   const [hostMountRoot, setHostMountRoot] = useState<string>("/host/user");
   // The detected/overridden platform.Kind ("unraid" | "generic" | "truenas",
-  // see internal/platform) — read-only host-environment info from GET
+  // see internal/platform); read-only host-environment info from GET
   // /api/settings' sibling "platform" field. Defaults to "unraid" (matching
   // the Go side's own nil-Platform default, platformFn()) so NotifyCard's
   // mismatch banner (below) never flashes on before this loads.
@@ -1240,7 +1240,7 @@ export function SettingsPage() {
 
   // Auth state for the Security card.
   const [authEnabled, setAuthEnabled] = useState(false);
-  // The second factor's state, and the minimum the SERVER enforces. The
+  // The second factor's state, and the minimum the server enforces. The
   // minimum is read rather than hard-coded so the field and the server can
   // never disagree about the number they both quote to the user.
   const [totpEnabled, setTotpEnabled] = useState(false);
@@ -1250,11 +1250,11 @@ export function SettingsPage() {
   const [pwConfirm, setPwConfirm] = useState("");
   const [pwSaveState, setPwSaveState] = useState<SaveState>("idle");
   const [pwSaveMsg, setPwSaveMsg] = useState<string | null>(null);
-  // GlimStone standing rule (jdp, live review, emphatic — "Wenn etwas
+  // GlimStone standing rule (jdp, live review, emphatic; "Wenn etwas
   // fehlschlägt soll der Toggle/Button kurz zittern. Systemweit!!"), found by
   // this same pass's own proactive sweep (not on the original finding list):
-  // handleSetPassword is one of the FOUR documented genuine hold-outs on
-  // manual Save (this function's own header comment) — its post-save failure
+  // handleSetPassword is one of the four documented genuine hold-outs on
+  // manual Save (this function's own header comment); its post-save failure
   // already pushes a toast, but nothing ever bumped a shake nonce for the
   // Save button. Same per-nonce mechanism as every other shake state on this
   // page (see ToggleRow's own shakeNonce doc comment).
@@ -1264,13 +1264,13 @@ export function SettingsPage() {
   const revealMetricsToken = useReveal();
   // Registry credentials are a per-row list (settings.registryAuths), and a
   // hook can't be called inside that row's own .map() callback (Rules of
-  // Hooks — the call count would vary with the list length), so this is a
+  // Hooks; the call count would vary with the list length), so this is a
   // plain record here at the top level instead of a useReveal() per row.
   //
-  // Keyed by a STABLE per-row id (registryRowIds below), NOT by array index.
+  // Keyed by a stable per-row id (registryRowIds below), not by array index.
   // Rows are removed/added by splicing settings.registryAuths, which shifts
-  // every later row's index — an index-keyed record would then misattribute
-  // a shifted-in row's slot to whatever reveal state the OLD occupant of that
+  // every later row's index; an index-keyed record would then misattribute
+  // a shifted-in row's slot to whatever reveal state the old occupant of that
   // index left behind (reveal row 0, remove row 0 → the row that slides into
   // index 0 renders already-revealed), and a freshly added row would inherit
   // whatever stale flag already lived at its new index. That's a real
@@ -1279,33 +1279,33 @@ export function SettingsPage() {
   const [registryTokenVisible, setRegistryTokenVisible] = useState<Record<string, boolean>>({});
   // registryRowIds pairs 1:1 by index with settings.registryAuths, giving
   // each row a client-only stable identity to key registryTokenVisible (and
-  // the row's React `key`) by — kept in lockstep at every place that changes
+  // the row's React `key`) by; kept in lockstep at every place that changes
   // the array's length/order (load, add, remove, and the Save handler's
-  // untouched-blank-row filter below). Deliberately NOT a field on the row
+  // untouched-blank-row filter below). Deliberately not a field on the row
   // objects themselves: Settings PUT uses a strict decoder
-  // (DisallowUnknownFields — internal/api/handlers.go) that must accept a
+  // (DisallowUnknownFields; internal/api/handlers.go) that must accept a
   // round-tripped GET body, so an extra client-only field riding along on a
   // spread entry would break every settings save, not just this card.
   const [registryRowIds, setRegistryRowIds] = useState<string[]>([]);
 
   // Accent colour state now lives entirely inside the exported AccentCard
-  // component above (GlimStone follow-up pass, live-review round 6) — it
+  // component above (GlimStone follow-up pass, live review); it
   // was never read anywhere else in this function, so nothing here needs to
   // track it any more.
 
-  // Shape state (GlimStone form-engine — shape engine, the one axis both
-  // prior GlimStone integration phases in this app deferred) — synced
+  // Shape state (GlimStone form-engine; shape engine, the one axis both
+  // prior GlimStone integration phases in this app deferred); synced
   // to/from localStorage via shape.ts, the same pattern the old accentHex
   // state used before its move.
   const [shape, setShapeLocal] = useState<Shape>(() => getShape());
 
-  // Motion-intensity state (GlimStone motion-engine — the deliberate
+  // Motion-intensity state (GlimStone motion-engine; the deliberate
   // reversal of design-language.md's own prior "kein fünfter Nutzer-
-  // Schalter" decision, see lib/motion.ts's own header) — synced to/from
+  // Schalter" decision, see lib/motion.ts's own header); synced to/from
   // localStorage via motion.ts, the identical pattern shape state above
   // already uses.
   const [motion, setMotionLocal] = useState<MotionIntensity>(() => getMotionIntensity());
-  // GSS 1.17.0's hidden fourth level. Both of these are deliberately COMPONENT
+  // GSS 1.17.0's hidden fourth level. Both of these are deliberately component
   // state: `stormFound` must not survive leaving this page (an egg that
   // changes behaviour has to be switchable back off, never a permanent picker
   // entry), and the click counter has nothing to remember past the gesture.
@@ -1332,7 +1332,7 @@ export function SettingsPage() {
     bottombar: getLabelMode("bottombar"),
   }));
 
-  // Rainbow state (GlimStone form-engine Phase 2, Task 1) — synced from/to
+  // Rainbow state (GlimStone form-engine Phase 2, Task 1); synced from/to
   // localStorage via appearance.ts, the same pattern as accentHex above.
   // setRainbow() persists + applies + returns the new (validated) state in
   // one call, so this only ever needs updating from that return value, never
@@ -1356,22 +1356,22 @@ export function SettingsPage() {
   }
 
   // Per-section save state
-  // Plain-export encryption / repository encryption (#28) — merged into one
+  // Plain-export encryption / repository encryption (#28); merged into one
   // auto-save card (GlimStone follow-up round, merge B): no SaveBar reads
   // these anymore, so only the setters survive, as the callback params
-  // autoSaveField/debouncedSave still require — same "only the setters are
+  // autoSaveField/debouncedSave still require; same "only the setters are
   // needed" shape as setDomSaveState/setDomSaveError above. Flash-zip-export's
-  // own save state moved out along with the feature itself — see
+  // own save state moved out along with the feature itself; see
   // FlashZipExportCard's own header comment for where it lives now.
   const [, setEncSaveState] = useState<SaveState>("idle");
   const [, setEncSaveError] = useState<string | null>(null);
   // Recovery-kit download refusal (e.g. the 403 "set a login password" fail-closed
-  // answer when auth is off) — surfaced next to the download button.
+  // answer when auth is off); surfaced next to the download button.
   const [kitError, setKitError] = useState<string | null>(null);
 
-  // Paths & off-site repo URLs — full-page Speichern-Button sweep: each field
+  // Paths & off-site repo URLs; full-page Speichern-Button sweep: each field
   // now debounce-auto-saves itself (see the Paths/Off-site copy Cards' own
-  // onChange handlers), so no SaveBar reads these anymore — only the setters
+  // onChange handlers), so no SaveBar reads these anymore; only the setters
   // survive, as debouncedSave/save's own callback params still require. Same
   // "only the setters are needed" shape as setDomSaveState/setDomSaveError
   // above.
@@ -1384,20 +1384,20 @@ export function SettingsPage() {
   // Which domain's guided off-site setup wizard is expanded (null = none).
   const [offsiteWizard, setOffsiteWizard] = useState<OffsiteDomain | null>(null);
 
-  // Domains card (#142 — auto-save, no Speichern button): each row now saves
+  // Domains card (#142; auto-save, no Speichern button): each row now saves
   // itself the instant it's clicked instead of batching into one SaveBar, so
-  // there is no single "is the card saving" state left to show — only
+  // there is no single "is the card saving" state left to show; only
   // setDomSaveState/setDomSaveError survive, as the two callback params the
   // shared save() helper still requires; nothing reads the values back
   // anymore. Same "only the setters are needed" shape as setTgtState/
-  // setTgtError above (see that comment for the full reasoning) — save()'s
+  // setTgtError above (see that comment for the full reasoning); save()'s
   // own toast already reports the outcome.
   const [, setDomSaveState] = useState<SaveState>("idle");
   const [, setDomSaveError] = useState<string | null>(null);
-  // Per-row busy flag (disables that ONE toggle while its own request is in
+  // Per-row busy flag (disables that one toggle while its own request is in
   // flight) and shake-replay nonce (bumped on a rejected save so ToggleRow's
   // `.glim-shake` plays once more even on a second consecutive failure of the
-  // SAME domain — see ToggleRow's shakeNonce doc comment). Both keyed by the
+  // Same domain; see ToggleRow's shakeNonce doc comment). Both keyed by the
   // Settings field name, mirroring IncludeToggle.tsx's own per-row `busy`
   // state, adapted to a map since all 7 rows live inline in this one
   // component rather than as separate IncludeToggle instances.
@@ -1413,15 +1413,15 @@ export function SettingsPage() {
   const [domainToggleBusy, setDomainToggleBusy] = useState<Partial<Record<DomainToggleKey, boolean>>>({});
   const [domainToggleShake, setDomainToggleShake] = useState<Partial<Record<DomainToggleKey, number>>>({});
 
-  // Same "only the setters are needed" shape as pathSaveState above — this
+  // Same "only the setters are needed" shape as pathSaveState above; this
   // retention grid's own SaveBar is gone too (each cell debounce-auto-saves).
   const [, setRetSaveState] = useState<SaveState>("idle");
   const [, setRetSaveError] = useState<string | null>(null);
 
   // Image cleanup / Unraid update-status reconciliation / registries (#56,
-  // #116, #106) — merged into one auto-save card (GlimStone follow-up round,
+  // #116, #106); merged into one auto-save card (GlimStone follow-up round,
   // merge A): no SaveBar reads these anymore, so only the setters survive, as
-  // the callback params autoSaveField/saveRegistries still require — same
+  // the callback params autoSaveField/saveRegistries still require; same
   // "only the setters are needed" shape as setDomSaveState/setDomSaveError
   // above (see that comment for the full reasoning).
   const [, setPruneSaveState] = useState<SaveState>("idle");
@@ -1431,7 +1431,7 @@ export function SettingsPage() {
   const [, setRegistrySaveState] = useState<SaveState>("idle");
   const [, setRegistrySaveError] = useState<string | null>(null);
 
-  // Same "only the setters are needed" shape as pathSaveState above — every
+  // Same "only the setters are needed" shape as pathSaveState above; every
   // field below debounce/toggle-auto-saves itself now, so nothing reads
   // these values back; save()'s own toast already reports the outcome.
   const [, setCacheSaveState] = useState<SaveState>("idle");
@@ -1448,13 +1448,13 @@ export function SettingsPage() {
   const [, setMetricsSaveState] = useState<SaveState>("idle");
   const [, setMetricsSaveError] = useState<string | null>(null);
 
-  // Weekly digest (notifications tab) — persisted via the shared
+  // Weekly digest (notifications tab); persisted via the shared
   // baseline-merging save() (autoSaveToggle for the toggle, debouncedSave
   // for the cadence).
   const [, setDigestSaveState] = useState<SaveState>("idle");
   const [, setDigestSaveError] = useState<string | null>(null);
 
-  // Overdue-backup watchdog (notifications tab) — same baseline-merging
+  // Overdue-backup watchdog (notifications tab); same baseline-merging
   // save() as the digest card above it (autoSaveToggle).
   const [, setWatchdogSaveState] = useState<SaveState>("idle");
   const [, setWatchdogSaveError] = useState<string | null>(null);
@@ -1468,20 +1468,20 @@ export function SettingsPage() {
   // File sets feed the Files schedule section's member list (live enabled toggles).
   const [fileSets, setFileSets] = useState<FileSetView[]>([]);
   const [syncSchedules, setSyncSchedules] = useState(false);
-  // Task 5 (live-review — "Speichern-Buttons können weg, es soll immer alles
+  // jdp (live review; "Speichern-Buttons können weg, es soll immer alles
   // live gespeichert werden"): this whole tab used to funnel every field
-  // (buildSchedulePatch, now gone — see scheduleField/autoSaveScheduleField
-  // below) into ONE bottom SaveBar keyed on this pair. No SaveBar reads them
-  // anymore — only the setters survive, as the callback params save()/
+  // (buildSchedulePatch, now gone; see scheduleField/autoSaveScheduleField
+  // below) into one bottom SaveBar keyed on this pair. No SaveBar reads them
+  // anymore; only the setters survive, as the callback params save()/
   // debouncedSave still require. Same "only the setters are needed" shape as
   // setDomSaveState/setDomSaveError above (see that comment for the full
-  // reasoning) — save()'s own toast already reports every outcome.
+  // reasoning); save()'s own toast already reports every outcome.
   const [, setSchedSaveState] = useState<SaveState>("idle");
   const [, setSchedSaveError] = useState<string | null>(null);
-  // Task 5's plain-boolean half of the schedules-tab auto-save conversion:
-  // perItemSchedules (Task 1's new ToggleRow), catchUpMissed (Missed
+  // The plain-boolean half of the schedules-tab auto-save conversion:
+  // perItemSchedules (the new ToggleRow), catchUpMissed (Missed
   // schedules Card) and RestoreChecksSection's own drillsEnabled/
-  // offsiteDrillsEnabled — a dedicated key/map pair rather than widening
+  // offsiteDrillsEnabled; a dedicated key/map pair rather than widening
   // MergedAutoSaveKey/mergedFieldBusy/mergedFieldShake above: that type and
   // its two maps are named for, and documented against, the Paths & Storage
   // merge specifically, and folding an unrelated tab's fields into it would
@@ -1490,10 +1490,10 @@ export function SettingsPage() {
   // shape as autoSaveField/toggleDomainEnabled).
   //   restartHealthWait joined this union in the full-page Speichern-Button
   // sweep (jdp, live review: "Die Speicher-Buttons sollen in allen Tabs weg.
-  // Überall soll es automatisch speichern.") — it was the one field left on
+  // Überall soll es automatisch speichern."); it was the one field left on
   // this tab still batched into its own manual SaveBar (see the comment that
   // used to sit on restartSaveState/-Error below, now removed along with
-  // that dead state). It genuinely belongs in THIS union, not a new one of
+  // that dead state). It genuinely belongs in this union, not a new one of
   // its own: same tab, same "single discrete boolean" shape as the other
   // four.
   type ScheduleBoolKey =
@@ -1506,22 +1506,22 @@ export function SettingsPage() {
   const [schedFieldShake, setSchedFieldShake] = useState<Partial<Record<ScheduleBoolKey, number>>>({});
   // The "sync" toggle itself isn't a Settings field (syncSchedules above is
   // local UI state derived from whether the domain schedules already match),
-  // so it can't go through autoSaveScheduleField's Settings-keyed generic —
+  // so it can't go through autoSaveScheduleField's Settings-keyed generic;
   // see handleSyncSchedulesToggle below for its own dedicated busy/shake pair.
   const [syncToggleBusy, setSyncToggleBusy] = useState(false);
   const [syncToggleShake, setSyncToggleShake] = useState(0);
   // The Self-Backup Card's own on/off ToggleRow (jdp, live-review: "Selbst-
   // Backup-Zeitplan bitte mit Toggle für an/aus"). configSchedule is a
-  // cadence STRING, same as containersSchedule/vmsSchedule/etc — not one of
-  // autoSaveScheduleField's four plain ScheduleBoolKey booleans — so, like
+  // cadence string, same as containersSchedule/vmsSchedule/etc; not one of
+  // autoSaveScheduleField's four plain ScheduleBoolKey booleans; so, like
   // the sync toggle above, it gets its own dedicated busy/shake pair rather
   // than widening that generic. See toggleConfigSchedule below.
   const [configScheduleToggleBusy, setConfigScheduleToggleBusy] = useState(false);
   const [configScheduleToggleShake, setConfigScheduleToggleShake] = useState(0);
   // Remembers the cadence in force before the self-backup schedule was switched
-  // off, so switching it back on restores THAT instead of the shipped
+  // off, so switching it back on restores that instead of the shipped
   // daily-at-02:00 default. Same shape and same reason as the
-  // FlashZipExportCard's rememberedKeep, which this toggle was missing: OFF
+  // FlashZipExportCard's rememberedKeep, which this toggle was missing: Off
   // writes the literal "off" over the stored string, so a "weekly Sun 04:00" the
   // user had chosen existed nowhere afterwards and came back as a daily.
   //
@@ -1532,29 +1532,29 @@ export function SettingsPage() {
   // same fact, which is what toggleConfigSchedule's own comment rules out.
   const [rememberedConfigSchedule, setRememberedConfigSchedule] = useState("daily 02:00");
 
-  // installSettings adopts a settings object the server just handed us as BOTH
+  // installSettings adopts a settings object the server just handed us as both
   // the live state and the confirmed baseline, and re-derives the page state
-  // that is computed from it. It is used by the mount load AND by the reload
-  // after a settings import — the import replaces the whole configuration, so
+  // that is computed from it. It is used by the mount load and by the reload
+  // after a settings import; the import replaces the whole configuration, so
   // the page has to adopt it exactly the way a fresh load would.
   function installSettings(s: Settings) {
     setSettings(s);
     savedBaseline.current = s;
     // Give every loaded registry row a stable client-only id (see
-    // registryRowIds' declaration above) — a fresh GET never carries one of
+    // registryRowIds' declaration above); a fresh GET never carries one of
     // its own, so one is minted here, once, per row. randomId() rather than
     // crypto.randomUUID(): the latter is secure-context-only and would throw
     // on BombVault's documented plain-HTTP origin, and a throw inside the
-    // mount load lands in that promise's .catch — killing the whole Settings
+    // mount load lands in that promise's .catch; killing the whole Settings
     // page, not just this card (see lib/uuid.ts).
     setRegistryRowIds(s.registryAuths.map(() => randomId()));
     // Detect whether the domain schedules are already in sync (Containers ==
     // VMs == Flash == Folders, and not off), so the Schedules tab's sync
     // toggle reflects the server state. Reproduced from the retired Plans
-    // page; filesSchedule is part of the comparison alongside Task 2's own
-    // extension of the toggle's live effect to cover Folders too — without it,
+    // page; filesSchedule is part of the comparison alongside the
+    // extension of the toggle's live effect to cover Folders too; without it,
     // a server state where Containers/VMs/Flash already matched but Folders
-    // didn't would show the toggle ON while Folders still quietly held its own
+    // didn't would show the toggle on while Folders still quietly held its own
     // independent value until the next edit.
     setSyncSchedules(
       s.vmsSchedule === s.containersSchedule &&
@@ -1613,7 +1613,7 @@ export function SettingsPage() {
     loadFileSets();
   }, []);
 
-  // loadFileSets (re)fetches the file-set list — on mount and after a Files
+  // loadFileSets (re)fetches the file-set list; on mount and after a Files
   // section toggle PATCHes a set, so the member rows track the server state.
   function loadFileSets() {
     listFileSets()
@@ -1635,8 +1635,8 @@ export function SettingsPage() {
       const h = window.location.hash.replace(/^#/, "");
       if ((TAB_ORDER as string[]).includes(h)) {
         // Direction (motion-engine animation 7): computed the same way the
-        // tab strip's own onChange below does, just reading the CURRENT tab
-        // off tabRef instead of a closed-over (and here, permanently stale —
+        // tab strip's own onChange below does, just reading the current tab
+        // off tabRef instead of a closed-over (and here, permanently stale;
         // this effect only ever runs once, at mount) `tab` value.
         const from = TAB_ORDER.indexOf(tabRef.current);
         const to = TAB_ORDER.indexOf(h as TabKey);
@@ -1650,14 +1650,14 @@ export function SettingsPage() {
   }, []);
 
   // While "sync" is on, mirror the Containers cadence onto VMs + Flash +
-  // Folders (Task 2 — "der toggle soll auch ordner einschließen") in live
+  // Folders (jdp: "der toggle soll auch ordner einschließen") in live
   // state (not just in the save patch), so unchecking sync doesn't snap
   // those editors back to stale pre-sync values. The equality guard stops
   // re-renders from looping. Reproduced from the retired Plans page, with
-  // filesSchedule folded in alongside the original vms/flash pair, and a
-  // Task 5 auto-save persist: editing the Containers cadence WHILE synced
+  // filesSchedule folded in alongside the original vms/flash pair, plus an
+  // auto-save persist: editing the Containers cadence while synced
   // (e.g. typing in its cron field) used to only ever update local state,
-  // relying on the bottom SaveBar to persist the mirrored fields later — now
+  // relying on the bottom SaveBar to persist the mirrored fields later; now
   // debouncedSave (keyed "schedSync", independent of containersSchedule's
   // own "containersSchedule" debounce key below) coalesces rapid edits into
   // one PATCH of the three mirrored fields, 800ms after the last change.
@@ -1688,35 +1688,35 @@ export function SettingsPage() {
   // Generic save helper
   // ---------------------------------------------------------------------------
 
-  // fieldPulse — GlimStone motion-engine, animation 2 (confirmation-pulse).
-  // ONE shared map, keyed by Settings field name, covering every save() call
+  // fieldPulse; GlimStone motion-engine, animation 2 (confirmation-pulse).
+  // One shared map, keyed by Settings field name, covering every save() call
   // site at once (the same leverage this function's own header comment below
-  // already describes for the toast/state-reset migration) — a ToggleRow
+  // already describes for the toast/state-reset migration); a ToggleRow
   // call site simply reads `fieldPulse.someKey` and passes it straight
   // through as `pulseNonce`, the exact same shape `domainToggleShake`/
   // `mergedFieldShake`/`fieldShake`/`schedFieldShake` already use for
-  // `shakeNonce`, just bumped on the OPPOSITE outcome. Bumped for every key
-  // in a successful patch, not just boolean/ToggleRow ones — a text/number
+  // `shakeNonce`, just bumped on the opposite outcome. Bumped for every key
+  // in a successful patch, not just boolean/ToggleRow ones; a text/number
   // field's own entry here is simply never read by anything today, which is
-  // harmless (this map costs nothing per unread key) and means a FUTURE
+  // harmless (this map costs nothing per unread key) and means a future
   // ToggleRow-backed field needs no new plumbing here to get the pulse, only
-  // its own call site threading `pulseNonce={fieldPulse.thatKey}` through —
+  // its own call site threading `pulseNonce={fieldPulse.thatKey}` through;
   // exactly the "wired once, works everywhere" outcome the standing
   // colour-engine rule asks for, applied to motion instead of colour.
   const [fieldPulse, setFieldPulse] = useState<Partial<Record<keyof Settings, number>>>({});
 
-  // save persists one card's fields and returns true ONLY when the server confirmed
+  // save persists one card's fields and returns true only when the server confirmed
   // the write. Callers that gate a follow-up action on a confirmed save (e.g. the
   // off-site immutable toggle, which must not run a tamper test on a failed save)
   // await the boolean; fire-and-forget callers can still ignore it via `void`.
   //
   // GlimStone follow-up pass (v8.0.0): this is the ~21-site "SaveBar" chokepoint
-  // Task 9 deliberately left alone (see lib/toast.tsx's own header comment) —
-  // every card's Save button funnels through this ONE function (directly, or via
+  // which the pass deliberately left alone (see lib/toast.tsx's own header comment);
+  // every card's Save button funnels through this one function (directly, or via
   // the `save` prop threaded into FleetSettingsCard/IntegrityCard/etc.), so
   // migrating it here migrates every one of those call sites at once, the same
   // way handleSetPassword/ConfigSettingsCard already did for their own single
-  // completion notice. The 3000ms "saved"/"error" inline flash is gone — both
+  // completion notice. The 3000ms "saved"/"error" inline flash is gone; both
   // outcomes go through push() instead, and the state resets straight back to
   // "idle" (mirrors handleSetPassword's own pattern above). `setSaveError` is
   // still threaded through and always cleared to null: removing the parameter
@@ -1725,18 +1725,18 @@ export function SettingsPage() {
   // null vestige rather than a wide, risk-for-no-reason signature change.
   // Every save goes through queueSettingsWrite, so the object below is built
   // from a baseline no other in-flight write is about to change. Without that,
-  // two saves issued inside one round-trip — which is the NORMAL case now that
+  // two saves issued inside one round-trip; which is the normal case now that
   // every field auto-saves, e.g. editing the Containers cadence while "sync" is
-  // on arms two 800ms debounces one render apart — each sent the other's field
+  // on arms two 800ms debounces one render apart; each sent the other's field
   // at its pre-edit value, and whichever response landed last won the whole
   // object. The UI showed both edits; the server kept one.
   //
-  // `echo` is for the one case where what the SERVER stores and what the SCREEN
+  // `echo` is for the one case where what the server stores and what the screen
   // shows are deliberately different objects: the caller passes a function that
-  // is handed the LIVE settings at the moment the response lands and returns
+  // is handed the live settings at the moment the response lands and returns
   // what the screen should keep instead of the patch's own value. It has to be
   // a function, not a second object, because the round-trip is a window the user
-  // keeps typing in — anything computed at send time is already stale by the
+  // keeps typing in; anything computed at send time is already stale by the
   // time it would be applied. Only saveRegistries needs it (see there).
   async function save(
     patch: Partial<Settings>,
@@ -1753,13 +1753,13 @@ export function SettingsPage() {
     setSaveError: (e: string | null) => void,
     echo?: (live: Settings) => Partial<Settings>
   ): Promise<boolean> {
-    // Read at SEND time, not at call time: the previous write in the queue has
+    // Read at send time, not at call time: the previous write in the queue has
     // already advanced this ref by the time we get here.
     const base = savedBaseline.current ?? settings;
     if (!base) return false;
     setSaveState("saving");
     setSaveError(null);
-    // Persist ONLY this card's fields, merged onto the server baseline — never the
+    // Persist only this card's fields, merged onto the server baseline; never the
     // live `settings`, which may hold unsaved edits from other cards.
     const updated: Settings = { ...base, ...patch };
     try {
@@ -1772,8 +1772,8 @@ export function SettingsPage() {
           prev ? { ...prev, ...patch, ...(echo ? echo(prev) : null) } : updated
         );
         setSaveState("idle");
-        // Confirmation-pulse (GlimStone motion-engine animation 2) — bump
-        // every key in THIS patch, not just the ones a ToggleRow happens to
+        // Confirmation-pulse (GlimStone motion-engine animation 2); bump
+        // every key in this patch, not just the ones a ToggleRow happens to
         // read; see fieldPulse's own declaration comment above for why that
         // is deliberate rather than wasteful.
         setFieldPulse((p) => {
@@ -1784,7 +1784,7 @@ export function SettingsPage() {
           return next;
         });
         // Tell the Layout/Sidebar to refetch so a newly enabled/disabled domain
-        // tab appears or vanishes immediately — no page reload needed.
+        // tab appears or vanishes immediately; no page reload needed.
         window.dispatchEvent(new Event("bv:settings-changed"));
         push(t("settings.saved"), "success");
         return true;
@@ -1799,23 +1799,23 @@ export function SettingsPage() {
     }
   }
 
-  // toggleDomainEnabled (#142 — "Bei Domänen der Speichern-Button entfernen, es
-  // soll automatisch speichern"): each Domains-card row saves ITSELF the instant
-  // it's clicked, mirroring OffsiteWizard.tsx's toggleImmutable — the one other
+  // toggleDomainEnabled (#142; "Bei Domänen der Speichern-Button entfernen, es
+  // soll automatisch speichern"): each Domains-card row saves itself the instant
+  // it's clicked, mirroring OffsiteWizard.tsx's toggleImmutable; the one other
   // place in this app already does "flip a single boolean settings field the
   // moment its switch is touched, no batching Save button": optimistic
   // setSettings flip, then the shared save() helper above (which already
   // merges onto the confirmed baseline, persists, dispatches
   // "bv:settings-changed" so Layout/Sidebar re-fetch and the tab appears/
-  // disappears live, and pushes the toast) — never a new persistence path.
+  // disappears live, and pushes the toast); never a new persistence path.
   //
   // A rejected save (e.g. enabling VMs with no working SSH connection to the
-  // libvirt host — internal/api/handlers.go's handlePutSettings checks that
-  // OFF→ON transition specifically) rolls the optimistic flip back to
+  // libvirt host; internal/api/handlers.go's handlePutSettings checks that
+  // Off→on transition specifically) rolls the optimistic flip back to
   // whatever it was before this click and bumps this row's shake nonce so
-  // ToggleRow replays `.glim-shake` — generic by construction: it keys off
-  // `!ok`, not off which domain or why the backend refused, so ANY domain's
-  // enable failing for ANY reason gets the same revert + shake + toast.
+  // ToggleRow replays `.glim-shake`; generic by construction: it keys off
+  // `!ok`, not off which domain or why the backend refused, so any domain's
+  // enable failing for any reason gets the same revert + shake + toast.
   async function toggleDomainEnabled(key: DomainToggleKey, next: boolean) {
     const prev = settings?.[key];
     setSettings((s) => (s ? { ...s, [key]: next } : s));
@@ -1830,7 +1830,7 @@ export function SettingsPage() {
   }
 
   // autoSaveField (GlimStone follow-up round, Paths & Storage tab rework,
-  // merge A/B — "no Speichern button, every field auto-saves"): the SAME
+  // merge A/B; "no Speichern button, every field auto-saves"): the same
   // optimistic-flip + persist + revert-on-failure shape toggleDomainEnabled
   // above already established, generalized from "one of 7 domain booleans"
   // to any single Settings field the two merged cards' own toggles need.
@@ -1838,7 +1838,7 @@ export function SettingsPage() {
   // domainToggleBusy/domainToggleShake above, just covering a different,
   // smaller set of keys (the merged cards' own toggles, not the 7 domains).
   // "flashZipExportEnabled"/"flashZipExportKeep" moved out of this union along
-  // with the feature itself — FlashZipExportCard now owns its own busy/shake
+  // with the feature itself; FlashZipExportCard now owns its own busy/shake
   // state independently (see that component's own header comment).
   type MergedAutoSaveKey =
     | "pruneImageAfterUpdate"
@@ -1860,7 +1860,7 @@ export function SettingsPage() {
     const ok = await save({ [key]: next } as Partial<Settings>, setSaveState, setSaveError);
     setMergedFieldBusy((b) => ({ ...b, [key]: false }));
     if (!ok) {
-      // Roll back to the pre-click state; save() already pushed the reason —
+      // Roll back to the pre-click state; save() already pushed the reason;
       // meaningful for a toggle (a boolean has an obvious "before" to revert
       // to); the merged cards' free-text/number fields below use
       // debouncedSave instead, which intentionally has no revert (see that
@@ -1873,22 +1873,22 @@ export function SettingsPage() {
 
   // autoSaveToggle (full-page Speichern-Button sweep, jdp, live review,
   // emphatic: "Die Speicher-Buttons sollen in allen Tabs weg. Überall soll
-  // es automatisch speichern."): the SAME optimistic-flip + persist +
+  // es automatisch speichern."): the same optimistic-flip + persist +
   // revert-on-failure + shake shape as autoSaveField/toggleDomainEnabled/
-  // autoSaveScheduleField above, generalized ONE step further — those three
+  // autoSaveScheduleField above, generalized one step further; those three
   // each own a small, closed key union (MergedAutoSaveKey/DomainToggleKey/
-  // ScheduleBoolKey) because each covers a specific GROUP of related toggles
+  // ScheduleBoolKey) because each covers a specific group of related toggles
   // on one shared Card/tab, worth naming as a set. This sweep's remaining
   // holdouts (Monitoring's metricsEnabled, the Weekly-digest Card's
   // digestEnabled, the Overdue-watchdog Card's watchdogEnabled) are three
   // unrelated, standalone toggles on three different Cards across two
-  // different tabs — inventing a same-shaped one-member union per Card would
+  // different tabs; inventing a same-shaped one-member union per Card would
   // just be MergedAutoSaveKey's own pattern copy-pasted three times for zero
   // benefit, so this widens the generic to any boolean Settings key instead,
   // with its own single shared busy/shake map keyed by field name (same
   // "keyed by field name in one map" shape every other per-field map on this
   // page already uses). Reach for one of the narrower, named unions above
-  // instead when a NEW group of related toggles arrives together; reach for
+  // instead when a new group of related toggles arrives together; reach for
   // this one for a standalone toggle that doesn't belong to any such group.
   const [fieldBusy, setFieldBusy] = useState<Partial<Record<keyof Settings, boolean>>>({});
   const [fieldShake, setFieldShake] = useState<Partial<Record<keyof Settings, number>>>({});
@@ -1911,29 +1911,29 @@ export function SettingsPage() {
     return ok;
   }
 
-  // debouncedSave/cancelDebounce — the free-text/number half of the same
+  // debouncedSave/cancelDebounce; the free-text/number half of the same
   // merge A/B auto-save requirement: a registry host/username/token, a flash
   // zip export path/keep-count, or the age recipients list would be wasteful
   // (or outright annoying, mid-keystroke) to persist on every single change,
   // so these fire `run` DELAY_MS after the last edit to the same `key`
-  // instead of immediately. Deliberately NO revert-on-failure here (unlike
-  // autoSaveField above) — save()'s own toast already reports a failure, and
+  // instead of immediately. Deliberately no revert-on-failure here (unlike
+  // autoSaveField above); save()'s own toast already reports a failure, and
   // reverting a text field the user might still be actively typing into
   // would be jarring rather than helpful; the value simply stays as typed
   // and the next edit (or a page reload) gets another chance to save it.
-  // Keyed by a caller-chosen string (not a Settings field name) so ONE
+  // Keyed by a caller-chosen string (not a Settings field name) so one
   // debounce line can cover several fields that only make sense saved
   // together (e.g. every registry-row edit shares the "registryAuths" key,
-  // since they all resolve to the SAME registryAuths patch).
-  // Each entry keeps the pending WRITE next to its timer, not just the timer
+  // since they all resolve to the same registryAuths patch).
+  // Each entry keeps the pending write next to its timer, not just the timer
   // handle. That is what makes the edit recoverable: a debounce can then be
   // completed early (flushDebounces) instead of only being cancelled, which is
   // the difference between "the user's last edit is sent" and "it is gone".
   type PendingWrite = { timer: ReturnType<typeof setTimeout>; run: () => void };
   const debounceTimers = useRef<Record<string, PendingWrite>>({});
   const DEBOUNCE_MS = 800;
-  // importing is true for the WHOLE import window — from the click that starts
-  // an import until its re-loaded configuration has been installed — not only
+  // importing is true for the whole import window; from the click that starts
+  // an import until its re-loaded configuration has been installed; not only
   // for the stretch the import spends at the head of the write queue. See
   // applyImportedSettings for what it protects.
   const importing = useRef(false);
@@ -1963,7 +1963,7 @@ export function SettingsPage() {
     }
   }
 
-  // flushDebounces sends every pending edit NOW instead of waiting out its
+  // flushDebounces sends every pending edit now instead of waiting out its
   // remaining delay. Cancelling and flushing are opposites and the page needs
   // both: an import replaces the configuration a pending edit was typed against,
   // so that edit must be dropped (cancelAllDebounces); leaving the page does not
@@ -1971,7 +1971,7 @@ export function SettingsPage() {
   //
   // Entries are removed from the map before their write runs, so a flush can
   // never double-send and a write that queues another edit is not re-collected.
-  // The map object itself is mutated in place, never replaced — see the unmount
+  // The map object itself is mutated in place, never replaced; see the unmount
   // effect, which captures it.
   function flushDebounces() {
     for (const key of Object.keys(debounceTimers.current)) {
@@ -1985,20 +1985,20 @@ export function SettingsPage() {
   // cancelAllDebounces drops every pending edit that has not been sent yet.
   // The one caller is the settings import: it replaces the whole configuration,
   // so a debounce armed seconds earlier would land on top of the imported
-  // config with a value the user typed against the OLD one. It closes the first
-  // half of that window only — the `importing` guard above closes the rest.
+  // config with a value the user typed against the old one. It closes the first
+  // half of that window only; the `importing` guard above closes the rest.
   function cancelAllDebounces() {
     for (const key of Object.keys(debounceTimers.current)) cancelDebounce(key);
   }
 
   // applyImportedSettings is the Import button's actual write. An import is a
-  // settings write like any other, so it joins the SAME queue every save uses
+  // settings write like any other, so it joins the same queue every save uses
   // and then re-loads the page from the server.
   //
   // Both halves matter. The card used to call the client directly and report
-  // "Settings imported." — while the page kept its pre-import baseline, which
+  // "Settings imported."; while the page kept its pre-import baseline, which
   // every field on the page merges its own value onto. One click on any toggle
-  // afterwards therefore PUT the whole PRE-import object back and silently
+  // afterwards therefore PUT the whole pre-import object back and silently
   // undid the entire import, with the UI reporting a successful save. (On main
   // that needed a Save-button click; once every field auto-saves, it is one
   // stray click.) Queueing it stops a save that was already in flight from
@@ -2011,15 +2011,15 @@ export function SettingsPage() {
   // and makes a stale-baseline save impossible. Reloading the browser is then
   // the honest recovery, and the import itself has already been applied.
   //
-  // The debounces are dropped HERE, at the click, and not inside the queued
+  // The debounces are dropped here, at the click, and not inside the queued
   // body below. Queued, the drop happens whenever the import reaches the head
   // of the write queue, which can be a whole round-trip later: a save already
   // in flight holds the import back, the 800ms debounce armed just before the
   // click elapses in the meantime, and its write is appended to the queue
-  // BEHIND the import. It then lands on the freshly imported configuration
+  // behind the import. It then lands on the freshly imported configuration
   // carrying the value the user typed against the one that was just replaced.
   // Cancelling at the click empties the map before anything can queue itself,
-  // and `importing` keeps it empty for the rest of the window — otherwise a
+  // and `importing` keeps it empty for the rest of the window; otherwise a
   // keystroke during the apply would simply re-open the same hole.
   async function applyImportedSettings(fileText: string) {
     importing.current = true;
@@ -2034,7 +2034,7 @@ export function SettingsPage() {
           if (fresh.hostMountRoot) setHostMountRoot(fresh.hostMountRoot);
           if (fresh.platform) setPlatformKind(fresh.platform);
         } else {
-          setLoadError("Settings were imported, but reloading them failed — reload the page.");
+          setLoadError("Settings were imported, but reloading them failed; reload the page.");
         }
         // Domains may have been switched on or off by the import: the sidebar and
         // layout listen for this and refetch, exactly as they do after a save.
@@ -2046,13 +2046,13 @@ export function SettingsPage() {
     });
   }
 
-  // Leaving the page COMMITS the pending edits; it does not discard them.
+  // Leaving the page commits the pending edits; it does not discard them.
   //
   // This cleanup used to clear every timer. With the Save buttons gone, the
   // debounce is the only thing that ever writes a text field, so clearing it
   // threw the user's last edit away: type a new cron expression into the
   // off-site cadence field (or a registry host, or the flash-zip export path),
-  // click "Dashboard" within 800ms, and the PATCH never happened — no toast, no
+  // click "Dashboard" within 800ms, and the PATCH never happened; no toast, no
   // error, and the value the field had shown as accepted was gone on return.
   // The old justification, "must not call setSettings/save with stale
   // closures", does not hold: scheduleField/debouncedSave capture their value
@@ -2061,11 +2061,11 @@ export function SettingsPage() {
   //
   // Flushing also matches the four card-level debounce maps in this file
   // (FlashZipExportCard, FleetSettingsCard, CloudCard, NotifyCard), none of
-  // which cancel on unmount — so those already complete their pending write.
+  // which cancel on unmount; so those already complete their pending write.
   // This page was the one place that did not.
   //
   // The flush itself is flushDebounces, captured into a local so the cleanup
-  // closes over the function it had at mount — the plain, lint-satisfying
+  // closes over the function it had at mount; the plain, lint-satisfying
   // version of the same "don't reach for a fresh binding inside a cleanup" rule.
   // It reads debounceTimers.current, whose object identity never changes (only
   // its properties are mutated in place by debouncedSave/cancelDebounce/
@@ -2075,22 +2075,22 @@ export function SettingsPage() {
     return () => {
       flushOnUnmount();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/unmount only: this must flush when the page GOES AWAY, not on every render that redefines the closure.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/unmount only: this must flush when the page goes away, not on every render that redefines the closure.
   }, []);
 
-  // saveRegistries — the merge A registries sub-section's own save, shared by
+  // saveRegistries; the merge A registries sub-section's own save, shared by
   // both the debounced per-field edit path and the immediate Remove-row path
-  // (see the Card below). It works against an EXPLICIT (auths, rowIds) pair
-  // rather than reading `settings`/`registryRowIds` directly — both callers
+  // (see the Card below). It works against an explicit (auths, rowIds) pair
+  // rather than reading `settings`/`registryRowIds` directly; both callers
   // already have the freshly computed arrays in hand (the state update and this
   // save race the same render otherwise), so passing them in avoids acting on a
   // one-render-stale snapshot.
   //
   // The payload and the screen are answered separately, and that separation is
   // the fix for a row disappearing mid-edit. The PUT carries the trimmed list
-  // (keepRegistryAuths — a blank row is nothing the server should store); the
+  // (keepRegistryAuths; a blank row is nothing the server should store); the
   // visible list keeps every row (markRegistryTokensStored), so a blank row the
-  // user just added survives a save triggered by a keystroke in a DIFFERENT row.
+  // user just added survives a save triggered by a keystroke in a different row.
   // Under the old batched Save button the two coincided, because clicking Save
   // meant "I am finished"; a debounce firing 800ms after a keystroke does not.
   //
@@ -2100,9 +2100,9 @@ export function SettingsPage() {
   // PUT takes a whole response to come back, and the user keeps typing in that
   // window: a list frozen at send time no longer describes the card by the time
   // it lands, so writing it back deleted a row added mid-flight and reverted
-  // characters typed mid-flight — while registryRowIds, which nothing here
+  // characters typed mid-flight; while registryRowIds, which nothing here
   // touches, kept the entry for the row that had just been erased and stopped
-  // being index-aligned with the rows on screen. Marking the LIVE list keeps
+  // being index-aligned with the rows on screen. Marking the live list keeps
   // both invariants: rows only ever leave the screen when the user removes
   // them, so the ids stay aligned by construction.
   function saveRegistries(nextAuths: RegistryAuthEntry[], nextRowIds: string[]) {
@@ -2115,14 +2115,14 @@ export function SettingsPage() {
     );
   }
 
-  // Task 5 (live-review — "Speichern-Buttons können weg, es soll immer alles
+  // jdp (live review; "Speichern-Buttons können weg, es soll immer alles
   // live gespeichert werden"): replaces buildSchedulePatch + the Schedules
   // tab's one bottom SaveBar that used to persist every field in this comment's
   // old list (Containers/VMs/Flash/Folders cadences, the drills Card, every
   // offsite cadence, the self-backup cadence, tamperTestSchedule,
   // catchUpMissed, perItemSchedules) in a single manually-triggered PATCH.
   // Every one of those fields now saves itself the instant it changes, via
-  // one of the three helpers below — the exact same "optimistic update,
+  // one of the three helpers below; the exact same "optimistic update,
   // immediate PATCH, revert + `.glim-shake` on failure" shape already proven
   // by toggleDomainEnabled (Domains card) and autoSaveField (Paths & Storage
   // merge cards), applied to a click/selection; or, for anything that fires
@@ -2130,12 +2130,12 @@ export function SettingsPage() {
   // time/number/cron sub-fields), the debounced-no-revert shape those same
   // merge cards already established for free text.
   //
-  // scheduleField — every CadenceBuilder-driven cadence AND every plain
+  // scheduleField; every CadenceBuilder-driven cadence and every plain
   // offsite/self-backup cron <input> in this tab: optimistic setSettings +
-  // a debouncedSave keyed by the field name, so rapid changes to the SAME
+  // a debouncedSave keyed by the field name, so rapid changes to the same
   // field (typing a cron expression, dragging through time-picker values)
   // coalesce into one PATCH 800ms after the last one, matching
-  // debouncedSave's own "no revert — a user may still be typing, and save()'s
+  // debouncedSave's own "no revert; a user may still be typing, and save()'s
   // toast already reports a failure" reasoning above.
   function scheduleField<K extends keyof Settings>(key: K, value: Settings[K]) {
     setSettings((prev) => (prev ? { ...prev, [key]: value } : prev));
@@ -2144,7 +2144,7 @@ export function SettingsPage() {
     });
   }
 
-  // autoSaveScheduleField — the four plain booleans left in this tab
+  // autoSaveScheduleField; the four plain booleans left in this tab
   // (perItemSchedules, catchUpMissed, drillsEnabled, offsiteDrillsEnabled):
   // a single discrete click, not continuous typing, so it gets the immediate
   // save + revert-on-failure + shake treatment instead, identical in shape to
@@ -2163,7 +2163,7 @@ export function SettingsPage() {
     return ok;
   }
 
-  // scheduleUpdate — RestoreChecksSection's own `update` prop, unchanged in
+  // scheduleUpdate; RestoreChecksSection's own `update` prop, unchanged in
   // shape (a Partial<Settings> patch, always exactly one key from that
   // component's own four call sites) but now dispatching each key through
   // the right one of the two helpers above instead of a bare setSettings
@@ -2180,16 +2180,16 @@ export function SettingsPage() {
     }
   }
 
-  // handleSyncSchedulesToggle — the "sync" toggle's own save. Unlike the
+  // handleSyncSchedulesToggle; the "sync" toggle's own save. Unlike the
   // Settings fields above, `syncSchedules` is local UI state (derived on
   // load from whether the domain schedules already matched, see the load
   // effect's own comment), not a field the backend stores directly, so it
   // cannot go through autoSaveScheduleField's Settings-keyed generic.
-  // Flipping it ON is the one case with real, immediate side effects worth
+  // Flipping it on is the one case with real, immediate side effects worth
   // persisting right away: VMs/Flash/Folders adopt the Containers cadence
   // this instant, mirroring toggleDomainEnabled's optimistic-flip +
   // save + revert-on-failure + shake shape, just against three fields at
-  // once instead of one. Flipping it OFF persists nothing new — every field
+  // once instead of one. Flipping it off persists nothing new; every field
   // already holds its own last-saved value, so there is nothing to PATCH;
   // subsequent edits to VMs/Flash/Folders individually go through
   // scheduleField again on their own, same as before sync was ever turned on.
@@ -2219,25 +2219,25 @@ export function SettingsPage() {
     }
   }
 
-  // toggleConfigSchedule — the Self-Backup Card's own on/off ToggleRow. Same
+  // toggleConfigSchedule; the Self-Backup Card's own on/off ToggleRow. Same
   // immediate optimistic-flip + save + revert-on-failure + shake shape as
   // handleSyncSchedulesToggle above, applied to configSchedule's cadence
   // string instead of the three VMs/Flash/Folders fields that one touches.
-  // OFF writes the literal "off" cadence string; ON restores the cadence that
-  // was in force before the last OFF (rememberedConfigSchedule above), falling
-  // back to "daily 02:00" when there is none to restore — the same
+  // Off writes the literal "off" cadence string; on restores the cadence that
+  // was in force before the last off (rememberedConfigSchedule above), falling
+  // back to "daily 02:00" when there is none to restore; the same
   // daily-at-02:00 baseline this grammar already uses elsewhere, e.g.
   // ContainersSchedule's own portable-settings test fixture. This
-  // does NOT introduce a new configScheduleEnabled field: parseCadenceString/
+  // does not introduce a new configScheduleEnabled field: parseCadenceString/
   // buildCadenceString (CadenceBuilder.tsx) already round-trip "off"/""
   // through CadenceMode "off" cleanly, so a second boolean would just be a
   // second source of truth for the exact same fact. (BombVault's separate
   // `configEnabled` field, toggled in the Domains card above, is a different
-  // concept — whether the self-backup domain exists at all — left untouched.)
+  // concept; whether the self-backup domain exists at all; left untouched.)
   async function toggleConfigSchedule(next: boolean) {
     const prev = settings?.configSchedule ?? "off";
-    // Switching OFF is the only moment the cadence is lost, and `prev` is
-    // exactly the value being overwritten — whether it came from the server, the
+    // Switching off is the only moment the cadence is lost, and `prev` is
+    // exactly the value being overwritten; whether it came from the server, the
     // CadenceBuilder below, or an earlier flip of this toggle.
     if (!next && prev && prev !== "off") setRememberedConfigSchedule(prev);
     const value = next ? rememberedConfigSchedule : "off";
@@ -2273,8 +2273,8 @@ export function SettingsPage() {
 
   // GlimStone form-engine Task 9 (toasts): the SaveBar success/error pattern
   // here used to hold "saved"/"error" in pwSaveState for a 3000ms inline-text
-  // flash. The two ASYNC completion notices (did setAuthPassword succeed)
-  // now go through a toast instead — but the pre-flight mismatch check below
+  // flash. The two async completion notices (did setAuthPassword succeed)
+  // now go through a toast instead; but the pre-flight mismatch check below
   // deliberately stays exactly as it was: it's a field-validation error the
   // user is actively looking at (both password fields, mid-edit), not a
   // "did the save finish" notice, so it keeps its own persistent inline
@@ -2282,20 +2282,20 @@ export function SettingsPage() {
   // still typing (design-language.md: a toast duplicating a surface that
   // already exists and is meant to persist is the wrong tool here).
   //
-  // GENUINE EXCEPTION to the full-page Speichern-Button sweep (jdp, live
+  // Genuine exception to the full-page Speichern-Button sweep (jdp, live
   // review, emphatic: "Die Speicher-Buttons sollen in allen Tabs weg...
   // Nur dort sollen Speicher-Buttons bleiben, wo es unbedingt sein muss."):
   // this Save button stays. Two independent hard reasons, either one alone
-  // would qualify: (1) it requires TWO fields (new + confirm) to agree
-  // before the write is even safe to attempt — exactly the "requires
+  // would qualify: (1) it requires two fields (new + confirm) to agree
+  // before the write is even safe to attempt; exactly the "requires
   // explicit two-step confirmation for safety" exception named in the
   // sweep's own criteria, and there is no sane per-keystroke auto-save
-  // trigger for a two-field agreement check (auto-saving on the FIRST
+  // trigger for a two-field agreement check (auto-saving on the first
   // field alone, before the second is even filled in, would either save a
   // password the user never finished typing or spam a mismatch failure on
   // every keystroke of the second field). (2) setAuthPassword takes effect
-  // IMMEDIATELY and controls access to the whole instance — a blank save
-  // disables auth entirely — the closest thing on this page to "immediately
+  // immediately and controls access to the whole instance; a blank save
+  // disables auth entirely; the closest thing on this page to "immediately
   // rotating a live credential," the sweep's own worked example of a
   // legitimate hold-out. Not kept because it's "security-related" in a
   // vague sense; kept because auto-saving would either be unsafe or simply
@@ -2308,7 +2308,7 @@ export function SettingsPage() {
     }
     // The server refuses a short password too, and its answer is what the
     // user would eventually see. Checking here as well saves a round trip and
-    // puts the message next to the field instead of in a toast. An EMPTY
+    // puts the message next to the field instead of in a toast. An empty
     // password is not "too short": it means "switch authentication off".
     if (pwNew !== "" && [...pwNew].length < minPasswordLen) {
       setPwSaveMsg(t("auth.passwordMinHint").replace("{n}", String(minPasswordLen)));
@@ -2345,8 +2345,8 @@ export function SettingsPage() {
 
 
   // Tamper-test schedule eligibility (#109): mirrors immutableOffsiteDomains in
-  // internal/schedule/schedule.go — the scheduler only wires the scheduled
-  // tamper-test job when at least one domain's off-site repo is set AND
+  // internal/schedule/schedule.go; the scheduler only wires the scheduled
+  // tamper-test job when at least one domain's off-site repo is set and
   // flagged immutable. Without that, the cadence editor below silently never
   // runs (the same per-domain predicate as appendOnlyEligible in IntegrityCard,
   // widened to "any domain including config").
@@ -2357,92 +2357,92 @@ export function SettingsPage() {
     (settings.configOffsite !== "" && settings.configOffsiteImmutable) ||
     (settings.filesOffsite !== "" && settings.filesOffsiteImmutable);
 
-  // hueSeq/nextHue (GlimStone follow-up pass, jdp's second live-review round
-  // — "Die ganzen... Abschnittsbadges sind nicht in der Farbengine!!"):
+  // hueSeq/nextHue (GlimStone follow-up pass, a later live review
+  //; "Die ganzen... Abschnittsbadges sind nicht in der Farbengine!!"):
   // every Card/section-title notch below now takes an optional `hueIndex`,
-  // by its own LIST INDEX among the notches visible on the CURRENTLY ACTIVE
+  // by its own list index among the notches visible on the currently active
   // tab (see Card's own doc comment and Badge.tsx's tone="heading" section
   // for the full history/reasoning). A hand-counted literal per tab would
-  // silently drift the moment a Card is added/removed/reordered — this
+  // silently drift the moment a Card is added/removed/reordered; this
   // plain, freshly-reset-every-render counter instead assigns 0,1,2,... in
   // exactly the order the JSX below actually evaluates each call, which for
-  // a `{tab === "x" && (<Card hueIndex={nextHue()} .../>)}` gate is ALSO
+  // a `{tab === "x" && (<Card hueIndex={nextHue()} .../>)}` gate is also
   // exactly the order those Cards are, or would be, painted: `&&`
   // short-circuits, so an inactive tab's own `nextHue()` calls never run at
   // all (the counter is never incremented for cards that aren't on screen),
   // and a re-render always starts back at 0 (a plain local `let`, not a
-  // ref/state — nothing here needs to survive between renders). One
+  // ref/state; nothing here needs to survive between renders). One
   // exception, documented at its own two call sites below: the four
   // Domain-schedule sections (ContainersSection/VMsSection/FlashSection/
-  // FilesSection) and RestoreChecksSection are each passed their OWN
-  // `nextHue()` result the same way every inline `<Card>` is — the counter
+  // FilesSection) and RestoreChecksSection are each passed their own
+  // `nextHue()` result the same way every inline `<Card>` is; the counter
   // does not care whether the notch it is numbering renders directly here or
   // one function-call away inside a child component.
   let hueSeq = 0;
   const nextHue = () => hueSeq++;
 
   return (
-    // gap-10 (live-review round — "gap between the tab strip and the first
+    // gap-10 (live review; "gap between the tab strip and the first
     // card is too small"): was gap-6 (24px), same value the tab-panels
-    // wrapper further down used to use for the SAME job before its own
+    // wrapper further down used to use for the same job before its own
     // gap-10 bump (see that wrapper's own comment). This outer wrapper had
-    // exactly two children when that bump landed — the heading+tab-strip
-    // block immediately below, and the tab-panels wrapper — so bumping ITS
+    // exactly two children when that bump landed; the heading+tab-strip
+    // block immediately below, and the tab-panels wrapper; so bumping its
     // gap to gap-10 is what actually widens the space between the tab strip
     // and the first Card's top edge to the same 40px rhythm every
     // Card-to-Card gap already uses, without touching the (unrelated, still
     // gap-6) space between the heading and the tab strip itself. AboutFooter
     // (sticky-footer round, see its own header comment) is now a third
-    // child, after the tab-panels wrapper — the same gap-10 rhythm applies
+    // child, after the tab-panels wrapper; the same gap-10 rhythm applies
     // there too, for free, with no extra spacing utility needed on the
     // footer itself.
     //
     // `flex-1` (sticky-footer round): makes this whole page root grow to
     // fill the scrollable viewport's available height (app/Layout.tsx's
     // `main` → its `glim-page-enter` child, both given a matching `flex-1 flex
-    // flex-col` for exactly this — see that file's own comments) instead of
+    // flex-col` for exactly this; see that file's own comments) instead of
     // shrink-wrapping to its own content height. On its own this would just
-    // make the ROOT taller with blank space at the bottom (flex columns
+    // make the root taller with blank space at the bottom (flex columns
     // don't redistribute leftover space to children unless a child asks for
-    // it) — the tab-panels wrapper further down carries the matching
+    // it); the tab-panels wrapper further down carries the matching
     // `flex-1` that actually consumes that space, which is what pushes
     // AboutFooter down to this column's bottom edge. Content taller than the
     // available height still simply grows this element (and `main`'s
     // scrollHeight with it) past that floor, which is what lets `main`
-    // scroll normally instead of clipping anything — see the tab-panels
+    // scroll normally instead of clipping anything; see the tab-panels
     // wrapper's own comment for why `flex-1` produces exactly that
     // fill-or-grow behaviour with no separate min-height override needed.
     //
-    // PAGE_SHELL_TABBED — the ONE stated exception to the app-wide page width
+    // PAGE_SHELL_TABBED; the one stated exception to the app-wide page width
     // (jdp live-review, "Können wir die nicht überall gleich breit machen?").
     // Every other page now renders at PAGE_SHELL's 1152px; this root keeps the
-    // shared 40px rhythm but deliberately has NO max-width, and that is not an
+    // shared 40px rhythm but deliberately has no max-width, and that is not an
     // oversight. Measured live before deciding: capping this root at 1152px
-    // caps the 7-tab Selector strip inside it too, and the strip — `size="lg"`
-    // + `equalWidth`, so 7x its widest segment, 1424px in de — no longer fits
+    // caps the 7-tab Selector strip inside it too, and the strip; `size="lg"`
+    // + `equalWidth`, so 7x its widest segment, 1424px in de; no longer fits
     // on one line there (strip height 32px → 68px, the 7 tabs falling onto 2
     // rows). That two-row strip is a bug an earlier round already fixed once,
-    // and the panels below are capped to this strip's MEASURED width per a
+    // and the panels below are capped to this strip's measured width per a
     // standing instruction ("Settings cards should match the tab row's
     // width"), so capping the root would regress both at once.
     //   This is a genuine conflict between two of jdp's own asks rather than
-    // something to resolve silently: the honest fix is to make the STRIP
+    // something to resolve silently: the honest fix is to make the strip
     // narrower (drop `equalWidth`, whose natural hugged width is ~814px in de,
     // or step `size` down from "lg"), after which this page could join the
     // shared cap. That is a change to a deliberate prior decision, so it is
     // flagged for jdp rather than taken here. See lib/pageShell.ts.
     <div className={PAGE_SHELL_TABBED}>
       {/* Heading + tab strip, grouped in their own gap-6 column (GlimStone
-          follow-up pass, live-review round — the width-mismatch fix below
+          follow-up pass, live review; the width-mismatch fix below
           needed a wrapper here to isolate this pair's own 24px gap from the
-          new gap-10 the OUTER wrapper now uses for the tab-strip-to-first-
+          new gap-10 the outer wrapper now uses for the tab-strip-to-first-
           card gap; before this pass, heading/strip/panels were three
-          siblings sharing one flat gap value). Deliberately NOT inside the
+          siblings sharing one flat gap value). Deliberately not inside the
           max-w-3xl reading column the panels wrapper further down used to
-          own alone (GlimStone follow-up pass, live-review point 7): every
-          OTHER page's own <h1>/<p> (Dashboard.tsx, Containers.tsx, VMs.tsx,
+          own alone (GlimStone follow-up pass, live review): every
+          Other page's own <h1>/<p> (Dashboard.tsx, Containers.tsx, VMs.tsx,
           Files.tsx, Flash.tsx, Config.tsx, Receiver.tsx, Fleet.tsx) renders
-          at the page's own full width, un-capped — Settings.tsx was the one
+          at the page's own full width, un-capped; Settings.tsx was the one
           page that swept its heading into the same narrow column as its
           form content, which that pass undid to match that convention. */}
       <div className="flex flex-col gap-6">
@@ -2457,106 +2457,102 @@ export function SettingsPage() {
 
       {/* ------------------------------------------------------------------ */}
       {/* Tab strip (7 tabs), on the shared Selector component (GlimStone     */}
-      {/* form-engine Phase 2, Task 3 — design-language's "top, with an       */}
+      {/* form-engine; design-language's "top, with an                    */}
       {/* icon" rule for a settings-style tab row). `tab` is the single owner */}
       {/* of which card group renders. Each tab still owns a rainbow         */}
-      {/* position by its LIST INDEX (never a hash of `key`) — Selector's     */}
+      {/* position by its list index (never a hash of `key`); Selector's     */}
       {/* default hue=true carries over exactly the rainbow wiring this strip */}
-      {/* had before the migration (see Task 2's own audit comment, now      */}
-      {/* removed from here since Selector owns the useRainbow() subscription */}
-      {/* itself). Icons are new: the pre-migration hand-rolled strip had     */}
-      {/* none — TAB_ICON above is this task's own addition, satisfying the   */}
-      {/* "no icon beats the wrong one" rule with a per-section glyph rather  */}
-      {/* than a placeholder.                                                */}
+      {/* has always had; Selector owns the useRainbow() subscription itself.      */}
+      {/* Icons are deliberate: TAB_ICON above satisfies the "no icon beats the     */}
+      {/* wrong one" rule with a per-section glyph rather than a placeholder.   */}
       {/*                                                                    */}
-      {/* GlimStone follow-up pass, live-review point 7 (real bug, not a     */}
-      {/* Selector defect): this strip used to live INSIDE the same           */}
+      {/* GlimStone follow-up pass, live review (a real bug, not a        */}
+      {/* Selector defect): this strip used to live inside the same           */}
       {/* `max-w-3xl` reading column as the form content below, which capped  */}
-      {/* it to 768px — narrower than the ~814px seven icon+label "lg"        */}
+      {/* it to 768px; narrower than the ~814px seven icon+label "lg"        */}
       {/* segments need in German (the longest-label locale), so it wrapped   */}
       {/* to two lines (a lone "System" tab stranded on row 2) even on a wide  */}
       {/* desktop window. Selector's own "wraps, it never scrolls" rule       */}
       {/* (design-language.md, "The one horizontal selector") is working      */}
-      {/* exactly as designed — the bug was Settings.tsx capping its PRIMARY   */}
-      {/* NAVIGATION to the same narrow column as its prose/form content, the  */}
+      {/* exactly as designed; the bug was Settings.tsx capping its primary   */}
+      {/* navigation to the same narrow column as its prose/form content, the  */}
       {/* one page in the app that did (every sibling page's own <h1> above    */}
       {/* renders un-capped too). Moving `max-w-3xl` down onto the tab panels  */}
       {/* wrapper below (and off this strip + the heading above) restores a    */}
       {/* one-line fit at any normal desktop width without touching Selector   */}
-      {/* itself, so its wrap-not-scroll fallback still protects every OTHER   */}
+      {/* itself, so its wrap-not-scroll fallback still protects every other   */}
       {/* call site (and this one too, on a genuinely narrow viewport) exactly */}
       {/* as before.                                                          */}
       {/*                                                                    */}
-      {/* `plain` dropped (live-review point 8): the ten toolbar-chip call    */}
+      {/* `plain` dropped (jdp's call): the ten toolbar-chip call         */}
       {/* sites across Containers/VMs/Files/CadenceBuilder give an unselected  */}
-      {/* segment a visible bg-carbon-surface2 idle fill, so the WHOLE strip   */}
-      {/* reads as a row of badges with one filled/active — `plain` (this     */}
-      {/* strip's pre-migration look, preserved verbatim by Task 3 on purpose) */}
-      {/* instead rendered unselected tabs as bare text with no badge shape at */}
-      {/* all. Matching the dominant convention instead of the one other      */}
-      {/* `plain` call site (Dashboard's heatmap toggle, left untouched — out  */}
-      {/* of THIS strip's scope) is a deliberate, requested style change, not  */}
-      {/* a migration-fidelity slip.                                          */}
+      {/* segment a visible bg-carbon-surface2 idle fill, so the whole strip   */}
+      {/* reads as a row of badges with one filled/active; `plain` (this     */}
+      {/* strip's original look, preserved on purpose) instead rendered   */}
+      {/* unselected tabs as bare text with no badge shape at all. Matching the */}
+      {/* dominant convention instead of the one other `plain` call site      */}
+      {/* (Dashboard's heatmap toggle, left untouched; out of this strip's  */}
+      {/* scope) is a deliberate, requested style change.                 */}
       {/*                                                                    */}
-      {/* `equalWidth` (GlimStone follow-up pass, live-review round — "make    */}
+      {/* `equalWidth` (GlimStone follow-up pass, jdp: "make              */}
       {/* the tab strip's badges all equal width, then size the cards to      */}
       {/* match that row"): each of the 7 tabs used to hug its own label       */}
       {/* width ("Allgemein" narrower than "Pfade & Speicher"), so the wrapped */}
       {/* row left a stretch of bare gap after the last tab ("System") even    */}
       {/* though the Card below (its own width cap already removed, see that  */}
       {/* wrapper's own comment below) renders edge-to-edge across the same    */}
-      {/* container — a container-width match that still LOOKED mismatched     */}
+      {/* container; a container-width match that still looked mismatched     */}
       {/* because the visible pills never filled it.                          */}
       {/*                                                                    */}
-      {/* CORRECTED (jdp, round 2, explicit): a full-row `flex-1` stretch was   */}
-      {/* the wrong fix — "Ich wollte die Tab-Badges nur so breit wie sie       */}
+      {/* corrected (jdp, explicit): a full-row `flex-1` stretch was      */}
+      {/* the wrong fix; "Ich wollte die Tab-Badges nur so breit wie sie       */}
       {/* breit sein müssen... alle so breit wie der Benachrichtigungen-        */}
       {/* Badge." Selector's `equalWidth` now measures the widest label's own   */}
-      {/* content width and pins every segment to THAT fixed width instead      */}
+      {/* content width and pins every segment to that fixed width instead      */}
       {/* (see Selector.tsx's own file header, item 5b, for the full            */}
-      {/* corrected mechanism) — the row hugs its own content again, just       */}
+      {/* corrected mechanism); the row hugs its own content again, just       */}
       {/* with 7 equal segments instead of 7 ragged ones. That makes this       */}
       {/* strip narrower than the page's full width once more, which is why     */}
       {/* it's now wrapped in its own measured container below (`tabStripEl`/   */}
       {/* `tabStripWidth`, this component's own state block): the Card panels   */}
-      {/* wrapper further down reads that SAME measured width back as its own   */}
+      {/* wrapper further down reads that same measured width back as its own   */}
       {/* max-width, instead of the old "both happen to be full-width, so they  */}
-      {/* match automatically" assumption — see that wrapper's own comment for  */}
+      {/* match automatically" assumption; see that wrapper's own comment for  */}
       {/* why that assumption no longer holds.                                 */}
       {/*                                                                    */}
       {/* `title: label` (equalWidth follow-up): equal-width segments trade    */}
       {/* away content-hugging, so the single longest label at a given         */}
       {/* viewport ("Benachrichtigungen" in German, verified live at 1400px)  */}
-      {/* can now truncate where it never did before — the label span's own    */}
+      {/* can now truncate where it never did before; the label span's own    */}
       {/* `truncate` class (Selector.tsx) already handles the ellipsis, but    */}
       {/* nothing previously surfaced the untruncated text anywhere, because   */}
-      {/* no pre-migration "chip" segment ever needed to (each was always      */}
+      {/* no earlier "chip" segment ever needed to (each was always       */}
       {/* exactly as wide as its own content). A native title tooltip is the   */}
       {/* same low-cost fallback Files.tsx's destChip already uses for its own */}
-      {/* disabled-hint case — cheap insurance for the one truncation case     */}
+      {/* disabled-hint case; cheap insurance for the one truncation case     */}
       {/* this specific change can newly introduce, at any label length in     */}
       {/* any of the 42 locales, not just the one word measured live today.    */}
       {/* ------------------------------------------------------------------ */}
-      {/* self-start (verified live — first pass shipped WITHOUT this and      */}
+      {/* self-start (verified live; first pass shipped without this and      */}
       {/* silently under-measured): this wrapper's own parent is itself a      */}
       {/* `flex flex-col` column (the gap-6 heading+strip group above), so a   */}
-      {/* child here is a genuine FLEX ITEM regardless of what display value   */}
-      {/* the child itself specifies — flex items are always "blockified"      */}
+      {/* child here is a genuine flex item regardless of what display value   */}
+      {/* the child itself specifies; flex items are always "blockified"      */}
       {/* (the CSS Display spec forces a flex child's used display to a        */}
       {/* block-outside value, `inline-flex` included), and the column's own   */}
       {/* default `align-items: stretch` then stretches that blockified item's */}
-      {/* CROSS axis (width, since the column's main axis is vertical) to the  */}
+      {/* cross axis (width, since the column's main axis is vertical) to the  */}
       {/* line's full width regardless of content. A plain `inline-flex`       */}
-      {/* class alone does NOT opt out of that — it only changes what would    */}
+      {/* class alone does not opt out of that; it only changes what would    */}
       {/* happen in a normal block-flow parent, which this isn't. `self-start` */}
       {/* is the actual escape hatch (align-self overriding the inherited      */}
       {/* stretch), letting this item's width resolve via ordinary shrink-to-  */}
-      {/* fit sizing instead — confirmed live: without it, `tabStripRef`       */}
-      {/* measured the STRETCHED (column-width, ~1113px) box while the         */}
+      {/* fit sizing instead; confirmed live: without it, `tabStripRef`       */}
+      {/* measured the stretched (column-width, ~1113px) box while the         */}
       {/* Selector strip inside it kept rendering at its own real, narrower    */}
       {/* content width (~1243px in German at 1400px viewport) and simply      */}
-      {/* overflowed the stretched wrapper — capping the Card panels below to  */}
-      {/* the WRONG, too-narrow number. `max-w-full` still guards the opposite */}
+      {/* overflowed the stretched wrapper; capping the Card panels below to  */}
+      {/* the wrong, too-narrow number. `max-w-full` still guards the opposite */}
       {/* edge (a genuinely narrow viewport), and `inline-flex` is kept        */}
       {/* alongside `self-start` for correctness if this wrapper is ever moved */}
       {/* under a non-flex (normal block-flow) parent instead, where the       */}
@@ -2579,10 +2575,10 @@ export function SettingsPage() {
         select="one"
         active={tab}
         onChange={(key) => {
-          // Settings tab slide (GlimStone motion-engine animation 7) —
-          // computed HERE, in the same synchronous event handler that also
+          // Settings tab slide (GlimStone motion-engine animation 7);
+          // computed here, in the same synchronous event handler that also
           // calls setTab() below, because this is the one place that still
-          // has BOTH the old tab (the `tab` closure variable, not yet
+          // has both the old tab (the `tab` closure variable, not yet
           // updated) and the new one (`key`) at once. React batches this
           // setTabDir alongside the setTab() call into the same commit, so
           // the tab-content wrapper's very first render with the new `tab`
@@ -2598,19 +2594,19 @@ export function SettingsPage() {
           try {
             window.history.replaceState(null, "", `#${key}`);
           } catch {
-            /* history unavailable — tab state still switches */
+            /* history unavailable; tab state still switches */
           }
         }}
         size="lg"
         equalWidth
         /* #178, [200]: the strip joins the size system, with jdp's stated
-           exception that these segments must be equal ALWAYS. groupWidth picks
+           exception that these segments must be equal always. groupWidth picks
            the stage the longest tab name needs in the current language and
            gives it to every tab, so the strip is uniform by construction
            rather than by measurement. That also retires the failure this
            file's own header describes: the measured pin once grew to 1424px
            in German and wrapped the seven tabs onto two rows. */
-        // The rail's own row width, via the shared token — "gleich groß wie die
+        // The rail's own row width, via the shared token; "gleich groß wie die
         // tabs in der sidebar" is a promise, and a promise needs one number,
         // not two that happen to agree today. It also gives the longest label
         // ("Benachrichtigungen") the 16px it was missing, which is why that tab
@@ -2620,24 +2616,24 @@ export function SettingsPage() {
       </div>
       </div>
 
-      {/* Tab panels. GlimStone follow-up pass, live-review round ("Settings
+      {/* Tab panels. GlimStone follow-up pass, live review ("Settings
           cards should match the tab row's width"): the `max-w-3xl` cap that
-          used to live on this wrapper is GONE — removed, not resized to a
+          used to live on this wrapper is gone; removed, not resized to a
           new guessed number.
 
-          UPDATED (equalWidth correction round — see the tab strip's own
+          Updated (equalWidth correction round; see the tab strip's own
           comment block above): back when `equalWidth` stretched the strip to
-          fill the full row, this wrapper needed no cap at all — both it and
+          fill the full row, this wrapper needed no cap at all; both it and
           the strip were simply full-width by construction, so they matched
           automatically. Now that the strip hugs its own (narrower, content-
           matched) width instead, that "both happen to be full-width"
-          assumption no longer holds — a truly uncapped Card would render
+          assumption no longer holds; a truly uncapped Card would render
           wider than the tabs sitting above it again, the exact mismatch this
           whole feature exists to prevent. `style={{ maxWidth: tabStripWidth
-          }}` (below) is the fix: `tabStripWidth` is a REAL measured pixel
+          }}` (below) is the fix: `tabStripWidth` is a real measured pixel
           value (this component's own ResizeObserver, set up in the state
           block near the top of SettingsPage), read off the actual rendered
-          tab strip rather than a guessed literal — so it tracks correctly
+          tab strip rather than a guessed literal; so it tracks correctly
           across every locale's own longest label, a window resize, or a
           zoom level change, none of which a hard-coded number could.
           `?? undefined` for the one frame before the observer's first
@@ -2645,48 +2641,48 @@ export function SettingsPage() {
           React would warn, `undefined` simply omits the style property that
           render, matching this wrapper's original uncapped look until the
           real number is known.
-            gap-10 (live-review round — "more air between Cards, there's
+            gap-10 (live review; "more air between Cards, there's
           plenty of room"): was gap-6 (24px), already the single largest gap
-          value used anywhere in this app before this bump (verified — no
+          value used anywhere in this app before this bump (verified; no
           other call site reaches past gap-6). Every direct child of this
           wrapper is either a whole Card (own bg-carbon-surface + p-5 box) or
-          an equivalent top-level section, so this one value IS the vertical
+          an equivalent top-level section, so this one value is the vertical
           rhythm between Settings' Domains/Language/Theme/Accent/Shape/
-          Rainbow/Quiet-toasts blocks — bumping it here, and only here,
+          Rainbow/Quiet-toasts blocks; bumping it here, and only here,
           reaches every one of them. 40px (~1.67x the old 24px, inside the
           requested 1.5-2x range) reads as a deliberate step up without the
           Cards feeling disconnected from each other on the page. The outer
           wrapper above reuses this same gap-10 value for the tab-strip-to-
-          first-card gap (a separate live-review ask, its own comment) —
+          first-card gap (a separate live-review ask, its own comment);
           matching this established rhythm rather than inventing a different
           number for that gap too. */}
       {/* key={tab} (GlimStone motion-engine animation 7, Settings tab slide):
-          this ONE div wraps every `{tab === "x" && ...}` panel below — every
-          Card inside it ALREADY fully unmounts/remounts on a tab switch via
-          those conditionals alone, key or no key; keying the WRAPPER too
+          this one div wraps every `{tab === "x" && ...}` panel below; every
+          Card inside it already fully unmounts/remounts on a tab switch via
+          those conditionals alone, key or no key; keying the wrapper too
           changes nothing about which children exist, it only makes the
           wrapper itself a fresh DOM node each click, which is what lets
           `.glim-tab-slide`'s own entrance animation (index.css) replay every
           time instead of only once at Settings' own first mount (a
           persistent class on a node that never gets recreated never
           replays its animation, the same reasoning glim-stagger-row's own
-          comment gives for why a list re-render does NOT replay). --tab-dir
+          comment gives for why a list re-render does not replay). --tab-dir
           is set from `tabDir` state, computed by whichever caller last
           changed `tab` (the Selector's onChange below, or the hashchange
-          effect above) in the SAME synchronous handler that called setTab —
+          effect above) in the same synchronous handler that called setTab;
           see either call site's own comment for the exact "old index vs new
           index" math.
-            `flex-1` (sticky-footer round, jdp live review — see AboutFooter's
-          own header comment for the full before/after): this is the ONE
+            `flex-1` (sticky-footer round, jdp live review; see AboutFooter's
+          own header comment for the full before/after): this is the one
           child of the page root (above) that should absorb whatever extra
-          height that root has beyond its own natural content size — the
+          height that root has beyond its own natural content size; the
           heading+tab-strip block above it is a fixed-content block that
           should never stretch, and AboutFooter below it is the thing being
           pushed down, not the thing doing the pushing. flex-basis 0 + grow 1
           (Tailwind's `flex-1`) means this wrapper fills the ROOT's leftover
           vertical space when its own Cards don't need all of it (short tabs
           like General), while its automatic minimum height still floors at
-          whatever its own content actually needs — so on a long tab
+          whatever its own content actually needs; so on a long tab
           (Storage, Schedules) it simply renders at full content height
           exactly as before, growing `main` past the viewport and letting it
           scroll normally, with AboutFooter still following right after it
@@ -2698,29 +2694,29 @@ export function SettingsPage() {
       >
 
       {/* ------------------------------------------------------------------ */}
-      {/* SCHEDULES — the single owner of every cadence (migrated from Plans).  */}
+      {/* schedules; the single owner of every cadence (migrated from Plans).  */}
       {/* Backup schedules reuse the proven per-domain sections + sync toggle;  */}
       {/* off-site / self-backup / restore-check cadences are edited here too.   */}
-      {/* Task 5 (live-review — "Speichern-Buttons können weg, es soll immer    */}
+      {/* jdp (live review; "Speichern-Buttons können weg, es soll immer    */}
       {/* alles live gespeichert werden"): every field on this tab auto-saves   */}
       {/* itself now (scheduleField/autoSaveScheduleField/handleSyncSchedules-  */}
-      {/* Toggle above) — there is no tab-wide SaveBar left to persist them.    */}
+      {/* Toggle above); there is no tab-wide SaveBar left to persist them.    */}
       {/* ------------------------------------------------------------------ */}
       {tab === "schedules" && (
         <>
-          {/* Schedule options (jdp, live-review — "Die beiden Toggle sollen in
+          {/* Schedule options (jdp, live-review; "Die beiden Toggle sollen in
               eine eigene Card"): perItemSchedules (#121) and the Containers-
               sync toggle used to be two raw <input type="checkbox"> rows
               sitting directly in this tab, outside any Card. Both are now the
               shared ToggleRow component, grouped in their own Card, first on
-              this tab, directly above ContainersSection — perItem first, sync
+              this tab, directly above ContainersSection; perItem first, sync
               directly below it, per jdp's own ordering. (The group-level
               "Backup-Zeitpläne" Badge heading that used to sit above this
-              Card was removed on jdp's live-review ask — the four domain
+              Card was removed on jdp's live-review ask; the four domain
               schedule Cards below already carry their own clear headings, so
               the group label was redundant; nextHue()'s sequence starts
               directly with this Card now, one call short of before.) A
-              genuine two-member list, so each ToggleRow gets its own LOCAL
+              genuine two-member list, so each ToggleRow gets its own local
               hueIndex (0/1, independent of this Card's own nextHue() notch),
               the same "own local 0-based index per group" rule the Domains
               card's seven rows and the merged Colors Card's three rainbow
@@ -2736,9 +2732,9 @@ export function SettingsPage() {
               pulseNonce={fieldPulse.perItemSchedules}
               hueIndex={0}
             />
-            {/* Sync toggle — applies the Containers cadence to VMs, Flash AND
-                Folders (Task 2 extended this from "VMs + Flash" to also cover
-                Folders — see FilesSection's own new syncSchedules prop). */}
+            {/* Sync toggle; applies the Containers cadence to VMs, Flash and
+                Folders (extended from "VMs + Flash" to also cover
+                Folders; see FilesSection's own new syncSchedules prop). */}
             <ToggleRow
               label={t("jobs.syncSchedules")}
               hint={t("jobs.syncSchedulesHint")}
@@ -2747,7 +2743,7 @@ export function SettingsPage() {
               disabled={syncToggleBusy}
               shakeNonce={syncToggleShake || undefined}
               // handleSyncSchedulesToggle's own save() patch touches vms/
-              // flash/filesSchedule together (see that function) — any one
+              // flash/filesSchedule together (see that function); any one
               // of the three is bumped by save()'s success branch, so
               // vmsSchedule works as well as either of the others here.
               pulseNonce={fieldPulse.vmsSchedule}
@@ -2755,7 +2751,7 @@ export function SettingsPage() {
             />
           </Card>
           {/* Backup Everything (schedulesEverything): a 6th, independent pass over
-              all five domains BELOW + a manual trigger. See EverythingSection's
+              all five domains below + a manual trigger. See EverythingSection's
               own doc comment for the convention pass this card needed after the
               merge, the conditional overlap warning included.
                 `update={scheduleUpdate}` rather than the bare setSettings merge
@@ -2766,21 +2762,20 @@ export function SettingsPage() {
               debounces each key through the shared save(), which is what the
               cadence editor and the two hook text inputs want.
 
-              SECOND on the tab, not last ([413]). It shipped at the bottom,
+              Second on the tab, not last ([413]). It shipped at the bottom,
               below five per-domain cadences, the off-site and self-backup
               schedules and two detail cards, and a forum user could not find it
-              at all after being told it was "in Settings" — with seven tabs, the
+              at all after being told it was "in Settings"; with seven tabs, the
               bottom of the third is not somewhere anybody lands by accident.
               Someone who wants "back the whole server up on one schedule" now
               meets that before the parts it is made of.
 
-              A parallel session made this same move on feature/accent-ink-
-              whatsnew (f23cc8e1). It is repeated here because this branch has
-              been beside main since 2026-07-18, and its version of this file
-              wins for this region on merge: leaving it would have silently
+              A parallel session made this same move (f23cc8e1). It is
+              repeated here rather than merged because this file's version
+              wins for this region: leaving it out would have silently
               undone their fix.
 
-                `hueIndex={nextHue()}` — the counter runs in RENDER order, so
+                `hueIndex={nextHue()}`; the counter runs in render order, so
               moving the call shifts every rainbow position after it by one and
               needs no renumbering anywhere. That is what the counter is for. */}
           <EverythingSection settings={settings} update={scheduleUpdate} t={t} hueIndex={nextHue()} />
@@ -2852,23 +2847,23 @@ export function SettingsPage() {
               "off" was only reachable by typing the word), no on/off control
               of its own. Rebuilt to match ContainersSection/VMsSection/
               FlashSection/FilesSection's own shape: the same status row +
-              CadenceBuilder-in-a-well, one IIFE-captured `hueIdx` feeding
+              CadenceBuilder-in-a-well, one iife-captured `hueIdx` feeding
               both this Card's heading notch and the CadenceBuilder's
-              TimePicker inside it — identical to the schedulesChecks Card
-              just below (see that IIFE's own comment for why a bare inline
+              TimePicker inside it; identical to the schedulesChecks Card
+              just below (see that iife's own comment for why a bare inline
               `hueIndex={nextHue()}` can't feed two hue-aware children from
               one call).
                 The toggle's label is NOT hidden behind this Card's own title
-              — RestoreChecksSection's `verify.auto` ToggleRow right below
+             ; RestoreChecksSection's `verify.auto` ToggleRow right below
               this one used to hide its own caption the same way (reasoning:
               "the Card's title already says the same thing"), and jdp
               explicitly reversed that exact pattern there ("Bei erstem
-              Toggle bitte 'Automatische Restore-Prüfungen' hinschreiben") —
+              Toggle bitte 'Automatische Restore-Prüfungen' hinschreiben");
               so this toggle reuses that Card's own corrected shape instead:
-              the SAME string as both the Card's `title` and the ToggleRow's
+              the same string as both the Card's `title` and the ToggleRow's
               visible `label`, no `hideLabel`. No `hueIndex` on the toggle
               itself either, matching that same corrected ToggleRow (and
-              FlashZipExportCard's lone ToggleRow) — a single stand-alone
+              FlashZipExportCard's lone ToggleRow); a single stand-alone
               switch with no sibling toggles of its own kind in this Card is
               the one case ToggleRow's own hueIndex doc carves out as having
               no list to walk. See toggleConfigSchedule's own comment above
@@ -2903,8 +2898,8 @@ export function SettingsPage() {
 
           {/* Restore-check drills (RestoreChecksSection) moved to the Integrity
               tab (jdp, live-review: "Gehört die 'Automatische Restore-
-              Prüfungen' Card nicht in den Integritäts-Tab?") — it configures
-              WHAT gets verified and how often, which fits that tab's existing
+              Prüfungen' Card nicht in den Integritäts-Tab?"); it configures
+              What gets verified and how often, which fits that tab's existing
               verify/unlock/prune/drill actions better than this tab's own
               "when do backup jobs run" focus. See the `tab === "integrity"`
               block below for its new call site; removing it here also frees
@@ -2938,9 +2933,9 @@ export function SettingsPage() {
                 "Die Speicher-Buttons sollen in allen Tabs weg. Überall soll
                 es automatisch speichern."): this was the one Card left on
                 the Schedules tab still batched into its own manual SaveBar
-                after Task 5 converted every other field here — that task's
-                own comment named it as a deliberate exception at the time;
-                this pass closes it out with the exact same shapes Task 5
+                after the auto-save conversion covered every other field here; that
+                conversion's own comment named it as a deliberate exception at the time;
+                this pass closes it out with the exact same shapes the conversion
                 already established one Card up (autoSaveScheduleField for
                 the discrete toggle, scheduleField's debounce for the
                 continuously-typed number). */}
@@ -2955,7 +2950,7 @@ export function SettingsPage() {
             />
             {settings.restartHealthWait && (
               <label className="flex flex-col gap-1 sm:w-1/2">
-                {/* Live-review round 3 sweep: the range explainer used to sit
+                {/* Live-review sweep: the range explainer used to sit
                     as a permanent caption below the field. Moved beside the
                     field's own label as an InfoBubble, the exact pattern the
                     retention grid further down already uses for a field-
@@ -2982,44 +2977,44 @@ export function SettingsPage() {
           </Card>
 
           {/* Restore-check schedule (schedulesChecks) moved to the Integrity
-              tab alongside RestoreChecksSection above (jdp, live-review —
-              same "belongs with WHAT/how-often gets verified, not WHEN
+              tab alongside RestoreChecksSection above (jdp, live-review;
+              same "belongs with what/how-often gets verified, not when
               backup jobs run" reasoning). See the `tab === "integrity"`
               block below for its new call site. */}
 
           {/* Backup Everything used to be here, as the last card on the tab.
-              It now renders SECOND, right after Schedule options — see its call
+              It now renders second, right after Schedule options; see its call
               site up there for why ([413]). */}
 
-          {/* No SaveBar: every field in this tab auto-saves — see scheduleField
+          {/* No SaveBar: every field in this tab auto-saves; see scheduleField
               / autoSaveScheduleField. main's buildSchedulePatch() is gone. */}
         </>
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* GENERAL — Domains                                                   */}
+      {/* general; Domains                                                   */}
       {/* ------------------------------------------------------------------ */}
       {tab === "general" && (
       <Card title={t("settings.domains")} hint={t("settings.domainsHint")} hueIndex={nextHue()}>
-        {/* Live-review round 3, point 4: all 7 rows here used to show a
-            permanent visible caption under the label (rule 8 violation — the
+        {/* Live-review cleanup: all 7 rows here used to show a
+            permanent visible caption under the label (rule 8 violation; the
             first 5 were even raw hardcoded English strings, never localized
             at all). Every row now carries its explanation via ToggleRow's
-            `hint` prop (an InfoBubble beside the label) instead — receiver/
+            `hint` prop (an InfoBubble beside the label) instead; receiver/
             fleet already had a real i18n key for their caption and just
             needed the prop swapped; containers/vms/flash/files/config
-            needed a NEW *Hint key added (and translated into all 26
+            needed a new *Hint key added (and translated into all 26
             locales) since their old text was never a translation key.
 
             #142 (jdp, live review): "Bei Domänen der Speichern-Button
             entfernen, es soll automatisch speichern und den Tab live
-            einblenden/ausblenden" — no more batched SaveBar. Each row now
+            einblenden/ausblenden"; no more batched SaveBar. Each row now
             calls toggleDomainEnabled directly: optimistic flip, persist via
             the shared save() (which already broadcasts
             "bv:settings-changed" so Layout/Sidebar re-fetch and the domain's
             nav tab appears/disappears live, no reload), and on a rejected
-            save — e.g. enabling VMs with no working SSH connection to the
-            libvirt host — revert to the pre-click state and shake. `disabled`
+            save; e.g. enabling VMs with no working SSH connection to the
+            libvirt host; revert to the pre-click state and shake. `disabled`
             covers this row's own request still being in flight
             (domainToggleBusy), so a user can't fire a second click at the
             same toggle before the first one resolves. */}
@@ -3093,7 +3088,7 @@ export function SettingsPage() {
           pulseNonce={fieldPulse.fleetEnabled}
           hueIndex={6}
         />
-        {/* Pull (#227). Last of the three and the only one that WRITES: the two
+        {/* Pull (#227). Last of the three and the only one that writes: the two
             above watch, this one fetches another instance's backups into this
             box's own repository. Its hint says so rather than leaving it to be
             discovered. */}
@@ -3111,22 +3106,22 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* STORAGE — Named repositories (#204)                                */}
+      {/* storage; Named repositories (#204)                                */}
       {/* ------------------------------------------------------------------ */}
-      {/* Above the domain paths on purpose: these are the places an INDIVIDUAL
+      {/* Above the domain paths on purpose: these are the places an individual
           container, VM or folder set can be pointed at instead of the domain
           path below, so the more specific answer is read first. */}
       {tab === "storage" && <ReposCard hueIndex={nextHue()} />}
 
       {/* ------------------------------------------------------------------ */}
-      {/* STORAGE — Backup paths                                             */}
+      {/* storage; Backup paths                                             */}
       {/* ------------------------------------------------------------------ */}
       {tab === "storage" && (
       <Card title={t("settings.paths")} hint={t("settings.pathsHint").replace("{root}", hostMountRoot)} hueIndex={nextHue()}>
         {/* Full-page Speichern-Button sweep (jdp, live review, emphatic:
             "Die Speicher-Buttons sollen in allen Tabs weg. Überall soll es
             automatisch speichern."): all six fields below used to batch into
-            one bottom SaveBar. Each now debounce-auto-saves itself instead —
+            one bottom SaveBar. Each now debounce-auto-saves itself instead;
             the exact same `debouncedSave`-keyed-by-field-name shape the
             Schedules tab's own `scheduleField` already established for
             continuously-typed values (a path is typed/browsed the same way a
@@ -3134,7 +3129,7 @@ export function SettingsPage() {
             single independent fields rather than a whole cadence group.
               `hueIndex={0..4}` below (GlimStone standing colour-engine rule,
             closing the gap OffsiteWizard's own hueIndex doc comment already
-            named): these five PathModeSwitch rows are one related GROUP (own
+            named): these five PathModeSwitch rows are one related group (own
             local 0-based index per group, same rule as the Domains Card's
             seven ToggleRows), separate from this Card's own heading
             `nextHue()` call above. */}
@@ -3234,20 +3229,20 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* STORAGE — Local snapshot retention (#51 — moved here from Off-site,  */}
+      {/* storage; Local snapshot retention (#51; moved here from Off-site,  */}
       {/* so it sits with the local backup paths it prunes).                   */}
       {/* ------------------------------------------------------------------ */}
       {tab === "storage" && (
       <Card
         title={t("settings.retentionTitle")}
-        // Live-review round 3, point 4 sweep: this Card's own intro used to
+        // Live-review sweep: this Card's own intro used to
         // sit as a permanent visible <p> below the title instead of going
-        // through the Card `hint` mechanism every OTHER Card-level intro in
-        // this file already uses — a plain miss, not a documented exception
+        // through the Card `hint` mechanism every other Card-level intro in
+        // this file already uses; a plain miss, not a documented exception
         // (compare settings.offsiteHint further down, which stayed visible
         // on purpose with its own comment explaining why). retentionHint
-        // (what this Card does) and retentionCombineInfo (the OR-combination
-        // rule — a "why wasn't this pruned" answer someone re-checks, same
+        // (what this Card does) and retentionCombineInfo (the or-combination
+        // rule; a "why wasn't this pruned" answer someone re-checks, same
         // category as notify.healthchecksLifecycle's carve-out) both fold
         // into the one title-level bubble rather than leaving the second as
         // an orphaned bare icon once the wrapping <p> it lived in is gone.
@@ -3273,7 +3268,7 @@ export function SettingsPage() {
                   const n = Math.max(0, parseInt(e.target.value, 10) || 0);
                   setSettings((prev) => (prev ? { ...prev, [key]: n } : prev));
                   // Full-page Speichern-Button sweep: this whole grid used to
-                  // batch into one bottom SaveBar — each cell now debounce-
+                  // batch into one bottom SaveBar; each cell now debounce-
                   // auto-saves itself, keyed by its own field name so typing
                   // in one cell never resets another cell's pending timer.
                   debouncedSave(key, () => void save({ [key]: n } as Partial<Settings>, setRetSaveState, setRetSaveError));
@@ -3287,17 +3282,17 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* STORAGE — Image cleanup and Unraid's own update-status               */}
+      {/* storage; Image cleanup and Unraid's own update-status               */}
       {/* reconciliation (GlimStone follow-up round, merge A): both feed the   */}
-      {/* SAME post-backup container-update pipeline (#56, #116). Every field  */}
-      {/* here auto-saves instead of batching into a Speichern button —        */}
+      {/* same post-backup container-update pipeline (#56, #116). Every field  */}
+      {/* here auto-saves instead of batching into a Speichern button;        */}
       {/* mirrors the Domains card's own auto-save mechanism (#142): both      */}
       {/* toggles use the exact optimistic-flip + persist + revert-on-failure  */}
       {/* shape toggleDomainEnabled established (see autoSaveField below).     */}
-      {/*   Private container registries (#106) USED to be a third             */}
-      {/* sub-section merged into this same card. SPLIT BACK OUT into its own  */}
+      {/*   Private container registries (#106) used to be a third             */}
+      {/* sub-section merged into this same card. Split back out into its own  */}
       {/* standalone Card below (jdp, live-review: "Registries: wir machen     */}
-      {/* eine eigene Card daraus") — a registry credential is consulted BY    */}
+      {/* eine eigene Card daraus"); a registry credential is consulted by    */}
       {/* the update-pull, but isn't itself image cleanup or Unraid's own      */}
       {/* status reconciliation, so the merge was really "three things on the  */}
       {/* same Storage tab," not three parts of one coherent decision; this    */}
@@ -3330,15 +3325,15 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* STORAGE — private container registries (#106), its own standalone    */}
-      {/* Card again — see the Image Cleanup card's own comment above for why  */}
+      {/* storage; private container registries (#106), its own standalone    */}
+      {/* Card again; see the Image Cleanup card's own comment above for why  */}
       {/* it split out. `hint` now carries what used to be a separate          */}
       {/* <h3>+InfoBubble pair right inside the merged card                    */}
       {/* (settings.registriesTitle/-Hint, unchanged keys/values, just         */}
-      {/* promoted to the Card's own title/hint slot) — the exact same         */}
-      {/* content, through the ONE heading+bubble mechanism every other Card   */}
+      {/* promoted to the Card's own title/hint slot); the exact same         */}
+      {/* content, through the one heading+bubble mechanism every other Card   */}
       {/* on this page already uses instead of a second, bespoke one. No       */}
-      {/* `border-t` divider carried over either — that only ever separated    */}
+      {/* `border-t` divider carried over either; that only ever separated    */}
       {/* this sub-section from its two former siblings; a standalone Card     */}
       {/* already has its own surface/edge doing that job, same as every       */}
       {/* other single-purpose Card in this file.                              */}
@@ -3353,7 +3348,7 @@ export function SettingsPage() {
           )}
           {settings.registryAuths.map((entry, i) => {
             // Fallback only guards a transient/impossible index mismatch (see
-            // registryRowIds' declaration) — every mutation site below keeps
+            // registryRowIds' declaration); every mutation site below keeps
             // the two arrays in lockstep, so this should never actually miss.
             const rowId = registryRowIds[i] ?? `registry-row-fallback-${i}`;
             return (
@@ -3431,50 +3426,50 @@ export function SettingsPage() {
               </label>
               {/* Square icon-only remove button with a trash-can glyph (jdp,
                   live-review: "Wenn man eine Registry hinzufügt, soll der
-                  Entfernen-Button quadratisch sein mit Mülleimer-Icon") — was
+                  Entfernen-Button quadratisch sein mit Mülleimer-Icon"); was
                   a bare text `<button>` ("Entfernen"/"Remove"). IconTipButton
                   (components/IconTipButton.tsx) for the same real
                   `.glim-bubble` hover tooltip every other icon-only control on
                   this page already gets, not a native `title=`;
                   `settings.registryRemove`'s existing value moves from
                   visible button text to this tooltip's own content unchanged
-                  — same "text moves onto the tip, key stays" move the
+                 ; same "text moves onto the tip, key stays" move the
                   Registry-add button below already made.
-                    COLOUR-ENGINE ROUND (jdp's standing rule, five escalations
+                    Colour-engine round (jdp's standing rule, five escalations
                   deep): this badge and the Registry-add one below were still
                   flat `bg-carbon-surface3` grey with no tie to this Card's own
                   hue at all, the same gap that got the delete badge's grey
-                  special-casing removed a round earlier. Both are real
+                  special-casing removed earlier. Both are real
                   `Badge`s now (`as="button" tone="active" shape="square"
                   size="icon"`), which for an icon-only badge resolves to the
-                  full solid `bg-accent`/`text-accentContrast` fill, NOT the
+                  full solid `bg-accent`/`text-accentContrast` fill, not the
                   pale wash jdp rejected as "halb abgedunkelt" (see Badge.tsx's
-                  own `toneClasses` ROUND 2 comment).
+                  own `toneClasses` review comment).
                     No `hueIndex` prop, and none needed: this Card is
                   `<Card ... hueIndex={nextHue()}>` with no local variable to
                   hand down, but Card's own wrapper carries `.glim-hue`, and
                   `[data-rainbow] .glim-hue` (index.css) redefines
                   `--color-accent` for its whole subtree, so `bg-accent` here
-                  already computes to THIS Card's rainbow position by ordinary
+                  already computes to this Card's rainbow position by ordinary
                   custom-property inheritance. Same mechanism Containers.tsx's
-                  own folder-add badge documents; wrapping this Card in an IIFE
+                  own folder-add badge documents; wrapping this Card in an iife
                   purely to capture `nextHue()` would add a second source of
                   truth for a colour that already resolves correctly. Verified
                   live with getComputedStyle against the Card's own
                   `--item-hue`.
-                    `size="icon"` is the app's ONE square-icon-badge size and
+                    `size="icon"` is the app's one square-icon-badge size and
                   is the same 32px this call site already had, so the footprint
                   is unchanged; `shrink-0` survives as `className` because it
                   is layout, not appearance. Not a fresh guess either: this
                   row's own three text fields
-                  are `text-sm px-3 py-1.5` — the SAME classes already
+                  are `text-sm px-3 py-1.5`; the same classes already
                   measured live to render at 32px for those other controls
                   (see Selector.tsx's own `iconOnly` doc for that
-                  measurement's full writeup) — so 32px is this row's real
+                  measurement's full writeup); so 32px is this row's real
                   control height too, confirmed, not assumed from a token
                   used elsewhere. IconTrash (components/Sidebar.tsx) drawn
-                  fresh for this — no trash glyph existed in this codebase
-                  yet — filled/`currentColor`-only, no `stroke`, matching
+                  fresh for this; no trash glyph existed in this codebase
+                  yet; filled/`currentColor`-only, no `stroke`, matching
                   every other icon in that file's icon-only-badge set. */}
               <Button
                 label={t("settings.registryRemove")}
@@ -3482,8 +3477,8 @@ export function SettingsPage() {
                 glyph={<IconTrash />}
                 tone="accent"
                 onClick={() => {
-                  // Removing a row is a discrete action, not a text edit — it
-                  // saves IMMEDIATELY (no debounce), and cancels any pending
+                  // Removing a row is a discrete action, not a text edit; it
+                  // saves immediately (no debounce), and cancels any pending
                   // debounced save from an edit elsewhere in this section so
                   // a stale pre-removal snapshot can't land after this one.
                   const nextAuths = settings.registryAuths.filter((_, j) => j !== i);
@@ -3509,13 +3504,13 @@ export function SettingsPage() {
           })}
           {/* Icon-only + right-aligned (GlimStone follow-up round, live-review:
               "Registry hinzufügen button soll bündig nach rechts... einen
-              Glyph statt Text bekommen, mit Hover-Infobubble") — `flex
+              Glyph statt Text bekommen, mit Hover-Infobubble"); `flex
               justify-end` is this file's own established idiom for a single
               trailing action in an otherwise block-level row (see e.g.
               Dashboard.tsx's/VMs.tsx's identical `<div className="flex
               justify-end">` wrapper for a lone action). The row's own text
               label moves onto the button's `IconTipButton` tip instead of
-              disappearing — an icon-only trigger has no other way to say
+              disappearing; an icon-only trigger has no other way to say
               what it does. Same 32px square-icon-badge footprint as
               FolderBrowser's own "Durchsuchen" badge (the one real field/
               control height already established on this page), expressed as
@@ -3542,10 +3537,10 @@ export function SettingsPage() {
                   };
                   return { ...prev, registryAuths: [...prev.registryAuths, blank] };
                 });
-                // A brand-new row always starts with its OWN fresh id — never
+                // A brand-new row always starts with its own fresh id; never
                 // reusing one, so it can't inherit a stale "revealed" flag left
                 // behind by a since-removed row that used to sit at this index.
-                // Not saved yet — a blank row has nothing worth persisting
+                // Not saved yet; a blank row has nothing worth persisting
                 // until a field in it is actually filled in (debouncedSave
                 // above then fires, and its own "kept" filter would drop it
                 // again anyway if it's abandoned blank).
@@ -3559,14 +3554,14 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* STORAGE — restic cache size limit. The persistent cache under        */}
+      {/* storage; restic cache size limit. The persistent cache under        */}
       {/* /config (RESTIC_CACHE_DIR) survives restarts and would otherwise     */}
-      {/* grow unbounded; LRU per-repo caches are evicted after scheduled runs.*/}
+      {/* grow unbounded; lru per-repo caches are evicted after scheduled runs.*/}
       {/* ------------------------------------------------------------------ */}
       {/* `advanced &&` inline (not the <Advanced> wrapper component): the
-          wrapper takes children as an ALREADY-BUILT prop, so this Card's own
+          wrapper takes children as an already-built prop, so this Card's own
           hueIndex={nextHue()} would fire every render regardless of whether
-          Advanced end up showing it — caught live (Playwright against the
+          Advanced end up showing it; caught live (Playwright against the
           real container) as a hue slot silently "spent" on a Card that never
           painted, shifting every later Storage-tab heading by one position
           while Advanced was off. Plain `&&` short-circuits properly, exactly
@@ -3596,11 +3591,11 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* STORAGE — How much CPU a backup may take ([558], issue #189)        */}
+      {/* storage; How much CPU a backup may take ([558], issue #189)        */}
       {/* ------------------------------------------------------------------ */}
       {/* Sits beside the cache card because both answer the same question:
           how much of this machine BombVault is allowed to use. The cap is
-          handed to each restic child as GOMAXPROCS; restic is a Go program and
+          handed to each restic child as gomaxprocs; restic is a Go program and
           without it takes every core there is. Reported from a 12-thread box
           that sat at 99% on every core and 100 °C for a whole backup, with the
           reporter's own summary: "Makes backups slow."
@@ -3630,62 +3625,62 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* STORAGE — Plain-export encryption (age) and the restic repositories'  */}
+      {/* storage; Plain-export encryption (age) and the restic repositories'  */}
       {/* own encryption, merged into one card (GlimStone follow-up round,      */}
       {/* merge B). Every field auto-saves instead of batching into a           */}
-      {/* Speichern button (#142's own mechanism) — the two toggles use         */}
+      {/* Speichern button (#142's own mechanism); the two toggles use         */}
       {/* autoSaveField (optimistic + revert-on-failure); the recipients field  */}
       {/* debounces instead, same reasoning as the registries fields in the     */}
       {/* Image Cleanup card above.                                            */}
-      {/*   Flash-ZIP-Export (#28) used to be a third sub-section in THIS same  */}
-      {/* card. Moved out in TWO steps, live-review (jdp): first "trenn bitte   */}
+      {/*   Flash-ZIP-Export (#28) used to be a third sub-section in this same  */}
+      {/* card. Moved out in two steps, live-review (jdp): first "trenn bitte   */}
       {/* flash zip export und den rest wieder in zwei separate cards", then    */}
-      {/* — superseding that — "soll die flash zip export toggle nicht einfach  */}
+      {/*; superseding that; "soll die flash zip export toggle nicht einfach  */}
       {/* in den flash tab? macht doch mehr sinn." It now lives on the Flash    */}
       {/* page itself (pages/Flash.tsx's own FlashZipExportCard, exported from  */}
       {/* this file the same way AccentCard/ThemeCard/RcloneCard/CloudCard      */}
-      {/* already are for cross-page reuse — see that component's own header    */}
+      {/* already are for cross-page reuse; see that component's own header    */}
       {/* comment for the full move and why it's self-contained rather than     */}
       {/* threaded through SettingsPage's own save()/autoSaveField()). This     */}
       {/* card's own title/hint dropped every flash-zip-export mention          */}
-      {/* accordingly — it now only covers what's actually left: plain-export   */}
+      {/* accordingly; it now only covers what's actually left: plain-export   */}
       {/* encryption and repository encryption, both real "encrypt SOMETHING"   */}
-      {/* settings, so `settings.exportsEncryptionTitle`/`Hint` keep their OLD   */}
-      {/* key names (an internal identifier, not user-facing) with NEW values.  */}
+      {/* settings, so `settings.exportsEncryptionTitle`/`Hint` keep their old   */}
+      {/* key names (an internal identifier, not user-facing) with new values.  */}
       {/* ------------------------------------------------------------------ */}
       {tab === "storage" && (
       <Card title={t("settings.exportsEncryptionTitle")} hint={t("settings.exportsEncryptionHint")} hueIndex={nextHue()}>
         {/* Plain-export encryption (age) -------------------------------------- */}
         {/* No `border-t` divider against Repository encryption below it (jdp,
-            live review: "die Linien dazwischen weg") — the Card's own `gap-4`
+            live review: "die Linien dazwischen weg"); the Card's own `gap-4`
             between direct children already separates the two sub-sections,
             same spacing-only convention as the Colors Card's own accent/
             rainbow halves and its own rainbow ToggleRow trio
             (settings.rainbow/-Reactive/-Rotate) elsewhere in this file, none
             of which ever had a rule line between their parts either. (A
-            THIRD sub-section, Flash-ZIP-Export, used to sit above this one —
+            Third sub-section, Flash-ZIP-Export, used to sit above this one;
             see this Card's own header comment for where it moved.) */}
         <div className="flex flex-col gap-3">
           {/* No more standalone <h3> sub-heading (jdp, live-review: "Export
               und Verschlüsselung: Texte normal formatieren, es sind keine
-              Überschriften mehr") — this sub-section is now JUST a single
+              Überschriften mehr"); this sub-section is now just a single
               ToggleRow with an optional conditional block beneath it, not a
               heading introducing its own block of content, so it shouldn't
-              LOOK like one either. `hideLabel` is gone below: the row's own
+              Look like one either. `hideLabel` is gone below: the row's own
               native `label` (ToggleRow's plain `text-sm text-carbon-text`
               span, the same normal weight every other row's own caption in
               this app already uses, not the bold/uppercase/tracking-widest
               heading treatment the removed `<h3>` had) is now this
               sub-section's only visible caption. `export.encrypt.title` (the
               old heading's own text, "Encrypt plain exports"/"Plain-Exporte
-              verschlüsseln") is retired — the ToggleRow's own
+              verschlüsseln") is retired; the ToggleRow's own
               `export.encrypt.enable` label already names the same action
               ("Encrypt exports with age"/"Exporte mit age verschlüsseln")
               and is the one text a screen reader announces for this switch
               either way, so keeping both would be two competing captions for
               one control. The old heading's own three-sentence InfoBubble
               tip (what age is, what enabling it does) moves onto the
-              ToggleRow's own `hint` unchanged — the same content, now
+              ToggleRow's own `hint` unchanged; the same content, now
               anchored to the control it actually describes instead of a
               heading standing in front of it. */}
           <ToggleRow
@@ -3700,12 +3695,12 @@ export function SettingsPage() {
           {settings.exportEncryptEnabled && (
             <label className="flex flex-col gap-1">
               <span className="text-xs text-carbon-textSub">{t("export.encrypt.recipients")}</span>
-              {/* Live-review round 3 sweep: export.encrypt.recipientsHint below
+              {/* Live-review sweep: export.encrypt.recipientsHint below
                   (the "one per line, age1.../SSH key format" caption on the
                   textarea) is left as permanent text on purpose, the same
                   "genuine toss-up" carve-out settings.offsiteHint documents
-                  further up this file — it names the exact accepted KEY
-                  SYNTAX for a multi-line field someone fills in by pasting one
+                  further up this file; it names the exact accepted key
+                  Syntax for a multi-line field someone fills in by pasting one
                   key per line, which reads as reference to consult while
                   composing the list rather than a one-time "what does this
                   toggle do" explainer (that half is already covered by
@@ -3739,52 +3734,52 @@ export function SettingsPage() {
             Text. Nur die Überschrift als Text, alles andere in die
             Infobubble." This sub-heading was the one holdout in this card
             still pairing a bare <h3> with a permanent paragraph underneath
-            it (settings.encryptionWarning, now settings.encryptionHint) —
+            it (settings.encryptionWarning, now settings.encryptionHint);
             its two siblings above already fold that same kind of one-time
             "here's what this does" text into the heading's own InfoBubble
             (flash.zipExport.hint, export.encrypt.hint+ageInfo). Renamed
             .../Warning -> .../Hint on the move: it's no longer a
-            statusWarnBg banner, so it no longer earns the "Warning" name —
+            statusWarnBg banner, so it no longer earns the "Warning" name;
             see the still-conditional flash.zipExport.plaintextWarn a few
             lines up for the genuine, actively-risky warning case (only
             rendered while the risk applies) this text never was: it's an
             unconditional, one-time explainer of how the toggle behaves, the
             exact content InfoBubble exists for. No `border-t` here either,
             same reasoning as the Plain-export block above.
-              FOLLOW-UP (jdp, live-review, fresh screenshot proved a prior
-            round's claim wrong): that earlier pass only bubbled the STATIC
-            explainer above — it left the master ToggleRow's own DYNAMIC
+              Follow-up (jdp, live-review, fresh screenshot proved a prior
+            round's claim wrong): that earlier pass only bubbled the static
+            explainer above; it left the master ToggleRow's own dynamic
             status label ("Aktiviert (Passwort aus APP_KEY)" /
             "Deaktiviert (kein Passwort)") sitting directly under this same
             heading in plain view, which is exactly the line the fresh
             screenshot still showed. `hideLabel` below hides it now, same as
             its two siblings above; the state it used to carry moves into the
-            bubble's own tip — computed per render off the live
+            bubble's own tip; computed per render off the live
             `settings.encryptionEnabled` value (the same values
             settings.encryptionOn/Off already translate in every locale, just
-            read here instead of handed to the ToggleRow as visible text) —
+            read here instead of handed to the ToggleRow as visible text);
             rather than a static string, so the bubble still answers "is this
             actually on right now" concretely instead of only explaining the
             feature in the abstract. The switch's own filled/unfilled track
             still shows on/off at a glance without hovering anything. */}
         <div className="flex flex-col gap-3">
-          {/* No more standalone <h3> sub-heading here either — same fix, same
+          {/* No more standalone <h3> sub-heading here either; same fix, same
               reasoning, as the Plain-export block above (jdp, live-review:
               "Export und Verschlüsselung: Texte normal formatieren, es sind
               keine Überschriften mehr"). `hideLabel` is gone: the ToggleRow's
-              own DYNAMIC on/off label ("Enabled (password derived from
+              own dynamic on/off label ("Enabled (password derived from
               APP_KEY)"/"Disabled (no password)") is now this sub-section's
               only visible caption, at ToggleRow's normal `text-sm
               text-carbon-text` weight, not the retired heading's bold/
               uppercase/tracking-widest treatment. `settings.encryption` (the
               old heading's own generic "Encryption"/"Verschlüsselung" text)
-              is retired — the row's own live on/off label already says more
+              is retired; the row's own live on/off label already says more
               than that static word did. The bubble's own tip drops the
-              on/off-state PREFIX it used to carry (`settings.encryptionOn`/
+              on/off-state prefix it used to carry (`settings.encryptionOn`/
               `Off` concatenated in front of `settings.encryptionHint`): that
               existed only because the label sitting above it was hidden and
-              had nowhere else to show the current state — now that the
-              state IS the visible label, repeating it inside the bubble too
+              had nowhere else to show the current state; now that the
+              state is the visible label, repeating it inside the bubble too
               would just be the same sentence twice. */}
           <ToggleRow
             label={
@@ -3809,24 +3804,24 @@ export function SettingsPage() {
           {settings.encryptionEnabled && (
             <div className="flex flex-col gap-2">
               {/* recovery.why is bubbled, not kept as permanent text, even though
-                  it explains a real data-loss risk: the RECURRING "you still
+                  it explains a real data-loss risk: the recurring "you still
                   haven't saved this" job is already owned by Dashboard.tsx's own
                   separate, more prominent recovery.nagTitle/nagBody banner
-                  (dismissed only by recovery.stored) — this paragraph is purely
+                  (dismissed only by recovery.stored); this paragraph is purely
                   the one-time "here's why, if you're curious" context for the
                   button below it, not the app's only safeguard against
                   forgetting. */}
               {/* No more heading-styled <h4> here either (jdp, live-review:
-                  "Wiederherstellungs-Kit bitte auch normal formatieren") — same
+                  "Wiederherstellungs-Kit bitte auch normal formatieren"); same
                   fix, same reasoning, as the Plain-export/Encryption blocks
                   above: this sub-section is just a caption plus a single
                   icon-only download button beneath it, not a heading
-                  introducing its own block of content, so it shouldn't LOOK
+                  introducing its own block of content, so it shouldn't look
                   like a section heading either. Swapped the semantic `<h4>`
                   for a plain `<span>` carrying ToggleRow's own exact label
                   classes (`flex items-center gap-1.5 text-sm text-carbon-text`,
                   see ToggleRow's own label span above) instead of the retired
-                  bold/uppercase/tracking-widest heading treatment — the ONE
+                  bold/uppercase/tracking-widest heading treatment; the one
                   normal-caption style this page already uses everywhere else,
                   reused verbatim rather than inventing a second one for this
                   call site. The InfoBubble stays put unchanged; there's no
@@ -3839,17 +3834,17 @@ export function SettingsPage() {
               {/* Icon-only + right-aligned (GlimStone follow-up round,
                   live-review: "...ebenso der Recovery Kit herunterladen
                   button. Beide sollen einen Glyph statt Text bekommen, mit
-                  Hover-Infobubble") — the visible "Recovery-Kit
+                  Hover-Infobubble"); the visible "Recovery-Kit
                   herunterladen" label moves onto the IconTipButton's own
                   tip, the only remaining visible text in this sub-section is
                   its heading, same "only heading + a bare bubbled/tooltipped
                   control" shape the encryption toggle right above it now
-                  has. `self-end` (not a `flex justify-end` wrapper — this
+                  has. `self-end` (not a `flex justify-end` wrapper; this
                   button is already a direct child of the section's own
                   `flex flex-col` above) flips this from the row's start edge
                   to its end edge, RTL-safe, same as every other logical
                   start/end pairing on this page. `size="icon"` is the app's
-                  ONE square-icon-badge size (32px), the same footprint
+                  One square-icon-badge size (32px), the same footprint
                   FolderBrowser's own Browse badge and the Registry-add badge
                   above use, expressed as Badge's own size stage rather than a
                   hand-written `h-8 w-8`. Converted from flat
@@ -3870,8 +3865,8 @@ export function SettingsPage() {
                 className={"self-end shrink-0"}
               />
               {kitError && (
-                // Backend-provided error text shown verbatim BY DESIGN (e.g. the
-                // fail-closed "set a login password" refusal when auth is off) —
+                // Backend-provided error text shown verbatim by design (e.g. the
+                // fail-closed "set a login password" refusal when auth is off);
                 // the API answers English and is not translated client-side.
                 <span className="text-xs text-statusFail wrap-break-word">✗ {kitError}</span>
               )}
@@ -3882,7 +3877,7 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* OFFSITE — Off-site copy (restic copy replication)                  */}
+      {/* offsite; Off-site copy (restic copy replication)                  */}
       {/* Default-mode feature (v4): off-site + ransomware protection is a      */}
       {/* first-class flow, not advanced-only. Deep-linked via /settings#offsite */}
       {/* selects this tab (id kept for back-compat).                          */}
@@ -3892,15 +3887,15 @@ export function SettingsPage() {
       {/* Live-review round ("Bei der ersten Card überlappen sich zwei
           Cardtitelbadges. Können wir für Container, VMs, Flash, Ordner
           jeweils eine eigene Card machen?"): this used to be a group-heading
-          `<h2>` badge (offsite.sectionTitle) immediately followed by ONE
-          shared Card whose body looped over all four domains — the group
+          `<h2>` badge (offsite.sectionTitle) immediately followed by one
+          shared Card whose body looped over all four domains; the group
           badge's own `-top-[11px]` notch and the Card's own `-top-[11px]`
           notch, only `gap-6` (24px) apart with the group heading rendering
-          at ZERO height (its only child is `position: absolute`, so it
-          contributes nothing to flow height — see Card's own comment on why
+          at zero height (its only child is `position: absolute`, so it
+          contributes nothing to flow height; see Card's own comment on why
           the badge straddles the card's top edge this way), landed the two
           22px-tall badges overlapping by several px. Splitting into four
-          per-domain Cards does NOT fix that geometry on its own — the FIRST
+          per-domain Cards does not fix that geometry on its own; the first
           new Card would sit exactly `gap-6` below the same zero-height group
           heading, reproducing the identical overlap (verified against the
           live math before shipping this, not just assumed). The actual fix
@@ -3908,7 +3903,7 @@ export function SettingsPage() {
           round for the identical shape (see that tab's own history: its
           "Backup-Zeitpläne" group heading was removed because "these Cards
           already carry their own clear headings, so the group label was
-          redundant") — dropping the group heading entirely, now that each
+          redundant"); dropping the group heading entirely, now that each
           of the four Cards below carries an unambiguous
           "OFFSITE-KOPIE <DOMAIN>" title of its own. offsite.sectionTitle
           had no other call site, so it's gone from i18n.ts (en/de) and all
@@ -3916,16 +3911,16 @@ export function SettingsPage() {
           settings.schedulesBackup got.
           `gap-6` on this wrapper: Card's own outer `<div>` no longer needs
           `relative` here (there is no sibling group-heading badge left to
-          coexist with), and the four per-domain Cards need the SAME
+          coexist with), and the four per-domain Cards need the same
           vertical rhythm every other multi-Card tab in this file already
           gets from the shared `<div className="flex flex-col gap-6">`
-          wrapping the whole tab body two levels up — this nested wrapper
+          wrapping the whole tab body two levels up; this nested wrapper
           exists only because `id="offsite"` (the deep-link anchor,
           `/settings#offsite`) needs a real element to attach to, not a
           Fragment. */}
       {/* Self-backup ("config") sits here with the rest since #176 (kramttocs:
           "Self-Backup should probably be more closely related to the other
-          Off-site sections"). It was never a lesser domain in the backend — it
+          Off-site sections"). It was never a lesser domain in the backend; it
           has had configOffsite, its own targets and its own primary-remote row
           all along. It was simply missing from this list, so it alone got a
           bare URL field on its own page instead of a wizard, a connection test
@@ -3938,32 +3933,32 @@ export function SettingsPage() {
         ["configOffsite", "nav.config", "config"],
       ] as const).map(([repoKey, label, domain]) => {
         const wizardOpen = offsiteWizard === domain;
-        // This domain's OWN rainbow position — the SAME value fed to this
-        // Card's own heading notch below AND to every clickable control
+        // This domain's own rainbow position; the same value fed to this
+        // Card's own heading notch below and to every clickable control
         // inside it (TestConnectionButton/ReplicateNowButton/the Einrichten
         // toggle/OffsiteTargetsSection's own "Ziel hinzufügen" button), per
         // jdp's explicit ask ("Die Buttons ... in die Farbengine
-        // aufnehmen") — not four independent nextHue() calls, which would
+        // aufnehmen"); not four independent nextHue() calls, which would
         // desync a domain's own action buttons from its own Card's colour.
         const hueIdx = nextHue();
         return (
         <Card key={repoKey} title={t("offsite.copyDomainTitle").replace("{domain}", t(label))} hueIndex={hueIdx}>
-          {/* GlimStone follow-up pass: the one genuine toss-up in this pass —
+          {/* GlimStone follow-up pass: the one genuine toss-up in this pass;
               left as permanent text rather than force a call. It names three
-              backend URL prefixes (rest:/s3:/b2:), but that's only PARTIALLY
+              backend URL prefixes (rest:/s3:/b2:), but that's only partially
               unique reference: the field's own placeholder already shows a
               rest: example, and offsite.repoLocalHint right below each field
               already documents the relative-path option. What it adds beyond
-              those is s3: and b2: as valid prefixes here specifically — real
+              those is s3: and b2: as valid prefixes here specifically; real
               but thinner value than RcloneCard's/CloudCard's own hints above
               (the sole documentation of their syntax anywhere). Whether that
               remainder is enough to justify a permanent paragraph, or should
               fold into the placeholder/caption instead, is a real design call,
-              not a mechanical one — flagged rather than decided here.
-              CARD-SPLIT FOLLOW-UP: this text applies identically to all four
+              not a mechanical one; flagged rather than decided here.
+              Card-split follow-up: this text applies identically to all four
               domains (it's about repo URL syntax, not domain-specific), so it
-              stays a ONE-TIME read rather than repeating verbatim in every
-              new Card — shown once, in the first (Containers) Card only. */}
+              stays a one-time read rather than repeating verbatim in every
+              new Card; shown once, in the first (Containers) Card only. */}
           {domain === "containers" && (
             <p className="text-xs text-carbon-textMuted -mt-1">{t("settings.offsiteHint")}</p>
           )}
@@ -3978,13 +3973,13 @@ export function SettingsPage() {
                   </>
                 )}
                 {/* GlimStone follow-up round (jdp, live review: "Können wir die
-                    Buttons in quadratische Badges mit Glyphen umwandeln?") — a
+                    Buttons in quadratische Badges mit Glyphen umwandeln?"); a
                     square icon-only badge, IconGear when the wizard is closed
                     (offering to open setup) swapping to IconClose when it's
                     open, the exact same open/closed condition that used to
                     swap the button's own visible text between
                     "Einrichten…"/"Schließen". Both strings survive unchanged
-                    as the `tip` tooltip's content instead — see
+                    as the `tip` tooltip's content instead; see
                     ReplicateNowButton's own comment above for the full
                     "coloured text -> neutral glyph, wash -> solid fill"
                     writeup this shares. */}
@@ -4020,7 +4015,7 @@ export function SettingsPage() {
                     const v = e.target.value;
                     setSettings((prev) => (prev ? { ...prev, [repoKey]: v } : prev));
                     // Full-page Speichern-Button sweep: this Card's own bottom
-                    // SaveBar is gone — each repo URL debounce-auto-saves
+                    // SaveBar is gone; each repo URL debounce-auto-saves
                     // itself, keyed by its own field name (the off-site
                     // *cadences* stay owned by the Schedules tab, unaffected).
                     debouncedSave(repoKey, () =>
@@ -4032,7 +4027,7 @@ export function SettingsPage() {
                   className="rounded-control bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text font-mono glim-field-focus text-start"
                 />
                 {/* A mounted share is a perfectly valid off-site target, but the
-                    placeholder only ever showed a REST URL — so nothing told the
+                    placeholder only ever showed a REST URL; so nothing told the
                     operator a bare relative path works here (issue #138). */}
                 <span className="text-xs text-carbon-textMuted">
                   {withLtrFragments(t("offsite.repoLocalHint"), REPO_LOCAL_HINT_LTR_FRAGMENTS)}
@@ -4040,8 +4035,8 @@ export function SettingsPage() {
               </>
             )}
             {/* Additional off-site targets (multi-off-site): extra copies of this
-                domain beyond the primary editor above, managed via the CRUD API.
-                hueIndex threaded through for the same "Ziel hinzufügen" button —
+                domain beyond the primary editor above, managed via the crud API.
+                hueIndex threaded through for the same "Ziel hinzufügen" button;
                 see that component's own comment. */}
             <OffsiteTargetsSection domain={domain} t={t} hueIndex={hueIdx} />
           </div>
@@ -4052,14 +4047,14 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* OFFSITE — Retention (off-site repo only; local retention now lives   */}
+      {/* offsite; Retention (off-site repo only; local retention now lives   */}
       {/* in the Storage tab, #51).                                            */}
       {/* ------------------------------------------------------------------ */}
       {tab === "offsite" && (
       <Card
         title={t("settings.retentionOffsiteTitle")}
         // Same fix as the local-retention Card above, folding all three
-        // sentences (what this Card does, the OR-combination rule, and the
+        // sentences (what this Card does, the or-combination rule, and the
         // immutable-destination override) into the one title-level bubble.
         hint={`${t("settings.retentionOffsiteHint")} ${t("settings.retentionCombineInfo")} ${t("settings.retentionImmutableNotPruned")}`}
         hueIndex={nextHue()}
@@ -4093,9 +4088,9 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* OFFSITE — Off-site bandwidth                                        */}
+      {/* offsite; Off-site bandwidth                                        */}
       {/* ------------------------------------------------------------------ */}
-      {/* `advanced &&` inline, not the <Advanced> wrapper — see the Storage
+      {/* `advanced &&` inline, not the <Advanced> wrapper; see the Storage
           tab's cacheTitle Card (above) for why: the wrapper's children are
           already built before it decides whether to render them, so a
           hueIndex={nextHue()} inside it fires every render regardless. */}
@@ -4125,29 +4120,29 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* SYSTEM — Monitoring (Prometheus)                                   */}
+      {/* system; Monitoring (Prometheus)                                   */}
       {/* ------------------------------------------------------------------ */}
-      {/* `advanced &&` inline, not the <Advanced> wrapper — same reason as
+      {/* `advanced &&` inline, not the <Advanced> wrapper; same reason as
           the Storage tab's cacheTitle Card above. */}
       {tab === "system" && advanced && (
       <Card title={t("settings.metrics")} hueIndex={nextHue()}>
         {/* GlimStone follow-up round (jdp, live review: "Prometheus-Metriken
-            unter /metrics ... in eine InfoBubble" — design-language.md rule 8,
+            unter /metrics ... in eine InfoBubble"; design-language.md rule 8,
             "explanations live in a bubble, not on the page"): this used to be
             a permanent `<p>` under the Card title, reasoned at the time as an
             "exact syntax to copy correctly" carve-out (the same one RcloneCard's/
             CloudCard's own hints still use). jdp's live review overruled that
-            specifically for this text — unlike rclone.pathHint's own
+            specifically for this text; unlike rclone.pathHint's own
             "rclone:<remote>:<bucket>/path" syntax (which someone fills into a
-            DIFFERENT tab's Backup Path field from memory, so it needs to stay
+            Different tab's Backup Path field from memory, so it needs to stay
             findable without already hovering an icon here), this hint is
             self-contained: /metrics and the Bearer-token syntax are both used
             right here, on the same toggle, so a hover bubble is not hiding
             anything a reader would need on a different screen. Moved onto the
             ToggleRow's own `hint` prop below (the same "(i) beside the label"
-            mechanism as every other bubbled explanation in this file) — no
+            mechanism as every other bubbled explanation in this file); no
             `description` here for the same "the Card's own hint already
-            covers it" reasoning this row's OLD comment gave, just now living
+            covers it" reasoning this row's old comment gave, just now living
             on the toggle's `hint` instead of a Card-level paragraph. */}
         <ToggleRow
           label={tLtr(t, "settings.metricsEnable")}
@@ -4159,7 +4154,7 @@ export function SettingsPage() {
           pulseNonce={fieldPulse.metricsEnabled}
         />
         {/* Write-only secret (the GET never echoes it): blank-on-save keeps the
-            stored token, so a stored one shows as the same "saved — leave blank
+            stored token, so a stored one shows as the same "saved; leave blank
             to keep" placeholder the cloud-credential secrets use. */}
         <label className="flex flex-col gap-1.5">
           <span className="text-xs text-carbon-textSub">{t("settings.metricsToken")}</span>
@@ -4172,8 +4167,8 @@ export function SettingsPage() {
               const v = e.target.value;
               setSettings((prev) => prev ? { ...prev, metricsToken: v } : prev);
               // Full-page Speichern-Button sweep: was this Card's own bottom
-              // SaveBar. Keeps the SAME "is-set flag honest locally" patch
-              // shape the old onSave sent — a non-blank token being saved
+              // SaveBar. Keeps the same "is-set flag honest locally" patch
+              // shape the old onSave sent; a non-blank token being saved
               // marks itself set; a blank save keeps whatever was stored.
               debouncedSave("metricsToken", () =>
                 void save(
@@ -4192,7 +4187,7 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* SYSTEM — Dashboard widget (embeddable activity log). Not behind      */}
+      {/* system; Dashboard widget (embeddable activity log). Not behind      */}
       {/* Advanced: it is an end-user feature, unlike the ops-y metrics card.  */}
       {/* ------------------------------------------------------------------ */}
       {tab === "system" && (
@@ -4201,7 +4196,7 @@ export function SettingsPage() {
           t={t}
           tokenSet={settings.widgetTokenSet}
           onTokenSet={(set) => {
-            // Keep BOTH the live state and the saved baseline in sync: the token
+            // Keep both the live state and the saved baseline in sync: the token
             // is managed by its own endpoints, so a later save (which merges onto
             // the baseline) must not carry a stale widgetTokenSet.
             setSettings((prev) => (prev ? { ...prev, widgetTokenSet: set } : prev));
@@ -4229,16 +4224,16 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* SYSTEM — VM Backup over SSH                                        */}
-      {/* Advanced, OR shown whenever VMs are enabled so the SSH setup you    */}
+      {/* system; VM Backup over SSH                                        */}
+      {/* Advanced, or shown whenever VMs are enabled so the SSH setup you    */}
       {/* need to make VM backups work is never hidden behind Advanced.       */}
       {/* ------------------------------------------------------------------ */}
       {tab === "system" && (advanced || settings.vmsEnabled) && <VMSSHCard t={t} hueIndex={nextHue()} />}
 
       {/* ------------------------------------------------------------------ */}
-      {/* OFFSITE — Off-site backends (rclone + cloud credentials). Same     */}
+      {/* offsite; Off-site backends (rclone + cloud credentials). Same     */}
       {/* "not advanced-only" rule as the off-site repo-path Card above: a   */}
-      {/* user can't actually USE an rclone:/s3:/rest: off-site URL without  */}
+      {/* user can't actually use an rclone:/s3:/rest: off-site URL without  */}
       {/* these credentials, so hiding them behind Advanced silently broke   */}
       {/* off-site setup for Simple-mode users (they'd only find these two   */}
       {/* cards by way of the Recovery page, which never gated them either). */}
@@ -4249,21 +4244,21 @@ export function SettingsPage() {
       {tab === "offsite" && <CloudCredSetsCard t={t} hueIndex={nextHue()} />}
 
       {/* ------------------------------------------------------------------ */}
-      {/* NOTIFICATIONS — NotifyCard now renders THREE Cards internally: its  */}
+      {/* notifications; NotifyCard now renders three Cards internally: its  */}
       {/* settings Card (always), its channels Card (advanced only), and its  */}
-      {/* Healthchecks Card (advanced only, card-split follow-up) — see       */}
+      {/* Healthchecks Card (advanced only, card-split follow-up); see       */}
       {/* NotifyCard's own header comment. `channelsHueIndex`/                */}
-      {/* `healthchecksHueIndex` MUST each be their own `nextHue()` call made  */}
-      {/* INSIDE `tab === "notifications" && advanced &&`, not an eager call   */}
+      {/* `healthchecksHueIndex` must each be their own `nextHue()` call made  */}
+      {/* inside `tab === "notifications" && advanced &&`, not an eager call   */}
       {/* at the unconditional site above: both Cards only paint while         */}
       {/* Advanced is on, and this file already has one documented            */}
-      {/* live-Playwright-caught bug from doing it the eager way — see the     */}
-      {/* SYSTEM tab's Spike Card comment ("fires every render regardless")    */}
+      {/* live-Playwright-caught bug from doing it the eager way; see the     */}
+      {/* system tab's Spike Card comment ("fires every render regardless")    */}
       {/* for the exact silent-hue-shift failure mode this avoids: a slot      */}
       {/* burned on a Card that never painted, shifting every later heading    */}
       {/* on this tab by one position while Advanced was off. Plain `&&`       */}
       {/* short-circuits correctly, so with Advanced off both values are       */}
-      {/* simply never computed and the props below evaluate to `undefined` —  */}
+      {/* simply never computed and the props below evaluate to `undefined`;  */}
       {/* NotifyCard never renders either Card in that case anyway, so the     */}
       {/* unused values never matter, and no hue slot is spent.                */}
       {/* ------------------------------------------------------------------ */}
@@ -4282,12 +4277,12 @@ export function SettingsPage() {
         );
       })()}
 
-      {/* NOTIFICATIONS — Weekly digest: one summary message per week through
+      {/* notifications; Weekly digest: one summary message per week through
           the channels configured above. Schedule input mirrors the drills/
           tamper cadence editors (CadenceBuilder's own <fieldset disabled>
-          handles the dimming — no opacity gate on the wrapping container).
-            IIFE for the same reason as the tamper-test schedule Card above
-          (Task 3): `hueIdx` is captured once and handed to BOTH this Card's
+          handles the dimming; no opacity gate on the wrapping container).
+            Iife for the same reason as the tamper-test schedule Card above
+          (for the same reason): `hueIdx` is captured once and handed to both this Card's
           own heading notch and the CadenceBuilder's TimePicker inside it,
           instead of two independent `nextHue()` calls landing on different
           colours for one visually-grouped Card. */}
@@ -4296,7 +4291,7 @@ export function SettingsPage() {
         return (
           <Card title={t("settings.digestTitle")} hint={t("settings.digestHint")} hueIndex={hueIdx}>
             {/* Full-page Speichern-Button sweep: this Card's own bottom
-                SaveBar is gone — the toggle auto-saves immediately (revert +
+                SaveBar is gone; the toggle auto-saves immediately (revert +
                 shake on failure, via the page-wide autoSaveToggle), the
                 cadence debounces (via debouncedSave), same split every other
                 toggle+cadence pairing on this page already uses.
@@ -4307,7 +4302,7 @@ export function SettingsPage() {
                 got built in this file after jdp reversed it twice before
                 (Rainbow master toggle, Restore-Prüfungen toggle). `hideLabel`
                 is gone from ToggleRow entirely now (see its own header
-                comment) — the row's own label is always visible. */}
+                comment); the row's own label is always visible. */}
             <ToggleRow
               label={t("settings.digestToggle")}
               checked={settings.digestEnabled}
@@ -4316,17 +4311,17 @@ export function SettingsPage() {
               shakeNonce={fieldShake.digestEnabled}
               pulseNonce={fieldPulse.digestEnabled}
             />
-            {/* Resolved-schedule badge — NEW this round, same reason as
+            {/* Resolved-schedule badge; new this round, same reason as
                 RestoreChecksSection's (see that call site's own comment):
                 this was the second of the three cadence editors that had no
                 badge above them and relied on CadenceBuilder's own inline
                 preview, now removed. `enabled` wired to `digestEnabled` for
-                the same reason — the on/off is a separate toggle here, not
+                the same reason; the on/off is a separate toggle here, not
                 the cadence string's own "off" mode. */}
             <ScheduleRow schedule={settings.digestSchedule} enabled={settings.digestEnabled} />
             {/* The editor goes with the toggle above, exactly as in
                 RestoreChecksSection (GlimStone 1.10.0): an editor greyed
-                because a switch ELSEWHERE is off offers an edit nobody can
+                because a switch elsewhere is off offers an edit nobody can
                 make. The badge above stays either way, so switching the
                 report off still shows what would have run. */}
             {settings.digestEnabled && (
@@ -4348,13 +4343,13 @@ export function SettingsPage() {
         );
       })()}
 
-      {/* NOTIFICATIONS — Overdue-backup watchdog: a fixed daily check (09:00)
-          that pushes ONE notification per overdue episode through the channels
+      {/* notifications; Overdue-backup watchdog: a fixed daily check (09:00)
+          that pushes one notification per overdue episode through the channels
           configured above; a new successful backup re-arms it. */}
       {tab === "notifications" && (
         <Card title={t("settings.watchdogTitle")} hint={t("settings.watchdogHint")} hueIndex={nextHue()}>
           {/* Full-page Speichern-Button sweep: was this Card's own bottom
-              SaveBar — a single toggle, so it now just auto-saves itself. */}
+              SaveBar; a single toggle, so it now just auto-saves itself. */}
           <ToggleRow
             label={t("settings.watchdogToggle")}
             checked={settings.watchdogEnabled}
@@ -4367,28 +4362,28 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* SYSTEM — Spike (host-integration check; KEEP — it is LIVE).         */}
+      {/* system; Spike (host-integration check; keep; it is live).         */}
       {/* ------------------------------------------------------------------ */}
       {/* `advanced &&` inline, not the <Advanced> wrapper component: the
-          wrapper takes `children` as an ALREADY-BUILT prop, so a
+          wrapper takes `children` as an already-built prop, so a
           hueIndex={nextHue()} inside it would fire every render regardless
-          of whether Advanced ends up showing it — caught live (Playwright
+          of whether Advanced ends up showing it; caught live (Playwright
           against the real deployed container: this exact site, plus three
-          more of the same shape — cacheTitle/offsiteLimits/metrics above —
+          more of the same shape; cacheTitle/offsiteLimits/metrics above;
           were each silently "spending" a hue slot on a Card that never
           painted, shifting every later heading on that tab by one position
           while Advanced was off). Plain `&&` short-circuits correctly,
-          exactly like every other conditional Card on this page — this was
+          exactly like every other conditional Card on this page; this was
           the one call site that still used the wrapper component instead. */}
       {tab === "system" && advanced && (() => {
-        // Button-size/colour-engine sweep (jdp, live review — "Die vielen
+        // Button-size/colour-engine sweep (jdp, live review; "Die vielen
         // Buttons sind unterschiedlich groß und nicht alle im
         // Regenbogenmodus"): the Check Now button inside SpikePanel had no
         // tie to this Card's own hueIndex at all. `hueIdx` captured once in
-        // this IIFE and threaded into BOTH the Card's own heading notch and
-        // SpikePanel's new `hueIndex` prop — the same "one Card, two
-        // hue-aware children share ONE position" shape the schedulesChecks
-        // Card's own IIFE below already uses for its Card+CadenceBuilder
+        // this iife and threaded into both the Card's own heading notch and
+        // SpikePanel's new `hueIndex` prop; the same "one Card, two
+        // hue-aware children share one position" shape the schedulesChecks
+        // Card's own iife below already uses for its Card+CadenceBuilder
         // pair, not a second independent `nextHue()` call.
         const hueIdx = nextHue();
         return (
@@ -4399,29 +4394,29 @@ export function SettingsPage() {
       })()}
 
       {/* ------------------------------------------------------------------ */}
-      {/* INTEGRITY — Integrity, maintenance & restore drills                 */}
-      {/* Default-visible (v4): manual restore drills — including the real     */}
-      {/* off-site DR restore — are part of the core ransomware-protection     */}
+      {/* integrity; Integrity, maintenance & restore drills                 */}
+      {/* Default-visible (v4): manual restore drills; including the real     */}
+      {/* off-site DR restore; are part of the core ransomware-protection     */}
       {/* flow, alongside the un-gated off-site + retention cards above.       */}
       {/* ------------------------------------------------------------------ */}
       {tab === "integrity" && (
       <>
-        {/* IntegrityCard used to be documented here as the ONLY Card this tab
-            ever rendered — a genuine singleton per design-language's own
+        {/* IntegrityCard used to be documented here as the only Card this tab
+            ever rendered; a genuine singleton per design-language's own
             exclusion ("the only one of its kind on the page keeps the single
             accent"), so it deliberately took no `hueIndex` at all. That
-            exemption no longer applies (jdp, live-review — "Gehört die
+            exemption no longer applies (jdp, live-review; "Gehört die
             'Automatische Restore-Prüfungen' Card nicht in den
             Integritäts-Tab?"): RestoreChecksSection and the schedulesChecks
             Card below moved here from the Schedules tab, both configuring
-            WHAT gets verified and how often — a natural fit next to this
+            What gets verified and how often; a natural fit next to this
             Card's own verify/unlock/prune/drill actions. With three Cards
             now genuinely on this tab, IntegrityCard gets a real `nextHue()`
             call like everything else, first in visual order since it's the
             tab's primary/pre-existing content. */}
         <IntegrityCard t={t} settings={settings} setSettings={setSettings} save={save} hueIndex={nextHue()} />
 
-        {/* Restore-check drills (RestoreChecksSection renders its own Card) —
+        {/* Restore-check drills (RestoreChecksSection renders its own Card);
             moved from the Schedules tab (see that tab's own comment at its
             old call site). */}
         <RestoreChecksSection
@@ -4435,17 +4430,17 @@ export function SettingsPage() {
         />
 
         {/* Restore-check schedule (schedulesChecks): the scheduled off-site
-            append-only tamper test — moved from the Schedules tab (see that
+            append-only tamper test; moved from the Schedules tab (see that
             tab's own comment at its old call site).
-              `hueIdx` captured once in this IIFE and reused for both the
+              `hueIdx` captured once in this iife and reused for both the
             Card's own heading notch and the CadenceBuilder's TimePicker
-            inside it (Task 3, jdp: "Der Zeitpicker ist nicht im
-            Regenbogenmodus") — a bare inline `<Card hueIndex={nextHue()}>`
+            inside it (jdp: "Der Zeitpicker ist nicht im
+            Regenbogenmodus"); a bare inline `<Card hueIndex={nextHue()}>`
             here has no local variable to also hand the CadenceBuilder below,
-            and calling `nextHue()` a second time would consume a SECOND,
+            and calling `nextHue()` a second time would consume a second,
             different position for one visually-grouped Card (exactly the
             trap SaveBar's own header comment already warns about for the
-            identical "one Card, two hue-aware children" shape). The IIFE is
+            identical "one Card, two hue-aware children" shape). The iife is
             the smallest change that captures the single call's result
             without lifting this ad-hoc Card block into its own named
             component purely to receive a prop. */}
@@ -4453,18 +4448,18 @@ export function SettingsPage() {
           const hueIdx = nextHue();
           return (
             <Card title={t("settings.schedulesChecks")} hueIndex={hueIdx}>
-              {/* Resolved-schedule badge — NEW this round, the third and last
+              {/* Resolved-schedule badge; new this round, the third and last
                   cadence editor that had none (see RestoreChecksSection's own
                   comment for why CadenceBuilder's inline preview could only be
-                  deleted once all three had one). NO `enabled` prop here,
+                  deleted once all three had one). No `enabled` prop here,
                   unlike the other two: this Card has no on/off toggle of its
-                  own — the cadence string's own "off" mode IS the control, the
+                  own; the cadence string's own "off" mode is the control, the
                   same shape the four domain Cards use. The separate
-                  `tamperScheduleActive` precondition below is deliberately NOT
+                  `tamperScheduleActive` precondition below is deliberately not
                   folded into the badge: it isn't this card's own on/off but a
                   cross-cutting "no qualifying domain configured" state, and it
                   already has its own explicit amber explanation right beneath
-                  (#109 — the one place that told manilx why Sun 08:00 never
+                  (#109; the one place that told manilx why Sun 08:00 never
                   ran). Restating it as a grey "Kein Zeitplan" badge would
                   contradict the cadence the user can plainly see set in the
                   editor. */}
@@ -4476,7 +4471,7 @@ export function SettingsPage() {
                   onChange={(v) => scheduleField("tamperTestSchedule", v)}
                   hueIndex={hueIdx}
                 />
-                {/* #109: the scheduler stays inert without a qualifying domain — this
+                {/* #109: the scheduler stays inert without a qualifying domain; this
                     is the only place that told manilx why Sun 08:00 never ran. */}
                 {!tamperScheduleActive && (
                   <div className="mt-3 rounded-card bg-statusWarnBg px-3 py-2.5 text-xs text-statusWarn leading-relaxed">
@@ -4491,17 +4486,17 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* SYSTEM — Security                                                  */}
+      {/* system; Security                                                  */}
       {/* ------------------------------------------------------------------ */}
-      {/* Button-size/colour-engine sweep (jdp, live review — "Die vielen
+      {/* Button-size/colour-engine sweep (jdp, live review; "Die vielen
           Buttons sind unterschiedlich groß und nicht alle im
           Regenbogenmodus"): the buttons below had no tie to this Card's own
           hue at all. (It used to name three - Save, Logout and
           Logout-everywhere; the two sign-out buttons are gone, see the note
-          where they stood.) IIFE captures `hueIdx`
+          where they stood.) iife captures `hueIdx`
           once and reuses it for both the Card's own heading notch and every
-          button inside it — the same "one Card, several hue-aware children
-          share ONE position" shape the schedulesChecks/Spike Cards above
+          button inside it; the same "one Card, several hue-aware children
+          share one position" shape the schedulesChecks/Spike Cards above
           already use, not several independent `nextHue()` calls. */}
       {tab === "system" && (() => {
         const hueIdx = nextHue();
@@ -4568,7 +4563,7 @@ export function SettingsPage() {
               hueIndex={hueIdx}
             />
             {/* Only the pre-flight mismatch validation error renders here now
-                (GlimStone form-engine Task 9) — the post-save success/failure
+                (GlimStone form-engine Task 9); the post-save success/failure
                 notice is a toast instead; see handleSetPassword's own comment. */}
             {pwSaveState === "error" && pwSaveMsg && (
               <span className="text-sm text-statusFail">{pwSaveMsg}</span>
@@ -4577,7 +4572,7 @@ export function SettingsPage() {
         </div>
 
         {/* No sign-out here, and no "sign out everywhere" either (GlimStone
-            2.1.0, rule 22: a settings card CONFIGURES, the shell OPERATES).
+            2.1.0, rule 22: a settings card configures, the shell operates).
             Both used to sit along this card's bottom edge, which put the two
             controls that throw a half-filled password form away directly under
             the field somebody was typing in - and the plain one duplicated the
@@ -4592,9 +4587,9 @@ export function SettingsPage() {
       })()}
 
       {/* ------------------------------------------------------------------ */}
-      {/* SYSTEM — the second login factor (v8.6.0). Its own Card rather than */}
+      {/* system; the second login factor (v8.6.0). Its own Card rather than */}
       {/* another section inside Security: enrolment is a three-step sequence */}
-      {/* with a QR code and a one-time list of recovery codes, which is more  */}
+      {/* with a qr code and a one-time list of recovery codes, which is more  */}
       {/* than the password form's register, and it reads as a separate        */}
       {/* decision from "is there a password at all".                          */}
       {/* ------------------------------------------------------------------ */}
@@ -4616,7 +4611,7 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* SYSTEM — passkeys. Its own Card beside the second factor because it  */}
+      {/* system; passkeys. Its own Card beside the second factor because it  */}
       {/* is a different decision: the factor makes the password stronger,     */}
       {/* a passkey replaces typing it. And unlike the factor it is not always */}
       {/* available, so the card's first job is explaining when it is not.     */}
@@ -4624,8 +4619,8 @@ export function SettingsPage() {
       {tab === "system" && <PasskeyCard passwordSet={authEnabled} hueIndex={nextHue()} />}
 
       {/* ------------------------------------------------------------------ */}
-      {/* GENERAL — Language (GlimStone follow-up pass, live-review point 9). */}
-      {/* Moved out of Sidebar.tsx's footer — see LanguageCard's own header    */}
+      {/* general; Language (GlimStone follow-up pass, live review). */}
+      {/* Moved out of Sidebar.tsx's footer; see LanguageCard's own header    */}
       {/* comment above for the full move rationale. Sits right after Domains */}
       {/* (a fundamental, whole-app setting, same register) and right before  */}
       {/* the purely-cosmetic Appearance cluster below.                       */}
@@ -4633,8 +4628,8 @@ export function SettingsPage() {
       {tab === "general" && <LanguageCard t={t} hueIndex={nextHue()} />}
 
       {/* ------------------------------------------------------------------ */}
-      {/* GENERAL — Theme (GlimStone follow-up pass, later live-review round). */}
-      {/* Moved out of Sidebar.tsx's footer — see ThemeCard's own header       */}
+      {/* general; Theme (GlimStone follow-up pass, a later live review). */}
+      {/* Moved out of Sidebar.tsx's footer; see ThemeCard's own header       */}
       {/* comment above. Same register and immediately below Language: both   */}
       {/* are fundamental, whole-app identity settings (not one of the purely */}
       {/* cosmetic Appearance sub-topics below), so this Card sits right      */}
@@ -4643,98 +4638,98 @@ export function SettingsPage() {
       {tab === "general" && <ThemeCard t={t} hueIndex={nextHue()} />}
 
       {/* ------------------------------------------------------------------ */}
-      {/* GENERAL — Appearance                                               */}
-      {/* GlimStone follow-up pass, live-review point 5: this used to be ONE  */}
+      {/* general; Appearance                                               */}
+      {/* GlimStone follow-up pass, live review: this used to be one  */}
       {/* shared Card with four sub-topics (accent / shape / rainbow / quiet  */}
       {/* toasts) separated by `border-t border-carbon-border` divider lines  */}
-      {/* — a real, previously-unnoticed violation of this app's own "never a */}
+      {/*; a real, previously-unnoticed violation of this app's own "never a */}
       {/* border line, only shade/shadow" house rule (see index.css's shape-  */}
-      {/* token comments and Badge.tsx's file header: every OTHER visual      */}
+      {/* token comments and Badge.tsx's file header: every other visual      */}
       {/* separation in this app comes from a surface's own elevation, not a  */}
-      {/* rule). Each of the four became its OWN Card that round — same       */}
+      {/* rule). Each of the four became its own Card that round; same       */}
       {/* bg-carbon-surface + rounded-card + shadow every other Settings      */}
       {/* topic already renders through, no divider needed because there's   */}
       {/* no longer a shared surface to divide.                              */}
-      {/*   LATER live-review round (jdp: "Die card von Akzentfarbe und       */}
+      {/*   a later live review (jdp: "Die card von Akzentfarbe und       */}
       {/* Regenbogenmodus in eine mergen. Gehört ja zusammen"): accent and    */}
-      {/* rainbow are back to ONE Card below — see that Card's own header     */}
+      {/* rainbow are back to one Card below; see that Card's own header     */}
       {/* comment for the merge, the hint relocation, and the hue-integration  */}
       {/* fixes that landed in the same pass. Shape and Quiet toasts stay     */}
       {/* their own separate Cards; `settings.appearance` (the old umbrella   */}
-      {/* title from the FOUR-way split) still has no call site and stays     */}
+      {/* title from the four-way split) still has no call site and stays     */}
       {/* removed from every locale rather than kept as a dead key. Same      */}
-      {/* "general" tab condition repeated per Card — the pattern every OTHER */}
+      {/* "general" tab condition repeated per Card; the pattern every other */}
       {/* multi-Card tab on this page already uses (e.g. the "system" tab's   */}
-      {/* Security Card + Settings Portability Card further down — AboutFooter, */}
-      {/* the system tab's old THIRD tab-conditioned element, has since moved  */}
+      {/* Security Card + Settings Portability Card further down; AboutFooter, */}
+      {/* the system tab's old third tab-conditioned element, has since moved  */}
       {/* out of this repeated-per-Card condition entirely; see its own header */}
       {/* comment), not a wrapping Fragment introduced just for this section.  */}
       {/* ------------------------------------------------------------------ */}
 
-      {/* Shape (GlimStone form-engine — shape engine; design-language.md's
+      {/* Shape (GlimStone form-engine; shape engine; design-language.md's
           "The user-owned axes": data-shape on <html>, round/soft/square,
           one radius token set driving every rounded corner). lib/shape.ts is
-          the JS half (read/write/persist which of the three is chosen, stamp
+          the js half (read/write/persist which of the three is chosen, stamp
           the attribute), index.css already carries the matching
           [data-shape="soft"|"square"] radius-token overrides. Lives directly
           above the merged Colors Card below: same kind of setting
-          (client-only, applied at the app root — shape.ts's own header
+          (client-only, applied at the app root; shape.ts's own header
           comment), same "one picker, no Save step" shape.
-            Selector, not a bespoke button row: this IS "three mutually
+            Selector, not a bespoke button row: this is "three mutually
           exclusive options" (design-language.md's "The one horizontal
           selector"), the exact shape Dashboard.tsx's heatmap-domain toggle
           already uses this component for.
-            REVERSED (jdp, live-review, extremely emphatic standing rule —
+            Reversed (jdp, live-review, extremely emphatic standing rule;
           "Der horizontale Selektor der Ecken ist nicht im Regenbogen-Modus
           integriert... Es soll immer alles in die Farb- und Formengine
           integriert werden!! IMMER!!"): this used to carry `hue={false}`,
           reasoned at the time as "round/soft/square are a form choice, not a
           position in a list, and tinting the segments would compete with
           the choice itself." That is exactly the kind of self-authored
-          aesthetic exception jdp has now ruled out categorically — a
+          aesthetic exception jdp has now ruled out categorically; a
           plausible-sounding taste judgement is never grounds to unilaterally
           exclude a control from the colour engine. `hue` now stays on its
           plain `true` default, so this Selector's three segments read
-          RAINBOW[0]/[1]/[2] like any other hue-enabled Selector in the app —
+          Rainbow[0]/[1]/[2] like any other hue-enabled Selector in the app;
           see Selector.tsx's own file header item 1 for the full reversal
           note (Dashboard's heatmap toggle got the identical fix in the same
           pass).
-            `size="lg"` (GlimStone follow-up pass, live-review point 1 —
+            `size="lg"` (GlimStone follow-up pass, live review;
           up from the original "sm"): this is a full, standalone Settings
           decision in its own right, the same visual register as the page's
-          OWN 7-tab Selector strip further up this file (also `size="lg"`),
+          Own 7-tab Selector strip further up this file (also `size="lg"`),
           not a tight toolbar chip like Dashboard's heatmap toggle or
-          CadenceBuilder's weekday pills — "sm" undersold it next to
+          CadenceBuilder's weekday pills; "sm" undersold it next to
           everything else in this Card.
-            No `icon` per item anymore (live-review point 2): the original
-          per-option glyph (a small outlined square drawn at a SCALED-DOWN
-          6px/2px/0 preview radius — deliberately not the real 10px/5px/0
+            No `icon` per item anymore (live review): the original
+          per-option glyph (a small outlined square drawn at a scaled-down
+          6px/2px/0 preview radius; deliberately not the real 10px/5px/0
           --radius-control values, for legibility at 14px) turned out to
           undercut its own point live: a smaller-than-real preview sitting
           right next to the label read as "round isn't very round," the
           opposite of what it was meant to show. Text-only avoids that
-          entirely — the real Selector segment the user is looking at IS the
+          entirely; the real Selector segment the user is looking at is the
           shape preview, at its own true radius, with no scaled-down stand-in
           competing with it.
             `variant="well" equalWidth` (GlimStone follow-up pass,
-          live-review point 7 — "turn the shape picker into a horizontal
-          selector styled like the one in TrickWork"): the FIRST call site to
+          live review; "turn the shape picker into a horizontal
+          selector styled like the one in TrickWork"): the first call site to
           exercise Selector's grooved variant (components/Selector.tsx's own
-          file header, item 5) — TrickWork's shared padded background with
+          file header, item 5); TrickWork's shared padded background with
           flush, crossfade-only segments, no sliding pill. Picked for that
           first try specifically because it's already icon-free (no glyph
           competing with the groove's own look) and already the page's most
           "three mutually exclusive settings, read together as one control"
-          Selector — the shape it suits best. A LATER round gave the Theme
+          Selector; the shape it suits best. A later live-review pass gave the Theme
           Card's own light/dark picker (above) this exact same treatment, and
-          round 8 spread the variant itself (minus `equalWidth`) to every
+          a later pass spread the variant itself (minus `equalWidth`) to every
           small in-card selector in the app. The 7-tab strip above stays on
-          `variant="chip"` — it is a tab strip of individual badges, not a
+          `variant="chip"`; it is a tab strip of individual badges, not a
           grooved segmented control; see Selector.tsx's item 5b. */}
       {tab === "general" && (
       <Card title={t("settings.shape")} hint={t("settings.shapeHint")} hueIndex={nextHue()}>
-        {/* No "don't stretch" wrapper div here any more — `variant="well"`
-            carries `w-fit max-w-full` itself as of round 8, which opts the
+        {/* No "don't stretch" wrapper div here any more; `variant="well"`
+            carries `w-fit max-w-full` itself (a later Selector pass), which opts the
             row out of this Card's `flex flex-col` default
             `align-items: stretch` without an extra element. See the Theme
             Card's own Selector above for the full note. */}
@@ -4758,12 +4753,12 @@ export function SettingsPage() {
       </Card>
       )}
 
-      {/* Motion intensity (GlimStone motion-engine — jdp, live-review:
+      {/* Motion intensity (GlimStone motion-engine; jdp, live-review:
           "Wäre eine Animationsengine gut?" -> "Echte Engine mit eigenem
-          Nutzer-Schalter"). A DELIBERATE reversal of design-language.md's
-          own prior Motion-Engine section (2026-08-18: "kein In-App-Schalter
+          Nutzer-Schalter"). A deliberate reversal of design-language.md's
+          own prior Motion-Engine section ("kein In-App-Schalter
           dafür ... kein fünfter Nutzer-Schalter, rein OS-gesteuert für
-          jetzt") — see that doc's updated Motion Intensity write-up for the
+          jetzt"); see that doc's updated Motion Intensity write-up for the
           full course-correction note, quoting the old text rather than
           silently dropping it.
             Same architecture as the Shape Card right above (lib/motion.ts
@@ -4775,19 +4770,19 @@ export function SettingsPage() {
           `variant="well" equalWidth`/`size="lg"` treatment already proven
           live on Theme's and Shape's own pickers right above.
             `hue` stays on its plain `true` default (Selector's own
-          default) — this repo's standing colour-engine rule is explicit
+          default); this repo's standing colour-engine rule is explicit
           that "it's a settings control, not content" is exactly the kind
           of self-authored exception that rule forbids; this Selector's
-          three segments read RAINBOW[0]/[1]/[2] like Shape's own segments
+          three segments read rainbow[0]/[1]/[2] like Shape's own segments
           right above, and the Card's own heading badge gets a real
           `hueIndex={nextHue()}` the same way every other Card on this tab
           does. */}
       {tab === "general" && (
       <Card title={t("settings.motion")} hint={t("settings.motionHint")} hueIndex={nextHue()}>
         {/* No "don't stretch" wrapper div, same as the Theme/Shape Selectors
-            right above — `variant="well"` hugs its own segments now. */}
-        {/* THE FOURTH SEGMENT IS NOT ALWAYS THERE, GSS 1.17.0's hidden level.
-            It is offered while it is CHOSEN - a picker that hid the value it
+            right above; `variant="well"` hugs its own segments now. */}
+        {/* the fourth segment is not always there, GSS 1.17.0's hidden level.
+            It is offered while it is chosen - a picker that hid the value it
             is currently showing would be lying about the interface - and
             otherwise only for as long as this screen stays open, which is why
             `stormFound` is component state and never storage. Pick something
@@ -4803,7 +4798,7 @@ export function SettingsPage() {
           select="one"
           active={motion}
           onChange={(id) => {
-            // The gesture first, because it fires on the level ALREADY chosen
+            // The gesture first, because it fires on the level already chosen
             // and therefore on a click that changes nothing else.
             const storm = stormTap(stormClicks.current, id, motion);
             if (storm) setStormFound(true);
@@ -4821,7 +4816,7 @@ export function SettingsPage() {
 
       {tab === "general" && (
       <>
-      {/* Control labels (#178) — how much of a control's identity is shown.
+      {/* Control labels (#178); how much of a control's identity is shown.
           Per-axis selectors rather than one switch, because the right answer
           differs per axis: a sidebar reduced to glyphs narrows the whole page,
           tabs do not, and action buttons are a density preference. jdp asked
@@ -4855,9 +4850,9 @@ export function SettingsPage() {
                 variant="well"
                 equalWidth
                 // Each of the three rows starts one colour further along the
-                // palette (jdp, 2026-09-15: "nicht jeder selektor soll am
+                // palette (jdp: "nicht jeder selektor soll am
                 // gleichen feld die gleiche farbe haben"). Offsetting by the
-                // row index rather than by the row COUNT keeps neighbouring
+                // row index rather than by the row count keeps neighbouring
                 // rows adjacent in the palette, so the block still reads as
                 // one group instead of three unrelated strips. Every other
                 // start in the settings tree comes out of the same table.
@@ -4879,18 +4874,18 @@ export function SettingsPage() {
       )}
 
       {/* Colors (GlimStone form-engine Phase 2, Task 1; the accent Card and
-          the Rainbow Card, MERGED — jdp, live-review: "Die card von
+          the Rainbow Card, merged; jdp, live-review: "Die card von
           Akzentfarbe und Regenbogenmodus in eine mergen. Gehört ja
           zusammen"). AccentCard above now returns just its own body (no
-          Card wrapper of its own — see its header comment), composed here
+          Card wrapper of its own; see its header comment), composed here
           alongside the Rainbow controls this Card used to hold on its own.
-          One heading, `settings.colors` ("Colours"/"Farben") — new key, not
+          One heading, `settings.colors` ("Colours"/"Farben"); new key, not
           a repurposed `settings.accentColor`/`settings.rainbow`: those two
           stay in use as the sub-topics' own row labels below, so the Card's
-          own title needed a THIRD string that reads as "colour, broadly"
+          own title needed a third string that reads as "colour, broadly"
           without clashing with either. No `hint` on the Card itself any
           more (see the master toggle below for where Rainbow's own hint
-          moved). No divider between the two halves — spacing only, this
+          moved). No divider between the two halves; spacing only, this
           app's established "cards separate sections, never a rule line"
           convention (see the Shape/Rainbow split's own comment above for
           the fuller house-rule writeup); AccentCard's body and the rainbow
@@ -4898,42 +4893,42 @@ export function SettingsPage() {
           `flex flex-col gap-4`, the same "adjacent flex children, no divider"
           shape the (now-relocated) Flash-zip-export/Plain-export/Repository
           trio in the Storage tab's encryption Card already established.
-            hueIndex: merging two Cards into one Card means one FEWER
-          `nextHue()` call in the sequence than before — removed here rather
+            hueIndex: merging two Cards into one Card means one fewer
+          `nextHue()` call in the sequence than before; removed here rather
           than left as a dead call, since `hueSeq++` would otherwise burn a
           position nothing renders. Every Card below this one (Quiet toasts,
           the "system"/"storage"/etc. tabs' own Cards) is still numbered
           correctly with no manual re-numbering: `nextHue()` is a plain
           `hueSeq++` evaluated in JSX order at render time (see this
           function's own `hueSeq`/`nextHue` comment above), so removing one
-          call site automatically shifts every LATER one down by one — the
+          call site automatically shifts every later one down by one; the
           exact self-correcting behaviour that comment already documents.
             This switch genuinely repaints the app: every hue-enabled
-          Selector segment (components/Selector.tsx, its own default —
+          Selector segment (components/Selector.tsx, its own default;
           twelve call sites across seven files, including the Settings tab
           strip above and the drill-type toggle further down) and the
           container/VM/file-set list rows all read a rainbow position, so
-          turning this on sets data-rainbow + --rb-0..--rb-7 on <html> AND
+          turning this on sets data-rainbow + --rb-0..--rb-7 on <html> and
           immediately recolours those real call sites. The sidebar nav is
-          deliberately NOT a consumer (Sidebar.tsx carries the reasoning), so
+          deliberately not a consumer (Sidebar.tsx carries the reasoning), so
           flipping this switch never changes the rail's own colours.
             The master toggle's own hueIndex/hint fixes are documented right
-          on that ToggleRow below — see its own comment for both.
-            IIFE-captured `hueIdx` feeds this Card's own heading notch plus
-          the three rainbow ToggleRows below (hueIndex 0/1/2) — the same
+          on that ToggleRow below; see its own comment for both.
+            Iife-captured `hueIdx` feeds this Card's own heading notch plus
+          the three rainbow ToggleRows below (hueIndex 0/1/2); the same
           one-call-feeds-several-children shape the schedulesSelfBackup Card
           (Card+CadenceBuilder) and every offsite per-domain Card above
           already use, so a bare inline `hueIndex={nextHue()}` on the Card
           alone doesn't also have to be re-derived at each child call site.
             This Card's own two reset Badges (the accent-preset reset inside
           AccentCard below, and the rainbow-palette reset further down) are
-          DELIBERATELY NOT among hueIdx's consumers — both are `tone="neutral"`,
+          deliberately not among hueIdx's consumers; both are `tone="neutral"`,
           not hue-tinted, on purpose (see each Badge's own call-site comment
           for the full "a reset control must not blend into the very colours
           it resets" reasoning), so neither reads `hueIdx` at all. */}
       {tab === "general" && (() => {
       const hueIdx = nextHue();
-      // "Is there anything left to reset?" for the palette row below — the
+      // "Is there anything left to reset?" for the palette row below; the
       // mirror of AccentCard's own `presetsAreDefault`, same case-insensitive
       // comparison (setRainbow()/isValidPalette() accept either case, so a
       // palette restored by hand as "#ff8389" must still count as default).
@@ -4944,28 +4939,28 @@ export function SettingsPage() {
       <Card title={t("settings.colors")} hueIndex={hueIdx}>
         <AccentCard t={t} rainbowOn={rainbow.on} />
         <div className="flex flex-col gap-3">
-          {/* hueIndex 0/1/2 (jdp, live-review, extremely emphatic — "auch
+          {/* hueIndex 0/1/2 (jdp, live-review, extremely emphatic; "auch
               nicht die Toggles der Regenbogen-Card! ... Es soll immer alles
               in die Farb- und Formengine integriert werden!! IMMER!!"):
-              these three ToggleRows used to carry NO hueIndex at all,
+              these three ToggleRows used to carry no hueIndex at all,
               reasoned in ToggleRow's own doc comment as "not members of an
               equal, trackable list the way seven independent domain toggles
               are, so they correctly keep the flat single accent." That
-              exclusion — like the Shape Selector's own former `hue={false}`
-              right above — is exactly the self-authored design exception jdp
+              exclusion; like the Shape Selector's own former `hue={false}`
+              right above; is exactly the self-authored design exception jdp
               has now ruled out: three toggles rendered together, one per
               row, are a list by construction regardless of whether they're
               logically independent or a master-plus-two-sub-options group.
-              Given the SAME `.glim-hue`/`hueVars(rainbowAt(i))` treatment
+              Given the same `.glim-hue`/`hueVars(rainbowAt(i))` treatment
               the Domains Card's seven rows already use (own local 0-based
-              index, unrelated to this Card's own `nextHue()` sequence — see
+              index, unrelated to this Card's own `nextHue()` sequence; see
               ToggleRow's `hueIndex` doc). ToggleRow's own comment excluding
               this exact trio by name has been corrected to match. */}
           <ToggleRow
             label={t("settings.rainbow")}
-            // Moved DOWN from the Card's own `hint` (jdp, live-review: "die
+            // Moved down from the Card's own `hint` (jdp, live-review: "die
             // infobubble des regenbogenmodus ist unverständlich und sie soll
-            // von titelbadge runterwandern in die toggle zeile") — same
+            // von titelbadge runterwandern in die toggle zeile"); same
             // `hint` prop mechanism the Reactive/Rotation rows below already
             // use for their own explanations. Text rewritten for this same
             // move: see settings.rainbowHint's own value for the rewrite
@@ -4977,24 +4972,24 @@ export function SettingsPage() {
             hueIndex={0}
           />
 
-          {/* Everything below hangs off the rainbow being ON, so while it is
+          {/* Everything below hangs off the rainbow being on, so while it is
               off none of it is here at all (GlimStone 1.10.0). It used to be
               dimmed, under the reasoning "switched off, not hidden": leave it
               visible so nobody has to guess what the mode does. The language
               answers that directly - a palette editor under a rainbow that is
               not running is eight swatches nobody can open beside a reset
               nobody can press, and the switch above already says what the mode
-              is. The "not hidden" rule protects the switch for the MODE, not
+              is. The "not hidden" rule protects the switch for the mode, not
               its sub-controls.
 
-              The accent row two cards up is deliberately NOT this case and
+              The accent row two cards up is deliberately not this case and
               keeps its dimming: its value still paints every control the
               rainbow does not reach, so it is a setting that is partly
               overridden rather than one with nothing behind it. GlimStone
               1.16.0 states the test - does the control still do anything. */}
           {rainbow.on && (
           <>
-          {/* Disco, once found. Shown while it is ON as well as while found,
+          {/* Disco, once found. Shown while it is on as well as while found,
               for the reason the storm's own picker entry is: a switch that
               hid the value it is currently showing would be lying, and
               somebody who reloads with disco running needs a way to stop it.
@@ -5041,33 +5036,33 @@ export function SettingsPage() {
               of the 8 is independently editable; setRainbow()/
               isValidPalette() enforce all-or-nothing validation on the
               resulting palette before it ever reaches
-              document.documentElement.style — see lib/appearance.ts.
-                Live-review round 3, point 2: the "Palettenfarbe:"/"Palette
+              document.documentElement.style; see lib/appearance.ts.
+                Live review: the "Palettenfarbe:"/"Palette
               colour" caption in front of the swatches read as noise once you
-              can already see eight colour swatches sitting there — removed.
-              settings.rainbowPalette itself is NOT orphaned: PaletteSwatch
+              can already see eight colour swatches sitting there; removed.
+              settings.rainbowPalette itself is not orphaned: PaletteSwatch
               still reads it (see that component's own `label` line above)
               for each swatch's title/aria-label ("Palette colour 1", "...2",
               …), so the key stays in every locale unchanged.
-                Live-review round 4 REVERSES the point above (jdp: "Bei der
+                A later live review reverses the take above (jdp: "Bei der
               Rainbow-Farbpalette soll 'Farbpalette' stehen und dann die
-              Farbfelder kommen") — a caption is back after all, just a
+              Farbfelder kommen"); a caption is back after all, just a
               different string than the one removed: settings.rainbowPalette
               ("Palette colour") stays a per-swatch aria-label only, unchanged;
               this new settings.rainbowPaletteLabel ("Colour palette") is a
               standalone row-opening label, matching how the Accent row right
               above it now opens with its own "Akzentfarbe" caption before
-              its controls — same "label first" ordering, so the two rows in
+              its controls; same "label first" ordering, so the two rows in
               this merged Card read as one consistent pair rather than the
               swatch row being the odd one out again.
                 Label now bare, no trailing colon (jdp, live-review: "Der
-              Doppelpunkt nach Akzentfarbe und Farbpalette weg") — the colon
+              Doppelpunkt nach Akzentfarbe und Farbpalette weg"); the colon
               was appended in JSX only, never in the translated string (all
               42 locales checked), so removing it here is the whole fix.
                 Swatches+reset now right-aligned as their own `ms-auto` group
               (jdp, live-review: "Die Farbfelder der Farbpalette auch ganz
               nach rechts verschieben"), matching the Accent row's own
-              identical right-alignment right above — the label stays at the
+              identical right-alignment right above; the label stays at the
               row's start, everything clickable moves to the row's end. */}
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm text-carbon-text">{t("settings.rainbowPaletteLabel")}</span>
@@ -5085,75 +5080,75 @@ export function SettingsPage() {
                 }}
               />
             ))}
-            {/* Live-review round 3, point 3: was a plain text "Reset" button.
+            {/* Live review: was a plain text "Reset" button.
                 Now a Badge, matching this row's own established "everything
-                clickable is a badge" convention (Task 5 rule 13), sized via
+                clickable is a badge" convention (design-language rule 13), sized via
                 the `icon` stage to land on the exact same 28px (h-7 w-7)
                 footprint as the PaletteSwatch circles it sits beside, so it
                 reads as part of the same row of controls rather than a
                 mismatched afterthought.
-                  SQUARE (jdp, live-review: "Die Zurücksetzen-Option soll ein
-                quadratischer Badge mit Glyph sein") — `shape="square"` still
+                  Square (jdp, live review: "Die Zurücksetzen-Option soll ein
+                quadratischer Badge mit Glyph sein"); `shape="square"` still
                 resolves through `rounded-control`, the shape engine's own
                 live token, so this genuinely tracks round/soft/square (under
                 "Rund" it renders as a full circle, same as every other
                 square badge in the app).
-                  NEUTRAL now, not hue-tinted (jdp, re-reporting: "Der
+                  Neutral now, not hue-tinted (jdp, re-reporting: "Der
                 Reset-Badge soll ... nicht farbig sein, damit er sich besser
-                von den Farbflächen abhebt" — measured live, this Badge's
+                von den Farbflächen abhebt"; measured live, this Badge's
                 `tone="active"` fill was rendering the literal flat accent
-                gold, `rgb(252,196,25)` — the EXACT SAME value as one of the
+                gold, `rgb(252,196,25)`; the exact same value as one of the
                 eight palette swatches sitting right beside it, making the
                 reset control indistinguishable from an actual colour choice
-                at a glance). DELIBERATE EXCEPTION to this app's standing
+                at a glance). Deliberate exception to this app's standing
                 "every icon-only badge gets real colour-engine integration"
-                rule — see AccentCard's mirror reset Badge (Settings.tsx,
+                rule; see AccentCard's mirror reset Badge (Settings.tsx,
                 same file, a few hundred lines up) for the full "a reset
                 control sitting beside the very colours it resets must not
                 itself be one of those colours" reasoning, which applies
-                here identically. `border-2 border-carbon-border` (NEW)
+                here identically. `border-2 border-carbon-border` (new)
                 matches PaletteSwatch's own border exactly (`h-7 w-7 ...
-                border-2 border-carbon-border` a few dozen lines up) — without
+                border-2 border-carbon-border` a few dozen lines up); without
                 it this Badge's solid fill filled the full 28×28 box edge to
                 edge while each PaletteSwatch's own visible colour disc is
                 actually only 24×24 (28px border-box minus its own 2px
                 ring), which is what actually made this control read as
-                BIGGER than its neighbours (jdp: "der Reset-Badge ist größer
-                als die Farbfelder") despite an IDENTICAL measured 28×28
-                bounding box — a real optical-weight defect a bounding-box
+                Bigger than its neighbours (jdp: "der Reset-Badge ist größer
+                als die Farbfelder") despite an identical measured 28×28
+                bounding box; a real optical-weight defect a bounding-box
                 check alone never catches, now closed by giving this Badge
                 the exact same border every swatch beside it already has.
-                  IconResetArrow (redesigned — see that icon's own header
-                comment) — the established counter-clockwise "reset" arrow
+                  IconResetArrow (redesigned; see that icon's own header
+                comment); the established counter-clockwise "reset" arrow
                 convention, redrawn bolder for legibility at this small
                 badge-in-a-busy-row size.
-                  DISABLED ONLY WHEN THERE IS NOTHING TO RESET — the same
+                  Disabled only when there is nothing to reset; the same
                 dead-control audit that unified AccentCard's two resets above
                 was run against this badge, and it had a milder version of the
                 same defect from the other direction: gated on `!rainbow.on`
-                alone, it sat ENABLED whenever rainbow mode was on even with
-                the palette already byte-identical to RAINBOW, so a click was
-                a silent no-op — a control that looks live and does nothing is
+                alone, it sat enabled whenever rainbow mode was on even with
+                the palette already byte-identical to rainbow, so a click was
+                a silent no-op; a control that looks live and does nothing is
                 the same broken promise as one that is permanently greyed out,
                 just harder to notice. `paletteIsDefault` (computed beside
-                `hueIdx` at this Card's own IIFE head) closes that: the badge
+                `hueIdx` at this Card's own iife head) closes that: the badge
                 is now live exactly when a click would actually change
-                something. The `!rainbow.on` half of the gate STAYS — the
+                something. The `!rainbow.on` half of the gate stays; the
                 eight PaletteSwatches next to it carry the identical
                 `disabled={!rainbow.on}`, so the whole row switches off
                 together, which reads as "this section is off" rather than as
                 one arbitrarily dead control among live ones (the very
                 confusion that made AccentCard's badge unreadable).
-                  size="icon" — the app's ONE square-icon-badge size (32px),
+                  size="icon"; the app's one square-icon-badge size (32px),
                 never re-derived from the swatch box model. It was 28px, sized
                 to this row's swatches; the app-wide unification moved the
                 swatches instead (PaletteSwatch h-7 w-7 → h-8 w-8), so this
                 badge and its eight neighbours still share one measured
                 footprint and one 28px inner disc inside their `border-2`.
-                  tip (not title/ariaLabel) — IconTipButton's real hover/focus
+                  tip (not title/ariaLabel); IconTipButton's real hover/focus
                 bubble. Now settings.rainbowPaletteReset ("Reset color
                 palette"), not the generic common.reset it carried before:
-                after the merge above, this Card holds TWO neutral square
+                after the merge above, this Card holds two neutral square
                 reset badges a few rows apart, and two identical "Reset"
                 bubbles on two controls with different targets is exactly the
                 ambiguity the accentPresetsReset key was originally introduced
@@ -5161,19 +5156,19 @@ export function SettingsPage() {
                 itself had no other reader left once the accent row's text
                 button was deleted, and was dropped from all 42 locales.)
                 Kept shape/tone/size/glyph/border identical to the AccentCard
-                mirror above — the established "these two mirror each
+                mirror above; the established "these two mirror each
                 other" pairing.
-                  tone="neutral" IS A DELIBERATE EXCEPTION to "every icon
-                badge goes in the colour engine" — see the AccentCard mirror
+                  tone="neutral" is A deliberate exception to "every icon
+                badge goes in the colour engine"; see the AccentCard mirror
                 above for the full reasoning, which applies here even more
                 literally: this badge is the ninth 32px `border-2` tile in a
-                row whose other eight ARE the rainbow palette's own colours
+                row whose other eight are the rainbow palette's own colours
                 (measured live: #FF8389 #FF832B #FCC419 #6FDC8C #3DDBD9
                 #1D99F3 #BE95FF #FF7EB6). Giving it a rainbow fill would make
-                the control that RESETS the palette look like a ninth entry
-                IN the palette. Do not "fix" this to tone="active". */}
-            {/* Same deliberate exception as the accent reset above (jdp,
-                2026-08-29), and for a reason that is even more literal here:
+                the control that resets the palette look like a ninth entry
+                In the palette. Do not "fix" this to tone="active". */}
+            {/* Same deliberate exception as the accent reset above (jdp's
+                call), and for a reason that is even more literal here:
                 a row of eight palette swatches, with a ninth control that
                 empties it. */}
             <Badge
@@ -5197,31 +5192,31 @@ export function SettingsPage() {
       );
       })()}
 
-      {/* Quiet toasts (GlimStone form-engine Task 9) — the toast system's
+      {/* Quiet toasts (GlimStone form-engine Task 9); the toast system's
           severity-based quiet mode. Its own Card now (previously the last,
           divider-less sub-topic tacked onto the shared Appearance Card), next
           to the other purely client-side display preferences, rather than
           being bolted onto NotifyConfig's server-side "on" field above (that
-          one gates external webhook/Matrix/email notifications — a different
-          axis entirely; muting a toast in THIS browser must never silently
+          one gates external webhook/Matrix/email notifications; a different
+          axis entirely; muting a toast in this browser must never silently
           change what a webhook receives elsewhere).
             No-empty-toggles audit (jdp): this row used to `hideLabel`
-          because the Card's own title already says "Quiet toasts" — the
+          because the Card's own title already says "Quiet toasts"; the
           exact single-purpose-Card pattern the merged Colors Card's master
           "Regenbogen-Modus" toggle and RestoreChecksSection's "Automatische
           Restore-Prüfungen" toggle already had reversed, and this one was
           the leftover fourth instance the full-app grep in this pass caught.
           `hideLabel` is gone from ToggleRow entirely now (see its own header
-          comment) — the label is visible again.
+          comment); the label is visible again.
             "Explanations belong in a bubble" pass (jdp): what explains this
           toggle was a permanent `description` caption printed under the row
           on every load, not an explanation gated behind the (i) affordance
-          the rest of this page already uses — the exact anti-pattern
+          the rest of this page already uses; the exact anti-pattern
           Apprise's own ToggleRow comment above documents fixing the same way.
           Moved verbatim into `hint` instead (ToggleRow's own InfoBubble prop,
           same content contract as Card's `title`/`hint` pair): no wording
-          change needed on either the EN source string or its DE translation
-          — both were already a single compact two-sentence explanation, well
+          change needed on either the en source string or its de translation
+         ; both were already a single compact two-sentence explanation, well
           within the register settings.offsiteDrillsHelp's own much longer
           hint text already establishes as normal for this bubble, so only
           the display mechanism moved, not the copy. Only this call site's
@@ -5239,7 +5234,7 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* SYSTEM — Export / import settings                                   */}
+      {/* system; Export / import settings                                   */}
       {/* Portable config file: move this instance's settings + off-site      */}
       {/* destinations (and, opt-in, credentials) to another install. Backups, */}
       {/* snapshots and history are never touched.                            */}
@@ -5249,22 +5244,22 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* GENERAL — About                                                     */}
+      {/* general; About                                                     */}
       {/* Both versions, each linking to its own release, the ways to give,   */}
       {/* and the two routes for saying something. Replaces the old version   */}
-      {/* footer rather than joining it ([363]) — shipping both is the        */}
+      {/* footer rather than joining it ([363]); shipping both is the        */}
       {/* failure the design language names by name: one number in two type   */}
       {/* sizes twelve pixels apart.                                          */}
       {/*                                                                     */}
-      {/* It stood on SYSTEM until [3559], which was a defensible reading of  */}
+      {/* It stood on system until [3559], which was a defensible reading of  */}
       {/* the language's "end of Settings" and the wrong one on a tabbed      */}
-      {/* page. System is where the host integration and the export live —    */}
+      {/* page. System is where the host integration and the export live;    */}
       {/* things somebody comes here to operate. General is the first tab in  */}
       {/* the strip, so this is the last card of the first thing anybody      */}
       {/* opens, which is where a version number and an invitation to give    */}
       {/* are actually found. The sibling apps already had it there, so this  */}
       {/* also ends a three-way disagreement about one standard card.         */}
-      {/* Stays LAST in its tab either way: the card is a footer.             */}
+      {/* Stays last in its tab either way: the card is a footer.             */}
       {/* ------------------------------------------------------------------ */}
       {tab === "general" && (
         <AboutCard hueIndex={nextHue()} />

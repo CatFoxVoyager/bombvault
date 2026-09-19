@@ -12,10 +12,10 @@ import { en, I18nProvider } from "../../lib/i18n";
 //   (b) document-level Escape closes
 //   (c) scrim click (target === currentTarget) closes; a click originating
 //       inside the panel does not (possible at all only because scrim and
-//       panel are siblings — see BottomSheet.tsx's header deviation note)
+//       panel are siblings; see BottomSheet.tsx's header deviation note)
 //   (d) the close button is found by its accessible name (common.close) and
-//       closes — the ConfirmDialog strict-mode discipline
-//   (e) Tab/Shift+Tab wrap over the FULL FOCUSABLE_SELECTOR candidate set
+//       closes; the ConfirmDialog strict-mode discipline
+//   (e) Tab/Shift+Tab wrap over the full FOCUSABLE_SELECTOR candidate set
 //       (header close button + body controls) in both directions
 //   (f) focus is captured from the trigger at open (and moved inside, the
 //       ConfirmDialog autoFocus parity) and restored to the trigger on close
@@ -23,14 +23,14 @@ import { en, I18nProvider } from "../../lib/i18n";
 // The second describe asserts the additive capabilities the same way, with
 // one documented exception to the no-class-snapshot rule: the
 // fullHeight / footer / tone / inset-clamped-padding / 44px-close contracts
-// are STYLING contracts, and jsdom computes no geometry, so the observable
-// form of "the panel is h-dvh" IS the class token. These tests assert the
-// PRESENCE of the load-bearing tokens (has-class, never a whole className
-// string) — the same targeted-token discipline, not a snapshot.
+// are styling contracts, and jsdom computes no geometry, so the observable
+// form of "the panel is h-dvh" is the class token. These tests assert the
+// presence of the load-bearing tokens (has-class, never a whole className
+// string); the same targeted-token discipline, not a snapshot.
 //
 // Deliberately self-sufficient: BottomSheet touches no matchMedia /
 // visualViewport API, so this suite passes whether or not the vitest
-// setupFiles matchMedia stub is installed — nothing here relies on it.
+// setupFiles matchMedia stub is installed; nothing here relies on it.
 
 function SheetHarness({
   onClose,
@@ -97,8 +97,8 @@ describe("BottomSheet", () => {
     expect(scrim).not.toBeNull();
     fireEvent.click(scrim!);
     expect(onClose).toHaveBeenCalledTimes(1);
-    // A click on a control inside the panel bubbles up through the panel —
-    // and never reaches the scrim's handler, because the panel is NOT a child
+    // A click on a control inside the panel bubbles up through the panel;
+    // and never reaches the scrim's handler, because the panel is not a child
     // of the scrim. This is the target === currentTarget guard doing its job.
     const onClose2 = vi.fn();
     cleanup();
@@ -119,7 +119,7 @@ describe("BottomSheet", () => {
 
   it("moves focus inside the sheet on open", () => {
     render(<SheetHarness onClose={vi.fn()} initialOpen />);
-    // ConfirmDialog parity: focus starts INSIDE the aria-modal surface (its
+    // ConfirmDialog parity: focus starts inside the aria-modal surface (its
     // Cancel button; the sheet's safe equivalent is the header close button).
     expect(document.activeElement).toBe(screen.getByRole("button", { name: en["common.close"] }));
   });
@@ -128,17 +128,17 @@ describe("BottomSheet", () => {
     render(<SheetHarness onClose={vi.fn()} initialOpen />);
     const close = screen.getByRole("button", { name: en["common.close"] });
     const two = screen.getByRole("button", { name: "body two" });
-    // Tab from the LAST focusable wraps to the FIRST (the header close button).
+    // Tab from the last focusable wraps to the first (the header close button).
     two.focus();
     fireEvent.keyDown(document, { key: "Tab" });
     expect(document.activeElement).toBe(close);
-    // Shift+Tab from the FIRST focusable wraps to the LAST.
+    // Shift+Tab from the first focusable wraps to the last.
     close.focus();
     fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
     expect(document.activeElement).toBe(two);
-    // Note: forward movement from a MID-list control is native browser Tab
+    // Note: forward movement from a mid-list control is native browser Tab
     // navigation (the trap handler only acts at the edges, per the verbatim
-    // useConfirm lift), which jsdom does not implement — so only the two
+    // useConfirm lift), which jsdom does not implement; so only the two
     // wrap directions are assertable here, which is exactly the trap's
     // contract.
   });
@@ -158,7 +158,7 @@ describe("BottomSheet", () => {
 
 // ---------------------------------------------------------------------------
 // Extension contracts. PropsHarness forwards the additive props onto an
-// already-open sheet — the capabilities are consumed with the sheet open,
+// already-open sheet; the capabilities are consumed with the sheet open,
 // exactly as RunDetailSheet (fullHeight + footer) and ConfirmSheet (tone)
 // mount them.
 // ---------------------------------------------------------------------------
@@ -173,7 +173,7 @@ function PropsHarness({ sheetProps }: { sheetProps: Partial<BottomSheetProps> })
 }
 
 /** The header div is the close button's parent; the scroll body is its next
- *  sibling — the panel's structural order, readable without testids. */
+ *  sibling; the panel's structural order, readable without testids. */
 function headerAndBody(): { header: HTMLElement; body: HTMLElement; panel: HTMLElement } {
   const panel = screen.getByRole("dialog");
   const header = screen.getByRole("button", { name: en["common.close"] }).parentElement as HTMLElement;
@@ -202,7 +202,7 @@ describe("BottomSheet extensions", () => {
   it("clamps header and body side padding to the safe-area insets", () => {
     render(<PropsHarness sheetProps={{}} />);
     const { header, body } = headerAndBody();
-    // Each physical side clamps against its OWN inset (max(1rem, inset)):
+    // Each physical side clamps against its own inset (max(1rem, inset)):
     // content clears a landscape display cutout on either rotation.
     for (const el of [header, body]) {
       expect(el.className).toContain("pl-[max(1rem,var(--safe-area-left))]");
@@ -215,7 +215,7 @@ describe("BottomSheet extensions", () => {
   it("gives the close button the 44px touch hit box", () => {
     render(<PropsHarness sheetProps={{}} />);
     const close = screen.getByRole("button", { name: en["common.close"] });
-    // h-11 / w-11 = 44px — the touch floor. Asserted as tokens (jsdom has no
+    // h-11 / w-11 = 44px; the touch floor. Asserted as tokens (jsdom has no
     // geometry); the e2e harness asserts the rendered pixels on device views.
     expect(close.className).toContain("h-11");
     expect(close.className).toContain("w-11");
@@ -224,7 +224,7 @@ describe("BottomSheet extensions", () => {
   it("renders the close control as an engine Button", () => {
     // The header close is the shared Button component, not a hand-rolled
     // <button>: glim-btn is the one class every engine button carries, so
-    // its presence pins the swap — the tone table, the tooltip mechanism and
+    // its presence pins the swap; the tone table, the tooltip mechanism and
     // the --motion-press-scale press all arrive with it.
     render(<PropsHarness sheetProps={{}} />);
     const close = screen.getByRole("button", { name: en["common.close"] });
@@ -253,7 +253,7 @@ describe("BottomSheet extensions", () => {
   });
 
   it("renders an optional footer after the scroll body, chrome-styled and safe-area padded", () => {
-    // Default: no footer element at all — the panel is header + body only.
+    // Default: no footer element at all; the panel is header + body only.
     const { unmount } = render(<PropsHarness sheetProps={{}} />);
     const { panel } = headerAndBody();
     expect(panel.childElementCount).toBe(2);
@@ -263,13 +263,13 @@ describe("BottomSheet extensions", () => {
     const { body } = headerAndBody();
     const footer = screen.getByText("footer actions").parentElement as HTMLElement;
     // Chrome language: sidebar surface + top hairline (bottom bar / sticky
-    // bar tokens), safe-area bottom padding (the footer is the LAST surface
+    // bar tokens), safe-area bottom padding (the footer is the last surface
     // on screen), inset-clamped sides like the rest of the panel.
     expect(footer.className).toContain("bg-carbon-sidebar");
     expect(footer.className).toContain("border-t");
     expect(footer.className).toContain("pb-[var(--safe-area-bottom)]");
     expect(footer.className).toContain("pl-[max(1rem,var(--safe-area-left))]");
-    // And it comes AFTER the scroll body — the "never scrolls away" ordering.
+    // And it comes after the scroll body; the "never scrolls away" ordering.
     expect(footer.previousElementSibling).toBe(body);
   });
 });

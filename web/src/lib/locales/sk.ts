@@ -908,7 +908,7 @@ const sk: Partial<Translations> = {
   "auth.invalidPassword": "Neplatné heslo",
   "auth.loginError": "Prihlásenie zlyhalo",
 
-  // Settings — Security card
+  // Settings; Security card
   "auth.security": "Heslo",
   "auth.authOff": "Overovanie je vypnuté. Všetci používatelia LAN majú plný prístup.",
   "auth.authOn": "Overovanie je zapnuté.",
@@ -1334,7 +1334,7 @@ const sk: Partial<Translations> = {
   "recovery.freshNudge": "Obnovujete z predchádzajúceho servera alebo po opätovnom zostavení? Obnovte svoje existujúce zálohy.",
   "recovery.freshNudgeCta": "Prejsť na Obnovu",
 
-  // Settings — section tabs
+  // Settings; section tabs
   "settings.tab.general": "Všeobecné",
   "settings.tab.storage": "Cesty a úložisko",
   "settings.tab.schedules": "Plány",
@@ -1360,7 +1360,7 @@ const sk: Partial<Translations> = {
   // Filter drawer trigger
   "filter.button": "Filtre",
 
-  // Settings — weekly digest, backup-engine cache, revoke-all sessions
+  // Settings; weekly digest, backup-engine cache, revoke-all sessions
   "settings.digestTitle": "Týždenný súhrn",
   "settings.digestHint": "Jedna súhrnná správa za týždeň: počet behov, nové dáta zálohy, aktuálnosť externého úložiska a najväčšie zlyhania, odoslaná prostredníctvom vyššie uvedených kanálov upozornení.",
   "settings.digestToggle": "Týždenný súhrn",

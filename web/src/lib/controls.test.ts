@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
-// Control label engine (#178) — the pure half.
+// Control label engine (#178); the pure half.
 //
 // Two properties matter here and neither needs a DOM:
-//   - the width stage comes from the LABEL, so it cannot change with the mode
+//   - the width stage comes from the label, so it cannot change with the mode
 //     (jdp: a button must be the same width in all three modes);
 //   - CJK labels count double, or Chinese buttons would be sized as if they
 //     were a third as wide as they render.
@@ -67,7 +67,7 @@ describe("the engine's shape", () => {
     // Sidebar and tabs share the same options but not the same value: a
     // sidebar reduced to glyphs changes the page layout, tabs do not.
     // "bottombar" is the mobile bottom nav's own axis: same four modes as
-    // the desktop axes, but a value the bar consumes independently — the
+    // the desktop axes, but a value the bar consumes independently; the
     // phone has no sidebar or tabs, so it needed a fourth register rather
     // than borrowing one (Settings' label card renders the axis
     // automatically from settings.labels.bottombar).

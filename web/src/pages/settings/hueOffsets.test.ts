@@ -1,11 +1,11 @@
 // ---------------------------------------------------------------------------
 // No two selectors on one settings screen start on the same colour.
 //
-// A Selector segment takes its hue from its POSITION, which is what makes a
+// A Selector segment takes its hue from its position, which is what makes a
 // rainbow list readable: position three is the same colour wherever you meet
 // it. Stack two selectors of similar width, though, and every column repeats
 // straight down the page, so the second one tells you nothing the first did
-// not (jdp, 2026-09-15, on the three label-mode selectors in Settings all
+// not (jdp, on the three label-mode selectors in Settings all
 // wearing the same orange in column two).
 //
 // `hueOffset` is the fix, and the trap is that its default is 0 - which is
@@ -15,14 +15,14 @@
 // tree, passing an offset is not optional, and the offsets come from one
 // table rather than from nine separate judgement calls.
 //
-// The table alone is not enough — its entries are per-TAB assignments, and
+// The table alone is not enough; its entries are per-tab assignments, and
 // the collision class that actually bites is two selectors visible in the
-// SAME tab reading from one start (the label rows grew a fourth axis and
+// Same tab reading from one start (the label rows grew a fourth axis and
 // its last row landed on the Shape selector's start, both on General). So
-// the last test below expands the table per tab — including the label
+// the last test below expands the table per tab; including the label
 // rows' span, which is one entry in the table but CONTROL_AXES.length
-// starts on screen — and fails on ANY duplicate within a tab. Starts
-// shared across DIFFERENT tabs are fine: those selectors can never be on
+// starts on screen; and fails on any duplicate within a tab. Starts
+// shared across different tabs are fine: those selectors can never be on
 // screen together.
 //
 // Node environment: this reads source, it does not render.
@@ -70,7 +70,7 @@ function selectorElements(text: string): string[] {
 
 /** The union of the JSX each `tab === "X"` gate renders in Settings.tsx:
  *  every `{tab === "X" && …}` block, brace-matched to its own close. The
- *  tab strip itself sits above all gates, so it never appears in a region —
+ *  tab strip itself sits above all gates, so it never appears in a region;
  *  the groups below add it explicitly (it shows on every tab). */
 function settingsTabRegion(tab: string): string {
   const text = readFileSync(SETTINGS_PAGE, "utf8");
@@ -134,18 +134,18 @@ describe("settings selectors", () => {
 
 // ---------------------------------------------------------------------------
 // The per-tab collision property itself. The groups name every hued selector
-// a tab can show AT THE SAME TIME, and the truthfulness test below keeps
+// a tab can show at the same time, and the truthfulness test below keeps
 // them honest against the source: if a card moves tabs (ThemeCard did), the
 // stale group fails here instead of silently protecting the wrong screen.
 // ---------------------------------------------------------------------------
 
 /** Which hued selectors each tab can show simultaneously. The tab strip is
- *  implicit — it renders on every tab and is added by the test. A selector
- *  whose offset is a SPAN (the label rows, one per control axis) is listed
+ *  implicit; it renders on every tab and is added by the test. A selector
+ *  whose offset is a span (the label rows, one per control axis) is listed
  *  once with `span: true` and expanded below. `marker` is what must appear
  *  inside the tab's gated JSX for the claim to be true (the offset
  *  expression for a selector inline in Settings.tsx, the card tag for one
- *  carried by a card file — whose `cardFile` must then name that key). */
+ *  carried by a card file; whose `cardFile` must then name that key). */
 const TAB_GROUPS: {
   tab: string;
   selectors: { key: keyof typeof HUE_OFFSET; span?: boolean; marker: string; cardFile?: string }[];
@@ -156,7 +156,7 @@ const TAB_GROUPS: {
       { key: "labels", span: true, marker: "HUE_OFFSET.labels" },
       { key: "shape", marker: "HUE_OFFSET.shape" },
       { key: "motion", marker: "HUE_OFFSET.motion" },
-      // ThemeCard's own picker — the card lives on the General tab (its
+      // ThemeCard's own picker; the card lives on the General tab (its
       // file carries the Selector, Settings.tsx's General region mounts it).
       { key: "theme", marker: "<ThemeCard", cardFile: "ThemeCard.tsx" },
     ],
@@ -183,7 +183,7 @@ describe("per-tab palette starts", () => {
       }
       for (const sel of group.selectors) {
         // The card/selector the group claims must actually render inside this
-        // tab's gated JSX — a card moving tabs (ThemeCard has) must fail HERE,
+        // tab's gated JSX; a card moving tabs (ThemeCard has) must fail here,
         // not silently protect the wrong screen.
         if (!region.includes(sel.marker)) {
           offenders.push(`tab "${group.tab}": ${sel.marker} not found in its gated region`);

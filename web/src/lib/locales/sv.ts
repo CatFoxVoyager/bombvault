@@ -357,7 +357,7 @@ const sv: Partial<Translations> = {
   "auth.invalidPassword": "Ogiltigt lösenord",
   "auth.loginError": "Inloggning misslyckades",
 
-  // Settings — Security card
+  // Settings; Security card
   "auth.security": "Lösenord",
   "auth.authOff": "Autentisering är av. Alla LAN-användare har full åtkomst.",
   "auth.authOn": "Autentisering är aktiverad.",
@@ -695,7 +695,7 @@ const sv: Partial<Translations> = {
   "export.exportedTo": "Exporterad till:",
   "backup.configOnly": "Endast konfiguration, inga datamappar (definition sparad för återskapande)",
 
-  // Backups — delete all
+  // Backups; delete all
   "snapshots.deleteAll": "Ta bort alla säkerhetskopior",
   "snapshots.deleteAllConfirm": "Ta bort ALLA säkerhetskopior av denna VM från den valda källan (lokal eller off-site)? Ögonblicksbilderna tas bort permanent och arkivet rensas. Detta kan inte ångras.",
   "snapshots.deletingAll": "Tar bort…",
@@ -771,7 +771,7 @@ const sv: Partial<Translations> = {
   "recovery.freshNudge": "Återställer du från en tidigare server eller en ombyggnad? Återställ dina befintliga säkerhetskopior.",
   "recovery.freshNudgeCta": "Gå till Återställning",
 
-  // Recovery — restore BombVault's own settings (config)
+  // Recovery; restore BombVault's own settings (config)
   "recovery.stepConfig": "Återställ BombVaults egna inställningar",
   "recovery.configHint": "På en ombyggd server återställ först BombVaults egna inställningar (dess säkerhetskopiesökvägar, off-site-mål och uppgifter), så att stegen nedan fylls i i förväg. Peka den mot inställningssäkerhetskopian du satte upp tidigare. Ingen inställningssäkerhetskopia? Hoppa över detta och anslut dina säkerhetskopior manuellt nedan.",
   "recovery.configAppKeyReminder": "Din APP_KEY måste matcha den här säkerhetskopian, det är kontrollen i steg 1 ovan.",
@@ -860,7 +860,7 @@ const sv: Partial<Translations> = {
   "settings.dashTileRemoving": "Tar bort…",
   "settings.dashTileRemoveOk": "Pluginet är borttaget. Det visas inte längre på Unraid-Dashboard.",
 
-  // Notifications — SMTP
+  // Notifications; SMTP
   "notify.smtp": "E-post (SMTP)",
   "notify.smtpHost": "SMTP-värd",
   "notify.smtpPort": "Port",
@@ -1139,7 +1139,7 @@ const sv: Partial<Translations> = {
   "drill.manualOnly": "Off-site DR: endast manuellt",
   "drill.manualOnlyTitle": "Den schemalagda off-site DR-övningen är av. Kör off-site-kontrollen manuellt med knappen.",
 
-  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings; section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "Allmänt",
   "settings.tab.storage": "Sökvägar och lagring",
   "settings.tab.schedules": "Scheman",
@@ -1238,7 +1238,7 @@ const sv: Partial<Translations> = {
   "dashboard.domainFiles": "Mappar",
   "recovery.filesFound": "Hittade {f} mappuppsättningar.",
   "recovery.filesRestoreHint": "Återupptäckta mappuppsättningar känner inte till sin ursprungliga mapp. Varje uppsättning återställs till en mapp du väljer.",
-  // Restore from another BombVault repo — Recovery page (#61 task 11)
+  // Restore from another BombVault repo; Recovery page
   "recovery.foreignTitle": "Återställ från ett annat BombVault-repo",
   "recovery.foreignIntro": "Hämta enskilda containrar, VM:ar eller mappuppsättningar ur säkerhetskopiorna från en ANNAN BombVault-instans: anslut skrivskyddat, bläddra i innehållet och återställ det du väljer. Det andra repot läses bara, inget ändras där, och dina egna säkerhetskopieringsinställningar förblir orörda.",
   "recovery.foreignStepConnect": "Anslut till det andra repot",
@@ -1276,7 +1276,7 @@ const sv: Partial<Translations> = {
   "recovery.foreignExpired": "Sessionen har gått ut (sessioner varar 30 minuter). Anslut igen för att fortsätta bläddra.",
   "recovery.foreignReconnect": "Anslut igen",
 
-  // Dashboard activity log (Task 4)
+  // Dashboard activity log
   "activityLog.title": "Aktivitetslogg",
   "activityLog.filterPlaceholder": "Filtrera… (t.ex. plex, misslyckad, off-site)",
   "activityLog.filterAllDomains": "Alla domäner",
@@ -1333,7 +1333,7 @@ const sv: Partial<Translations> = {
   "activityLog.dayFilterChip": "Visar {date}",
   "activityLog.clearDayFilter": "Rensa dagsfiltret",
 
-  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave; Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "Replikering startad - den körs i bakgrunden; aktivitetsindikatorn visar förloppet.",
   "whatsnew.retry": "Försök igen",

@@ -908,7 +908,7 @@ const fa: Partial<Translations> = {
   "auth.invalidPassword": "رمز عبور نادرست",
   "auth.loginError": "ورود ناموفق بود",
 
-  // Settings — Security card
+  // Settings; Security card
   "auth.security": "گذرواژه",
   "auth.authOff": "احراز هویت خاموش است: همه کاربران شبکه محلی دسترسی کامل دارند.",
   "auth.authOn": "احراز هویت فعال است.",
@@ -1334,7 +1334,7 @@ const fa: Partial<Translations> = {
   "recovery.freshNudge": "در حال بازیابی از یک سرور قبلی یا پس از بازسازی هستید؟ پشتیبان‌های موجود خود را بازیابی کنید.",
   "recovery.freshNudgeCta": "رفتن به بازیابی",
 
-  // Settings — section tabs
+  // Settings; section tabs
   "settings.tab.general": "عمومی",
   "settings.tab.storage": "مسیرها و فضای ذخیره‌سازی",
   "settings.tab.schedules": "زمان‌بندی‌ها",
@@ -1360,7 +1360,7 @@ const fa: Partial<Translations> = {
   // Filter drawer trigger
   "filter.button": "فیلترها",
 
-  // Settings — weekly digest, backup-engine cache, revoke-all sessions
+  // Settings; weekly digest, backup-engine cache, revoke-all sessions
   "settings.digestTitle": "خلاصه هفتگی",
   "settings.digestHint": "یک پیام خلاصه در هفته: تعداد اجراها، داده‌های پشتیبان جدید، به‌روز بودن خارج از محل و خطاهای اصلی، از طریق کانال‌های اعلان بالا ارسال می‌شود.",
   "settings.digestToggle": "خلاصه هفتگی",

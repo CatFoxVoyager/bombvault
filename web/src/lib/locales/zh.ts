@@ -357,7 +357,7 @@ const zh: Partial<Translations> = {
   "auth.invalidPassword": "密码无效",
   "auth.loginError": "登录失败",
 
-  // Settings — Security card
+  // Settings; Security card
   "auth.security": "密码",
   "auth.authOff": "身份验证已关闭，所有 LAN 用户均有完全访问权限。",
   "auth.authOn": "身份验证已启用。",
@@ -687,7 +687,7 @@ const zh: Partial<Translations> = {
   "export.exportedTo": "已导出到：",
   "backup.configOnly": "仅配置，无数据文件夹（已保存定义以便重新创建）",
 
-  // Backups — delete all
+  // Backups; delete all
   "snapshots.deleteAll": "删除所有备份",
   "snapshots.deleteAllConfirm": "删除此虚拟机在所选来源（本地或异地）的所有备份？快照将被永久移除，并对仓库执行清理。此操作无法撤销。",
   "snapshots.deletingAll": "删除中…",
@@ -763,7 +763,7 @@ const zh: Partial<Translations> = {
   "recovery.freshNudge": "正在从旧服务器或重建中恢复？恢复你现有的备份。",
   "recovery.freshNudgeCta": "前往恢复",
 
-  // Recovery — restore BombVault's own settings (config)
+  // Recovery; restore BombVault's own settings (config)
   "recovery.stepConfig": "还原 BombVault 自身的设置",
   "recovery.configHint": "在重建的服务器上，先还原 BombVault 自身的设置（它的备份路径、异地目标和凭据），这样下面的步骤会预先填好。让它指向你之前设置的设置备份。没有设置备份？跳过此步，在下方手动附加你的备份。",
   "recovery.configAppKeyReminder": "你的 APP_KEY 必须与此备份匹配，这就是上方第 1 步中的检查。",
@@ -852,7 +852,7 @@ const zh: Partial<Translations> = {
   "settings.dashTileRemoving": "正在移除…",
   "settings.dashTileRemoveOk": "插件已移除。它不再显示在 Unraid 仪表板上。",
 
-  // Notifications — Email (SMTP)
+  // Notifications; Email (SMTP)
   "notify.smtp": "邮件 (SMTP)",
   "notify.smtpHost": "SMTP 主机",
   "notify.smtpPort": "端口",
@@ -1131,7 +1131,7 @@ const zh: Partial<Translations> = {
   "drill.manualOnly": "异地 DR：仅手动",
   "drill.manualOnlyTitle": "计划的异地 DR 演练已关闭。请使用按钮手动运行异地检查。",
 
-  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings; section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "常规",
   "settings.tab.storage": "路径与存储",
   "settings.tab.schedules": "计划",
@@ -1230,7 +1230,7 @@ const zh: Partial<Translations> = {
   "dashboard.domainFiles": "文件夹",
   "recovery.filesFound": "找到 {f} 个文件夹集。",
   "recovery.filesRestoreHint": "重新发现的文件夹集不包含原始文件夹信息。每个文件夹集都会恢复到您选择的文件夹。",
-  // Restore from another BombVault repo — Recovery page (#61 task 11)
+  // Restore from another BombVault repo; Recovery page
   "recovery.foreignTitle": "从另一个 BombVault 仓库恢复",
   "recovery.foreignIntro": "从另一个 BombVault 实例的备份中提取单个容器、虚拟机或文件夹集：以只读方式连接，浏览内容，恢复您选择的项目。对方仓库只会被读取，那边不会有任何改动，您自己的备份设置也保持不变。",
   "recovery.foreignStepConnect": "连接到对方仓库",
@@ -1268,7 +1268,7 @@ const zh: Partial<Translations> = {
   "recovery.foreignExpired": "会话已过期（会话有效期为 30 分钟）。请重新连接以继续浏览。",
   "recovery.foreignReconnect": "重新连接",
 
-  // Dashboard activity log (Task 4)
+  // Dashboard activity log
   "activityLog.title": "活动日志",
   "activityLog.filterPlaceholder": "筛选…（如 plex、失败、异地）",
   "activityLog.filterAllDomains": "所有域",
@@ -1325,7 +1325,7 @@ const zh: Partial<Translations> = {
   "activityLog.dayFilterChip": "正在显示 {date}",
   "activityLog.clearDayFilter": "清除日期筛选",
 
-  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave; Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "复制已开始 - 在后台运行；运行指示器会显示进度。",
   "whatsnew.retry": "重试",

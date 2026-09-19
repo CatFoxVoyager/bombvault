@@ -1,9 +1,9 @@
 import { save as saveDisplayPrefs } from "./displayPrefs";
 // ---------------------------------------------------------------------------
-// Control label engine (#178) — how much of a control's identity is shown:
+// Control label engine (#178); how much of a control's identity is shown:
 // its text, its glyph, or both.
 //
-// INDEPENDENT axes, because the same answer is rarely right for all of them:
+// Independent axes, because the same answer is rarely right for all of them:
 // the action buttons scattered through the pages, the sidebar's navigation
 // rail, the tab strips inside Settings, and the mobile bottom bar (whose
 // captions are a shell-layout decision, like the rail's, not a density
@@ -19,17 +19,17 @@ import { save as saveDisplayPrefs } from "./displayPrefs";
 // ---------------------------------------------------------------------------
 
 /**
- * "text"      — label only, no glyph.
- * "textGlyph" — glyph next to the label (today's look, hence the default).
- * "glyph"     — glyph only; the label survives as the accessible name and the
+ * "text"     ; label only, no glyph.
+ * "textGlyph"; glyph next to the label (today's look, hence the default).
+ * "glyph"    ; glyph only; the label survives as the accessible name and the
  *               tooltip, never as nothing (see ControlLabel in Button.tsx).
- * "reactive"  — glyph only at rest, and the words come back on hover or focus
+ * "reactive" ; glyph only at rest, and the words come back on hover or focus
  *               (jdp: "reaktiver Text und Symbole").
  *
  * Why "reactive" costs no layout at all, which is the whole reason it can
- * exist: every control already reserves its LABEL's width in glyph mode, so
+ * exist: every control already reserves its label's width in glyph mode, so
  * the box is wide enough for the words before they arrive. Revealing them
- * moves nothing on the page — the text appears inside a box that was always
+ * moves nothing on the page; the text appears inside a box that was always
  * that size. Without the width-stage engine this mode would reflow the page
  * under the pointer, which is exactly the thing the stages exist to prevent.
  */
@@ -44,7 +44,7 @@ export const LABEL_MODES: LabelMode[] = ["text", "textGlyph", "glyph", "reactive
  *
  * A predicate rather than `mode === "glyph"` scattered around, because that
  * comparison lived at eleven call sites and every one of them would have had
- * to learn about the fourth mode independently — the kind of place a new enum
+ * to learn about the fourth mode independently; the kind of place a new enum
  * value gets half-adopted and nobody notices until a strip renders wrong.
  */
 export function hidesLabel(mode: LabelMode): boolean {
@@ -75,7 +75,7 @@ const ATTRIBUTE: Record<ControlAxis, string> = {
 };
 
 /**
- * DEFAULT is "textGlyph" for every axis: that is what the app looks like today
+ * default is "textGlyph" for every axis: that is what the app looks like today
  * (buttons with a label, sidebar rows with icon plus text, tabs with text),
  * so nobody's interface changes merely because the setting now exists.
  *
@@ -83,7 +83,7 @@ const ATTRIBUTE: Record<ControlAxis, string> = {
  * since moved away from it (#228): its top level does more than enlarge the
  * old animations, it tilts and scales the whole page, so shipping it by
  * default handed people something they had not asked for. The argument still
- * holds here, because these three axes only ever hide a label or an icon —
+ * holds here, because these three axes only ever hide a label or an icon;
  * nothing moves, so there is no equivalent of that surprise.
  */
 const DEFAULT: LabelMode = "textGlyph";
@@ -134,10 +134,10 @@ export function applyStoredLabelModes(): void {
 // ---------------------------------------------------------------------------
 // Width stages (#178, [200]).
 //
-// jdp's requirement: a button keeps the SAME width in all three modes, so
+// jdp's requirement: a button keeps the same width in all three modes, so
 // switching mode never reflows the page. The width therefore cannot come from
 // what is currently rendered (a lone glyph is narrow), it has to come from the
-// LABEL — which is present in every mode, even when it is only the accessible
+// label; which is present in every mode, even when it is only the accessible
 // name.
 //
 // Why stages rather than each button measuring its own text: measuring happens
@@ -146,13 +146,13 @@ export function applyStoredLabelModes(): void {
 // paint, and it gives the tidy, aligned look jdp asked for ("sonst haben wir
 // in den drei modi total viele verschieden breite buttons").
 //
-// Why the CURRENT language decides the stage, measured rather than assumed:
+// Why the current language decides the stage, measured rather than assumed:
 // across the 42 locales the same label grows by up to 3.4x ("Clear" becomes
 // "Kijelölés törlése" in Hungarian, "Show" becomes "Megjelenítés"). Pinning
 // one global stage per button would mean every English and Chinese interface
 // pays for the longest translation, permanently. Deriving the stage from the
 // active language keeps each language tidy on its own terms; the width changes
-// when the LANGUAGE changes, which is a reload-level event, not while anyone
+// when the language changes, which is a reload-level event, not while anyone
 // is looking at a mode selector.
 // ---------------------------------------------------------------------------
 
@@ -203,15 +203,15 @@ export function widthStage(label: string): WidthStage {
 }
 
 /**
- * The stage a set of labels shares: the one the LONGEST of them needs.
+ * The stage a set of labels shares: the one the longest of them needs.
  *
- * For BUTTONS that belong together visually but are rendered by different
+ * For buttons that belong together visually but are rendered by different
  * components, so neither can see the other's label. jdp, on the Container
- * card: "die buttons jetzt sichern und Export sollen gleich breit sein" —
+ * card: "die buttons jetzt sichern und Export sollen gleich breit sein";
  * "Jetzt sichern" lands on `sm` and "Export (Plain-tar)" on `md`, and they sit
  * side by side.
  *
- * Both components compute this from the SAME two labels rather than one
+ * Both components compute this from the same two labels rather than one
  * passing a width to the other, so they agree in all 42 languages without a
  * prop threaded through the card between them, and they keep agreeing when one
  * of the two words is retranslated.
@@ -228,14 +228,14 @@ export function groupStage(labels: string[]): WidthStage {
 /**
  * Padding for the things a stage table cannot see.
  *
- * `widthStage` measures TEXT, but a rendered button also carries a glyph, the
- * gap beside it and its own horizontal padding — about 52px, or eight units at
+ * `widthStage` measures text, but a rendered button also carries a glyph, the
+ * gap beside it and its own horizontal padding; about 52px, or eight units at
  * the ~7px per unit the stage bounds are calibrated to. For the ordinary case
  * that gap does not matter, because a stage is a floor and a slightly wide
- * label simply overhangs it (a known, accepted property — jdp has looked at it
+ * label simply overhangs it (a known, accepted property; jdp has looked at it
  * and left it alone).
  *
- * It matters here, because a group's stage is applied as an EXACT width. Left
+ * It matters here, because a group's stage is applied as an exact width. Left
  * unpadded, "Diesen Ordner verwenden" lands on `md` (184px) and renders 218px,
  * so the pair it was supposed to match would be the one thing it does not do.
  *

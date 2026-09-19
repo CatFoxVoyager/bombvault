@@ -357,7 +357,7 @@ const cs: Partial<Translations> = {
   "auth.invalidPassword": "Neplatné heslo",
   "auth.loginError": "Přihlášení selhalo",
 
-  // Settings — Security card
+  // Settings; Security card
   "auth.security": "Heslo",
   "auth.authOff": "Ověřování je vypnuto. Všichni uživatelé v LAN mají plný přístup.",
   "auth.authOn": "Ověřování je povoleno.",
@@ -693,7 +693,7 @@ const cs: Partial<Translations> = {
   "export.exportedTo": "Exportováno do:",
   "backup.configOnly": "Pouze konfigurace: žádné datové složky (definice uložena pro obnovení)",
 
-  // Backups — delete all
+  // Backups; delete all
   "snapshots.deleteAll": "Smazat všechny zálohy",
   "snapshots.deleteAllConfirm": "Smazat VŠECHNY zálohy tohoto VM z vybraného zdroje (místní nebo mimo lokalitu)? Snímky budou trvale odstraněny a repozitář bude vyčištěn. Tuto akci nelze vrátit zpět.",
   "snapshots.deletingAll": "Mazání…",
@@ -789,7 +789,7 @@ const cs: Partial<Translations> = {
   "config.snapshotsHint": "Chcete-li tato nastavení obnovit na znovu sestaveném serveru, použijte kartu Obnova. Obnovení nastavení restartuje BombVault, aby se použila, takže patří tam spolu se zbytkem postupu zotavení po havárii.",
   "config.none": "Zatím žádné zálohy nastavení. Spusťte zálohu výše.",
 
-  // Recovery — restore BombVault's own settings step
+  // Recovery; restore BombVault's own settings step
   "recovery.stepConfig": "Obnovit vlastní nastavení BombVaultu",
   "recovery.configHint": "Na znovu sestaveném serveru nejprve obnovte vlastní nastavení BombVaultu (jeho zálohovací cesty, cíle mimo lokalitu a přihlašovací údaje), aby se kroky níže předvyplnily. Nasměrujte jej na zálohu nastavení, kterou jste dříve nastavili. Žádná záloha nastavení? Přeskočte to a připojte své zálohy ručně níže.",
   "recovery.configAppKeyReminder": "Váš APP_KEY musí odpovídat této záloze. To je kontrola v kroku 1 výše.",
@@ -1137,7 +1137,7 @@ const cs: Partial<Translations> = {
   "drill.manualOnly": "DR mimo lokalitu: pouze ručně",
   "drill.manualOnlyTitle": "Naplánované cvičení DR mimo lokalitu je vypnuté. Spusťte kontrolu mimo lokalitu ručně pomocí tlačítka.",
 
-  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings; section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "Obecné",
   "settings.tab.storage": "Cesty a úložiště",
   "settings.tab.schedules": "Plány",
@@ -1236,7 +1236,7 @@ const cs: Partial<Translations> = {
   "dashboard.domainFiles": "Složky",
   "recovery.filesFound": "Nalezeno {f} sad složek.",
   "recovery.filesRestoreHint": "Znovu objevené sady složek neznají svou původní složku. Každá se obnoví do složky, kterou zvolíte.",
-  // Restore from another BombVault repo — Recovery page (#61 task 11)
+  // Restore from another BombVault repo; Recovery page
   "recovery.foreignTitle": "Obnovit z jiného repozitáře BombVault",
   "recovery.foreignIntro": "Vytáhněte jednotlivé kontejnery, VM nebo sady složek ze záloh JINÉ instance BombVault: připojte se jen pro čtení, projděte obsah a obnovte, co si vyberete. Druhý repozitář se pouze čte, nic se tam nemění a vaše vlastní nastavení zálohování zůstává nedotčeno.",
   "recovery.foreignStepConnect": "Připojit se k jinému repozitáři",
@@ -1274,7 +1274,7 @@ const cs: Partial<Translations> = {
   "recovery.foreignExpired": "Relace vypršela (relace trvají 30 minut). Připojte se znovu a pokračujte v procházení.",
   "recovery.foreignReconnect": "Připojit znovu",
 
-  // Dashboard activity log (Task 4)
+  // Dashboard activity log
   "activityLog.title": "Protokol aktivit",
   "activityLog.filterPlaceholder": "Filtrovat… (např. plex, selhalo, mimo lokalitu)",
   "activityLog.filterAllDomains": "Všechny oblasti",
@@ -1331,7 +1331,7 @@ const cs: Partial<Translations> = {
   "activityLog.dayFilterChip": "Zobrazeno: {date}",
   "activityLog.clearDayFilter": "Zrušit filtr dne",
 
-  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave; Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "Replikace zahájena - běží na pozadí; indikátor běhu ukazuje průběh.",
   "whatsnew.retry": "Zkusit znovu",

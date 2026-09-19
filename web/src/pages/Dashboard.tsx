@@ -9,10 +9,10 @@ import { useT } from "../lib/i18n";
 import { SelectField } from "../components/SelectField";
 import { isOwnReason, runReason } from "../lib/runReason";
 // Run kind/target labels + status chips live in lib/runDisplay so the mobile
-// RunDetailSheet renders the exact same vocabulary — verbatim move, no
+// RunDetailSheet renders the exact same vocabulary; verbatim move, no
 // behavior change.
 import { runKindLabel, runTargetText, statusLabel, statusTone } from "../lib/runDisplay";
-// The responsive page rhythm — gap-6 below the 48rem breakpoint, the
+// The responsive page rhythm; gap-6 below the 48rem breakpoint, the
 // PAGE_SHELL gap-10 at and above (identical on desktop by construction).
 // Dashboard joins Containers/Files as a stated exception in eslint.config.js.
 import { PAGE_SHELL_RESPONSIVE } from "../lib/pageShell";
@@ -75,7 +75,7 @@ function StatCard({
   value: number;
   danger?: boolean;
   /** When set, the card becomes a real button (pointer cursor, hover, focus
-   *  ring) — used to open the error-detail panel from the errors tile. */
+   *  ring); used to open the error-detail panel from the errors tile. */
   onClick?: () => void;
 }) {
   const base = "bg-carbon-surface rounded-card px-4 py-3 flex flex-col gap-1 min-w-0 overflow-hidden";
@@ -108,7 +108,7 @@ function StatCard({
 // computeStatData fetches the four inputs the stat cards need and derives the
 // tile values. Extracted from the component so it can be re-run on demand (after
 // the error panel acknowledges failures) as well as on mount. Rejects if any
-// fetch rejects — the caller then leaves the last known data in place.
+// fetch rejects; the caller then leaves the last known data in place.
 async function computeStatData(): Promise<StatData> {
   const [contRes, settingsRes, runsRes, vmsRes] = await Promise.all([
     listContainers(),
@@ -119,7 +119,7 @@ async function computeStatData(): Promise<StatData> {
   const containers = contRes.ok ? (contRes.containers ?? []) : [];
   const settings: Settings | null = settingsRes.ok ? settingsRes.settings : null;
   const runs = runsRes.ok ? (runsRes.runs ?? []) : [];
-  // listVMs fails/returns empty when the VMs domain is off — treat as none.
+  // listVMs fails/returns empty when the VMs domain is off; treat as none.
   const vms = vmsRes.ok ? (vmsRes.vms ?? []) : [];
 
   const installed = containers.filter((c) => c.installed);
@@ -129,7 +129,7 @@ async function computeStatData(): Promise<StatData> {
   const schedEnabled = settings ? settings.containersSchedule !== "off" && settings.containersSchedule !== "" : false;
   const activeJobs = schedEnabled ? installed.filter((c) => c.includeInSchedule).length : 0;
   const pausedJobs = !schedEnabled ? installed.filter((c) => c.includeInSchedule).length : 0;
-  // Scoped to backup/restore/update kinds — a failed prune/verify
+  // Scoped to backup/restore/update kinds; a failed prune/verify
   // (maintenance) run is surfaced in the Activity Log, not here, so this
   // badge keeps its original "backup/restore failures" meaning (#3).
   const errors = failedRunsNeedingAttention(runs).length;
@@ -149,12 +149,12 @@ async function computeStatData(): Promise<StatData> {
  * The app's one acknowledgeable-failure derivation: the failed runs an error
  * badge/counter should still be counting.
  * ------------------------------------------------------------------------
- * Scoped to backup/restore/update kinds — a failed prune/verify (maintenance)
+ * Scoped to backup/restore/update kinds; a failed prune/verify (maintenance)
  * run is surfaced in the Activity Log, not here, so the count keeps its
  * original "backup/restore failures" meaning (#3).
  *
- * Reflects the LAST completed run per item (#100), not a cumulative count of
- * every failure ever recorded — a target that has since backed up (or
+ * Reflects the last completed run per item (#100), not a cumulative count of
+ * every failure ever recorded; a target that has since backed up (or
  * restored/updated) successfully must drop out. `runs` arrives newest-first,
  * so the first non-"running" run seen per targetId is that item's latest
  * completed outcome; "running" runs are skipped so an in-flight retry doesn't
@@ -162,9 +162,9 @@ async function computeStatData(): Promise<StatData> {
  * resolving an error in the detail panel drops the target out of the count
  * just like a later success.
  *
- * Extracted from computeStatData because the runs block needs the SAME list
+ * Extracted from computeStatData because the runs block needs the same list
  * the stat tier's errors tile counts: one derivation, two surfaces that
- * cannot disagree — the same rule the summary tier's shared helpers follow.
+ * cannot disagree; the same rule the summary tier's shared helpers follow.
  */
 function failedRunsNeedingAttention(runs: Run[]): Run[] {
   const latestCompletedByTarget = new Map<string, Run>();
@@ -203,7 +203,7 @@ function StatCardsRow({ t, advanced }: { t: ReturnType<typeof useT>["t"]; advanc
     computeStatData()
       .then((d) => setData(d))
       .catch(() => {
-        /* non-fatal — keep the current tile values */
+        /* non-fatal; keep the current tile values */
       });
   }, []);
 
@@ -220,7 +220,7 @@ function StatCardsRow({ t, advanced }: { t: ReturnType<typeof useT>["t"]; advanc
             <StatCard label={t("dashboard.statPausedJobs")} value={data.pausedJobs} />
           </>
         )}
-        {/* Clickable only when there are errors to show — opens the detail panel. */}
+        {/* Clickable only when there are errors to show; opens the detail panel. */}
         <StatCard
           label={t("dashboard.statErrors")}
           value={data.errors}
@@ -254,68 +254,68 @@ function Card({
   title: string;
   children: React.ReactNode;
   action?: React.ReactNode;
-  /** Rainbow position for THIS Card's own heading notch — GlimStone
+  /** Rainbow position for this Card's own heading notch; GlimStone
    *  follow-up pass, jdp's live review of this page specifically: "Dashboard:
    *  Cardtitelbadges sind falsch platziert. Alle sind nicht im
-   *  Regenbogenmodus." Every one of this page's Cards was still the ORIGINAL
-   *  Task 5 flat-accent-only heading, never migrated to the `hueIndex` opt-in
-   *  Settings.tsx's own Card already got — same prop, same Badge.tsx
+   *  Regenbogenmodus." Every one of this page's Cards was still the original
+   *  flat-accent-only heading, never migrated to the `hueIndex` opt-in
+   *  Settings.tsx's own Card already got; same prop, same Badge.tsx
    *  mechanism, just never threaded through on this file. Assigned by the
-   *  caller's own running `nextHue()` counter, in the CURRENT rendered order
+   *  caller's own running `nextHue()` counter, in the current rendered order
    *  of the user's customizable/reorderable block layout (see the main
    *  component's own `hueSeq`/`nextHue` comment for why that has to be a
    *  counter passed through the block-render callbacks rather than a static
    *  per-Card literal, the way Settings.tsx's own fixed tab layout can get
-   *  away with). Omit for a genuine singleton — same rule as Settings.tsx's
+   *  away with). Omit for a genuine singleton; same rule as Settings.tsx's
    *  Card. */
   hueIndex?: number;
 }) {
   return (
-    // GlimStone follow-up pass (live-review round, "half-overlap card
+    // GlimStone follow-up pass (live review, "half-overlap card
     // notch"): the heading Badge is now `position: absolute`, straddling
-    // THIS card's own top edge (see Badge.tsx's badgeClassName comment) —
-    // it needs a `relative` ancestor whose edge IS the card's real visual
+    // This card's own top edge (see Badge.tsx's badgeClassName comment);
+    // it needs a `relative` ancestor whose edge is the card's real visual
     // edge, which the bg-carbon-surface box below can no longer provide on
     // its own: that box's own `overflow-hidden` (there so a Card containing
     // a ProgressBar clips the bar's square ends to the card's rounded
-    // corners — see ProgressBar.tsx) would just as happily clip the badge's
+    // corners; see ProgressBar.tsx) would just as happily clip the badge's
     // own -11px poke above it. So `relative` moves to this new, purely
-    // structural OUTER div (no bg/radius/shadow of its own — all of that
+    // structural outer div (no bg/radius/shadow of its own; all of that
     // stays on the inner div below), with the badge rendering as its direct
     // child: it escapes the inner div's clipping entirely while still
     // measuring its offset against a box whose top edge is pixel-identical
     // to the visual card's own (this outer div has no padding/border, so it
     // hugs the inner div exactly).
-    // `glim-notch-card` (same live-review round's rainbow-hue follow-up as
-    // Settings.tsx's own Card — index.css's `[data-rainbow="reactive"]
+    // `glim-notch-card` (the same live review's rainbow-hue follow-up as
+    // Settings.tsx's own Card; index.css's `[data-rainbow="reactive"]
     // .glim-notch-card:hover .glim-notch-hue` rule keys off this marker):
-    // this page's Card never carried it before now — a genuine instance of
-    // the SAME gap jdp is naming here, not a new one invented for this
-    // fix — a hued heading on this page would have lit up on hovering only
+    // this page's Card never carried it before now; a genuine instance of
+    // the same gap jdp is naming here, not a new one invented for this
+    // fix; a hued heading on this page would have lit up on hovering only
     // its own ~22px glyph, not this card's whole body, in reactive mode.
     //
     // insetStart={5} (GlimStone follow-up pass, jdp emphatic: "Dashboard-
     // Badges sind immer noch falsch platziert, links buendig mit der Card")
-    // — the outer div above is deliberately unpadded (that's the whole point
+    //; the outer div above is deliberately unpadded (that's the whole point
     // of this split, see above), which left the badge's horizontal position
-    // — the CSS static-position fallback Badge.tsx uses by default — flush
-    // with THIS outer div's bare edge instead of the inner p-5 box's content
+    //; the CSS static-position fallback Badge.tsx uses by default; flush
+    // with this outer div's bare edge instead of the inner p-5 box's content
     // edge below. `insetStart={5}` states the inner box's own p-5 explicitly
     // on the Badge instead of leaving it to be re-derived from ambient DOM
-    // shape — see Badge.tsx's own `insetStart` doc for the full mechanism
-    // and the four OTHER call sites (SummaryCell below, ActivityLog.tsx,
+    // shape; see Badge.tsx's own `insetStart` doc for the full mechanism
+    // and the four other call sites (SummaryCell below, ActivityLog.tsx,
     // Flash.tsx's and Config.tsx's backup Cards) that independently hit the
     // identical mismatch.
     //
-    // `.glim-hue` ALSO added (rainbow-mode completeness sweep, jdp live
+    // `.glim-hue` also added (rainbow-mode completeness sweep, jdp live
     // review: "Es sind nicht alle Buttons in den Regenbogen-Modus
     // eingepflegt"): `glim-notch-card` alone never redefines
     // --accent/--focus-ring, only the reactive-mode hover reveal, so every
     // action button/control rendered as this Card's `children` (e.g.
     // RansomwareCard's "Run off-site DR check" button) stayed the flat theme
-    // accent regardless of rainbow, even though this SAME Card's own
+    // accent regardless of rainbow, even though this same Card's own
     // heading notch was already correctly hued. Same hueIndex prop the
-    // Badge already uses — custom properties cascade to every descendant
+    // Badge already uses; custom properties cascade to every descendant
     // once redefined here, no per-button change needed at any of this
     // Card's many call sites.
     <div
@@ -329,9 +329,9 @@ function Card({
         {/* action used to share a `justify-between` row with the <h2> above,
             pinned to the row's far end opposite the title. Now that the
             title lives outside this div entirely, `justify-end` replaces
-            `justify-between` (which needs 2+ items to do anything — with
+            `justify-between` (which needs 2+ items to do anything; with
             only `action` left in the row, `justify-between` would dock it
-            to the START instead of the end it always visually occupied). */}
+            to the start instead of the end it always visually occupied). */}
         {action && <div className="flex justify-end">{action}</div>}
         {children}
       </div>
@@ -464,7 +464,7 @@ export function ProtectionCard({
 
   // Keep a domain's transient manual-run message only where the Run-DR button is
   // actually reachable (a DR-capable, non-off domain with an off-site repo), and
-  // drop it elsewhere so a refetch (including one triggered by ANOTHER domain's
+  // drop it elsewhere so a refetch (including one triggered by another domain's
   // run) can't resurface a stale error. The next run for that domain clears it.
   useEffect(() => {
     setDrRunError((prev) => {
@@ -487,9 +487,9 @@ export function ProtectionCard({
     });
     void runDrill(domain, "offsite", "dr")
       .then((res) => {
-        // A drill that actually ran (pass OR fail) is recorded and surfaced by the
-        // status refetch below via d.drillDetail — don't duplicate it here. Only a
-        // run that produced NO recorded row (e.g. the repo was busy) needs its own
+        // A drill that actually ran (pass or fail) is recorded and surfaced by the
+        // status refetch below via d.drillDetail; don't duplicate it here. Only a
+        // run that produced no recorded row (e.g. the repo was busy) needs its own
         // transient message next to the button.
         if (!res.ok && !res.drill) {
           setDrRunError((e) => ({ ...e, [domain]: res.error ?? t("verify.failed") }));
@@ -551,22 +551,22 @@ export function ProtectionCard({
             const off = d.status === "off";
             // Only containers, flash + files ever run an off-site DR drill
             // (schedule.go drillTasks / runDRDrill). VMs + config can have an
-            // off-site repo but cannot be DR-drilled, so they must show NO DR
+            // off-site repo but cannot be DR-drilled, so they must show no DR
             // pill or Run-DR button.
             const drCapable = d.domain === "containers" || d.domain === "flash" || d.domain === "files";
             // Off-site DR opt-out (#37): the scheduled DR drill is turned off for a
-            // DR-capable domain that HAS an off-site repo. The pill then reads NEUTRAL
-            // ("manual only") — but only when there is no failing result to show.
+            // DR-capable domain that has an off-site repo. The pill then reads neutral
+            // ("manual only"); but only when there is no failing result to show.
             const drUnscheduled = drCapable && d.offsiteConfigured && !d.offsiteDrillScheduled;
             // The red "proven restorable off-site" state: a recorded off-site DR drill
-            // that failed. A real failure (scheduled OR a manual run) is ALWAYS shown,
-            // never masked by the opt-out — only "never drilled" goes neutral.
+            // that failed. A real failure (scheduled or a manual run) is always shown,
+            // never masked by the opt-out; only "never drilled" goes neutral.
             const drFailed = !off && drCapable && d.lastDrDrillAt > 0 && !d.lastDrDrillOK;
             return (
               <div key={d.domain} className="flex flex-col gap-1 rounded-control bg-carbon-surface2 px-2 py-2.5 text-sm">
-                {/* Two-mode row layout (#66 follow-up). WIDE card (container query
+                {/* Two-mode row layout (#66 follow-up). Wide card (container query
                     @[44rem] on the rows wrapper): every row lays its cells on the
-                    SAME shared grid track template so the same kind of info sits in
+                    Same shared grid track template so the same kind of info sits in
                     the same column down the whole card, regardless of which cells a
                     row populates: [domain] [status] [schedule] [last run] [verified]
                     [off-site verified] [off-site DR]. Fixed tracks for the
@@ -576,9 +576,9 @@ export function ProtectionCard({
                     leave their column blank without re-flowing the others; the
                     three badge columns get a readable floor width (not minmax(0,…))
                     so they wrap at word boundaries instead of being squeezed thin
-                    enough to hyphenate mid-word. NARROW card: the row falls back to
-                    a wrapped flex stack — the domain name reads as a full-width
-                    heading (basis-full) and the remaining cells flow underneath —
+                    enough to hyphenate mid-word. Narrow card: the row falls back to
+                    a wrapped flex stack; the domain name reads as a full-width
+                    heading (basis-full) and the remaining cells flow underneath;
                     so a half-width card never grows per-row horizontal
                     scrollbars. */}
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 py-0.5 @[44rem]:grid @[44rem]:gap-3 @[44rem]:grid-cols-[7rem_minmax(0,1fr)_minmax(0,1fr)_5rem_minmax(6.5rem,1fr)_minmax(7.5rem,1.2fr)_minmax(7.5rem,1.6fr)]">
@@ -595,7 +595,7 @@ export function ProtectionCard({
                     </span>
                   ) : (
                     <>
-                      {/* Col 2 — status: the RPO chip + its label kept together so the
+                      {/* Col 2; status: the RPO chip + its label kept together so the
                           pill never drifts from the words it qualifies. */}
                       <div className="col-start-2 flex min-w-0 items-center gap-2">
                         <span className="shrink-0">
@@ -605,10 +605,10 @@ export function ProtectionCard({
                           {rpoLabel(d.status)}
                         </span>
                       </div>
-                      {/* Col 3 — schedule cadence. A domain with no cadence of
+                      {/* Col 3; schedule cadence. A domain with no cadence of
                           its own can still be covered by the whole-server
                           "Backup Everything" pass, and then it is the pass's
-                          cadence that applies — naming it keeps the row from
+                          cadence that applies; naming it keeps the row from
                           contradicting the domain's own card, which correctly
                           shows no schedule (#177). */}
                       <span className="col-start-3 min-w-0 truncate text-carbon-textMuted text-xs">
@@ -616,14 +616,14 @@ export function ProtectionCard({
                           ? t("dashboard.rpoViaEverything").replace("{cadence}", formatCadence(d.coveredBy, t, lang))
                           : formatCadence(d.schedule, t, lang)}
                       </span>
-                      {/* Col 4 — last successful run. */}
+                      {/* Col 4; last successful run. */}
                       <span
                         className="col-start-4 text-start @[44rem]:text-end text-carbon-textMuted text-xs"
                         title={formatTs(d.lastSuccess)}
                       >
                         {d.lastSuccess ? relativeTime(t, d.lastSuccess) : t("containers.never")}
                       </span>
-                      {/* Col 5 — local-verify shield badge. */}
+                      {/* Col 5; local-verify shield badge. */}
                       {d.lastVerified ? (
                         <div className="col-start-5 min-w-0">
                           <Badge
@@ -636,13 +636,13 @@ export function ProtectionCard({
                           </Badge>
                         </div>
                       ) : null}
-                      {/* Cols 6+7 — NO off-site repo at all ([376]).
-                          Both off-site columns below are driven by a RECORDED
+                      {/* Cols 6+7; no off-site repo at all ([376]).
+                          Both off-site columns below are driven by a recorded
                           run, so a domain that has no second copy anywhere
                           renders neither, and the row goes quiet at exactly the
                           point where it has the most to say. Measured on jdp's
                           box: protectionLevel returned "red" for all five
-                          domains ("enabled but no off-site copy — unprotected by
+                          domains ("enabled but no off-site copy; unprotected by
                           design") while the page never printed the words
                           off-site, append-only or 3-2-1 once.
 
@@ -659,12 +659,12 @@ export function ProtectionCard({
                           </Badge>
                         </div>
                       ) : null}
-                      {/* Col 6 — Off-site SUBSET badge (#63) — the off-site integrity
+                      {/* Col 6; Off-site subset badge (#63); the off-site integrity
                           check (`restic check --read-data-subset` against the off-site
                           repo). Mirrors the local-verify shield above (same pills)
-                          and is the ONLY off-site drill VMs can run (DR restores
-                          are refused for them), so it shows for EVERY domain with
-                          a recorded run — alongside, never instead of, the DR pill
+                          and is the only off-site drill VMs can run (DR restores
+                          are refused for them), so it shows for every domain with
+                          a recorded run; alongside, never instead of, the DR pill
                           below. */}
                       {d.lastOffsiteSubsetAt ? (
                         <div className="col-start-6 min-w-0">
@@ -678,16 +678,16 @@ export function ProtectionCard({
                           </Badge>
                         </div>
                       ) : null}
-                      {/* Col 7 — Off-site restorability (DR) badge — mirrors the
+                      {/* Col 7; Off-site restorability (DR) badge; mirrors the
                           local-verify shield above (same pills), but proves the backup
-                          is recoverable from the OFF-SITE repo (a real DR sandbox
+                          is recoverable from the off-site repo (a real DR sandbox
                           restore). Only containers + flash + files ever run a DR drill,
                           so VMs/config never show this pill (empty column). On a
-                          failure the tooltip names WHICH check + the reason. */}
+                          failure the tooltip names which check + the reason. */}
                       <div className="col-start-7 min-w-0">
                         {drCapable && d.lastDrDrillAt && d.lastDrDrillOK ? (
-                          // GREEN — proven restorable off-site. A real passed run (even
-                          // a MANUAL one) is honest proof, so it's kept even when the
+                          // Green; proven restorable off-site. A real passed run (even
+                          // a manual one) is honest proof, so it's kept even when the
                           // scheduled DR drill is opted out.
                           <Badge
                             tone="ok"
@@ -698,9 +698,9 @@ export function ProtectionCard({
                             ✓ {t("drill.provenOffsite")} · {relativeTime(t, d.lastDrDrillAt)}
                           </Badge>
                         ) : drFailed ? (
-                          // RED — a recorded off-site DR drill FAILED (scheduled or a
+                          // Red; a recorded off-site DR drill failed (scheduled or a
                           // manual run). Always shown; the opt-out never masks a real
-                          // failure — only "never drilled" goes neutral below.
+                          // failure; only "never drilled" goes neutral below.
                           <Badge
                             tone="fail"
                             wrap
@@ -714,7 +714,7 @@ export function ProtectionCard({
                             ✗ {t("drill.provenOffsite")} · {relativeTime(t, d.lastDrDrillAt)}
                           </Badge>
                         ) : drUnscheduled ? (
-                          // NEUTRAL — off-site DR not scheduled (manual only) and nothing
+                          // Neutral; off-site DR not scheduled (manual only) and nothing
                           // failing to show: muted, never red. File's no-claim styling.
                           <Badge tone="neutral" wrap className="max-w-full" title={t("drill.manualOnlyTitle")}>
                             {t("drill.manualOnly")}
@@ -726,9 +726,9 @@ export function ProtectionCard({
                 </div>
                 {/* Manual off-site DR: the "Run off-site DR check" button is always
                     reachable for a configured domain (so a manual run works when
-                    opted out AND when currently green), while the red WHICH-check +
-                    WHY reason stays gated to an actual scheduled failure (drFailed).
-                    Only the off-site DR row drives that red — a local subset pass
+                    opted out and when currently green), while the red which-check +
+                    Why reason stays gated to an actual scheduled failure (drFailed).
+                    Only the off-site DR row drives that red; a local subset pass
                     can't clear it, so we run {offsite,dr} explicitly. */}
                 {!off && drCapable && (drFailed || d.offsiteConfigured) && (
                   <div className="flex flex-wrap items-center gap-2 ps-1">
@@ -784,8 +784,8 @@ function protectionChip(level: string): string {
 }
 
 // A checklist row: "ok" (proven, green), "amber" (a currency lapse that mirrors
-// the chip's amber — stale/overdue), "bad" (a red gap → deep-links to Settings),
-// or "muted" (not applicable / never run — no claim made, so not a failure).
+// the chip's amber; stale/overdue), "bad" (a red gap → deep-links to Settings),
+// or "muted" (not applicable / never run; no claim made, so not a failure).
 type RowState = "ok" | "amber" | "bad" | "muted";
 
 // Exported for Dashboard.ransomwareCard.dom.test.tsx, the same way
@@ -805,7 +805,7 @@ export function RansomwareCard({
 }) {
   // Pure renderer: every row is derived from the extended /api/status domain
   // fields (tamperState/replicationState/drillState/encryptionOn/pruneStrategySet),
-  // which the backend computes from the SAME inputs as the aggregate chip — so a
+  // which the backend computes from the same inputs as the aggregate chip; so a
   // row can never contradict it, and the card needs no /api/settings round-trip.
   const domainLabel = (domain: string): string => {
     switch (domain) {
@@ -843,7 +843,7 @@ export function RansomwareCard({
   // appendOnly/replication/drill rows are pure maps of the backend state string
   // (which is kept consistent with the chip). The ✓/!/✗/— icon + label + color all
   // follow the state, so a red/never row never reads "verified". The single
-  // documented divergence is appendOnlyRow's "" arm — see the comment there for
+  // documented divergence is appendOnlyRow's "" arm; see the comment there for
   // why that one colours the row without moving the chip.
   const appendOnlyRow = (d: DomainStatus): { label: string; state: RowState; at?: number } => {
     switch (d.tamperState) {
@@ -856,7 +856,7 @@ export function RansomwareCard({
       case "never":
         return { label: t("ransomware.appendOnlyNever"), state: "bad" };
       default:
-        // "" — the off-site copy carries no append-only flag, so the backend
+        // ""; the off-site copy carries no append-only flag, so the backend
         // makes no claim to prove (protectionChecks sets Tamper="" exactly when
         // !offsiteImmutable). This row used to be a grey dash for that, which on
         // a card titled "ransomware protection" reads as "does not apply". It
@@ -864,10 +864,10 @@ export function RansomwareCard({
         // the credentials on this box, which is the whole scenario the card is
         // about. Amber says "gap" without claiming a failure.
         //
-        // Deliberately amber WITHOUT downgrading the chip, which is the one
+        // Deliberately amber without downgrading the chip, which is the one
         // place a row's colour and the chip's diverge. Every other amber row is
-        // a currency signal — something that was supposed to happen and has not
-        // — and protectionLevel is right to fold those in. This one reports a
+        // a currency signal; something that was supposed to happen and has not
+        //; and protectionLevel is right to fold those in. This one reports a
         // configuration the user may well have chosen on purpose (plenty of
         // cloud targets cannot do append-only at all), and a chip that reads
         // "Needs attention" forever over a deliberate choice stops being a
@@ -891,7 +891,7 @@ export function RansomwareCard({
       case "never":
         return { label: t("ransomware.replicationNever"), state: "muted" };
       default:
-        // "" — replication is coupled to each backup (no independent expectation).
+        // ""; replication is coupled to each backup (no independent expectation).
         return { label: t("ransomware.replicationCurrent"), state: "muted" };
     }
   };
@@ -900,16 +900,16 @@ export function RansomwareCard({
       case "ok":
         return { label: t("ransomware.drillOffsite"), state: "ok", at: d.lastDrDrillAt };
       case "failed":
-        // The latest off-site DR drill FAILED — red, matching the "proven
+        // The latest off-site DR drill failed; red, matching the "proven
         // restorable" pill, regardless of how recently it ran. Carry the scrubbed
-        // reason so the row can say WHY (and WHICH check) it failed.
+        // reason so the row can say why (and which check) it failed.
         return { label: t("ransomware.drillFailed"), state: "bad", at: d.lastDrDrillAt, detail: d.drillDetail };
       case "overdue":
         return { label: t("ransomware.drillOverdue"), state: "amber", at: d.lastDrDrillAt };
       case "never":
         return { label: t("ransomware.drillNever"), state: "muted" };
       default:
-        // "" — no drill schedule set, so no claim.
+        // ""; no drill schedule set, so no claim.
         return { label: t("ransomware.drillOffsite"), state: "muted" };
     }
   };
@@ -921,7 +921,7 @@ export function RansomwareCard({
       <div className="glim-content-fade">
       {shown.map((d) => {
           // Each row: label, state, and an optional age stamp. A "bad" row is a red
-          // gap the user should fix — it deep-links into Settings. Every state comes
+          // gap the user should fix; it deep-links into Settings. Every state comes
           // from the backend so it cannot diverge from the chip above.
           const ao = appendOnlyRow(d);
           const rep = replicationRow(d);
@@ -979,18 +979,18 @@ export function RansomwareCard({
                       <div className="flex items-center gap-2 text-sm">
                         <span className={`w-4 shrink-0 text-center ${iconColor}`}>{icon}</span>
                         {row.state === "bad" ? (
-                          // Task 5 (rule 13) deliberate exception, documented
-                          // rather than converted: this is a status-LIST-ROW
+                          // design-language rule 13 deliberate exception, documented
+                          // rather than converted: this is a status-list-row
                           // label that only sometimes (state === "bad") also
-                          // navigates — its non-clickable siblings above/below
-                          // render at the SAME plain text-sm size (the `else`
+                          // navigates; its non-clickable siblings above/below
+                          // render at the same plain text-sm size (the `else`
                           // branch right below). Forcing only the clickable
                           // state into a fixed-height Badge chip would make
                           // row height/typography jump depending on which
-                          // domain is currently faulted — a worse, more
+                          // domain is currently faulted; a worse, more
                           // visible inconsistency than the plain-link issue
                           // rule 13 targets (which is about a link sitting
-                          // among ALREADY-badge-styled siblings; nothing else
+                          // among already-badge-styled siblings; nothing else
                           // in this row is a badge). The semantic fault-red
                           // colour + hover underline already signals both
                           // "this is wrong" and "this is clickable" without
@@ -1005,7 +1005,7 @@ export function RansomwareCard({
                           <span className="text-xs text-carbon-textMuted shrink-0">{ageText(row.at)}</span>
                         )}
                       </div>
-                      {/* WHICH check + WHY it failed (off-site DR reason from /api/status). */}
+                      {/* which check + why it failed (off-site DR reason from /api/status). */}
                       {row.detail && (
                         <span className="text-xs text-statusFail wrap-break-word ps-6" title={row.detail}>
                           {t("drill.checkOffsiteDr")} · {t("drill.failReasonPrefix")} {row.detail}
@@ -1025,11 +1025,11 @@ export function RansomwareCard({
 }
 
 // ---------------------------------------------------------------------------
-// Run history — ONE block, two densities. The desktop face is the history
+// Run history; one block, two densities. The desktop face is the history
 // card (day filter + the full scrollable list); the phone face is the glance
-// surface: the app's ONE acknowledgeable-failure affordance (counter +
+// surface: the app's one acknowledgeable-failure affordance (counter +
 // ErrorDetailPanel) plus the four most recent runs as tappable rows. Both
-// faces read the page's polled runs list through props — one fetch, one
+// faces read the page's polled runs list through props; one fetch, one
 // source, so the two faces (and the stat tier's errors tile, whose count
 // comes from the same list via failedRunsNeedingAttention) cannot disagree.
 // ---------------------------------------------------------------------------
@@ -1048,14 +1048,14 @@ function RunsCard({
   hueIndex?: number;
   /** True = the phone glance surface; false = the desktop history card. */
   dense: boolean;
-  /** The page's polled listRuns result (newest-first) — the same list the
+  /** The page's polled listRuns result (newest-first); the same list the
    *  summary tier's "Last result" cell reads. */
   runs: Run[];
   /** True until the page's first runs load settles. */
   loading: boolean;
   /** True when the page's last runs load failed (the load-failure copy). */
   failed: boolean;
-  /** Re-reads the page's runs list — fired after the error panel resolves a
+  /** Re-reads the page's runs list; fired after the error panel resolves a
    *  failure, so acknowledged failures drop out of the counter live. */
   refreshRuns: () => void;
   /** Phone only: opens the page-hosted run detail sheet for a tapped row. */
@@ -1064,13 +1064,13 @@ function RunsCard({
   const [day, setDay] = useState("all");
   const [panelOpen, setPanelOpen] = useState(false);
   // The failures the counter still counts (shared with the stat tier's
-  // errors tile — one derivation, see its own doc).
+  // errors tile; one derivation, see its own doc).
   const failures = failedRunsNeedingAttention(runs);
 
   if (dense) {
     // The four most recent runs, newest first. Each row is a >=44px touch
     // target (min-h-[2.75rem]) whose tap opens the shared RunDetailSheet for
-    // THAT run, hosted by the page component-locally — no route. Four-status
+    // That run, hosted by the page component-locally; no route. Four-status
     // badges always carry their text label (never color alone, WCAG 1.4.1);
     // failed/skipped rows keep the desktop card's scrubbed-reason treatment
     // (runReason + the dir contract) so the phone never shows a red line the
@@ -1082,7 +1082,7 @@ function RunsCard({
         <div className="rounded-card bg-carbon-surface p-2">
           {/* The acknowledgeable-failure affordance: the counter opens the
               error detail panel, the only place in the app where a failure can
-              be read AND acknowledged. The status colour rides the Badge, not
+              be read and acknowledged. The status colour rides the Badge, not
               the row. */}
           {failures.length > 0 && (
             <button
@@ -1129,7 +1129,7 @@ function RunsCard({
                     {/* dir stays "ltr" for a restic/rclone/Docker message
                         (Latin technical text, which has to read left-to-right
                         even on an Arabic page) and follows the page for one of
-                        OUR sentences ([377]). */}
+                        Our sentences ([377]). */}
                     {run.status === "failed" && run.error && (
                       <span
                         dir={isOwnReason(run.error) ? undefined : "ltr"}
@@ -1191,7 +1191,7 @@ function RunsCard({
               className="rounded-control bg-carbon-surface2 px-2 py-1 text-xs text-carbon-text glim-field-focus"
             />
           </div>
-          {/* Scrollable list — all runs in the window (filtered by day). Rows
+          {/* Scrollable list; all runs in the window (filtered by day). Rows
               separated by shade (soft tiles), never divider lines. */}
           <div className="flex flex-col gap-1 max-h-128 overflow-y-auto pe-2">
             {shown.map((run) => {
@@ -1225,7 +1225,7 @@ function RunsCard({
                 </div>
                 {/* dir stays "ltr" for a restic/rclone/Docker message (Latin
                     technical text, which has to read left-to-right even on an
-                    Arabic page) and follows the page for one of OUR sentences,
+                    Arabic page) and follows the page for one of our sentences,
                     which is now actually in the reader's language ([377]). */}
                 {run.status === "failed" && run.error && (
                   <p
@@ -1293,7 +1293,7 @@ function LastBackupsCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hue
         <div className="flex flex-col gap-1 glim-content-fade">
           {withBackups.map((c) => {
             // Older data (or a run before the start time was recorded) has no
-            // lastBackupStarted — fall back to just the finish time, never a
+            // lastBackupStarted; fall back to just the finish time, never a
             // negative/broken duration.
             const hasStart = c.lastBackupStarted != null && c.lastBackup != null;
             const duration = hasStart
@@ -1328,7 +1328,7 @@ function LastBackupsCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hue
         <div className="flex flex-col gap-1">
           {/* "Never" said two different things at once ([379]). A container
               nobody scheduled has never been backed up and that is the plan; a
-              container that IS scheduled and still shows "never" is a gap. Both
+              container that is scheduled and still shows "never" is a gap. Both
               rendered the same word, so the list could not be read: on jdp's
               box four rows said "Nie" and there was no way to tell, from the
               dashboard, which of them were meant to.
@@ -1375,13 +1375,13 @@ type HeatDomain = "containers" | "vms" | "flash" | "config" | "files";
 function cellColor(stat: DayStat | undefined): string {
   if (!stat || (stat.ok === 0 && stat.failed === 0)) return "var(--carbon-surface2, #262626)";
   if (stat.failed > 0) return "var(--status-fail-solid, #ff8389)";
-  // All ok — deeper green for more runs that day.
+  // All ok; deeper green for more runs that day.
   if (stat.ok >= 3) return "var(--heat-ok-3, #42be65)";
   if (stat.ok === 2) return "var(--heat-ok-2, #6fdc8c)";
   return "var(--heat-ok-1, #a7f0ba)";
 }
 
-// mondayIndex returns 0..6 for Mon..Sun (JS getDay() is 0=Sun..6=Sat).
+// mondayIndex returns 0..6 for Mon..Sun (js getDay() is 0=Sun..6=Sat).
 function mondayIndex(d: Date): number {
   return (d.getDay() + 6) % 7;
 }
@@ -1393,10 +1393,10 @@ function HealthHeatmapCard({
   hueIndex,
 }: {
   t: ReturnType<typeof useT>["t"];
-  /** The Activity Log's active day filter (ISO YYYY-MM-DD, local) — the
+  /** The Activity Log's active day filter (ISO YYYY-MM-DD, local); the
    *  matching cell renders an accent outline; clicking it again clears. */
   selectedDay: string | null;
-  /** Fired with a cell's local ISO day — the Dashboard toggles the Activity
+  /** Fired with a cell's local ISO day; the Dashboard toggles the Activity
    *  Log day filter and scrolls the log into view. Zero-run days fire too:
    *  the log then honestly shows nothing for that day. */
   onSelectDay: (isoDay: string) => void;
@@ -1469,22 +1469,22 @@ function HealthHeatmapCard({
     }
   };
 
-  // REVERSED (jdp, live-review, extremely emphatic — "Es soll immer alles in
+  // reversed (jdp, live-review, extremely emphatic; "Es soll immer alles in
   // die Farb- und Formengine integriert werden!! IMMER!!"): this used to
   // carry `hue={false}`, justified as "a small, fixed set of 5 where each
   // entry already has its own durable identity, and a 5-way rainbow strip
   // competing with the heatmap's own fixed red/green state hues would hurt
   // legibility for no tracking benefit." That reasoning is exactly the kind
   // of self-authored aesthetic exception jdp has now ruled out categorically
-  // — a plausible-sounding taste judgement is never grounds to unilaterally
+  //; a plausible-sounding taste judgement is never grounds to unilaterally
   // exclude a control from the colour engine, no matter how reasonable it
   // reads in isolation. This strip is a genuine "select one of several"
   // Selector like every other hue-enabled one in this app, so it gets the
-  // same default `hue` (true) as the rest — no opt-out prop at all now.
-  //   KNOWN COINCIDENCE, not a reason to exclude: RAINBOW[0] (#FF8389) and
-  // RAINBOW[3] (#6FDC8C) happen to match this page's own fixed --status-fail/
+  // same default `hue` (true) as the rest; no opt-out prop at all now.
+  //   Known coincidence, not a reason to exclude: Rainbow[0] (#FF8389) and
+  // Rainbow[3] (#6FDC8C) happen to match this page's own fixed --status-fail/
   // --status-ok hues in dark theme (see lib/appearance.ts's own documented
-  // KNOWN LIMITATION for the full writeup) — a coincidence, not a WCAG
+  // known limitation for the full writeup); a coincidence, not a WCAG
   // failure (every cell still carries its own count as text, not colour
   // alone), and not grounds for a fresh opt-out either.
   const toggle = (
@@ -1520,7 +1520,7 @@ function HealthHeatmapCard({
                   const stat = cell.stat ?? { ok: 0, failed: 0 };
                   const active = selectedDay === date;
                   // A real <button> for free keyboard operability (Enter/
-                  // Space) — Tailwind's preflight strips the browser button
+                  // Space); Tailwind's preflight strips the browser button
                   // chrome, so only the cell's own size/fill classes remain.
                   // The tooltip stays the plain "<date>: N ok, N failed" data
                   // line (it doubles as the accessible name).
@@ -1565,7 +1565,7 @@ function HealthHeatmapCard({
 }
 
 // ---------------------------------------------------------------------------
-// Sparkline — hand-rolled inline SVG trend line (no charting lib)
+// Sparkline; hand-rolled inline SVG trend line (no charting lib)
 // ---------------------------------------------------------------------------
 
 function Sparkline({
@@ -1598,13 +1598,13 @@ function Sparkline({
     .join(" ");
 
   return (
-    // Task 7: was text-statusInfo (the old fifth hue). glimstone/docs/
-    // design-language.md's Charts section is explicit here — "one colour
-    // source: the accent, never rainbow or status hues" — so this isn't a
-    // semantic judgment call like the rest of Task 7, it's the spec's own
+    // Was text-statusInfo (the old fifth hue). glimstone/docs/
+    // design-language.md's Charts section is explicit here; "one colour
+    // source: the accent, never rainbow or status hues"; so this isn't a
+    // semantic judgment call like the rest of the fifth-hue resolution, it's the spec's own
     // fixed rule for every hand-drawn chart in the app. text-accentText, not
     // the flat text-accent: a spec-compliance review measured the flat
-    // accent gold at 1.61:1 against this card's light-theme background —
+    // accent gold at 1.61:1 against this card's light-theme background;
     // the trend line effectively disappeared, badly under the 3:1 non-text
     // minimum. See index.css's --accent-text comment for the fix.
     <span className="text-accentText shrink-0">
@@ -1629,7 +1629,7 @@ function Sparkline({
 }
 
 // ---------------------------------------------------------------------------
-// Storage card — repo size + dedup trend per domain
+// Storage card; repo size + dedup trend per domain
 // ---------------------------------------------------------------------------
 
 type StorageDomain = "containers" | "vms" | "flash" | "files";
@@ -1664,7 +1664,7 @@ function StorageCard({
   const [loading, setLoading] = useState(true);
 
   // Resolves a translation key (+ optional {placeholder} params) for the
-  // forecast line — the same injected seam ActivityLog uses, so
+  // forecast line; the same injected seam ActivityLog uses, so
   // buildForecastLine stays pure and testable without an I18nProvider.
   const resolveForecast: ResolveForecast = (key, params) => {
     let s = t(key as TranslationKey);
@@ -1713,8 +1713,8 @@ function StorageCard({
 
   const anyData = !!data && data.some((d) => d.latest != null);
 
-  // Repo totals for the phone face, derived from THIS component's single
-  // stats fetch — a superset of the old phone card's private four-call fetch
+  // Repo totals for the phone face, derived from this component's single
+  // stats fetch; a superset of the old phone card's private four-call fetch
   // (same endpoint, same 90-day window), so the phone face costs one read
   // total: this component is the !isDesktop complement of the desktop grid,
   // so the two faces never run alongside each other.
@@ -1741,10 +1741,10 @@ function StorageCard({
 
   if (dense) {
     // Four-status language for repo state: the same worst-RPO derivation the
-    // summary tier's health cell uses — Badge + text label, never color
+    // summary tier's health cell uses; Badge + text label, never color
     // alone. Off-site copy age: the most recent replication across the
     // configured domains, in the OffsiteIndicator line language (↗ +
-    // relative age, text-statusOffsite — the token is text-only by design),
+    // relative age, text-statusOffsite; the token is text-only by design),
     // never a fifth status hue. With a repo configured but nothing
     // replicated yet, the replication line's own "not replicated yet" says
     // so; with none configured, the protection card's existing "No off-site
@@ -1816,7 +1816,7 @@ function StorageCard({
                 : "—";
             // Compact per-domain forecast line (growth/week + time-to-full +
             // free space) from the same /api/stats response. Null when the
-            // backend could determine nothing — then no line renders at all.
+            // backend could determine nothing; then no line renders at all.
             const forecastLine = buildForecastLine(d.forecast, resolveForecast);
             return (
               <div key={d.domain} className="flex flex-col gap-0.5 rounded-control bg-carbon-surface2 px-2 py-2.5 min-w-0">
@@ -1874,7 +1874,7 @@ function StorageCard({
 }
 
 // ---------------------------------------------------------------------------
-// Recovery-kit nag — shown only when encryption is ON and the kit has not been
+// Recovery-kit nag; shown only when encryption is on and the kit has not been
 // acknowledged. Prompts the user to download + safely store the encryption
 // recovery kit so disaster recovery works even without a running BombVault.
 // ---------------------------------------------------------------------------
@@ -1914,8 +1914,8 @@ function RecoveryNag({ t, suppressed }: { t: ReturnType<typeof useT>["t"]; suppr
 
   return (
     <div className="rounded-card bg-statusWarnBg px-4 py-3 flex flex-col gap-2">
-      {/* Task 5 (rule 11): deliberately NOT a heading badge, and the one
-          outermost <h2> on this page that isn't — see Badge.tsx's file header
+      {/* design-language rule 11: deliberately not a heading badge, and the one
+          outermost <h2> on this page that isn't; see Badge.tsx's file header
           for the shared reasoning. Short version: this panel's own surface is
           already a filled status wash (bg-statusWarnBg), so a "filled" badge
           on top of it has nothing to fill against. Measured on the live page,
@@ -1936,8 +1936,8 @@ function RecoveryNag({ t, suppressed }: { t: ReturnType<typeof useT>["t"]; suppr
       </p>
       <div className="flex flex-wrap items-center gap-2">
         {/* Fetch-based download (mirrors Settings): a raw <a download> would save
-            the 403 refusal body as the .md file when auth is off — the backend
-            fails closed for this export, so surface its message instead (#A1). */}
+            the 403 refusal body as the .md file when auth is off; the backend
+            fails closed for this export, so surface its message instead (#a1). */}
         <button
           type="button"
           onClick={() => void downloadRecoveryKit().then(setKitError)}
@@ -1961,11 +1961,11 @@ function RecoveryNag({ t, suppressed }: { t: ReturnType<typeof useT>["t"]; suppr
 }
 
 // ---------------------------------------------------------------------------
-// Fresh-install nudge — on a brand-new or rebuilt install (no domain has ever
+// Fresh-install nudge; on a brand-new or rebuilt install (no domain has ever
 // backed up successfully) point the user at the guided Recovery tab to recover
 // their existing backups. Dismissible; the dismissal persists in localStorage.
 // The fresh signal is derived purely from the shared /api/status domains the
-// dashboard already fetched — no extra round-trip, and nothing is fetched or
+// dashboard already fetched; no extra round-trip, and nothing is fetched or
 // computed once dismissed.
 // ---------------------------------------------------------------------------
 
@@ -1993,13 +1993,13 @@ function FreshInstallNudge({
     <div className="bg-carbon-surface rounded-card p-5 flex items-center gap-4">
       <div className="flex-1 flex flex-col gap-1.5">
         <p className="text-sm text-carbon-text">{t("recovery.freshNudge")}</p>
-        {/* Task 5 (rule 13): was a plain underline-on-hover text link, styled
+        {/* design-language rule 13: was a plain underline-on-hover text link, styled
             with the raw accent colour and no fill at all. This card's own one
             call-to-action functions as a primary action (rule 3 allows
             exactly one solid-accent primary action per page/card), so it
-            takes the SAME filled rounded-control/bg-accent/text-accentContrast
+            takes the same filled rounded-control/bg-accent/text-accentContrast
             treatment every other primary button in this app already uses
-            (e.g. Config.tsx's Save button) — matching an established idiom
+            (e.g. Config.tsx's Save button); matching an established idiom
             rather than routing through Badge's tone system, which has no
             "primary CTA" tone of its own and isn't the right place to invent
             one for a single call site. Under 48rem the CTA also takes the
@@ -2016,9 +2016,9 @@ function FreshInstallNudge({
       </div>
       {/* The chip variant deliberately leaves out the shared mobile bleed
           (Button.tsx's "Scoped to the DEFAULT variant only" block): a chip
-          normally rides INSIDE a host pill whose own row carries the touch
-          floor. HERE the chip is not in a pill — it is the card's only close
-          control, loose in a flex row — so this call site lays the floor
+          normally rides inside a host pill whose own row carries the touch
+          floor. Here the chip is not in a pill; it is the card's only close
+          control, loose in a flex row; so this call site lays the floor
           itself by re-passing the bleed classes, with a wider inset than
           Button.tsx's shared one: the chip's engine box is 18px, and 18 plus
           2x12 stays under the 44px floor, so each side gets 14px (46 total).
@@ -2037,7 +2037,7 @@ function FreshInstallNudge({
 }
 
 // ---------------------------------------------------------------------------
-// Summary tier — a compact three-cell overview above the detail cards. It
+// Summary tier; a compact three-cell overview above the detail cards. It
 // reuses the same Card/StatCard surface + Badge visual language as the
 // detail tier below, reading the shared /api/status domains and the newest
 // listRuns entry (no extra round-trips beyond the one runs fetch in the parent).
@@ -2050,10 +2050,10 @@ function SummaryCell({
 }: {
   label: string;
   children: React.ReactNode;
-  /** Rainbow position for THIS cell's own heading notch — see Card's own
+  /** Rainbow position for this cell's own heading notch; see Card's own
    *  `hueIndex` doc above for the full history. SummaryTier (this cell's one
    *  caller) assigns all three of its cells consecutive positions, each
-   *  resolved by ITS OWN caller's `nextHue()` at the same synchronous point
+   *  resolved by its own caller's `nextHue()` at the same synchronous point
    *  every other block's heading is (see SummaryTier's own `healthHueIndex`
    *  doc for why that has to be a plain number, not a function passed down
    *  for this cell's caller to call later), so the three cells read as one
@@ -2062,41 +2062,41 @@ function SummaryCell({
 }) {
   return (
     // GlimStone follow-up pass ("half-overlap card notch"): same outer/inner
-    // split as Card() above — `relative` moves to this structural outer div
+    // split as Card() above; `relative` moves to this structural outer div
     // so the heading Badge's -11px poke above the card isn't clipped by the
     // inner div's own overflow-hidden (#98's fix for a status chip + a
     // relative-time pair that doesn't fit on one line in this narrow
-    // sm:grid-cols-3 cell — unrelated to the heading, but sharing the same
+    // sm:grid-cols-3 cell; unrelated to the heading, but sharing the same
     // box before this pass). `min-w-0` stays on the outer too: it's a grid
     // item, and Chromium/Firefox's grid-track sizing reads min-width off
-    // whatever box IS the direct grid child, which is now this outer div.
-    // `glim-notch-card` — same rainbow-hue hover-reveal gap as Card() above,
+    // whatever box is the direct grid child, which is now this outer div.
+    // `glim-notch-card`; same rainbow-hue hover-reveal gap as Card() above,
     // never carried here either.
     //
-    // insetStart={5} — the EXACT same bare-outer-div/padded-inner-div split
-    // as Card() above, so the EXACT same bug: the badge's own -11px poke
+    // insetStart={5}; the exact same bare-outer-div/padded-inner-div split
+    // as Card() above, so the exact same bug: the badge's own -11px poke
     // needed to escape this cell's inner overflow-hidden box (see the
     // comment above), leaving its horizontal static position measured
-    // against this now-unpadded OUTER div instead of the inner p-5 box's own
-    // content edge — this specific cell (Gesamtzustand/Nächstes Backup/
+    // against this now-unpadded outer div instead of the inner p-5 box's own
+    // content edge; this specific cell (Gesamtzustand/Nächstes Backup/
     // Letztes Ergebnis) is the one jdp measured live and flagged by name
     // ("Dashboard-Badges... links buendig mit der Card"). See Badge.tsx's
     // own `insetStart` doc for the mechanism this fixes at the source
     // instead of re-patching per Card.
     //
-    // `.glim-hue` ALSO added, same rainbow-mode completeness fix as Card()
+    // `.glim-hue` also added, same rainbow-mode completeness fix as Card()
     // above (jdp live review): this cell's own status Badges read
-    // tone={statusTone(...)} — load-bearing status signals that read
-    // --status-* tokens, never --accent — so they stay untouched; this only
+    // tone={statusTone(...)}; load-bearing status signals that read
+    // --status-* tokens, never --accent; so they stay untouched; this only
     // matters for anything focusable/accent-coloured a future SummaryCell
     // child might add.
     <div
       className={`relative glim-notch-card min-w-0${hueIndex !== undefined ? " glim-hue" : ""}`}
       style={hueIndex !== undefined ? (hueVars(rainbowAt(hueIndex)) as CSSProperties) : undefined}
     >
-      {/* Task 5 (rule 11): each SummaryCell is its own standalone
-          bg-carbon-surface rounded-card box — not nested inside an
-          already-badged heading — so it gets the same Badge-in-<h2>
+      {/* design-language rule 11: each SummaryCell is its own standalone
+          bg-carbon-surface rounded-card box; not nested inside an
+          already-badged heading; so it gets the same Badge-in-<h2>
           treatment as every other outermost Card heading on this page (see
           Card just above and Badge.tsx's file header). `wrap` + max-w-full
           because this sits in a narrow sm:grid-cols-3 cell. */}
@@ -2106,17 +2106,17 @@ function SummaryCell({
       {/* p-5 (was px-4 py-3, GlimStone follow-up pass, jdp emphatic: "Die
           Cards von Gesamtzustand, Nächstes Backup, Letztes Ergebnis größer
           machen damit der Inhalt nicht so knapp unter dem Cardtitelbadge
-          klebt" — make these 3 cards bigger, the content sticks too close
+          klebt"; make these 3 cards bigger, the content sticks too close
           under the badge). The badge's own -50%-translate overlap always
           pokes exactly 11px into whatever box sits below it (half of the
-          22px heading stage — see Badge.tsx's badgeClassName comment), so
-          the CLEARANCE between the badge's bottom edge and the first line of
+          22px heading stage; see Badge.tsx's badgeClassName comment), so
+          the clearance between the badge's bottom edge and the first line of
           real content is simply this box's own top padding minus that fixed
-          11px. py-3's 12px top padding left only ~1px of clearance — the "OK
+          11px. py-3's 12px top padding left only ~1px of clearance; the "OK
           Aktuell" text visibly touching the badge, confirmed live via
           getBoundingClientRect (11px overlap vs. 12px padding). Card()
           above uses p-5 (20px) for the exact same badge, giving it ~9px of
-          breathing room — the "comfortable" feel every other Dashboard card
+          breathing room; the "comfortable" feel every other Dashboard card
           already has. Matching that value here (rather than inventing a new
           number) makes these three cells read as the same weight of card as
           their neighbours, not a cramped miniature of one. */}
@@ -2131,8 +2131,8 @@ function SummaryCell({
 }
 
 // ---------------------------------------------------------------------------
-// Shared summary derivations — extracted so the phone Home blocks read the
-// SAME source of truth as the desktop summary tier: this file's own stated
+// Shared summary derivations; extracted so the phone Home blocks read the
+// Same source of truth as the desktop summary tier: this file's own stated
 // principle for /api/schedule/next ("the two read the same source and must
 // not be able to disagree with each other on screen") now applies to the
 // mobile Next-run card and repo-health card too. Pure functions over
@@ -2154,7 +2154,7 @@ function worstRpoStatus(domains: DomainStatus[]): "overdue" | "warn" | "ok" | "o
         : "off";
 }
 
-/** The reader-facing label for worstRpoStatus — the same four keys the
+/** The reader-facing label for worstRpoStatus; the same four keys the
  *  summary tier's health cell has always mapped, now shared. */
 function worstRpoLabel(t: ReturnType<typeof useT>["t"], health: "overdue" | "warn" | "ok" | "off"): string {
   return health === "overdue"
@@ -2174,7 +2174,7 @@ function worstRpoLabel(t: ReturnType<typeof useT>["t"], health: "overdue" | "war
  * outlived its truth: GET /api/schedule/next has existed for a while, the
  * activity log a few hundred pixels below already reads it, and so does the
  * Unraid widget. The desktop cell was the last consumer still deriving the
- * answer itself, by ranking cadence STRINGS on an approximate period.
+ * answer itself, by ranking cadence strings on an approximate period.
  *
  * The approximation could not be made right, only less wrong. It ranks
  * "weekly Sun 04:00" as seven days out whatever today is, and it cannot walk
@@ -2183,9 +2183,9 @@ function worstRpoLabel(t: ReturnType<typeof useT>["t"], health: "overdue" | "war
  * Two issues came out of that (#177, #186), both patched by teaching the
  * weaker mechanism about the case rather than retiring it. This retires it.
  *
- * The result names a MOMENT rather than a schedule, which is jdp's call at
+ * The result names a moment rather than a schedule, which is jdp's call at
  * the review: "Täglich um 05:00" describes a rule, and the question a
- * dashboard is asked is when the next one runs. Filtered to job "backup" —
+ * dashboard is asked is when the next one runs. Filtered to job "backup";
  * the list also carries offsite/drill/tamper/digest/watchdog fires, and this
  * is labelled "Next backup".
  *
@@ -2207,7 +2207,7 @@ function nextBackupFireAt(
   return { at, ms: at ? new Date(at.next).getTime() : NaN };
 }
 
-/** Reader-facing label for a ScheduleNext domain — the same vocabulary the
+/** Reader-facing label for a ScheduleNext domain; the same vocabulary the
  *  protection rows and the activity log use, so the mobile Next-run card
  *  cannot invent a second name for a domain the rest of the app already
  *  names. */
@@ -2244,18 +2244,18 @@ function SummaryTier({
   domains: DomainStatus[];
   loading: boolean;
   newestRun: Run | null;
-  /** This tier's three cells' own rainbow positions — see the main Dashboard
+  /** This tier's three cells' own rainbow positions; see the main Dashboard
    *  component's own `hueSeq`/`nextHue` comment. Plain numbers, each computed
-   *  by the CALLER's `nextHue()` at the SAME synchronous point every other
+   *  by the caller's `nextHue()` at the same synchronous point every other
    *  block's own `hueIndex={nextHue()}` is (not a `nextHue` function passed
-   *  down for this component to call from its OWN body): a first version of
-   *  this fix did exactly that, and it broke, live — React doesn't call a
+   *  down for this component to call from its own body): a first version of
+   *  this fix did exactly that, and it broke, live; React doesn't call a
    *  child function component's body until AFTER the parent's own render
    *  function has already returned, so `nextHue()` calls made from inside
-   *  THIS component's body ran strictly after every sibling block's own
+   *  this component's body ran strictly after every sibling block's own
    *  direct `nextHue()` call already consumed slots 0-7, landing this tier's
    *  three cells on indices 8/9/10 (wrapping back to red/orange/yellow)
-   *  instead of the 0/1/2 they visually occupy first on the page — caught
+   *  instead of the 0/1/2 they visually occupy first on the page; caught
    *  live via getComputedStyle against the real deployed container, not by
    *  reading the code. Passing three already-resolved numbers sidesteps the
    *  whole "when does React actually call this component" question: the
@@ -2264,12 +2264,12 @@ function SummaryTier({
   healthHueIndex?: number;
   nextBackupHueIndex?: number;
   lastResultHueIndex?: number;
-  /** GET /api/schedule/next, soonest first — the scheduler's own answer to
+  /** GET /api/schedule/next, soonest first; the scheduler's own answer to
    *  "what fires next", the same source the activity log below already reads
    *  and the Unraid widget uses (issue #187, [545]). */
   scheduleNext: ScheduleNext[];
 }) {
-  // Cell 1 — worst RPO status across enabled, non-off domains (the shared
+  // Cell 1; worst RPO status across enabled, non-off domains (the shared
   // worstRpoStatus/worstRpoLabel derivation above; identical mapping to the
   // pre-extraction inline version). The representative status reuses chipForRpo
   // + the existing rpo* labels.
@@ -2278,7 +2278,7 @@ function SummaryTier({
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      {/* Overall health — worst RPO status across enabled domains */}
+      {/* Overall health; worst RPO status across enabled domains */}
       <SummaryCell label={t("dashboard.summaryHealth")} hueIndex={healthHueIndex}>
         {loading ? (
           <span className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</span>
@@ -2290,8 +2290,8 @@ function SummaryTier({
         )}
       </SummaryCell>
 
-      {/* Next backup — the soonest real fire time from the scheduler, as a
-          countdown. ONE component for both densities (the phone glance block
+      {/* Next backup; the soonest real fire time from the scheduler, as a
+          countdown. One component for both densities (the phone glance block
           is this same NextRunCard at dense): the derivation lives once, in
           the card, so the two faces cannot disagree (they are the same
           render). */}
@@ -2304,7 +2304,7 @@ function SummaryTier({
         loading={loading}
       />
 
-      {/* Last result — the newest run: status chip + target + relative time */}
+      {/* Last result; the newest run: status chip + target + relative time */}
       <SummaryCell label={t("dashboard.summaryLastResult")} hueIndex={lastResultHueIndex}>
         {newestRun ? (
           <>
@@ -2328,35 +2328,35 @@ function SummaryTier({
 }
 
 // ---------------------------------------------------------------------------
-// Mobile Home blocks — the glanceable phone surface.
+// Mobile Home blocks; the glanceable phone surface.
 //
 // Below the 48rem breakpoint the desktop customizable block grid is replaced
-// by THESE blocks in a fixed order: identity (the page header above), next
+// by these blocks in a fixed order: identity (the page header above), next
 // run (NextRunCard dense), recent runs (RunsCard dense), repo health
 // (StorageCard dense), the self-contained ActivityLog card, and the
 // thumb-zone trigger that joins the page column's last child (the
-// StickyActionBar below). Each block is the DESKTOP block of the same name at
-// its second density — one component per card, two faces (`dense`), so a
+// StickyActionBar below). Each block is the desktop block of the same name at
+// its second density; one component per card, two faces (`dense`), so a
 // derivation or a fix lands on both faces in one place instead of drifting
 // between a desktop card and a private per-density phone copy (the previous
 // trio of phone-only cards drifted on exactly this seam). The phone density
 // contract: cards p-4, gap-4 between blocks, gap-2 inside a card, filled
 // section Badges (MobileSectionLabel) as headings.
-// Every consumer reads state the page has ALREADY fetched (runs,
+// Every consumer reads state the page has already fetched (runs,
 // scheduleNext, statusDomains) or the same endpoint a desktop card already
-// reads — zero new endpoints.
+// reads; zero new endpoints.
 //
-// Phone hues are STATIC literals (0/1/2 on the section roots), unlike the
+// Phone hues are static literals (0/1/2 on the section roots), unlike the
 // desktop grid's running `nextHue()` counter: the phone order is fixed (not
 // user-customizable), so a static position is honest, and the phone faces
-// never render inside the desktop counter's pass — the desktop counter must
+// never render inside the desktop counter's pass; the desktop counter must
 // not observe a phone-only draw (the same reason the phone ActivityLog below
 // takes no hueIndex).
 //
 // Mount discipline: the blocks are JSX-gated on `!isDesktop` (jsdom's
 // matchMedia answers desktop, so these surfaces render only in real mobile
-// browsers/e2e), and the desktop grid is JSX-gated on `isDesktop` in return —
-// a CSS-hidden grid would stay MOUNTED on the phone and its cards
+// browsers/e2e), and the desktop grid is JSX-gated on `isDesktop` in return;
+// a CSS-hidden grid would stay mounted on the phone and its cards
 // (LastBackupsCard, the heatmap, StorageCard) would keep fetching behind the
 // user's back, doubling every phone load's round-trips. With both faces
 // JSX-gated exactly one surface is ever alive, and at the 48rem boundary the
@@ -2379,7 +2379,7 @@ function NextRunCard({
   dense: boolean;
   hueIndex?: number;
 }) {
-  // The SAME derivation both faces render — one source of truth
+  // The same derivation both faces render; one source of truth
   // (nextBackupFireAt above), two surfaces that cannot disagree. Accent here
   // is sanctioned: soft tint + accent-derived text on the phone face's one
   // icon and the countdown chip (accentSoft backdrop + accentText chip),
@@ -2406,7 +2406,7 @@ function NextRunCard({
               </span>
               <span className="min-w-0 flex-1">
                 {/* Schedule name (14px ≈ text-sm / 600) + when · what meta (12px).
-                    "what" is the run kind the scheduler entry names — the card
+                    "what" is the run kind the scheduler entry names; the card
                     labels a backup fire, so run.kindBackup is the honest kind. */}
                 <span className="block truncate text-sm font-semibold text-carbon-text">
                   {scheduleDomainLabel(t, at.domain)}
@@ -2443,12 +2443,12 @@ function NextRunCard({
 }
 
 // ---------------------------------------------------------------------------
-// Phone thumb-zone trigger — the surface's ONE solid-accent control, and the
-// owner of the everything pass's fire-and-watch cycle. Mounted ONLY below
+// Phone thumb-zone trigger; the surface's one solid-accent control, and the
+// owner of the everything pass's fire-and-watch cycle. Mounted only below
 // 48rem (the page's !isDesktop gate): the progress subscription behind
 // useBackupWatch re-renders its subscriber on every SSE frame, and a desktop
 // session has no control that needs this watch (desktop backup buttons own
-// their own watches) — so the desktop page must not mount it at all, and the
+// their own watches); so the desktop page must not mount it at all, and the
 // desktop page stops re-rendering per progress frame. Phone behavior is
 // unchanged from when the watch lived on the page component: same watch args,
 // confirm-first press, deep-link into the run sheet via the page's latch, and
@@ -2460,26 +2460,26 @@ function PhoneEverythingTrigger({
   onArmFire,
 }: {
   t: ReturnType<typeof useT>["t"];
-  /** Called on every watch poll with the correlated run — the page's
+  /** Called on every watch poll with the correlated run; the page's
    *  sheet-latch logic decides replace/keep/open (see handleWatchRun). */
   onWatchRun: (run: Run) => void;
-  /** Called the moment the user confirms a fire — arms the page's deep-link
-   *  latch so the correlation of THIS pass may steal the sheet. */
+  /** Called the moment the user confirms a fire; arms the page's deep-link
+   *  latch so the correlation of this pass may steal the sheet. */
   onArmFire: () => void;
 }) {
   // Thumb-zone trigger watch (BackupButton's semantics verbatim). The
-  // everything pass is async on the server, so the press only STARTS it
+  // everything pass is async on the server, so the press only starts it
   // ({ok:true,started:true} is never read for the outcome) and the watch
-  // resolves from the recorded run — baseline ids seeded from listRuns BEFORE
+  // resolves from the recorded run; baseline ids seeded from listRuns before
   // firing (never a client clock), then polled until the pass's run turns
-  // terminal. `progressKey: ""` is the honest key: the everything PARENT run
-  // publishes no SSE entry of its own (its per-domain children do — see
+  // terminal. `progressKey: ""` is the honest key: the everything parent run
+  // publishes no SSE entry of its own (its per-domain children do; see
   // RunDetailSheet's progressKeyFor), so the watch resolves via the run-poll
   // belt exactly like a target whose key never appears.
   const startEverything = useCallback(async () => {
     // The everything pass is single-flight server-side: a second press while
     // one is already running surfaces as HTTP 409. The raw HTTP status text
-    // must never reach a toast — map it to the shared translated "already
+    // must never reach a toast; map it to the shared translated "already
     // running" copy (Settings.tsx's runNow mapping) and return it as the
     // start failure the hook already displays.
     try {
@@ -2499,9 +2499,9 @@ function PhoneEverythingTrigger({
   });
 
   // Terminal outcomes toast per BackupButton's contract ("failed action toasts
-  // AND shakes its button"); success mirrors its snapshot-id form, falling back
+  // And shakes its button"); success mirrors its snapshot-id form, falling back
   // to plain Done when the parent run carries no snapshot (the everything pass
-  // aggregates its domains, so the parent snapshot is often empty — the
+  // aggregates its domains, so the parent snapshot is often empty; the
   // container-specific configOnly fallback does not apply here). cancelled and
   // skipped stay silent like BackupButton's cancelled arm: the deep-linked
   // sheet is already showing the run's own record.
@@ -2522,7 +2522,7 @@ function PhoneEverythingTrigger({
     }
   }, [state, push, t]);
 
-  // The consequence sheet stands between the press and the POST — useConfirm
+  // The consequence sheet stands between the press and the POST; useConfirm
   // presents it below the breakpoint automatically (the fail-toned
   // ConfirmSheet, destructive control on top, safe cancel in the thumb-default
   // slot). The confirm button reads settings.everythingTitle so its press
@@ -2539,8 +2539,8 @@ function PhoneEverythingTrigger({
     await fire();
   }, [confirm, fire, t, onArmFire]);
 
-  // StickyActionBar as the LAST DIRECT CHILD of the page column — sticky
-  // resolves against main#bv-main, so nothing may wrap it. Never a FAB, never
+  // StickyActionBar as the last direct child of the page column; sticky
+  // resolves against main#bv-main, so nothing may wrap it. Never a fab, never
   // position:fixed. While the pass runs the button shows its busy spinner and
   // is disabled; a failed start also shakes (the glim-shake key remount,
   // Containers' Save-bar pattern).
@@ -2573,7 +2573,7 @@ export function Dashboard() {
   const { t } = useT();
   const { advanced } = useAdvanced();
   // The phone surface switch. Below the 48rem breakpoint the page renders the
-  // four glanceable Home blocks INSTEAD of the desktop customizable grid —
+  // four glanceable Home blocks instead of the desktop customizable grid;
   // each face JSX-gated (see the Mobile Home blocks banner above for why a
   // CSS-hidden grid would double the phone's fetches). jsdom's matchMedia
   // answers desktop, so the mobile blocks stay e2e-only and every existing
@@ -2581,22 +2581,22 @@ export function Dashboard() {
   const isDesktop = useIsDesktop();
 
   // Component-local run-sheet host (the Containers.tsx contract): the
-  // recent-run rows open the shared RunDetailSheet for their own record here —
+  // recent-run rows open the shared RunDetailSheet for their own record here;
   // no route (router.tsx frozen). The dismissal latch exists for the
   // thumb-zone backup watch (the phone trigger below): once the user closes a
   // sheet, later onRun polls refresh sheetRun but never re-open it; an
-  // explicit row tap or a NEW fire always re-arms.
+  // explicit row tap or a new fire always re-arms.
   const [sheetRun, setSheetRun] = useState<Run | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const sheetDismissed = useRef(false);
-  // The run id the watch last correlated: polls refresh the SAME run, so only
-  // a DIFFERENT id is a new fire — the latch's re-arm signal. Without it, one
+  // The run id the watch last correlated: polls refresh the same run, so only
+  // a different id is a new fire; the latch's re-arm signal. Without it, one
   // dismissal would silence every later "Backup Everything" press (the latch would
   // never re-arm outside openRun), and the user would wait out the whole run
   // for nothing but the terminal toast.
   const lastCorrelatedRun = useRef<string | null>(null);
   // True from the user's confirm press until the watch correlates the pass it
-  // started. Within that window a correlation may STEAL the sheet from
+  // started. Within that window a correlation may steal the sheet from
   // whatever run it currently shows (the deep-link contract); once spent, a
   // poll tick re-reporting the same correlated run must not.
   const fireArmed = useRef(false);
@@ -2609,15 +2609,15 @@ export function Dashboard() {
     setSheetOpen(true);
   };
   // The watch's onRun, handed to the phone trigger. Replace the sheet's run
-  // only when (a) it shows nothing yet, (b) it shows THIS run already (the
+  // only when (a) it shows nothing yet, (b) it shows this run already (the
   // poll refresh that carries a running run to its terminal state), or (c)
-  // this correlation IS the user's just-fired pass. Any other tick — the live
+  // this correlation is the user's just-fired pass. Any other tick; the live
   // everything watch re-reporting its run on every poll while the user reads
-  // a DIFFERENT run's sheet — must not yank the sheet back (the "sheet jumps
+  // a different run's sheet; must not yank the sheet back (the "sheet jumps
   // back to the everything pass every two seconds" bug).
   const handleWatchRun = useCallback((run: Run) => {
     const isNewCorrelation = lastCorrelatedRun.current !== run.id;
-    // Read the arm BEFORE spending it: the state updater below runs at commit
+    // Read the arm before spending it: the state updater below runs at commit
     // time, after this function has returned.
     const armed = fireArmed.current;
     lastCorrelatedRun.current = run.id;
@@ -2644,23 +2644,23 @@ export function Dashboard() {
   }, [isDesktop]);
 
   // Single /api/status fetch shared by the Protection + Ransomware cards (no
-  // duplicate round-trip — both cards read the same extended domain status).
+  // duplicate round-trip; both cards read the same extended domain status).
   const [statusDomains, setStatusDomains] = useState<DomainStatus[]>([]);
   const [statusLoading, setStatusLoading] = useState(true);
 
-  // Newest run for the summary tier's "Last result" cell — and, since the
-  // runs cards merged into one dual-density component, the source BOTH faces
+  // Newest run for the summary tier's "Last result" cell; and, since the
+  // runs cards merged into one dual-density component, the source both faces
   // of RunsCard read (plus the stat tier's errors tile, via
   // failedRunsNeedingAttention). listRuns returns newest-first, so runs[0] is
   // the latest. Polled (not fetched once) so the cell doesn't freeze on
-  // whatever domain happened to be running at page load — mirrors
+  // whatever domain happened to be running at page load; mirrors
   // ActivityLog's own listRuns polling (same cadence) so both widgets stay in
   // sync (#158: card stuck on a finished run while the Activity Log had
   // already moved on to the next domain).
   //
   // runsReady/runsFailed: RunsCard renders the "checking" copy until the
-  // FIRST load settles, and the load-failure copy when the last attempt
-  // failed — a phone surface with no other signal must not show an empty
+  // First load settles, and the load-failure copy when the last attempt
+  // failed; a phone surface with no other signal must not show an empty
   // list for a load error. The old effect's `active` latch is dropped
   // deliberately: refreshRuns is also the callback runs cards fire after an
   // acknowledgement, so it lives outside the effect; a setState arriving
@@ -2688,10 +2688,10 @@ export function Dashboard() {
     return () => clearInterval(id);
   }, [refreshRuns]);
 
-  // The sheet renders the FRESHEST copy of its run: the page's polled
+  // The sheet renders the freshest copy of its run: the page's polled
   // listRuns state when it holds the run (so a sheet opened from Recent runs
   // follows the run from Running to its terminal status on the page's own
-  // cadence — it used to freeze on the record from tap time), falling back to
+  // cadence; it used to freeze on the record from tap time), falling back to
   // the watch's last record for the deep-linked everything run in the gap
   // before the page's next poll. Resolving by id at render, not storing a
   // frozen copy, is the whole fix. (Placed after the runs state it reads.)
@@ -2699,7 +2699,7 @@ export function Dashboard() {
 
   // The scheduler's own "what fires next" list, for the summary tier's Next
   // backup cell ([545], issue #187). Polled on the same 30s cadence
-  // ActivityLog uses for the identical endpoint — the two read the same source
+  // ActivityLog uses for the identical endpoint; the two read the same source
   // and must not be able to disagree with each other on screen, which was the
   // whole complaint.
   const [scheduleNext, setScheduleNext] = useState<ScheduleNext[]>([]);
@@ -2710,7 +2710,7 @@ export function Dashboard() {
         .then((next) => {
           if (active) setScheduleNext(next);
         })
-        .catch(() => {/* non-fatal — the cell falls back to "not scheduled" */});
+        .catch(() => {/* non-fatal; the cell falls back to "not scheduled" */});
     };
     load();
     const id = setInterval(load, SUMMARY_SCHEDULE_POLL_MS);
@@ -2734,7 +2734,7 @@ export function Dashboard() {
     try {
       localStorage.setItem(RECOVERY_NUDGE_DISMISSED, "1");
     } catch {
-      /* storage unavailable — dismiss for this session only */
+      /* storage unavailable; dismiss for this session only */
     }
     setFreshDismissed(true);
   };
@@ -2764,9 +2764,9 @@ export function Dashboard() {
   }, []);
 
   // Heatmap → Activity Log drilldown: clicking a heatmap cell narrows the log
-  // to that LOCAL calendar day (ISO YYYY-MM-DD — the same en-CA local mapping
+  // to that local calendar day (ISO YYYY-MM-DD; the same en-ca local mapping
   // the heatmap cells are keyed by) and scrolls the log card into view.
-  // Clicking the active day again — or the chip's × inside ActivityLog —
+  // Clicking the active day again; or the chip's × inside ActivityLog;
   // clears it. State lives here because the two cards are independent,
   // individually hideable dashboard blocks with no other shared parent.
   const [logDayFilter, setLogDayFilter] = useState<string | null>(null);
@@ -2774,34 +2774,34 @@ export function Dashboard() {
   const selectLogDay = (isoDay: string) => {
     const next = logDayFilter === isoDay ? null : isoDay;
     setLogDayFilter(next);
-    if (next === null) return; // toggled off — stay put, nothing to show
+    if (next === null) return; // toggled off; stay put, nothing to show
     const el = activityLogBlockRef.current;
-    if (!el) return; // Activity Log block hidden via customize — filter still set
+    if (!el) return; // Activity Log block hidden via customize; filter still set
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     el.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
   };
 
-  // Customizable dashboard (#46) — everything below the heading + banners is a
+  // Customizable dashboard (#46); everything below the heading + banners is a
   // reorderable / hideable block, persisted per-browser via useDashboardLayout.
   const [editing, setEditing] = useState(false);
 
   // Ordered block list. Each block has a stable id, a label, a `render`
   // callback that produces the node (props preserved exactly from the
   // original render) and an advancedOnly flag. advancedOnly blocks are
-  // dropped from BOTH the render and the customize list when not in Advanced
-  // view — their order/hidden state still persists.
+  // dropped from both the render and the customize list when not in Advanced
+  // view; their order/hidden state still persists.
   //
-  // `render` — GlimStone follow-up pass, jdp's live review of this page:
+  // `render`; GlimStone follow-up pass, jdp's live review of this page:
   // "Cardtitelbadges sind falsch platziert. Alle sind nicht im
   // Regenbogenmodus." Was `node: React.ReactNode`, a pre-built element
-  // constructed eagerly, in this array's own FIXED definition order — which
+  // constructed eagerly, in this array's own fixed definition order; which
   // cannot give a Card heading a correct rainbow position, because the
-  // block a user actually SEES at position N depends on their own persisted
+  // block a user actually sees at position N depends on their own persisted
   // drag-reorder + hide/show state (`visibleBlocks` below), not this
   // array's literal order. Deferred to a function so each Card's hueIndex
   // can be assigned from the shared `nextHue()` counter (declared right
   // before `visibleBlocks.map()` in the JSX below) at the point each block
-  // is ACTUALLY rendered, in the user's own current visible order — the
+  // is actually rendered, in the user's own current visible order; the
   // exact same "own running counter, consumed in rendered order" contract
   // Settings.tsx's `nextHue()` already uses, just passed through explicitly
   // here instead of called inline, since the render order here isn't a
@@ -2809,7 +2809,7 @@ export function Dashboard() {
   //   Most blocks consume exactly one hue slot (one Card, one `nextHue()`
   // call); "summary" consumes three (its own three SummaryCells, via the
   // `nextHue` callback threaded into SummaryTier); "stats" consumes none
-  // (StatCardsRow's tiles have no heading badge of their own — nothing to
+  // (StatCardsRow's tiles have no heading badge of their own; nothing to
   // hue).
   const blocks: {
     id: string;
@@ -2820,13 +2820,13 @@ export function Dashboard() {
     {
       id: "summary",
       label: t("dashboard.blockSummary"),
-      // Three DIRECT nextHue() calls, eagerly resolved to plain numbers here
+      // Three direct nextHue() calls, eagerly resolved to plain numbers here
       // rather than a `nextHue` function handed to SummaryTier to call from
-      // its own component body — see SummaryTier's own `healthHueIndex` doc
+      // its own component body; see SummaryTier's own `healthHueIndex` doc
       // for the live ordering bug that shape caused (React doesn't invoke a
       // child component's body until after this whole `blocks` array/render
       // pass has already returned, so calls made from inside SummaryTier ran
-      // AFTER every sibling block below had already consumed its own slot).
+      // after every sibling block below had already consumed its own slot).
       render: (nextHue) => (
         <SummaryTier
           t={t}
@@ -2886,7 +2886,7 @@ export function Dashboard() {
       id: "runHistory",
       label: t("run.historyTitle"),
       // dense={false} = the desktop history-card face; the data comes from the
-      // page's polled listRuns (the phone face reads the same list — one
+      // page's polled listRuns (the phone face reads the same list; one
       // fetch, one source, no disagreement).
       render: (nextHue) => (
         <RunsCard
@@ -2937,7 +2937,7 @@ export function Dashboard() {
   const visibleBlocks = orderedAvailable.filter((b) => !hidden.has(b.id));
   const hiddenBlocks = orderedAvailable.filter((b) => hidden.has(b.id));
 
-  // Native HTML5 drag-and-drop — the dragged id lives in a ref (no re-render
+  // Native HTML5 drag-and-drop; the dragged id lives in a ref (no re-render
   // mid-drag); onDrop reorders relative to the drop-target block. The move
   // up/down buttons on each block are the accessible + touch fallback.
   const draggingId = useRef<string | null>(null);
@@ -2948,7 +2948,7 @@ export function Dashboard() {
       try {
         e.dataTransfer.setData("text/plain", blockId);
       } catch {
-        /* some browsers restrict setData during dragstart — the ref suffices */
+        /* some browsers restrict setData during dragstart; the ref suffices */
       }
     },
     onDragOver: (e) => {
@@ -2974,16 +2974,16 @@ export function Dashboard() {
   });
 
   return (
-    // GlimStone follow-up pass (live-review round, jdp emphatic: "Die
+    // GlimStone follow-up pass (live review, jdp emphatic: "Die
     // Abstände der Cards passen nicht. Bitte systemweit anpassen!"): this
-    // page's own block-to-block rhythm was gap-6 (24px) — measured live via
+    // page's own block-to-block rhythm was gap-6 (24px); measured live via
     // getBoundingClientRect, every adjacent pair of stacked cards sat exactly
-    // 24px apart, so it wasn't a mix of ad-hoc values WITHIN this page. The
+    // 24px apart, so it wasn't a mix of ad-hoc values within this page. The
     // actual drift is against the rest of the app: Settings.tsx's own
     // tab-panels wrapper already settled on gap-10 (40px) as "the same 40px
     // rhythm every Card-to-Card gap already uses" (see that file's own
-    // comment, live-review round) and even bumped its heading-to-first-card
-    // gap to match it for the identical reason this pass now applies here —
+    // comment, live review) and even bumped its heading-to-first-card
+    // gap to match it for the identical reason this pass now applies here;
     // a smaller gap right before the first card read as visually mismatched
     // next to the wider rhythm below it. Splitting this outer wrapper into
     // its own gap-6 header/banner group plus an outer gap-10 mirrors that
@@ -2992,39 +2992,39 @@ export function Dashboard() {
     // reason: matching an established convention beats reinventing one).
     //   PAGE_SHELL (jdp live-review, "Können wir die nicht überall gleich
     // breit machen?"): this page's `gap-10 max-w-6xl` is now that shared
-    // constant, unchanged in value — it is the page the app-wide 1152px was
-    // chosen FROM, because it owns the only content dense enough to have a
+    // constant, unchanged in value; it is the page the app-wide 1152px was
+    // chosen from, because it owns the only content dense enough to have a
     // measurable opinion about width (a md:grid-cols-2 block grid, 7-column
     // container-query run rows, and the Advanced 7-across stat tier, whose
-    // longest German label needs exactly 136px of a 136px cell at 1024px —
+    // longest German label needs exactly 136px of a 136px cell at 1024px;
     // zero slack). Swapping the literal for the constant is what stops the
     // other nine pages drifting away from it again. See lib/pageShell.ts.
     //   The nested gap-6 group below stays: heading + banner are a tight pair
     // that deliberately sits closer than the 40px Card rhythm, the same
     // two-level shape Settings.tsx uses for its heading + tab strip.
     // The responsive rhythm (gap-6 below 48rem, the PAGE_SHELL
-    // gap-10 at and above — identical on desktop by construction). See
+    // gap-10 at and above; identical on desktop by construction). See
     // lib/pageShell.ts's PAGE_SHELL_RESPONSIVE and the eslint exceptions data.
     <div className={PAGE_SHELL_RESPONSIVE}>
       <div className="flex flex-col gap-6">
-      {/* Page heading — fixed (contextual, not customizable). The pencil in the
+      {/* Page heading; fixed (contextual, not customizable). The pencil in the
           top-right corner toggles the customize/edit mode.
             That pencil is `h-8 w-8` + centring, not the `p-2` it used to size
           itself with. It is a square icon-only badge by every other measure
           (the same rounded-control tile, the same bg-carbon-surface2/hover
           recipe as Settings' Registry add/remove and FolderBrowser's browse
           badge), but it derived its own footprint from padding around an 18px
-          glyph and landed on 34px — measured live — where every other square
+          glyph and landed on 34px; measured live; where every other square
           icon badge in the app is 32px. Two pixels, but exactly the drift the
           one-size rule exists to stop: a call site sizing itself from its own
-          contents instead of taking the shared number. See Badge.tsx's "ONE
-          SIZE FOR SQUARE ICON BADGES" block. */}
+          contents instead of taking the shared number. See Badge.tsx's "one
+          Size for square icon badges" block. */}
       <div className="flex items-start justify-between gap-4">
         <div>
           {/* Identity header, mobile half: the app wordmark (the same
               theme-switching mark pair the desktop sidebar renders) leads the
               phone page; md+ never sees this row. "BombVault" is the brand
-              proper noun, not a translation unit — the same standing choice as
+              proper noun, not a translation unit; the same standing choice as
               the logo marks' own alt text in Sidebar.tsx. */}
           <div className="mb-2 flex items-center gap-2 md:hidden">
             <img
@@ -3044,7 +3044,7 @@ export function Dashboard() {
             </span>
           </div>
           {/* The house heading form, every tab identical (pageHeading guard):
-              no max-md shrink here even on mobile — a tab whose title is
+              no max-md shrink here even on mobile; a tab whose title is
               smaller than its siblings' reads as less important than they
               are, and every other tab's h1 is text-2xl at every width. */}
           <h1 className="text-2xl font-semibold text-carbon-text">
@@ -3065,8 +3065,8 @@ export function Dashboard() {
           </div>
         </div>
         {/* Real `.glim-bubble` tooltip, not the OS's native `title=` balloon
-            (whole-app sweep). This was the LAST icon-only control in the app
-            still naming itself with a bare `title=`/`aria-label` pair —
+            (whole-app sweep). This was the last icon-only control in the app
+            still naming itself with a bare `title=`/`aria-label` pair;
             measured live on the deployed container: 32px, rounded-control,
             and `title` present, while every other icon-only trigger (every
             Badge `tip`, FolderBrowser's browse badge, Settings' registry and
@@ -3081,7 +3081,7 @@ export function Dashboard() {
             legitimately flips between two states, and Badge's icon-only
             tone="active" is unconditionally accent-filled. IconTipButton
             takes the className verbatim, so both states survive byte-identical
-            — only the tooltip mechanism changes. `aria-pressed` is threaded
+           ; only the tooltip mechanism changes. `aria-pressed` is threaded
             through IconTipButton's new optional prop so the toggle state is
             not lost in the swap (this is a toggle, not a one-shot action).
               32px and `rounded-control` are unchanged, so it still matches
@@ -3101,27 +3101,27 @@ export function Dashboard() {
               : "bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-surface3 hover:text-carbon-text"
           }`}
         >
-          {/* FILLED pencil (design-language.md "Icon glyphs", rule 218 —
+          {/* filled pencil (design-language.md "Icon glyphs", rule 218;
               already a closed silhouette under its old stroke, so it flips
               directly: same path data, `fill="currentColor"`). The old
               facet-highlight line is dropped rather than faked as a
-              surface-colour cutout — this button's own background flips
+              surface-colour cutout; this button's own background flips
               between `bg-carbon-surface2` and `bg-accent` (the `editing`
               state above), so a cutout hard-coded to one of those two colours
               would show a visible mismatched patch in the other; the plain
               pencil silhouette alone already reads clearly as "edit" without
               it.
                 This used to be an inline `<svg>` right here, and it was the
-              app's ONLY pencil. Files.tsx's own "Ordner-Set bearbeiten" badge
+              app's only pencil. Files.tsx's own "Ordner-Set bearbeiten" badge
               needed the same glyph (jdp's icon-badge round for that tab), and
               the standing instruction there was to reuse this one rather than
-              draw a second — so the path moved verbatim into Sidebar.tsx's
+              draw a second; so the path moved verbatim into Sidebar.tsx's
               shared icon set as IconPencil and this call site now renders that
               component. Same silhouette; the only difference is that IconPencil
               crops its viewBox to the ink (see its own comment for the measured
               numbers and why), so this button's glyph goes from 11.34 × 10.58
               px of ink at 18px to 12.20 × 11.39 px at the app's standard 16px
-              icon-badge glyph size — sub-pixel-per-axis in practice, and it
+              icon-badge glyph size; sub-pixel-per-axis in practice, and it
               brings this one in line with every other 16px glyph in a 32px
               tile. The button itself is untouched: it stays a hand-rolled
               `h-8 w-8` rather than a Badge, because its background legitimately
@@ -3132,7 +3132,7 @@ export function Dashboard() {
         </IconTipButton>
       </div>
 
-      {/* Fresh/rebuilt install nudge to the guided Recovery tab — fixed
+      {/* Fresh/rebuilt install nudge to the guided Recovery tab; fixed
           (contextual). Reuses the shared /api/status fetch below. */}
       <FreshInstallNudge
         t={t}
@@ -3142,11 +3142,11 @@ export function Dashboard() {
         onDismiss={dismissFresh}
       />
 
-      {/* Recovery-kit nag — fixed (contextual): only while encryption is on and
+      {/* Recovery-kit nag; fixed (contextual): only while encryption is on and
           the recovery kit is unstored. */}
       <RecoveryNag t={t} suppressed={freshShown} />
 
-      {/* Customize controls — the pencil in the heading toggles edit mode; while
+      {/* Customize controls; the pencil in the heading toggles edit mode; while
           editing, the Reset button + hint appear here. */}
       {editing && (
         <div className="flex flex-col gap-2 max-md:hidden">
@@ -3162,7 +3162,7 @@ export function Dashboard() {
       )}
       </div>
 
-      {/* The phone Home blocks — the glanceable surfaces in the contracted
+      {/* The phone Home blocks; the glanceable surfaces in the contracted
           order (identity header is the page header above). JSX-gated on
           !isDesktop; see the Mobile Home blocks banner above for the mount
           discipline, the density contract and why the hue positions are
@@ -3182,15 +3182,15 @@ export function Dashboard() {
             onOpenRun={openRun}
           />
           <StorageCard dense t={t} hueIndex={2} domains={statusDomains} statusLoading={statusLoading} />
-          {/* The activity log reaches mobile here — the component is
+          {/* The activity log reaches mobile here; the component is
               self-contained (own card chrome + heading, per its header
-              comment), so the mount is one line. NO hueIndex: this hue counter
-              is the DESKTOP grid's rainbow sequence — the desktop ActivityLog
+              comment), so the mount is one line. No hueIndex: this hue counter
+              is the desktop grid's rainbow sequence; the desktop ActivityLog
               block already drew its slot from it; a second draw here would
               advance the counter and silently shift every later block's
               rainbow position. The mobile heading rides the flat
               MobileSectionLabel default instead (same as every other block in
-              this column). dayFilter stays shared: a heatmap tap narrows BOTH
+              this column). dayFilter stays shared: a heatmap tap narrows both
               presentations because they render the same state. */}
           <ActivityLog dayFilter={logDayFilter} onClearDayFilter={() => setLogDayFilter(null)} />
         </div>
@@ -3199,43 +3199,43 @@ export function Dashboard() {
       {/* Ordered, visible blocks in a responsive grid: full-width cards span
           both columns, half-width cards flow two-per-row (request B). The
           grid is JSX-gated on isDesktop (see the max-md note by the gate
-          below) — the phone reads the Home blocks above instead. The
+          below); the phone reads the Home blocks above instead. The
           col-span lives on this wrapper div (not on
-          CustomizableBlock's own root) so it applies in BOTH edit mode (where
+          CustomizableBlock's own root) so it applies in both edit mode (where
           CustomizableBlock renders its control-bar div) and view mode (where
           it renders only `<>{children}</>`). In edit mode each block carries a
           control bar + native drag-and-drop; otherwise the card renders
-          plainly. Dragging still reorders the flat `order` array — the grid
+          plainly. Dragging still reorders the flat `order` array; the grid
           simply derives each cell's span from order + width. */}
-      {/* hueSeq/nextHue — SAME page-wide running-counter pattern as
+      {/* hueSeq/nextHue; same page-wide running-counter pattern as
           Settings.tsx's own `nextHue()` (see that file's own `hueSeq`
           comment), just declared here instead of at the top of the return:
           it must be freshly reset to 0 on every render (a stale count would
-          drift every heading's colour after any state change) AND consumed
-          in the ACTUAL rendered order of `visibleBlocks` below — the user's
+          drift every heading's colour after any state change) and consumed
+          in the actual rendered order of `visibleBlocks` below; the user's
           own current drag-reorder/hide-show layout, not this file's fixed
           `blocks` definition order (GlimStone follow-up pass, jdp: "Alle
-          sind nicht im Regenbogenmodus" — every heading on this page was
+          sind nicht im Regenbogenmodus"; every heading on this page was
           still the flat, un-hued default before the counter landed; see the
           `blocks` array's
           own `render` comment above for why a plain per-block literal index
           can't do this and a shared counter can). Each block's own `render`
-          callback calls this DIRECTLY, once per real heading badge it owns,
+          callback calls this directly, once per real heading badge it owns,
           right here in this synchronous pass (most blocks once; "summary"
           three times, back-to-back, for its own three SummaryCells; "stats"
-          zero times — StatCardsRow has no heading to hue) — never by handing
+          zero times; StatCardsRow has no heading to hue); never by handing
           the `nextHue` function itself to a child component to call later
           from its own body: React doesn't actually invoke a child function
-          component until after THIS WHOLE render pass has returned, so a
+          component until after this whole render pass has returned, so a
           call made from inside a child runs strictly after every direct
           call made here, landing on the wrong (already-past-the-end)
-          indices — caught live the first time this shipped (see
+          indices; caught live the first time this shipped (see
           SummaryTier's own `healthHueIndex` doc for the exact live numbers)
           and fixed by resolving all three of its indices to plain numbers
           right here, the same way every other block already does. */}
       {/* The isDesktop JSX gate, not a max-md:hidden class: below the
           breakpoint the desktop customizable grid must not merely be invisible
-          but UNMOUNTED — a CSS-hidden grid stays mounted, and its cards keep
+          but unmounted; a CSS-hidden grid stays mounted, and its cards keep
           fetching behind the user's back (the storage card re-reads its four
           stats windows; the runs list and heatmap keep polling) on top of the
           phone blocks' own reads, doubling every phone load's round-trips for
@@ -3262,7 +3262,7 @@ export function Dashboard() {
                 isLast={i === visibleBlocks.length - 1}
                 editing={editing}
                 dragHandlers={dragHandlersFor(b.id)}
-                /* Move relative to the VISIBLE neighbour (skips hidden / advanced-gated
+                /* Move relative to the visible neighbour (skips hidden / advanced-gated
                    blocks in the stored order) so a single press always reorders. */
                 onMoveUp={() => {
                   if (i > 0) reorder(b.id, visibleBlocks[i - 1].id);
@@ -3284,7 +3284,7 @@ export function Dashboard() {
       </div>
       )}
 
-      {/* Hidden-cards tray — only while editing and something is hidden.
+      {/* Hidden-cards tray; only while editing and something is hidden.
           Desktop-only like the grid it serves: editing is only reachable
           through the pencil, which the isDesktop gate unmounts on the phone.
           The max-md:hidden class stays as the belt covering the resize window
@@ -3337,8 +3337,8 @@ export function Dashboard() {
       )}
 
       {/* Thumb-zone trigger (the watch + confirm + toasts live in the child):
-          mounted ONLY below 48rem so a desktop session never subscribes to
-          the progress stream — the child's header note carries the why. */}
+          mounted only below 48rem so a desktop session never subscribes to
+          the progress stream; the child's header note carries the why. */}
       {!isDesktop && <PhoneEverythingTrigger t={t} onWatchRun={handleWatchRun} onArmFire={armFire} />}
     </div>
   );

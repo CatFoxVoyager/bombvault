@@ -1,20 +1,20 @@
 // ---------------------------------------------------------------------------
-// DESKTOP_QUERY — the fragile-pair guard between the ONE JS breakpoint
+// DESKTOP_QUERY; the fragile-pair guard between the one js breakpoint
 // literal and Tailwind's CSS md: variants.
 //
-// The JS chrome switch (Layout's Sidebar <-> bottom-bar + More-sheet decision)
+// The js chrome switch (Layout's Sidebar <-> bottom-bar + More-sheet decision)
 // and the CSS `md:`/`max-md:` variants are two halves of one breakpoint
 // contract (Tailwind default: `--breakpoint-md: 48rem`). If the literal drifts
-// from the CSS — or a future edit "just tweaks the breakpoint" in the hook
-// without regenerating the CSS, or copies the literal into a second file —
+// from the CSS; or a future edit "just tweaks the breakpoint" in the hook
+// without regenerating the CSS, or copies the literal into a second file;
 // pages flicker between chrome systems in the 1px window where the two
-// disagree. So this test pins the exact literal to the ONE sanctioned home
+// disagree. So this test pins the exact literal to the one sanctioned home
 // and enforces the one-literal rule everywhere else in src.
 //
 // Node environment, no DOM: this reads source text, it does not render
 // (app/routedPages.test.ts's doctrine and style).
 //
-// The file also owns the pointer-capability axis — the second describe below
+// The file also owns the pointer-capability axis; the second describe below
 // pins that literal and re-asserts the one-width-literal rule the touch work
 // depends on.
 // ---------------------------------------------------------------------------
@@ -29,7 +29,7 @@ const SRC = join(HERE, "..");
 const source = readFileSync(join(HERE, "useMediaQuery.ts"), "utf8");
 
 // The literal, exactly as Tailwind defines its md breakpoint. Whitespace
-// tolerance is deliberate — the failure this guards is a changed WIDTH
+// tolerance is deliberate; the failure this guards is a changed width
 // (48rem -> 64rem) or a second copy, not a reformatted space.
 const LITERAL = /min-width:\s*48rem/;
 
@@ -47,7 +47,7 @@ describe("DESKTOP_QUERY stays the one breakpoint literal", () => {
     expect(
       source,
       'useMediaQuery.ts no longer contains "(min-width: 48rem)". That literal IS the app\'s ' +
-        "definition of desktop, pinned to Tailwind's --breakpoint-md: 48rem — the JS chrome " +
+        "definition of desktop, pinned to Tailwind's --breakpoint-md: 48rem; the JS chrome " +
         "switch and the CSS md:/max-md: variants must flip at the same width or pages flicker " +
         "between chrome systems in the 1px window where they disagree. If the breakpoint " +
         "genuinely moves, change Tailwind's --breakpoint-md AND this literal together, and " +
@@ -78,12 +78,12 @@ describe("DESKTOP_QUERY stays the one breakpoint literal", () => {
 });
 
 // ---------------------------------------------------------------------------
-// POINTER_COARSE_QUERY — the pointer-capability axis.
+// POINTER_COARSE_QUERY; the pointer-capability axis.
 //
 // The same fragile-literal discipline as the width guard above, applied to
 // the second query this file owns: the exact string is pinned, the hook and
-// constant must stay exported, and — the invariant the touch interaction
-// patterns hang on — the file keeps exactly ONE width literal. A
+// constant must stay exported, and; the invariant the touch interaction
+// patterns hang on; the file keeps exactly one width literal. A
 // `(pointer: coarse)`-keyed interaction mode drifting into a width-keyed one
 // would hand landscape phones (>=48rem, still coarse-pointer) the desktop
 // tree; a second width literal here would fork the chrome axis.
@@ -95,7 +95,7 @@ describe("POINTER_COARSE_QUERY stays the one pointer-capability literal", () => 
     expect(
       source,
       'useMediaQuery.ts no longer contains "(pointer: coarse)". That literal IS the app\'s ' +
-        "definition of touch input — touch-specific interaction patterns derive from it, " +
+        "definition of touch input; touch-specific interaction patterns derive from it, " +
         "never from the width breakpoint. If the query genuinely changes, change it here and " +
         "re-check the landscape-phone case (>=48rem wide, still coarse pointer) consciously."
     ).toMatch(COARSE_LITERAL);
@@ -103,14 +103,14 @@ describe("POINTER_COARSE_QUERY stays the one pointer-capability literal", () => 
     expect(source).toContain("useIsCoarsePointer");
   });
 
-  it("keeps exactly ONE width literal in the hook (DESKTOP_QUERY — the chrome axis stays width-only)", () => {
+  it("keeps exactly ONE width literal in the hook (DESKTOP_QUERY; the chrome axis stays width-only)", () => {
     const widthLiterals = source.match(/min-width:/g) ?? [];
     expect(
       widthLiterals,
       "useMediaQuery.ts now carries more than one width query. DESKTOP_QUERY is the app's " +
         "single width authority (the chrome switch and Tailwind's md: variants both hang off " +
-        "it); the pointer axis must stay width-free or the separation — chrome by width, " +
-        "interaction by pointer capability — silently collapses."
+        "it); the pointer axis must stay width-free or the separation; chrome by width, " +
+        "interaction by pointer capability; silently collapses."
     ).toHaveLength(1);
   });
 });

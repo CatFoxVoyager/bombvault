@@ -6,43 +6,43 @@ import { useT } from "./i18n";
 import { useIsDesktop } from "./useMediaQuery";
 
 // ---------------------------------------------------------------------------
-// useConfirm — the stateful half of ConfirmDialog (GlimStone form-engine
+// useConfirm; the stateful half of ConfirmDialog (GlimStone form-engine
 // Task 7), the direct replacement for window.confirm() across the app.
 //
 // Mirrors useReveal.ts/RevealInput.tsx's exact split: the pending-request
-// queue and the promise plumbing live HERE so ConfirmDialog itself stays a
+// queue and the promise plumbing live here so ConfirmDialog itself stays a
 // pure, hookless function component, callable directly as a plain function in
-// ConfirmDialog.test.ts (same shape as Toggle.tsx/Badge.tsx/RevealInput.tsx —
+// ConfirmDialog.test.ts (same shape as Toggle.tsx/Badge.tsx/RevealInput.tsx;
 // see ConfirmDialog.tsx's own header comment for why).
 //
-// This hook ALSO owns everything that makes the dialog a genuinely modal
+// This hook also owns everything that makes the dialog a genuinely modal
 // dialog rather than an inline styled box, because every one of those needs
 // either `document` (undefined in ConfirmDialog.test.ts's node-environment
 // unit tests) or a real hook (useEffect/useRef), neither of which
 // ConfirmDialog.tsx may use:
-//   - createPortal(..., document.body) — renders past any ancestor with a CSS
+//   - createPortal(..., document.body); renders past any ancestor with a CSS
 //     transform (a transform creates a new containing block, so a
 //     `position: fixed` backdrop nested under one no longer covers the real
 //     viewport). Exactly InfoBubble.tsx's fix for the identical problem.
-//   - Escape — a document-level keydown listener, not a React `onKeyDown` on
+//   - Escape; a document-level keydown listener, not a React `onKeyDown` on
 //     the dialog root: the old onKeyDown only fired while focus was still
 //     somewhere inside the dialog, so clicking the (unfocusable) message text
 //     or tabbing out moved focus to <body> and silently killed Escape for
 //     good. Matches WhatsNewDialog.tsx/ErrorDetailPanel.tsx/FilterPopover.tsx/
 //     InfoBubble.tsx/Sidebar.tsx's own document-listener pattern. (RestorePanel
-//     .tsx is deliberately NOT in that list: its only Escape handling is a React
-//     onKeyDown on the inline tag-entry <input>, which is correct there — that
+//     .tsx is deliberately not in that list: its only Escape handling is a React
+//     onKeyDown on the inline tag-entry <input>, which is correct there; that
 //     Escape must fire only while the input itself has focus.)
 //   - A Tab/Shift+Tab focus trap over the dialog card's own focusable
 //     elements (header close-X, Cancel, Confirm), so focus can never land on
-//     the page behind a dialog that is now ACTUALLY covering it (a portal +
+//     the page behind a dialog that is now actually covering it (a portal +
 //     backdrop with nothing stopping Tab would just be a bigger version of
 //     the same escape-the-modal bug).
 //   - Returning focus to whatever triggered the confirm() call once it
 //     settles, on all four close paths (Escape / Cancel / Confirm /
-//     backdrop-click) — they all funnel through `settle` below.
+//     backdrop-click); they all funnel through `settle` below.
 //
-// Call sites keep window.confirm()'s exact control-flow shape — same
+// Call sites keep window.confirm()'s exact control-flow shape; same
 // one-string-in, boolean-out contract, just async and non-blocking instead of
 // a native, unstylable, tab-freezing dialog:
 //
@@ -58,7 +58,7 @@ import { useIsDesktop } from "./useMediaQuery";
 // One useConfirm() instance per component is enough even when a component
 // has several confirm() call sites (VMSnapshotRow, IntegrityCard, ...): only
 // one confirmation can ever be genuinely pending for a given user at a time,
-// so the single pending-request slot is never a real constraint — it just
+// so the single pending-request slot is never a real constraint; it just
 // means a second confirm() call before the first settles would replace the
 // pending dialog, which never happens in practice since the triggering
 // button is the only way to reach either call and it's disabled while busy
@@ -85,7 +85,7 @@ function focusableElements(root: HTMLElement): HTMLElement[] {
 
 export function useConfirm() {
   const { t } = useT();
-  // The presentation half swaps at the ONE width breakpoint — ConfirmDialog
+  // The presentation half swaps at the one width breakpoint; ConfirmDialog
   // (the desktop card, byte-identical to before this hook grew the branch)
   // at/above 48rem, ConfirmSheet (the bottom sheet, safe cancel stacked above
   // the confirm in the thumb-default bottom slot) below it.
@@ -100,8 +100,8 @@ export function useConfirm() {
   const triggerRef = useRef<HTMLElement | null>(null);
 
   const confirm = useCallback((message: string, options?: ConfirmOptions) => {
-    // Captured BEFORE setPending fires the re-render that auto-focuses the
-    // dialog's own Cancel button — after that, document.activeElement would
+    // Captured before setPending fires the re-render that auto-focuses the
+    // dialog's own Cancel button; after that, document.activeElement would
     // already be the dialog, not the button that opened it.
     const active = document.activeElement;
     triggerRef.current = active instanceof HTMLElement && active !== document.body ? active : null;
@@ -161,13 +161,13 @@ export function useConfirm() {
   // creates a new containing block, so a `position: fixed` backdrop nested
   // under it only covers that ancestor's box, not the real viewport.
   //
-  // The sheet branch deliberately does NOT attach dialogRef: the ref drives
-  // THIS hook's Tab trap, and BottomSheet already runs its own (same
-  // FOCUSABLE_SELECTOR lift) over the panel — leaving the ref null makes the
+  // The sheet branch deliberately does not attach dialogRef: the ref drives
+  // This hook's Tab trap, and BottomSheet already runs its own (same
+  // FOCUSABLE_SELECTOR lift) over the panel; leaving the ref null makes the
   // trap below a no-op instead of fighting the sheet's. Escape fires from
   // both listeners on one keypress in the sheet branch; settle() nulls its
   // resolver on the first call, so the double dispatch is benign (the second
-  // is a guarded no-op) — asserted once-and-only-once in
+  // is a guarded no-op); asserted once-and-only-once in
   // ConfirmSheet.dom.test.tsx.
   const confirmDialog = pending
     ? createPortal(
@@ -179,7 +179,7 @@ export function useConfirm() {
             confirmLabel={pending.confirmLabel ?? t("common.confirm")}
             cancelLabel={pending.cancelLabel ?? t("common.cancel")}
             closeLabel={t("common.close")}
-            // No tone prop: GlimStone 1.12.0 removed it — the commit button
+            // No tone prop: GlimStone 1.12.0 removed it; the commit button
             // takes its siblings' colour, on the desktop card and the mobile
             // sheet alike.
             onConfirm={() => settle(true)}

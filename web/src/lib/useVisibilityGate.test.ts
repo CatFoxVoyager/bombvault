@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 // ---------------------------------------------------------------------------
-// useVisibilityGate — jsdom behavior proofs for the visibility pause gate (the
+// useVisibilityGate; jsdom behavior proofs for the visibility pause gate (the
 // SSE/poll reconciliation fix).
 //
 // document.visibilityState is shadowed with an own-property getter (jsdom
-// never flips it by itself) and each transition is DRIVEN the way a real
+// never flips it by itself) and each transition is driven the way a real
 // browser drives it: a visibilitychange event on the document. The hook is
-// the real useSyncExternalStore wiring — no re-render is faked, so a test
+// the real useSyncExternalStore wiring; no re-render is faked, so a test
 // that passes here means the consumer render path flips on the real event.
 //
 // The windowless branch is pinned as a source assert, not a runtime render:
@@ -25,7 +25,7 @@ import { isPageVisible, useVisibilityGate } from "./useVisibilityGate";
 // vitest's jsdom environment rewrites import.meta.url to the jsdom origin (a
 // non-file: URL), so the node-env resolution pattern (useMediaQuery.test.ts's
 // fileURLToPath(new URL(".", import.meta.url))) cannot be copied here. Vitest
-// always runs from web/ (package.json scripts, CI, and every documented
+// always runs from web/ (package.json scripts, ci, and every documented
 // invocation), so resolving from the process cwd is stable.
 const source = readFileSync(join(process.cwd(), "src", "lib", "useVisibilityGate.ts"), "utf8");
 
@@ -71,7 +71,7 @@ describe("useVisibilityGate", () => {
   });
 
   it("respects an initial hidden state (a page already backgrounded at mount)", () => {
-    // Shadow BEFORE the first render — no event, no act: the hook's very first
+    // Shadow before the first render; no event, no act: the hook's very first
     // snapshot must already read hidden, or a consumer mounted on a background
     // tab would subscribe its SSE machinery before the first flip.
     Object.defineProperty(document, "visibilityState", {
@@ -92,11 +92,11 @@ describe("useVisibilityGate", () => {
     expect(b.result.current).toBe(false);
   });
 
-  it("pins the windowless default to visible (source assert — window.document is Unforgeable in jsdom)", () => {
-    // The plain read: the guard must come FIRST (typeof check) and default to
+  it("pins the windowless default to visible (source assert; window.document is Unforgeable in jsdom)", () => {
+    // The plain read: the guard must come first (typeof check) and default to
     // true before any document access.
     expect(source).toMatch(/if \(typeof document === "undefined"\) return true;/);
-    // The hook's server snapshot must agree — useSyncExternalStore's third
+    // The hook's server snapshot must agree; useSyncExternalStore's third
     // slot is the windowless answer React would use off-client.
     expect(source).toMatch(/useSyncExternalStore\(\s*subscribeVisibility,\s*getVisibilitySnapshot,\s*\(\) => true,?\s*\)/);
   });

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// The page column ends where the rail ends — and the phone column ends where
+// The page column ends where the rail ends; and the phone column ends where
 // the bottom bar sits.
 //
 // jdp, live review: "die unterste card scrollt weiter hoch als die unterkante
@@ -10,11 +10,11 @@
 //
 // The mobile half is the same property one branch down: a kept bottom padding
 // on the phone scroller clamps a sticky action bar 16px short of the bottom
-// bar and leaves a strip of scrolling page visible between the two — the
+// bar and leaves a strip of scrolling page visible between the two; the
 // exact strip the shell's flush page end exists to prevent.
 //
 // A source guard rather than a render test on purpose: what has to hold is a
-// property of ONE className on ONE element, and a jsdom render measures nothing
+// property of one className on one element, and a jsdom render measures nothing
 // (no layout, no scrolling), so a DOM test here would assert the same string
 // through three times the machinery and claim to have measured something.
 // ---------------------------------------------------------------------------
@@ -31,7 +31,7 @@ const layout = readFileSync(join(here, "Layout.tsx"), "utf8");
 const pageWrapper = /className="glim-page-enter([^"]*)"/.exec(layout);
 
 // The phone scroller: the one branch main that carries the 16px gutter class
-// itself (the desktop main stays gutter-free — the frame owns it there).
+// itself (the desktop main stays gutter-free; the frame owns it there).
 const mobileMain = /<main id="bv-main" className="([^"]*p-4[^"]*)"/.exec(layout);
 
 describe("the scrolling page column", () => {

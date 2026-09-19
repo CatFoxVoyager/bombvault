@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 // ---------------------------------------------------------------------------
-// RunDetailSheet — jsdom behavior proofs for the phone run-detail sheet.
+// RunDetailSheet; jsdom behavior proofs for the phone run-detail sheet.
 //
-// The sheet is a pure view over a Run record composed ENTIRELY from existing
+// The sheet is a pure view over a Run record composed entirely from existing
 // pieces, so these tests assert the composition contracts that can drift:
-//   - the honest stat triad (the frozen-record substitutions —
-//     humanBytes / formatDuration / mono slice, and NOTHING invented),
+//   - the honest stat triad (the frozen-record substitutions;
+//     humanBytes / formatDuration / mono slice, and nothing invented),
 //   - the activity log rendered through the real buildLogLines pipeline (the
-//     same builder ActivityLog.tsx uses — mocked only at the browser boundary,
+//     same builder ActivityLog.tsx uses; mocked only at the browser boundary,
 //     see below),
 //   - the failed path surfacing the backend's scrubbed reason verbatim via
 //     runReason, with the direction contract (own sentence → page direction,
@@ -15,13 +15,13 @@
 //   - the domain honesty matrix (browse/restore only where a file-listing API
 //     exists; verify only where checkDomain's union has the domain),
 //   - the ≥44px tonal action rows and the restore entry's secondary placement
-//     (in the scroll body, BEFORE the footer rows; never accent) — styling
+//     (in the scroll body, before the footer rows; never accent); styling
 //     contracts asserted as targeted class tokens, the documented jsdom
 //     exception (BottomSheet.dom.test.tsx precedent: jsdom computes no
-//     geometry, so the observable form of a styling contract IS the token).
+//     geometry, so the observable form of a styling contract is the token).
 //
-// EventSource stub: lifted from OffsiteIndicator.dom.test.tsx — jsdom does not
-// implement EventSource, and the live-section test drives the REAL
+// EventSource stub: lifted from OffsiteIndicator.dom.test.tsx; jsdom does not
+// implement EventSource, and the live-section test drives the real
 // lib/progress.ts singleton through `source.onmessage`, exactly the path a
 // backend push takes. Nothing about the component under test is stubbed.
 // ---------------------------------------------------------------------------
@@ -32,7 +32,7 @@ import { en, I18nProvider } from "../../lib/i18n";
 import type { Run } from "../../lib/api";
 
 // The two file-listing endpoints are replaced with manually-resolved
-// deferreds so a test can hold a listing IN FLIGHT and resolve it late —
+// deferreds so a test can hold a listing in flight and resolve it late;
 // the late-response scenario itself. Every other export (types, ApiError,
 // formatters) stays the real module. checkDomain is never pressed by these
 // tests, so it keeps its real implementation.
@@ -61,8 +61,8 @@ vi.mock("../../lib/api", async (importOriginal) => {
   };
 });
 
-// A finished, successful container backup — every derived string below is
-// computed from these fields by the REAL formatters.
+// A finished, successful container backup; every derived string below is
+// computed from these fields by the real formatters.
 const DONE_RUN: Run = {
   id: "0f1e2d3c4b5a69788796a5b4c3d2e1f0",
   targetId: "plex",
@@ -97,7 +97,7 @@ const instances: FakeEventSource[] = [];
 class FakeEventSource {
   onmessage: ((ev: MessageEvent<string>) => void) | null = null;
   onerror: (() => void) | null = null;
-  // Set by close() — the observable form of progress.ts's closeSource
+  // Set by close(); the observable form of progress.ts's closeSource
   // contract (last unsubscribe closes the shared connection and drops its
   // cached state).
   closed = false;
@@ -122,7 +122,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
-  // Restore jsdom's prototype getter (default "visible") — the visibility
+  // Restore jsdom's prototype getter (default "visible"); the visibility
   // tests below shadow it with an own property.
   delete (document as { visibilityState?: unknown }).visibilityState;
 });
@@ -143,7 +143,7 @@ function setPageVisibility(state: "visible" | "hidden"): void {
 // ---------------------------------------------------------------------------
 
 describe("RunDetailSheet", () => {
-  it("composes the title from the shared helpers — kind + target, no new title key", () => {
+  it("composes the title from the shared helpers; kind + target, no new title key", () => {
     renderSheet(DONE_RUN);
     // runKindLabel("backup") = "Backup" (run.kindBackup) · runTargetText → the
     // container's human target. The interpunct is the separator (user text is
@@ -151,7 +151,7 @@ describe("RunDetailSheet", () => {
     expect(screen.getByText(`Backup · plex`)).toBeTruthy();
   });
 
-  it("renders the honest stat triad — and nothing invented beyond the frozen record", () => {
+  it("renders the honest stat triad, and nothing invented beyond the frozen record", () => {
     renderSheet(DONE_RUN);
     expect(screen.getByText(en["run.statVolume"])).toBeTruthy();
     expect(screen.getByText(en["dashboard.duration"])).toBeTruthy();
@@ -160,7 +160,7 @@ describe("RunDetailSheet", () => {
     expect(screen.getByText("4.7 GB")).toBeTruthy();
     // formatDuration(3600) through the real formatter.
     expect(screen.getByText("1h 0m")).toBeTruthy();
-    // The snapshot tile: 8-char mono slice with the FULL id as its title.
+    // The snapshot tile: 8-char mono slice with the full id as its title.
     const snap = screen.getByText("0f1e2d3c");
     expect(snap.getAttribute("title")).toBe(DONE_RUN.snapshotId);
   });
@@ -171,8 +171,8 @@ describe("RunDetailSheet", () => {
     expect(screen.getByText("1h 0m").className).toContain("tabular-nums");
     expect(screen.getByText("0f1e2d3c").className).toContain("tabular-nums");
     expect(screen.getByText("0f1e2d3c").className).toContain("font-mono");
-    // Stat VALUES take the heading role at weight 600 (text-heading
-    // font-semibold — the Fab label's typography), never the old text-sm
+    // Stat values take the heading role at weight 600 (text-heading
+    // font-semibold; the Fab label's typography), never the old text-sm
     // font-medium pair. Pinned as class tokens, the documented jsdom
     // exception (no computed geometry here).
     for (const value of ["4.7 GB", "1h 0m", "0f1e2d3c"]) {
@@ -181,7 +181,7 @@ describe("RunDetailSheet", () => {
       expect(screen.getByText(value).className).not.toContain("font-medium");
     }
     // The activity log reuses the ActivityLog mono pattern verbatim. Queried
-    // on document.body — the sheet portals there (BottomSheet primitive), so
+    // on document.body; the sheet portals there (BottomSheet primitive), so
     // the render container itself stays empty.
     expect(document.body.querySelector("div.font-mono.text-xs")).not.toBeNull();
   });
@@ -189,7 +189,7 @@ describe("RunDetailSheet", () => {
   it("renders the run's history line through the real buildLogLines pipeline", () => {
     renderSheet(DONE_RUN);
     // buildLogLines' en sentence for a finished backup: "{name} backed up:
-    // {bytes} in {duration}" — the SAME text the dashboard's activity log
+    // {bytes} in {duration}"; the same text the dashboard's activity log
     // renders for this run.
     expect(screen.getByText(/plex backed up: 4\.7 GB in 1h 0m/)).toBeTruthy();
     // The glyph carries the shared aria-label vocabulary.
@@ -230,7 +230,7 @@ describe("RunDetailSheet", () => {
     // Secondary/tonal: the neutral surface token, and no accent anywhere.
     expect(restore.className).toContain("bg-carbon-surface3");
     expect(/accent/.test(restore.className)).toBe(false);
-    // DOM order: the restore entry precedes BOTH footer rows (it is the last
+    // DOM order: the restore entry precedes both footer rows (it is the last
     // element of the scroll body, above the chrome footer).
     const verify = screen.getByRole("button", { name: en["integrity.verify"] });
     expect(
@@ -261,7 +261,7 @@ describe("RunDetailSheet", () => {
     expect(listingControl.pending.length).toBe(1);
     const listingA = listingControl.pending.shift();
 
-    // The host swaps the sheet's run while A's listing is still in flight —
+    // The host swaps the sheet's run while A's listing is still in flight;
     // the Dashboard's single-mounted-sheet contract. The effect re-runs for
     // B and its listing goes out.
     rerender(
@@ -297,7 +297,7 @@ describe("RunDetailSheet", () => {
 
   it("no-snapshot runs render placeholders, never a claimed 0 B or a blank tile", () => {
     // The Backup Everything parent run shape: kind "backup", empty snapshot
-    // id, zero bytes — nothing was snapshotted by THIS run.
+    // id, zero bytes; nothing was snapshotted by this run.
     renderSheet(
       makeRun({
         id: "c".repeat(32),
@@ -329,7 +329,7 @@ describe("RunDetailSheet", () => {
 
   it("vm runs: verify offered, browse/restore honestly absent (no file-listing API)", () => {
     // Backend shape (api.ts Run docs): targetId is the 32-hex vm_targets row
-    // id, target is the human name — never set equal (that coincidence once
+    // id, target is the human name; never set equal (that coincidence once
     // hid the progress-key bug the live tests below pin).
     renderSheet(makeRun({ targetId: "a1b2c3d4e5f60718293a4b5c6d7e8f90", target: "win11", domain: "vm" }));
     expect(screen.getByRole("button", { name: en["integrity.verify"] })).toBeTruthy();
@@ -353,7 +353,7 @@ describe("RunDetailSheet", () => {
       })
     );
     // No SSE frame yet: the bar renders nothing (inactive), the live section
-    // IS mounted (one EventSource for the sheet's subscription).
+    // is mounted (one EventSource for the sheet's subscription).
     expect(screen.queryByRole("progressbar")).toBeNull();
     expect(instances.length).toBe(1);
     // A live frame through the real onmessage path → the bar goes
@@ -363,9 +363,9 @@ describe("RunDetailSheet", () => {
     });
     const bar = screen.getByRole("progressbar");
     expect(bar.getAttribute("aria-valuenow")).toBeNull(); // indeterminate at 0%
-    // The duration tile degrades to the "—" meta mark, muted — never blank.
+    // The duration tile degrades to the "—" meta mark, muted; never blank.
     // (The completion-time span carries the same mark for a null finishedAt;
-    // what matters here is that the DURATION tile's mark is the muted one.)
+    // what matters here is that the duration tile's mark is the muted one.)
     const marks = screen.getAllByText("—");
     expect(marks.length).toBeGreaterThanOrEqual(2);
     expect(marks.every((m) => m.className.includes("text-carbon-textMuted"))).toBe(true);
@@ -380,19 +380,19 @@ describe("RunDetailSheet", () => {
     expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("43");
   });
 
-  // The progress key is the run NAME (run.target), never the 32-hex row id
+  // The progress key is the run name (run.target), never the 32-hex row id
   // (run.targetId): the backend records vm/files runs under the row id but
   // publishes SSE under "vm:"+name / "files:"+set.Name (internal/api/service.go).
   // These two pins keep the sheet's lookup on the published side of that split
-  // — a regression to targetId would leave both bars dead (no frame matches).
-  it("vm live run: the channel resolves under the run NAME — a 32-hex targetId keys nothing", () => {
+  //; a regression to targetId would leave both bars dead (no frame matches).
+  it("vm live run: the channel resolves under the run NAME; a 32-hex targetId keys nothing", () => {
     vi.useFakeTimers();
     renderSheet(
       makeRun({
         status: "running",
         finishedAt: null,
         domain: "vm",
-        targetId: "a1b2c3d4e5f60718293a4b5c6d7e8f90", // vm_targets.id — what the backend records
+        targetId: "a1b2c3d4e5f60718293a4b5c6d7e8f90", // vm_targets.id; what the backend records
         target: "win11", // the name the SSE publishes under ("vm:"+name)
       })
     );
@@ -403,14 +403,14 @@ describe("RunDetailSheet", () => {
     expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("30");
   });
 
-  it("files live run: same name-keyed channel — the set id never appears in the progress key", () => {
+  it("files live run: same name-keyed channel; the set id never appears in the progress key", () => {
     vi.useFakeTimers();
     renderSheet(
       makeRun({
         status: "running",
         finishedAt: null,
         domain: "files",
-        targetId: "f0e1d2c3b4a5968778695a4b3c2d1e0f", // file_sets.id — what the backend records
+        targetId: "f0e1d2c3b4a5968778695a4b3c2d1e0f", // file_sets.id; what the backend records
         target: "docs", // the name the SSE publishes under ("files:"+set.Name)
       })
     );
@@ -423,7 +423,7 @@ describe("RunDetailSheet", () => {
 
   // --- The live section is gated on page visibility --------------------------
 
-  it("hidden page unmounts the live section — which unsubscribes the shared SSE connection", () => {
+  it("hidden page unmounts the live section, which unsubscribes the shared SSE connection", () => {
     vi.useFakeTimers();
     renderSheet(makeRun({ status: "running", finishedAt: null }));
     act(() => {
@@ -434,7 +434,7 @@ describe("RunDetailSheet", () => {
     setPageVisibility("hidden");
     // The gated subtree is gone...
     expect(screen.queryByRole("progressbar")).toBeNull();
-    // ...and unmounting it WAS the unsubscribe: progress.ts's ref-count hit
+    // ...and unmounting it was the unsubscribe: progress.ts's ref-count hit
     // zero and closeSource() closed the shared EventSource.
     expect(instances[0].closed).toBe(true);
   });
@@ -449,11 +449,11 @@ describe("RunDetailSheet", () => {
     expect(screen.queryByRole("progressbar")).toBeNull();
 
     setPageVisibility("visible");
-    // A SECOND EventSource exists: the remount re-subscribed, and the frozen
+    // A second EventSource exists: the remount re-subscribed, and the frozen
     // singleton reconnected (whose server snapshot replay repopulates state).
     expect(instances.length).toBe(2);
     expect(instances[1].closed).toBe(false);
-    // Fresh subscription starts from an empty cache (closeSource dropped it) —
+    // Fresh subscription starts from an empty cache (closeSource dropped it);
     // the bar is back only once the replayed stream delivers a frame again.
     expect(screen.queryByRole("progressbar")).toBeNull();
     act(() => {
@@ -465,7 +465,7 @@ describe("RunDetailSheet", () => {
   it("a run that finished while hidden reconciles from the refetched server record on return", () => {
     vi.useFakeTimers();
     // The consumer's refetch is modeled the only way it can be here: a new
-    // `run` record from listRuns (the sheet is a pure view over that record —
+    // `run` record from listRuns (the sheet is a pure view over that record;
     // completion is never extrapolated from clocks).
     const { rerender } = renderSheet(makeRun({ status: "running", finishedAt: null }));
     act(() => {
@@ -479,7 +479,7 @@ describe("RunDetailSheet", () => {
     setPageVisibility("visible");
     // Between the flip and the refetched record there is one transient
     // resubscribe (the sheet still believes the run is in flight, so it
-    // reconnects and lets the server replay — by design, not a leak).
+    // reconnects and lets the server replay; by design, not a leak).
     expect(instances.length).toBe(2);
     rerender(
       <I18nProvider>
@@ -487,7 +487,7 @@ describe("RunDetailSheet", () => {
       </I18nProvider>
     );
     // Terminal content: the history line through the real builder, and the
-    // live machinery is gone again — the terminal record unmounted the
+    // live machinery is gone again; the terminal record unmounted the
     // resubscribed consumer (instances[1] closed; nothing else ever opened).
     expect(screen.getByText(/plex backed up: 4\.7 GB in 1h 0m/)).toBeTruthy();
     expect(screen.queryByRole("progressbar")).toBeNull();
@@ -495,7 +495,7 @@ describe("RunDetailSheet", () => {
     expect(instances[1].closed).toBe(true);
   });
 
-  // --- fresh-success CheckDraw gate: only a WITNESSED transition draws ------
+  // --- fresh-success CheckDraw gate: only a witnessed transition draws ------
   // (.glim-check-draw is CheckDraw's stroke path; the sheet's only other
   // CheckDraw sits behind a verify press these tests never make.)
 
@@ -508,7 +508,7 @@ describe("RunDetailSheet", () => {
     );
     const { rerender } = render(sheet(makeRun({ status: "running", finishedAt: null }), true));
     expect(draws()).toBe(0);
-    // The transition lands while the sheet is OPEN: the user is watching, the
+    // The transition lands while the sheet is open: the user is watching, the
     // check draws.
     rerender(sheet(makeRun({ status: "success" }), true));
     expect(draws()).toBe(1);
@@ -526,12 +526,12 @@ describe("RunDetailSheet", () => {
         <RunDetailSheet run={run} open={open} onClose={() => {}} />
       </I18nProvider>
     );
-    // Hosts keep the sheet MOUNTED when closed and keep feeding it refreshed
-    // records from their poll — modeled exactly: the record flips to success
+    // Hosts keep the sheet mounted when closed and keep feeding it refreshed
+    // records from their poll; modeled exactly: the record flips to success
     // behind the closed sheet...
     const { rerender } = render(sheet(makeRun({ status: "running", finishedAt: null }), false));
     rerender(sheet(makeRun({ status: "success" }), false));
-    // ...so the reopen shows the completed run WITHOUT the animation.
+    // ...so the reopen shows the completed run without the animation.
     rerender(sheet(makeRun({ status: "success" }), true));
     expect(draws()).toBe(0);
   });

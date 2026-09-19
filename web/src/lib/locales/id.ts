@@ -908,7 +908,7 @@ const id: Partial<Translations> = {
   "auth.invalidPassword": "Kata sandi tidak valid",
   "auth.loginError": "Login gagal",
 
-  // Settings — Security card
+  // Settings; Security card
   "auth.security": "Kata sandi",
   "auth.authOff": "Autentikasi mati. Semua pengguna LAN memiliki akses penuh.",
   "auth.authOn": "Autentikasi diaktifkan.",
@@ -1334,7 +1334,7 @@ const id: Partial<Translations> = {
   "recovery.freshNudge": "Memulihkan dari server sebelumnya atau setelah membangun ulang? Pulihkan cadangan Anda yang sudah ada.",
   "recovery.freshNudgeCta": "Buka Pemulihan",
 
-  // Settings — section tabs
+  // Settings; section tabs
   "settings.tab.general": "Umum",
   "settings.tab.storage": "Jalur & Penyimpanan",
   "settings.tab.schedules": "Jadwal",
@@ -1360,7 +1360,7 @@ const id: Partial<Translations> = {
   // Filter drawer trigger
   "filter.button": "Filter",
 
-  // Settings — weekly digest, backup-engine cache, revoke-all sessions
+  // Settings; weekly digest, backup-engine cache, revoke-all sessions
   "settings.digestTitle": "Ringkasan mingguan",
   "settings.digestHint": "Satu pesan ringkasan per minggu: jumlah eksekusi, data cadangan baru, keterkinian off-site, dan kegagalan teratas, dikirim melalui saluran notifikasi di atas.",
   "settings.digestToggle": "Ringkasan mingguan",

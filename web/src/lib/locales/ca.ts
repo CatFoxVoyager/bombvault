@@ -908,7 +908,7 @@ const ca: Partial<Translations> = {
   "auth.invalidPassword": "Contrasenya no vàlida",
   "auth.loginError": "Ha fallat l'inici de sessió",
 
-  // Settings — Security card
+  // Settings; Security card
   "auth.security": "Contrasenya",
   "auth.authOff": "L'autenticació està desactivada. Tots els usuaris de la LAN tenen accés complet.",
   "auth.authOn": "L'autenticació està activada.",
@@ -1334,7 +1334,7 @@ const ca: Partial<Translations> = {
   "recovery.freshNudge": "Restaurant des d'un servidor anterior o després d'una reconstrucció? Recupera les teves còpies existents.",
   "recovery.freshNudgeCta": "Ves a Recuperació",
 
-  // Settings — section tabs
+  // Settings; section tabs
   "settings.tab.general": "General",
   "settings.tab.storage": "Camins i emmagatzematge",
   "settings.tab.schedules": "Horaris",
@@ -1360,7 +1360,7 @@ const ca: Partial<Translations> = {
   // Filter drawer trigger
   "filter.button": "Filtres",
 
-  // Settings — weekly digest, backup-engine cache, revoke-all sessions
+  // Settings; weekly digest, backup-engine cache, revoke-all sessions
   "settings.digestTitle": "Resum setmanal",
   "settings.digestHint": "Un missatge resum per setmana: nombre d'execucions, dades noves de còpia, actualitat externa i els principals errors, enviat mitjançant els canals de notificació de dalt.",
   "settings.digestToggle": "Resum setmanal",

@@ -1,16 +1,16 @@
 // @vitest-environment jsdom
 // ---------------------------------------------------------------------------
-// BottomNav's dom contract — the bar-card and the More trigger.
+// BottomNav's dom contract; the bar-card and the More trigger.
 //
 // The geometry half of the bar-card (insets, radius, safe areas) is CSS and
-// jsdom computes no layout, so the observable form here is the CLASS TOKEN:
+// jsdom computes no layout, so the observable form here is the class token:
 // the host paints nothing (transparent, no border anywhere on the bar) and
-// the card carries the sidebar surface token and the card radius — the same
+// the card carries the sidebar surface token and the card radius; the same
 // targeted-token discipline BottomSheet.dom.test.tsx states for its own
-// styling contracts. What IS behavioural here:
+// styling contracts. What is behavioural here:
 //   - the More trigger is a disclosure: aria-haspopup="dialog" and
 //     aria-expanded that tracks the sheet's open state;
-//   - the More trigger reads as ACTIVE (filled accent) exactly while the
+//   - the More trigger reads as active (filled accent) exactly while the
 //     current route lives on the More side of the registry (Settings, the
 //     gated tabs) and never while a bar destination is current;
 //   - every slot carries the colour engine (glim-hue + its own --item-hue)
@@ -41,7 +41,7 @@ afterEach(cleanup);
 
 describe("BottomNav bar-card", () => {
   it("the host paints nothing and carries no line: transparent ground, zero border tokens", () => {
-    // Separation by shade, never by a line — any border/ring class on the
+    // Separation by shade, never by a line; any border/ring class on the
     // host would reintroduce the strip-with-a-line-on-top the bar-card
     // language replaced.
     draw("/dashboard");
@@ -122,16 +122,16 @@ describe("BottomNav More trigger", () => {
 });
 
 // ---------------------------------------------------------------------------
-// The bar's own label axis ("bottombar", lib/controls.ts) — behaviour, not
+// The bar's own label axis ("bottombar", lib/controls.ts); behaviour, not
 // just the source asserts mobileShellSource.test.ts carries. The four modes
-// change what a slot's caption IS: visible text, or sr-only words behind an
+// change what a slot's caption is: visible text, or sr-only words behind an
 // aria-label, or the reactive at-rest reveal. The contract that matters most:
-// a HIDING mode never leaves a slot unnamed — the caption's words move into
+// a hiding mode never leaves a slot unnamed; the caption's words move into
 // aria-label (and the hover bubble's title), so a glyph bar is never eleven
 // unnamed pictures. jsdom computes no layout, and nothing here needs it: the
 // modes' observable surface in a dom environment is exactly classes and
-// attributes. The axis preference arrives the way the real app delivers it —
-// the localStorage key getLabelMode reads — never by poking the hook.
+// attributes. The axis preference arrives the way the real app delivers it;
+// the localStorage key getLabelMode reads; never by poking the hook.
 // ---------------------------------------------------------------------------
 describe("BottomNav label axis (bottombar)", () => {
   const AXIS_KEY = "bv-labels-bottombar";
@@ -189,7 +189,7 @@ describe("BottomNav label axis (bottombar)", () => {
       const caption = slot.querySelector("span.glim-label-reactive");
       expect(caption).not.toBeNull();
       expect(slot.querySelector("span.sr-only")).toBeNull();
-      // The reveal's ceiling comes from the label's own length — the slot
+      // The reveal's ceiling comes from the label's own length; the slot
       // carries the per-label width var the CSS formula consumes.
       expect(slot.style.getPropertyValue("--reactive-chars")).not.toBe("");
     }

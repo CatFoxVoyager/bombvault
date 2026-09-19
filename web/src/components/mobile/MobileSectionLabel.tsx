@@ -2,7 +2,7 @@ import type { TranslationKey, useT } from "../../lib/i18n";
 import { Badge } from "../Badge";
 
 // ---------------------------------------------------------------------------
-// MobileSectionLabel — the ONE section header of the mobile card language: a
+// MobileSectionLabel; the one section header of the mobile card language: a
 // filled section Badge sitting between the cards, the same heading treatment
 // every other surface in the app uses. It replaces an earlier 12px letter-
 // spaced all-caps label, which is retired for good: forced capitalisation +
@@ -12,10 +12,10 @@ import { Badge } from "../Badge";
 // the muted grey read as a caption rather than a heading. The filled Badge is
 // `inFlow` (not the desktop cards' overlapping notch): a phone column's first
 // section sits right under the page header, where a -11px poke above the box
-// would clip — the same measurement that moved the sheet titles in-flow (see
+// would clip; the same measurement that moved the sheet titles in-flow (see
 // BottomSheet's header note). Kept as a shared component so every page block
 // carrying phone-width sections composes the same heading instead of
-// re-authoring a private copy — the same single-registry discipline the nav
+// re-authoring a private copy; the same single-registry discipline the nav
 // model applies to destinations, applied to a component: one source of the
 // heading markup, consumers import it back. The Badge carries no hueIndex of
 // its own: the block's `glim-hue` root rebinds --accent for the whole subtree,

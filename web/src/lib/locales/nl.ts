@@ -352,7 +352,7 @@ const nl: Partial<Translations> = {
   "auth.invalidPassword": "Ongeldig wachtwoord",
   "auth.loginError": "Aanmelden mislukt",
 
-  // Settings — Security card
+  // Settings; Security card
   "auth.security": "Wachtwoord",
   "auth.authOff": "Verificatie is uitgeschakeld. Alle LAN-gebruikers hebben volledige toegang.",
   "auth.authOn": "Verificatie is ingeschakeld.",
@@ -1136,7 +1136,7 @@ const nl: Partial<Translations> = {
   "drill.manualOnly": "Off-site DR: alleen handmatig",
   "drill.manualOnlyTitle": "De geplande off-site DR-test is uit. Voer de off-site controle handmatig uit met de knop.",
 
-  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings; section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "Algemeen",
   "settings.tab.storage": "Paden en opslag",
   "settings.tab.schedules": "Schema's",
@@ -1235,7 +1235,7 @@ const nl: Partial<Translations> = {
   "dashboard.domainFiles": "Mappen",
   "recovery.filesFound": "{f} mappensets gevonden.",
   "recovery.filesRestoreHint": "Herontdekte mappensets kennen hun oorspronkelijke map niet. Elke set wordt hersteld naar een map die u kiest.",
-  // Restore from another BombVault repo — Recovery page (#61 task 11)
+  // Restore from another BombVault repo; Recovery page
   "recovery.foreignTitle": "Herstellen vanuit een andere BombVault-repo",
   "recovery.foreignIntro": "Haal losse containers, VM's of mappensets uit de back-ups van een ANDERE BombVault-instantie: verbind alleen-lezen, blader door de inhoud en herstel wat u kiest. De andere repository wordt alleen gelezen, daar verandert niets, en uw eigen back-upinstellingen blijven onaangetast.",
   "recovery.foreignStepConnect": "Verbinden met de andere repository",
@@ -1273,7 +1273,7 @@ const nl: Partial<Translations> = {
   "recovery.foreignExpired": "De sessie is verlopen (sessies duren 30 minuten). Maak opnieuw verbinding om verder te bladeren.",
   "recovery.foreignReconnect": "Opnieuw verbinden",
 
-  // Dashboard activity log (Task 4)
+  // Dashboard activity log
   "activityLog.title": "Activiteitenlogboek",
   "activityLog.filterPlaceholder": "Filteren… (bijv. plex, mislukt, off-site)",
   "activityLog.filterAllDomains": "Alle domeinen",
@@ -1330,7 +1330,7 @@ const nl: Partial<Translations> = {
   "activityLog.dayFilterChip": "Toont {date}",
   "activityLog.clearDayFilter": "Dagfilter wissen",
 
-  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave; Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "Replicatie gestart - deze draait op de achtergrond; de activiteitsindicator toont de voortgang.",
   "whatsnew.retry": "Opnieuw proberen",

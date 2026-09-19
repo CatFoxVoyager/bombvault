@@ -7,28 +7,28 @@ import { useConfirm, type ConfirmOptions } from "../../lib/useConfirm";
 import { DESKTOP_QUERY } from "../../lib/useMediaQuery";
 import { en, I18nProvider } from "../../lib/i18n";
 
-// Behavioral proof of the confirm presentation swap: ONE useConfirm promise
-// API, TWO presentation halves. The sheet half (ConfirmSheet) is asserted
-// directly as observable behavior — stacked action order, described message,
-// close paths, focus discipline — and the swap itself is asserted through the
+// Behavioral proof of the confirm presentation swap: One useConfirm promise
+// API, two presentation halves. The sheet half (ConfirmSheet) is asserted
+// directly as observable behavior; stacked action order, described message,
+// close paths, focus discipline; and the swap itself is asserted through the
 // real useConfirm() hook under a controlled matchMedia stub (below).
 //
 // Class-token assertions (glim-btn-key, w-full, ...) follow the same
-// documented exception as BottomSheet.dom.test.tsx: these are STYLING
+// documented exception as BottomSheet.dom.test.tsx: these are styling
 // contracts and jsdom computes no geometry, so the observable form of the
-// contract IS the token. Presence assertions, never whole-class snapshots.
+// contract is the token. Presence assertions, never whole-class snapshots.
 
 const MESSAGE = "Delete container plex and everything in it? This cannot be undone.";
 
 // ---------------------------------------------------------------------------
-// Controlled matchMedia — why it must be built this way: useMediaQuery
-// caches its desktop MediaQueryList at MODULE level on first use, so a
+// Controlled matchMedia; why it must be built this way: useMediaQuery
+// caches its desktop MediaQueryList at module level on first use, so a
 // per-test re-stub of window.matchMedia can never reach an already-created
 // list. This stub is installed before the file's first render (beforeEach),
-// so the hook caches THESE objects for the file's lifetime; the Map is
+// so the hook caches these objects for the file's lifetime; the Map is
 // deliberately never cleared between tests for the same reason. Flipping
 // desktopMatches mutates the same objects the hook still reads (matches is
-// a live getter) and setDesktopWidth() fires the change listeners — the
+// a live getter) and setDesktopWidth() fires the change listeners; the
 // exact sequence a real browser resize produces, including the
 // useSyncExternalStore re-render.
 // ---------------------------------------------------------------------------
@@ -104,12 +104,12 @@ describe("ConfirmSheet (the mobile presentation, direct)", () => {
     const message = screen.getByText(MESSAGE);
     expect(message).toBeTruthy();
     // ConfirmDialog parity: the panel describes the message, so screen
-    // readers announce the question — not just the title.
+    // readers announce the question; not just the title.
     expect(panel.getAttribute("aria-describedby")).toBe(message.id);
 
     const confirmButton = screen.getByRole("button", { name: "Delete it" });
     const cancelButton = screen.getByRole("button", { name: en["common.cancel"] });
-    // DOM order IS the stack order: cancel comes FIRST, confirm LAST — the
+    // DOM order is the stack order: cancel comes first, confirm last; the
     // desktop card's "forward action comes last" rule on a vertical axis,
     // landing the confirm under the thumb's resting arc (header comment).
     expect(
@@ -120,11 +120,11 @@ describe("ConfirmSheet (the mobile presentation, direct)", () => {
     expect(cancelButton.className).toContain("glim-btn-key");
     expect(confirmButton.className).toContain("w-full");
     // No status colour on the commit control: GlimStone 1.12.0 removed the
-    // tone, and the confirm takes its siblings' (neutral) colour — the exact
+    // tone, and the confirm takes its siblings' (neutral) colour; the exact
     // treatment the desktop card's commit button gets.
     expect(confirmButton.className).not.toContain("statusFail");
     expect(confirmButton.className).not.toContain("statusWarn");
-    // Both buttons live OUTSIDE the scrolling body (the footer slot): the
+    // Both buttons live outside the scrolling body (the footer slot): the
     // message's container is the body's only content child.
     const body = message.parentElement!.parentElement!;
     expect(body.textContent).toContain(MESSAGE);
@@ -133,7 +133,7 @@ describe("ConfirmSheet (the mobile presentation, direct)", () => {
 
   it("starts focus on the sheet's close control, never on the destructive one", () => {
     renderSheet();
-    // BottomSheet's open effect focuses the header close button — the safe
+    // BottomSheet's open effect focuses the header close button; the safe
     // outcome. No autoFocus anywhere in this tree can steal it.
     expect(document.activeElement).toBe(screen.getByRole("button", { name: en["common.close"] }));
     expect(document.activeElement).not.toBe(screen.getByRole("button", { name: "Delete it" }));
@@ -188,7 +188,7 @@ describe("useConfirm presentation swap", () => {
     fireEvent.click(screen.getByRole("button", { name: "trigger" })); // opens the confirmation
     const panel = screen.getByRole("dialog");
     // The desktop discriminators: described message + the neutral card
-    // surface — never a tinted sheet panel.
+    // surface; never a tinted sheet panel.
     expect(panel.getAttribute("aria-describedby")).toBe("confirmdialog-message");
     expect(panel.className).toContain("bg-carbon-surface");
     expect(panel.className).not.toContain("statusFail");
@@ -202,7 +202,7 @@ describe("useConfirm presentation swap", () => {
     const panel = screen.getByRole("dialog");
     // The sheet matches the desktop card's described-message contract.
     expect(panel.getAttribute("aria-describedby")).not.toBeNull();
-    // Same translated labels on both faces — only the surface changed.
+    // Same translated labels on both faces; only the surface changed.
     expect(screen.getByRole("button", { name: en["common.confirm"] })).toBeTruthy();
     expect(screen.getByRole("button", { name: en["common.cancel"] })).toBeTruthy();
   });
@@ -233,16 +233,16 @@ describe("useConfirm presentation swap", () => {
     expect(results).toEqual([true]);
   });
 
-  it("Escape resolves false EXACTLY once (the benign double-dispatch) and restores the trigger", async () => {
+  it("Escape resolves false exactly once (the benign double-dispatch) and restores the trigger", async () => {
     const results: boolean[] = [];
     render(<ConfirmHarness results={results} />);
     act(() => setDesktopWidth(false));
     const trigger = screen.getByRole("button", { name: "trigger" });
     trigger.focus();
     fireEvent.click(trigger); // opens the sheet
-    // One Escape keypress: useConfirm's document listener AND BottomSheet's
+    // One Escape keypress: useConfirm's document listener and BottomSheet's
     // both fire. settle() nulls its resolver on the first call, so the
-    // promise resolves once — results holds a single false, not two.
+    // promise resolves once; results holds a single false, not two.
     await act(async () => {
       fireEvent.keyDown(document, { key: "Escape" });
     });

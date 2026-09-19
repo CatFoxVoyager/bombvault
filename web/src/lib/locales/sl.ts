@@ -903,7 +903,7 @@ const sl: Partial<Translations> = {
   "auth.invalidPassword": "Napačno geslo",
   "auth.loginError": "Prijava ni uspela",
 
-  // Settings — Security card
+  // Settings; Security card
   "auth.security": "Geslo",
   "auth.authOff": "Preverjanje pristnosti je izklopljeno. Vsi uporabniki v LAN-u imajo poln dostop.",
   "auth.authOn": "Preverjanje pristnosti je omogočeno.",
@@ -1321,7 +1321,7 @@ const sl: Partial<Translations> = {
   "recovery.freshNudge": "Obnavljaš iz prejšnjega strežnika ali po ponovni izdelavi? Obnovi svoje obstoječe varnostne kopije.",
   "recovery.freshNudgeCta": "Pojdi na Obnovo",
 
-  // Settings — section tabs + schedule group headings + subtitle
+  // Settings; section tabs + schedule group headings + subtitle
   "settings.tab.general": "Splošno",
   "settings.tab.storage": "Poti in shramba",
   "settings.tab.schedules": "Urniki",
@@ -1346,7 +1346,7 @@ const sl: Partial<Translations> = {
   "settings.subtitle": "Konfiguracija BombVault. Spremembe se uveljavijo takoj.",
   "filter.button": "Filtri",
 
-  // Settings — weekly digest card, backup-engine cache card, revoke-all sessions
+  // Settings; weekly digest card, backup-engine cache card, revoke-all sessions
   "settings.digestTitle": "Tedenski povzetek",
   "settings.digestHint": "Eno povzetno sporočilo na teden: števci zagonov, novi podatki varnostnih kopij, ažurnost zunanje kopije in največje napake, poslano prek zgornjih obvestilnih kanalov.",
   "settings.digestToggle": "Tedenski povzetek",
@@ -1464,7 +1464,7 @@ const sl: Partial<Translations> = {
   "recovery.foreignVMDest": "Cilj za diske VM-ja",
   "recovery.foreignVMDestHint": "Kamor se zapišejo diski VM-ja. Datoteke diskov gredo v <cilj>/<ime-vm>/, zato izberi mapo na resnično priklopljenem naboru, ne na RAM disku. Tuj VM se obnovi ustavljen, zato ga po pregledu zaženi sam.",
 
-  // Dashboard activity log (Task 4)
+  // Dashboard activity log
   "activityLog.title": "Dnevnik dejavnosti",
   "activityLog.filterPlaceholder": "Filtriraj… (npr. plex, neuspešno, zunanje)",
   "activityLog.filterAllDomains": "Vse domene",

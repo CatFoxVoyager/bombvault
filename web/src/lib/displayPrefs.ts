@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// displayPrefs — the look of the interface lives on the SERVER, the browser
+// displayPrefs; the look of the interface lives on the server, the browser
 // only caches it (issue #191).
 //
 // Reported by manilx: he clears Firefox's site data to fix an unrelated problem
@@ -9,7 +9,7 @@
 // browser. How many are meddling with BV anyway."
 //
 // localStorage stays, and stays the thing every axis actually reads. That is
-// deliberate: those modules read it SYNCHRONOUSLY before first paint, which is
+// deliberate: those modules read it synchronously before first paint, which is
 // what stops the app flashing the default theme on every load, and no amount of
 // server storage can be synchronous. So the split is:
 //
@@ -20,7 +20,7 @@
 // then snaps to the stored look, instead of losing it.
 // ---------------------------------------------------------------------------
 
-/** Every localStorage key that describes how the interface LOOKS.
+/** Every localStorage key that describes how the interface looks.
  *
  *  Deliberately not "every bv-* key": list filters and sort orders
  *  (bv-containers-sort and friends) are about what you were doing on one page,
@@ -51,14 +51,14 @@ const KEYS = [
 
 /** Fired on `window` once this browser has adopted the server's look.
  *
- *  Everything that reads localStorage ONCE has to listen: main.tsx re-applies
+ *  Everything that reads localStorage once has to listen: main.tsx re-applies
  *  the axes that live on the document element, I18nProvider re-reads the
  *  language, AdvancedProvider the advanced view. Between them they cover every
- *  key in KEYS, which is what makes the reload below unnecessary.
+ *  key in keys, which is what makes the reload below unnecessary.
  *
  *  This replaces a `location.reload()` and the session-scoped guard around it.
  *  The guard existed so a value the server keeps returning and the browser
- *  keeps rejecting could not reload forever — but it also blocked the ONE
+ *  keeps rejecting could not reload forever; but it also blocked the one
  *  legitimate reload whenever sessionStorage already carried it, which is the
  *  case for a restored tab and for a tab that was open while its site data was
  *  cleared. The page then sat on defaults with the correct values already in
@@ -135,7 +135,7 @@ export function save(): void {
  *    - the server has a look and it matches → nothing happens
  *    - the server has a look and it differs → adopt it and announce it, so
  *      every axis follows, including the two React holds
- *    - the server has NO look yet → seed it from this browser, so the first
+ *    - the server has no look yet → seed it from this browser, so the first
  *      load after upgrading keeps what the user already had instead of
  *      resetting them to factory settings
  */
@@ -162,8 +162,8 @@ export async function sync(): Promise<void> {
 
   if (!write(body.prefs)) return; // Already in agreement.
 
-  // The values are in localStorage now, and every axis reads them from there —
-  // but only ever ONCE, at boot, which is why writing them is not enough on a
+  // The values are in localStorage now, and every axis reads them from there;
+  // but only ever once, at boot, which is why writing them is not enough on a
   // page that has already booted. Saying so out loud is: main.tsx re-applies
   // the document-element axes, and the two providers re-read theirs.
   window.dispatchEvent(new Event(ADOPTED_EVENT));

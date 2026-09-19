@@ -1,14 +1,14 @@
 // ---------------------------------------------------------------------------
-// NAV MODEL — guard tests for the ONE ordered navigation registry.
+// Nav model; guard tests for the one ordered navigation registry.
 //
 // Node environment, no DOM: this renders nothing; it asserts the registry's
-// pure data contract the way app/routedPages.test.ts reads source text —
-// because the registry's whole job is to be the ONE list every chrome surface
+// pure data contract the way app/routedPages.test.ts reads source text;
+// because the registry's whole job is to be the one list every chrome surface
 // (desktop Sidebar, the mobile bar + More sheet) derives from, so the
 // contract itself is what must hold: full-list order, gates that flip only
 // their own entry's `enabled`, bar/More as structural filter derivations, and
 // never a hue field (hue assignment stays Sidebar's render-time nextHue()
-// counter — see navModel.ts's header comment for why).
+// counter; see navModel.ts's header comment for why).
 // ---------------------------------------------------------------------------
 import { describe, expect, it } from "vitest";
 import type { Settings } from "./api";
@@ -18,8 +18,8 @@ import { barDestinations, destinations, moreDestinations } from "./navModel";
 // Only the domain gates destinations() reads; every other Settings field
 // is unused by the registry. `as Settings` matches this repo's own established
 // partial-fixture convention (Sidebar.tabColor.dom.test.tsx's `allOn` stub).
-// Upstream's resync collapsed the old /receiver + /fleet rows into ONE
-// /instances row gated by ANY of its three settings — receiver, fleet and
+// Upstream's resync collapsed the old /receiver + /fleet rows into one
+// /instances row gated by any of its three settings; receiver, fleet and
 // pull remain three gates, they now flip the same entry's `enabled`.
 const ALL_OFF = {
   vmsEnabled: false,
@@ -42,8 +42,8 @@ const ALL_ON = {
   pullEnabled: true,
 } as Settings;
 
-// The documented desktop Sidebar order — dashboard, recovery, containers, the
-// gated tabs (instances last of them, gated by ANY of receiver/fleet/pull),
+// The documented desktop Sidebar order; dashboard, recovery, containers, the
+// gated tabs (instances last of them, gated by any of receiver/fleet/pull),
 // settings.
 const SIDEBAR_ORDER = [
   "/dashboard",
@@ -58,11 +58,11 @@ const SIDEBAR_ORDER = [
 ];
 
 // The four bottom-bar destinations, in registry order (Recovery rides the
-// bar — it is what people open on a phone when something went wrong — and
+// bar; it is what people open on a phone when something went wrong; and
 // Settings reaches mobile chrome through the More sheet instead).
 const BAR_ROUTES = ["/dashboard", "/recovery", "/containers", "/files"];
 
-describe("destinations — the ONE ordered registry", () => {
+describe("destinations; the ONE ordered registry", () => {
   it("finds the full registry at all (guards against this test silently matching nothing)", () => {
     expect(destinations(ALL_ON)).toHaveLength(SIDEBAR_ORDER.length);
   });
@@ -79,7 +79,7 @@ describe("destinations — the ONE ordered registry", () => {
   });
 
   it("gates never pre-filter: with every domain off the full list still comes back, only `enabled` shrunken", () => {
-    // Sidebar's nextHue() render counter consumes the FULL list and skips
+    // Sidebar's nextHue() render counter consumes the full list and skips
     // disabled entries itself, so the registry must always hand out all nine.
     const dests = destinations(ALL_OFF);
     expect(dests.map((d) => d.to)).toEqual(SIDEBAR_ORDER);
@@ -104,8 +104,8 @@ describe("destinations — the ONE ordered registry", () => {
   it("every labelKey is a real key in the en table (labels are reused verbatim, never re-typed)", () => {
     // No namespace assertion any more: upstream's resync named the merged
     // receiver/fleet/pull row with `instances.title` (its own page's key,
-    // outside the nav.* namespace). The contract that matters — the label is
-    // an EXISTING table key, never a re-typed string — is the lookup below,
+    // outside the nav.* namespace). The contract that matters; the label is
+    // an existing table key, never a re-typed string; is the lookup below,
     // and the TranslationKey union already makes a bogus key a compile error.
     for (const d of destinations(ALL_ON)) {
       expect(
@@ -116,13 +116,13 @@ describe("destinations — the ONE ordered registry", () => {
   });
 });
 
-// ADJACENCY probe: toggling any single gate changes only that entry's
-// `enabled` flag — no other entry's position, adjacency, or identity moves.
+// adjacency probe: toggling any single gate changes only that entry's
+// `enabled` flag; no other entry's position, adjacency, or identity moves.
 // This is what lets Sidebar's hue counter stay byte-identical across a gate
 // flip for every tab the flip does not touch.
-describe("destinations — each gate flips exactly its own entry", () => {
-  // All three instances gates flip the SAME /instances row (the row appears
-  // as soon as ANY of receiver/fleet/pull is on) — so each gate's flip must
+describe("destinations; each gate flips exactly its own entry", () => {
+  // All three instances gates flip the same /instances row (the row appears
+  // as soon as any of receiver/fleet/pull is on); so each gate's flip must
   // light up /instances and touch nothing else.
   const GATES = [
     ["vmsEnabled", "/vms"],
@@ -165,7 +165,7 @@ describe("destinations — each gate flips exactly its own entry", () => {
   });
 });
 
-describe("barDestinations — the bottom bar's slot list", () => {
+describe("barDestinations; the bottom bar's slot list", () => {
   it("at full config: dashboard, recovery, containers, files in registry order (Settings lives in More)", () => {
     expect(barDestinations(ALL_ON).map((d) => d.to)).toEqual(BAR_ROUTES);
   });
@@ -186,7 +186,7 @@ describe("barDestinations — the bottom bar's slot list", () => {
   });
 });
 
-describe("moreDestinations — the More sheet's list", () => {
+describe("moreDestinations; the More sheet's list", () => {
   it("desktop Sidebar order at full config, excluding every bar destination (Settings rides in More)", () => {
     const more = moreDestinations(ALL_ON);
     expect(more.map((d) => d.to)).toEqual(["/vms", "/flash", "/config", "/instances", "/settings"]);
@@ -195,13 +195,13 @@ describe("moreDestinations — the More sheet's list", () => {
     }
   });
 
-  it("with every gate off only the always-on Settings row remains (Recovery rides the bar) — the sheet can never run out of destinations, which is why the bar's More trigger renders unconditionally", () => {
+  it("with every gate off only the always-on Settings row remains (Recovery rides the bar); the sheet can never run out of destinations, which is why the bar's More trigger renders unconditionally", () => {
     expect(moreDestinations(ALL_OFF).map((d) => d.to)).toEqual(["/settings"]);
   });
 });
 
 describe("registry shape", () => {
-  it("no entry carries any hue or colour field — hue assignment is Sidebar's render-time counter, never data", () => {
+  it("no entry carries any hue or colour field; hue assignment is Sidebar's render-time counter, never data", () => {
     for (const d of destinations(ALL_ON)) {
       const hueish = Object.keys(d).filter((k) => /hue|colou?r/i.test(k));
       expect(hueish, `${d.to} carries colour data: ${hueish.join(", ")}`).toEqual([]);

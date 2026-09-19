@@ -908,7 +908,7 @@ const lv: Partial<Translations> = {
   "auth.invalidPassword": "Nederīga parole",
   "auth.loginError": "Pieteikšanās neizdevās",
 
-  // Settings — Security card
+  // Settings; Security card
   "auth.security": "Parole",
   "auth.authOff": "Autentifikācija ir izslēgta. Visiem LAN lietotājiem ir pilna piekļuve.",
   "auth.authOn": "Autentifikācija ir iespējota.",
@@ -1334,7 +1334,7 @@ const lv: Partial<Translations> = {
   "recovery.freshNudge": "Atjaunojat no iepriekšēja servera vai pēc atkārtotas izveides? Atjaunojiet savas esošās rezerves kopijas.",
   "recovery.freshNudgeCta": "Doties uz Atkopšanu",
 
-  // Settings — section tabs
+  // Settings; section tabs
   "settings.tab.general": "Vispārīgi",
   "settings.tab.storage": "Ceļi un krātuve",
   "settings.tab.schedules": "Grafiki",
@@ -1360,7 +1360,7 @@ const lv: Partial<Translations> = {
   // Filter drawer trigger
   "filter.button": "Filtri",
 
-  // Settings — weekly digest, backup-engine cache, revoke-all sessions
+  // Settings; weekly digest, backup-engine cache, revoke-all sessions
   "settings.digestTitle": "Iknedēļas kopsavilkums",
   "settings.digestHint": "Viens kopsavilkuma ziņojums nedēļā: izpildījumu skaits, jauni rezerves kopēšanas dati, attālinātā aktualitāte un galvenās neveiksmes, nosūtīts, izmantojot iepriekš minētos paziņojumu kanālus.",
   "settings.digestToggle": "Iknedēļas kopsavilkums",

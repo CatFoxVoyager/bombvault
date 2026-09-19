@@ -357,7 +357,7 @@ const hu: Partial<Translations> = {
   "auth.invalidPassword": "Érvénytelen jelszó",
   "auth.loginError": "Bejelentkezés sikertelen",
 
-  // Settings — Security card
+  // Settings; Security card
   "auth.security": "Jelszó",
   "auth.authOff": "A hitelesítés ki van kapcsolva. Minden LAN-felhasználónak teljes hozzáférése van.",
   "auth.authOn": "A hitelesítés engedélyezett.",
@@ -447,7 +447,7 @@ const hu: Partial<Translations> = {
   "state.pmsuspended":  "Felfüggesztve",
   "state.notInstalled": "Nincs telepítve",
 
-  // Backups — files
+  // Backups; files
   "snapshots.files": "Fájlok",
   "snapshots.delete": "Törlés",
   "snapshots.deleteConfirm": "Törli ezt a mentést? A pillanatkép eltávolításra kerül a tárolóból (a hely felszabadításához futtassa a Nyesést a Beállításokban). Nem vonható vissza.",
@@ -695,7 +695,7 @@ const hu: Partial<Translations> = {
   "export.exportedTo": "Exportálva ide:",
   "backup.configOnly": "Csak konfiguráció, nincsenek adatmappák (a definíció mentve az újralétrehozáshoz)",
 
-  // Backups — delete all
+  // Backups; delete all
   "snapshots.deleteAll": "Összes mentés törlése",
   "snapshots.deleteAllConfirm": "Törli ennek a VM-nek az ÖSSZES mentését a kiválasztott forrásból (helyi vagy telephelyen kívüli)? A pillanatképek véglegesen eltávolításra kerülnek, és a tároló megnyesésre kerül. Ez nem vonható vissza.",
   "snapshots.deletingAll": "Törlés…",
@@ -774,7 +774,7 @@ const hu: Partial<Translations> = {
   "recovery.freshNudge": "Egy korábbi szerverről vagy újraépítésből állítasz vissza? Állítsd vissza a meglévő mentéseidet.",
   "recovery.freshNudgeCta": "Ugrás a Helyreállításhoz",
 
-  // Recovery — restore BombVault's own settings (config)
+  // Recovery; restore BombVault's own settings (config)
   "recovery.stepConfig": "BombVault saját beállításainak visszaállítása",
   "recovery.configHint": "Egy újraépített szerveren először BombVault saját beállításait állítsd vissza (a mentési útvonalait, a telephelyen kívüli céljait és a hitelesítő adatait), hogy az alábbi lépések már előre kitöltve jelenjenek meg. Irányítsd a korábban beállított beállítás-mentésre. Nincs beállítás-mentés? Hagyd ki ezt, és csatold a mentéseidet kézzel alább.",
   "recovery.configAppKeyReminder": "Az APP_KEY-nek egyeznie kell ezzel a mentéssel. Ez a fenti 1. lépés ellenőrzése.",
@@ -843,7 +843,7 @@ const hu: Partial<Translations> = {
   "settings.dashTileRemoving": "Eltávolítás…",
   "settings.dashTileRemoveOk": "Bővítmény eltávolítva. Már nem jelenik meg az Unraid irányítópultján.",
 
-  // Notifications — SMTP
+  // Notifications; SMTP
   "notify.smtp": "E-mail (SMTP)",
   "notify.smtpHost": "SMTP hoszt",
   "notify.smtpPort": "Port",
@@ -1142,7 +1142,7 @@ const hu: Partial<Translations> = {
   "drill.manualOnly": "Telephelyen kívüli DR: csak manuálisan",
   "drill.manualOnlyTitle": "Az ütemezett telephelyen kívüli DR-próba ki van kapcsolva. Futtasd a telephelyen kívüli ellenőrzést manuálisan a gombbal.",
 
-  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings; section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "Általános",
   "settings.tab.storage": "Útvonalak és tárolás",
   "settings.tab.schedules": "Ütemezések",
@@ -1241,7 +1241,7 @@ const hu: Partial<Translations> = {
   "dashboard.domainFiles": "Mappák",
   "recovery.filesFound": "{f} mappakészlet található.",
   "recovery.filesRestoreHint": "Az újra felfedezett mappakészletek nem ismerik az eredeti mappájukat. Mindegyik egy Ön által választott mappába áll vissza.",
-  // Restore from another BombVault repo — Recovery page (#61 task 11)
+  // Restore from another BombVault repo; Recovery page
   "recovery.foreignTitle": "Visszaállítás másik BombVault repóból",
   "recovery.foreignIntro": "Emeljen ki egyes konténereket, VM-eket vagy mappakészleteket egy MÁSIK BombVault-példány mentéseiből: csatlakozzon csak olvasásra, böngéssze a tartalmat, és állítsa vissza, amit kiválaszt. A másik repót csak olvassuk, ott semmi sem változik, és az Ön saját mentési beállításai érintetlenek maradnak.",
   "recovery.foreignStepConnect": "Csatlakozás a másik repóhoz",
@@ -1279,7 +1279,7 @@ const hu: Partial<Translations> = {
   "recovery.foreignExpired": "A munkamenet lejárt (a munkamenetek 30 percig tartanak). Csatlakozzon újra a böngészés folytatásához.",
   "recovery.foreignReconnect": "Újracsatlakozás",
 
-  // Dashboard activity log (Task 4)
+  // Dashboard activity log
   "activityLog.title": "Tevékenységnapló",
   "activityLog.filterPlaceholder": "Szűrés… (pl. plex, sikertelen, telephelyen kívüli)",
   "activityLog.filterAllDomains": "Minden terület",
@@ -1336,7 +1336,7 @@ const hu: Partial<Translations> = {
   "activityLog.dayFilterChip": "Megjelenítve: {date}",
   "activityLog.clearDayFilter": "Napszűrő törlése",
 
-  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave; Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "A replikáció elindult - a háttérben fut; a futásjelző mutatja az előrehaladást.",
   "whatsnew.retry": "Próbáld újra",
