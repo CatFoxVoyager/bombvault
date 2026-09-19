@@ -2,20 +2,29 @@
 // MoreSheet — the mobile "More" sheet.
 //
 // The desktop rail's overflow surface, re-expressed for the thumb: the
-// destinations that do NOT own a bottom-bar slot, in desktop Sidebar order.
-// The row list is derived from the ONE nav registry (lib/navModel.ts, via
-// moreDestinations) — never a second hand-written ordering, which is the
-// drift the registry exists to kill. The sheet is a consumer of the
-// BottomSheet primitive and fills ONLY its body: title row, close
-// button, Escape/scrim dismissal, focus trap, scroll containment and safe
-// area are the primitive's contract, already proven there.
+// destinations that do NOT own a bottom-bar slot — Settings among them — in
+// desktop Sidebar order. The row list is derived from the ONE nav registry
+// (lib/navModel.ts, via moreDestinations) — never a second hand-written
+// ordering, which is the drift the registry exists to kill. The sheet is a
+// consumer of the BottomSheet primitive and fills ONLY its body: title row,
+// close button, Escape/scrim dismissal, focus trap, scroll containment and
+// safe area are the primitive's contract, already proven there.
 //
-// Rows use the same accent-tint language as the bar's active slot: the row
-// whose route is current reads --accentText on an --accentSoft backdrop, so a
-// user who landed on /vms or /flash is never lost — no bar slot is active
-// there, the sheet's row is. Active detection rides NavLink's isActive, the
-// same className-by-isActive shape the rail's NavItem and the bar's slots
-// use — no parallel active-state bookkeeping.
+// Rows sit on the colour engine like every rail row: each carries
+// `glim-hue` + `hueVars(rainbowAt(i))` by its position in the sheet, and the
+// row whose route is current is FILLED — the whole row takes the accent edge
+// to edge and its marks take the paired ink via currentColor — so a user who
+// landed on /vms or /flash is never lost: no bar slot is active there, this
+// row is. Active detection rides NavLink's isActive, the same
+// className-by-isActive shape the rail's NavItem and the bar's slots use —
+// no parallel active-state bookkeeping.
+//
+// The Simple/Advanced view toggle lives at the bottom of the sheet, next to
+// sign-out, mirroring the desktop footer's neighbourhood (the same rows, in
+// the same order, minus Settings which is a destination row up here). It is
+// the phone's ONLY path to the advanced-only settings cards, and it renders
+// whether or not the sheet has destination rows — permanent content is what
+// lets the bar's More trigger render unconditionally.
 //
 // Tap-on-active parity with the bar: tapping the ALREADY-current row scrolls
 // the scroller back to the top — the mechanism is Layout's
@@ -23,19 +32,21 @@
 // never queries the DOM for the scroller itself.
 //
 // Sign-out: the sidebar footer's row re-expressed at the BOTTOM of the
-// sheet, visually muted (muted text token, hairline separation, power glyph)
-// and with NO confirmation — the exact Sidebar signOut mechanism copied
-// verbatim (best-effort logout, then a location reload, which is what puts
-// the login screen back). Gated by the same authEnabled flag as the desktop
-// footer, so an instance without a password offers the row on NEITHER
-// surface.
+// sheet, visually muted (muted text token, power glyph) and with NO
+// confirmation — the exact Sidebar signOut mechanism copied verbatim
+// (best-effort logout, then a location reload, which is what puts the login
+// screen back). Gated by the same authEnabled flag as the desktop footer,
+// so an instance without a password offers the row on NEITHER surface.
 // ---------------------------------------------------------------------------
 import { NavLink, useLocation } from "react-router-dom";
+import type { CSSProperties } from "react";
 import type { Settings } from "../../lib/api";
 import { logout } from "../../lib/api";
 import { useT } from "../../lib/i18n";
+import { useAdvanced } from "../../lib/advanced";
+import { hueVars, rainbowAt } from "../../lib/appearance";
 import { moreDestinations } from "../../lib/navModel";
-import { IconPower } from "../navGlyphs";
+import { IconPower, IconViewAdvanced, IconViewSimple } from "../navGlyphs";
 import { BottomSheet } from "./BottomSheet";
 
 export interface MoreSheetProps {
@@ -55,14 +66,16 @@ export interface MoreSheetProps {
   scrollMainToTop: () => void;
 }
 
-// One destination row: 52px minimum height (min-h-[3.25rem], the iOS list
-// cell measure) — comfortably over the 44px touch floor; the padding never
-// carries the floor, the min-height does.
+// One row (destination, view toggle or sign-out alike): 52px minimum height
+// (min-h-[3.25rem], the iOS list cell measure) — comfortably over the 44px
+// touch floor; the padding never carries the floor, the min-height does.
 const rowBase = "flex min-h-[3.25rem] items-center gap-3 rounded-control px-3 text-body hover:bg-carbon-hover";
 
 export function MoreSheet({ open, onClose, settings, authEnabled, scrollMainToTop }: MoreSheetProps) {
   const { t } = useT();
   const location = useLocation();
+  const { advanced, setAdvanced } = useAdvanced();
+  const rows = moreDestinations(settings);
 
   // The Sidebar footer's signOut, copied verbatim (Sidebar.tsx): best-effort
   // logout — a failed call must never trap the user in a signed-out UI —
@@ -74,10 +87,17 @@ export function MoreSheet({ open, onClose, settings, authEnabled, scrollMainToTo
     g.location.reload();
   };
 
+  // Hue positions: the destination rows take the palette first, then the
+  // view toggle, then sign-out — one sequence through the sheet, the rail's
+  // render-order semantics (authEnabled=false leaves toggle and sign-out
+  // adjacent rather than burning a slot for an absent row).
+  const toggleHue = rows.length;
+  const signOutHue = rows.length + 1;
+
   return (
     <BottomSheet open={open} onClose={onClose} title={t("nav.more")}>
       <div data-testid="more-sheet" className="flex flex-col gap-1 py-2">
-        {moreDestinations(settings).map((d) => {
+        {rows.map((d, i) => {
           const Icon = d.icon;
           return (
             <NavLink
@@ -99,7 +119,10 @@ export function MoreSheet({ open, onClose, settings, authEnabled, scrollMainToTo
                 }
                 onClose();
               }}
-              className={({ isActive }) => `${rowBase} ${isActive ? "bg-accentSoft text-accentText" : "text-carbon-text"}`}
+              className={({ isActive }) =>
+                `${rowBase} glim-hue glim-hue-icon ${isActive ? "bg-accent text-accentContrast glim-active" : "text-carbon-text"}`
+              }
+              style={hueVars(rainbowAt(i)) as CSSProperties}
             >
               {/* 20px glyph — the rail's glim-nav-row sizing (the generated
                   glyphs come out at 16px and are scaled up here, exactly as
@@ -111,24 +134,44 @@ export function MoreSheet({ open, onClose, settings, authEnabled, scrollMainToTo
             </NavLink>
           );
         })}
-        {authEnabled && (
-          // The sign-out group: LAST row group of the sheet, behind a
-          // hairline (border token), the row itself in the muted text token
-          // with the power glyph — visually quiet next to the destination
-          // rows above it, exactly as the desktop footer's row reads.
-          <div className="mt-1 border-t border-carbon-border pt-2">
+        {/* The bottom group: the view toggle, then sign-out — LAST row group
+            of the sheet. The toggle renders unconditionally: it is the
+            phone's only path to the advanced-only settings cards, and the
+            bar's More trigger counts on the sheet never running out of
+            content. */}
+        <div className="mt-1 border-t border-carbon-border pt-2">
+          <button
+            type="button"
+            onClick={() => setAdvanced(!advanced)}
+            aria-pressed={advanced}
+            className={`${rowBase} w-full glim-hue glim-hue-icon text-carbon-text`}
+            style={hueVars(rainbowAt(toggleHue)) as CSSProperties}
+          >
+            {/* One glyph per state, one for each (the rail's convention):
+                the row shows the view it is CURRENTLY in, and the label says
+                so — a click flips it. */}
+            <span className="flex h-5 w-5 items-center justify-center [&_svg]:h-5 [&_svg]:w-5">
+              {advanced ? <IconViewAdvanced /> : <IconViewSimple />}
+            </span>
+            <span className="min-w-0 truncate">{advanced ? t("mode.advancedView") : t("mode.simpleView")}</span>
+          </button>
+          {authEnabled && (
+            // The sign-out row: muted text token with the power glyph —
+            // visually quiet next to the rows above it, exactly as the
+            // desktop footer's row reads.
             <button
               type="button"
               onClick={() => void signOut()}
-              className={`${rowBase} w-full text-carbon-textMuted motion-safe:active:scale-[.97]`}
+              className={`${rowBase} w-full glim-hue glim-hue-icon text-carbon-textMuted`}
+              style={hueVars(rainbowAt(signOutHue)) as CSSProperties}
             >
               <span className="flex h-5 w-5 items-center justify-center [&_svg]:h-5 [&_svg]:w-5">
                 <IconPower />
               </span>
               <span className="min-w-0 truncate">{t("auth.logout")}</span>
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </BottomSheet>
   );

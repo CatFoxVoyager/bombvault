@@ -8,9 +8,14 @@
  *   - rows ARE moreDestinations(settings), in registry order, never a second
  *     hand-written list (the drift the one registry exists to kill), and bar
  *     destinations never leak into the sheet;
- *   - the current route's row carries the accent pair (accentSoft backdrop +
- *     accentText label) — on /vms or /flash no bar slot is active, this row
- *     is, so a user is never lost (the locked Interaction Contract);
+ *   - every row sits on the colour engine (glim-hue + its own --item-hue) and
+ *     the current route's row is FILLED (accent fill + contrast ink) — on
+ *     /vms or /flash no bar slot is active, this row is, so a user is never
+ *     lost (the locked Interaction Contract);
+ *   - the Simple/Advanced view toggle is always rendered with its pressed
+ *     state and current-view label — the phone's only path to the
+ *     advanced-only settings cards, and the permanent content that lets the
+ *     bar's More trigger render unconditionally;
  *   - the sign-out row is gated by authEnabled exactly like the desktop
  *     footer, sits LAST behind a hairline, is muted, and fires the Sidebar
  *     sign-out mechanism verbatim — best-effort logout then a location
@@ -25,6 +30,7 @@ import { render, screen, cleanup, fireEvent, act, within } from "@testing-librar
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Settings } from "../../lib/api";
+import { AdvancedProvider } from "../../lib/advanced";
 
 const logout = vi.fn(async () => ({ ok: true }));
 vi.mock("../../lib/api", async (orig) => ({
@@ -57,7 +63,9 @@ function draw(opts: { settings?: Settings | null; authEnabled?: boolean; path?: 
   const view = render(
     <MemoryRouter initialEntries={[opts.path ?? "/dashboard"]}>
       <PathProbe />
-      <MoreSheet open onClose={onClose} settings={opts.settings ?? null} authEnabled={opts.authEnabled ?? false} />
+      <AdvancedProvider>
+        <MoreSheet open onClose={onClose} settings={opts.settings ?? null} authEnabled={opts.authEnabled ?? false} />
+      </AdvancedProvider>
     </MemoryRouter>,
   );
   return { onClose, view };
@@ -70,6 +78,7 @@ function sheet() {
 beforeEach(() => {
   logout.mockClear();
   reload.mockClear();
+  localStorage.removeItem("bombvault.advanced");
 });
 afterEach(cleanup);
 
@@ -104,16 +113,46 @@ describe("MoreSheet rows are the ONE registry", () => {
 });
 
 describe("MoreSheet active row accents (the Interaction Contract)", () => {
-  it("reads the accent pair on the current route's row and not on the others", () => {
+  it("FILLS the current route's row and not the others (the same filled idiom as the bar)", () => {
     draw({ settings: VMS_FLASH_ON, path: "/vms" });
     const active = within(sheet()).getByRole("link", { name: /vms/i });
-    expect(active.className).toContain("bg-accentSoft");
-    expect(active.className).toContain("text-accentText");
-    // Resting rows carry neither accent class — the accent belongs to the
-    // one row whose route is current.
+    expect(active.className).toContain("bg-accent");
+    expect(active.className).toContain("text-accentContrast");
+    expect(active.className).toContain("glim-active");
+    // Resting rows carry neither the fill nor the active marker — the accent
+    // belongs to the one row whose route is current.
     const resting = within(sheet()).getByRole("link", { name: /flash/i });
-    expect(resting.className).not.toContain("bg-accentSoft");
-    expect(resting.className).not.toContain("text-accentText");
+    expect(resting.className).not.toContain("bg-accent");
+    expect(resting.className).not.toContain("glim-active");
+  });
+});
+
+describe("MoreSheet colour engine and view toggle", () => {
+  it("every destination row sits on the engine: glim-hue plus its own --item-hue", () => {
+    draw({ settings: VMS_FLASH_ON });
+    const rows = within(sheet()).getAllByRole("link");
+    const hues = rows.map((row) => (row as HTMLElement).style.getPropertyValue("--item-hue"));
+    for (const hue of hues) {
+      expect(hue).toMatch(/^#/);
+    }
+    // Consecutive palette positions are pairwise distinct.
+    expect(new Set(hues).size).toBe(hues.length);
+    for (const row of rows) {
+      expect(row.className).toContain("glim-hue");
+    }
+  });
+
+  it("carries the Simple/Advanced view toggle: pressed state, current-view label, always present", () => {
+    draw({ settings: null });
+    const toggle = screen.getByRole("button", { name: "Simple view" });
+    expect(toggle.getAttribute("aria-pressed")).toBe("false");
+    expect(toggle.className).toContain("glim-hue");
+    fireEvent.click(toggle);
+    // Clicking flips the view; the label shows the view it just switched TO.
+    expect(screen.getByRole("button", { name: "Advanced view" }).getAttribute("aria-pressed")).toBe("true");
+    // With every gate off (no destination rows beyond Settings) the toggle is
+    // still rendered — the permanent content the More trigger counts on.
+    expect(within(sheet()).getAllByRole("link").map((r) => r.textContent)).toEqual(["Settings"]);
   });
 });
 
