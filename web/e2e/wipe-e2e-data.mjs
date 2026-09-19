@@ -20,9 +20,10 @@
 // the narrow-viewport backstop observed a de/fr bv-lang display pref
 // surviving on it into later runs.
 //
-// Fails LOUDLY rather than booting a poisoned DB: a stale bombvault.exe from
-// a previous run (the known Windows teardown hang) still holds the SQLite
-// file and the delete will fail. Kill it and re-run — see the error below.
+// Fails loudly rather than booting a poisoned DB: a previous run's harness
+// binary (the known Windows teardown hang) still holds the SQLite file and
+// the delete will fail. Kill it and re-run; the error below names the
+// candidate(s) by port, never by image name.
 // ---------------------------------------------------------------------------
 import { execFileSync } from "node:child_process";
 import { rmSync } from "node:fs";
@@ -33,22 +34,35 @@ import { fileURLToPath } from "node:url";
 // ("./.playwright-data") resolves against via the webServer's cwd.
 const dataDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", ".playwright-data");
 
-// The PIDs of any running BombVault binary, resolved by the OS. tasklist
-// needs no admin (CSV rows: "bombvault.exe","pid",...); pgrep exits non-zero
-// on no match, which is the same "none running" as an empty list.
-function bombvaultPids() {
+// The harness port: the same default and override playwright.config.ts uses
+// (the webServer boots the binary with PORT from this same value). It is the
+// only safe handle this script has: the process listening on it is the
+// throwaway harness instance, while a name-based sweep would name the
+// developer's own running BombVault just as readily as the stale one.
+const harnessPort = process.env.E2E_PORT ?? "3000";
+
+// The PIDs listening on the harness port, resolved by the OS. netstat needs
+// no admin (-ano: numeric, all sockets, owning PID); lsof -ti prints bare
+// PIDs and exits non-zero on no match, which is the same "none listening"
+// as an empty list. netstat resolves through System32 absolutely: a spawned
+// process on Windows does not go through PATHEXT the way a shell does, and
+// a bare "netstat" failed with ENOENT live in an environment whose inherited
+// PATH was thin (the same reason playwright.config.ts splices in the node
+// interpreter absolutely).
+const systemRoot = process.env.SystemRoot ?? "C:\\Windows";
+const netstat = join(systemRoot, "System32", "netstat.exe");
+
+function harnessPortPids() {
   try {
     if (process.platform === "win32") {
-      const out = execFileSync("tasklist", ["/FI", "IMAGENAME eq bombvault.exe", "/FO", "CSV", "/NH"], {
-        encoding: "utf8",
-      });
-      return [...out.matchAll(/^"bombvault\.exe","(\d+)"/gm)].map((m) => Number(m[1]));
+      const out = execFileSync(netstat, ["-ano"], { encoding: "utf8" });
+      const listener = new RegExp(`^\\s*TCP\\s+\\S+:${harnessPort}\\s+\\S+\\s+LISTENING\\s+(\\d+)`, "gm");
+      return [...new Set([...out.matchAll(listener)].map((m) => Number(m[1])))].filter(
+        (n) => Number.isFinite(n) && n > 0
+      );
     }
-    const out = execFileSync("pgrep", ["-f", "bombvault"], { encoding: "utf8" });
-    return out
-      .split("\n")
-      .map(Number)
-      .filter((n) => Number.isFinite(n) && n > 0);
+    const out = execFileSync("lsof", ["-ti", `:${harnessPort}`], { encoding: "utf8" });
+    return [...new Set(out.split("\n").map(Number))].filter((n) => Number.isFinite(n) && n > 0);
   } catch {
     return [];
   }
@@ -57,12 +71,15 @@ function bombvaultPids() {
 try {
   rmSync(dataDir, { recursive: true, force: true });
 } catch (err) {
-  const pids = bombvaultPids();
-  const who = pids.length > 0 ? `PID(s) ${pids.join(", ")}` : "a process you can find by name";
+  const pids = harnessPortPids();
+  const who =
+    pids.length > 0
+      ? `PID(s) ${pids.join(", ")} (listening on the harness port ${harnessPort})`
+      : `whatever listens on the harness port ${harnessPort} (find it by port, not by name)`;
   console.error(
-    `[wipe-e2e-data] could not remove ${dataDir} — a previous run's ` +
-      "bombvault is probably still holding it (the known Windows teardown " +
-      `hang). Kill ${who} BY PID and re-run. Never kill by image name: ` +
+    `[wipe-e2e-data] could not remove ${dataDir}: a previous run's ` +
+      "harness binary is probably still holding it (the known Windows teardown " +
+      `hang). Kill ${who}, by PID only, and re-run. Never kill by image name: ` +
       "an image-name kill takes down a real BombVault instance of yours just " +
       'as happily as the stale harness one. Windows: "taskkill /PID <pid> /F"; ' +
       `POSIX: "kill <pid>". Cause: ${err}`,

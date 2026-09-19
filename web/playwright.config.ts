@@ -73,6 +73,12 @@ export default defineConfig({
   // shrinking the gate: on CI an only'd run reports "unexpected focused
   // test" and exits non-zero. Local runs stay free to focus.
   forbidOnly: !!process.env.CI,
+  // The dot reporter keeps the console readable; the HTML report is written
+  // but never opened, so a red CI run uploads real evidence: lint.yml's
+  // failure() step picks up web/playwright-report/ (the HTML reporter's
+  // default output dir) together with test-results/, where the per-test
+  // trace and screenshot configured below land.
+  reporter: [["dot"], ["html", { open: "never" }]],
   testDir: "./e2e",
   testMatch: [
     "mobile-shell.spec.ts",
@@ -82,6 +88,11 @@ export default defineConfig({
   ],
   use: {
     baseURL: `http://127.0.0.1:${e2ePort}`,
+    // Failure evidence, written only where it matters (on the failing test),
+    // so green runs produce none of it: the trace replays the run in the
+    // HTML report, the screenshot shows what the page actually looked like.
+    trace: "retain-on-failure",
+    screenshot: "only-on-failure",
   },
   webServer: {
     command,
