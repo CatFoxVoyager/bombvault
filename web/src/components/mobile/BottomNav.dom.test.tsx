@@ -24,6 +24,7 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { MemoryRouter } from "react-router-dom";
 import { BottomNav } from "./BottomNav";
 import { I18nProvider } from "../../lib/i18n";
+import { hueVars, rainbowAt } from "../../lib/appearance";
 import type { Settings } from "../../lib/api";
 
 function draw(path: string, settings: Settings | null = null) {
@@ -121,6 +122,22 @@ describe("BottomNav More trigger", () => {
     const onBarRoute = within(bar()).getByRole("button", { name: "More" });
     expect(onBarRoute.className).not.toContain("bg-accent");
     expect(onBarRoute.className).not.toContain("glim-active");
+  });
+
+  it("hands the sheet a rotation position that continues the bar's, not a restart", () => {
+    draw("/dashboard");
+    const slots = Array.from(bar().querySelectorAll("div.flex.h-14 > *")) as HTMLElement[];
+    // The DOM row ends with the More trigger; the destination slots are
+    // everything before it, so the trigger's own position is the count of
+    // destinations and the sheet's first row is the one after the trigger.
+    const triggerHue = slots[slots.length - 1].style.getPropertyValue("--item-hue");
+    fireEvent.click(within(bar()).getByRole("button", { name: "More" }));
+    const firstRow = screen.getByTestId("more-sheet").querySelector("a") as HTMLElement;
+    const firstRowHue = firstRow.style.getPropertyValue("--item-hue");
+    // Restarting at the palette's first colour would repeat the bar's first
+    // slot's colour on the same screen.
+    expect(firstRowHue).not.toBe(triggerHue);
+    expect(firstRowHue).toBe(String(hueVars(rainbowAt(slots.length))["--item-hue"]));
   });
 });
 

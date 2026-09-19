@@ -17,9 +17,11 @@
  *     advanced-only settings cards, and the permanent content that lets the
  *     bar's More trigger render unconditionally;
  *   - the sign-out row is gated by authEnabled exactly like the desktop
- *     footer, sits last behind a hairline, is muted, and fires the Sidebar
- *     sign-out mechanism verbatim; best-effort logout then a location
- *     reload, with no confirmation dialog anywhere in the flow.
+ *     footer, sits last set off by spacing alone, is muted, and fires the
+ *     Sidebar sign-out mechanism verbatim; best-effort logout then a
+ *     location reload, with no confirmation dialog anywhere in the flow;
+ *   - the rows continue the caller's hue rotation (hueOffset) instead of
+ *     restarting the palette at the sheet's first row.
  *
  * The api mock follows Sidebar.signOut.dom.test.tsx's pattern: logout is
  * intercepted so the real network layer never loads in jsdom, and
@@ -45,6 +47,7 @@ Object.defineProperty(globalThis, "location", {
 });
 
 import { MoreSheet } from "./MoreSheet";
+import { hueVars, rainbowAt } from "../../lib/appearance";
 
 // A fresh-DB-plus-two-tabs fixture, the navModel.test.ts idiom (`as Settings`
 // partials): only vms and flash are switched on, so moreDestinations() must
@@ -54,7 +57,9 @@ const VMS_FLASH_ON = { vmsEnabled: true, flashEnabled: true } as Settings;
 
 /** Renders the open sheet under a router, plus a live pathname probe so the
  *  navigate assertion reads the router's own state instead of guessing. */
-function draw(opts: { settings?: Settings | null; authEnabled?: boolean; path?: string } = {}) {
+function draw(
+  opts: { settings?: Settings | null; authEnabled?: boolean; path?: string; hueOffset?: number } = {},
+) {
   const onClose = vi.fn();
   function PathProbe() {
     const location = useLocation();
@@ -64,7 +69,13 @@ function draw(opts: { settings?: Settings | null; authEnabled?: boolean; path?: 
     <MemoryRouter initialEntries={[opts.path ?? "/dashboard"]}>
       <PathProbe />
       <AdvancedProvider>
-        <MoreSheet open onClose={onClose} settings={opts.settings ?? null} authEnabled={opts.authEnabled ?? false} />
+        <MoreSheet
+          open
+          onClose={onClose}
+          settings={opts.settings ?? null}
+          authEnabled={opts.authEnabled ?? false}
+          hueOffset={opts.hueOffset}
+        />
       </AdvancedProvider>
     </MemoryRouter>,
   );
@@ -109,6 +120,29 @@ describe("MoreSheet rows are the ONE registry", () => {
     for (const row of within(sheet()).getAllByRole("link")) {
       expect(row.className).toContain("min-h-[3.25rem]");
     }
+  });
+});
+
+describe("MoreSheet rotation continuity", () => {
+  it("starts the rows at the caller's offset, not at the palette's first colour", () => {
+    // 4 = a bar of three destination slots plus the More trigger: the sheet
+    // continues where the trigger left off (BottomNav passes
+    // slots.length + 1).
+    draw({ settings: VMS_FLASH_ON, hueOffset: 4 });
+    const rows = within(sheet()).getAllByRole("link");
+    const hues = rows.map((row) => (row as HTMLElement).style.getPropertyValue("--item-hue"));
+    for (let i = 0; i < hues.length; i++) {
+      expect(hues[i]).toBe(String(hueVars(rainbowAt(4 + i))["--item-hue"]));
+    }
+    // The regression this pins: restarting at position 0 would give the
+    // sheet's first row the bar's first slot's colour again.
+    expect(hues[0]).not.toBe(String(hueVars(rainbowAt(0))["--item-hue"]));
+  });
+
+  it("defaults to position 0 when mounted standalone", () => {
+    draw({ settings: VMS_FLASH_ON });
+    const first = within(sheet()).getAllByRole("link")[0] as HTMLElement;
+    expect(first.style.getPropertyValue("--item-hue")).toBe(String(hueVars(rainbowAt(0))["--item-hue"]));
   });
 });
 
@@ -162,7 +196,7 @@ describe("MoreSheet sign-out (the desktop mechanism, muted, last)", () => {
     expect(screen.queryByRole("button", { name: /sign out/i })).toBeNull();
   });
 
-  it("sits last in the sheet, behind a hairline, muted, with its glyph", () => {
+  it("sits last in the sheet, set off by spacing alone, muted, with its glyph", () => {
     draw({ settings: VMS_FLASH_ON, authEnabled: true });
     const out = screen.getByRole("button", { name: /sign out/i });
     const content = sheet();
@@ -172,9 +206,9 @@ describe("MoreSheet sign-out (the desktop mechanism, muted, last)", () => {
     const group = out.parentElement as HTMLElement;
     expect(group.lastElementChild).toBe(out);
     expect(content.lastElementChild).toBe(group);
-    // Hairline separation via the border token, and the muted text token on
-    // the row; the visually-quiet treatment the desktop footer gets.
-    expect(group.className).toContain("border-carbon-border");
+    // Separation by spacing and the muted text token, never a line: the
+    // sheets carry no borders anywhere (the no-lines rule).
+    expect(group.className).not.toMatch(/border-\S+/);
     expect(out.className).toContain("text-carbon-textMuted");
     // The power glyph is present (muted styling is the classes above; the
     // glyph itself is what makes the row scannable as an action, not a link).

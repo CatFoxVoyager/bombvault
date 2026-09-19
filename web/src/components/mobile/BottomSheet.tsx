@@ -41,8 +41,9 @@ export interface BottomSheetProps {
    *  contract. */
   fullHeight?: boolean;
   /** Optional action row pinned after the scroll body; flex-none, chrome
-   *  language (bg-carbon-sidebar + top hairline), safe-area padded, never
-   *  scrolled away; content padding is the consumer's. */
+   *  language (sidebar surface over the body's, separation by tint alone,
+   *  no line), safe-area padded, never scrolled away; content padding is
+   *  the consumer's. */
   footer?: ReactNode;
   /** Panel surface. "default" (absent) is the carbon-surface sheet;
    *  "fail"/"warn" tint the panel with the matching status tokens. Closed
@@ -206,10 +207,11 @@ export function BottomSheet({ open, onClose, title, children, fullHeight, footer
           {/* Engine Button: shared tone table, tooltips and press motion
               (.glim-btn:active already scales by --motion-press-scale).
               Distinct accessible name (#178: duplicate names broke
-              Playwright strict matching). */}
-          {/* bv-convention-exception: one-icon-badge-size -- a mandated
-              >=44px touch tap target, not a square icon badge; the touch
-              tree chevron carries the same exception. */}
+              Playwright strict matching). The key stage (glim-btn-key) is
+              the close box's height: .glim-btn owns its height outside any
+              utility layer, so a h-* utility in the className loses the
+              cascade, and the key stage is the height that wins
+              (glim-btn-icon squares the box at it). */}
           <Button
             ref={closeRef}
             label={t("common.close")}
@@ -218,7 +220,7 @@ export function BottomSheet({ open, onClose, title, children, fullHeight, footer
             tone="neutral"
             variant="icon"
             onClick={onClose}
-            className="h-11 w-11 shrink-0 rounded-control"
+            className="glim-btn-key shrink-0 rounded-control"
           />
         </div>
         {/* Body (scrolls); its own scroll contains all interaction and
@@ -229,9 +231,11 @@ export function BottomSheet({ open, onClose, title, children, fullHeight, footer
         </div>
         {/* Footer (optional); pinned after the scroll body so actions never
             scroll away; chrome language (bottom bar / sticky action bar
-            tokens). Last surface on screen, so the home-indicator inset is here. */}
+            tokens), no line: the sidebar surface over the body's surface is
+            the separation, the app's tint-only rule. Last surface on
+            screen, so the home-indicator inset is here. */}
         {footer !== undefined && (
-          <div className="flex-none border-t border-carbon-border bg-carbon-sidebar pb-[var(--safe-area-bottom)] pl-[max(1rem,var(--safe-area-left))] pr-[max(1rem,var(--safe-area-right))]">
+          <div className="flex-none bg-carbon-sidebar pb-[var(--safe-area-bottom)] pl-[max(1rem,var(--safe-area-left))] pr-[max(1rem,var(--safe-area-right))]">
             {footer}
           </div>
         )}

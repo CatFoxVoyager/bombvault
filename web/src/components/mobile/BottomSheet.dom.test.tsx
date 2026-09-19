@@ -22,7 +22,8 @@ import { en, I18nProvider } from "../../lib/i18n";
 //
 // The second describe asserts the additive capabilities the same way, with
 // one documented exception to the no-class-snapshot rule: the
-// fullHeight / footer / tone / inset-clamped-padding / 44px-close contracts
+// fullHeight / footer / tone / inset-clamped-padding / key-height-close
+// contracts
 // are styling contracts, and jsdom computes no geometry, so the observable
 // form of "the panel is h-dvh" is the class token. These tests assert the
 // presence of the load-bearing tokens (has-class, never a whole className
@@ -212,13 +213,17 @@ describe("BottomSheet extensions", () => {
     expect(body.className).toContain("pb-[var(--safe-area-bottom)]");
   });
 
-  it("gives the close button the 44px touch hit box", () => {
+  it("puts the close button on the key-control height stage (glim-btn-key)", () => {
     render(<PropsHarness sheetProps={{}} />);
     const close = screen.getByRole("button", { name: en["common.close"] });
-    // h-11 / w-11 = 44px; the touch floor. Asserted as tokens (jsdom has no
-    // geometry); the e2e harness asserts the rendered pixels on device views.
-    expect(close.className).toContain("h-11");
-    expect(close.className).toContain("w-11");
+    // .glim-btn sets its height outside any utility layer, so a h-11/w-11
+    // utility loses the cascade and the rendered box stays 32px tall. The
+    // key stage is the height that wins, and glim-btn-icon squares the box
+    // at that height (the ConfirmSheet buttons' stage). Asserted as the
+    // class token; jsdom computes no geometry.
+    expect(close.className).toContain("glim-btn-key");
+    expect(close.className).not.toContain("h-11");
+    expect(close.className).not.toContain("w-11");
   });
 
   it("renders the close control as an engine Button", () => {
@@ -262,11 +267,12 @@ describe("BottomSheet extensions", () => {
     render(<PropsHarness sheetProps={{ footer: <p>footer actions</p> }} />);
     const { body } = headerAndBody();
     const footer = screen.getByText("footer actions").parentElement as HTMLElement;
-    // Chrome language: sidebar surface + top hairline (bottom bar / sticky
-    // bar tokens), safe-area bottom padding (the footer is the last surface
-    // on screen), inset-clamped sides like the rest of the panel.
+    // Chrome language: sidebar surface over the body's surface, separation
+    // by tint alone (the sheets carry no lines anywhere); safe-area bottom
+    // padding (the footer is the last surface on screen), inset-clamped
+    // sides like the rest of the panel.
     expect(footer.className).toContain("bg-carbon-sidebar");
-    expect(footer.className).toContain("border-t");
+    expect(footer.className).not.toMatch(/border-\S+/);
     expect(footer.className).toContain("pb-[var(--safe-area-bottom)]");
     expect(footer.className).toContain("pl-[max(1rem,var(--safe-area-left))]");
     // And it comes after the scroll body; the "never scrolls away" ordering.

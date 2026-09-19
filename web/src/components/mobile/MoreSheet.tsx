@@ -11,8 +11,10 @@
 // safe area are the primitive's contract, already proven there.
 //
 // Rows sit on the colour engine like every rail row: each carries
-// `glim-hue` + `hueVars(rainbowAt(i))` by its position in the sheet, and the
-// row whose route is current is filled; the whole row takes the accent edge
+// `glim-hue` + `hueVars(rainbowAt(...))`, continuing the caller's rotation
+// from hueOffset (the bar passes its slot count plus the trigger's own
+// position, so the sheet never replays the bar's colours), and the row
+// whose route is current is filled; the whole row takes the accent edge
 // to edge and its marks take the paired ink via currentColor; so a user who
 // landed on /vms or /flash is never lost: no bar slot is active there, this
 // row is. Active detection rides NavLink's isActive, the same
@@ -64,6 +66,11 @@ export interface MoreSheetProps {
   /** Layout's tap-on-active scroll (the scroller is Layout's
    *  <main id="bv-main">); fired when an already-current row is tapped. */
   scrollMainToTop: () => void;
+  /** Where this sheet's hue rotation starts. The bar passes its slot count
+   *  plus the More trigger's own position, so the sheet's rows continue the
+   *  bar's rotation instead of replaying it; standalone mounts (the
+   *  default 0) start at the palette's first colour. */
+  hueOffset?: number;
 }
 
 // One row (destination, view toggle or sign-out alike): 52px minimum height
@@ -71,7 +78,7 @@ export interface MoreSheetProps {
 // touch floor; the padding never carries the floor, the min-height does.
 const rowBase = "flex min-h-[3.25rem] items-center gap-3 rounded-control px-3 text-body hover:bg-carbon-hover";
 
-export function MoreSheet({ open, onClose, settings, authEnabled, scrollMainToTop }: MoreSheetProps) {
+export function MoreSheet({ open, onClose, settings, authEnabled, scrollMainToTop, hueOffset = 0 }: MoreSheetProps) {
   const { t } = useT();
   const location = useLocation();
   const { advanced, setAdvanced } = useAdvanced();
@@ -87,12 +94,15 @@ export function MoreSheet({ open, onClose, settings, authEnabled, scrollMainToTo
     g.location.reload();
   };
 
-  // Hue positions: the destination rows take the palette first, then the
-  // view toggle, then sign-out; one sequence through the sheet, the rail's
-  // render-order semantics (authEnabled=false leaves toggle and sign-out
-  // adjacent rather than burning a slot for an absent row).
-  const toggleHue = rows.length;
-  const signOutHue = rows.length + 1;
+  // Hue positions: one sequence through the sheet starting at hueOffset, the
+  // rail's render-order semantics (authEnabled=false leaves toggle and
+  // sign-out adjacent rather than burning a slot for an absent row). The
+  // offset is what keeps the sheet inside the bar's rotation: the bar's
+  // slots and the More trigger already consumed the palette's first
+  // positions, and replaying them here would paint the same colour twice on
+  // one screen.
+  const toggleHue = hueOffset + rows.length;
+  const signOutHue = hueOffset + rows.length + 1;
 
   return (
     <BottomSheet open={open} onClose={onClose} title={t("nav.more")}>
@@ -122,7 +132,7 @@ export function MoreSheet({ open, onClose, settings, authEnabled, scrollMainToTo
               className={({ isActive }) =>
                 `${rowBase} glim-hue glim-hue-icon ${isActive ? "bg-accent text-accentContrast glim-active" : "text-carbon-text"}`
               }
-              style={hueVars(rainbowAt(i)) as CSSProperties}
+              style={hueVars(rainbowAt(hueOffset + i)) as CSSProperties}
             >
               {/* 20px glyph; the rail's glim-nav-row sizing (the generated
                   glyphs come out at 16px and are scaled up here, exactly as
@@ -135,11 +145,11 @@ export function MoreSheet({ open, onClose, settings, authEnabled, scrollMainToTo
           );
         })}
         {/* The bottom group: the view toggle, then sign-out; last row group
-            of the sheet. The toggle renders unconditionally: it is the
-            phone's only path to the advanced-only settings cards, and the
-            bar's More trigger counts on the sheet never running out of
-            content. */}
-        <div className="mt-1 border-t border-carbon-border pt-2">
+            of the sheet, set off by spacing alone (the sheets carry no
+            lines). The toggle renders unconditionally: it is the phone's
+            only path to the advanced-only settings cards, and the bar's
+            More trigger counts on the sheet never running out of content. */}
+        <div className="mt-2 pt-2">
           <button
             type="button"
             onClick={() => setAdvanced(!advanced)}

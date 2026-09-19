@@ -227,6 +227,7 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
         settings={settings}
         authEnabled={authEnabled}
         scrollMainToTop={scrollMainToTop}
+        hueOffset={slots.length + 1}
       />
     </nav>
   );
