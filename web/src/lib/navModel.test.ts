@@ -57,8 +57,10 @@ const SIDEBAR_ORDER = [
   "/settings",
 ];
 
-// The four bottom-bar destinations.
-const BAR_ROUTES = ["/dashboard", "/containers", "/files", "/settings"];
+// The four bottom-bar destinations, in registry order (Recovery rides the
+// bar — it is what people open on a phone when something went wrong — and
+// Settings reaches mobile chrome through the More sheet instead).
+const BAR_ROUTES = ["/dashboard", "/recovery", "/containers", "/files"];
 
 describe("destinations — the ONE ordered registry", () => {
   it("finds the full registry at all (guards against this test silently matching nothing)", () => {
@@ -156,22 +158,22 @@ describe("destinations — each gate flips exactly its own entry", () => {
     const beforeMore = moreDestinations(ALL_OFF).map((d) => d.to);
     const afterMore = moreDestinations({ ...ALL_OFF, fleetEnabled: true }).map((d) => d.to);
     // The entries that existed before keep their exact relative order; the
-    // instances row joins at its registry position (after Recovery, before
-    // nothing else).
+    // instances row joins at its registry position (first of the non-bar
+    // entries, ahead of the gated tabs and the always-on Settings row).
     expect(afterMore.filter((r) => beforeMore.includes(r))).toEqual(beforeMore);
-    expect(afterMore).toEqual(["/recovery", "/instances"]);
+    expect(afterMore).toEqual(["/instances", "/settings"]);
   });
 });
 
 describe("barDestinations — the bottom bar's slot list", () => {
-  it("at full config: dashboard, containers, files, settings in registry order", () => {
+  it("at full config: dashboard, recovery, containers, files in registry order (Settings lives in More)", () => {
     expect(barDestinations(ALL_ON).map((d) => d.to)).toEqual(BAR_ROUTES);
   });
 
   it("filesEnabled=false drops exactly the Files slot (bar slots are destinations(settings) filtered to enabled bar entries, matching desktop Sidebar gating, so a gated tab never appears in mobile chrome when the Sidebar hides it)", () => {
     const filesOn = { ...ALL_OFF, filesEnabled: true } as Settings;
-    expect(barDestinations(filesOn).map((d) => d.to)).toEqual(["/dashboard", "/containers", "/files", "/settings"]);
-    expect(barDestinations(ALL_OFF).map((d) => d.to)).toEqual(["/dashboard", "/containers", "/settings"]);
+    expect(barDestinations(filesOn).map((d) => d.to)).toEqual(["/dashboard", "/recovery", "/containers", "/files"]);
+    expect(barDestinations(ALL_OFF).map((d) => d.to)).toEqual(["/dashboard", "/recovery", "/containers"]);
   });
 
   it("never surfaces a disabled entry, whatever else is on (a gated tab can never reach mobile chrome while the Sidebar hides it)", () => {
@@ -185,16 +187,16 @@ describe("barDestinations — the bottom bar's slot list", () => {
 });
 
 describe("moreDestinations — the More sheet's list", () => {
-  it("Recovery-first sidebar order at full config, excluding every bar destination", () => {
+  it("desktop Sidebar order at full config, excluding every bar destination (Settings rides in More)", () => {
     const more = moreDestinations(ALL_ON);
-    expect(more.map((d) => d.to)).toEqual(["/recovery", "/vms", "/flash", "/config", "/instances"]);
+    expect(more.map((d) => d.to)).toEqual(["/vms", "/flash", "/config", "/instances", "/settings"]);
     for (const bar of BAR_ROUTES) {
       expect(more.find((d) => d.to === bar), `${bar} must never appear in More`).toBeUndefined();
     }
   });
 
-  it("EMPTY probe: with every gate off, Recovery is still there — no caller can ever receive an empty navigation", () => {
-    expect(moreDestinations(ALL_OFF).map((d) => d.to)).toEqual(["/recovery"]);
+  it("with every gate off only the always-on Settings row remains (Recovery rides the bar) — the sheet can never run out of destinations, which is why the bar's More trigger renders unconditionally", () => {
+    expect(moreDestinations(ALL_OFF).map((d) => d.to)).toEqual(["/settings"]);
   });
 });
 

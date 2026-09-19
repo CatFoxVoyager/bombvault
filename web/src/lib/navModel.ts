@@ -71,9 +71,12 @@ export interface NavDestination {
   /** The destination's glyph, as a component reference (no JSX here, which is
    *  why this file stays .ts). Rendered by the consumer as `<d.icon />`. */
   icon: ComponentType;
-  /** Bottom-bar membership: dashboard, containers, files, settings. Never a
-   *  render filter by itself — barDestinations() below applies `enabled` on
-   *  top of this. */
+  /** Bottom-bar membership: dashboard, containers, files, recovery — the four
+   *  destinations a phone bar shows directly. Recovery rides the bar because
+   *  it is what people open on a phone when something went wrong; Settings
+   *  and every other destination reach mobile chrome through the More sheet.
+   *  Never a render filter by itself — barDestinations() below applies
+   *  `enabled` on top of this. */
   bar: boolean;
   /** Whether the destination is currently on. Gates flip this flag and
    *  nothing else: the full list is handed out unchanged so consumers decide
@@ -96,7 +99,7 @@ export function destinations(settings: Settings | null): NavDestination[] {
   return [
     { to: "/dashboard", labelKey: "nav.dashboard", icon: IconDashboard, bar: true, enabled: true },
     // Always visible: disaster recovery is a core, non-expert flow.
-    { to: "/recovery", labelKey: "nav.recovery", icon: IconRecovery, bar: false, enabled: true },
+    { to: "/recovery", labelKey: "nav.recovery", icon: IconRecovery, bar: true, enabled: true },
     { to: "/containers", labelKey: "nav.containers", icon: IconContainers, bar: true, enabled: true },
     // The gated tabs appear only once their domain is enabled — the gate
     // computes `enabled`, it does not remove the entry (see this file's header).
@@ -113,7 +116,7 @@ export function destinations(settings: Settings | null): NavDestination[] {
     // as ANY of the three is switched on; the page then shows only the tabs
     // whose own setting is on.
     { to: "/instances", labelKey: "instances.title", icon: IconFleet, bar: false, enabled: settings?.receiverEnabled || settings?.fleetEnabled || settings?.pullEnabled || false },
-    { to: "/settings", labelKey: "nav.settings", icon: IconGear, bar: true, enabled: true },
+    { to: "/settings", labelKey: "nav.settings", icon: IconGear, bar: false, enabled: true },
   ];
 }
 
@@ -134,10 +137,13 @@ export function barDestinations(settings: Settings | null): NavDestination[] {
 
 /**
  * The More sheet's destination list: the registry filtered to enabled
- * non-bar entries — Recovery-first sidebar order. Same derivation shape as
- * barDestinations, same structural order-parity guarantee. Recovery is never
- * gated, so this list is never empty: no caller can ever receive an empty
- * navigation.
+ * non-bar entries — the desktop Sidebar's order. Same derivation shape as
+ * barDestinations, same structural order-parity guarantee. With Recovery on
+ * the bar this list CAN be empty (a fresh DB has every gate off): the More
+ * sheet still never reads as empty, because the Simple/Advanced view toggle
+ * (and, with a password set, sign-out) render below the rows — which is also
+ * why the bar's More trigger renders unconditionally rather than gating on
+ * this list's length.
  */
 export function moreDestinations(settings: Settings | null): NavDestination[] {
   return destinations(settings).filter((d) => !d.bar && d.enabled);

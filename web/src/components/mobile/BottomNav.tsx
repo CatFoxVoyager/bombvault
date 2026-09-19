@@ -17,10 +17,12 @@
 // slots; the fifth slot is the More trigger, which opens the MoreSheet (inside
 // the BottomSheet primitive).
 //
-// EMPTINESS rule: the More trigger renders only while the sheet it opens
-// would have content — at least one enabled non-bar destination, or a
-// sign-out row (authEnabled). An empty sheet never exists; when there is
-// nothing to show, the bar degrades to its destination slots alone.
+// More trigger: ALWAYS rendered under the breakpoint, never gated on the
+// sheet's content. The sheet keeps content on every instance — the
+// Simple/Advanced view toggle (and, with a password set, sign-out) render
+// below the destination rows — so a content-based emptiness rule would only
+// make the trigger flicker in and out across settings flips while the sheet
+// it opens always has something to show.
 //
 // Label axis: the bar has its OWN axis in the control label engine
 // ("bottombar", lib/controls.ts) — the same four modes as buttons/sidebar/
@@ -55,7 +57,7 @@ import { useState, type CSSProperties, type MouseEvent } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import type { Settings } from "../../lib/api";
 import { useT } from "../../lib/i18n";
-import { barDestinations, moreDestinations, type NavDestination } from "../../lib/navModel";
+import { barDestinations, type NavDestination } from "../../lib/navModel";
 import { hidesLabel, labelWidth } from "../../lib/controls";
 import { useLabelMode } from "../../lib/useLabelMode";
 import { IconEllipsis } from "../navGlyphs";
@@ -66,8 +68,8 @@ export interface BottomNavProps {
    *  fetches of its own; both surfaces derive from the ONE registry
    *  synchronously (no loading state exists). */
   settings: Settings | null;
-  /** Whether a login password exists. Drives the More trigger's emptiness
-   *  rule here, and the sign-out row inside the sheet. */
+  /** Whether a login password exists. Gates the sign-out row inside the
+   *  sheet, exactly like the desktop Sidebar footer. */
   authEnabled: boolean;
   /** Layout's tap-on-active scroll (the scroller is Layout's
    *  <main id="bv-main">) — passed on to the sheet's rows too. */
@@ -88,7 +90,6 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
   // The ONE registry, filtered to enabled bottom-bar destinations — the same
   // derivation the Sidebar's order guarantee rides on.
   const slots = barDestinations(settings);
-  const hasMore = moreDestinations(settings).length > 0 || authEnabled;
   // The bar's own label axis (see the header): hiding modes gate the caption,
   // reactive pairs with index.css's coarse-pointer at-rest reveal.
   const labelMode = useLabelMode("bottombar");
@@ -136,27 +137,25 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
         {slots.map((d) => (
           <BarSlot key={d.to} destination={d} labelMode={labelMode} onTap={(e) => tapDestination(e, d.to)} />
         ))}
-        {hasMore && (
-          <button
-            type="button"
-            onClick={() => setMoreOpen(true)}
-            title={showLabel ? undefined : t("nav.more")}
-            aria-label={showLabel ? undefined : t("nav.more")}
-            className={`${slotBase} ${reactive && !showLabel ? "glim-reactive" : ""} text-carbon-textMuted`}
+        <button
+          type="button"
+          onClick={() => setMoreOpen(true)}
+          title={showLabel ? undefined : t("nav.more")}
+          aria-label={showLabel ? undefined : t("nav.more")}
+          className={`${slotBase} ${reactive && !showLabel ? "glim-reactive" : ""} text-carbon-textMuted`}
+        >
+          {/* The glyph box is the 24px slot-icon box (the 16px generated
+              glyph scales up to it, the same scaling the rail applies). */}
+          <span className="flex h-6 w-6 items-center justify-center rounded-control [&_svg]:h-6 [&_svg]:w-6">
+            <IconEllipsis />
+          </span>
+          <span
+            className={`max-w-full truncate ${showLabel ? "" : reactive ? "glim-label-reactive" : "sr-only"}`}
+            style={reactive && !showLabel ? ({ "--reactive-chars": labelWidth(t("nav.more")) } as CSSProperties) : undefined}
           >
-            {/* The glyph box is the 24px slot-icon box (the 16px generated
-                glyph scales up to it, the same scaling the rail applies). */}
-            <span className="flex h-6 w-6 items-center justify-center rounded-control [&_svg]:h-6 [&_svg]:w-6">
-              <IconEllipsis />
-            </span>
-            <span
-              className={`max-w-full truncate ${showLabel ? "" : reactive ? "glim-label-reactive" : "sr-only"}`}
-              style={reactive && !showLabel ? ({ "--reactive-chars": labelWidth(t("nav.more")) } as CSSProperties) : undefined}
-            >
-              {t("nav.more")}
-            </span>
-          </button>
-        )}
+            {t("nav.more")}
+          </span>
+        </button>
       </div>
       <MoreSheet
         open={moreOpen}

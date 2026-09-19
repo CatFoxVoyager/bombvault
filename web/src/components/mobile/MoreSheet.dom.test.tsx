@@ -42,7 +42,8 @@ import { MoreSheet } from "./MoreSheet";
 
 // A fresh-DB-plus-two-tabs fixture, the navModel.test.ts idiom (`as Settings`
 // partials): only vms and flash are switched on, so moreDestinations() must
-// yield exactly Recovery, VMs, Flash — in that registry order.
+// yield exactly VMs, Flash and the always-on Settings row — in that registry
+// order (Recovery rides the phone bar, not this sheet).
 const VMS_FLASH_ON = { vmsEnabled: true, flashEnabled: true } as Settings;
 
 /** Renders the open sheet under a router, plus a live pathname probe so the
@@ -78,19 +79,20 @@ describe("MoreSheet rows are the ONE registry", () => {
     const labels = within(sheet())
       .getAllByRole("link")
       .map((row) => row.textContent);
-    expect(labels).toEqual(["Recovery", "VMs", "Flash"]);
+    expect(labels).toEqual(["VMs", "Flash", "Settings"]);
   });
 
   it("hides gated tabs like the desktop Sidebar and never shows bar destinations", () => {
     draw({ settings: null, authEnabled: false });
-    // null settings = every gate off: only always-on Recovery remains.
-    expect(within(sheet()).getAllByRole("link").map((row) => row.textContent)).toEqual(["Recovery"]);
-    // Bar members (dashboard/containers/settings on a fresh DB) are the
+    // null settings = every gate off: only the always-on Settings row remains
+    // — Recovery rides the phone bar, the gated tabs are off.
+    expect(within(sheet()).getAllByRole("link").map((row) => row.textContent)).toEqual(["Settings"]);
+    // Bar members (dashboard/containers/recovery on a fresh DB) are the
     // bottom bar's slots — a second copy of them here would be the exact
     // duplicate-destination drift the registry forbids.
     expect(screen.queryByText("Dashboard")).toBeNull();
     expect(screen.queryByText("Containers")).toBeNull();
-    expect(screen.queryByText("Settings")).toBeNull();
+    expect(screen.queryByText("Recovery")).toBeNull();
   });
 
   it("gives every row the 52px minimum height and the sheet its testid", () => {
@@ -109,7 +111,7 @@ describe("MoreSheet active row accents (the Interaction Contract)", () => {
     expect(active.className).toContain("text-accentText");
     // Resting rows carry neither accent class — the accent belongs to the
     // one row whose route is current.
-    const resting = within(sheet()).getByRole("link", { name: /recovery/i });
+    const resting = within(sheet()).getByRole("link", { name: /flash/i });
     expect(resting.className).not.toContain("bg-accentSoft");
     expect(resting.className).not.toContain("text-accentText");
   });
@@ -156,9 +158,9 @@ describe("MoreSheet row navigation closes the sheet", () => {
   it("navigates to the row's route and closes so the destination is visible", async () => {
     const { onClose } = draw({ settings: VMS_FLASH_ON });
     await act(async () => {
-      fireEvent.click(within(sheet()).getByRole("link", { name: /recovery/i }));
+      fireEvent.click(within(sheet()).getByRole("link", { name: /vms/i }));
     });
-    expect(screen.getByTestId("path-probe").textContent).toBe("/recovery");
+    expect(screen.getByTestId("path-probe").textContent).toBe("/vms");
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
