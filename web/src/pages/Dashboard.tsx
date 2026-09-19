@@ -2681,6 +2681,9 @@ export function Dashboard() {
     // time, after this function has returned.
     const armed = fireArmed.current;
     lastCorrelatedRun.current = run.id;
+    // This tick's record is the freshest statement about this run; the sheet's
+    // resolution lets it outrank the slower page-list copy (see displayedRun).
+    watchOwnedRun.current = run.id;
     if (isNewCorrelation) {
       sheetDismissed.current = false; // new fire re-arms the deep-link
       fireArmed.current = false; // the arm is spent on its correlation
@@ -2740,14 +2743,24 @@ export function Dashboard() {
     return () => clearInterval(id);
   }, [refreshRuns]);
 
-  // The sheet renders the freshest copy of its run: the page's polled
-  // listRuns state when it holds the run (so a sheet opened from Recent runs
-  // follows the run from Running to its terminal status on the page's own
-  // cadence; it used to freeze on the record from tap time), falling back to
-  // the watch's last record for the deep-linked everything run in the gap
-  // before the page's next poll. Resolving by id at render, not storing a
-  // frozen copy, is the whole fix. (Placed after the runs state it reads.)
-  const displayedRun = sheetRun ? (runs.find((r) => r.id === sheetRun.id) ?? sheetRun) : null;
+  // The sheet renders the freshest copy of its run. Two feeds write the two
+  // candidates, at different cadences: the page's polled listRuns state
+  // (10s) and the everything watch's onRun records (2s, delivered through
+  // handleWatchRun into sheetRun). Which one wins is decided by who last
+  // spoke about the id: once the watch has correlated the run the sheet
+  // shows, sheetRun IS the freshest statement (it updates on every watch
+  // tick), and letting the slower list copy override it ghosted "Running"
+  // for up to 10s past the Done toast. A run the user opened from Recent
+  // runs and the watch does not track keeps the old resolution: the list
+  // copy refreshes the tap-time record on the page's own cadence. Resolving
+  // by id at render, not storing a frozen copy, is still the shape of it.
+  // (Placed after the runs state it reads.)
+  const watchOwnedRun = useRef<string | null>(null);
+  const displayedRun = sheetRun
+    ? watchOwnedRun.current === sheetRun.id
+      ? sheetRun
+      : runs.find((r) => r.id === sheetRun.id) ?? sheetRun
+    : null;
 
   // The scheduler's own "what fires next" list, for the summary tier's Next
   // backup cell ([545], issue #187). Polled on the same 30s cadence

@@ -258,6 +258,58 @@ describe("Dashboard phone run sheet", () => {
     expect(within(screen.getByRole("dialog")).queryByText(en["run.statusRunning"])).toBeNull();
   });
 
+  it("shows the terminal state at the watch's tick, not when the 10s page list catches up", async () => {
+    // The maintainer-diagnosed lag: the deep-linked sheet resolves its run
+    // out of the page's polled list, which polls at 10s, while the watch's
+    // own polls (2s) deliver the terminal record first. The Done toast fires
+    // from the watch; the sheet must move to the terminal state on that same
+    // tick instead of ghosting "Running" until the page list re-polls.
+    const plex = makeRun({ id: "run-plex-3", target: "plex", status: "failed" });
+    currentRuns = [plex];
+    renderPage();
+    await settle();
+
+    await fireEverything();
+    const running = makeRun({
+      id: "run-everything-2",
+      target: "all-domains",
+      targetId: "everything",
+      domain: "everything",
+      status: "running",
+      finishedAt: null,
+      error: "",
+      snapshotId: "",
+      bytes: 0,
+    });
+    currentRuns = [running, plex];
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(700);
+    });
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText(en["run.statusRunning"])).toBeTruthy();
+
+    // Let the page's 10s poll pick the running copy up, so the list the
+    // sheet resolves against genuinely holds the stale record.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(9_500);
+    });
+    expect(within(screen.getByRole("dialog")).getByText(en["run.statusRunning"])).toBeTruthy();
+
+    // The pass finishes. Only the watch's 2s tick moves before the page's
+    // next 10s poll would: at that tick the watch records the terminal run
+    // (and fires its Done toast), and the sheet must follow it immediately.
+    currentRuns = [
+      { ...running, status: "success", finishedAt: (running.startedAt ?? 0) + 45, snapshotId: "feedface99" },
+      plex,
+    ];
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_000);
+    });
+    const after = screen.getByRole("dialog");
+    expect(within(after).getByText(en["spike.ok"])).toBeTruthy();
+    expect(within(after).queryByText(en["run.statusRunning"])).toBeNull();
+  });
+
   it("unmounts the sheet and the trigger when the viewport crosses to desktop", async () => {
     const plex = makeRun({ id: "run-plex-2", target: "plex", status: "failed" });
     currentRuns = [plex];
