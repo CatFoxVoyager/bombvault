@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import { hueVars, rainbowAt } from "../../lib/appearance";
 import { checkDomain, listSnapshotFiles, listSnapshotFilesFileSet } from "../../lib/api";
 import type { FileEntry, Run } from "../../lib/api";
 import { useT } from "../../lib/i18n";
@@ -264,7 +265,10 @@ function HistoryLogSection({ run }: { run: Run }) {
 // the classes are the Button "subtle"/"neutral" tone tokens (bg-carbon-surface2
 // / surface3, rounded-control) so the rows read as the same engine language.
 // Never accent: restore and browse are deliberate, secondary actions (the
-// design bible reserves accent for the page's one primary action).
+// design bible reserves accent for the page's one primary action). Each row
+// still takes its position in the sheet's hue rotation (.glim-hue): the
+// rotation's focus ring and any accent reading inside the row follow the
+// position, while the row's own fill stays the tonal token above.
 // ---------------------------------------------------------------------------
 function SheetActionRow({
   label,
@@ -273,6 +277,7 @@ function SheetActionRow({
   expanded,
   controlsId,
   tone = "subtle",
+  hueIndex,
 }: {
   label: string;
   onClick: () => void;
@@ -281,6 +286,8 @@ function SheetActionRow({
   expanded?: boolean;
   controlsId?: string;
   tone?: "subtle" | "neutral";
+  /** The row's position in the sheet's hue rotation. */
+  hueIndex?: number;
 }) {
   return (
     <button
@@ -289,9 +296,10 @@ function SheetActionRow({
       disabled={disabled}
       aria-expanded={expanded}
       aria-controls={controlsId}
-      className={`flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-control text-sm text-carbon-text hover:bg-carbon-hover motion-safe:active:scale-[var(--motion-press-scale)] disabled:opacity-60 ${
+      className={`flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-control text-sm text-carbon-text hover:bg-carbon-hover motion-safe:active:scale-[var(--motion-press-scale)] disabled:opacity-60 glim-hue ${
         tone === "neutral" ? "bg-carbon-surface3" : "bg-carbon-surface2"
       }`}
+      style={hueVars(rainbowAt(hueIndex ?? 0)) as CSSProperties}
     >
       {label}
     </button>
@@ -456,6 +464,7 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
               onClick={() => setBrowseOpen((o) => !o)}
               expanded={browseOpen}
               controlsId={browseId}
+              hueIndex={0}
             />
           )}
           {verifyDomain && (
@@ -464,6 +473,7 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
               onClick={() => void runVerify()}
               disabled={verifyState === "busy"}
               tone="neutral"
+              hueIndex={1}
             />
           )}
         </div>
@@ -607,6 +617,7 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
             expanded={browseOpen}
             controlsId={browseId}
             tone="neutral"
+            hueIndex={2}
           />
         )}
       </div>

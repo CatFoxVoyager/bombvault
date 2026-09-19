@@ -193,12 +193,15 @@ function FailureCounter({
   t,
   count,
   dense,
+  hueIndex,
   onOpen,
 }: {
   t: ReturnType<typeof useT>["t"];
   count: number;
   /** Phone glance face: a full-width >=44px row instead of the stat tile. */
   dense?: boolean;
+  /** The phone row's position in the block's hue rotation. */
+  hueIndex?: number;
   onOpen: () => void;
 }) {
   if (dense) {
@@ -207,7 +210,8 @@ function FailureCounter({
         type="button"
         onClick={onOpen}
         aria-label={`${t("dashboard.statErrors")}: ${count}`}
-        className="mb-1 flex min-h-[2.75rem] w-full items-center gap-2 rounded-control bg-carbon-surface2 px-2 py-2 text-start"
+        className="mb-1 flex min-h-[2.75rem] w-full items-center gap-2 rounded-control bg-carbon-surface2 px-2 py-2 text-start glim-hue"
+        style={hueVars(rainbowAt(hueIndex ?? 0)) as CSSProperties}
       >
         <Badge tone="fail">{count}</Badge>
         <span className="min-w-0 flex-1 truncate text-sm text-carbon-text">
@@ -1114,12 +1118,15 @@ function RunRow({
   t,
   run,
   dense,
+  hueIndex,
   onTap,
 }: {
   t: ReturnType<typeof useT>["t"];
   run: Run;
   /** The phone glance face. */
   dense?: boolean;
+  /** The phone row's position in the block's hue rotation. */
+  hueIndex?: number;
   /** Phone only: opens the page-hosted run detail sheet for this run. */
   onTap?: () => void;
 }) {
@@ -1133,7 +1140,8 @@ function RunRow({
         type="button"
         onClick={onTap}
         aria-label={`${statusLabel(run.status, t)} · ${kind} ${target}`}
-        className="flex min-h-[2.75rem] w-full items-center gap-2 rounded-control bg-carbon-surface2 px-2 py-2 text-start"
+        className="flex min-h-[2.75rem] w-full items-center gap-2 rounded-control bg-carbon-surface2 px-2 py-2 text-start glim-hue"
+        style={hueVars(rainbowAt(hueIndex ?? 0)) as CSSProperties}
       >
         <span className="shrink-0">{badge}</span>
         <span className="min-w-0 flex-1">
@@ -1221,7 +1229,7 @@ function RunsCard({
         <MobileSectionLabel t={t} labelKey="dashboard.recentRuns" />
         <div className="rounded-card bg-carbon-surface p-2">
           {failures.length > 0 && (
-            <FailureCounter t={t} count={failures.length} dense onOpen={() => setPanelOpen(true)} />
+            <FailureCounter t={t} count={failures.length} dense hueIndex={0} onOpen={() => setPanelOpen(true)} />
           )}
           {panelOpen && (
             <ErrorDetailPanel onClose={() => setPanelOpen(false)} onChanged={refreshRuns} />
@@ -1231,10 +1239,13 @@ function RunsCard({
           ) : recent.length === 0 ? (
             <p className="px-2 py-2 text-sm text-carbon-textMuted">{t("dashboard.noRuns")}</p>
           ) : (
-            // Rows separated by shade (soft tiles), never divider lines.
+            // Rows separated by shade (soft tiles), never divider lines. The
+            // counter row owns rotation position 0; the run rows follow in
+            // display order, so a row keeps its hue whether or not the
+            // counter row is present above it.
             <div className="flex flex-col gap-1">
-              {recent.map((run) => (
-                <RunRow key={run.id} t={t} run={run} dense onTap={() => onOpenRun?.(run)} />
+              {recent.map((run, i) => (
+                <RunRow key={run.id} t={t} run={run} dense hueIndex={i + 1} onTap={() => onOpenRun?.(run)} />
               ))}
             </div>
           )}
@@ -2283,23 +2294,18 @@ function SummaryTier({
   domains: DomainStatus[];
   loading: boolean;
   newestRun: Run | null;
-  /** This tier's three cells' own rainbow positions — see the main Dashboard
-   *  component's own `hueSeq`/`nextHue` comment. Plain numbers, each computed
-   *  by the CALLER's `nextHue()` at the SAME synchronous point every other
-   *  block's own `hueIndex={nextHue()}` is (not a `nextHue` function passed
-   *  down for this component to call from its OWN body): a first version of
-   *  this fix did exactly that, and it broke, live — React doesn't call a
-   *  child function component's body until AFTER the parent's own render
-   *  function has already returned, so `nextHue()` calls made from inside
-   *  THIS component's body ran strictly after every sibling block's own
-   *  direct `nextHue()` call already consumed slots 0-7, landing this tier's
-   *  three cells on indices 8/9/10 (wrapping back to red/orange/yellow)
-   *  instead of the 0/1/2 they visually occupy first on the page — caught
-   *  live via getComputedStyle against the real deployed container, not by
-   *  reading the code. Passing three already-resolved numbers sidesteps the
-   *  whole "when does React actually call this component" question: the
-   *  values are fixed the instant `nextHue()` runs, in the caller's own
-   *  array order, same as every other block. */
+  /** This tier's three cells' own rainbow positions. See the main Dashboard
+   *  component's `hueSeq`/`nextHue` comment. Plain numbers, each computed by
+   *  the caller's `nextHue()` at the same synchronous point as every other
+   *  block's own `hueIndex={nextHue()}` (not a `nextHue` function passed down
+   *  for this component to call from its own body): React runs a child
+   *  function component's body only after the parent's own render function
+   *  has returned, so a `nextHue()` call made inside this component's body
+   *  would run after every sibling block's direct `nextHue()` call had
+   *  already consumed the rotation's slots, and these three cells would land
+   *  on the wrong hues. Passing three already-resolved numbers sidesteps the
+   *  "when does React actually call this component" question: the values are
+   *  fixed the instant `nextHue()` runs, in the caller's own array order. */
   healthHueIndex?: number;
   nextBackupHueIndex?: number;
   lastResultHueIndex?: number;
@@ -2400,12 +2406,12 @@ function WorstRpoHealthLine({
 // scheduleNext, statusDomains) or the same endpoint a desktop card already
 // reads; zero new endpoints.
 //
-// Phone hues are static literals (0/1/2 on the section roots), unlike the
+// Phone hues are static literals (0/1/2 on the section roots, 3 on the
+// activity-log card, and per-row positions inside a block's list), unlike the
 // desktop grid's running `nextHue()` counter: the phone order is fixed (not
 // user-customizable), so a static position is honest, and the phone faces
 // never render inside the desktop counter's pass; the desktop counter must
-// not observe a phone-only draw (the same reason the phone ActivityLog below
-// takes no hueIndex).
+// not observe a phone-only draw.
 //
 // Mount discipline: the blocks are JSX-gated on `!isDesktop` (jsdom's
 // matchMedia answers desktop, so these surfaces render only in real mobile
@@ -3240,15 +3246,13 @@ export function Dashboard() {
           <StorageCard dense t={t} hueIndex={2} domains={statusDomains} statusLoading={statusLoading} statusFailed={statusFailed} />
           {/* The activity log reaches mobile here; the component is
               self-contained (own card chrome + heading, per its header
-              comment), so the mount is one line. No hueIndex: this hue counter
-              is the desktop grid's rainbow sequence; the desktop ActivityLog
-              block already drew its slot from it; a second draw here would
-              advance the counter and silently shift every later block's
-              rainbow position. The mobile heading rides the flat
-              MobileSectionLabel default instead (same as every other block in
-              this column). dayFilter stays shared: a heatmap tap narrows both
+              comment), so the mount is one line. hueIndex is the block's
+              static slot in the phone column's rotation (3, after next run /
+              recent runs / repo storage) — never a draw from the desktop
+              grid's nextHue() counter, which must not observe a phone-only
+              draw. dayFilter stays shared: a heatmap tap narrows both
               presentations because they render the same state. */}
-          <ActivityLog dayFilter={logDayFilter} onClearDayFilter={() => setLogDayFilter(null)} />
+          <ActivityLog dayFilter={logDayFilter} onClearDayFilter={() => setLogDayFilter(null)} hueIndex={3} />
         </div>
       )}
 
