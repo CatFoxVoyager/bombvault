@@ -479,21 +479,23 @@ interface SelectorCommon {
  * palette. So the sequence is a table, and pages/settings/hueOffsets.test.ts
  * requires every hued selector in that tree to name an entry in it.
  *
- * The palette holds eight colours and the tree holds nine selectors, so
- * exactly one start is shared: `drillKind` reuses the first label row's.
- * That is arithmetic rather than oversight - the two are in different tabs
- * (Integrity and Appearance) and cannot be on screen together, and the only
- * hued selector the Integrity tab does show is the tab strip at 0.
+ * The palette holds eight colours and the tree spreads its selectors across
+ * the tabs, so starts are assigned PER TAB: no two simultaneously-visible
+ * selectors share one (hueOffsets.test.ts asserts exactly that, per tab).
+ * Two starts are still shared across TABS, which is arithmetic rather than
+ * oversight - selectors in different tabs cannot be on screen together:
+ * `drillKind` (Integrity) reuses the first label row's (General), and
+ * `notifyOn` (Notifications) reuses `theme`'s (General).
  */
 export const HUE_OFFSET = {
   /** The Settings tab strip, which every tab shows. */
   tabs: 0,
-  /** The three label-mode rows, +0..2 by axis, so neighbouring rows stay
+  /** The four label-mode rows, +0..3 by axis, so neighbouring rows stay
    *  adjacent in the palette and the block still reads as one group. */
   labels: 1,
-  shape: 4,
-  motion: 5,
-  theme: 6,
+  shape: 5,
+  motion: 6,
+  theme: 7,
   notifyOn: 7,
   drillKind: 1,
 } as const;
