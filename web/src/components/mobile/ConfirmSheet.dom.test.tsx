@@ -100,26 +100,39 @@ describe("ConfirmSheet (the mobile presentation, direct)", () => {
     return { onConfirm, onCancel };
   }
 
-  it("renders the fail-toned sheet with the destructive confirm stacked ABOVE the safe cancel", () => {
+  it("renders the fail-toned sheet with the safe cancel stacked ABOVE the confirm (forward action last)", () => {
     renderSheet();
     const panel = screen.getByRole("dialog");
     // BottomSheet's tone surface: the sheet primitive's fail-tone panel.
     expect(panel.className).toContain("bg-statusFailBg");
     expect(panel.className).toContain("border-statusFailBorder");
-    expect(screen.getByText(MESSAGE)).toBeTruthy();
+    const message = screen.getByText(MESSAGE);
+    expect(message).toBeTruthy();
+    // ConfirmDialog parity: the panel describes the message, so screen
+    // readers announce the question — not just the title.
+    expect(panel.getAttribute("aria-describedby")).toBe(message.id);
 
     const confirmButton = screen.getByRole("button", { name: "Delete it" });
     const cancelButton = screen.getByRole("button", { name: en["common.cancel"] });
-    // DOM order IS the stack order: cancel follows confirm, so the careless
-    // tap swipe crosses the safe action's slot first (header comment).
+    // DOM order IS the stack order: cancel comes FIRST, confirm LAST — the
+    // desktop card's "forward action comes last" rule on a vertical axis,
+    // landing the confirm under the thumb's resting arc (header comment).
     expect(
-      confirmButton.compareDocumentPosition(cancelButton) & Node.DOCUMENT_POSITION_FOLLOWING,
+      cancelButton.compareDocumentPosition(confirmButton) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+    // Both actions stand in the footer slot on the key-control height.
+    expect(confirmButton.className).toContain("glim-btn-key");
+    expect(cancelButton.className).toContain("glim-btn-key");
+    expect(confirmButton.className).toContain("w-full");
     // Tone mapping mirrors ConfirmDialog's footer: fail -> danger Button.
     expect(confirmButton.className).toContain("bg-statusFailSolid");
-    expect(confirmButton.className).toContain("w-full");
     // The safe action carries NO status colour (neutral), never the danger.
     expect(cancelButton.className).not.toContain("statusFailSolid");
+    // Both buttons live OUTSIDE the scrolling body (the footer slot): the
+    // message's container is the body's only content child.
+    const body = message.parentElement!.parentElement!;
+    expect(body.textContent).toContain(MESSAGE);
+    expect(body.querySelector("button")).toBeNull();
   });
 
   it("maps the warn tone to warn tokens on both the panel and the confirm control", () => {
@@ -201,7 +214,8 @@ describe("useConfirm presentation swap", () => {
     const panel = screen.getByRole("dialog");
     expect(panel.className).toContain("bg-statusFailBg");
     expect(panel.className).toContain("border-statusFailBorder");
-    expect(panel.getAttribute("aria-describedby")).toBeNull();
+    // The sheet matches the desktop card's described-message contract.
+    expect(panel.getAttribute("aria-describedby")).not.toBeNull();
     // Same translated labels on both faces — only the surface changed.
     expect(screen.getByRole("button", { name: en["common.confirm"] })).toBeTruthy();
     expect(screen.getByRole("button", { name: en["common.cancel"] })).toBeTruthy();

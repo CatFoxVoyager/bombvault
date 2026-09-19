@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { Button } from "../Button";
 import { IconCancel } from "../glyphs";
 import { BottomSheet } from "./BottomSheet";
@@ -31,24 +32,18 @@ export type ConfirmTone = "fail" | "warn";
 // dispatch resolves the promise exactly once (asserted in
 // ConfirmSheet.dom.test.tsx).
 //
-// The button stack inverts the desktop card's order, on purpose:
-//   - The DESTRUCTIVE action sits on TOP, furthest from the thumb's resting
-//     arc, so a careless tap swipe must travel across the safe action first.
-//     It carries the tone-mapped Button (danger for fail, warn for warn —
-//     the same mapping ConfirmDialog's footer uses), full-width per the
-//     stacked-action pattern.
-//   - The SAFE action (cancel) sits LAST — the bottom-most, thumb-default
-//     position — per the stacked-action pattern: "safe action = neutral,
-//     rendered as the primary-position (thumb-default) control". BottomSheet's
-//     open effect lands initial focus on the header close button (the safe
-//     outcome), and nothing here re-focuses the destructive control: the
-//     destructive control is never default-focused, which holds without an
-//     autoFocus anywhere.
+// The action stack follows the desktop card's rule on a vertical axis: the
+// forward action comes LAST. Both buttons live in BottomSheet's footer slot
+// — pinned below the scrolling message, never scrolled away — and the
+// confirm sits at the very bottom, under the thumb's resting arc, with
+// cancel above it. Both stand on the key-control height (the glim-btn-key
+// stage, --btn-h-key): a thumb-first surface hands its commit button the
+// tallest sanctioned box, not the default control height.
 //
-// Known gap, deliberate: the desktop card is aria-describedby its message;
-// BottomSheet has no described-by slot yet, so the sheet announces title +
-// visible message only. Adding the slot is a primitive change owned by the
-// sheet primitive, not this consumer.
+// The message is aria-describedby from the dialog panel — ConfirmDialog
+// parity: screen readers announce the question, not just the title, when
+// focus lands inside the sheet. The message element's id (useId, so sheets
+// can coexist) is handed to the primitive through its describedBy prop.
 // ---------------------------------------------------------------------------
 export interface ConfirmSheetProps {
   /** Same generic window title ConfirmDialog takes (t("confirmDialog.title")). */
@@ -74,45 +69,59 @@ export function ConfirmSheet({
   onConfirm,
   onCancel,
 }: ConfirmSheetProps) {
+  const messageId = useId();
   return (
-    <BottomSheet open onClose={onCancel} title={title} tone={tone}>
+    <BottomSheet
+      open
+      onClose={onCancel}
+      title={title}
+      tone={tone}
+      describedBy={messageId}
+      // Stacked actions in BottomSheet's footer slot: chrome pinned while the
+      // message scrolls, safe-area bottom inset owned by the primitive. The
+      // consumer padding is vertical only — the footer already owns the
+      // inset-clamped sides. Cancel above, confirm last (under the thumb);
+      // both on the key-control height.
+      footer={
+        <div className="flex flex-col gap-3 py-3">
+          <Button
+            label={cancelLabel}
+            labelKey="common.cancel"
+            glyph={<IconCancel />}
+            tone="neutral"
+            onClick={onCancel}
+            className="glim-btn-key w-full"
+          />
+          {/* bv-convention-exception: no-status-color-on-control -- the same
+              sanctioned exception as ConfirmDialog's confirm button, cited by
+              the design language itself: "the destructive control is always
+              the fault colour". The guard exists to stop bespoke red on
+              arbitrary controls; the ONE place status colour IS the meaning is
+              the destructive confirmation, and this is its mobile face —
+              tone is the closed ConfirmTone union, so no third shade can
+              drift in. */}
+          <Button
+            label={confirmLabel}
+            // The confirm button's meaning changes with the action it confirms
+            // (delete, prune, overwrite), so no fixed translation key can pick
+            // its glyph — ConfirmDialog passes the identical null. The
+            // destructive control is never default-focused (no autoFocus; the
+            // open effect lands on the header close button).
+            labelKey={null}
+            tone={tone === "fail" ? "danger" : "warn"}
+            onClick={onConfirm}
+            className="glim-btn-key w-full"
+          />
+        </div>
+      }
+    >
       {/* The message — ConfirmDialog's exact text treatment; the sheet body
           owns no content padding, so the consumer supplies it (the primitive's
-          documented contract). */}
-      <div className="px-4 py-4">
-        <p className="text-sm leading-relaxed text-carbon-textSub wrap-break-word">{message}</p>
-      </div>
-      {/* Stacked actions in BottomSheet's footer slot: chrome pinned while the
-          message scrolls, safe-area bottom inset owned by the primitive. */}
-      <div className="flex flex-col gap-3 px-4 py-3">
-        {/* bv-convention-exception: no-status-color-on-control -- the same
-            sanctioned exception as ConfirmDialog's confirm button, cited by
-            the design language itself: "the destructive control is always
-            the fault colour". The guard exists to stop bespoke red on
-            arbitrary controls; the ONE place status colour IS the meaning is
-            the destructive confirmation, and this is its mobile face —
-            tone is the closed ConfirmTone union, so no third shade can
-            drift in. */}
-        <Button
-          label={confirmLabel}
-          // The confirm button's meaning changes with the action it confirms
-          // (delete, prune, overwrite), so no fixed translation key can pick
-          // its glyph — ConfirmDialog passes the identical null. The
-          // destructive control is never default-focused (no autoFocus; see
-          // the header note).
-          labelKey={null}
-          tone={tone === "fail" ? "danger" : "warn"}
-          onClick={onConfirm}
-          className="w-full"
-        />
-        <Button
-          label={cancelLabel}
-          labelKey="common.cancel"
-          glyph={<IconCancel />}
-          tone="neutral"
-          onClick={onCancel}
-          className="w-full"
-        />
+          documented contract). Side padding stays OFF the content: the
+          primitive's body is already inset-clamped, so a px here would double
+          it; the block owns only its vertical breathing room. */}
+      <div className="py-4">
+        <p id={messageId} className="text-sm leading-relaxed text-carbon-textSub wrap-break-word">{message}</p>
       </div>
     </BottomSheet>
   );

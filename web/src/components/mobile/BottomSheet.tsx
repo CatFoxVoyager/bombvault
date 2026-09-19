@@ -95,6 +95,12 @@ export interface BottomSheetProps {
    *  utilities against each other in stylesheet order (Button.tsx's
    *  TONE_TABLE note). */
   tone?: "default" | "fail" | "warn";
+  /** Optional id the panel's aria-describedby points at — how a consumer
+   *  makes the dialog announce content beyond the title (ConfirmDialog
+   *  describes its message; the confirm sheet does the same through this
+   *  prop). The consumer owns the element AND the id; the primitive only
+   *  wires the reference onto the role="dialog" panel. */
+  describedBy?: string;
 }
 
 // Panel surface per `tone`. Values are token utilities only — no raw hex
@@ -116,7 +122,7 @@ function focusableElements(root: HTMLElement): HTMLElement[] {
   return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
 }
 
-export function BottomSheet({ open, onClose, title, children, fullHeight, footer, tone }: BottomSheetProps) {
+export function BottomSheet({ open, onClose, title, children, fullHeight, footer, tone, describedBy }: BottomSheetProps) {
   const { t } = useT();
   const titleId = useId();
   // The panel's DOM node (for the Tab trap) and whatever had focus the moment
@@ -239,6 +245,7 @@ export function BottomSheet({ open, onClose, title, children, fullHeight, footer
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        aria-describedby={describedBy}
         className={`fixed inset-x-0 bottom-0 z-50 flex ${
           fullHeight ? "h-dvh" : "max-h-[85dvh]"
         } flex-col rounded-t-card ${TONE_PANEL_CLASS[tone ?? "default"]} shadow-2xl motion-safe:transition-transform motion-safe:duration-200 ${
