@@ -69,6 +69,10 @@ const command = `${node} web/e2e/wipe-e2e-data.mjs && "${binary}"`;
 const e2ePort = process.env.E2E_PORT ?? "3000";
 
 export default defineConfig({
+  // A `.only` that survives locally fails the CI run instead of silently
+  // shrinking the gate: on CI an only'd run reports "unexpected focused
+  // test" and exits non-zero. Local runs stay free to focus.
+  forbidOnly: !!process.env.CI,
   testDir: "./e2e",
   testMatch: [
     "mobile-shell.spec.ts",

@@ -1,5 +1,6 @@
 // ---------------------------------------------------------------------------
-// ESLint flat config — the frontend lint gate (npm run lint → `eslint src`).
+// ESLint flat config — the frontend lint gate (npm run lint → eslint over the
+// app sources and the Playwright harness).
 //
 // @eslint/js recommended + typescript-eslint recommended (deliberately the
 // NON-type-checked variant: type-aware linting would pull the whole DOM lib
@@ -54,14 +55,18 @@ const tseslintModule = await import("typescript-eslint");
 const tseslint = tseslintModule.default ?? tseslintModule;
 
 const SRC = ["src/**/*.{ts,tsx}"];
+// The Playwright harness: files that run in node OUTSIDE the app bundle, but
+// are first-party TypeScript all the same, so the base gate reads them (the
+// e2e/wipe-e2e-data.mjs pre-command is .mjs and stays out).
+const HARNESS = ["e2e/**/*.ts", "playwright.config.ts"];
 
 export default [
   { linterOptions: { reportUnusedDisableDirectives: "error" } },
 
-  // Base recommended sets, scoped to the app sources.
+  // Base recommended sets, scoped to the app sources plus the harness.
   ...[js.configs.recommended, ...tseslint.configs.recommended].map((config) => ({
     ...config,
-    files: SRC,
+    files: [...SRC, ...HARNESS],
   })),
 
   {
@@ -71,7 +76,12 @@ export default [
       // The correctness rules this gate exists for.
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
+    },
+  },
 
+  {
+    files: [...SRC, ...HARNESS],
+    rules: {
       // TS itself checks undefined identifiers (and knows the DOM globals);
       // no-undef on TS files only produces false positives.
       "no-undef": "off",

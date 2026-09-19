@@ -39,6 +39,11 @@ web/test-results/
 web/playwright-report/
 .playwright-data/
 
+# The e2e webServer's server binary — `go build` output compiled at the repo
+# root by the harness command and the CI playwright job. Never tracked.
+/bombvault
+/bombvault.exe
+
 # Brainstorm / tooling
 
 # Agent worktree scratch space (isolated Agent-tool dispatches)
