@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { hueVars, rainbowAt } from "../lib/appearance";
-import { listRuns, getSpike, listContainers, listVMs, getSettings, getStatus, getHistory, getStats, downloadRecoveryKit, ackRecoveryKit, runDrill, getScheduleNext, backupEverythingNow } from "../lib/api";
+import { listRuns, getSpike, listContainers, listVMs, getSettings, getStatus, getHistory, getStats, downloadRecoveryKit, ackRecoveryKit, runDrill, getScheduleNext, backupEverythingNow, ApiError } from "../lib/api";
 import type { Run, SpikeCheck, Container, Settings, DomainStatus, HistoryDay, DayStat, RepoStat, StorageForecast, ScheduleNext } from "../lib/api";
 import { ErrorDetailPanel } from "../components/ErrorDetailPanel";
 import { useT } from "../lib/i18n";
@@ -2443,6 +2443,128 @@ function NextRunCard({
 }
 
 // ---------------------------------------------------------------------------
+// Phone thumb-zone trigger — the surface's ONE solid-accent control, and the
+// owner of the everything pass's fire-and-watch cycle. Mounted ONLY below
+// 48rem (the page's !isDesktop gate): the progress subscription behind
+// useBackupWatch re-renders its subscriber on every SSE frame, and a desktop
+// session has no control that needs this watch (desktop backup buttons own
+// their own watches) — so the desktop page must not mount it at all, and the
+// desktop page stops re-rendering per progress frame. Phone behavior is
+// unchanged from when the watch lived on the page component: same watch args,
+// confirm-first press, deep-link into the run sheet via the page's latch, and
+// terminal toasts.
+// ---------------------------------------------------------------------------
+function PhoneEverythingTrigger({
+  t,
+  onWatchRun,
+  onArmFire,
+}: {
+  t: ReturnType<typeof useT>["t"];
+  /** Called on every watch poll with the correlated run — the page's
+   *  sheet-latch logic decides replace/keep/open (see handleWatchRun). */
+  onWatchRun: (run: Run) => void;
+  /** Called the moment the user confirms a fire — arms the page's deep-link
+   *  latch so the correlation of THIS pass may steal the sheet. */
+  onArmFire: () => void;
+}) {
+  // Thumb-zone trigger watch (BackupButton's semantics verbatim). The
+  // everything pass is async on the server, so the press only STARTS it
+  // ({ok:true,started:true} is never read for the outcome) and the watch
+  // resolves from the recorded run — baseline ids seeded from listRuns BEFORE
+  // firing (never a client clock), then polled until the pass's run turns
+  // terminal. `progressKey: ""` is the honest key: the everything PARENT run
+  // publishes no SSE entry of its own (its per-domain children do — see
+  // RunDetailSheet's progressKeyFor), so the watch resolves via the run-poll
+  // belt exactly like a target whose key never appears.
+  const startEverything = useCallback(async () => {
+    // The everything pass is single-flight server-side: a second press while
+    // one is already running surfaces as HTTP 409. The raw HTTP status text
+    // must never reach a toast — map it to the shared translated "already
+    // running" copy (Settings.tsx's runNow mapping) and return it as the
+    // start failure the hook already displays.
+    try {
+      return await backupEverythingNow();
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        return { ok: false, error: t("settings.everythingAlreadyRunning") };
+      }
+      throw err;
+    }
+  }, [t]);
+  const { state, fire, isPending } = useBackupWatch({
+    progressKey: "",
+    start: startEverything,
+    matchRun: (r) => r.domain === "everything",
+    onRun: onWatchRun,
+  });
+
+  // Terminal outcomes toast per BackupButton's contract ("failed action toasts
+  // AND shakes its button"); success mirrors its snapshot-id form, falling back
+  // to plain Done when the parent run carries no snapshot (the everything pass
+  // aggregates its domains, so the parent snapshot is often empty — the
+  // container-specific configOnly fallback does not apply here). cancelled and
+  // skipped stay silent like BackupButton's cancelled arm: the deep-linked
+  // sheet is already showing the run's own record.
+  const { push } = useToast();
+  const [shake, setShake] = useState(0);
+  const seenPhase = useRef(state.phase);
+  useEffect(() => {
+    if (state.phase === seenPhase.current) return;
+    seenPhase.current = state.phase;
+    if (state.phase === "success") {
+      push(
+        state.snapshotId ? `${t("common.done")} · ${state.snapshotId.slice(0, 8)}` : t("common.done"),
+        "success"
+      );
+    } else if (state.phase === "error") {
+      push(state.message, "fail");
+      setShake((n) => n + 1);
+    }
+  }, [state, push, t]);
+
+  // The consequence sheet stands between the press and the POST — useConfirm
+  // presents it below the breakpoint automatically (the fail-toned
+  // ConfirmSheet, destructive control on top, safe cancel in the thumb-default
+  // slot). The confirm button reuses home.newBackup so its press names the
+  // outcome; cancel is the shared safe default.
+  const { confirm, confirmDialog } = useConfirm();
+  const confirmThenFire = useCallback(async () => {
+    const ok = await confirm(t("home.newBackupConfirm"), {
+      confirmLabel: t("home.newBackup"),
+      cancelLabel: t("common.cancel"),
+    });
+    if (!ok) return;
+    onArmFire();
+    await fire();
+  }, [confirm, fire, t, onArmFire]);
+
+  // StickyActionBar as the LAST DIRECT CHILD of the page column — sticky
+  // resolves against main#bv-main, so nothing may wrap it. Never a FAB, never
+  // position:fixed. While the pass runs the button shows its busy spinner and
+  // is disabled; a failed start also shakes (the glim-shake key remount,
+  // Containers' Save-bar pattern).
+  return (
+    <>
+      <StickyActionBar className="md:hidden">
+        <Button
+          key={shake}
+          label={t("home.newBackup")}
+          labelKey="home.newBackup"
+          glyph={<IconBackupNow />}
+          tone="accent"
+          keepLabel
+          disabled={isPending}
+          busy={isPending}
+          onClick={() => void confirmThenFire()}
+          className={`w-full min-h-[2.75rem] justify-center${shake ? " glim-shake" : ""}`}
+        />
+      </StickyActionBar>
+      {confirmDialog}
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Dashboard page
 // ---------------------------------------------------------------------------
 
@@ -2460,9 +2582,9 @@ export function Dashboard() {
   // Component-local run-sheet host (the Containers.tsx contract): the
   // recent-run rows open the shared RunDetailSheet for their own record here —
   // no route (router.tsx frozen). The dismissal latch exists for the
-  // thumb-zone backup watch below: once the user closes a sheet, later onRun
-  // polls refresh sheetRun but never re-open it; an explicit row tap or a NEW
-  // fire always re-arms.
+  // thumb-zone backup watch (the phone trigger below): once the user closes a
+  // sheet, later onRun polls refresh sheetRun but never re-open it; an
+  // explicit row tap or a NEW fire always re-arms.
   const [sheetRun, setSheetRun] = useState<Run | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const sheetDismissed = useRef(false);
@@ -2472,79 +2594,53 @@ export function Dashboard() {
   // never re-arm outside openRun), and the user would wait out the whole run
   // for nothing but the terminal toast.
   const lastCorrelatedRun = useRef<string | null>(null);
+  // True from the user's confirm press until the watch correlates the pass it
+  // started. Within that window a correlation may STEAL the sheet from
+  // whatever run it currently shows (the deep-link contract); once spent, a
+  // poll tick re-reporting the same correlated run must not.
+  const fireArmed = useRef(false);
+  const armFire = useCallback(() => {
+    fireArmed.current = true;
+  }, []);
   const openRun = (run: Run) => {
     sheetDismissed.current = false;
     setSheetRun(run);
     setSheetOpen(true);
   };
-
-  // Thumb-zone trigger watch (BackupButton's semantics verbatim). The
-  // everything pass is async on the server, so the press only
-  // STARTS it ({ok:true,started:true} is never read for the outcome) and the
-  // watch resolves from the recorded run — baseline ids seeded from listRuns
-  // BEFORE firing (never a client clock), then polled until the pass's run
-  // turns terminal. `progressKey: ""` is the honest key: the everything PARENT
-  // run publishes no SSE entry of its own (its per-domain children do — see
-  // RunDetailSheet's progressKeyFor), so the watch resolves via the run-poll
-  // belt exactly like a target whose key never appears.
-  //
-  // The moment the pass's run is correlated (and on every later poll,
-  // with the refreshed record) it deep-links into the run-sheet host above —
-  // landing the user INSIDE the live run they just started. The dismissal
-  // latch guards the open decision, not the record refresh: a sheet the user
-  // closed must not re-open from a later poll; an open one must track the run
-  // to its true terminal state.
-  const { state: everythingState, fire: fireEverything, isPending: everythingPending } = useBackupWatch({
-    progressKey: "",
-    start: backupEverythingNow,
-    matchRun: (r) => r.domain === "everything",
-    onRun: (run) => {
-      if (lastCorrelatedRun.current !== run.id) {
-        lastCorrelatedRun.current = run.id;
-        sheetDismissed.current = false; // new fire re-arms the deep-link
-      }
-      setSheetRun(run);
-      if (!sheetDismissed.current) setSheetOpen(true);
-    },
-  });
-
-  // Terminal outcomes toast per BackupButton's contract ("failed action toasts
-  // AND shakes its button"); success mirrors its snapshot-id form, falling back
-  // to plain Done when the parent run carries no snapshot (the everything pass
-  // aggregates its domains, so the parent snapshot is often empty — the
-  // container-specific configOnly fallback does not apply here). cancelled and
-  // skipped stay silent like BackupButton's cancelled arm: the deep-linked
-  // sheet is already showing the run's own record.
-  const { push } = useToast();
-  const [shake, setShake] = useState(0);
-  const seenPhase = useRef(everythingState.phase);
-  useEffect(() => {
-    if (everythingState.phase === seenPhase.current) return;
-    seenPhase.current = everythingState.phase;
-    if (everythingState.phase === "success") {
-      push(
-        everythingState.snapshotId ? `${t("common.done")} · ${everythingState.snapshotId.slice(0, 8)}` : t("common.done"),
-        "success"
-      );
-    } else if (everythingState.phase === "error") {
-      push(everythingState.message, "fail");
-      setShake((n) => n + 1);
+  // The watch's onRun, handed to the phone trigger. Replace the sheet's run
+  // only when (a) it shows nothing yet, (b) it shows THIS run already (the
+  // poll refresh that carries a running run to its terminal state), or (c)
+  // this correlation IS the user's just-fired pass. Any other tick — the live
+  // everything watch re-reporting its run on every poll while the user reads
+  // a DIFFERENT run's sheet — must not yank the sheet back (the "sheet jumps
+  // back to the everything pass every two seconds" bug).
+  const handleWatchRun = useCallback((run: Run) => {
+    const isNewCorrelation = lastCorrelatedRun.current !== run.id;
+    // Read the arm BEFORE spending it: the state updater below runs at commit
+    // time, after this function has returned.
+    const armed = fireArmed.current;
+    lastCorrelatedRun.current = run.id;
+    if (isNewCorrelation) {
+      sheetDismissed.current = false; // new fire re-arms the deep-link
+      fireArmed.current = false; // the arm is spent on its correlation
     }
-  }, [everythingState, push, t]);
+    setSheetRun((prev) =>
+      prev == null || prev.id === run.id || (isNewCorrelation && armed) ? run : prev
+    );
+    if (!sheetDismissed.current) setSheetOpen(true);
+  }, []);
 
-  // The consequence sheet stands between the press and the POST — useConfirm
-  // presents it below the breakpoint automatically (the fail-toned
-  // ConfirmSheet, destructive control on top, safe cancel in the thumb-default
-  // slot). The confirm button reuses home.newBackup so its press names the
-  // outcome; cancel is the shared safe default.
-  const { confirm, confirmDialog } = useConfirm();
-  const confirmThenFireEverything = useCallback(async () => {
-    const ok = await confirm(t("home.newBackupConfirm"), {
-      confirmLabel: t("home.newBackup"),
-      cancelLabel: t("common.cancel"),
-    });
-    if (ok) await fireEverything();
-  }, [confirm, fireEverything, t]);
+  // Rotation past 48rem: the bottom sheet is a phone surface. Crossing to
+  // desktop clears the open state (and the latch) so the sheet cannot float
+  // over the desktop grid; the sheet host below carries the matching
+  // !isDesktop gate as the belt.
+  useEffect(() => {
+    if (isDesktop) {
+      setSheetRun(null);
+      setSheetOpen(false);
+      sheetDismissed.current = false;
+    }
+  }, [isDesktop]);
 
   // Single /api/status fetch shared by the Protection + Ransomware cards (no
   // duplicate round-trip — both cards read the same extended domain status).
@@ -2590,6 +2686,15 @@ export function Dashboard() {
     const id = setInterval(refreshRuns, SUMMARY_RUNS_POLL_MS);
     return () => clearInterval(id);
   }, [refreshRuns]);
+
+  // The sheet renders the FRESHEST copy of its run: the page's polled
+  // listRuns state when it holds the run (so a sheet opened from Recent runs
+  // follows the run from Running to its terminal status on the page's own
+  // cadence — it used to freeze on the record from tap time), falling back to
+  // the watch's last record for the deep-linked everything run in the gap
+  // before the page's next poll. Resolving by id at render, not storing a
+  // frozen copy, is the whole fix. (Placed after the runs state it reads.)
+  const displayedRun = sheetRun ? (runs.find((r) => r.id === sheetRun.id) ?? sheetRun) : null;
 
   // The scheduler's own "what fires next" list, for the summary tier's Next
   // backup cell ([545], issue #187). Polled on the same 30s cadence
@@ -3215,10 +3320,13 @@ export function Dashboard() {
           backup watch's onRun correlation (the thumb-zone trigger deep-links
           the live run into the same sheet). A closed sheet stays closed
           against later watch polls (the latch); an explicit row tap re-arms
-          it. */}
-      {sheetRun && (
+          it. Gated on !isDesktop like the rest of the phone surface: the
+          bottom sheet has no desktop form, and the rotation-clear effect
+          above empties the state anyway (the gate is the belt, the effect
+          the braces). */}
+      {!isDesktop && displayedRun && (
         <RunDetailSheet
-          run={sheetRun}
+          run={displayedRun}
           open={sheetOpen}
           onClose={() => {
             sheetDismissed.current = true;
@@ -3227,33 +3335,10 @@ export function Dashboard() {
         />
       )}
 
-      {/* Thumb-zone trigger: the StickyActionBar as the LAST DIRECT CHILD of
-          the page column — sticky resolves against main#bv-main, so nothing
-          may wrap it — holding the surface's ONE solid-accent control. The
-          gate is belt-and-braces (the !isDesktop JSX plus the StickyActionBar's
-          own md:hidden class): the class covers the width-boundary window
-          where the media query and the JS matchMedia could briefly disagree,
-          which on a sticky bar is free insurance. Never a FAB, never
-          position:fixed. While the pass runs the button shows its busy
-          spinner and is disabled; a failed start also shakes (the glim-shake
-          key remount, Containers' Save-bar pattern). */}
-      {!isDesktop && (
-        <StickyActionBar className="md:hidden">
-          <Button
-            key={shake}
-            label={t("home.newBackup")}
-            labelKey="home.newBackup"
-            glyph={<IconBackupNow />}
-            tone="accent"
-            keepLabel
-            disabled={everythingPending}
-            busy={everythingPending}
-            onClick={() => void confirmThenFireEverything()}
-            className={`w-full min-h-[2.75rem] justify-center${shake ? " glim-shake" : ""}`}
-          />
-        </StickyActionBar>
-      )}
-      {confirmDialog}
+      {/* Thumb-zone trigger (the watch + confirm + toasts live in the child):
+          mounted ONLY below 48rem so a desktop session never subscribes to
+          the progress stream — the child's header note carries the why. */}
+      {!isDesktop && <PhoneEverythingTrigger t={t} onWatchRun={handleWatchRun} onArmFire={armFire} />}
     </div>
   );
 }
