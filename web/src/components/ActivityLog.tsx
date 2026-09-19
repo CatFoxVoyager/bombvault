@@ -272,29 +272,45 @@ export function ActivityLog({
           onScroll={handleScroll}
           className="max-h-96 overflow-y-auto rounded-card bg-black/20 font-mono text-xs leading-relaxed px-3 py-2 flex flex-col gap-0.5"
         >
-          {filteredLines.map((l) => (
-            <div key={l.id} className="flex items-start gap-2">
-              {/* The clock's seconds are only free on the desktop face. At
-                  phone width the row's fixed prefix (date + clock + glyph +
-                  domain) leaves the message span barely one long word wide,
-                  and a column narrower than its longest word is what breaks
-                  words mid-word; minute precision hands three characters
-                  back to the message, whose own wrapping stays
-                  word-boundary (min-w-0 + overflow-wrap below). */}
-              <span className="text-carbon-textMuted shrink-0 tabular-nums">
-                {formatLogDate(l.atMs)} {formatClockTime(l.atMs / 1000, isDesktop)}
-              </span>
-              <span className={`shrink-0 w-4 text-center ${colorFor(l.status)}`} aria-label={t(glyphLabelKey(l.status))}>
-                {glyphFor(l.status)}
-              </span>
-              {/* A container and a folder set can share a name, so every line
-                  but the idle one names its domain. */}
-              {!l.idle && (
-                <span className="shrink-0 text-carbon-textMuted">{domainLabel(resolveName, l.domain)}</span>
-              )}
-              <span className={`flex-1 min-w-0 wrap-break-word ${colorFor(l.status)}`}>{l.text}</span>
-            </div>
-          ))}
+          {filteredLines.map((l) => {
+            // One line, two arrangements. The desktop face keeps everything
+            // on one row. At phone width the message moves to its own
+            // full-width line under the fixed prefix (date + clock + glyph +
+            // domain): a column as narrow as the space left after that prefix
+            // is what breaks words mid-word, and its own wrapping stays
+            // word-boundary (wrap-break-word, never break-all). The clock's
+            // seconds stay a desktop-only luxury; the phone prefix keeps
+            // minute precision.
+            const prefix = (
+              <>
+                <span className="text-carbon-textMuted shrink-0 tabular-nums">
+                  {formatLogDate(l.atMs)} {formatClockTime(l.atMs / 1000, isDesktop)}
+                </span>
+                <span className={`shrink-0 w-4 text-center ${colorFor(l.status)}`} aria-label={t(glyphLabelKey(l.status))}>
+                  {glyphFor(l.status)}
+                </span>
+                {/* A container and a folder set can share a name, so every line
+                    but the idle one names its domain. */}
+                {!l.idle && (
+                  <span className="shrink-0 text-carbon-textMuted">{domainLabel(resolveName, l.domain)}</span>
+                )}
+              </>
+            );
+            if (isDesktop) {
+              return (
+                <div key={l.id} className="flex items-start gap-2">
+                  {prefix}
+                  <span className={`flex-1 min-w-0 wrap-break-word ${colorFor(l.status)}`}>{l.text}</span>
+                </div>
+              );
+            }
+            return (
+              <div key={l.id} className="flex flex-col gap-0.5">
+                <div className="flex items-start gap-2">{prefix}</div>
+                <span className={`w-full min-w-0 wrap-break-word ${colorFor(l.status)}`}>{l.text}</span>
+              </div>
+            );
+          })}
         </div>
         {!autoFollow && (
           <Button
