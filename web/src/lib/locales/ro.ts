@@ -354,7 +354,7 @@ const ro: Partial<Translations> = {
   "auth.invalidPassword": "Parolă invalidă",
   "auth.loginError": "Conectare eșuată",
 
-  // Settings — Security card
+  // Settings: Security card
   "auth.security": "Parolă",
   "auth.authOff": "Autentificarea este dezactivată. Toți utilizatorii LAN au acces complet.",
   "auth.authOn": "Autentificarea este activată.",
@@ -444,7 +444,7 @@ const ro: Partial<Translations> = {
   "state.pmsuspended":  "Suspendat",
   "state.notInstalled": "Neinstalat",
 
-  // Backups — files
+  // Backups: files
   "snapshots.files": "Fișiere",
   "snapshots.delete": "Șterge",
   "snapshots.deleteConfirm": "Ștergeți acest backup? Instantaneul este eliminat din depozit (rulați Curăță în Setări pentru a recupera spațiul). Nu poate fi anulat.",
@@ -763,7 +763,7 @@ const ro: Partial<Translations> = {
   "recovery.configSkip": "Sari peste, nu am backup de setări",
   "recovery.configSkipped": "Sărit. Atașează backupurile manual mai jos.",
 
-  // Backups — delete all
+  // Backups: delete all
   "snapshots.deleteAll": "Șterge toate copiile de rezervă",
   "snapshots.deleteAllConfirm": "Ștergeți TOATE copiile de rezervă ale acestei VM din sursa selectată (locală sau externă)? Instantaneele sunt eliminate permanent și depozitul este curățat. Nu poate fi anulat.",
   "snapshots.deletingAll": "Se șterge…",
@@ -1143,7 +1143,7 @@ const ro: Partial<Translations> = {
   "drill.manualOnly": "DR extern: doar manual",
   "drill.manualOnlyTitle": "Testul DR extern programat este dezactivat. Rulează verificarea externă manual cu butonul.",
 
-  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings: section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "General",
   "settings.tab.storage": "Căi și stocare",
   "settings.tab.schedules": "Programări",
@@ -1242,7 +1242,7 @@ const ro: Partial<Translations> = {
   "dashboard.domainFiles": "Foldere",
   "recovery.filesFound": "Găsite {f} seturi de foldere.",
   "recovery.filesRestoreHint": "Seturile de foldere redescoperite nu își cunosc folderul original. Fiecare este restaurat într-un folder ales de dvs.",
-  // Restore from another BombVault repo — Recovery page (#61 task 11)
+  // Restore from another BombVault repo, Recovery page (#61 task 11)
   "recovery.foreignTitle": "Restaurare dintr-un alt repo BombVault",
   "recovery.foreignIntro": "Extrageți containere, VM-uri sau seturi de foldere individuale din copiile de rezervă ale UNEI ALTE instanțe BombVault: conectați-vă doar în citire, răsfoiți conținutul și restaurați ce alegeți. Celălalt repo este doar citit, nimic nu se schimbă acolo, iar propriile dvs. setări de backup rămân neatinse.",
   "recovery.foreignStepConnect": "Conectare la celălalt repo",
@@ -1337,7 +1337,7 @@ const ro: Partial<Translations> = {
   "activityLog.dayFilterChip": "Se afișează {date}",
   "activityLog.clearDayFilter": "Șterge filtrul de zi",
 
-  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave: Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "Replicarea a început - rulează în fundal; indicatorul de activitate arată progresul.",
   "whatsnew.retry": "Încearcă din nou",

@@ -357,7 +357,7 @@ const fi: Partial<Translations> = {
   "auth.invalidPassword": "Virheellinen salasana",
   "auth.loginError": "Kirjautuminen epäonnistui",
 
-  // Settings — Security card
+  // Settings: Security card
   "auth.security": "Salasana",
   "auth.authOff": "Todennus on pois: kaikilla LAN-käyttäjillä on täysi pääsy.",
   "auth.authOn": "Todennus on käytössä.",
@@ -447,7 +447,7 @@ const fi: Partial<Translations> = {
   "state.pmsuspended":  "Keskeytetty",
   "state.notInstalled": "Ei asennettu",
 
-  // Backups — files
+  // Backups: files
   "snapshots.files": "Tiedostot",
   "snapshots.delete": "Poista",
   "snapshots.deleteConfirm": "Poistetaanko tämä varmuuskopio? Tilannevedos poistetaan repositoriosta (vapauta tila ajamalla Karsi Asetuksissa). Ei voi perua.",
@@ -695,7 +695,7 @@ const fi: Partial<Translations> = {
   "export.exportedTo": "Viety kohteeseen:",
   "backup.configOnly": "Vain asetukset, ei datakansioita (määritys tallennettu uudelleenluontia varten)",
 
-  // Backups — delete all
+  // Backups: delete all
   "snapshots.deleteAll": "Poista kaikki varmuuskopiot",
   "snapshots.deleteAllConfirm": "Poistetaanko KAIKKI tämän VM:n varmuuskopiot valitusta lähteestä (paikallinen tai etä)? Tilannevedokset poistetaan pysyvästi ja repositorio karsitaan. Tätä ei voi peruuttaa.",
   "snapshots.deletingAll": "Poistetaan…",
@@ -791,7 +791,7 @@ const fi: Partial<Translations> = {
   "config.snapshotsHint": "Palauttaaksesi nämä asetukset uudelleenrakennetulle palvelimelle käytä Palautus-välilehteä. Asetusten palautus käynnistää BombVaultin uudelleen ottaakseen ne käyttöön, joten se sijaitsee siellä muun katastrofista toipumisen kulun kanssa.",
   "config.none": "Ei vielä asetusten varmuuskopioita. Suorita varmuuskopio yllä.",
 
-  // Recovery — restore BombVault's own settings step
+  // Recovery: restore BombVault's own settings step
   "recovery.stepConfig": "Palauta BombVaultin omat asetukset",
   "recovery.configHint": "Uudelleenrakennetulla palvelimella palauta ensin BombVaultin omat asetukset (sen varmuuskopiopolut, etäkohteet ja tunnukset), jotta alla olevat vaiheet tulevat esitäytettyinä. Osoita se aiemmin määrittämääsi asetusten varmuuskopioon. Eikö asetusten varmuuskopiota ole? Ohita tämä ja liitä varmuuskopiosi manuaalisesti alla.",
   "recovery.configAppKeyReminder": "APP_KEY:si on täsmättävä tämän varmuuskopion kanssa. Se on yllä olevan vaiheen 1 tarkistus.",
@@ -860,7 +860,7 @@ const fi: Partial<Translations> = {
   "settings.dashTileRemoving": "Poistetaan…",
   "settings.dashTileRemoveOk": "Lisäosa poistettu. Se ei enää näy Unraidin kojelaudalla.",
 
-  // Notifications — SMTP
+  // Notifications: SMTP
   "notify.smtp": "Sähköposti (SMTP)",
   "notify.smtpHost": "SMTP-isäntä",
   "notify.smtpPort": "Portti",
@@ -1140,7 +1140,7 @@ const fi: Partial<Translations> = {
   "drill.manualOnly": "Etä-DR: vain manuaalisesti",
   "drill.manualOnlyTitle": "Ajastettu etä-DR-harjoitus on pois päältä. Suorita etätarkistus manuaalisesti painikkeella.",
 
-  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings: section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "Yleiset",
   "settings.tab.storage": "Polut ja tallennus",
   "settings.tab.schedules": "Aikataulut",
@@ -1239,7 +1239,7 @@ const fi: Partial<Translations> = {
   "dashboard.domainFiles": "Kansiot",
   "recovery.filesFound": "Löytyi {f} kansiojoukkoa.",
   "recovery.filesRestoreHint": "Uudelleen löydetyt kansiojoukot eivät tunne alkuperäistä kansiotaan. Kukin palautetaan valitsemaasi kansioon.",
-  // Restore from another BombVault repo — Recovery page (#61 task 11)
+  // Restore from another BombVault repo, Recovery page (#61 task 11)
   "recovery.foreignTitle": "Palauta toisesta BombVault-reposta",
   "recovery.foreignIntro": "Poimi yksittäisiä kontteja, virtuaalikoneita tai kansiojoukkoja TOISEN BombVault-instanssin varmuuskopioista: yhdistä vain luku -tilassa, selaa sisältöä ja palauta valitsemasi. Toista repoa vain luetaan, siellä ei muutu mikään, ja omat varmuuskopiointiasetuksesi pysyvät koskemattomina.",
   "recovery.foreignStepConnect": "Yhdistä toiseen repoon",
@@ -1334,7 +1334,7 @@ const fi: Partial<Translations> = {
   "activityLog.dayFilterChip": "Näytetään {date}",
   "activityLog.clearDayFilter": "Poista päiväsuodatin",
 
-  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave: Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "Replikointi käynnistetty - se toimii taustalla; tilanneilmaisin näyttää edistymisen.",
   "whatsnew.retry": "Yritä uudelleen",

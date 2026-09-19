@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 // Desktop-untouched — the per-page desktop invariance contract.
 //
-// The headline guarantee, made executable: for EVERY one of the eleven routed
+// The headline guarantee, made executable: for every one of the eleven routed
 // destinations, on BOTH desktop projects (desktop-768 = the 48rem breakpoint
 // boundary, desktop-1280 = comfortable desktop), today's shell is exactly
 // what renders — the desktop Sidebar is visible, the mobile bottom bar has
@@ -73,7 +73,7 @@ for (const route of ROUTES) {
 
 // ---------------------------------------------------------------------------
 // The geometry half of "untouched": presence is not invariance. The shell's
-// desktop chrome sits at a CONTRACTED geometry on every destination: the
+// desktop chrome sits at a contracted geometry on every destination: the
 // sidebar rail starts at the shell's 1rem gutter and ends left of the
 // `bv-main` scroller, and every route must reproduce /dashboard's boxes
 // within a 1px tolerance (subpixel rounding across engines). Two layers
@@ -155,7 +155,7 @@ test("desktop shell geometry is identical across every routed destination", asyn
 
 // ---------------------------------------------------------------------------
 // The >=48rem leakage pass for /dashboard: the one page with a phone face
-// asserts that NOTHING its phone half adds exists in the desktop DOM.
+// asserts that nothing its phone half adds exists in the desktop DOM.
 // Role/text-based wherever possible so a restyle of the mobile chrome
 // cannot silently outdate the guard; the one class-signature check is the
 // StickyActionBar's exact chrome combination, which no desktop element

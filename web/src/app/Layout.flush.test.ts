@@ -18,8 +18,11 @@ const pageWrapper = /className="glim-page-enter([^"]*)"/.exec(layout);
 
 // The phone scroller: the one ternary branch whose <main> carries the 16px
 // gutter class itself (the desktop main stays gutter-free; the frame owns it
-// there).
-const mobileMain = /<main id="bv-main" className="([^"]*p-4[^"]*)"/.exec(layout);
+// there). `\s+` between the attributes tolerates the phone branch's wrapped
+// JSX (its safe-area classes make the line long enough to be split); only
+// attribute ORDER is fixed, deliberately, so the match cannot land on the
+// desktop main.
+const mobileMain = /<main\s+id="bv-main"\s+className="([^"]*p-4[^"]*)"/.exec(layout);
 
 describe("the scrolling page column", () => {
   it("has a page wrapper", () => {

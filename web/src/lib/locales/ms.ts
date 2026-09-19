@@ -909,7 +909,7 @@ const ms: Partial<Translations> = {
   "auth.invalidPassword": "Kata laluan tidak sah",
   "auth.loginError": "Log masuk gagal",
 
-  // Settings — Security card
+  // Settings: Security card
   "auth.security": "Kata laluan",
   "auth.authOff": "Pengesahan dimatikan. Semua pengguna LAN mempunyai akses penuh.",
   "auth.authOn": "Pengesahan diaktifkan.",
@@ -1335,7 +1335,7 @@ const ms: Partial<Translations> = {
   "recovery.freshNudge": "Memulihkan daripada pelayan sebelumnya atau selepas pembinaan semula? Pulihkan sandaran sedia ada anda.",
   "recovery.freshNudgeCta": "Pergi ke Pemulihan",
 
-  // Settings — section tabs
+  // Settings: section tabs
   "settings.tab.general": "Umum",
   "settings.tab.storage": "Laluan & Storan",
   "settings.tab.schedules": "Jadual",
@@ -1361,7 +1361,7 @@ const ms: Partial<Translations> = {
   // Filter drawer trigger
   "filter.button": "Penapis",
 
-  // Settings — weekly digest, backup-engine cache, revoke-all sessions
+  // Settings: weekly digest, backup-engine cache, revoke-all sessions
   "settings.digestTitle": "Ringkasan mingguan",
   "settings.digestHint": "Satu mesej ringkasan setiap minggu: bilangan larian, data sandaran baharu, ketepatan masa luar tapak dan kegagalan utama, dihantar melalui saluran pemberitahuan di atas.",
   "settings.digestToggle": "Ringkasan mingguan",

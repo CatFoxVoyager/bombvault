@@ -1234,7 +1234,7 @@ const ru: Partial<Translations> = {
   "dashboard.domainFiles": "Папки",
   "recovery.filesFound": "Найдено {f} наборов папок.",
   "recovery.filesRestoreHint": "Повторно обнаруженные наборы папок не знают свою исходную папку — каждый восстанавливается в выбранную вами папку.",
-  // Restore from another BombVault repo — Recovery page (#61 task 11)
+  // Restore from another BombVault repo, Recovery page (#61 task 11)
   "recovery.foreignTitle": "Восстановление из другого репозитория BombVault",
   "recovery.foreignIntro": "Извлекайте отдельные контейнеры, ВМ или наборы папок из резервных копий ДРУГОГО экземпляра BombVault: подключитесь только для чтения, просмотрите содержимое и восстановите выбранное. Другой репозиторий только читается, там ничего не меняется — а ваши собственные настройки резервного копирования остаются нетронутыми.",
   "recovery.foreignStepConnect": "Подключиться к другому репозиторию",

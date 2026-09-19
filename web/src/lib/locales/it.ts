@@ -357,7 +357,7 @@ const it: Partial<Translations> = {
   "auth.invalidPassword": "Password non valida",
   "auth.loginError": "Accesso fallito",
 
-  // Settings — Security card
+  // Settings: Security card
   "auth.security": "Password",
   "auth.authOff": "L'autenticazione è disattivata. Tutti gli utenti della LAN hanno accesso completo.",
   "auth.authOn": "L'autenticazione è abilitata.",
@@ -447,7 +447,7 @@ const it: Partial<Translations> = {
   "state.pmsuspended":  "Sospeso",
   "state.notInstalled": "Non installato",
 
-  // Backups — files
+  // Backups: files
   "snapshots.files": "File",
   "snapshots.delete": "Elimina",
   "snapshots.deleteConfirm": "Eliminare questo backup? Lo snapshot viene rimosso dal repository (esegui Pota nelle Impostazioni per recuperare lo spazio). Non annullabile.",
@@ -695,7 +695,7 @@ const it: Partial<Translations> = {
   "export.exportedTo": "Esportato in:",
   "backup.configOnly": "Solo configurazione, nessuna cartella dati (definizione salvata per la ricreazione)",
 
-  // Backups — delete all
+  // Backups: delete all
   "snapshots.deleteAll": "Elimina tutti i backup",
   "snapshots.deleteAllConfirm": "Eliminare TUTTI i backup di questa VM dalla sorgente selezionata (locale o off-site)? Gli snapshot vengono rimossi definitivamente e il repository viene potato. Operazione irreversibile.",
   "snapshots.deletingAll": "Eliminazione…",
@@ -771,7 +771,7 @@ const it: Partial<Translations> = {
   "recovery.freshNudge": "Stai ripristinando da un server precedente o da una ricostruzione? Recupera i tuoi backup esistenti.",
   "recovery.freshNudgeCta": "Vai a Ripristino",
 
-  // Recovery — restore BombVault's own settings (config)
+  // Recovery: restore BombVault's own settings (config)
   "recovery.stepConfig": "Ripristina le impostazioni di BombVault",
   "recovery.configHint": "Su un server ricostruito, ripristina prima le impostazioni di BombVault (i suoi percorsi di backup, le destinazioni off-site e le credenziali) così che i passaggi qui sotto risultino precompilati. Puntalo al backup delle impostazioni che avevi configurato in precedenza. Nessun backup delle impostazioni? Salta questo passaggio e collega i tuoi backup manualmente qui sotto.",
   "recovery.configAppKeyReminder": "La tua APP_KEY deve corrispondere a questo backup. È il controllo del passaggio 1 qui sopra.",
@@ -905,7 +905,7 @@ const it: Partial<Translations> = {
   "filter.backup": "Backup",
   "filter.noMatch": "Nessun elemento corrisponde ai filtri attuali.",
 
-  // Notifications — email (SMTP)
+  // Notifications: email (SMTP)
   "notify.smtp": "Email (SMTP)",
   "notify.smtpHost": "Host SMTP",
   "notify.smtpPort": "Porta",
@@ -1140,7 +1140,7 @@ const it: Partial<Translations> = {
   "drill.manualOnly": "DR off-site: solo manuale",
   "drill.manualOnlyTitle": "La prova DR off-site pianificata è disattivata. Esegui il controllo off-site manualmente con il pulsante.",
 
-  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings: section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "Generale",
   "settings.tab.storage": "Percorsi e archiviazione",
   "settings.tab.schedules": "Pianificazioni",
@@ -1239,7 +1239,7 @@ const it: Partial<Translations> = {
   "dashboard.domainFiles": "Cartelle",
   "recovery.filesFound": "Trovati {f} set di cartelle.",
   "recovery.filesRestoreHint": "I set di cartelle riscoperti non conoscono la cartella d'origine. Ognuno viene ripristinato in una cartella a tua scelta.",
-  // Restore from another BombVault repo — Recovery page (#61 task 11)
+  // Restore from another BombVault repo, Recovery page (#61 task 11)
   "recovery.foreignTitle": "Ripristina da un altro repo BombVault",
   "recovery.foreignIntro": "Recupera singoli container, VM o set di cartelle dai backup di UN'ALTRA istanza BombVault: connettiti in sola lettura, sfoglia il contenuto, ripristina ciò che scegli. L'altro repository viene solo letto, lì non cambia nulla, e le tue impostazioni di backup restano intatte.",
   "recovery.foreignStepConnect": "Connettiti all'altro repository",
@@ -1334,7 +1334,7 @@ const it: Partial<Translations> = {
   "activityLog.dayFilterChip": "Visualizzazione di {date}",
   "activityLog.clearDayFilter": "Rimuovi il filtro del giorno",
 
-  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave: Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "Replica avviata - viene eseguita in background; l'indicatore di attività mostra l'avanzamento.",
   "whatsnew.retry": "Riprova",

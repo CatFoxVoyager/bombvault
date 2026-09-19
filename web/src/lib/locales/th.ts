@@ -357,7 +357,7 @@ const th: Partial<Translations> = {
   "auth.invalidPassword": "รหัสผ่านไม่ถูกต้อง",
   "auth.loginError": "เข้าสู่ระบบไม่สำเร็จ",
 
-  // Settings — Security card
+  // Settings: Security card
   "auth.security": "รหัสผ่าน",
   "auth.authOff": "การยืนยันตัวตนปิดอยู่ ผู้ใช้ LAN ทุกคนมีสิทธิ์เข้าถึงเต็มที่",
   "auth.authOn": "การยืนยันตัวตนเปิดใช้งานแล้ว",
@@ -447,7 +447,7 @@ const th: Partial<Translations> = {
   "state.pmsuspended":  "ระงับแล้ว",
   "state.notInstalled": "ไม่ได้ติดตั้ง",
 
-  // Backups — files
+  // Backups: files
   "snapshots.files": "ไฟล์",
   "snapshots.delete": "ลบ",
   "snapshots.deleteConfirm": "ลบการสำรองข้อมูลนี้หรือไม่? สแนปช็อตจะถูกลบออกจากที่เก็บ (รัน ตัดทิ้ง ในการตั้งค่าเพื่อเรียกคืนพื้นที่) ไม่สามารถเลิกทำได้",
@@ -695,7 +695,7 @@ const th: Partial<Translations> = {
   "export.exportedTo": "ส่งออกไปที่:",
   "backup.configOnly": "เฉพาะการตั้งค่า ไม่มีโฟลเดอร์ข้อมูล (บันทึกคำจำกัดความไว้สำหรับสร้างใหม่)",
 
-  // Backups — delete all
+  // Backups: delete all
   "snapshots.deleteAll": "ลบการสำรองข้อมูลทั้งหมด",
   "snapshots.deleteAllConfirm": "ลบการสำรองข้อมูลทั้งหมดของ VM นี้จากแหล่งที่เลือก (ในเครื่องหรือนอกสถานที่)? สแนปช็อตจะถูกลบอย่างถาวรและรีพอสิทอรีจะถูกตัดทิ้ง ไม่สามารถเลิกทำได้",
   "snapshots.deletingAll": "กำลังลบ…",
@@ -712,7 +712,7 @@ const th: Partial<Translations> = {
   "snapshot.changed": "เปลี่ยนแปลง",
   "snapshot.diffSummary": "+{addedFiles} ไฟล์ ({addedBytes}), ~{changedFiles} เปลี่ยนแปลง, -{removedFiles} ไฟล์ ({removedBytes})",
 
-  // Restore — to folder
+  // Restore: to folder
   "restore.toFolder": "กู้คืนไปยังโฟลเดอร์…",
   "restore.toFolderHint":
     "แตกสแนปช็อตนี้ลงในโฟลเดอร์ภายใต้จุดเมานต์การสำรองข้อมูลของคุณ คอนเทนเนอร์ที่กำลังทำงานจะไม่ถูกแตะต้อง",
@@ -774,7 +774,7 @@ const th: Partial<Translations> = {
   "recovery.freshNudge": "กำลังกู้คืนจากเซิร์ฟเวอร์เดิมหรือการสร้างใหม่? กู้คืนการสำรองข้อมูลที่มีอยู่ของคุณ",
   "recovery.freshNudgeCta": "ไปที่การกู้คืน",
 
-  // Recovery — restore BombVault's own settings (config)
+  // Recovery: restore BombVault's own settings (config)
   "recovery.stepConfig": "กู้คืนการตั้งค่าของ BombVault เอง",
   "recovery.configHint": "บนเซิร์ฟเวอร์ที่สร้างใหม่ ให้กู้คืนการตั้งค่าของ BombVault เองก่อน (พาธการสำรองข้อมูล เป้าหมายนอกสถานที่ และข้อมูลรับรอง) เพื่อให้ขั้นตอนด้านล่างถูกกรอกไว้ล่วงหน้า ชี้ไปยังการสำรองข้อมูลการตั้งค่าที่คุณตั้งไว้ก่อนหน้านี้ ไม่มีการสำรองข้อมูลการตั้งค่า? ข้ามขั้นตอนนี้แล้วแนบการสำรองข้อมูลของคุณด้วยตนเองด้านล่าง",
   "recovery.configAppKeyReminder": "APP_KEY ของคุณต้องตรงกับการสำรองข้อมูลนี้ นั่นคือการตรวจสอบในขั้นตอนที่ 1 ด้านบน",
@@ -1143,7 +1143,7 @@ const th: Partial<Translations> = {
   "drill.manualOnly": "DR นอกสถานที่: ด้วยตนเองเท่านั้น",
   "drill.manualOnlyTitle": "การทดสอบ DR นอกสถานที่ตามกำหนดเวลาถูกปิดอยู่ เรียกใช้การตรวจสอบนอกสถานที่ด้วยตนเองโดยใช้ปุ่ม",
 
-  // Settings — section tabs + schedule group headings + subtitle (v5 redesign)
+  // Settings: section tabs + schedule group headings + subtitle (v5 redesign)
   "settings.tab.general": "ทั่วไป",
   "settings.tab.storage": "เส้นทางและที่จัดเก็บ",
   "settings.tab.schedules": "กำหนดการ",
@@ -1242,7 +1242,7 @@ const th: Partial<Translations> = {
   "dashboard.domainFiles": "โฟลเดอร์",
   "recovery.filesFound": "พบ {f} ชุดโฟลเดอร์",
   "recovery.filesRestoreHint": "ชุดโฟลเดอร์ที่ค้นพบใหม่ไม่ทราบโฟลเดอร์ต้นทางเดิม แต่ละชุดจะถูกกู้คืนไปยังโฟลเดอร์ที่คุณเลือก",
-  // Restore from another BombVault repo — Recovery page (#61 task 11)
+  // Restore from another BombVault repo, Recovery page (#61 task 11)
   "recovery.foreignTitle": "กู้คืนจากรีพอสิทอรี BombVault อื่น",
   "recovery.foreignIntro": "ดึงคอนเทนเนอร์ VM หรือชุดโฟลเดอร์ทีละรายการจากข้อมูลสำรองของ BombVault อีกอินสแตนซ์หนึ่ง: เชื่อมต่อแบบอ่านอย่างเดียว เรียกดูเนื้อหา แล้วกู้คืนสิ่งที่คุณเลือก รีพอสิทอรีอีกฝั่งถูกอ่านเท่านั้น ไม่มีอะไรเปลี่ยนแปลงที่นั่น และการตั้งค่าสำรองข้อมูลของคุณเองไม่ถูกแตะต้อง",
   "recovery.foreignStepConnect": "เชื่อมต่อกับรีพอสิทอรีอีกฝั่ง",
@@ -1337,7 +1337,7 @@ const th: Partial<Translations> = {
   "activityLog.dayFilterChip": "กำลังแสดง {date}",
   "activityLog.clearDayFilter": "ล้างตัวกรองวัน",
 
-  // i18n wave — Folders rename companions + new keys (E1–E3, activity-log
+  // i18n wave: Folders rename companions + new keys (E1–E3, activity-log
   // finished-line texts, update-check line, digest/cache cards, revoke-all)
   "offsite.replicateStarted": "เริ่มการจำลองข้อมูลแล้ว - ทำงานอยู่เบื้องหลัง ตัวบ่งชี้การทำงานจะแสดงความคืบหน้า",
   "whatsnew.retry": "ลองอีกครั้ง",

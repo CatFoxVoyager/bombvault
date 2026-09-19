@@ -182,7 +182,7 @@ export function CadenceBuilder({
   label: string;
   value: string;
   disabled?: boolean;
-  /** Modes this call site offers. Defaults to ALL_CADENCE_MODES. */
+  /** Modes this call site offers. Defaults to all_CADENCE_MODES. */
   modes?: CadenceMode[];
   onChange: (v: string) => void;
   /** Rainbow position for the TimePicker inside. Callers pass the `hueIndex`

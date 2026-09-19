@@ -59,7 +59,7 @@ const DEFAULT: MotionIntensity = "subtle";
 // would fall back to the default and move that choice down to "subtle".
 const LEGACY_ALIASES: Readonly<Record<string, MotionIntensity>> = { full: "wild" };
 
-// Checks against ALL_INTENSITIES so a stored "storm" survives the next reload.
+// Checks against all_INTENSITIES so a stored "storm" survives the next reload.
 function isMotionIntensity(v: unknown): v is MotionIntensity {
   return typeof v === "string" && (ALL_INTENSITIES as string[]).includes(v);
 }
