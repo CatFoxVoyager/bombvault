@@ -132,25 +132,7 @@ async function computeStatData(): Promise<StatData> {
   // Scoped to backup/restore/update kinds — a failed prune/verify
   // (maintenance) run is surfaced in the Activity Log, not here, so this
   // badge keeps its original "backup/restore failures" meaning (#3).
-  //
-  // Reflects the LAST completed run per item (#100), not a cumulative
-  // count of every failure ever recorded — a target that has since
-  // backed up (or restored/updated) successfully must drop out. `runs`
-  // arrives newest-first, so the first non-"running" run seen per
-  // targetId is that item's latest completed outcome; "running" runs
-  // are skipped so an in-flight retry doesn't hide the prior result.
-  // Acknowledged failures (#126) are skipped too, so resolving an error in the
-  // detail panel drops the target out of the badge just like a later success.
-  const latestCompletedByTarget = new Map<string, (typeof runs)[number]>();
-  for (const r of runs) {
-    if (r.kind !== "backup" && r.kind !== "restore" && r.kind !== "update") continue;
-    if (r.status === "running") continue;
-    if (r.acknowledged) continue;
-    if (!latestCompletedByTarget.has(r.targetId)) {
-      latestCompletedByTarget.set(r.targetId, r);
-    }
-  }
-  const errors = Array.from(latestCompletedByTarget.values()).filter((r) => r.status === "failed").length;
+  const errors = failedRunsNeedingAttention(runs).length;
 
   return {
     containers: installed.length,
@@ -161,6 +143,40 @@ async function computeStatData(): Promise<StatData> {
     missingContainers: notInstalled.length,
     missingVMs: vmsMissing.length,
   };
+}
+
+/**
+ * The app's one acknowledgeable-failure derivation: the failed runs an error
+ * badge/counter should still be counting.
+ * ------------------------------------------------------------------------
+ * Scoped to backup/restore/update kinds — a failed prune/verify (maintenance)
+ * run is surfaced in the Activity Log, not here, so the count keeps its
+ * original "backup/restore failures" meaning (#3).
+ *
+ * Reflects the LAST completed run per item (#100), not a cumulative count of
+ * every failure ever recorded — a target that has since backed up (or
+ * restored/updated) successfully must drop out. `runs` arrives newest-first,
+ * so the first non-"running" run seen per targetId is that item's latest
+ * completed outcome; "running" runs are skipped so an in-flight retry doesn't
+ * hide the prior result. Acknowledged failures (#126) are skipped too, so
+ * resolving an error in the detail panel drops the target out of the count
+ * just like a later success.
+ *
+ * Extracted from computeStatData because the runs block needs the SAME list
+ * the stat tier's errors tile counts: one derivation, two surfaces that
+ * cannot disagree — the same rule the summary tier's shared helpers follow.
+ */
+function failedRunsNeedingAttention(runs: Run[]): Run[] {
+  const latestCompletedByTarget = new Map<string, Run>();
+  for (const r of runs) {
+    if (r.kind !== "backup" && r.kind !== "restore" && r.kind !== "update") continue;
+    if (r.status === "running") continue;
+    if (r.acknowledged) continue;
+    if (!latestCompletedByTarget.has(r.targetId)) {
+      latestCompletedByTarget.set(r.targetId, r);
+    }
+  }
+  return Array.from(latestCompletedByTarget.values()).filter((r) => r.status === "failed");
 }
 
 function StatCardsRow({ t, advanced }: { t: ReturnType<typeof useT>["t"]; advanced: boolean }) {
@@ -383,9 +399,10 @@ function SpikeCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hueIndex?
       )}
 
       {checks && checks.length > 0 && (
-        <div className="divide-y divide-carbon-border">
+        // Rows separated by shade (soft tiles), never divider lines.
+        <div className="flex flex-col gap-1">
           {checks.map((c) => (
-            <div key={c.Name} className="flex items-center gap-3 py-2 text-sm">
+            <div key={c.Name} className="flex items-center gap-3 rounded-control bg-carbon-surface2 px-2 py-2 text-sm">
               <Badge tone={statusTone(chipFor(c))}>{statusLabel(chipFor(c), t)}</Badge>
               <span className="font-mono text-carbon-text w-32 shrink-0">{c.Name}</span>
               <span className="text-carbon-textMuted truncate flex-1">{c.Detail}</span>
@@ -528,7 +545,8 @@ export function ProtectionCard({
         <p className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</p>
       )}
       {!loading && domains.length > 0 && (
-        <div className="@container divide-y divide-carbon-border glim-content-fade">
+        // Rows separated by shade (soft tiles), never divider lines.
+        <div className="@container flex flex-col gap-1 glim-content-fade">
           {domains.map((d) => {
             const off = d.status === "off";
             // Only containers, flash + files ever run an off-site DR drill
@@ -545,7 +563,7 @@ export function ProtectionCard({
             // never masked by the opt-out — only "never drilled" goes neutral.
             const drFailed = !off && drCapable && d.lastDrDrillAt > 0 && !d.lastDrDrillOK;
             return (
-              <div key={d.domain} className="flex flex-col gap-1 py-2.5 text-sm">
+              <div key={d.domain} className="flex flex-col gap-1 rounded-control bg-carbon-surface2 px-2 py-2.5 text-sm">
                 {/* Two-mode row layout (#66 follow-up). WIDE card (container query
                     @[44rem] on the rows wrapper): every row lays its cells on the
                     SAME shared grid track template so the same kind of info sits in
@@ -1007,24 +1025,136 @@ export function RansomwareCard({
 }
 
 // ---------------------------------------------------------------------------
-// Recent Runs card
+// Run history — ONE block, two densities. The desktop face is the history
+// card (day filter + the full scrollable list); the phone face is the glance
+// surface: the app's ONE acknowledgeable-failure affordance (counter +
+// ErrorDetailPanel) plus the four most recent runs as tappable rows. Both
+// faces read the page's polled runs list through props — one fetch, one
+// source, so the two faces (and the stat tier's errors tile, whose count
+// comes from the same list via failedRunsNeedingAttention) cannot disagree.
 // ---------------------------------------------------------------------------
 
-function RunsCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hueIndex?: number }) {
-  const [runs, setRuns] = useState<Run[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+function RunsCard({
+  t,
+  hueIndex,
+  dense,
+  runs,
+  loading,
+  failed,
+  refreshRuns,
+  onOpenRun,
+}: {
+  t: ReturnType<typeof useT>["t"];
+  hueIndex?: number;
+  /** True = the phone glance surface; false = the desktop history card. */
+  dense: boolean;
+  /** The page's polled listRuns result (newest-first) — the same list the
+   *  summary tier's "Last result" cell reads. */
+  runs: Run[];
+  /** True until the page's first runs load settles. */
+  loading: boolean;
+  /** True when the page's last runs load failed (the load-failure copy). */
+  failed: boolean;
+  /** Re-reads the page's runs list — fired after the error panel resolves a
+   *  failure, so acknowledged failures drop out of the counter live. */
+  refreshRuns: () => void;
+  /** Phone only: opens the page-hosted run detail sheet for a tapped row. */
+  onOpenRun?: (run: Run) => void;
+}) {
   const [day, setDay] = useState("all");
+  const [panelOpen, setPanelOpen] = useState(false);
+  // The failures the counter still counts (shared with the stat tier's
+  // errors tile — one derivation, see its own doc).
+  const failures = failedRunsNeedingAttention(runs);
 
-  useEffect(() => {
-    listRuns()
-      .then((res) => {
-        if (res.ok) setRuns(res.runs ?? []);
-        else setError(t("dashboard.loadRunsFailed"));
-      })
-      .catch(() => setError(t("dashboard.loadRunsFailed")))
-      .finally(() => setLoading(false));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- t() is only read to build a failure message; re-fetching on a language switch would be a wasted round-trip
+  if (dense) {
+    // The four most recent runs, newest first. Each row is a >=44px touch
+    // target (min-h-[2.75rem]) whose tap opens the shared RunDetailSheet for
+    // THAT run, hosted by the page component-locally — no route. Four-status
+    // badges always carry their text label (never color alone, WCAG 1.4.1);
+    // failed/skipped rows keep the desktop card's scrubbed-reason treatment
+    // (runReason + the dir contract) so the phone never shows a red line the
+    // user cannot read.
+    const recent = runs.slice(0, 4);
+    return (
+      <section className="relative flex flex-col gap-2 glim-hue" style={hueVars(rainbowAt(hueIndex ?? 0)) as CSSProperties}>
+        <MobileSectionLabel t={t} labelKey="dashboard.recentRuns" />
+        <div className="rounded-card bg-carbon-surface p-2">
+          {/* The acknowledgeable-failure affordance: the counter opens the
+              error detail panel, the only place in the app where a failure can
+              be read AND acknowledged. The status colour rides the Badge, not
+              the row. */}
+          {failures.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setPanelOpen(true)}
+              aria-label={`${t("dashboard.statErrors")}: ${failures.length}`}
+              className="mb-1 flex min-h-[2.75rem] w-full items-center gap-2 rounded-control bg-carbon-surface2 px-2 py-2 text-start"
+            >
+              <Badge tone="fail">{failures.length}</Badge>
+              <span className="min-w-0 flex-1 truncate text-sm text-carbon-text">
+                {t("dashboard.statErrors")}
+              </span>
+            </button>
+          )}
+          {panelOpen && (
+            <ErrorDetailPanel onClose={() => setPanelOpen(false)} onChanged={refreshRuns} />
+          )}
+          {loading ? (
+            <p className="px-2 py-2 text-sm text-carbon-textMuted">{t("dashboard.checking")}</p>
+          ) : recent.length === 0 ? (
+            <p className="px-2 py-2 text-sm text-carbon-textMuted">{t("dashboard.noRuns")}</p>
+          ) : (
+            // Rows separated by shade (soft tiles), never divider lines.
+            <div className="flex flex-col gap-1">
+              {recent.map((run) => (
+                <button
+                  key={run.id}
+                  type="button"
+                  onClick={() => onOpenRun?.(run)}
+                  aria-label={`${statusLabel(run.status, t)} · ${runKindLabel(t, run.kind)} ${runTargetText(t, run)}`}
+                  className="flex min-h-[2.75rem] w-full items-center gap-2 rounded-control bg-carbon-surface2 px-2 py-2 text-start"
+                >
+                  <span className="shrink-0">
+                    <Badge tone={statusTone(run.status)}>{statusLabel(run.status, t)}</Badge>
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold text-carbon-text">
+                      {runKindLabel(t, run.kind)} · {runTargetText(t, run)}
+                    </span>
+                    <span className="mt-0.5 block truncate text-xs text-carbon-textMuted">
+                      {relativeTime(t, run.startedAt)}
+                      {run.bytes > 0 ? ` · ${humanBytes(run.bytes)}` : ""}
+                    </span>
+                    {/* dir stays "ltr" for a restic/rclone/Docker message
+                        (Latin technical text, which has to read left-to-right
+                        even on an Arabic page) and follows the page for one of
+                        OUR sentences ([377]). */}
+                    {run.status === "failed" && run.error && (
+                      <span
+                        dir={isOwnReason(run.error) ? undefined : "ltr"}
+                        className="mt-0.5 block text-xs text-statusFail wrap-break-word text-start"
+                      >
+                        {runReason(run.error, t)}
+                      </span>
+                    )}
+                    {run.status === "skipped" && run.error && (
+                      <span
+                        dir={isOwnReason(run.error) ? undefined : "ltr"}
+                        className="mt-0.5 block text-xs text-carbon-textMuted wrap-break-word text-start"
+                      >
+                        {runReason(run.error, t)}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  }
 
   // Local calendar day of a run, used for the day filter + its labels. Runs come
   // newest-first, so the distinct-days list is already in descending order.
@@ -1041,8 +1171,8 @@ function RunsCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hueIndex?:
       {loading && (
         <p className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</p>
       )}
-      {error && <p className="text-sm text-statusFail">{error}</p>}
-      {!loading && !error && runs.length === 0 && (
+      {failed && <p className="text-sm text-statusFail">{t("dashboard.loadRunsFailed")}</p>}
+      {!loading && !failed && runs.length === 0 && (
         <p className="text-sm text-carbon-textMuted">{t("dashboard.noRuns")}</p>
       )}
       {runs.length > 0 && (
@@ -1061,12 +1191,13 @@ function RunsCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hueIndex?:
               className="rounded-control bg-carbon-surface2 px-2 py-1 text-xs text-carbon-text glim-field-focus"
             />
           </div>
-          {/* Scrollable list — all runs in the window (filtered by day) */}
-          <div className="divide-y divide-carbon-border max-h-128 overflow-y-auto pe-2">
+          {/* Scrollable list — all runs in the window (filtered by day). Rows
+              separated by shade (soft tiles), never divider lines. */}
+          <div className="flex flex-col gap-1 max-h-128 overflow-y-auto pe-2">
             {shown.map((run) => {
               const dur = run.finishedAt != null ? formatDuration(run.finishedAt - run.startedAt) : "";
               return (
-              <div key={run.id} className="flex flex-col gap-0.5 py-2.5 text-sm">
+              <div key={run.id} className="flex flex-col gap-0.5 rounded-control bg-carbon-surface2 px-2 py-2.5 text-sm">
                 <div className="flex items-center gap-3">
                   <Badge tone={statusTone(run.status)}>{statusLabel(run.status, t)}</Badge>
                   <span className="text-carbon-text font-medium w-16 shrink-0 truncate">
@@ -1099,7 +1230,7 @@ function RunsCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hueIndex?:
                 {run.status === "failed" && run.error && (
                   <p
                     dir={isOwnReason(run.error) ? undefined : "ltr"}
-                    className="ps-16 text-xs text-statusFail wrap-break-word text-start"
+                    className="text-xs text-statusFail wrap-break-word text-start"
                   >
                     {runReason(run.error, t)}
                   </p>
@@ -1107,7 +1238,7 @@ function RunsCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hueIndex?:
                 {run.status === "skipped" && run.error && (
                   <p
                     dir={isOwnReason(run.error) ? undefined : "ltr"}
-                    className="ps-16 text-xs text-carbon-textMuted wrap-break-word text-start"
+                    className="text-xs text-carbon-textMuted wrap-break-word text-start"
                   >
                     {runReason(run.error, t)}
                   </p>
@@ -1158,7 +1289,8 @@ function LastBackupsCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hue
       )}
 
       {withBackups.length > 0 && (
-        <div className="divide-y divide-carbon-border glim-content-fade">
+        // Rows separated by shade (soft tiles), never divider lines.
+        <div className="flex flex-col gap-1 glim-content-fade">
           {withBackups.map((c) => {
             // Older data (or a run before the start time was recorded) has no
             // lastBackupStarted — fall back to just the finish time, never a
@@ -1168,7 +1300,7 @@ function LastBackupsCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hue
               ? formatDuration((c.lastBackup as number) - (c.lastBackupStarted as number))
               : "";
             return (
-              <div key={c.name} className="flex items-center gap-3 py-2.5 text-sm">
+              <div key={c.name} className="flex items-center gap-3 rounded-control bg-carbon-surface2 px-2 py-2.5 text-sm">
                 <div className="w-2 h-2 rounded-full bg-statusOkSolid shrink-0" />
                 <span className="text-carbon-text font-medium flex-1 truncate min-w-0">{c.name}</span>
                 {hasStart ? (
@@ -1192,7 +1324,8 @@ function LastBackupsCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hue
       )}
 
       {noBackups.length > 0 && (
-        <div className="divide-y divide-carbon-border">
+        // Rows separated by shade (soft tiles), never divider lines.
+        <div className="flex flex-col gap-1">
           {/* "Never" said two different things at once ([379]). A container
               nobody scheduled has never been backed up and that is the plan; a
               container that IS scheduled and still shows "never" is a gap. Both
@@ -1207,7 +1340,7 @@ function LastBackupsCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hue
           {noBackups.map((c) => {
             const deliberate = c.self || !c.includeInSchedule;
             return (
-              <div key={c.name} className="flex items-center gap-3 py-2.5 text-sm">
+              <div key={c.name} className="flex items-center gap-3 rounded-control bg-carbon-surface2 px-2 py-2.5 text-sm">
                 <div className="w-2 h-2 rounded-full bg-carbon-surface3 shrink-0" />
                 <span className="text-carbon-textMuted flex-1 truncate">{c.name}</span>
                 <span
@@ -1509,7 +1642,24 @@ interface DomainStats {
   forecast: StorageForecast | null;
 }
 
-function StorageCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hueIndex?: number }) {
+function StorageCard({
+  t,
+  hueIndex,
+  dense,
+  domains,
+  statusLoading,
+}: {
+  t: ReturnType<typeof useT>["t"];
+  hueIndex?: number;
+  /** True = the phone glance block; false = the desktop history card. */
+  dense: boolean;
+  /** Extended domain status (off-site configuration + last replication),
+   *  read by the phone face's health + replication lines. */
+  domains: DomainStatus[];
+  /** True until the page's /api/status load settles (the phone face's health
+   *  row gates on it; the desktop card has nothing to gate on it). */
+  statusLoading: boolean;
+}) {
   const [data, setData] = useState<DomainStats[] | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -1526,13 +1676,13 @@ function StorageCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hueInde
 
   useEffect(() => {
     let active = true;
-    const domains: StorageDomain[] = ["containers", "vms", "flash", "files"];
-    Promise.all(domains.map((d) => getStats(d, "local", 90)))
+    const statsDomains: StorageDomain[] = ["containers", "vms", "flash", "files"];
+    Promise.all(statsDomains.map((d) => getStats(d, "local", 90)))
       .then((results) => {
         if (!active) return;
         setData(
           results.map((res, i) => ({
-            domain: domains[i],
+            domain: statsDomains[i],
             stats: res.ok ? (res.stats ?? []) : [],
             latest: res.ok ? (res.latest ?? null) : null,
             forecast: res.ok ? (res.forecast ?? null) : null,
@@ -1563,6 +1713,90 @@ function StorageCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hueInde
 
   const anyData = !!data && data.some((d) => d.latest != null);
 
+  // Repo totals for the phone face, derived from THIS component's single
+  // stats fetch — a superset of the old phone card's private four-call fetch
+  // (same endpoint, same 90-day window), so the phone face costs one read
+  // total: this component is the !isDesktop complement of the desktop grid,
+  // so the two faces never run alongside each other.
+  const totals = (() => {
+    if (!data) return null;
+    let rawSize = 0;
+    let restoreSize = 0;
+    let snapshots = 0;
+    let any = false;
+    for (const d of data) {
+      if (d.latest) {
+        any = true;
+        rawSize += d.latest.rawSize;
+        restoreSize += d.latest.restoreSize;
+        snapshots += d.latest.snapshots;
+      }
+    }
+    return any ? { rawSize, restoreSize, snapshots } : null;
+  })();
+  const totalsDedup =
+    totals && totals.rawSize > 0 && totals.restoreSize > 0
+      ? `${(totals.restoreSize / totals.rawSize).toFixed(1)}x`
+      : "—";
+
+  if (dense) {
+    // Four-status language for repo state: the same worst-RPO derivation the
+    // summary tier's health cell uses — Badge + text label, never color
+    // alone. Off-site copy age: the most recent replication across the
+    // configured domains, in the OffsiteIndicator line language (↗ +
+    // relative age, text-statusOffsite — the token is text-only by design),
+    // never a fifth status hue. With a repo configured but nothing
+    // replicated yet, the replication line's own "not replicated yet" says
+    // so; with none configured, the protection card's existing "No off-site
+    // copy".
+    const health = worstRpoStatus(domains);
+    const configured = domains.filter((d) => d.offsiteConfigured);
+    const newestReplication = configured.reduce<DomainStatus | null>(
+      (newest, d) =>
+        d.lastReplicationAt > 0 && (newest === null || d.lastReplicationAt > newest.lastReplicationAt)
+          ? d
+          : newest,
+      null
+    );
+    return (
+      <section className="relative flex flex-col gap-2 glim-hue" style={hueVars(rainbowAt(hueIndex ?? 0)) as CSSProperties}>
+        <MobileSectionLabel t={t} labelKey="dashboard.storageTitle" />
+        <div className="flex flex-col gap-2 rounded-card bg-carbon-surface p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {statusLoading ? (
+              <span className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</span>
+            ) : (
+              <>
+                {health !== "off" && (
+                  <Badge tone={statusTone(chipForRpo(health))}>{statusLabel(chipForRpo(health), t)}</Badge>
+                )}
+                <span className="truncate text-sm text-carbon-text">{worstRpoLabel(t, health)}</span>
+              </>
+            )}
+          </div>
+          <p className="text-xs text-carbon-textMuted">
+            {loading
+              ? t("dashboard.checking")
+              : totals
+                ? `${humanBytes(totals.rawSize)} · ${t("dashboard.dedup")} ${totalsDedup} · ${totals.snapshots} ${t("dashboard.snapshotsLabel")}`
+                : t("dashboard.noStats")}
+          </p>
+          <p className="text-xs">
+            {newestReplication ? (
+              <span className="font-semibold text-statusOffsite">
+                ↗ {relativeTime(t, newestReplication.lastReplicationAt)}
+              </span>
+            ) : configured.length > 0 ? (
+              <span className="text-carbon-textMuted">{t("ransomware.replicationNever")}</span>
+            ) : (
+              <span className="text-carbon-textMuted">{t("dashboard.noOffsite")}</span>
+            )}
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <Card title={t("dashboard.storageTitle")} hueIndex={hueIndex}>
       {loading && (
@@ -1572,7 +1806,8 @@ function StorageCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hueInde
         <p className="text-sm text-carbon-textMuted">{t("dashboard.noStats")}</p>
       )}
       {!loading && anyData && data && (
-        <div className="divide-y divide-carbon-border glim-content-fade">
+        // Rows separated by shade (soft tiles), never divider lines.
+        <div className="flex flex-col gap-1 glim-content-fade">
           {data.map((d) => {
             const has = d.latest != null;
             const dedup =
@@ -1584,7 +1819,7 @@ function StorageCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hueInde
             // backend could determine nothing — then no line renders at all.
             const forecastLine = buildForecastLine(d.forecast, resolveForecast);
             return (
-              <div key={d.domain} className="flex flex-col gap-0.5 py-2.5 min-w-0">
+              <div key={d.domain} className="flex flex-col gap-0.5 rounded-control bg-carbon-surface2 px-2 py-2.5 min-w-0">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm min-w-0">
                   <span
                     className={`font-medium w-28 shrink-0 truncate ${
@@ -2041,19 +2276,6 @@ function SummaryTier({
   const health = worstRpoStatus(domains);
   const healthLabel = worstRpoLabel(t, health);
 
-  // Cell 2 — when the next backup actually fires, from the scheduler ([545],
-  // issue #187). The derivation (and its #177/#186 history) lives in the
-  // shared nextBackupFireAt helper above — the mobile Next-run card reads the
-  // same function, so the two surfaces cannot disagree. (The cell itself only
-  // needs the moment, not the entry.)
-  const { ms: nextBackupMs } = nextBackupFireAt(scheduleNext, domains);
-  const nextCadence = Number.isFinite(nextBackupMs)
-    ? t("dashboard.summaryNextIn").replace(
-        "{countdown}",
-        formatDuration(Math.max(0, Math.round((nextBackupMs - Date.now()) / 1000)))
-      )
-    : "";
-
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
       {/* Overall health — worst RPO status across enabled domains */}
@@ -2068,16 +2290,19 @@ function SummaryTier({
         )}
       </SummaryCell>
 
-      {/* Next backup — the soonest real fire time from the scheduler, as a countdown */}
-      <SummaryCell label={t("dashboard.summaryNextBackup")} hueIndex={nextBackupHueIndex}>
-        {loading ? (
-          <span className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</span>
-        ) : (
-          <span className="text-sm text-carbon-text truncate min-w-0">
-            {nextCadence || t("dashboard.rpoOff")}
-          </span>
-        )}
-      </SummaryCell>
+      {/* Next backup — the soonest real fire time from the scheduler, as a
+          countdown. ONE component for both densities (the phone glance block
+          is this same NextRunCard at dense): the derivation lives once, in
+          the card, so the two faces cannot disagree (they are the same
+          render). */}
+      <NextRunCard
+        t={t}
+        dense={false}
+        hueIndex={nextBackupHueIndex}
+        scheduleNext={scheduleNext}
+        domains={domains}
+        loading={loading}
+      />
 
       {/* Last result — the newest run: status chip + target + relative time */}
       <SummaryCell label={t("dashboard.summaryLastResult")} hueIndex={lastResultHueIndex}>
@@ -2106,40 +2331,59 @@ function SummaryTier({
 // Mobile Home blocks — the glanceable phone surface.
 //
 // Below the 48rem breakpoint the desktop customizable block grid is replaced
-// by THESE four blocks in a fixed order: identity (the page header above),
-// next run, recent runs, repository health (plus the thumb-zone trigger that
-// joins the page column's last child, the StickyActionBar below). The phone
-// density contract: cards p-4, gap-4 between blocks, gap-2 inside a card,
-// 12px uppercase section labels. Every consumer here reads state the page has
-// ALREADY fetched (runs, scheduleNext, statusDomains) or the same endpoint a
-// desktop card already reads — zero new endpoints.
+// by THESE blocks in a fixed order: identity (the page header above), next
+// run (NextRunCard dense), recent runs (RunsCard dense), repo health
+// (StorageCard dense), the self-contained ActivityLog card, and the
+// thumb-zone trigger that joins the page column's last child (the
+// StickyActionBar below). Each block is the DESKTOP block of the same name at
+// its second density — one component per card, two faces (`dense`), so a
+// derivation or a fix lands on both faces in one place instead of drifting
+// between a desktop card and a private per-density phone copy (the previous
+// trio of phone-only cards drifted on exactly this seam). The phone density
+// contract: cards p-4, gap-4 between blocks, gap-2 inside a card, filled
+// section Badges (MobileSectionLabel) as headings.
+// Every consumer reads state the page has ALREADY fetched (runs,
+// scheduleNext, statusDomains) or the same endpoint a desktop card already
+// reads — zero new endpoints.
+//
+// Phone hues are STATIC literals (0/1/2 on the section roots), unlike the
+// desktop grid's running `nextHue()` counter: the phone order is fixed (not
+// user-customizable), so a static position is honest, and the phone faces
+// never render inside the desktop counter's pass — the desktop counter must
+// not observe a phone-only draw (the same reason the phone ActivityLog below
+// takes no hueIndex).
 //
 // Mount discipline: the blocks are JSX-gated on `!isDesktop` (jsdom's
 // matchMedia answers desktop, so these surfaces render only in real mobile
 // browsers/e2e), and the desktop grid is JSX-gated on `isDesktop` in return —
-// a CSS-hidden grid would stay MOUNTED on the phone and its cards (RunsCard,
-// LastBackupsCard, the heatmap, StorageCard) would keep fetching behind the
+// a CSS-hidden grid would stay MOUNTED on the phone and its cards
+// (LastBackupsCard, the heatmap, StorageCard) would keep fetching behind the
 // user's back, doubling every phone load's round-trips. With both faces
 // JSX-gated exactly one surface is ever alive, and at the 48rem boundary the
 // two switches agree.
 // ---------------------------------------------------------------------------
 
-function MobileNextRunCard({
+function NextRunCard({
   t,
   scheduleNext,
   domains,
   loading,
+  dense,
+  hueIndex,
 }: {
   t: ReturnType<typeof useT>["t"];
   scheduleNext: ScheduleNext[];
   domains: DomainStatus[];
   loading: boolean;
+  /** True = the phone glance block; false = the summary tier's middle cell. */
+  dense: boolean;
+  hueIndex?: number;
 }) {
-  // The SAME derivation the summary tier's "Next backup" cell uses — one
-  // source of truth (nextBackupFireAt above), two surfaces that cannot
-  // disagree. Accent here is sanctioned: soft tint + accent-derived text on
-  // the card's one icon and the countdown chip (accentSoft backdrop +
-  // accentText chip), never a solid accent fill.
+  // The SAME derivation both faces render — one source of truth
+  // (nextBackupFireAt above), two surfaces that cannot disagree. Accent here
+  // is sanctioned: soft tint + accent-derived text on the phone face's one
+  // icon and the countdown chip (accentSoft backdrop + accentText chip),
+  // never a solid accent fill.
   const { at, ms } = nextBackupFireAt(scheduleNext, domains);
   const countdown = Number.isFinite(ms)
     ? t("dashboard.summaryNextIn").replace(
@@ -2147,215 +2391,54 @@ function MobileNextRunCard({
         formatDuration(Math.max(0, Math.round((ms - Date.now()) / 1000)))
       )
     : "";
-  return (
-    <section className="flex flex-col gap-2">
-      <MobileSectionLabel t={t} labelKey="dashboard.summaryNextBackup" />
-      <div className="flex items-center gap-2 rounded-card bg-carbon-surface p-4">
-        {loading ? (
-          <p className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</p>
-        ) : at ? (
-          <>
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-accentSoft text-accentText">
-              <IconBackupNow />
-            </span>
-            <span className="min-w-0 flex-1">
-              {/* Schedule name (14px ≈ text-sm / 600) + when · what meta (12px).
-                  "what" is the run kind the scheduler entry names — the card
-                  labels a backup fire, so run.kindBackup is the honest kind. */}
-              <span className="block truncate text-sm font-semibold text-carbon-text">
-                {scheduleDomainLabel(t, at.domain)}
-              </span>
-              <span className="mt-0.5 block truncate text-xs text-carbon-textMuted">
-                {t("run.kindBackup")} · {formatTs(Math.round(ms / 1000))}
-              </span>
-            </span>
-            {countdown && (
-              <span className="shrink-0 rounded-pill bg-accentSoft px-2 py-1 text-xs font-semibold text-accentText">
-                {countdown}
-              </span>
-            )}
-          </>
-        ) : (
-          <p className="text-sm text-carbon-textMuted">{t("dashboard.rpoOff")}</p>
-        )}
-      </div>
-    </section>
-  );
-}
 
-function MobileRecentRunsCard({
-  t,
-  runs,
-  onOpenRun,
-}: {
-  t: ReturnType<typeof useT>["t"];
-  runs: Run[];
-  onOpenRun: (run: Run) => void;
-}) {
-  // The four most recent runs, newest first (listRuns returns newest-first).
-  // Each row is a >=44px touch target (min-h-[2.75rem]) whose tap opens the
-  // shared RunDetailSheet for THAT run, hosted by the page component-locally —
-  // no route (router.tsx frozen). Four-status badges always carry their text
-  // label (never color alone, WCAG 1.4.1); failed/skipped runs keep the
-  // desktop RunsCard's scrubbed-reason treatment (runReason + the dir
-  // contract) so the phone never shows a red line the user cannot read.
-  const recent = runs.slice(0, 4);
-  return (
-    <section className="flex flex-col gap-2">
-      <MobileSectionLabel t={t} labelKey="dashboard.recentRuns" />
-      <div className="rounded-card bg-carbon-surface p-2">
-        {recent.length === 0 ? (
-          <p className="px-2 py-2 text-sm text-carbon-textMuted">{t("dashboard.noRuns")}</p>
-        ) : (
-          <div className="divide-y divide-carbon-border">
-            {recent.map((run) => (
-              <button
-                key={run.id}
-                type="button"
-                onClick={() => onOpenRun(run)}
-                aria-label={`${statusLabel(run.status, t)} · ${runKindLabel(t, run.kind)} ${runTargetText(t, run)}`}
-                className="flex min-h-[2.75rem] w-full items-center gap-2 px-2 py-2 text-start"
-              >
-                <span className="shrink-0">
-                  <Badge tone={statusTone(run.status)}>{statusLabel(run.status, t)}</Badge>
+  if (dense) {
+    return (
+      <section className="relative flex flex-col gap-2 glim-hue" style={hueVars(rainbowAt(hueIndex ?? 0)) as CSSProperties}>
+        <MobileSectionLabel t={t} labelKey="dashboard.summaryNextBackup" />
+        <div className="flex items-center gap-2 rounded-card bg-carbon-surface p-4">
+          {loading ? (
+            <p className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</p>
+          ) : at ? (
+            <>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-accentSoft text-accentText">
+                <IconBackupNow />
+              </span>
+              <span className="min-w-0 flex-1">
+                {/* Schedule name (14px ≈ text-sm / 600) + when · what meta (12px).
+                    "what" is the run kind the scheduler entry names — the card
+                    labels a backup fire, so run.kindBackup is the honest kind. */}
+                <span className="block truncate text-sm font-semibold text-carbon-text">
+                  {scheduleDomainLabel(t, at.domain)}
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold text-carbon-text">
-                    {runKindLabel(t, run.kind)} · {runTargetText(t, run)}
-                  </span>
-                  <span className="mt-0.5 block truncate text-xs text-carbon-textMuted">
-                    {relativeTime(t, run.startedAt)}
-                    {run.bytes > 0 ? ` · ${humanBytes(run.bytes)}` : ""}
-                  </span>
-                  {run.status === "failed" && run.error && (
-                    <span
-                      dir={isOwnReason(run.error) ? undefined : "ltr"}
-                      className="mt-0.5 block text-xs text-statusFail wrap-break-word text-start"
-                    >
-                      {runReason(run.error, t)}
-                    </span>
-                  )}
-                  {run.status === "skipped" && run.error && (
-                    <span
-                      dir={isOwnReason(run.error) ? undefined : "ltr"}
-                      className="mt-0.5 block text-xs text-carbon-textMuted wrap-break-word text-start"
-                    >
-                      {runReason(run.error, t)}
-                    </span>
-                  )}
+                <span className="mt-0.5 block truncate text-xs text-carbon-textMuted">
+                  {t("run.kindBackup")} · {formatTs(Math.round(ms / 1000))}
                 </span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function MobileRepoHealthCard({
-  t,
-  domains,
-}: {
-  t: ReturnType<typeof useT>["t"];
-  domains: DomainStatus[];
-}) {
-  // Repo totals from the SAME endpoint the desktop Storage card reads
-  // (/api/stats/{domain}/local, 90-day window — same shape: rawSize,
-  // restoreSize, snapshots). This component mounts only on phones (it is the
-  // !isDesktop complement of the desktop grid, which unmounts its side of the
-  // switch in return), so its four calls never run alongside the Storage
-  // card's own — no duplicated round-trip on either surface, and no new
-  // endpoint anywhere.
-  const [totals, setTotals] = useState<{
-    rawSize: number;
-    restoreSize: number;
-    snapshots: number;
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-    const repoDomains: StorageDomain[] = ["containers", "vms", "flash", "files"];
-    Promise.all(repoDomains.map((d) => getStats(d, "local", 90)))
-      .then((results) => {
-        if (!active) return;
-        let rawSize = 0;
-        let restoreSize = 0;
-        let snapshots = 0;
-        let any = false;
-        for (const res of results) {
-          const latest = res.ok ? res.latest : null;
-          if (latest) {
-            any = true;
-            rawSize += latest.rawSize;
-            restoreSize += latest.restoreSize;
-            snapshots += latest.snapshots;
-          }
-        }
-        setTotals(any ? { rawSize, restoreSize, snapshots } : null);
-      })
-      .catch(() => {
-        /* non-fatal — the card falls back to the shared no-data copy */
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  // Four-status language for repo state: the same worst-RPO derivation the
-  // summary tier's health cell uses — Badge + text label, never color alone.
-  const health = worstRpoStatus(domains);
-  // Off-site copy age: the most recent replication across the configured
-  // domains. Offsite blue is the offsite DOMAIN identity, rendered in the
-  // OffsiteIndicator line language (↗ + relative age, text-statusOffsite —
-  // the token is text-only by design), never a fifth status hue. With a repo
-  // configured but nothing replicated yet, the replication row's own
-  // "not replicated yet" says so; with none configured, the protection
-  // card's existing "No off-site copy".
-  const configured = domains.filter((d) => d.offsiteConfigured);
-  const newestReplication = configured.reduce<DomainStatus | null>(
-    (newest, d) =>
-      d.lastReplicationAt > 0 && (newest === null || d.lastReplicationAt > newest.lastReplicationAt)
-        ? d
-        : newest,
-    null
-  );
-  const dedup =
-    totals && totals.rawSize > 0 && totals.restoreSize > 0
-      ? `${(totals.restoreSize / totals.rawSize).toFixed(1)}x`
-      : "—";
-  return (
-    <section className="flex flex-col gap-2">
-      <MobileSectionLabel t={t} labelKey="dashboard.storageTitle" />
-      <div className="flex flex-col gap-2 rounded-card bg-carbon-surface p-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge tone={statusTone(chipForRpo(health))}>{statusLabel(chipForRpo(health), t)}</Badge>
-          <span className="truncate text-sm text-carbon-text">{worstRpoLabel(t, health)}</span>
-        </div>
-        <p className="text-xs text-carbon-textMuted">
-          {loading
-            ? t("dashboard.checking")
-            : totals
-              ? `${humanBytes(totals.rawSize)} · ${t("dashboard.dedup")} ${dedup} · ${totals.snapshots} ${t("dashboard.snapshotsLabel")}`
-              : t("dashboard.noStats")}
-        </p>
-        <p className="text-xs">
-          {newestReplication ? (
-            <span className="font-semibold text-statusOffsite">
-              ↗ {relativeTime(t, newestReplication.lastReplicationAt)}
-            </span>
-          ) : configured.length > 0 ? (
-            <span className="text-carbon-textMuted">{t("ransomware.replicationNever")}</span>
+              </span>
+              {countdown && (
+                <span className="shrink-0 rounded-pill bg-accentSoft px-2 py-1 text-xs font-semibold text-accentText">
+                  {countdown}
+                </span>
+              )}
+            </>
           ) : (
-            <span className="text-carbon-textMuted">{t("dashboard.noOffsite")}</span>
+            <p className="text-sm text-carbon-textMuted">{t("dashboard.rpoOff")}</p>
           )}
-        </p>
-      </div>
-    </section>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <SummaryCell label={t("dashboard.summaryNextBackup")} hueIndex={hueIndex}>
+      {loading ? (
+        <span className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</span>
+      ) : (
+        <span className="text-sm text-carbon-text truncate min-w-0">
+          {countdown || t("dashboard.rpoOff")}
+        </span>
+      )}
+    </SummaryCell>
   );
 }
 
@@ -2468,29 +2551,45 @@ export function Dashboard() {
   const [statusDomains, setStatusDomains] = useState<DomainStatus[]>([]);
   const [statusLoading, setStatusLoading] = useState(true);
 
-  // Newest run for the summary tier's "Last result" cell. listRuns returns
-  // newest-first, so runs[0] is the latest. Polled (not fetched once) so the
-  // cell doesn't freeze on whatever domain happened to be running at page
-  // load — mirrors ActivityLog's own listRuns polling (same cadence) so both
-  // widgets stay in sync (#158: card stuck on a finished run while the
-  // Activity Log had already moved on to the next domain).
+  // Newest run for the summary tier's "Last result" cell — and, since the
+  // runs cards merged into one dual-density component, the source BOTH faces
+  // of RunsCard read (plus the stat tier's errors tile, via
+  // failedRunsNeedingAttention). listRuns returns newest-first, so runs[0] is
+  // the latest. Polled (not fetched once) so the cell doesn't freeze on
+  // whatever domain happened to be running at page load — mirrors
+  // ActivityLog's own listRuns polling (same cadence) so both widgets stay in
+  // sync (#158: card stuck on a finished run while the Activity Log had
+  // already moved on to the next domain).
+  //
+  // runsReady/runsFailed: RunsCard renders the "checking" copy until the
+  // FIRST load settles, and the load-failure copy when the last attempt
+  // failed — a phone surface with no other signal must not show an empty
+  // list for a load error. The old effect's `active` latch is dropped
+  // deliberately: refreshRuns is also the callback runs cards fire after an
+  // acknowledgement, so it lives outside the effect; a setState arriving
+  // after unmount is a no-op in React, and the cleared interval means
+  // steady-state never schedules one.
   const [runs, setRuns] = useState<Run[]>([]);
-  useEffect(() => {
-    let active = true;
-    const load = () => {
-      listRuns()
-        .then((res) => {
-          if (active && res.ok) setRuns(res.runs ?? []);
-        })
-        .catch(() => {/* non-fatal — summary "Last result" falls back to empty */});
-    };
-    load();
-    const id = setInterval(load, SUMMARY_RUNS_POLL_MS);
-    return () => {
-      active = false;
-      clearInterval(id);
-    };
+  const [runsReady, setRunsReady] = useState(false);
+  const [runsFailed, setRunsFailed] = useState(false);
+  const refreshRuns = useCallback(() => {
+    listRuns()
+      .then((res) => {
+        if (res.ok) {
+          setRuns(res.runs ?? []);
+          setRunsFailed(false);
+        } else {
+          setRunsFailed(true);
+        }
+      })
+      .catch(() => setRunsFailed(true))
+      .finally(() => setRunsReady(true));
   }, []);
+  useEffect(() => {
+    refreshRuns();
+    const id = setInterval(refreshRuns, SUMMARY_RUNS_POLL_MS);
+    return () => clearInterval(id);
+  }, [refreshRuns]);
 
   // The scheduler's own "what fires next" list, for the summary tier's Next
   // backup cell ([545], issue #187). Polled on the same 30s cadence
@@ -2680,7 +2779,20 @@ export function Dashboard() {
     {
       id: "runHistory",
       label: t("run.historyTitle"),
-      render: (nextHue) => <RunsCard t={t} hueIndex={nextHue()} />,
+      // dense={false} = the desktop history-card face; the data comes from the
+      // page's polled listRuns (the phone face reads the same list — one
+      // fetch, one source, no disagreement).
+      render: (nextHue) => (
+        <RunsCard
+          t={t}
+          hueIndex={nextHue()}
+          dense={false}
+          runs={runs}
+          loading={!runsReady}
+          failed={runsFailed}
+          refreshRuns={refreshRuns}
+        />
+      ),
     },
     {
       id: "heatmap",
@@ -2692,7 +2804,9 @@ export function Dashboard() {
     {
       id: "storage",
       label: t("dashboard.storageTitle"),
-      render: (nextHue) => <StorageCard t={t} hueIndex={nextHue()} />,
+      render: (nextHue) => (
+        <StorageCard t={t} hueIndex={nextHue()} dense={false} domains={statusDomains} statusLoading={statusLoading} />
+      ),
     },
     {
       id: "spike",
@@ -2942,16 +3056,26 @@ export function Dashboard() {
       )}
       </div>
 
-      {/* The phone Home blocks — the four glanceable surfaces in the
-          contracted order (identity header is the page header above). JSX-gated
-          on !isDesktop; see the Mobile Home blocks banner above for the mount
-          discipline and the phone density contract. The thumb-zone trigger
-          joins as this column's last child (the StickyActionBar below). */}
+      {/* The phone Home blocks — the glanceable surfaces in the contracted
+          order (identity header is the page header above). JSX-gated on
+          !isDesktop; see the Mobile Home blocks banner above for the mount
+          discipline, the density contract and why the hue positions are
+          static literals. The thumb-zone trigger joins as this column's last
+          child (the StickyActionBar below). */}
       {!isDesktop && (
         <div className="flex flex-col gap-4">
-          <MobileNextRunCard t={t} scheduleNext={scheduleNext} domains={statusDomains} loading={statusLoading} />
-          <MobileRecentRunsCard t={t} runs={runs} onOpenRun={openRun} />
-          <MobileRepoHealthCard t={t} domains={statusDomains} />
+          <NextRunCard dense t={t} hueIndex={0} scheduleNext={scheduleNext} domains={statusDomains} loading={statusLoading} />
+          <RunsCard
+            dense
+            t={t}
+            hueIndex={1}
+            runs={runs}
+            loading={!runsReady}
+            failed={runsFailed}
+            refreshRuns={refreshRuns}
+            onOpenRun={openRun}
+          />
+          <StorageCard dense t={t} hueIndex={2} domains={statusDomains} statusLoading={statusLoading} />
           {/* The activity log reaches mobile here — the component is
               self-contained (own card chrome + heading, per its header
               comment), so the mount is one line. NO hueIndex: this hue counter
