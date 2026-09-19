@@ -17,8 +17,8 @@ import {
   IconViewSimple,
   IconViewAdvanced,
   IconGear,
-  IconPower,
 } from "./navGlyphs";
+import { IconSignOut } from "./glyphs";
 import { useLabelMode } from "../lib/useLabelMode";
 import { hidesLabel, labelWidth } from "../lib/controls";
 import { useTipBubble } from "../lib/useTipBubble";
@@ -205,7 +205,7 @@ function SidebarSignOut({ hueIndex }: { hueIndex: number }) {
           } as CSSProperties
         }
       >
-        {showIcon && <IconPower />}
+        {showIcon && <IconSignOut />}
         <span className={showLabel ? undefined : reactive ? "glim-label-reactive" : "sr-only"}>{label}</span>
       </button>
       {tooltip.bubble}
