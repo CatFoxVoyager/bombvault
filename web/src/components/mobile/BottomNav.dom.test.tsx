@@ -120,3 +120,78 @@ describe("BottomNav More trigger", () => {
     expect(onBarRoute.className).not.toContain("glim-active");
   });
 });
+
+// ---------------------------------------------------------------------------
+// The bar's own label axis ("bottombar", lib/controls.ts) — behaviour, not
+// just the source asserts mobileShellSource.test.ts carries. The four modes
+// change what a slot's caption IS: visible text, or sr-only words behind an
+// aria-label, or the reactive at-rest reveal. The contract that matters most:
+// a HIDING mode never leaves a slot unnamed — the caption's words move into
+// aria-label (and the hover bubble's title), so a glyph bar is never eleven
+// unnamed pictures. jsdom computes no layout, and nothing here needs it: the
+// modes' observable surface in a dom environment is exactly classes and
+// attributes. The axis preference arrives the way the real app delivers it —
+// the localStorage key getLabelMode reads — never by poking the hook.
+// ---------------------------------------------------------------------------
+describe("BottomNav label axis (bottombar)", () => {
+  const AXIS_KEY = "bv-labels-bottombar";
+
+  afterEach(() => {
+    localStorage.removeItem(AXIS_KEY);
+  });
+
+  function drawInMode(mode: string) {
+    localStorage.setItem(AXIS_KEY, mode);
+    return draw("/dashboard");
+  }
+
+  function allSlots(): HTMLElement[] {
+    return Array.from(bar().querySelectorAll("div.flex.h-14 > *")) as HTMLElement[];
+  }
+
+  it("text mode shows every caption and names slots through their text alone", () => {
+    drawInMode("text");
+    const slots = allSlots();
+    expect(slots).toHaveLength(4);
+    for (const slot of slots) {
+      expect(slot.querySelector("span.sr-only")).toBeNull();
+      expect(slot.querySelector("span.glim-label-reactive")).toBeNull();
+      expect(slot.getAttribute("aria-label")).toBeNull();
+      expect(slot.getAttribute("title")).toBeNull();
+      expect(slot.style.getPropertyValue("--reactive-chars")).toBe("");
+    }
+    expect(within(bar()).getByRole("link", { name: "Dashboard" })).toBeTruthy();
+  });
+
+  it("glyph mode hides the captions and keeps every slot named (aria-label plus title)", () => {
+    drawInMode("glyph");
+    for (const slot of allSlots()) {
+      expect(slot.querySelector("span.sr-only")).not.toBeNull();
+      expect(slot.getAttribute("aria-label")).toBeTruthy();
+      expect(slot.getAttribute("title")).toBeTruthy();
+    }
+    // The accessible names survive the hiding: role queries resolve through
+    // aria-label exactly as assistive tech reads them.
+    expect(within(bar()).getByRole("link", { name: "Dashboard" })).toBeTruthy();
+    expect(within(bar()).getByRole("link", { name: "Recovery" })).toBeTruthy();
+    expect(within(bar()).getByRole("link", { name: "Containers" })).toBeTruthy();
+    expect(within(bar()).getByRole("button", { name: "More" })).toBeTruthy();
+  });
+
+  it("reactive mode arms the coarse at-rest reveal: glim-reactive slots, reactive captions, sized ceilings", () => {
+    drawInMode("reactive");
+    for (const slot of allSlots()) {
+      // Hiding mode, so the naming contract from glyph mode still holds.
+      expect(slot.getAttribute("aria-label")).toBeTruthy();
+      expect(slot.className).toContain("glim-reactive");
+      // The caption is neither shown flat nor sr-only: it is the reactive
+      // label the index.css coarse block reveals at rest.
+      const caption = slot.querySelector("span.glim-label-reactive");
+      expect(caption).not.toBeNull();
+      expect(slot.querySelector("span.sr-only")).toBeNull();
+      // The reveal's ceiling comes from the label's own length — the slot
+      // carries the per-label width var the CSS formula consumes.
+      expect(slot.style.getPropertyValue("--reactive-chars")).not.toBe("");
+    }
+  });
+});

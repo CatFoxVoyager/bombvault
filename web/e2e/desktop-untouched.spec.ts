@@ -34,7 +34,7 @@
 // asserting against surfaces that do not exist in this tree would guard
 // nothing on the desktop side and fail outright on the mobile side.
 // ---------------------------------------------------------------------------
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 // The two desktop projects from playwright.config.ts (>= the 48rem chrome
 // switch). Branching on the project name — the mobile-shell.spec.ts pattern —
@@ -66,6 +66,66 @@ for (const route of ROUTES) {
     await expect(page.locator("#bv-main")).toHaveCount(1);
   });
 }
+
+// ---------------------------------------------------------------------------
+// The geometry half of "untouched": presence is not invariance. The shell's
+// desktop chrome must not only EXIST on every destination, it must sit at
+// the SAME geometry — a regression that nudges the sidebar or the scroller
+// (a new margin, a width stage, a mobile rule leaking past the breakpoint)
+// changes the numbers while everything still renders and the presence checks
+// above keep passing. Boxes are captured on /dashboard; every other route
+// must reproduce them within a 1px tolerance (subpixel rounding across
+// engines). jsdom computes no layout, so this guard only runs where layout
+// is real.
+// ---------------------------------------------------------------------------
+const GEOMETRY_TOLERANCE_PX = 1;
+
+/** The shell's two structural boxes — the sidebar rail and the `bv-main`
+ *  scroller — as x/width only: y/height legitimately vary per page content,
+ *  horizontal geometry may not. */
+async function shellGeometry(page: Page) {
+  return page.evaluate(() => {
+    const box = (el: Element | null) => {
+      if (!el) throw new Error("shell element missing");
+      const r = el.getBoundingClientRect();
+      return { x: r.x, width: r.width };
+    };
+    return {
+      sidebar: box(document.querySelector('[data-testid="desktop-sidebar"]')),
+      main: box(document.querySelector("#bv-main")),
+    };
+  });
+}
+
+test("desktop shell geometry is identical across every routed destination", async ({ page }, testInfo) => {
+  test.skip(
+    !DESKTOP_PROJECTS.has(testInfo.project.name),
+    "desktop-only: the geometry half of the desktop-invariance contract"
+  );
+  await page.goto("/dashboard");
+  // The SPA mounts after the document loads, and evaluate() does not
+  // auto-wait — anchor both elements first, exactly like the presence
+  // checks above, or the measure races the mount and finds nothing.
+  await expect(page.getByTestId("desktop-sidebar")).toBeVisible();
+  await expect(page.locator("#bv-main")).toBeVisible();
+  const baseline = await shellGeometry(page);
+  for (const route of ROUTES) {
+    await page.goto(route);
+    await expect(page.getByTestId("desktop-sidebar")).toBeVisible();
+    await expect(page.locator("#bv-main")).toBeVisible();
+    const boxes = await shellGeometry(page);
+    for (const key of ["sidebar", "main"] as const) {
+      expect(
+        Math.abs(boxes[key].x - baseline[key].x),
+        `${route}: the ${key} rail's x drifted from the /dashboard baseline`
+      ).toBeLessThanOrEqual(GEOMETRY_TOLERANCE_PX);
+      expect(
+        Math.abs(boxes[key].width - baseline[key].width),
+        `${route}: the ${key} rail's width drifted from the /dashboard baseline`
+      ).toBeLessThanOrEqual(GEOMETRY_TOLERANCE_PX);
+    }
+  }
+});
 
 // ---------------------------------------------------------------------------
 // The >=48rem leakage pass for /dashboard: the one page this PR gives a

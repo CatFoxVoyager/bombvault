@@ -57,6 +57,19 @@ const sidebar = readFileSync(join(SRC, "components", "Sidebar.tsx"), "utf8");
 const bottomNav = readFileSync(join(SRC, "components", "mobile", "BottomNav.tsx"), "utf8");
 const moreSheet = readFileSync(join(SRC, "components", "mobile", "MoreSheet.tsx"), "utf8");
 
+// The shell root div, anchored on the ref plus the template-literal className
+// rather than any includes() for a unit name: Layout's comments discuss
+// `h-dvh` (the viewport-discipline guard below), and an includes() positive
+// would pass forever on that dead text even after the root itself changed.
+// The root also carries the shell ref (the keyboard mechanism's focus
+// listeners attach to it), which is what makes the ref anchor stable.
+const SHELL_ROOT = /<div ref=\{shellRef\} className=\{`flex h-dvh/;
+
+// The banned viewport-height literals. h-screen joins 100vh and min-h-screen:
+// it is the same static-largest-viewport trap in Tailwind's vocabulary, and a
+// ban list that omits the common spelling is a ban with a door in it.
+const BANNED_VIEWPORT_HEIGHTS = ["100vh", "min-h-screen", "h-screen"];
+
 // The FOUC script copied verbatim from index.html — indentation included.
 // This is a BYTE constant: it must not be reformatted, requoted, or "tidied",
 // because its entire job is to differ from index.html the moment index.html's
@@ -215,10 +228,8 @@ describe("login renders before any shell, structurally", () => {
   // The shell root's height is h-dvh (the dynamic-viewport discipline below)
   // and its className is a template literal, because the ONE chrome switch
   // appends `flex-col` on the mobile branch — so the root div no longer
-  // matches a plain `className="flex` string. The root also carries the shell
-  // ref (the keyboard mechanism's focus listeners attach to it), which is why
-  // the match anchors the ref attribute.
-  const shell = /<div ref=\{shellRef\} className=\{`flex h-dvh/.exec(layout);
+  // matches a plain `className="flex` string.
+  const shell = SHELL_ROOT.exec(layout);
 
   it("finds both the blocked branch and the shell root at all (self-guard)", () => {
     expect(
@@ -256,8 +267,12 @@ describe("the shell root's viewport discipline", () => {
   });
 
   it("sizes the shell root with the dynamic viewport unit", () => {
+    // Anchored on the SHELL_ROOT element pattern, not a bare includes():
+    // comments in Layout.tsx legitimately discuss `h-dvh`, and a substring
+    // scan would keep passing on that prose after the root itself dropped
+    // the unit.
     expect(
-      layout.includes("h-dvh"),
+      SHELL_ROOT.test(layout),
       "Layout.tsx's shell root no longer uses h-dvh. The dynamic unit is what keeps " +
         "the shell filling the visual viewport as mobile browser chrome collapses " +
         "and expands; a static unit keeps the pre-chrome height and strands " +
@@ -266,24 +281,25 @@ describe("the shell root's viewport discipline", () => {
   });
 
   it("contains no banned viewport-height literal", () => {
+    const found = BANNED_VIEWPORT_HEIGHTS.filter((needle) => layout.includes(needle));
     expect(
-      layout.includes("100vh") || layout.includes("min-h-screen"),
-      "Layout.tsx contains a banned viewport-height literal (`100vh` or " +
-        "`min-h-screen`). The mobile shell uses dvh/svh exclusively: the " +
-        "static forms keep the LARGEST viewport height, which is exactly the trap " +
-        "that strands content under the iOS keyboard or expanded browser chrome. " +
-        "Use the dynamic unit."
-    ).toBe(false);
+      found,
+      "Layout.tsx contains a banned viewport-height literal. The mobile shell uses " +
+        "dvh/svh exclusively: the static forms (100vh, min-h-screen, h-screen) keep " +
+        "the LARGEST viewport height, which is exactly the trap that strands content " +
+        "under the iOS keyboard or expanded browser chrome. Use the dynamic unit."
+    ).toEqual([]);
   });
 
   it("keeps the stylesheet free of the banned viewport-height literals too", () => {
+    const found = BANNED_VIEWPORT_HEIGHTS.filter((needle) => indexCss.includes(needle));
     expect(
-      indexCss.includes("100vh") || indexCss.includes("min-h-screen"),
-      "index.css contains a banned viewport-height literal (`100vh` or " +
-        "`min-h-screen`). Same trap as the Layout ban: static viewport heights " +
-        "strand bottom-docked content under the iOS keyboard or expanded browser " +
-        "chrome; use the dvh/svh forms."
-    ).toBe(false);
+      found,
+      "index.css contains a banned viewport-height literal. Same trap as the Layout " +
+        "ban: static viewport heights (100vh, min-h-screen, h-screen) strand " +
+        "bottom-docked content under the iOS keyboard or expanded browser chrome; " +
+        "use the dvh/svh forms."
+    ).toEqual([]);
   });
 
   it("keeps the bv-main id on the scroller, the chrome's stable scroll target", () => {
@@ -491,8 +507,14 @@ describe("REACTIVE-AT-REST — coarse pointers reveal reactive labels at rest, w
   });
 
   it("reveals the reactive label at rest under (pointer: coarse), at the chars-sized ceiling", () => {
+    // Anchored on the @media RULE, not on the first prose mention of the
+    // query: comments in index.css discuss `(pointer: coarse)` several
+    // blocks above the real at-rest rule, and a scan that starts at any
+    // `(pointer: coarse)` occurrence skids across the reveal/hover block to
+    // a matching declaration — passing even with the coarse block deleted.
+    // `[^}]*` holds the scan inside the rule's own declaration list.
     expect(
-      /\(pointer: coarse\)[\s\S]*?\.glim-label-reactive\s*\{[\s\S]*?max-width: calc\(var\(--reactive-chars/
+      /@media \(pointer: coarse\)\s*\{\s*\.glim-label-reactive\s*\{[^}]*max-width: calc\(var\(--reactive-chars/
         .test(indexCss),
       "index.css no longer reveals .glim-label-reactive at rest on coarse " +
         "pointers. Without the (pointer: coarse) at-rest block, touch users " +
