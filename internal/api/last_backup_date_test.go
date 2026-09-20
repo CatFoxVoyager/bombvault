@@ -263,6 +263,47 @@ func TestListVMsKeepsTheRunsDateWhileTheRepositoryIsUnreadable(t *testing.T) {
 	}
 }
 
+// A folder set is dated from its backups too, so a set Discover rebuilt from
+// the repository does not read as never backed up.
+func TestListFileSetViewsDatesASetFromItsBackups(t *testing.T) {
+	st := newMemStore(t)
+	dir := t.TempDir()
+	cfg := config.Config{AppKey: strings.Repeat("a", 64), DataDir: dir, HostMountRoot: dir}
+	s := mustSettings(t, st)
+	s.FilesPath = "backups/files"
+	if err := st.UpdateSettings(s); err != nil {
+		t.Fatal(err)
+	}
+	establishLocalRepo(t, dir, s.FilesPath)
+	if _, err := st.CreateFileSet(store.FileSet{Name: "docs", Path: "docs"}); err != nil {
+		t.Fatal(err)
+	}
+	gone, err := st.CreateFileSet(store.FileSet{Name: "photos", Path: "photos"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	finishedRun(t, st, gone.ID)
+	eng := &fakeResticEngine{snaps: []restic.Snapshot{
+		{ID: "aaaa1111", Time: "2024-08-01T00:00:00Z", Tags: []string{"fileset:docs", "p3"}},
+	}}
+	svc := api.NewService(cfg, st, &fakeServiceDocker{}, fakeVirsh{}, eng)
+
+	views, err := svc.ListFileSetViews(context.Background())
+	if err != nil {
+		t.Fatalf("ListFileSetViews: %v", err)
+	}
+	byName := map[string]int64{}
+	for _, v := range views {
+		byName[v.Name] = v.LastBackup
+	}
+	if byName["docs"] != unixOf(t, "2024-08-01T00:00:00Z") {
+		t.Fatalf("docs LastBackup = %d, want its backup's time", byName["docs"])
+	}
+	if byName["photos"] != 0 {
+		t.Fatalf("photos LastBackup = %d, want none: its backups are gone", byName["photos"])
+	}
+}
+
 // A VM's backups keep the old vm:<name> tag after a rename, so the times fold
 // the old name onto the current one, bounded by the link.
 func TestLatestVMBackupTimesFoldsAlias(t *testing.T) {
