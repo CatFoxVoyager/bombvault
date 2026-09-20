@@ -32,6 +32,12 @@ export interface BottomSheetProps {
   open: boolean;
   /** Called by every close path: scrim click, Escape, header close button. */
   onClose: () => void;
+  /** The header's close button, on by default. A sheet whose footer already
+   *  answers turns it off: two ways to cancel read as a choice between two
+   *  answers, the same reason ConfirmDialog carries no corner X. Initial
+   *  focus then goes to the first control in the panel, which the footer
+   *  stack puts ahead of the commit. */
+  headerClose?: boolean;
   /** The sheet's heading, already translated by the caller. */
   title: string;
   /** The sheet body. */
@@ -71,7 +77,7 @@ function focusableElements(root: HTMLElement): HTMLElement[] {
   return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
 }
 
-export function BottomSheet({ open, onClose, title, children, fullHeight, footer, tone, describedBy }: BottomSheetProps) {
+export function BottomSheet({ open, onClose, headerClose = true, title, children, fullHeight, footer, tone, describedBy }: BottomSheetProps) {
   const { t } = useT();
   const titleId = useId();
   // panelRef roots the Tab trap; closeRef gets initial focus; triggerRef is restored on close (useConfirm.tsx's trio).
@@ -92,7 +98,8 @@ export function BottomSheet({ open, onClose, title, children, fullHeight, footer
     if (!open) return;
     const active = document.activeElement;
     triggerRef.current = active instanceof HTMLElement && active !== document.body ? active : null;
-    closeRef.current?.focus();
+    const panel = panelRef.current;
+    (closeRef.current ?? (panel ? focusableElements(panel)[0] : undefined))?.focus();
     const trigger = triggerRef.current;
     return () => {
       triggerRef.current = null;
@@ -212,16 +219,18 @@ export function BottomSheet({ open, onClose, title, children, fullHeight, footer
               utility layer, so a h-* utility in the className loses the
               cascade, and the key stage is the height that wins
               (glim-btn-icon squares the box at it). */}
-          <Button
-            ref={closeRef}
-            label={t("common.close")}
-            labelKey="common.close"
-            glyph={<IconClose />}
-            tone="neutral"
-            variant="icon"
-            onClick={onClose}
-            className="glim-btn-key shrink-0 rounded-control"
-          />
+          {headerClose && (
+            <Button
+              ref={closeRef}
+              label={t("common.close")}
+              labelKey="common.close"
+              glyph={<IconClose />}
+              tone="neutral"
+              variant="icon"
+              onClick={onClose}
+              className="glim-btn-key shrink-0 rounded-control"
+            />
+          )}
         </div>
         {/* Body (scrolls); its own scroll contains all interaction and
             background content is unreachable through the Tab trap, so no

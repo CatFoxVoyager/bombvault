@@ -133,6 +133,7 @@ export function useConfirm() {
             title={t("confirmDialog.title")}
             message={pending.message}
             confirmLabel={t(pending.confirmKey ?? "common.confirm")}
+            confirmLabelKey={pending.confirmKey ?? "common.confirm"}
             cancelLabel={pending.cancelLabel ?? t("common.cancel")}
             onConfirm={() => settle(true)}
             onCancel={() => settle(false)}

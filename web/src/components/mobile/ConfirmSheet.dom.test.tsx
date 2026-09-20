@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act } from "react";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { ConfirmSheet } from "./ConfirmSheet";
 import { useConfirm, type ConfirmOptions } from "../../lib/useConfirm";
 import { DESKTOP_QUERY } from "../../lib/useMediaQuery";
@@ -98,7 +97,7 @@ describe("ConfirmSheet (the mobile presentation, direct)", () => {
     return { onConfirm, onCancel };
   }
 
-  it("renders the sheet with the safe cancel stacked ABOVE the confirm (forward action last)", () => {
+  it("renders the sheet with the safe cancel stacked above the confirm (forward action last)", () => {
     renderSheet();
     const panel = screen.getByRole("dialog");
     const message = screen.getByText(MESSAGE);
@@ -119,9 +118,11 @@ describe("ConfirmSheet (the mobile presentation, direct)", () => {
     expect(confirmButton.className).toContain("glim-btn-key");
     expect(cancelButton.className).toContain("glim-btn-key");
     expect(confirmButton.className).toContain("w-full");
-    // No status colour on the commit control: GlimStone 1.12.0 removed the
-    // tone, and the confirm takes its siblings' (neutral) colour; the exact
-    // treatment the desktop card's commit button gets.
+    // Both answers wear the accent and neither wears a status colour, the
+    // desktop card's treatment: the question states the stakes, so a red
+    // button on every delete would only teach people to read past it.
+    expect(confirmButton.className).toContain("bg-accent");
+    expect(cancelButton.className).toContain("bg-accent");
     expect(confirmButton.className).not.toContain("statusFail");
     expect(confirmButton.className).not.toContain("statusWarn");
     // Both buttons live outside the scrolling body (the footer slot): the
@@ -131,27 +132,26 @@ describe("ConfirmSheet (the mobile presentation, direct)", () => {
     expect(body.querySelector("button")).toBeNull();
   });
 
-  it("starts focus on the sheet's close control, never on the destructive one", () => {
+  it("carries no close control and starts focus on cancel, never on the destructive one", () => {
     renderSheet();
-    // BottomSheet's open effect focuses the header close button; the safe
-    // outcome. No autoFocus anywhere in this tree can steal it.
-    expect(document.activeElement).toBe(screen.getByRole("button", { name: en["common.close"] }));
+    // The footer answers, so the header has no second way to cancel and
+    // BottomSheet's open effect lands on the first control in the panel.
+    expect(screen.queryByRole("button", { name: en["common.close"] })).toBeNull();
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: en["common.cancel"] }));
     expect(document.activeElement).not.toBe(screen.getByRole("button", { name: "Delete it" }));
-    expect(document.activeElement).not.toBe(screen.getByRole("button", { name: en["common.cancel"] }));
   });
 
-  it("resolves every close path: confirm fires onConfirm; cancel, close, Escape and the scrim all cancel", () => {
+  it("resolves every close path: confirm fires onConfirm; cancel, Escape and the scrim all cancel", () => {
     const { onConfirm, onCancel } = renderSheet();
     fireEvent.click(screen.getByRole("button", { name: "Delete it" }));
     expect(onConfirm).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByRole("button", { name: en["common.cancel"] }));
-    fireEvent.click(screen.getByRole("button", { name: en["common.close"] }));
     fireEvent.keyDown(document, { key: "Escape" });
     // The scrim is BottomSheet's aria-hidden sibling of the panel.
     const scrim = document.body.querySelector<HTMLElement>(":scope > [aria-hidden='true']");
     expect(scrim).not.toBeNull();
     fireEvent.click(scrim!);
-    expect(onCancel).toHaveBeenCalledTimes(4);
+    expect(onCancel).toHaveBeenCalledTimes(3);
     expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 });
@@ -211,10 +211,9 @@ describe("useConfirm presentation swap", () => {
     render(<ConfirmHarness results={[]} />);
     fireEvent.click(screen.getByRole("button", { name: "trigger" })); // opens
     act(() => setDesktopWidth(false));
-    // Initial focus is the header close button (the safe outcome); the
-    // desktop card's autoFocus-Cancel parity holds through the same
-    // mechanism. The confirm control is reachable but never given focus.
-    expect(document.activeElement).toBe(screen.getByRole("button", { name: en["common.close"] }));
+    // Initial focus is Cancel, the same safe outcome the desktop card gets
+    // from its autoFocus. The confirm control is reachable but never focused.
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: en["common.cancel"] }));
     expect(document.activeElement).not.toBe(
       screen.getByRole("button", { name: en["common.confirm"] }),
     );
@@ -231,6 +230,15 @@ describe("useConfirm presentation swap", () => {
       fireEvent.click(screen.getByRole("button", { name: en["common.confirm"] }));
     });
     expect(results).toEqual([true]);
+  });
+
+  it("the sheet's commit repeats the trigger's words and glyph, in the accent", () => {
+    render(<ConfirmHarness results={[]} options={{ confirmKey: "vms.removeEntry" }} />);
+    fireEvent.click(screen.getByRole("button", { name: "trigger" }));
+    act(() => setDesktopWidth(false));
+    const commit = screen.getByRole("button", { name: en["vms.removeEntry"] });
+    expect(commit.querySelector(".glim-btn-glyph")).not.toBeNull();
+    expect(commit.className).toContain("bg-accent");
   });
 
   it("Escape resolves false exactly once (the benign double-dispatch) and restores the trigger", async () => {
