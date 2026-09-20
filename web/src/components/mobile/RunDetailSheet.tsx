@@ -25,9 +25,9 @@ import { BottomSheet } from "./BottomSheet";
 //
 // Hosted component-locally by whichever surface owns the run row (the
 // container/file-set surfaces, the Dashboard): `<RunDetailSheet run={...} open
-// onClose={...} />` with the consumer's own open state. No route is added and
-// router.tsx is frozen; the sheet opens over whatever surface invoked it,
-// which is the hosting contract.
+// onClose={...} />` with the consumer's own open state. No route is added:
+// the sheet opens over whatever surface invoked it, so a run detail never
+// costs the user their place.
 //
 // The Run record carries no per-file counts and no exclusion lines (see
 // web/src/lib/api.ts: id, targetId, kind, status, startedAt, finishedAt,
@@ -57,12 +57,11 @@ import { BottomSheet } from "./BottomSheet";
 //     container twin)
 //   - verify: checkDomain() with the Settings integrity tab's own labels
 //   - restore entry: the desktop restore surface's own label
-//     ("snapshots.restore"), secondary/tonal, never accent; restore is
-//     deliberate (design-bible product rule). The guided restore flow is not
-//     wired here; this entry stays reveal-only
-//     by design; it reveals the snapshot file
-//     tree, the surface the desktop restore flow itself starts from, and
-//     deliberately adds no deep link into the wizard.
+//     ("snapshots.restore"), secondary and tonal, never accent, because a
+//     restore is a decision rather than the sheet's primary action. The
+//     guided restore flow is not wired here; this entry only reveals the
+//     snapshot file tree, the surface the desktop restore flow starts from, and
+//     adds no deep link into the wizard.
 //
 // Domain honesty; what each run kind gets:
 //   - browse/restore entry: container + files domains only (the two domains
@@ -217,7 +216,7 @@ function LiveRunSection({ run, progressKey }: { run: Run; progressKey: string | 
   }, []);
 
   const resolveName = makeResolver(t);
-  // Computed per render, deliberately unmemoized: the input is one run (the
+  // Computed per render rather than memoized: the input is one run (the
   // builder is linear in runs), and the live tick re-renders this section
   // every second anyway. An idle "next up" line is dashboard-log furniture;
   // inside a specific run's detail it would read as run content; the
@@ -228,7 +227,7 @@ function LiveRunSection({ run, progressKey }: { run: Run; progressKey: string | 
   const prog = progressKey ? progressMap[progressKey] : undefined;
   return (
     <>
-      {/* Inline (in-flow) variant, deliberately: the default ProgressBar pins
+      {/* The inline variant: the default ProgressBar pins
           to a positioned card's bottom edge, which inside the sheet would be
           the fixed panel itself; over the footer. Indeterminate until the
           first SSE frame carries a percent; renders nothing while the entry
@@ -259,8 +258,8 @@ function HistoryLogSection({ run }: { run: Run }) {
 // aria-expanded/aria-controls, which the Button engine does not pass through;
 // the classes are the Button "subtle"/"neutral" tone tokens (bg-carbon-surface2
 // / surface3, rounded-control) so the rows read as the same engine language.
-// Never accent: restore and browse are deliberate, secondary actions (the
-// design bible reserves accent for the page's one primary action). Each row
+// Never accent: restore and browse are secondary actions, and the accent
+// belongs to the one primary action on a surface. Each row
 // still takes its position in the sheet's hue rotation (.glim-hue): the
 // rotation's focus ring and any accent reading inside the row follow the
 // position, while the row's own fill stays the tonal token above.
@@ -599,11 +598,10 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
           </div>
         )}
 
-        {/* Restore entry; in the scroll body, above the footer rows
-            (secondary, away from the thumb's default path; the design bible's
-            "restore is deliberate" rule). It reveals the same snapshot file
-            surface the desktop restore flow starts from; this entry deliberately
-            stays reveal-only and adds no deep link into the guided restore
+        {/* Restore entry; in the scroll body, above the footer rows, so it
+            sits away from the thumb's default path: a restore is a decision.
+            It reveals the same snapshot file surface the desktop restore flow
+            starts from, and adds no deep link into the guided restore
             flow. */}
         {browseSupported && (
           <SheetActionRow

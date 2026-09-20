@@ -403,7 +403,7 @@ for (const locale of locales) {
 // ---------------------------------------------------------------------------
 // The landscape boundary: one proof, two viewports, the seeded-locale boot
 // reused with real landscape heights. The mobile-chrome query is width-only
-// ("min-width: 48rem", resolved deliberately): 740px stays mobile, 844x390,
+// ("min-width: 48rem"): 740px stays mobile, 844x390,
 // a modern phone in landscape, 844 CSS px wide, crosses 48rem and gets the
 // desktop chrome. Both run on the mobile projects only: the projects just
 // supply the base device context, and setViewportSize overrides it either

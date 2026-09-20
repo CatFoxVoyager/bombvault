@@ -1,7 +1,9 @@
-// The page column ends where the rail ends: bottom padding inside the scroll
-// container can never be scrolled away and leaves the last card short of the
-// rail. This reads Layout.tsx, because jsdom does no layout and a render test
-// could only compare the same class string.
+// The page column ends where the chrome ends: bottom padding inside the
+// scroll container can never be scrolled away and leaves the last card short
+// of it. On the desktop that chrome is the rail, on a phone the bottom bar
+// with the sticky action bar above it, so both scrollers are checked. This
+// reads Layout.tsx, because jsdom does no layout and a render test could only
+// compare the same class string.
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -17,7 +19,7 @@ const pageWrapper = /className="glim-page-enter([^"]*)"/.exec(layout);
 // gutter class itself (the desktop main stays gutter-free; the frame owns it
 // there). `\s+` between the attributes tolerates the phone branch's wrapped
 // JSX (its safe-area classes make the line long enough to be split); only
-// attribute ORDER is fixed, deliberately, so the match cannot land on the
+// The attribute order is fixed, so the match cannot land on the
 // desktop main.
 const mobileMain = /<main\s+id="bv-main"\s+className="([^"]*p-4[^"]*)"/.exec(layout);
 

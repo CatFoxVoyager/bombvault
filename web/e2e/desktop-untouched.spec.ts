@@ -16,7 +16,7 @@
 // /fleet through their redirect, and /instances, the landing surface of
 // all three, holds a slot of its own.
 //
-// The assertions deliberately run on the fresh-DB empty states the harness
+// The assertions run on the fresh-DB empty states the harness
 // boots (playwright.config.ts): this is a chrome/layout contract, never a
 // data contract. Gated destinations (/vms, /flash, ...) render their pages'
 // empty states: the route tree is not gated, only the nav entries are, so
@@ -46,7 +46,7 @@ const DESKTOP_PROJECTS = new Set(["desktop-1280", "desktop-768"]);
 // (web/src/app/router.tsx): every shell destination, plus /receiver and
 // /fleet, whose Navigate redirects land on /instances' hash lanes (the loop
 // rides them through). The pure redirects (/, /jobs, /pull) and the unlisted
-// /glyphs contact sheet are not destinations and are deliberately absent.
+// /glyphs contact sheet are not destinations, so they are absent here.
 const ROUTES = [
   "/dashboard",
   "/recovery",

@@ -30,7 +30,7 @@ export const PAGE_SHELL = "flex flex-col gap-10 max-w-6xl";
  * A stated, per-file exception (eslint.config.js) per page that adopts this
  * constant; the same data-not-inferred discipline as Settings'
  * PAGE_SHELL_TABBED, and
- * deliberately not a replacement of PAGE_SHELL itself: retuning every routed
+ * not a replacement of PAGE_SHELL itself: retuning every routed
  * page's mobile rhythm is nobody's decision but the pages' own, and this
  * constant exists because exactly the screens restructured for phones carry
  * it.

@@ -297,8 +297,8 @@ export function useBackupWatch({ progressKey, start, matchRun, kind = "backup", 
         // restarts with the refetch itself: the return trip runs
         // resolveFromRuns() first (whose baseline-id match is the correlation
         // contract), then normal cadence resumes. The baseline seeding order
-        // in fire() is untouched; fireAndWaitRun's bulk loop is deliberately
-        // not gated (a plain promise loop with its own deadline).
+        // in fire() is untouched, and fireAndWaitRun's bulk loop is not
+        // gated at all: a plain promise loop with its own deadline.
         if (!isPageVisible()) return;
         const outcome = await resolveFromRuns();
         if (outcome === "resolved" || !watching.current) return;

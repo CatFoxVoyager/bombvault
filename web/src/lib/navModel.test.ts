@@ -62,12 +62,12 @@ const SIDEBAR_ORDER = [
 // Settings reaches mobile chrome through the More sheet instead).
 const BAR_ROUTES = ["/dashboard", "/recovery", "/containers", "/files"];
 
-describe("destinations; the ONE ordered registry", () => {
+describe("destinations, the one ordered registry", () => {
   it("finds the full registry at all (guards against this test silently matching nothing)", () => {
     expect(destinations(ALL_ON)).toHaveLength(SIDEBAR_ORDER.length);
   });
 
-  it("returns the FULL nine-entry list in desktop Sidebar order, all enabled with every gate on", () => {
+  it("returns all nine entries in desktop Sidebar order, all enabled with every gate on", () => {
     const dests = destinations(ALL_ON);
     expect(dests.map((d) => d.to)).toEqual(SIDEBAR_ORDER);
     expect(dests.every((d) => d.enabled)).toBe(true);
@@ -151,7 +151,7 @@ describe("destinations; each gate flips exactly its own entry", () => {
     }
   });
 
-  it("bar and More derivations keep their relative order across a gate flip (filters of the ONE list)", () => {
+  it("bar and More derivations keep their relative order across a gate flip, being filters of one list", () => {
     const beforeBar = barDestinations(ALL_OFF).map((d) => d.to);
     const afterBar = barDestinations({ ...ALL_OFF, fleetEnabled: true }).map((d) => d.to);
     expect(afterBar).toEqual(beforeBar); // instances is not a bar destination

@@ -210,9 +210,9 @@ describe("Dashboard phone run sheet", () => {
     fireEvent.click(recentRunRow("plex"));
     expect(within(screen.getByRole("dialog")).getAllByText(/plex/i).length).toBeGreaterThan(0);
 
-    // Later polls keep re-reporting the still-running everything run; every
-    // tick used to replace sheetRun and bounce the sheet back every two
-    // seconds. The guard keeps the user's run on screen.
+    // Later polls keep re-reporting the still-running everything run. The
+    // guard keeps the run the user opened on screen instead of letting every
+    // tick replace it.
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2100);
     });
@@ -259,8 +259,8 @@ describe("Dashboard phone run sheet", () => {
   });
 
   it("shows the terminal state at the watch's tick, not when the 10s page list catches up", async () => {
-    // The maintainer-diagnosed lag: the deep-linked sheet resolves its run
-    // out of the page's polled list, which polls at 10s, while the watch's
+    // The deep-linked sheet resolves its run out of the page's polled list,
+    // which polls at 10s, while the watch's
     // own polls (2s) deliver the terminal record first. The Done toast fires
     // from the watch; the sheet must move to the terminal state on that same
     // tick instead of ghosting "Running" until the page list re-polls.

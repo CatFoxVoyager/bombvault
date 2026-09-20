@@ -14,7 +14,7 @@
 //     theme logic whose bytes are security-adjacent. The script's full text
 //     is copied below as EXPECTED_FOUC_SCRIPT and compared verbatim; any
 //     edit to those bytes fails this suite, so a change there has to be a
-//     deliberate act that updates this constant.
+//     act that updates this constant.
 //   - The banned-literal negatives: 100vh and min-h-screen (and h-screen)
 //     are the viewport-height trap (they keep the pre-keyboard height under
 //     the iOS keyboard and strand content off-screen). The literals appear
@@ -98,7 +98,7 @@ describe("safe-area custom properties exist and are env-paired", () => {
       "no `--safe-area-*: max(env(...))` definitions were found in index.css. " +
         "The block was removed, renamed, or rewritten in a form this guard no longer " +
         "recognizes; safe areas are half of the viewport contract, so restore it or " +
-        "update this guard deliberately."
+        "update this guard with it."
     ).toBeGreaterThanOrEqual(4);
   });
 
@@ -167,7 +167,7 @@ describe("the viewport meta carries the mobile directives", () => {
       viewport,
       'no <meta name="viewport" content="..."> found in index.html. The meta was ' +
         "removed or reformatted beyond this guard's shape; restore it or update the " +
-        "regex deliberately."
+        "regex with it."
     ).not.toBeNull();
   });
 
@@ -207,7 +207,7 @@ describe("the FOUC script's bytes are guarded", () => {
       region?.[1],
       'no bare `<script>` block found in index.html, or it is not the FOUC script. ' +
         "The FOUC killer is the first bare script in <head>; if it moved or grew " +
-        "attributes, update FOUC_REGION deliberately."
+        "attributes, update FOUC_REGION with them."
     ).toContain("bv-theme");
   });
 
@@ -218,7 +218,7 @@ describe("the FOUC script's bytes are guarded", () => {
         "bytes are first-paint theme logic: they stamp data-theme synchronously " +
         "before CSS paints, and a mutation is tampering with a byte-critical region: " +
         "duplicates of theme.ts's resolution logic that must be kept in sync by " +
-        "hand. If the change is deliberate, update EXPECTED_FOUC_SCRIPT in this test " +
+        "hand. If the change is wanted, update EXPECTED_FOUC_SCRIPT in this test " +
         "in the same commit and say why."
     ).toContain(EXPECTED_FOUC_SCRIPT);
   });
@@ -264,12 +264,12 @@ describe("login renders before any shell, structurally", () => {
       blocked,
       'Layout.tsx no longer has a `return <LoginPage` in the authGate === "blocked" ' +
         "branch; the login screen's chrome-free guarantee is this early return, so " +
-        "its removal is a regression unless restructured deliberately."
+        "its removal is a regression unless the shell was restructured."
     ).not.toBeNull();
     expect(
       shell,
       "Layout.tsx no longer renders a `<div ref={shellRef} className={`flex h-dvh ...`}>` " +
-        "shell root; the shell root moved or was renamed; update this guard deliberately."
+        "shell root; the shell root moved or was renamed; update this guard with it."
     ).not.toBeNull();
   });
 
@@ -461,7 +461,7 @@ describe("the chrome testids live in the mobile component sources", () => {
 // The two banned literals below appear in this file on purpose, as
 // negative-assertion needles; their only sanctioned appearance, the same
 // house pattern as the 100vh needles above. The negatives scan the raw
-// BottomNav text (comments included; deliberately not comment-stripped),
+// BottomNav text, comments included rather than stripped,
 // which is exactly why the component's own comments paraphrase the retired
 // treatments instead of citing the literals.
 // ---------------------------------------------------------------------------

@@ -213,8 +213,9 @@ describe("useBackupWatch poll chain", () => {
     const settled = mockedListRuns.mock.calls.length;
 
     // Five hide/show pairs, each landing while a cadence tick is pending:
-    // every visible edge restarts the chain directly while the pending tick
-    // is still armed. This is the exact sequence that used to fork the chain.
+    // every visible edge restarts the chain directly while the pending tick is
+    // still armed. Without the generation token that forks the chain, and each
+    // fork polls on its own.
     for (let i = 0; i < 5; i++) {
       setPageVisibility("hidden");
       setPageVisibility("visible");

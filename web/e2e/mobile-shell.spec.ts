@@ -164,7 +164,7 @@ test("the bar stays bottom-docked in landscape", async ({ page }, testInfo) => {
   // still compact width, so the bottom bar is the mounted chrome and must
   // sit at the bottom. (At or above 48rem the one switch mounts the desktop
   // rail by the width-only query, a landscape phone at 844px CSS width is
-  // "desktop" to it; the width-only semantics are deliberate and the
+  // "desktop" to it; the semantics are width-only and the
   // landscape boundary pair in narrow-viewport.spec.ts pins both sides.)
   await page.setViewportSize({ width: 740, height: 360 });
   await bootWithoutServerLook(page);

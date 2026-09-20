@@ -29,7 +29,7 @@ const SRC = join(HERE, "..");
 const source = readFileSync(join(HERE, "useMediaQuery.ts"), "utf8");
 
 // The literal, exactly as Tailwind defines its md breakpoint. Whitespace
-// tolerance is deliberate; the failure this guards is a changed width
+// tolerance is wanted; the failure this guards is a changed width
 // (48rem -> 64rem) or a second copy, not a reformatted space.
 const LITERAL = /min-width:\s*48rem/;
 
@@ -103,7 +103,7 @@ describe("POINTER_COARSE_QUERY stays the one pointer-capability literal", () => 
     expect(source).toContain("useIsCoarsePointer");
   });
 
-  it("keeps exactly ONE width literal in the hook (DESKTOP_QUERY; the chrome axis stays width-only)", () => {
+  it("keeps exactly one width literal in the hook, so the chrome axis stays width-only", () => {
     const widthLiterals = source.match(/min-width:/g) ?? [];
     expect(
       widthLiterals,

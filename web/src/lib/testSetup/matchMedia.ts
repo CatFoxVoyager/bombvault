@@ -5,7 +5,7 @@
 // getResolvedTheme()/onSystemThemeChange(); plus lib/useMediaQuery.ts during
 // the Layout render; call it the moment the component they serve mounts.
 // This module is wired via test.setupFiles in vitest.config.ts and landed in
-// the same change as useMediaQuery (the coupling is deliberate): the first
+// the same change as useMediaQuery, which it is coupled to on purpose: the first
 // suite that renders the real Layout in jsdom (app/Layout.displayPrefs
 // .dom.test.tsx) would otherwise throw "window.matchMedia is not a function"
 // the moment the chrome switch hooks in.

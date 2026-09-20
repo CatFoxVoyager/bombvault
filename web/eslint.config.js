@@ -1,4 +1,5 @@
-// ESLint flat config for `npm run lint` (`eslint src`): @eslint/js and
+// ESLint flat config for `npm run lint` (src, the e2e specs and the
+// Playwright config): @eslint/js and
 // typescript-eslint recommended, without type information (type-aware linting
 // would pull the whole DOM lib into the lint program), plus react-hooks.
 //

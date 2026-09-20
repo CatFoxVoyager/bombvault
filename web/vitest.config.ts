@@ -11,7 +11,7 @@ export default defineConfig({
     // Guarded desktop-default matchMedia stub (jsdom has none, and
     // lib/useMediaQuery.ts subscribes during the Layout render). It is
     // guarded for node-env suites and must land in the same change as
-    // useMediaQuery — see src/lib/testSetup/matchMedia.ts's header for the
+    // useMediaQuery; see src/lib/testSetup/matchMedia.ts's header for the
     // guard, the desktop default, and the coupling.
     setupFiles: ["src/lib/testSetup/matchMedia.ts"],
   },

@@ -2,8 +2,9 @@
 // ---------------------------------------------------------------------------
 // Activity log line structure at phone width.
 //
-// The assertion is structural, deliberately (#2043: an overflow metric on the
-// element itself passes vacuously when the element grows with its content).
+// The assertion is structural rather than a measurement: an overflow metric
+// on the element itself passes vacuously, because the element grows with its
+// content.
 // At phone width every log line is two stacked blocks: the fixed prefix (date
 // + clock + glyph + domain) on the first line, the message on its own
 // full-width line below, so the message column is never as narrow as the

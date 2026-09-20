@@ -107,7 +107,7 @@ export function useConfirm() {
   // An ancestor with a CSS transform (e.g. .glim-page-enter) would confine a
   // position: fixed backdrop to its own box, so the dialog goes to <body>.
   //
-  // The sheet branch deliberately does not attach dialogRef: the ref drives
+  // The sheet branch does not attach dialogRef: the ref drives
   // this hook's Tab trap, and BottomSheet already runs its own (same
   // FOCUSABLE_SELECTOR lift) over the panel; leaving the ref null makes the
   // trap below a no-op instead of fighting the sheet's. Escape fires from

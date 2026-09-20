@@ -6,14 +6,14 @@
 // pinned to Tailwind's md breakpoint (`--breakpoint-md: 48rem`,
 // node_modules/tailwindcss/theme.css) by src/lib/useMediaQuery.test.ts's
 // source assert. It must never be copied: Layout's chrome switch (the
-// Sidebar <-> bottom-bar + More-sheet decision) is the only consumer for now,
-// and the CSS side keeps using `md:`/`max-md:` variants. A second js
+// Sidebar against bottom-bar and More sheet) is its only consumer, and the
+// CSS side uses the `md:`/`max-md:` variants. A second js
 // literal somewhere else would let the js chrome flip at one width while the
 // CSS variants flip at another, flickering both chrome systems in the 1px
 // window where they disagree; the fragile-pair discipline lib/theme.ts
 // documents for its index.html duplicate, applied to the breakpoint.
 //
-// POINTER_COARSE_QUERY is a different axis and deliberately independent of
+// POINTER_COARSE_QUERY is a different axis and stays independent of
 // the width one: it answers "does the primary input lack a fine pointer"
 // (touch), not "is the window wide". Width decides which chrome mounts
 // (Layout's Sidebar vs bottom bar); pointer capability decides interaction
@@ -117,7 +117,7 @@ function subscribeCoarse(onChange: () => void): () => void {
 
 function getCoarseSnapshot(): boolean {
   const mql = currentCoarseMql();
-  // Pointer default when matchMedia is unavailable; deliberately the
+  // Pointer default when matchMedia is unavailable; the
   // opposite of getSnapshot above: jsdom (and the windowless server snapshot)
   // answer no coarse-pointer query, and every existing dom test was written
   // against the pointer tree, so the falsy answer keeps those suites on the

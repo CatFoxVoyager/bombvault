@@ -25,7 +25,7 @@ const MESSAGE = "Delete container plex and everything in it? This cannot be undo
 // per-test re-stub of window.matchMedia can never reach an already-created
 // list. This stub is installed before the file's first render (beforeEach),
 // so the hook caches these objects for the file's lifetime; the Map is
-// deliberately never cleared between tests for the same reason. Flipping
+// never cleared between tests for the same reason. Flipping
 // desktopMatches mutates the same objects the hook still reads (matches is
 // a live getter) and setDesktopWidth() fires the change listeners; the
 // exact sequence a real browser resize produces, including the
@@ -258,7 +258,7 @@ describe("useConfirm presentation swap", () => {
     expect(document.activeElement).toBe(trigger);
   });
 
-  it("a width flip WHILE pending swaps the presentation without losing the request", async () => {
+  it("a width flip while a request is pending swaps the presentation without losing it", async () => {
     const results: boolean[] = [];
     render(<ConfirmHarness results={results} />);
     fireEvent.click(screen.getByRole("button", { name: "trigger" })); // opens as the desktop card

@@ -224,7 +224,7 @@ describe("RunDetailSheet", () => {
     expect(verify.className).toContain("min-h-[2.75rem]");
   });
 
-  it("restore entry sits in the scroll body BEFORE the footer rows, never accent", () => {
+  it("restore entry sits in the scroll body ahead of the footer rows, never accent", () => {
     const { container } = renderSheet(DONE_RUN);
     const restore = screen.getByRole("button", { name: en["snapshots.restore"] });
     // Secondary/tonal: the neutral surface token, and no accent anywhere.
@@ -383,8 +383,9 @@ describe("RunDetailSheet", () => {
   // The progress key is the run name (run.target), never the 32-hex row id
   // (run.targetId): the backend records vm/files runs under the row id but
   // publishes SSE under "vm:"+name / "files:"+set.Name (internal/api/service.go).
-  // These two pins keep the sheet's lookup on the published side of that split
-  //; a regression to targetId would leave both bars dead (no frame matches).
+  // These two pins keep the sheet's lookup on the published side of that
+  // split: a lookup by targetId would leave both bars dead, since no frame
+  // matches.
   it("vm live run: the channel resolves under the run NAME; a 32-hex targetId keys nothing", () => {
     vi.useFakeTimers();
     renderSheet(

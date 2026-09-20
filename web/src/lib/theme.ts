@@ -34,7 +34,7 @@ export function getResolvedTheme(): ResolvedTheme {
 }
 
 // The browser-chrome color (mobile address bar / task switcher) per resolved
-// theme; mirrors --carbon-bg's dark/light values. PAIRED with index.html's
+// theme; mirrors --carbon-bg's dark/light values, paired with index.html's
 // static <meta name="theme-color" content="#161616"> fallback the same way
 // this file's STORAGE_KEY/resolution logic is paired with index.html's inline
 // FOUC script (see the header above: "Keep the two in sync"): the static value

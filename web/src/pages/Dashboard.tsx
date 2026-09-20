@@ -2217,34 +2217,27 @@ function worstRpoLabel(t: ReturnType<typeof useT>["t"], health: "overdue" | "war
 }
 
 /**
- * When the next backup actually fires, from the scheduler ([545], issue #187).
- * ------------------------------------------------------------------------
- * The note that used to sit in SummaryTier said "there is no next-run
- * timestamp on the backend and no client-side cron calculator", and it had
- * outlived its truth: GET /api/schedule/next has existed for a while, the
- * activity log a few hundred pixels below already reads it, and so does the
- * Unraid widget. The desktop cell was the last consumer still deriving the
- * answer itself, by ranking cadence strings on an approximate period.
+ * When the next backup actually fires, taken from the scheduler rather than
+ * derived here (issue #187).
  *
- * The approximation could not be made right, only less wrong. It ranks
- * "weekly Sun 04:00" as seven days out whatever today is, and it cannot walk
- * an `everyN` entry through its due gate, so an `everyN 7` pass that last ran
- * three days ago is four days out to the scheduler and seven to this tile.
- * Two issues came out of that (#177, #186), both patched by teaching the
- * weaker mechanism about the case rather than retiring it. This retires it.
+ * Ranking cadence strings on an approximate period cannot be made right, only
+ * less wrong: it reads "weekly Sun 04:00" as seven days out whatever today
+ * is, and it cannot walk an `everyN` entry through its due gate, so an
+ * `everyN 7` pass that last ran three days ago is four days out to the
+ * scheduler and seven to the tile. Two issues came out of that (#177, #186).
+ * GET /api/schedule/next answers the question directly, and the activity log
+ * and the Unraid widget already read it.
  *
- * The result names a moment rather than a schedule, which is jdp's call at
- * the review: "Täglich um 05:00" describes a rule, and the question a
- * dashboard is asked is when the next one runs. Filtered to job "backup";
- * the list also carries offsite/drill/tamper/digest/watchdog fires, and this
- * is labelled "Next backup".
+ * The result names a moment rather than a schedule: "Täglich um 05:00"
+ * describes a rule, and what a dashboard is asked is when the next one runs.
+ * Filtered to job "backup", since the list also carries the offsite, drill,
+ * tamper, digest and watchdog fires.
  *
- * The gate main learned in #177/#186, carried over: the scheduler registers
- * the "Backup Everything" pass even when all five domains are switched off,
- * because its entry has no off field of its own. A pass over zero enabled
- * domains backs nothing up (internal/api/everything.go logs exactly that and
- * writes no snapshot), so without this condition the result names a moment at
- * which nothing gets backed up.
+ * The scheduler registers the "Backup Everything" pass even when all five
+ * domains are switched off, because its entry has no off field of its own. A
+ * pass over zero enabled domains backs nothing up (internal/api/everything.go
+ * logs exactly that and writes no snapshot), so without the domain condition
+ * the result would name a moment at which nothing gets backed up.
  */
 function nextBackupFireAt(
   scheduleNext: ScheduleNext[],
@@ -3151,8 +3144,8 @@ export function Dashboard() {
             Badge, for the reason already recorded below: its background
             legitimately flips between two states, and Badge's icon-only
             tone="active" is unconditionally accent-filled. IconTipButton
-            takes the className verbatim, so both states survive byte-identical
-           ; only the tooltip mechanism changes. `aria-pressed` is threaded
+            takes the className verbatim, so both states survive
+            byte-identical and only the tooltip mechanism changes. `aria-pressed` is threaded
             through IconTipButton's new optional prop so the toggle state is
             not lost in the swap (this is a toggle, not a one-shot action).
               32px and `rounded-control` are unchanged, so it still matches

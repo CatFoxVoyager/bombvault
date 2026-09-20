@@ -5,7 +5,7 @@
 // Sidebar's header comment says the rail derives from the one ordered nav
 // registry (lib/navModel.ts), but the rail still evaluates its own hand-written
 // NavItem JSX (with a nextHue() counter and inline settings gates, which is the
-// part the registry deliberately cannot own; see navModel.ts's header). Two
+// part the registry cannot own; see navModel.ts's header). Two
 // lists describing one navigation is exactly the drift the registry exists to
 // kill, so this file pins the two together: whatever Sidebar renders must equal
 // destinations(settings) filtered to enabled; same routes, same order, same

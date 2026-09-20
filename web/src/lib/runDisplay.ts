@@ -1,18 +1,15 @@
 // ---------------------------------------------------------------------------
-// Run display; the shared run-presentation helpers; extracted from the Dashboard page.
+// Run display; the shared run-presentation helpers.
 //
-// Six helpers moved verbatim out of src/pages/Dashboard.tsx: the run
-// kind/target label pair (runDomainLabel, runKindLabel, isDomainOpRunKind,
-// runTargetText) and the status chip pair (statusTone, statusLabel). Zero
-// behavior change, zero copy change; the bodies, their load-bearing comments
-// and their exact i18n keys are the same bytes that used to live one layer
-// up; only the home moved.
+// Six helpers: the run kind and target labels (runDomainLabel, runKindLabel,
+// isDomainOpRunKind, runTargetText) and the status chip pair (statusTone,
+// statusLabel).
 //
 // Why a lib at all: the RunDetailSheet renders the same
 // kind/target title and the same status Badge the dashboard's RunsCard
 // renders. A second copy of these helpers inside a component would be a
 // forked vocabulary; the exact drift this extraction exists to prevent;
-// so the extraction is the deliberate alternative, and the dashboard keeps
+// so a shared module is the alternative, and the dashboard keeps
 // compiling against the same functions from their new home.
 //
 // Layering note; the one import from components/ is type-only:
@@ -120,56 +117,30 @@ export function runTargetText(t: ReturnType<typeof useT>["t"], run: Run): string
 }
 
 // ---------------------------------------------------------------------------
-// Status chip; statusTone maps a raw status string to the shared Badge's
-// tone; statusLabel (defined right after it) maps that same string to
-// translated, badge-length text. Every call site renders both together;
-// `<Badge tone={statusTone(s)}>{statusLabel(s, t)}</Badge>`; instead of the
-// tone alone.
+// Status chip. statusTone maps a raw status string to the shared Badge's
+// tone, statusLabel maps the same string to translated, badge-length text,
+// and every call site renders the pair together:
+// `<Badge tone={statusTone(s)}>{statusLabel(s, t)}</Badge>`. A Badge given
+// only the tone prints the backend's English word, which is what
+// `run.statusRunning`, `run.statusSuccess` and `run.statusFailed` exist for
+// in all 42 locales. chipFor, chipForRpo and protectionChip below return this
+// file's own derived vocabulary rather than backend text, so they are
+// translated the same way.
 //
-// The translation fix: before it, every one of these Badges rendered the raw
-// English status word verbatim (`{overallStatus}` / `{chipFor(c)}` /
-// `{chipForRpo(...)}` / `{protectionChip(...)}` / `{run.status}` /
-// `{newestRun.status}`); the exact untranslated-badge-text bug class an
-// earlier fix had already repaired for SpikePanel.tsx's ok/fail/info chips, sitting the
-// whole time right next to an already-translated sibling label
-// (overallLabel/rpoLabel/protLabel/healthLabel) that made the raw word's
-// presence obvious on close reading. A prior version of this exact comment
-// claimed the opposite; that showing the raw word was deliberate because
-// "these are backend-sourced run-status words, not prose to translate"; but
-// that rationale doesn't hold: `run.statusRunning`/`Success`/`Failed` already
-// existed as real, fully-translated keys in all 42 locales (added for this
-// exact fix, then never wired up), and `chipFor`/`chipForRpo`/`protectionChip`
-// below don't return backend text at all; they're this file's own derived
-// vocabulary. The fifth-hue fix only ever touched statusTone's tone mapping,
-// never what the Badge's children rendered, so the bug (and the incorrect
-// comment defending it) survived that fix untouched.
-//
-// Known limitation, documented on purpose (see index.css's matching comment
-// on --status-warn-text's dark value for the full writeup): tone="warn" and
-// tone="active" render as near-identical amber in both themes; dark with
-// the default accent (#f1c21b vs #FCC419, RGB-distance ~11, 1.05:1 between
-// them), and light on a gold accent, where --accent-text mixes down to roughly
-// the same hue as the warn tone (#8e6a00 against about #71580b on the default
-// Sunflower). It no longer holds for every accent: the token is derived from
-// the accent now, so a blue or teal one separates the two by hue on its own.
-// SummaryTier below is a real, live site where both can appear in the same
-// row at once; the "Overall health" cell showing tone="warn" (an RPO
-// lapsing) next to "Last result" showing tone="active" (a run literally
-// running). Not a bare SC 1.4.1 violation (each badge's own text still
-// differs), but a real glance-level regression.
-// The mitigation is the same in both themes now: the presets that are not
-// gold or yellow do not collide, because --accent-text follows whichever
-// accent the user picked in light theme as well. Only a gold accent still
-// lands beside the warn tone, which is where this note started.
-// Left unresolved rather than force a disproportionate fix (recolouring warn off Carbon's
-// actual yellow token, changing the app's default accent, or adding a new
-// icon system to Badge all reach well past a contrast-arithmetic bugfix);
-// left flagged for whoever picks it up next. The focus-system fix was checked against this,
-// since it also works the hue-vs-accent boundary via [data-rainbow]
-// .glim-hue's --item-hue-ring; no shared fix: that mechanism only ever
-// touches outline colour on :focus-visible, never badge fill/text colour,
-// so it doesn't reach statusTone's tone="warn"/tone="active" at all. Still
-// open for whichever task picks it up next.
+// Known limitation, documented on purpose (index.css's comment on
+// --status-warn-text's dark value carries the full writeup): tone="warn" and
+// tone="active" render as near-identical amber wherever the accent is gold or
+// yellow. Dark with the default accent puts them an RGB distance of about 11
+// apart (#f1c21b against #FCC419, 1.05:1 between them), and light on a gold
+// accent mixes --accent-text down to roughly the warn hue (#8e6a00 against
+// about #71580b on the default Sunflower). SummaryTier is a live site where
+// both can sit in one row: "Overall health" on tone="warn" for a lapsing RPO
+// beside "Last result" on tone="active" for a run that is going. Each badge's
+// own text still differs, so this is not an SC 1.4.1 violation, but it is a
+// glance-level one. Any other accent separates the two by hue, because
+// --accent-text is derived from the accent the user picked. Recolouring warn
+// off Carbon's yellow token, changing the default accent or giving Badge an
+// icon system all reach well past a contrast fix, so it stays as it is.
 // ---------------------------------------------------------------------------
 
 export function statusTone(status: string): BadgeTone {

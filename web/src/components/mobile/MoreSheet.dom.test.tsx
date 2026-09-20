@@ -93,7 +93,7 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-describe("MoreSheet rows are the ONE registry", () => {
+describe("MoreSheet rows come from the one registry", () => {
   it("lists exactly moreDestinations(settings), in registry order", () => {
     draw({ settings: VMS_FLASH_ON });
     const labels = within(sheet())
@@ -104,8 +104,8 @@ describe("MoreSheet rows are the ONE registry", () => {
 
   it("hides gated tabs like the desktop Sidebar and never shows bar destinations", () => {
     draw({ settings: null, authEnabled: false });
-    // null settings = every gate off: only the always-on Settings row remains
-    //; Recovery rides the phone bar, the gated tabs are off.
+    // null settings = every gate off, so only the always-on Settings row
+    // remains: Recovery rides the phone bar and the gated tabs are off.
     expect(within(sheet()).getAllByRole("link").map((row) => row.textContent)).toEqual(["Settings"]);
     // Bar members (dashboard/containers/recovery on a fresh DB) are the
     // bottom bar's slots; a second copy of them here would be the exact
@@ -147,7 +147,7 @@ describe("MoreSheet rotation continuity", () => {
 });
 
 describe("MoreSheet active row accents (the Interaction Contract)", () => {
-  it("FILLS the current route's row and not the others (the same filled idiom as the bar)", () => {
+  it("fills the current route's row and not the others, the bar's own idiom", () => {
     draw({ settings: VMS_FLASH_ON, path: "/vms" });
     const active = within(sheet()).getByRole("link", { name: /vms/i });
     expect(active.className).toContain("bg-accent");
@@ -215,7 +215,7 @@ describe("MoreSheet sign-out (the desktop mechanism, muted, last)", () => {
     expect(out.querySelector("svg")).not.toBeNull();
   });
 
-  it("signs out and reloads with NO confirmation anywhere in the flow", async () => {
+  it("signs out and reloads without asking anywhere in the flow", async () => {
     draw({ authEnabled: true });
     // One click, no dialog between: logout fires (best-effort) and the
     // reload that puts the login screen back happens immediately after.

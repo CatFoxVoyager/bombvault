@@ -4,7 +4,7 @@
 // The mobile chrome (bottom bar, More sheet) derives its destinations from
 // this list. The desktop rail still evaluates its own hand-written NavItem
 // JSX (its render-order hue counter and inline settings gates are the part
-// this registry deliberately cannot own), so the rail and the registry are
+// this registry cannot own), so the rail and the registry are
 // two listings of one navigation, held equal by test rather than by
 // construction: Sidebar.navModel.dom.test.tsx renders the rail and compares
 // it against destinations(settings) filtered to enabled; any divergence on
@@ -35,7 +35,7 @@
 // `barDestinations`/`moreDestinations` filter derivations below; one list,
 // so the surfaces' relative order is structural, never maintained twice.
 //
-// One deliberate import exception (flagged here because it is load-bearing):
+// One import exception, flagged here because it is load-bearing:
 // this lib module imports the glyph components from ../components/navGlyphs.
 // The registry must be the single source of label and icon data (that is the
 // point of extracting it; the Sidebar footer lookup and the mobile chrome
@@ -96,8 +96,8 @@ export interface NavDestination {
  *
  * `settings` is Sidebar's own prop type, `Settings | null`: null (or any
  * missing gate field; Sidebar's dom tests pass partial fixtures) means the
- * gate is off, exactly matching the `?? false` defaults the Sidebar used to
- * compute inline before this registry existed.
+ * gate is off, matching the `?? false` defaults the Sidebar applies to the
+ * same fields.
  */
 export function destinations(settings: Settings | null): NavDestination[] {
   return [
