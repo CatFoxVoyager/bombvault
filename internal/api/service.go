@@ -7138,16 +7138,42 @@ func (s *Service) StartRestore(ctx context.Context, name, snapshotID, source str
 	return true, nil
 }
 
-// Snapshots lists the snapshots for a single container. The containers repo is
-// shared across all containers, so snapshots are filtered by the
-// `container:<name>` tag the backup writes — otherwise the restore UI for one
-// container would list (and could restore) another container's snapshots.
-// LatestContainerBackupTimes returns, per container name, the unix time of its
-// NEWEST local snapshot (read from the container:<name> tag). It gives an orphan
-// row a real "last backup" date when its target was rebuilt by Discover and so
-// has NO run record — which would otherwise read "Never" even though the
-// container clearly still has backups in the repo (#44). One snapshot listing.
+// LatestContainerBackupTimes returns, per container name, the unix time of the
+// newest backup that name owns. A card's date is read from here rather than
+// from the run history, so it agrees with the list of backups under it: an
+// entry rebuilt by Discover has no run at all (#44), and a run stays with the
+// entry while a backup stays with the name it was written under.
 func (s *Service) LatestContainerBackupTimes(ctx context.Context) (map[string]int64, error) {
+	// When the targets cannot be read nothing folds, and each old name keeps
+	// its own date.
+	idToName := map[string]string{}
+	if targets, tErr := s.store.ListTargets(); tErr != nil {
+		log.Printf("api: last-backup times: listing targets for alias fold: %v; leaving every tag as its own identity", tErr)
+	} else {
+		for _, t := range targets {
+			idToName[t.ID] = t.ContainerName
+		}
+	}
+	return s.latestBackupTimes(ctx, "containers", "container", idToName)
+}
+
+// LatestVMBackupTimes is LatestContainerBackupTimes for the VMs domain.
+func (s *Service) LatestVMBackupTimes(ctx context.Context) (map[string]int64, error) {
+	idToName := map[string]string{}
+	if targets, tErr := s.store.ListVMTargets(); tErr != nil {
+		log.Printf("api: last-backup times: listing VM targets for alias fold: %v; leaving every tag as its own identity", tErr)
+	} else {
+		for _, t := range targets {
+			idToName[t.ID] = t.Name
+		}
+	}
+	return s.latestBackupTimes(ctx, "vms", "vm", idToName)
+}
+
+// latestBackupTimes reads one snapshot listing per repository of domain and
+// keeps, per name, the newest time under that name's tag. idToName carries the
+// current name of every entry, for the alias fold.
+func (s *Service) latestBackupTimes(ctx context.Context, domain, aliasDomain string, idToName map[string]string) (map[string]int64, error) {
 	settings, err := s.store.GetSettings()
 	if err != nil {
 		return nil, fmt.Errorf("read settings: %w", err)
@@ -7163,21 +7189,12 @@ func (s *Service) LatestContainerBackupTimes(ctx context.Context) (map[string]in
 	// caller that CHANGES something reports its skips; the two that do not are
 	// this one and repoSharedWithAnotherDomain, which asks a yes/no question and
 	// answers "shared" when it cannot tell.
-	repos, _, err := s.domainReposInUse(settings, "containers")
+	repos, _, err := s.domainReposInUse(settings, domain)
 	if err != nil {
 		return nil, err
 	}
+	prefix := aliasDomain + ":"
 	out := make(map[string]int64)
-	// When the targets cannot be read nothing folds, and each old name keeps
-	// its own date.
-	idToName := map[string]string{}
-	if targets, tErr := s.store.ListTargets(); tErr != nil {
-		log.Printf("api: last-backup times: listing targets for alias fold: %v; leaving every tag as its own identity", tErr)
-	} else {
-		for _, t := range targets {
-			idToName[t.ID] = t.ContainerName
-		}
-	}
 	for _, repo := range repos {
 		if localRepoMissing(repo.Loc) {
 			continue
@@ -7187,10 +7204,10 @@ func (s *Service) LatestContainerBackupTimes(ctx context.Context) (map[string]in
 		// own credentials could not be listed at all - and the dashboard then said
 		// it had never been backed up, which is the most alarming sentence a backup
 		// tool has.
-		all, lErr := s.listSnapshots(ctx, repo.Loc, s.primaryModeFor(settings, "containers", repo.Loc))
+		all, lErr := s.listSnapshots(ctx, repo.Loc, s.primaryModeFor(settings, domain, repo.Loc))
 		if lErr != nil {
 			// One unreachable repository must not blank the whole column: the
-			// other containers' times are still true. The item whose repo this
+			// other entries' times are still true. The item whose repo this
 			// is shows as never backed up, which is the honest answer when its
 			// repository cannot be read.
 			log.Printf("api: last-backup times: repository unreadable, skipping: %v", lErr)
@@ -7203,7 +7220,7 @@ func (s *Service) LatestContainerBackupTimes(ctx context.Context) (map[string]in
 			}
 			unix := ts.Unix()
 			for _, tag := range snap.Tags {
-				name, ok := strings.CutPrefix(tag, "container:")
+				name, ok := strings.CutPrefix(tag, prefix)
 				if !ok || name == "" {
 					continue
 				}
@@ -7211,8 +7228,8 @@ func (s *Service) LatestContainerBackupTimes(ctx context.Context) (map[string]in
 				// from before the link is the renamed entry's and counts for its
 				// current name, whoever holds the old name today; a later one
 				// stays under the old name.
-				if a, aErr := s.store.AliasByOldName("container", name); aErr == nil {
-					if cur := idToName[a.TargetID]; cur != "" && newAliasClaim("container:", a).claims(snap) {
+				if a, aErr := s.store.AliasByOldName(aliasDomain, name); aErr == nil {
+					if cur := idToName[a.TargetID]; cur != "" && newAliasClaim(prefix, a).claims(snap) {
 						name = cur
 					}
 				}
@@ -8137,6 +8154,10 @@ func scrubSafeName(name string) string {
 	return strings.Join(strings.Fields(r.Replace(name)), " ")
 }
 
+// Snapshots lists the snapshots of a single container. The containers
+// repository is shared, so the listing is filtered by the container:<name> tag
+// the backup writes: otherwise the restore panel of one container would list,
+// and could restore, another's snapshots.
 func (s *Service) Snapshots(ctx context.Context, name, source string) ([]restic.Snapshot, error) {
 	return s.containerSnapshotsOf(ctx, name, source, s.containerIdentity(name))
 }
@@ -10579,6 +10600,21 @@ func (s *Service) ListVMs(ctx context.Context) ([]VMView, error) {
 		}
 	}
 
+	// One listing dates every row and tells the rename pass whether a live VM
+	// has backups under its own name; a failed read keeps that pass from
+	// guessing, as on the container list. With no VM and no entry there is
+	// nothing to date.
+	var snapTimes map[string]int64
+	snapTimesFailed := false
+	if len(infos) > 0 || len(targets) > 0 {
+		if m, sErr := s.LatestVMBackupTimes(ctx); sErr != nil {
+			log.Printf("api: list vms: latest backup times: %v", sErr)
+			snapTimesFailed = true
+		} else {
+			snapTimes = m
+		}
+	}
+
 	views := make([]VMView, 0, len(infos)+len(targets))
 	viewIndex := make(map[string]int, len(infos)) // live rows only
 	hasOwnBackup := make(map[string]bool, len(infos))
@@ -10589,7 +10625,7 @@ func (s *Service) ListVMs(ctx context.Context) ([]VMView, error) {
 			displayName = vm.FriendlyName
 		}
 		v := VMView{Name: displayName, LibvirtName: vm.Name, State: vm.State, Method: "graceful", AliasConflicts: []string{}, Aliases: []string{}}
-		own := false
+		var run *store.Run
 		if t, ok := byName[vm.Name]; ok {
 			v.AliasConflicts = aliasConflicts.of(t.ID)
 			v.Aliases = formerNames.of(t.ID)
@@ -10597,12 +10633,10 @@ func (s *Service) ListVMs(ctx context.Context) ([]VMView, error) {
 			v.IncludeInSchedule = t.IncludeInSchedule
 			v.ScheduleCadence = t.ScheduleCadence
 			v.Repo = t.Repo
-			if run, _ := s.store.LastSuccessfulBackup(t.ID); run != nil {
-				v.LastBackup = run.FinishedAt
-				v.LastBackupStarted = &run.StartedAt
-				own = true
-			}
+			run, _ = s.store.LastSuccessfulBackup(t.ID)
 		}
+		v.LastBackup, v.LastBackupStarted = lastBackupDate(vm.Name, run, snapTimes, snapTimesFailed)
+		own := v.LastBackup != nil
 		hasOwnBackup[vm.Name] = own
 		if !own {
 			needsRenameSuggestion = true
@@ -10613,7 +10647,7 @@ func (s *Service) ListVMs(ctx context.Context) ([]VMView, error) {
 
 	// The match runs over every live domain to keep it one-to-one, so a VM
 	// with backups of its own can still come back matched and is skipped here.
-	for liveName, cand := range s.suggestVMRenames(ctx, infos, orphanTargets, needsRenameSuggestion) {
+	for liveName, cand := range s.suggestVMRenames(ctx, infos, orphanTargets, needsRenameSuggestion && !snapTimesFailed) {
 		if hasOwnBackup[liveName] {
 			continue
 		}
@@ -10626,10 +10660,8 @@ func (s *Service) ListVMs(ctx context.Context) ([]VMView, error) {
 	// Orphans: targets whose VM is not defined on the host.
 	for _, t := range orphanTargets {
 		v := VMView{Name: t.Name, LibvirtName: t.Name, State: "not-installed", Method: t.Method, IncludeInSchedule: t.IncludeInSchedule, ScheduleCadence: t.ScheduleCadence, Repo: t.Repo, AliasConflicts: aliasConflicts.of(t.ID), Aliases: formerNames.of(t.ID)}
-		if run, _ := s.store.LastSuccessfulBackup(t.ID); run != nil {
-			v.LastBackup = run.FinishedAt
-			v.LastBackupStarted = &run.StartedAt
-		}
+		run, _ := s.store.LastSuccessfulBackup(t.ID)
+		v.LastBackup, v.LastBackupStarted = lastBackupDate(t.Name, run, snapTimes, snapTimesFailed)
 		views = append(views, v)
 	}
 	return views, nil

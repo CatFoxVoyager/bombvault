@@ -11,6 +11,7 @@ import (
 	"github.com/junkerderprovinz/bombvault/internal/api"
 	"github.com/junkerderprovinz/bombvault/internal/config"
 	"github.com/junkerderprovinz/bombvault/internal/platform"
+	"github.com/junkerderprovinz/bombvault/internal/restic"
 	"github.com/junkerderprovinz/bombvault/internal/store"
 	"github.com/junkerderprovinz/bombvault/internal/virshcli"
 )
@@ -56,17 +57,26 @@ func vmRenameTestDomainXML(uuid string) string {
 
 const testVMUUID = "4a9b3fa1-4e77-4f2a-9c1f-2b6e9d1a7c33"
 
-// newRenameSuggestTestService wires a Service with the VMs domain enabled.
-func newRenameSuggestTestService(t *testing.T, st *store.Repo, v *renameSuggestVirsh) *api.Service {
+// newRenameSuggestTestService wires a Service with the VMs domain enabled and
+// a VM repository holding snaps, which is where a VM's own history is read.
+func newRenameSuggestTestService(t *testing.T, st *store.Repo, v *renameSuggestVirsh, snaps ...restic.Snapshot) *api.Service {
 	t.Helper()
 	dir := t.TempDir()
 	cfg := config.Config{AppKey: strings.Repeat("a", 64), DataDir: dir, HostMountRoot: dir}
 	s := mustSettings(t, st)
 	s.VMsEnabled = true
+	s.VMsPath = "backups/vms"
 	if err := st.UpdateSettings(s); err != nil {
 		t.Fatal(err)
 	}
-	return api.NewService(cfg, st, &fakeServiceDocker{}, v, &fakeResticEngine{})
+	establishLocalRepo(t, dir, s.VMsPath)
+	return api.NewService(cfg, st, &fakeServiceDocker{}, v, &fakeResticEngine{snaps: snaps})
+}
+
+// ownVMBackup is a snapshot under a VM's own name, the history a rename
+// suggestion must give way to.
+func ownVMBackup(name string) restic.Snapshot {
+	return restic.Snapshot{ID: "own-" + name, Time: "2024-05-01T00:00:00Z", Tags: []string{"vm:" + name, "p2"}}
 }
 
 // vmView finds the row for the given libvirt name, failing the test if it's
@@ -110,8 +120,7 @@ func TestListVMsSuggestsRenameFromLibvirtUUID(t *testing.T) {
 }
 
 // A live VM with a backup under its own name has its own history and is not a
-// rename candidate, even when its UUID matches a not-installed entry (as in
-// TestListContainersSuppressesRenameWhenLiveHasOwnRunRecord).
+// rename candidate, even when its UUID matches a not-installed entry.
 //
 // "unrelated" is a second live VM without backups. It keeps the suggestion
 // pass's gate open, so the test reaches the per-row filter instead of passing
@@ -121,15 +130,7 @@ func TestListVMsSuppressesRenameWhenLiveHasOwnBackup(t *testing.T) {
 	if _, err := st.UpsertVMTarget(store.VMTarget{Name: "windows-11", Method: "graceful", UUID: testVMUUID}); err != nil {
 		t.Fatal(err)
 	}
-	tg, err := st.UpsertVMTarget(store.VMTarget{Name: "win11", Method: "graceful"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	runID, err := st.StartRun(tg.ID, "backup")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := st.FinishRun(runID, "success", "deadbeef", 1024, ""); err != nil {
+	if _, err := st.UpsertVMTarget(store.VMTarget{Name: "win11", Method: "graceful"}); err != nil {
 		t.Fatal(err)
 	}
 	v := &renameSuggestVirsh{
@@ -142,7 +143,7 @@ func TestListVMsSuppressesRenameWhenLiveHasOwnBackup(t *testing.T) {
 			"unrelated": vmRenameTestDomainXML("ffffffff-ffff-ffff-ffff-ffffffffffff"),
 		},
 	}
-	svc := newRenameSuggestTestService(t, st, v)
+	svc := newRenameSuggestTestService(t, st, v, ownVMBackup("win11"))
 
 	views, err := svc.ListVMs(context.Background())
 	if err != nil {
@@ -162,22 +163,14 @@ func TestListVMsRenameSuggestionSkippedWhenAllLiveHaveOwnBackups(t *testing.T) {
 	if _, err := st.UpsertVMTarget(store.VMTarget{Name: "windows-11", Method: "graceful", UUID: testVMUUID}); err != nil {
 		t.Fatal(err)
 	}
-	tg, err := st.UpsertVMTarget(store.VMTarget{Name: "win11", Method: "graceful"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	runID, err := st.StartRun(tg.ID, "backup")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := st.FinishRun(runID, "success", "deadbeef", 1024, ""); err != nil {
+	if _, err := st.UpsertVMTarget(store.VMTarget{Name: "win11", Method: "graceful"}); err != nil {
 		t.Fatal(err)
 	}
 	v := &renameSuggestVirsh{
 		vms:       []virshcli.VMInfo{{Name: "win11", State: "running"}},
 		xmlByName: map[string]string{"win11": vmRenameTestDomainXML(testVMUUID)},
 	}
-	svc := newRenameSuggestTestService(t, st, v)
+	svc := newRenameSuggestTestService(t, st, v, ownVMBackup("win11"))
 
 	views, err := svc.ListVMs(context.Background())
 	if err != nil {

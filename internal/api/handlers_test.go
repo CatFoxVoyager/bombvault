@@ -410,11 +410,12 @@ func TestListContainersListsFormerNamesInLinkOrder(t *testing.T) {
 	}
 }
 
-// TestListContainersSuppressesRenameWhenLiveHasOwnRunRecord: a container with
-// backups under its own name is never a rename candidate, even when it matches
-// a not-installed entry on a hard signal. "unrelated" has no backups, so the
-// suggestion pass still runs and the per-row filter is what gets tested.
-func TestListContainersSuppressesRenameWhenLiveHasOwnRunRecord(t *testing.T) {
+// What counts as a container's own history is the backups it owns, not its run
+// records: radarr ran a successful backup here, but the repository holds
+// nothing under its name, so the match with a not-installed entry is offered.
+// "unrelated" has no backups either, so the suggestion pass still runs and the
+// per-row filter is what gets tested.
+func TestListContainersOffersARenameWhenTheRunsBackupIsGone(t *testing.T) {
 	d := &fakeServiceDocker{listOut: []dockercli.ContainerInfo{
 		{
 			Name: "radarr",
@@ -457,8 +458,8 @@ func TestListContainersSuppressesRenameWhenLiveHasOwnRunRecord(t *testing.T) {
 		t.Fatalf("list failed: %d %v", w.Code, m)
 	}
 	radarr := containerRow(t, m["containers"].([]any), "radarr")
-	if radarr["renameFrom"] != "" {
-		t.Fatalf("renameFrom = %v, want empty: radarr already has a successful run of its own", radarr["renameFrom"])
+	if radarr["renameFrom"] != "radarr-movies" {
+		t.Fatalf("renameFrom = %v, want radarr-movies: a run record is not a backup", radarr["renameFrom"])
 	}
 }
 

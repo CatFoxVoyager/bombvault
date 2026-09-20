@@ -634,21 +634,16 @@ func (h *Handler) handleListContainers(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// A Discover-rebuilt orphan has a fresh target id with no run record, so its
-	// run-based "last backup" is nil and would read "Never" despite having
-	// snapshots (#44); the newest snapshot's time stands in, listed only when an
-	// orphan exists. The same map tells the rename pass whether a live container
-	// has backups under its own name, and snapTimesFailed keeps that pass from
-	// guessing off a partial read.
+	// One listing dates every row and tells the rename pass whether a live
+	// container has backups under its own name; snapTimesFailed keeps that pass
+	// from guessing off a partial read.
 	var snapTimes map[string]int64
 	snapTimesFailed := false
-	if len(orphanTargets) > 0 {
-		if m, sErr := h.svc.LatestContainerBackupTimes(r.Context()); sErr != nil {
-			log.Printf("api: list containers: latest backup times: %v", sErr)
-			snapTimesFailed = true
-		} else {
-			snapTimes = m
-		}
+	if m, sErr := h.svc.LatestContainerBackupTimes(r.Context()); sErr != nil {
+		log.Printf("api: list containers: latest backup times: %v", sErr)
+		snapTimesFailed = true
+	} else {
+		snapTimes = m
 	}
 
 	views := make([]containerView, 0, len(infos)+len(targets))
@@ -668,7 +663,7 @@ func (h *Handler) handleListContainers(w http.ResponseWriter, r *http.Request) {
 			AliasConflicts: []string{},
 			Aliases:        []string{},
 		}
-		own := false
+		var run *store.Run
 		if t, ok := byName[c.Name]; ok {
 			v.AliasConflicts = aliasConflicts.of(t.ID)
 			v.Aliases = formerNames.of(t.ID)
@@ -683,17 +678,10 @@ func (h *Handler) handleListContainers(w http.ResponseWriter, r *http.Request) {
 			v.BackupOrder = t.BackupOrder
 			v.ScheduleCadence = t.ScheduleCadence
 			v.Repo = t.Repo
-			if run, _ := h.store.LastSuccessfulBackup(t.ID); run != nil {
-				v.LastBackup = run.FinishedAt
-				v.LastBackupStarted = &run.StartedAt
-				own = true
-			}
+			run, _ = h.store.LastSuccessfulBackup(t.ID)
 		}
-		if !own {
-			if ts, ok := snapTimes[c.Name]; ok && ts > 0 {
-				own = true
-			}
-		}
+		v.LastBackup, v.LastBackupStarted = lastBackupDate(c.Name, run, snapTimes, snapTimesFailed)
+		own := v.LastBackup != nil
 		hasOwnBackup[c.Name] = own
 		if !own {
 			needsRenameSuggestion = true
@@ -738,18 +726,33 @@ func (h *Handler) handleListContainers(w http.ResponseWriter, r *http.Request) {
 				v.Stack = def.Inspect.Config.Labels["com.docker.compose.project"]
 			}
 		}
-		if run, _ := h.store.LastSuccessfulBackup(t.ID); run != nil {
-			v.LastBackup = run.FinishedAt
-			v.LastBackupStarted = &run.StartedAt
-		} else if ts, ok := snapTimes[t.ContainerName]; ok && ts > 0 {
-			// No run record (Discover-rebuilt target) but snapshots exist → show the
-			// newest snapshot's time instead of "Never" (#44).
-			tsCopy := ts
-			v.LastBackup = &tsCopy
-		}
+		run, _ := h.store.LastSuccessfulBackup(t.ID)
+		v.LastBackup, v.LastBackupStarted = lastBackupDate(t.ContainerName, run, snapTimes, snapTimesFailed)
 		views = append(views, v)
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "containers": views})
+}
+
+// lastBackupDate is the newest backup name owns, so a card's date agrees with
+// the list of backups under it. The run stands in only while the repository
+// could not be listed, because an unreachable repository must not read as
+// "never backed up". The start time comes from the run that wrote that backup
+// and from no other, since the dashboard measures a duration from the pair.
+func lastBackupDate(name string, run *store.Run, times map[string]int64, unreadable bool) (finished, started *int64) {
+	if unreadable {
+		if run == nil {
+			return nil, nil
+		}
+		return run.FinishedAt, &run.StartedAt
+	}
+	ts, ok := times[name]
+	if !ok || ts <= 0 {
+		return nil, nil
+	}
+	if run != nil && run.FinishedAt != nil && run.StartedAt <= ts && ts <= *run.FinishedAt {
+		return &ts, &run.StartedAt
+	}
+	return &ts, nil
 }
 
 // aliasIndex holds former names by the ID of the entry they belong to.
