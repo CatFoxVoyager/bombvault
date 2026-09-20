@@ -70,7 +70,7 @@ import { BottomSheet } from "./BottomSheet";
 //     guided restore flow is not wired here; the entry restores the browse
 //     tree's selection in place (the desktop surfaces' files.restoreConfirm
 //     gate, restoreContainerFiles / restoreFileSetFiles) and with nothing
-//     selected opens the tree — the selection is the path's input. No deep
+//     selected opens the tree, since the selection is the path's input. No deep
 //     link into the wizard.
 //
 // Domain honesty; what each run kind gets:
@@ -88,7 +88,8 @@ import { BottomSheet } from "./BottomSheet";
 //     EventSource); on return the remount reconnects into the backend's
 //     snapshot replay, and completion arrives through the consumer's refetched
 //     run record; never extrapolated. The "everything" parent run streams no
-//     key of its own (its children do), so it shows terminal content only.
+//     key of its own, so it shows its children's lines: while it runs, every
+//     live key belongs to it.
 // ---------------------------------------------------------------------------
 export interface RunDetailSheetProps {
   /** The run to render. The consumer refetches it (listRuns) on visibility
@@ -231,13 +232,16 @@ function LiveRunSection({ run, progressKey }: { run: Run; progressKey: string | 
   // handing over the whole shared map made the sheet of one run list every
   // other run's live lines under its title: during a Backup Everything pass,
   // the "Backup · plex" sheet carried the VM, flash and folder lines too
-  // (maintainer #244 round 3, bug B2). The runs array was already scoped to
+  // under its title. The runs array was already scoped to
   // the one record, so history lines were never affected; only the map was.
   // The everything parent streams no key of its own (progressKeyFor returns
-  // null), so its slice is the empty map and its live section shows the
-  // progress bar alone.
+  // null) and owns every key that is live while it runs, since those are its
+  // children. It therefore keeps the whole map: slicing it to nothing would
+  // leave the one sheet the thumb-zone trigger deep-links into with no live
+  // content at all for the length of the pass.
   const entry = progressKey != null ? progressMap[progressKey] : undefined;
-  const ownMap: ProgressMap = entry && progressKey != null ? { [progressKey]: entry } : {};
+  const ownMap: ProgressMap =
+    progressKey == null ? progressMap : entry ? { [progressKey]: entry } : {};
   // Computed per render rather than memoized: the input is one run (the
   // builder is linear in runs), and the live tick re-renders this section
   // every second anyway. An idle "next up" line is dashboard-log furniture;
@@ -392,21 +396,22 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
   const [verifyError, setVerifyError] = useState<string | null>(null);
   // A check that resolves after the sheet closed must not write its outcome
   // onto whatever run the host shows next: "open a VM run, see the container
-  // repo's red failure line" (maintainer #244 round 3, bug B3). The refs are
+  // repo's red failure line". The refs are
   // runVerify's shape of the browse effect's `let cancelled` above: a ref,
   // because runVerify is a callback rather than an effect with a cleanup.
   // verifyCancelledRef is flipped by the close/run-swap effects below and
-  // re-checked after every await, before any setState. verifyInFlightRef is
-  // the busy guard the old state reset used to swallow: the reset effect
-  // puts verifyState back to "idle" on close, so the `verifyState === "busy"`
-  // check alone let a second check start beside the first after a
-  // close-and-reopen mid-check.
+  // re-checked after every await, before any setState.
+  //
+  // The busy state is the check's own, kept apart from verifyState, which the
+  // close resets: a check that outlives the sheet has to keep the row busy
+  // when the row comes back, or the row advertises itself as ready while the
+  // guard refuses the press. The server is doing the work either way.
   const verifyCancelledRef = useRef(false);
-  const verifyInFlightRef = useRef(false);
+  const [verifyBusy, setVerifyBusy] = useState(false);
 
   async function runVerify() {
-    if (!verifyDomain || verifyInFlightRef.current) return;
-    verifyInFlightRef.current = true;
+    if (!verifyDomain || verifyBusy) return;
+    setVerifyBusy(true);
     verifyCancelledRef.current = false;
     setVerifyState("busy");
     setVerifyError(null);
@@ -424,7 +429,7 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
       setVerifyState("fail");
       setVerifyError(err instanceof Error ? err.message : t("verify.failed"));
     } finally {
-      verifyInFlightRef.current = false;
+      setVerifyBusy(false);
     }
   }
 
@@ -435,13 +440,13 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
   // Round 1 shipped the row as a second toggle of the browse disclosure, so
   // two adjacent buttons promised a restore while one disclosure answered
   // for both, and pressing "Restore" with the tree open CLOSED it
-  // (maintainer #244 round 3, bug B6). Now the row restores the selection,
-  // and with nothing selected it only ever OPENS the tree — the selection is
+  // and pressing "Restore" with the tree open closed it. The row restores the selection,
+  // and with nothing selected it only ever opens the tree: the selection is
   // this path's input; it never closes it. The same cancel/in-flight ref
   // pair as the verify row above, for the identical reason: an ack landing
   // after a close must not paint the next run's sheet.
   const [restoring, setRestoring] = useState(false);
-  const [restoreResult, setRestoreResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const [restoreResult, setRestoreResult] = useState<{ started: boolean; text: string } | null>(null);
   const restoreCancelledRef = useRef(false);
   const restoreInFlightRef = useRef(false);
   const { confirm, confirmDialog } = useConfirm();
@@ -464,17 +469,24 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
           ? await restoreContainerFiles(run.target, run.snapshotId, paths, "", true)
           : await restoreFileSetFiles(run.targetId, run.snapshotId, paths, "", true);
       if (restoreCancelledRef.current) return;
-      if (res.ok) {
-        setRestoreResult({ ok: true, text: t("restore.restoredTo").replace("{path}", res.target ?? "") });
-      } else {
-        setRestoreResult({ ok: false, text: loadErrorMessage(res, t("files.loadFailed")) });
-      }
+      // The server runs the restore detached, so the ack says it started and
+      // nothing more. Claiming success here painted a green line over a
+      // restore that was still copying, and left it green when it failed. The
+      // outcome arrives where outcomes live: this sheet's own live section
+      // (the restore publishes under the same key) and the run list behind it.
+      setRestoreResult(
+        res.ok
+          ? { started: true, text: t("restore.started") }
+          : { started: false, text: loadErrorMessage(res, t("files.loadFailed")) }
+      );
     } catch (err) {
       if (restoreCancelledRef.current) return;
-      setRestoreResult({ ok: false, text: err instanceof Error ? err.message : t("files.loadFailed") });
+      setRestoreResult({ started: false, text: err instanceof Error ? err.message : t("files.loadFailed") });
     } finally {
       restoreInFlightRef.current = false;
-      if (!restoreCancelledRef.current) setRestoring(false);
+      // Unconditionally: the cancel ref already drops the result write, and
+      // leaving the flag set disabled the row for the life of the mount.
+      setRestoring(false);
     }
   }
 
@@ -521,17 +533,25 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
     setVerifyError(null);
     setFreshOk(false);
     setRestoreResult(null);
+    setRestoring(false);
     verifyCancelledRef.current = true;
     restoreCancelledRef.current = true;
   }, [open]);
 
-  // A run swap by the host (the single-mounted-sheet contract) cancels the
-  // same writes a close does: the outcome must never surface under the next
-  // run's title. The refs flip on the run's identity primitives, so a parent
-  // refetch that re-creates the Run object does not cancel anything.
+  // A run swap by the host (the single-mounted-sheet contract) clears the same
+  // things a close does: an outcome must never surface under the next run's
+  // title, and a check that was in flight at the swap must not leave the row
+  // reading "Checking…" for a run it was never about. Keyed on the run's
+  // identity, so a parent refetch that re-creates the Run object clears
+  // nothing.
   useEffect(() => {
     verifyCancelledRef.current = true;
     restoreCancelledRef.current = true;
+    setVerifyState("idle");
+    setVerifyError(null);
+    setVerifyBusy(false);
+    setRestoreResult(null);
+    setRestoring(false);
   }, [run.id]);
 
   if (!open) return null;
@@ -555,9 +575,9 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
 
   // No horizontal padding on either slot wrapper (footer below, body in the
   // JSX): the BottomSheet slots already inset-clamp every side to
-  // max(1rem, safe-area), so a wrapper px-4 doubled the edge to 32px — 16px
+  // max(1rem, safe-area), so a wrapper px-4 doubled the edge to 32px, which is 16px
   // past every other sheet surface, worse in landscape where the clamp has
-  // widened to the cutout (maintainer #244 round 3, bug B11). The inner
+  // widened to the cutout. The inner
   // rounded cards keep their own px-4: they inset from the slot, not from
   // the screen.
   const footerContent =
@@ -575,9 +595,9 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
           )}
           {verifyDomain && (
             <SheetActionRow
-              label={verifyState === "busy" ? t("integrity.checking") : t("integrity.verify")}
+              label={verifyBusy ? t("integrity.checking") : t("integrity.verify")}
               onClick={() => void runVerify()}
-              disabled={verifyState === "busy"}
+              disabled={verifyBusy}
               tone="neutral"
               hueIndex={1}
             />
@@ -714,7 +734,7 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
             sits away from the thumb's default path: a restore is a decision.
             The row restores the tree's selection in place behind the desktop
             confirm gate (restoreSelection above); it carries no
-            aria-expanded/aria-controls — the footer's Browse & restore row
+            aria-expanded/aria-controls: the footer's Browse & restore row
             is the section's one disclosure owner, and a second control
             answering "expanded" about a different action read as a
             duplicate disclosure to a screen reader. */}
@@ -727,13 +747,14 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
             hueIndex={2}
           />
         )}
-        {/* The restore's own result, adjacent to its control; the same
-            shape as the verify result below the footer rows. The restored
-            target is the server's resolved path from the ack. */}
+        {/* The restore's own line, adjacent to its control; the same shape as
+            the verify result below the footer rows. A started restore is
+            muted, not green: the tick belongs to the recorded run, which the
+            live section above and the run list behind the sheet both carry. */}
         {restoreResult != null && (
           <p
             className={`text-xs leading-relaxed wrap-break-word ${
-              restoreResult.ok ? "text-statusOk" : "text-statusFail"
+              restoreResult.started ? "text-carbon-textSub" : "text-statusFail"
             }`}
           >
             {restoreResult.text}

@@ -582,6 +582,19 @@ describe("RunDetailSheet", () => {
     expect(screen.queryByText(/flash/i)).toBeNull();
   });
 
+  it("the everything parent keeps the whole map, because those keys are its own children", () => {
+    vi.useFakeTimers();
+    // The parent publishes no key of its own, so a slice would leave the one
+    // sheet the thumb-zone trigger deep-links into blank for the whole pass.
+    renderSheet(makeRun({ domain: "everything", target: "", status: "running", finishedAt: null }));
+    act(() => {
+      instances[0].emit({ key: "container:plex", phase: "backup", percent: 10, active: true, startedAt: DONE_RUN.startedAt });
+      instances[0].emit({ key: "vm:win11", phase: "backup", percent: 30, active: true, startedAt: DONE_RUN.startedAt });
+    });
+    expect(screen.getByText(/win11/i)).toBeTruthy();
+    expect(screen.getByText(/plex/i)).toBeTruthy();
+  });
+
   // --- the verify write guard (bug B3, round 3) ------------------------------
 
   it("verify: the row disables for the flight and re-arms after the outcome", async () => {
@@ -630,6 +643,35 @@ describe("RunDetailSheet", () => {
     expect(screen.queryByText(en["verify.failed"])).toBeNull();
   });
 
+  it("a run swap with the sheet open clears the row and drops the check in flight", async () => {
+    const vmRun = makeRun({
+      id: "run-vm-swap",
+      domain: "vm",
+      target: "win11",
+      targetId: "a1b2c3d4e5f60718293a4b5c6d7e8f90",
+    });
+    const shape = (run: Run) => (
+      <I18nProvider>
+        <RunDetailSheet run={run} open onClose={() => {}} />
+      </I18nProvider>
+    );
+    const { rerender } = render(shape(DONE_RUN));
+    fireEvent.click(screen.getByRole("button", { name: en["integrity.verify"] }));
+    await act(async () => {});
+    expect(screen.getByRole("button", { name: en["integrity.checking"] })).toBeTruthy();
+
+    // The host swaps the run without closing: the sheet stays up, so the row
+    // has to come back ready rather than stuck on the previous run's check.
+    rerender(shape(vmRun));
+    expect(screen.getByRole("button", { name: en["integrity.verify"] })).toBeTruthy();
+    const check = apiControl.pending.find((e) => e.kind === "check")!;
+    await act(async () => {
+      check.resolve({ ok: false, error: "restic: repository is locked" });
+    });
+    expect(screen.queryByText("restic: repository is locked")).toBeNull();
+    expect(screen.getByRole("button", { name: en["integrity.verify"] })).toBeTruthy();
+  });
+
   // --- the restore row is a real restore path (bug B6, round 3) --------------
 
   it("restore: confirm gate, restore API called, the tree stays open, no disclosure semantics", async () => {
@@ -657,7 +699,7 @@ describe("RunDetailSheet", () => {
       .find((b) => b.closest("[role='dialog']") !== null);
     expect(confirmButton).toBeDefined();
 
-    // The tree is NOT toggled by the restore press (the round-3 bug: it
+    // The tree is not toggled by the restore press: it
     // used to close on press).
     expect(screen.getByRole("checkbox", { name: "/config/plex.ini" })).toBeTruthy();
 
@@ -670,8 +712,13 @@ describe("RunDetailSheet", () => {
     await act(async () => {
       post!.resolve({ ok: true, target: "/mnt/user/appdata/plex" });
     });
-    // The ack's resolved target is the outcome line, still over an open tree.
-    expect(screen.getByText("Restored to /mnt/user/appdata/plex")).toBeTruthy();
+    // The ack says the restore started, and the line says exactly that: the
+    // server copies detached, so a green "restored" here would be a claim the
+    // sheet cannot back. It renders muted, not in the success colour.
+    const started = screen.getByText(en["restore.started"]);
+    expect(started).toBeTruthy();
+    expect(started.className).toContain("text-carbon-textSub");
+    expect(started.className).not.toContain("text-statusOk");
     expect(screen.getByRole("checkbox", { name: "/config/plex.ini" })).toBeTruthy();
   });
 
@@ -693,13 +740,17 @@ describe("RunDetailSheet", () => {
 
   it("body and footer slots carry no px of their own; the BottomSheet clamp owns the insets", () => {
     renderSheet(DONE_RUN);
-    // The body slot: BottomSheet's scroll container.
-    const bodySlot = document.body.querySelector("div.overflow-y-auto") as HTMLElement;
+    // This sheet's own wrappers, not the primitive's: the primitive never had
+    // a px-4, so asserting on its scroll container and footer slot would hold
+    // whatever this file does. The body wrapper is the scroll container's one
+    // child; the footer wrapper is the one this sheet puts its rows in.
+    const bodySlot = (document.body.querySelector("div.overflow-y-auto") as HTMLElement)
+      .firstElementChild as HTMLElement;
     expect(bodySlot.className).not.toContain("px-4");
-    // The footer slot: the chrome-surface wrapper around the footer rows.
     const footerSlot = screen
       .getByRole("button", { name: en["integrity.verify"] })
-      .closest("div.bg-carbon-sidebar") as HTMLElement;
+      .closest("div.py-4") as HTMLElement;
+    expect(footerSlot).not.toBeNull();
     expect(footerSlot.className).not.toContain("px-4");
     // The inner rounded cards keep their own px-4: they inset from the slot,
     // not from the screen.

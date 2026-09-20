@@ -20,7 +20,7 @@
 //      has no desktop form, so it must not float over the desktop grid),
 //      while the thumb-zone trigger STAYS MOUNTED: unmounting it at the
 //      breakpoint killed the live watch mid-pass and stranded a running
-//      Backup Everything on rotation (maintainer #244 round 3, bug B4).
+//      Backup Everything on rotation.
 //
 // The page renders through the real components against a mocked api module
 // (only the read endpoints are stubbed; ApiError and every type stay the real
@@ -312,7 +312,7 @@ describe("Dashboard phone run sheet", () => {
     expect(within(after).queryByText(en["run.statusRunning"])).toBeNull();
   });
 
-  it("unmounts the sheet at the breakpoint while the trigger stays mounted, hidden", async () => {
+  it("takes the sheet and the phone bar out of the desktop tree at the breakpoint", async () => {
     const plex = makeRun({ id: "run-plex-2", target: "plex", status: "failed" });
     currentRuns = [plex];
     renderPage();
@@ -325,15 +325,13 @@ describe("Dashboard phone run sheet", () => {
     setDesktop(true);
     await act(async () => {});
 
-    // The sheet is gone (no desktop form)...
+    // Neither surface has a desktop form, and neither is merely hidden: the
+    // desktop tree carries no phone chrome, which is what the e2e
+    // desktop-untouched contract reads as absence in the DOM. That the watch
+    // itself rides across the flip is the round trip below.
     expect(screen.queryByRole("dialog")).toBeNull();
-    // ...but the trigger stays in the tree: unmounting it would kill the
-    // watch mid-pass (bug B4, round 3). Its bar is md:hidden, so a real
-    // desktop paints nothing; jsdom applies no CSS, so the observable form
-    // of "mounted but hidden" is presence + the bar's visibility gate class.
-    const trigger = screen.getByRole("button", { name: en["settings.everythingTitle"] });
-    const bar = trigger.closest(".md\\:hidden");
-    expect(bar).not.toBeNull();
+    expect(screen.queryByRole("button", { name: en["settings.everythingTitle"] })).toBeNull();
+    expect(document.querySelector("div.sticky.bottom-0")).toBeNull();
   });
 
   it("a pass fired on the phone survives the desktop round trip and deep-links again", async () => {

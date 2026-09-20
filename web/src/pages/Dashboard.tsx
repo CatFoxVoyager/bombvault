@@ -1243,7 +1243,7 @@ function RunsCard({
                 // from a failed read must not impersonate an answer. The
                 // desktop face grew this arm in de5e36ae's discipline; the
                 // phone glance kept the failed read reading as an empty
-                // history (maintainer #244 round 3, bug B1).
+                // history.
                 <p className="px-2 py-2 text-sm text-statusFail">{t("dashboard.loadRunsFailed")}</p>
               )}
               {!failed && recent.length === 0 && (
@@ -2511,19 +2511,19 @@ function NextRunCard({
 
 // ---------------------------------------------------------------------------
 // Phone thumb-zone trigger; the surface's one solid-accent control, and the
-// owner of the everything pass's fire-and-watch cycle. Mounted at EVERY
+// owner of the everything pass's fire-and-watch cycle. Mounted at every
 // width: unmounting it at 48rem killed the live watch the moment a phone
 // rotated to a landscape at or above the breakpoint (iPhone 15 is 852px,
 // Pixel 8 is 892px), and rotating back mounted a fresh hook in the idle
-// phase — the bar read ready while the pass was still running on the
-// server, with no sheet, no progress and no toast (maintainer #244 round 3,
-// bug B4). The desktop cost is bounded by the child itself: the bar is
-// md:hidden (painted below the breakpoint only), the confirm dialog exists
-// only while a confirm is pending, and what remains mounted is one idle
-// progress subscription in a leaf component — not a page re-render per SSE
+// phase: the bar read ready while the pass was still running on the
+// server, with no sheet, no progress and no toast. The desktop cost is
+// bounded by the child itself: the bar is not rendered above the
+// breakpoint, the confirm dialog exists only while a confirm is pending,
+// and what remains mounted is one idle
+// progress subscription in a leaf component, not a page re-render per SSE
 // frame. Phone behavior is unchanged from when the watch lived on the page
 // component: same watch args, confirm-first press, deep-link into the run
-// sheet via the page's latch, and terminal toasts (now at either width — a
+// sheet via the page's latch, and terminal toasts (at either width, since a
 // pass fired on a phone also reports its outcome after the rotation).
 // ---------------------------------------------------------------------------
 function PhoneEverythingTrigger({
@@ -2608,6 +2608,7 @@ function PhoneEverythingTrigger({
   // The question stands between the press and the POST; useConfirm answers it
   // in a sheet below the breakpoint and in the card above it. confirmKey makes
   // the commit button name the outcome with the trigger's own words.
+  const isDesktop = useIsDesktop();
   const { confirm, confirmDialog } = useConfirm();
   const confirmThenFire = useCallback(async () => {
     const ok = await confirm(t("home.newBackupConfirm"), {
@@ -2623,22 +2624,31 @@ function PhoneEverythingTrigger({
   // position:fixed. While the pass runs the button shows its busy spinner and
   // is disabled; a failed start also shakes (the glim-shake key remount,
   // Containers' Save-bar pattern).
+  //
+  // The bar is not rendered above the breakpoint, rather than hidden by CSS:
+  // the desktop tree carries no phone chrome at all, which is the contract
+  // Layout.tsx states for the Sidebar and the bar alike. The component itself
+  // stays mounted at every width, because that is what keeps the watch alive
+  // across a rotation; a pending confirmation also survives the flip, since
+  // useConfirm swaps the sheet for the card without dropping the promise.
   return (
     <>
-      <StickyActionBar className="md:hidden">
-        <Button
-          key={shake}
-          label={t("settings.everythingTitle")}
-          labelKey="settings.everythingTitle"
-          glyph={<IconBackupNow />}
-          tone="accent"
-          keepLabel
-          disabled={isPending}
-          busy={isPending}
-          onClick={() => void confirmThenFire()}
-          className={`w-full min-h-[2.75rem] justify-center${shake ? " glim-shake" : ""}`}
-        />
-      </StickyActionBar>
+      {!isDesktop && (
+        <StickyActionBar>
+          <Button
+            key={shake}
+            label={t("settings.everythingTitle")}
+            labelKey="settings.everythingTitle"
+            glyph={<IconBackupNow />}
+            tone="accent"
+            keepLabel
+            disabled={isPending}
+            busy={isPending}
+            onClick={() => void confirmThenFire()}
+            className={`w-full min-h-[2.75rem] justify-center${shake ? " glim-shake" : ""}`}
+          />
+        </StickyActionBar>
+      )}
       {confirmDialog}
     </>
   );
@@ -2688,8 +2698,8 @@ export function Dashboard() {
     // (watchOwnedRun, declared with displayedRun below): the run the user
     // just opened is the polled list's to refresh until a live watch tick
     // re-claims it, never the frozen record of a watch that has since
-    // stopped speaking about it (maintainer #244 round 3, bug B5).
-    watchOwnedRun.current = null;
+    // stopped speaking about it.
+    setWatchOwnedRun(null);
     setSheetRun(run);
     setSheetOpen(true);
   };
@@ -2708,7 +2718,7 @@ export function Dashboard() {
     lastCorrelatedRun.current = run.id;
     // This tick's record is the freshest statement about this run; the sheet's
     // resolution lets it outrank the slower page-list copy (see displayedRun).
-    watchOwnedRun.current = run.id;
+    setWatchOwnedRun(run.id);
     if (isNewCorrelation) {
       sheetDismissed.current = false; // new fire re-arms the deep-link
       fireArmed.current = false; // the arm is spent on its correlation
@@ -2780,23 +2790,38 @@ export function Dashboard() {
   // copy refreshes the tap-time record on the page's own cadence. Resolving
   // by id at render, not storing a frozen copy, is still the shape of it.
   // (Placed after the runs state it reads.)
-  const watchOwnedRun = useRef<string | null>(null);
-  const displayedRun = sheetRun
-    ? watchOwnedRun.current === sheetRun.id
+  // State rather than a ref: releasing ownership has to reach the screen. As
+  // a ref the release changed nothing until some other update happened to
+  // re-render the page, so the sheet kept painting the frozen watch record.
+  // React bails out when the value does not change, so the per-tick claim
+  // below costs nothing.
+  const [watchOwnedRun, setWatchOwnedRun] = useState<string | null>(null);
+  const listRun = sheetRun ? runs.find((r) => r.id === sheetRun.id) : undefined;
+  // A finished run has nothing left to say, so whichever feed carries the
+  // terminal record wins, whether or not the watch is still alive. That is
+  // what keeps the Done toast and the sheet on the same tick, and it is why
+  // the watch ending is safe to act on: only a chain that died without a
+  // terminal record hands the sheet back to the slower list.
+  const displayedRun = !sheetRun
+    ? null
+    : sheetRun.finishedAt != null
       ? sheetRun
-      : runs.find((r) => r.id === sheetRun.id) ?? sheetRun
-    : null;
+      : listRun?.finishedAt != null
+        ? listRun
+        : watchOwnedRun === sheetRun.id
+          ? sheetRun
+          : listRun ?? sheetRun;
   // The watch chain's end, reported by the trigger (the pending phase
   // clearing): ownership is released so displayedRun falls back to the
   // polled list again. A chain that died without delivering a terminal
-  // record — the watch's own timeout, a stranded trigger — kept the sheet
+  // record, the watch's own timeout for instance, kept the sheet
   // frozen on its last watch record ("Running") while the 10s list already
   // showed the truth: the row behind the sheet flipping to Success under a
-  // sheet that never follows (maintainer #244 round 3, bug B5). openRun
+  // sheet that never follows. openRun
   // clears it the same way. Idempotent by construction: a later tick simply
   // re-claims ownership.
   const watchStopped = useCallback(() => {
-    watchOwnedRun.current = null;
+    setWatchOwnedRun(null);
   }, []);
 
   // The scheduler's own "what fires next" list, for the summary tier's Next
@@ -3446,11 +3471,11 @@ export function Dashboard() {
         />
       )}
 
-      {/* Thumb-zone trigger (the watch + confirm + toasts live in the child):
-          mounted at every width — unmounting it at the breakpoint stranded a
-          running pass on rotation (the child's header note carries the
-          why). It paints nothing on desktop: the bar is md:hidden and the
-          dialog exists only while a confirm is pending. */}
+      {/* Thumb-zone trigger; the watch, the confirm and the toasts live in the
+          child. Mounted at every width, because a rotation that unmounts it
+          strands a running pass: the watch dies with it and a fresh mount
+          comes up idle. Above the breakpoint the child renders no bar, so the
+          desktop tree carries no phone chrome. */}
       <PhoneEverythingTrigger
         t={t}
         onWatchRun={handleWatchRun}
