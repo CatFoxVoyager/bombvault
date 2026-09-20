@@ -1,18 +1,22 @@
 name: Instant Repo-Watch Ping
 
-# Tells junkerderprovinz/repo-watch about new issues, pull requests, comments
-# and reviews from other people. repo-watch posts them to Matrix with its own
-# credentials, so this workflow never sees a Matrix secret. The same file sits
-# in every repo of this account; activity elsewhere is left to repo-watch's
-# periodic poll.
+# The same file sits in every repository of this account; repo-watch's README lists
+# them and explains how to add a new one. It hands new issues, pull requests,
+# comments and reviews from other people to junkerderprovinz/repo-watch as a
+# repository_dispatch event, and repo-watch posts to Matrix with its own credentials,
+# so no Matrix secret ever reaches this repository.
+#
+# Repositories the account does not own cannot run this, because GitHub only fires
+# these triggers for a repository's own workflows. Replies there are picked up by
+# repo-watch's five-minute poll.
 
 on:
   issues:
     types: [opened]
-  # pull_request_target, because a fork PR gets no secrets under pull_request
-  # and the dispatch below would fail on every outside PR. It is safe here: the
-  # job checks out no code, and event fields reach the script only through
-  # environment variables.
+  # pull_request_target, because a pull request from a fork gets no secrets under
+  # pull_request, so gh would fail without REPOWATCH_PAT exactly when a stranger
+  # opens one. It is safe here: the job checks out no code, and every event field
+  # reaches the script through an environment variable.
   pull_request_target:
     types: [opened]
   issue_comment:
@@ -25,10 +29,11 @@ permissions:
 
 jobs:
   dispatch:
-    # Skip the owner's own activity and bots.
+    # The account's own actions and bots need no ping.
     if: github.event.sender.login != 'junkerderprovinz' && !endsWith(github.event.sender.login, '[bot]')
     runs-on: ubuntu-latest
-    # The default limit is six hours, far too long for one hanging API call.
+    # A hung API call would otherwise run into GitHub's six-hour limit, in dozens of
+    # repositories.
     timeout-minutes: 5
     steps:
       - name: Dispatch to repo-watch
@@ -45,16 +50,16 @@ jobs:
           ISSUE_URL: ${{ github.event.issue.html_url }}
           PR_URL: ${{ github.event.pull_request.html_url }}
           ACTOR: ${{ github.event.sender.login }}
-        # Titles are attacker-controlled, so event fields reach the script as
-        # environment variables. Put into the script with ${{ }} they would be
-        # a shell injection.
+        # Titles are attacker-controlled on a public repository. Read from the
+        # environment they stay plain strings; interpolated with ${{ }} they would be
+        # parsed as shell.
         run: |
           kind="issue"
           number="$ISSUE_NUMBER"
           title="$ISSUE_TITLE"
           url="$ISSUE_URL"
           case "$EVENT_NAME" in
-            # The trigger above arrives as pull_request_target.
+            # github.event_name carries pull_request_target for the trigger above.
             pull_request|pull_request_target)
               kind="pr"; number="$PR_NUMBER"; title="$PR_TITLE"; url="$PR_URL" ;;
             issue_comment)
