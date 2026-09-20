@@ -60,9 +60,11 @@ func NewServer(cfg config.Config, spaFS fs.FS, apiRouter http.Handler) *Server {
 // the widget's /api/widget/data feed, is sent with DENY.
 func securityHeaders(next http.Handler) http.Handler {
 	// TestThemeBootScriptCSPHashMatches fails when this hash does not match the
-	// inline script in web/index.html, whitespace included.
+	// inline script in web/index.html, whitespace included. (Recomputed when
+	// the boot script grew its theme-color setAttribute call — the #244
+	// round-3 first-paint fix that also moves the meta above the script.)
 	const csp = "default-src 'self'; " +
-		"script-src 'self' 'sha256-OyogNhfMmFOmnpKoxuucDcL3wuNp1ArXH1kHMlcPetY='; " +
+		"script-src 'self' 'sha256-ijkCmxzYsyTqN0nAsR0mgUdCoqwAR/mw98d6MA0Ph4Y='; " +
 		"style-src 'self' 'unsafe-inline'; " +
 		"img-src 'self' data:; " +
 		"font-src 'self' data:; " +
