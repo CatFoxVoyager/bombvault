@@ -159,6 +159,32 @@ function segmentPadding(size: SelectorSize, hasGlyph: boolean, buttonHeight: boo
 // its own widest label; a label that needs more still gets it.
 export const MIN_PINNED_WIDTH = 200;
 
+// The groove's padding and the gap between its segments, both 0.2rem.
+const GROOVE_STEP = 3.2;
+
+/**
+ * rowFill returns the width a pinned segment takes in a row of `available`
+ * pixels. While the whole strip fits on one line the segment keeps its pinned
+ * width and the groove hugs it. Once it does not fit, the row is divided into
+ * equal columns instead, so the groove stops drawing track no segment stands
+ * on. The column count is the widest one that divides the strip: four segments
+ * in a row that holds three go two and two, and three in the same row go one
+ * per row rather than leaving a column empty underneath.
+ */
+export function rowFill(pinned: number, count: number, available: number): number {
+  if (available <= 0) return pinned;
+  const fits = Math.floor((available + GROOVE_STEP) / (pinned + GROOVE_STEP));
+  if (fits >= count) return pinned;
+  let columns = 1;
+  for (let c = Math.max(1, fits); c > 1; c--) {
+    if (count % c === 0) {
+      columns = c;
+      break;
+    }
+  }
+  return (available - (columns - 1) * GROOVE_STEP) / columns;
+}
+
 // The navigation math is pure so Selector.test.ts can cover it without a DOM.
 
 export type SelectorNavKey = "ArrowRight" | "ArrowLeft" | "Home" | "End";
@@ -373,6 +399,35 @@ export function Selector(props: SelectorProps) {
   const auto = !many;
 
   const strip = useRef<HTMLDivElement>(null);
+
+  // rowFill needs the width the groove is allowed to take, which is the
+  // parent's content box. Measuring the groove itself would feed the segment
+  // widths it just set back into the next measurement, since the groove is
+  // `w-fit`. A box that measures nothing (a hidden card, a run under jsdom)
+  // leaves the pinned width alone.
+  const [rowWidth, setRowWidth] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const row = well && pinWidth ? strip.current?.parentElement : null;
+    if (!row) return;
+    const measure = () => {
+      const style = getComputedStyle(row);
+      const inner =
+        row.clientWidth -
+        parseFloat(style.paddingInlineStart) -
+        parseFloat(style.paddingInlineEnd);
+      setRowWidth(inner - GROOVE_STEP * 2);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, [well, pinWidth]);
+
+  const pinnedWidth =
+    matchedWidth !== null && well && rowWidth !== null
+      ? rowFill(matchedWidth, items.length, rowWidth)
+      : matchedWidth;
+
   const isOn = (id: string) => (chosen ? chosen.has(id) : only === id);
   const isItemDisabled = (item: SelectorItem) => disabled || !!item.disabled;
 
@@ -489,8 +544,8 @@ export function Selector(props: SelectorProps) {
         const widthStyle: CSSProperties | undefined =
           segmentWidth
             ? { width: segmentWidth }
-            : pinWidth && matchedWidth !== null
-            ? { width: `${matchedWidth}px` }
+            : pinWidth && pinnedWidth !== null
+            ? { width: `${pinnedWidth}px` }
             : undefined;
         const itemStyle =
           hueStyle || widthStyle ? { ...hueStyle, ...widthStyle } : undefined;
