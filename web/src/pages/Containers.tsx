@@ -1755,6 +1755,12 @@ function MobileContainerCard({
       ) : (
         <Badge tone="neutral">{t("containers.notInstalled")}</Badge>
       )}
+      {/* The affordance arrow reads the card's own hue — the ONE accent
+          reader on the card, so a hued card shows its colour on the control
+          that opens the detail. */}
+      <svg aria-hidden width="10" height="10" viewBox="0 0 12 12" fill="none" className="shrink-0 text-accentText">
+        <path fill="currentColor" d="M4 1.3 8.5 6 4 10.7Z" />
+      </svg>
     </button>
   );
 }
@@ -1828,17 +1834,19 @@ function MobileContainerDetail({
           coming from the card knows exactly what they are leaving. The
           chevron is the SnapshotFileTree/SelectionTree presentational
           triangle, mirrored left. */}
-      <button
-        type="button"
+      <Button
+        label={`${container.name}, ${t("common.back")}`}
+        labelKey={null}
+        tone="subtle"
+        glyph={
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <path fill="currentColor" d="M8 1.3 3.5 6 8 10.7Z" />
+          </svg>
+        }
         onClick={onBack}
-        aria-label={`${container.name}, ${t("common.back")}`}
-        className="flex items-center gap-2 -ms-2 pe-3 rounded-control text-sm font-medium text-carbon-text hover:bg-carbon-surface2 min-h-[2.75rem]"
-      >
-        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-          <path fill="currentColor" d="M8 1.3 3.5 6 8 10.7Z" />
-        </svg>
-        {t("common.back")}
-      </button>
+        keepLabel
+        className="-ms-2 min-h-[2.75rem]"
+      />
       <div className="flex flex-col gap-1">
         <h2 className="text-lg font-semibold text-carbon-text">{container.name}</h2>
         {hostMountRoot && (
@@ -4427,13 +4435,18 @@ export function Containers() {
               this may gate on); never auto-loads (no observer, no scroll
               listener — lib/useLoadMore.ts's construction-level ban). */}
           {hasMore && (
-            <button
-              type="button"
+            <Button
+              label={t("common.loadMore")}
+              labelKey="common.loadMore"
+              tone="subtle"
               onClick={showMore}
-              className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-3 text-sm font-medium text-carbon-text"
-            >
-              {t("common.loadMore")}
-            </button>
+              className="w-full min-h-[2.75rem] justify-center"
+              glyph={
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" className="rotate-180 rtl:rotate-0">
+                  <path fill="currentColor" d="M4 1.3 8.5 6 4 10.7Z" />
+                </svg>
+              }
+            />
           )}
           {/* Zero-match honesty: an explicit empty state, never a blank
               column below the toolbar. The EXISTING filter.noMatch copy — the
