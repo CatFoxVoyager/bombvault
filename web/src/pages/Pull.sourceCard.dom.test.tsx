@@ -4,7 +4,7 @@
 // succeeded, failed and switched off each have their own wording.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { I18nProvider, en } from "../lib/i18n";
+import { I18nProvider, countText, en } from "../lib/i18n";
 import { ToastProvider } from "../lib/toast";
 import type { PullSourceView } from "../lib/api";
 
@@ -68,7 +68,7 @@ describe("pull source card", () => {
   it("reports the last result, not a fresh probe", async () => {
     await renderPull();
     expect(screen.queryByText(en["pull.pullOk"])).not.toBeNull();
-    expect(screen.queryByText(en["pull.snapshotsPulled"].replace("{n}", "7"))).not.toBeNull();
+    expect(screen.queryByText(countText(en["pull.snapshotsPulled"], "en", 7))).not.toBeNull();
   });
 
   it("says never pulled rather than guessing at a verdict", async () => {

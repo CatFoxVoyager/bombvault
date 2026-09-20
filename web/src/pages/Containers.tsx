@@ -2812,7 +2812,7 @@ function StackCard({
         <div className="min-w-0">
           <span className="font-semibold text-carbon-text text-sm wrap-break-word">{group.project}</span>
           <span className="ms-2 text-xs text-carbon-textMuted">
-            {t("stack.members").replace("{n}", String(group.members.length))}
+            {t("stack.members", group.members.length)}
           </span>
           <p className="mt-0.5 text-caption text-carbon-textMuted truncate">
             {group.members.map((m) => m.name).join(", ")}

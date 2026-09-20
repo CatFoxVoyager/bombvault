@@ -228,7 +228,7 @@ function ReceivedRepoCard({
           <p className="text-xs text-carbon-textMuted">{t("receiver.lastReceived")}</p>
           <p className="text-xs text-carbon-textSub">{fmtReceived(repo.lastReceived, t)}</p>
           <p className="text-xs text-carbon-textMuted mt-0.5">
-            {t("receiver.snapshotsCount").replace("{n}", String(repo.snapshotCount))}
+            {t("receiver.snapshotsCount", repo.snapshotCount)}
           </p>
         </div>
       </div>

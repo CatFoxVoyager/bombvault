@@ -186,7 +186,7 @@ describe("FileSetFoldersEditor tree mount", () => {
     expect(root.getAttribute("aria-checked")).toBe("true");
     // The count is the number of paths the next backup hands restic, and such
     // a set backs up its one source dir. The key has no plural form.
-    expect(within(root).getByText("1 paths")).toBeTruthy();
+    expect(within(root).getByText("1 path")).toBeTruthy();
     expect(patches).toEqual([]);
   });
 
@@ -200,7 +200,7 @@ describe("FileSetFoldersEditor tree mount", () => {
     expect(root.getAttribute("aria-checked")).toBe("mixed");
     // One maximal include under the root, which toFlatList sends as a
     // positional.
-    expect(within(root).getByText("1 paths")).toBeTruthy();
+    expect(within(root).getByText("1 path")).toBeTruthy();
 
     // Expanded, the carved-out child reads excluded.
     await act(async () => {
@@ -276,9 +276,9 @@ describe("FileSetFoldersEditor reseed", () => {
     await openDisclosure();
     await act(async () => {});
     const moved = screen.getByRole("treeitem", { name: /documents\/docs/ });
-    // Checked at 1 paths, as the server has it, not the old anchor's state.
+    // Checked at 1 path, as the server has it, not the old anchor's state.
     expect(moved.getAttribute("aria-checked")).toBe("true");
-    expect(within(moved).getByText("1 paths")).toBeTruthy();
+    expect(within(moved).getByText("1 path")).toBeTruthy();
 
     // A toggle sends only entries under the new anchor. A leftover entry for
     // the old root would get the whole PATCH refused, or bring the cleared
@@ -593,7 +593,7 @@ describe("FileSetFoldersEditor exclusions list", () => {
   it("collapses on every reopen, since its expansion is not persisted", async () => {
     await renderEditor(setView({ selectedPaths: [ROOT, `!${SUB}`] }));
     await openDisclosure();
-    const disc = screen.getByRole("button", { name: "1 exclusions" });
+    const disc = screen.getByRole("button", { name: "1 exclusion" });
     await act(async () => {
       fireEvent.click(disc);
     });
@@ -605,7 +605,7 @@ describe("FileSetFoldersEditor exclusions list", () => {
       fireEvent.click(screen.getByRole("button", { name: "Choose folders" }));
     });
     await openDisclosure();
-    const reopened = screen.getByRole("button", { name: "1 exclusions" });
+    const reopened = screen.getByRole("button", { name: "1 exclusion" });
     expect(reopened.getAttribute("aria-expanded")).toBe("false");
     expect(screen.queryByRole("listitem")).toBeNull();
     // Only the tree's expansion key may exist.
@@ -622,7 +622,7 @@ describe("FileSetFoldersEditor exclusions list", () => {
     ];
     const active = await renderEditor(setView({ selectedPaths: [ROOT, `!${SUB}`] }));
     await openDisclosure();
-    const disc = screen.getByRole("button", { name: "1 exclusions" });
+    const disc = screen.getByRole("button", { name: "1 exclusion" });
     await act(async () => {
       fireEvent.click(disc);
     });
@@ -634,7 +634,7 @@ describe("FileSetFoldersEditor exclusions list", () => {
     // classes.
     const dormant = await renderEditor(setView({ selectedPaths: [`!${SUB}`] }));
     await openDisclosure();
-    const dormantDisc = screen.getByRole("button", { name: "1 exclusions" });
+    const dormantDisc = screen.getByRole("button", { name: "1 exclusion" });
     await act(async () => {
       fireEvent.click(dormantDisc);
     });

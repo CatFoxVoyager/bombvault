@@ -2308,7 +2308,7 @@ export function SettingsPage() {
     // puts the message next to the field instead of in a toast. An EMPTY
     // password is not "too short": it means "switch authentication off".
     if (pwNew !== "" && [...pwNew].length < minPasswordLen) {
-      setPwSaveMsg(t("auth.passwordMinHint").replace("{n}", String(minPasswordLen)));
+      setPwSaveMsg(t("auth.passwordMinHint", minPasswordLen));
       setPwSaveState("error");
       setPwSaveShake((n) => n + 1);
       return;
@@ -4450,7 +4450,7 @@ export function SettingsPage() {
             {/* The rule, stated before it is broken rather than after. There
                 was no minimum at all before v8.6.0, and "1234" was accepted. */}
             <span className="text-xs text-carbon-textSub">
-              {t("auth.passwordMinHint").replace("{n}", String(minPasswordLen))}
+              {t("auth.passwordMinHint", minPasswordLen)}
             </span>
           </div>
 

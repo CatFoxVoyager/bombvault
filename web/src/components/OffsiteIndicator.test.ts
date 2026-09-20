@@ -2,11 +2,11 @@
 // replace shows up as a literal "{index}" in the output.
 import { describe, expect, it } from "vitest";
 import { offsiteStatusText } from "./OffsiteIndicator";
-import { en } from "../lib/i18n";
+import { countText, en } from "../lib/i18n";
 import type { TranslationKey } from "../lib/i18n";
 import type { ProgressState } from "../lib/progress";
 
-const t = (key: TranslationKey): string => en[key];
+const t = (key: TranslationKey, n?: number): string => countText(en[key], "en", n);
 
 function state(over: Partial<ProgressState>): ProgressState {
   return { phase: "replicate", percent: 0, active: true, lastSeen: 0, ...over };

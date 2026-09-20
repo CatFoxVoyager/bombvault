@@ -41,9 +41,9 @@ vi.mock("../lib/api", async () => {
 
 const { RestorePanel } = await import("./RestorePanel");
 const { AdvancedProvider } = await import("../lib/advanced");
-const { en } = await import("../lib/i18n");
+const { countText, en } = await import("../lib/i18n");
 
-const t = ((key: TranslationKey) => en[key]) as unknown as Parameters<typeof RestorePanel>[0]["t"];
+const t = ((key: TranslationKey, n?: number) => countText(en[key], "en", n)) as unknown as Parameters<typeof RestorePanel>[0]["t"];
 
 afterEach(() => {
   cleanup();

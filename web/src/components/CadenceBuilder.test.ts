@@ -2,9 +2,9 @@
 // to mode "cron" and is emitted unchanged, so saving never destroys it.
 import { describe, expect, it } from "vitest";
 import { buildCadenceString, formatCadence, parseCadenceString } from "./CadenceBuilder";
-import { en, type TranslationKey } from "../lib/i18n";
+import { countText, en, type TranslationKey } from "../lib/i18n";
 
-const t = (key: TranslationKey): string => en[key];
+const t = (key: TranslationKey, n?: number): string => countText(en[key], "en", n);
 
 describe("raw cron round-trip", () => {
   it.each(["0 */6 * * *", "30 2 * * 1-5", "0 3 1 * *", "15 4 * * MON-FRI"])(

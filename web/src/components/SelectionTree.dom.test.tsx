@@ -483,7 +483,7 @@ describe("SelectionTree exclusion list ids", () => {
     );
 
     // Both roots carry exactly one exclusion each: two disclosure buttons.
-    const btns = screen.getAllByRole("button", { name: /1 exclusions/ });
+    const btns = screen.getAllByRole("button", { name: /1 exclusion/ });
     expect(btns).toHaveLength(2);
     const ids = btns.map((b) => b.getAttribute("aria-controls"));
     expect(ids[0]).toBeTruthy();

@@ -570,7 +570,7 @@ describe("per-root path count", () => {
 
     // The line sits inside the root treeitem's label column, so it is part of
     // the row's accessible name.
-    const plex = within(screen.getByRole("treeitem", { name: /user\/appdata\/plex/ })).getByText("1 paths");
+    const plex = within(screen.getByRole("treeitem", { name: /user\/appdata\/plex/ })).getByText("1 path");
     expect(plex.className).toContain("text-carbon-textMuted");
 
     // A fully deselected mount shows its 0.
@@ -580,8 +580,8 @@ describe("per-root path count", () => {
     within(screen.getByRole("treeitem", { name: /\/mnt\/srv9\/elsewhere/ })).getByText("0 paths");
 
     // Standalone custom row: included custom paths count as their own root
-    // include on load, so the row announces "1 paths".
-    within(screen.getByRole("treeitem", { name: /user\/backups/ })).getByText("1 paths");
+    // include on load, so the row announces "1 path".
+    within(screen.getByRole("treeitem", { name: /user\/backups/ })).getByText("1 path");
   });
 
   it("a carve-out toggle leaves the count unchanged; narrowing the parent to child includes changes it", async () => {
@@ -602,12 +602,12 @@ describe("per-root path count", () => {
       fireEvent.click(screen.getByRole("treeitem", { name: /user\/appdata\/plex/ }));
     });
     const root = screen.getByRole("treeitem", { name: /user\/appdata\/plex/ });
-    within(root).getByText("1 paths");
+    within(root).getByText("1 path");
     const child = within(screen.getByRole("treeitem", { name: /transcoding/ })).getByRole("checkbox", { hidden: true });
     await act(async () => {
       fireEvent.click(child);
     });
-    within(screen.getByRole("treeitem", { name: /user\/appdata\/plex/ })).getByText("1 paths");
+    within(screen.getByRole("treeitem", { name: /user\/appdata\/plex/ })).getByText("1 path");
     // The saved list carries both mounts plus the "!" entry.
     expect(patches[patches.length - 1]?.paths).toEqual([
       MOUNT,
@@ -691,11 +691,11 @@ describe("per-root exclusion list", () => {
     const root = screen.getByRole("treeitem", { name: /user\/appdata\/plex/ });
     expect(root.getAttribute("aria-checked")).toBe("false");
     within(root).getByText("0 paths");
-    expect(screen.getByRole("button", { name: /1 exclusions/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /1 exclusion/ })).toBeTruthy();
 
     // Expanding the dormant section lists the remembered exclusion.
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /1 exclusions/ }));
+      fireEvent.click(screen.getByRole("button", { name: /1 exclusion/ }));
     });
     expect(screen.getAllByRole("listitem").map((li) => li.textContent)).toEqual(["transcoding"]);
   });
@@ -767,7 +767,7 @@ describe("Reset selection, narrowing note and hint copy", () => {
     await renderEditor(true, 1700000000);
     // Before the reset: the exclusion is listed and the custom root's switch
     // is on.
-    expect(screen.getByRole("button", { name: /1 exclusions/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /1 exclusion/ })).toBeTruthy();
     expect(
       within(cachedirRow(screen.getByRole("treeitem", { name: /user\/backups/ })))
         .getByRole("switch")
@@ -801,7 +801,7 @@ describe("Reset selection, narrowing note and hint copy", () => {
     // On success the editor refetches mounts instead of emptying its state
     // locally.
     expect(mountsCalls).toBe(2);
-    expect(screen.queryByRole("button", { name: /1 exclusions/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /1 exclusion/ })).toBeNull();
     // The custom root is gone and no switch is on anywhere.
     expect(screen.queryByRole("treeitem", { name: /user\/backups/ })).toBeNull();
     expect(screen.getByRole("treeitem", { name: /user\/appdata\/plex/ }).getAttribute("aria-checked")).toBe("true");
@@ -846,7 +846,7 @@ describe("Reset selection, narrowing note and hint copy", () => {
     // Nothing was changed locally. The mount stays mixed because of the
     // remembered exclusion below it.
     expect(screen.getByRole("treeitem", { name: /user\/appdata\/plex/ }).getAttribute("aria-checked")).toBe("mixed");
-    expect(screen.getByRole("button", { name: /1 exclusions/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /1 exclusion/ })).toBeTruthy();
     expect(mountsCalls).toBe(1); // no refetch on failure
     expect(screen.getByRole("button", { name: "Reset selection" }).className).toContain("glim-shake");
   });
@@ -906,7 +906,7 @@ describe("Reset selection, narrowing note and hint copy", () => {
     //    list is gone.
     expect(mountsCalls).toBe(2);
     expect(screen.getByRole("treeitem", { name: /appdata\/w2/ }).getAttribute("aria-checked")).toBe("true");
-    expect(screen.queryByRole("button", { name: /1 exclusions/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /1 exclusion/ })).toBeNull();
   });
 
   it("the post-reset refetch waits for a mutation stacked during the reset PATCH's flight", async () => {
@@ -973,7 +973,7 @@ describe("Reset selection, narrowing note and hint copy", () => {
     expect(
       within(cachedirRow(screen.getByRole("treeitem", { name: /user\/appdata\/plex/ }))).getByRole("switch").getAttribute("aria-checked"),
     ).toBe("true");
-    expect(screen.queryByRole("button", { name: /1 exclusions/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /1 exclusion/ })).toBeNull();
   });
 
   it("a successful narrowing save with lastBackup non-null renders the role=status warn note under the tree", async () => {
