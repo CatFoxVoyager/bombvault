@@ -440,45 +440,88 @@ test("landscape 844x390: at >=48rem the desktop chrome owns the shell", async ({
 // 200px) on desktop, and before the phone arm of --settings-tab-seg-w that
 // same pin on a 390px phone wrapped its seven flex-none segments into seven
 // stacked rows, roughly 350px of chrome before any Settings content. The clamp
-// fits one row at 390px and bounds the wrap at two on the narrowest
-// supported width. Geometry, not screenshots, per this file's contracts:
-// the strip's height against a bound a third stacked row cannot pass, and
-// no segment shrunk below the clamp's 2.5rem floor (tap-target scale; the
-// row height is --nav-row-h at every width). English on purpose: the strip
-// must fit its tabs in the LONGEST-label locales too, but en is the width
-// the bug was reported at and the clamp is locale-independent (fixed
-// per-segment width, truncating labels), so en keeps the assertion on the
-// mechanism instead of on a locale's typography.
+// fits one row from 360px up and bounds the wrap at two on the narrowest
+// supported width, where its 2.5rem floor takes over. Geometry, not
+// screenshots, per this file's contracts: how many rows the seven tabs
+// occupy, and no segment shrunk below that floor (tap-target scale; the
+// row height is --nav-row-h at every width). English on purpose: the clamp
+// is a fixed per-segment width with truncating labels, so it behaves the
+// same in every locale, and en keeps the assertion on that mechanism rather
+// than on a locale's typography.
 // ---------------------------------------------------------------------------
 
-for (const width of [390, 360]) {
-  test(`settings tab strip @ ${width}px: seven tabs stay a bounded strip, not a wall`, async ({ page }, testInfo) => {
+// What a classic scrollbar takes on Windows and Linux. The clamp reads
+// 100vw, which counts that bar while the row's content box does not get it,
+// so a row that only just fits an overlay-scrollbar viewport wraps in a
+// window that has a real one. No browser here renders one (device contexts
+// use overlays, headless hides them), so it is subtracted instead.
+const CLASSIC_SCROLLBAR = 15;
+
+// Rows rather than a height bound: two stacked rows are 90px at 390px, inside
+// any bound loose enough to let one row through.
+async function assertStrip(page: Page, width: number, rows: number): Promise<void> {
+  const strip = page.getByRole("tablist", { name: "Settings" });
+  await expect(strip).toBeVisible();
+  await settle(page);
+
+  const geometry = await strip.evaluate((el) => {
+    // The page column scrolls, not the document, so the scrollbar and the
+    // padding that bound this row both belong to that column.
+    let column = el.parentElement;
+    while (column && getComputedStyle(column).overflowY === "visible") column = column.parentElement;
+    column ??= document.documentElement;
+    const style = getComputedStyle(column);
+    return {
+      tabs: [...el.querySelectorAll('[role="tab"]')].map((tab) => {
+        const box = tab.getBoundingClientRect();
+        return { top: Math.round(box.top), left: box.left, right: box.right, width: box.width };
+      }),
+      available:
+        column.clientWidth - parseFloat(style.paddingInlineStart) - parseFloat(style.paddingInlineEnd),
+      scrollbar: column.offsetWidth - column.clientWidth,
+    };
+  });
+  expect(geometry.tabs, "the Settings strip owns exactly the seven page tabs").toHaveLength(7);
+
+  const actual = new Set(geometry.tabs.map((t) => t.top)).size;
+  expect(actual, `the seven tabs sit on ${actual} rows at ${width}px, not ${rows}`).toBe(rows);
+
+  // Every tab survives the clamp tappable: no segment under the 2.5rem
+  // floor (subpixel tolerance, nothing looser).
+  for (const { width: w } of geometry.tabs) {
+    expect(w, `a Settings tab shrunk to ${w}px, under the clamp floor`).toBeGreaterThanOrEqual(39.5);
+  }
+
+  if (rows > 1) return;
+
+  // The one row has to survive a browser window too, not just a phone: what
+  // the tabs and their gaps span must still fit once a classic scrollbar has
+  // taken its width off the row.
+  const span = Math.max(...geometry.tabs.map((t) => t.right)) - Math.min(...geometry.tabs.map((t) => t.left));
+  const windowed = geometry.available - Math.max(0, CLASSIC_SCROLLBAR - geometry.scrollbar);
+  expect(
+    span,
+    `the row spans ${span.toFixed(1)}px and a window with a scrollbar leaves ${windowed.toFixed(1)}px at ${width}px`,
+  ).toBeLessThanOrEqual(windowed + 0.5);
+}
+
+for (const { width, rows } of [
+  { width: 390, rows: 1 },
+  { width: 360, rows: 1 },
+  { width: 320, rows: 2 },
+]) {
+  test(`settings tab strip @ ${width}px: the seven tabs sit on ${rows} row(s)`, async ({ page }, testInfo) => {
     test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "mobile-only: the clamp lives below 48rem");
     await bootSeededPage(page, "en", width, "/settings");
-
-    const strip = page.getByRole("tablist", { name: "Settings" });
-    await expect(strip).toBeVisible();
-    await settle(page);
-
-    // One row at 390px (the reported device) is the strip's row-box height
-    // plus the groove; two rows at the floored narrowest width add one row
-    // and a flex gap. Three stacked rows, which is where the fixed 200px pin
-    // degenerated to at these widths, clears 150px and fails here.
-    const box = await strip.boundingBox();
-    expect(box, "the tab strip rendered with a box").not.toBeNull();
-    expect(
-      box!.height,
-      `the tab strip is ${box!.height}px tall at ${width}px: the tabs stacked into a wall`,
-    ).toBeLessThan(120);
-
-    // Every tab survives the clamp tappable: no segment under the 2.5rem
-    // floor (subpixel tolerance, nothing looser), all seven present.
-    const widths = await strip
-      .getByRole("tab")
-      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
-    expect(widths, "the Settings strip owns exactly the seven page tabs").toHaveLength(7);
-    for (const w of widths) {
-      expect(w, `a Settings tab shrunk to ${w}px, under the clamp floor`).toBeGreaterThanOrEqual(39.5);
-    }
+    await assertStrip(page, width, rows);
   });
 }
+
+// The same strip in a desktop browser narrowed to a phone width. The shell
+// switches on width alone, so this is a state anyone reaches by dragging a
+// window edge, and it is where a real scrollbar shows up.
+test("settings tab strip @ 390px in a desktop window: one row with a scrollbar too", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-768", "one desktop project carries this; the pair would run it twice");
+  await bootSeededPage(page, "en", 390, "/settings");
+  await assertStrip(page, 390, 1);
+});
