@@ -322,9 +322,9 @@ describe("BottomSheet extensions", () => {
     expect(footer.className).toContain("pl-[max(1rem,var(--safe-area-left))]");
     // And it comes after the scroll body; the "never scrolls away" ordering.
     expect(footer.previousElementSibling).toBe(body);
-    // With a footer present the body drops its own inset (maintainer #244
-    // round 3, bug B9): the footer is the last surface and pads itself, so a
-    // body inset beside one paid the home-indicator gap twice — 34px of dead
+    // With a footer present the body drops its own inset: the footer is the
+    // last surface and pads itself, so a
+    // body inset beside one paid the home-indicator gap twice, 34px of dead
     // surface between the message and the action row on an iPhone.
     expect(body.className).not.toContain("pb-[var(--safe-area-bottom)]");
   });

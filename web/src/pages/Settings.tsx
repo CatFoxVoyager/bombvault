@@ -2519,13 +2519,18 @@ export function SettingsPage() {
         // not two that happen to agree today. Below 48rem the token resolves
         // to its phone arm (index.css --settings-tab-seg-w): the fixed 200px
         // pin stacked all seven flex-none tabs into seven rows on a 390px
-        // phone, a wall of chrome before any content (maintainer #244 round
-        // 3, bug B7); the phone arm fits one row and bounds the wrap at two
+        // phone, a wall of chrome before any content; the phone arm fits
+        // one row and bounds the wrap at two
         // on the narrowest widths, while desktop keeps the pin unchanged. It
         // also gives the longest label ("Benachrichtigungen") the 16px it was
         // missing, which is why that tab clipped its own text in reactive
         // mode.
         segmentWidth="var(--settings-tab-seg-w)"
+        // The desktop arm of that token, as a Tailwind variant so the 48rem
+        // number stays in lib/useMediaQuery.ts and the CSS carries only the
+        // phone formula. Above the breakpoint every tab is the rail's row box
+        // again.
+        className="md:[--settings-tab-seg-w:var(--nav-row-w)]"
       />
       </div>
       </div>

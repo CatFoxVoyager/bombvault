@@ -118,13 +118,6 @@
      tab matches the row box, not the rail's label mode. */
   --nav-row-w: 12.5rem;
   --nav-row-h: 2.6875rem;
-  /* The Settings page-tab strip's segment width (Settings.tsx passes it to
-     Selector's segmentWidth). Desktop keeps the sidebar row-box pin; on a
-     phone the same pin stacked all seven flex-none tabs into seven rows
-     (~350px of chrome before any content; maintainer #244 round 3, bug B7),
-     so below 48rem the property resolves to the phone arm overridden after
-     this block. */
-  --settings-tab-seg-w: var(--nav-row-w);
   --btn-pad-x: 0.875rem;
   --btn-gap: 0.5rem;
 
@@ -134,24 +127,24 @@
   --btn-w-lg: 15rem;
 }
 
-/* The phone arm of --settings-tab-seg-w (the desktop arm is the --nav-row-w
-   pin, stated in the :root block above). The divider is the mobile shell's
-   own 48rem switch, so desktop — including its accepted 4+3 wrap in narrow
-   desktop windows — never sees this. The width: the viewport minus the page
-   column's p-4 (2 x 1rem) and the strip's own chrome (six 0.5rem flex gaps
-   plus the well groove's 2 x 0.2rem padding = 3.4rem), with 0.1rem of
-   subpixel slack so the one-row total can never land on the wrap boundary,
-   divided by seven — 43.1px at 390px, the widest that still fits one row.
-   Floored at 2.5rem so the narrowest supported width cannot shrink a segment
-   below tap-target scale; the floor costs one extra wrapped row below ~375px
-   (two rows bounded, never the seven-row wall the fixed pin produced), and
-   the row HEIGHT is --nav-row-h at every width. Labels truncate inside the
-   shrunken box (Selector's span.truncate) and each tab keeps its glyph and
-   accessible name, so nothing becomes unreachable or unnamed. */
-@media (max-width: 47.99rem) {
-  :root {
-    --settings-tab-seg-w: max(2.5rem, calc((100vw - 5.5rem) / 7));
-  }
+/* The phone arm of --settings-tab-seg-w. The desktop arm is the --nav-row-w
+   pin, and the element carries it as a `md:` override (Settings.tsx), so the
+   48rem literal stays in the one place that owns it (lib/useMediaQuery.ts)
+   rather than being written a second time here.
+
+   The width is the viewport minus what the row loses before the segments:
+   the page column's p-4 (2 x 1rem) and the strip's six gaps, which are the
+   container's own gap-1 (6 x 0.25rem), so 3.5rem in total, plus 0.5rem of
+   slack so subpixel rounding cannot land the one-row total on the wrap
+   boundary. Divided by seven that is 47.1px at 390px. Floored at 2.5rem so
+   the narrowest supported width cannot shrink a segment below tap-target
+   scale; the floor costs one wrapped row on the narrowest phones, which is
+   two rows bounded rather than the seven-row wall the fixed pin produced.
+   The row height is --nav-row-h at every width, labels truncate inside the
+   shrunken box (Selector's span.truncate), and each tab keeps its glyph and
+   accessible name. */
+:root {
+  --settings-tab-seg-w: max(2.5rem, calc((100vw - 4rem) / 7));
 }
 
 /* Safe-area insets; the three edges a device's own hardware claims (side
@@ -171,17 +164,17 @@
    explicit 0px floor keeps every consumer's calc()/padding valid everywhere.
 
    Consumers today: left and right at EVERY width (the Layout scroller's
-   inset-clamped side padding, the desktop frame's gutter — the frame adopted
-   them in round 2, so this is not a phone-only mechanism any more — the
+   inset-clamped side padding and the desktop frame's gutter, so this is not a
+   phone-only mechanism; the
    BottomSheet panel and the BottomNav row); bottom by the BottomNav host,
    the --sticky-action-h scroll padding below, and BottomSheet's last surface
    (its body when no footer follows, its footer otherwise).
 
    There is deliberately no --safe-area-top: nothing ever consumed it (the
    phone scroller is a flat p-4 and the fullHeight sheet's header starts at
-   y=0), so it was a dead token that read as a live contract — a future top
+   y=0), so it was a dead token that read as a live contract: a future top
    consumer reintroduces it beside its own padding rather than reserving a
-   variable nothing reads (maintainer #244 round 3, bug B12). */
+   variable nothing reads. */
 :root {
   --safe-area-right: max(env(safe-area-inset-right), 0px);
   --safe-area-bottom: max(env(safe-area-inset-bottom), 0px);
