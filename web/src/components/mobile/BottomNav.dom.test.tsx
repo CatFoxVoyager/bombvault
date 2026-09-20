@@ -131,9 +131,9 @@ describe("BottomNav More trigger", () => {
 
   it("is filled on a gated More-side route exactly while its gate is on: the registry lookup decides, never the path", () => {
     // /vms has no literal in the trigger's active logic (the retired
-    // special-case disjunct did) — its More-side membership is purely the
+    // special-case disjunct did): its More-side membership is purely the
     // enabled flag in the registry, so the gate flip is what this assertion
-    // rides (maintainer #244 round 3, test item T3).
+    // rides.
     draw("/vms", { vmsEnabled: true } as Settings);
     const gateOn = within(bar()).getByRole("button", { name: "More" });
     expect(gateOn.className).toContain("bg-accent");

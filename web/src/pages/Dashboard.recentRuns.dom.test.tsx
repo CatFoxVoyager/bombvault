@@ -9,7 +9,7 @@
 // list impersonate a backed-up-nothing history: the desktop face grew that
 // failed arm in fix de5e36ae's discipline (the off-site line's twin, the
 // model for this suite), and the phone glance kept reading a failed load as
-// "No runs yet" (maintainer #244 round 3, bug B1). Each test pins one state
+// "No runs yet". Each test pins one state
 // by driving the page's listRuns mock; the "No runs yet" claim must appear in
 // exactly one of the four.
 //
@@ -143,7 +143,7 @@ describe("Dashboard phone recent-runs states", () => {
 
   it("reports the failed read instead of an empty history when runs errors", async () => {
     // Bug B1 itself: the dense ladder only asked "any rows?", so a failed
-    // read rendered "No runs yet" — an answer the read never gave.
+    // read rendered "No runs yet", an answer the read never gave.
     runsAnswer = () => Promise.reject(new Error("boom"));
     renderPage();
     await settle();

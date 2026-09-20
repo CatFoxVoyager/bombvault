@@ -17,13 +17,13 @@
 // footer's sign-out and view toggle are buttons, not links, so every anchor in
 // the render is a nav destination and DOM order is the rail's order.
 //
-// The comparison is a TRIPLE (maintainer #244 round 3, test item T1): route +
+// The comparison is a triple: route +
 // accessible name + glyph markup. The rail still renders its own hand-written
 // literals (`label={t("nav.vms")} icon={<IconVM />}`), so href parity alone
 // passed forever with a rail whose label or glyph had drifted from the
 // registry's labelKey/icon for the same route; each lane of the triple is
 // read from a different field, so swapping labelKey/icon between two
-// registry entries — or retyping the rail's literals — goes red here.
+// registry entries, or retyping the rail's literals, goes red here.
 // ---------------------------------------------------------------------------
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -121,10 +121,10 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("Sidebar renders exactly the navModel registry", () => {
-  // Fixture-completeness guard (maintainer #244 round 3, test item T2): the
+  // Fixture-completeness guard: the
   // hand-written ALL_ON has the same guard navModel.test.ts carries. Without
   // it a NEW gate field read by destinations() but forgotten in the fixture
-  // leaves that entry disabled on BOTH sides of the parity comparison — every
+  // leaves that entry disabled on both sides of the parity comparison, so every
   // assertion stays green while the destination silently leaves the
   // comparison. This turns that silence red, naming the mechanism.
   it("the ALL_ON fixture really turns every gate on; no destination gated off", () => {
@@ -133,7 +133,7 @@ describe("Sidebar renders exactly the navModel registry", () => {
       .map((d) => d.to);
     expect(
       stillOff,
-      "ALL_ON leaves destinations gated off — a gate field was added to " +
+      "ALL_ON leaves destinations gated off; a gate field was added to " +
         "navModel.ts but not to this file's fixture, so those destinations " +
         "silently left the parity comparison. Add the field to ALL_ON."
     ).toEqual([]);

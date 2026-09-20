@@ -435,11 +435,11 @@ test("landscape 844x390: at >=48rem the desktop chrome owns the shell", async ({
 });
 
 // ---------------------------------------------------------------------------
-// The Settings tab strip at phone widths (maintainer #244 round 3, bug B7).
+// The Settings tab strip at phone widths.
 // The strip pins every segment to the sidebar row-box width (--nav-row-w,
 // 200px) on desktop, and before the phone arm of --settings-tab-seg-w that
 // same pin on a 390px phone wrapped its seven flex-none segments into seven
-// stacked rows — ~350px of chrome before any Settings content. The clamp
+// stacked rows, roughly 350px of chrome before any Settings content. The clamp
 // fits one row at 390px and bounds the wrap at two on the narrowest
 // supported width. Geometry, not screenshots, per this file's contracts:
 // the strip's height against a bound a third stacked row cannot pass, and
@@ -462,8 +462,8 @@ for (const width of [390, 360]) {
 
     // One row at 390px (the reported device) is the strip's row-box height
     // plus the groove; two rows at the floored narrowest width add one row
-    // and a flex gap. Three stacked rows — where the fixed 200px pin
-    // degenerated to at these widths — clears 150px and fails here.
+    // and a flex gap. Three stacked rows, which is where the fixed 200px pin
+    // degenerated to at these widths, clears 150px and fails here.
     const box = await strip.boundingBox();
     expect(box, "the tab strip rendered with a box").not.toBeNull();
     expect(

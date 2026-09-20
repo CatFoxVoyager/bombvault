@@ -53,11 +53,11 @@ describe("StickyActionBar", () => {
     expect(bar.className).not.toContain("border-t");
     expect(bar.className).not.toContain("border-carbon-border");
     // Plain pb-3, and deliberately NO safe-area inset: the bar is sticky
-    // inside main#bv-main and BottomNav — main's flex sibling below it —
+    // inside main#bv-main, and BottomNav, main's flex sibling below it,
     // owns the home-indicator inset on its own host, so the bar never
     // reaches the screen edge. Reserving the inset here made the bar 22px
     // taller than every other phone chrome row on devices that have one
-    // (maintainer #244 round 3, bug B10).
+    // on devices that have one.
     expect(bar.className).toContain("pb-3");
     expect(bar.className).not.toContain("safe-area-bottom");
   });

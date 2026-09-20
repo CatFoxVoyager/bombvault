@@ -92,8 +92,8 @@ const EXPECTED_FOUC_SCRIPT = `    <script>
 const FOUC_REGION = /<script>\n([\s\S]*?)<\/script>/;
 
 describe("safe-area custom properties exist and are env-paired", () => {
-  // Three sides, not four: --safe-area-top was removed in maintainer #244
-  // round 3 (bug B12) because nothing ever consumed it — the phone scroller
+  // Three sides, not four: --safe-area-top was removed
+  // because nothing ever consumed it: the phone scroller
   // is a flat p-4 and the fullHeight sheet's header starts at y=0. A dead
   // token reads as a live contract; a future top consumer reintroduces the
   // declaration beside its own padding, and this list, in the same change.
@@ -234,11 +234,11 @@ describe("the FOUC script's bytes are guarded", () => {
 });
 
 describe("the theme-color meta sits above the FOUC script", () => {
-  // The order flipped in maintainer #244 round 3 (bug B8): the meta used to
-  // sit ~18 lines BELOW the script, so the script's synchronous theme-color
-  // write addressed a tag that did not exist yet and every first paint kept
-  // the static dark value even in light mode. Above the script the tag
-  // exists when the script runs, so the resolved value lands before first
+  // The meta comes before the script, because the script writes it. A tag
+  // below the script is not there yet when the synchronous theme-color write
+  // runs, so every first paint keeps the static dark value even in light
+  // mode. Above the script the tag exists when the script runs, so the
+  // resolved value lands before first
   // paint; paint() in lib/theme.ts takes over on every theme application
   // afterwards.
   const foucOpen = indexHtml.indexOf("<script>");
@@ -366,8 +366,8 @@ describe("the shell root's viewport discipline", () => {
     // a bare includes(): Layout's own comments discuss `<main id="bv-main">`
     // in prose (the tap-on-active block), and the bare scan kept passing on
     // that dead text even after the tags themselves were renamed (maintainer
-    // #244 round 3, test item T4; guard proven by breaking both tags — the
-    // assert went red — and restoring them). Both chrome branches carry the
+    // Proven by breaking both tags: the
+    // assert went red, and restoring them. Both chrome branches carry the
     // id on their own scroller; the count of two is the contract.
     const tagged = layout.match(/<main\s+id="bv-main"\s+className=/g)?.length ?? 0;
     expect(
@@ -569,9 +569,9 @@ describe("Reactive at rest; coarse pointers reveal reactive labels at rest, with
     // `[^}]*` rule-scope discipline as the coarse-pointer guard below), not a
     // bare includes("max-width: 0"): a prose comment elsewhere in index.css
     // discusses `max-width: 0` in backticks, and the bare scan kept passing
-    // on that dead text after the real declaration changed (maintainer #244
-    // round 3, test item T4; guard proven by breaking the declaration — the
-    // assert went red — and restoring it).
+    // on that dead text after the real declaration changed. Proven by
+    // breaking the declaration: the
+    // assert went red, and restoring it.
     expect(
       /\.glim-label-reactive\s*\{[^}]*max-width:\s*0\s*;/.test(indexCss),
       "index.css no longer contains the resting collapse (`max-width: 0;` in " +
