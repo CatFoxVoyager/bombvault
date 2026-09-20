@@ -134,17 +134,18 @@
 
    The width is the viewport minus what the row loses before the segments:
    the page column's p-4 (2 x 1rem) and the strip's six gaps, which are the
-   container's own gap-1 (6 x 0.25rem), so 3.5rem in total, plus 0.5rem of
-   slack so subpixel rounding cannot land the one-row total on the wrap
-   boundary. Divided by seven that is 47.1px at 390px. Floored at 2.5rem so
-   the narrowest supported width cannot shrink a segment below tap-target
-   scale; the floor costs one wrapped row on the narrowest phones, which is
-   two rows bounded rather than the seven-row wall the fixed pin produced.
-   The row height is --nav-row-h at every width, labels truncate inside the
-   shrunken box (Selector's span.truncate), and each tab keeps its glyph and
-   accessible name. */
+   container's own gap-1 (6 x 0.25rem), so 3.5rem, plus 1.5rem for a classic
+   scrollbar, which 100vw counts and the content box does not. That is about
+   15px in a desktop browser at phone width; on a phone the scrollbar is an
+   overlay and the reserve goes unused. Divided by seven it gives 44.3px at
+   390px, so seven segments sit on one row. Floored at 2.5rem so the narrowest
+   supported width cannot shrink a segment below tap-target scale; there the
+   floor costs one wrapped row, two bounded rows rather than the seven a fixed
+   pin gives. The row height is --nav-row-h at every width, labels truncate
+   inside the shrunken box (Selector's span.truncate), and each tab keeps its
+   glyph and accessible name. */
 :root {
-  --settings-tab-seg-w: max(2.5rem, calc((100vw - 4rem) / 7));
+  --settings-tab-seg-w: max(2.5rem, calc((100vw - 5rem) / 7));
 }
 
 /* Safe-area insets; the three edges a device's own hardware claims (side
