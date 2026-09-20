@@ -297,6 +297,59 @@ function loadBackupFilterKey(): BackupFilterKey {
   );
 }
 
+/** The page's four filter controls — the SAME block the desktop filter
+ *  popover and the phone ListToolbar render, so the two toolbars cannot
+ *  disagree about which dimensions the list filters by. Pure
+ *  props-to-controls: the filter state and its handlers stay the page's. */
+function ContainerFilterControls({
+  t,
+  filterKey,
+  onFilterChange,
+  scheduleFilter,
+  onScheduleFilterChange,
+  backupFilter,
+  onBackupFilterChange,
+  sortKey,
+  onSortChange,
+}: {
+  t: T;
+  filterKey: FilterKey;
+  onFilterChange: (k: FilterKey) => void;
+  scheduleFilter: ScheduleFilterKey;
+  onScheduleFilterChange: (k: ScheduleFilterKey) => void;
+  backupFilter: BackupFilterKey;
+  onBackupFilterChange: (k: BackupFilterKey) => void;
+  sortKey: SortKey;
+  onSortChange: (k: SortKey) => void;
+}) {
+  return (
+    <>
+      <FilterControl value={filterKey} onChange={onFilterChange} t={t} />
+      <ChipFilter<ScheduleFilterKey>
+        label={t("filter.schedule")}
+        value={scheduleFilter}
+        onChange={onScheduleFilterChange}
+        options={[
+          { key: "all", label: t("filter.all") },
+          { key: "scheduled", label: t("filter.scheduled") },
+          { key: "notScheduled", label: t("filter.notScheduled") },
+        ]}
+      />
+      <ChipFilter<BackupFilterKey>
+        label={t("filter.backup")}
+        value={backupFilter}
+        onChange={onBackupFilterChange}
+        options={[
+          { key: "all", label: t("filter.all") },
+          { key: "backedUp", label: t("filter.backedUp") },
+          { key: "neverBackedUp", label: t("filter.neverBackedUp") },
+        ]}
+      />
+      <SortControl value={sortKey} onChange={onSortChange} t={t} />
+    </>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Container row
 // ---------------------------------------------------------------------------
@@ -4200,34 +4253,17 @@ export function Containers() {
               autoComplete="off"
               className="rounded-control bg-carbon-surface2 text-carbon-text text-sm px-3 py-1.5 glim-field-focus"
             />
-            <FilterControl value={filterKey} onChange={handleFilterChange} t={t} />
-            <ChipFilter<ScheduleFilterKey>
-              label={t("filter.schedule")}
-              value={scheduleFilter}
-              onChange={handleScheduleFilterChange}
-              options={[
-                { key: "all", label: t("filter.all") },
-                { key: "scheduled", label: t("filter.scheduled") },
-                { key: "notScheduled", label: t("filter.notScheduled") },
-              ]}
+            <ContainerFilterControls
+              t={t}
+              filterKey={filterKey}
+              onFilterChange={handleFilterChange}
+              scheduleFilter={scheduleFilter}
+              onScheduleFilterChange={handleScheduleFilterChange}
+              backupFilter={backupFilter}
+              onBackupFilterChange={handleBackupFilterChange}
+              sortKey={sortKey}
+              onSortChange={handleSortChange}
             />
-            <ChipFilter<BackupFilterKey>
-              label={t("filter.backup")}
-              value={backupFilter}
-              onChange={handleBackupFilterChange}
-              options={[
-                { key: "all", label: t("filter.all") },
-                { key: "backedUp", label: t("filter.backedUp") },
-                { key: "neverBackedUp", label: t("filter.neverBackedUp") },
-              ]}
-            />
-            {/* Sort lives INSIDE the popover, like VMs.tsx has always had it
-                (jdp, live review: "bitte überall gleich machen"). It was the
-                one control this page kept outside as a bare sibling of the
-                trigger, so the two pages' toolbars disagreed about what the
-                "Filter" button contains — and sorting is one of the options
-                that menu is for. */}
-            <SortControl value={sortKey} onChange={handleSortChange} t={t} />
           </FilterPopover>
           {filterKey !== "notInstalled" && selectable.length > 0 && (
             <label className="flex items-center gap-2 text-xs text-carbon-textSub cursor-pointer">
@@ -4354,28 +4390,17 @@ export function Containers() {
               active filters currently match nothing, so a cleared search stays
               clearable (an unreachable toolbar would strand the empty state). */}
           <ListToolbar search={search} onSearch={setSearch} placeholder="containers.searchPlaceholder">
-            <FilterControl value={filterKey} onChange={handleFilterChange} t={t} />
-            <ChipFilter<ScheduleFilterKey>
-              label={t("filter.schedule")}
-              value={scheduleFilter}
-              onChange={handleScheduleFilterChange}
-              options={[
-                { key: "all", label: t("filter.all") },
-                { key: "scheduled", label: t("filter.scheduled") },
-                { key: "notScheduled", label: t("filter.notScheduled") },
-              ]}
+            <ContainerFilterControls
+              t={t}
+              filterKey={filterKey}
+              onFilterChange={handleFilterChange}
+              scheduleFilter={scheduleFilter}
+              onScheduleFilterChange={handleScheduleFilterChange}
+              backupFilter={backupFilter}
+              onBackupFilterChange={handleBackupFilterChange}
+              sortKey={sortKey}
+              onSortChange={handleSortChange}
             />
-            <ChipFilter<BackupFilterKey>
-              label={t("filter.backup")}
-              value={backupFilter}
-              onChange={handleBackupFilterChange}
-              options={[
-                { key: "all", label: t("filter.all") },
-                { key: "backedUp", label: t("filter.backedUp") },
-                { key: "neverBackedUp", label: t("filter.neverBackedUp") },
-              ]}
-            />
-            <SortControl value={sortKey} onChange={handleSortChange} t={t} />
           </ListToolbar>
           {filterKey !== "notInstalled" &&
             visibleLive.map((c, i) => (
@@ -4383,18 +4408,15 @@ export function Containers() {
             ))}
           {filterKey !== "installed" && visibleOrphans.length > 0 && (
             <div className="flex flex-col gap-3 pt-2">
-              <div>
-                <h2 className="relative flex items-center">
-                  {/* Continues the page hue sequence after both panels — the
-                      same render-order discipline the desktop heading below
-                      follows (see its comment). */}
-                  <Badge tone="heading" size="heading" wrap hueIndex={nextHue()}>
-                    {t("containers.notInstalledTitle")}
-                  </Badge>
-                </h2>
-                <p className="mt-1 text-xs text-carbon-textMuted">{t("containers.notInstalledHint")}</p>
-                <p className="mt-1 text-xs text-carbon-textMuted">{t("containers.notInstalledSkipped")}</p>
-              </div>
+              {/* The SAME heading block the desktop face renders (tip in the
+                  badge's (i), not the two sentences re-printed in the open):
+                  continues the page hue sequence after both panels, the same
+                  render-order discipline the desktop heading follows. */}
+              <NotInstalledHeading
+                tip={`${t("containers.notInstalledHint")} ${t("containers.notInstalledSkipped")}`}
+                hueIndex={nextHue()}
+                t={t}
+              />
               {visibleOrphans.map((c, i) => (
                 <MobileContainerCard key={c.name} container={c} t={t} index={live.length + i} nonce={cardNonce} onOpen={() => openCard(c)} />
               ))}
