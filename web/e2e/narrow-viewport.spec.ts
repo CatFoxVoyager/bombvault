@@ -32,10 +32,11 @@
 // first, not its own.
 //
 // SCOPE NOTE: this file sweeps the shell chrome (bar + More sheet), the
-// Dashboard log block and the landscape boundary pair. The other destination
-// surfaces (the six route surfaces, the Files editor header, the populated
-// guided-restore step 5) carry their narrow sweeps beside their own
-// treatments, in the specs where the surfaces they guard actually exist.
+// Dashboard log block, the Settings tab strip and the landscape boundary
+// pair. The other destination surfaces (the six route surfaces, the Files
+// editor header, the populated guided-restore step 5) carry their narrow
+// sweeps beside their own treatments, in the specs where the surfaces they
+// guard actually exist.
 // ---------------------------------------------------------------------------
 import { expect, test, type Page } from "@playwright/test";
 
@@ -432,3 +433,52 @@ test("landscape 844x390: at >=48rem the desktop chrome owns the shell", async ({
   await expect(page.getByTestId("bottom-nav")).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
 });
+
+// ---------------------------------------------------------------------------
+// The Settings tab strip at phone widths (maintainer #244 round 3, bug B7).
+// The strip pins every segment to the sidebar row-box width (--nav-row-w,
+// 200px) on desktop, and before the phone arm of --settings-tab-seg-w that
+// same pin on a 390px phone wrapped its seven flex-none segments into seven
+// stacked rows — ~350px of chrome before any Settings content. The clamp
+// fits one row at 390px and bounds the wrap at two on the narrowest
+// supported width. Geometry, not screenshots, per this file's contracts:
+// the strip's height against a bound a third stacked row cannot pass, and
+// no segment shrunk below the clamp's 2.5rem floor (tap-target scale; the
+// row height is --nav-row-h at every width). English on purpose: the strip
+// must fit its tabs in the LONGEST-label locales too, but en is the width
+// the bug was reported at and the clamp is locale-independent (fixed
+// per-segment width, truncating labels), so en keeps the assertion on the
+// mechanism instead of on a locale's typography.
+// ---------------------------------------------------------------------------
+
+for (const width of [390, 360]) {
+  test(`settings tab strip @ ${width}px: seven tabs stay a bounded strip, not a wall`, async ({ page }, testInfo) => {
+    test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "mobile-only: the clamp lives below 48rem");
+    await bootSeededPage(page, "en", width, "/settings");
+
+    const strip = page.getByRole("tablist", { name: "Settings" });
+    await expect(strip).toBeVisible();
+    await settle(page);
+
+    // One row at 390px (the reported device) is the strip's row-box height
+    // plus the groove; two rows at the floored narrowest width add one row
+    // and a flex gap. Three stacked rows — where the fixed 200px pin
+    // degenerated to at these widths — clears 150px and fails here.
+    const box = await strip.boundingBox();
+    expect(box, "the tab strip rendered with a box").not.toBeNull();
+    expect(
+      box!.height,
+      `the tab strip is ${box!.height}px tall at ${width}px: the tabs stacked into a wall`,
+    ).toBeLessThan(120);
+
+    // Every tab survives the clamp tappable: no segment under the 2.5rem
+    // floor (subpixel tolerance, nothing looser), all seven present.
+    const widths = await strip
+      .getByRole("tab")
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
+    expect(widths, "the Settings strip owns exactly the seven page tabs").toHaveLength(7);
+    for (const w of widths) {
+      expect(w, `a Settings tab shrunk to ${w}px, under the clamp floor`).toBeGreaterThanOrEqual(39.5);
+    }
+  });
+}
