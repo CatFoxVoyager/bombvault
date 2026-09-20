@@ -53,9 +53,7 @@ import { IconSearch } from "../components/glyphs";
 import { Toggle } from "../components/Toggle";
 type T = ReturnType<typeof useT>["t"];
 
-// ---------------------------------------------------------------------------
 // Helpers
-// ---------------------------------------------------------------------------
 
 function formatTs(unix: number | null | undefined): string {
   if (!unix) return "—";
@@ -101,10 +99,8 @@ function liveSourceKey(reason: "no-snapshot" | "requested" | "not-in-snapshot"):
   return "excludes.assistSourceLive";
 }
 
-// ---------------------------------------------------------------------------
 // State chip — stateTone maps a raw container state to the shared Badge's
 // tone; stateLabel (lib/i18n) still does the actual state->text translation.
-// ---------------------------------------------------------------------------
 
 function stateTone(state: string): BadgeTone {
   const lower = state.toLowerCase();
@@ -113,9 +109,7 @@ function stateTone(state: string): BadgeTone {
   return "neutral";
 }
 
-// ---------------------------------------------------------------------------
 // Sort control
-// ---------------------------------------------------------------------------
 
 type SortKey = "name" | "status" | "ip";
 
@@ -179,7 +173,7 @@ const SORT_KEYS = {
 } as const;
 
 // SortControl/FilterControl/ChipFilter below are thin, page-specific adapters
-// onto the shared Selector component (GlimStone form-engine Phase 2, Task 3):
+// onto the shared Selector component:
 // each maps this page's own domain data (a sort key, a filter key, a
 // generic option list) onto Selector's generic items/active/onChange shape.
 // The actual button rendering, keyboard nav (roving tabindex, arrow keys/
@@ -225,9 +219,7 @@ function SortControl({
   );
 }
 
-// ---------------------------------------------------------------------------
 // Installed / not-installed filter
-// ---------------------------------------------------------------------------
 
 type FilterKey = "all" | "installed" | "notInstalled";
 
@@ -268,9 +260,7 @@ function FilterControl({
   );
 }
 
-// ---------------------------------------------------------------------------
 // Schedule / backup chip filters (#41)
-// ---------------------------------------------------------------------------
 // Generic sibling of FilterControl: same chip look + localStorage pattern, but
 // parameterised over its option set so the schedule and backup dimensions can
 // each instantiate it without duplicating the markup.
@@ -350,9 +340,7 @@ function ContainerFilterControls({
   );
 }
 
-// ---------------------------------------------------------------------------
 // Container row
-// ---------------------------------------------------------------------------
 
 // ExportButton writes a plain, tool-free tar+xml copy of the container (the same
 // folders restic backs up, plus the Unraid template) into a browsable folder next
@@ -364,7 +352,7 @@ function ContainerFilterControls({
 // neither of which auto-dismissed even before this pass. Like
 // SettingsPortabilityCard's export/import banners, this is a reference value the
 // user needs to actually copy down or read, not a one-shot "it worked" ping a 4s
-// toast would cut off mid-read. STILL TRUE after the Task 2 icon-badge
+// toast would cut off mid-read. Still true after the icon-badge
 // conversion below — only the TRIGGER became a square glyph badge (jdp:
 // "Export soll ein quadratischer Badge mit Glyph sein... rechts oben in der
 // Ecke"); this sticky result column renders in the exact same place right
@@ -583,7 +571,7 @@ function HooksEditor({
 // container only when a newer image is available (the fresh backup is the safety
 // net). Off by default; advanced-only.
 //
-// Containers.tsx Task 5 (jdp, live-review): the explanation used to sit as a
+// (jdp, live-review): the explanation used to sit as a
 // permanently-visible caption under the label — moved into a real "(i)"
 // InfoBubble instead, via the SAME shared `ToggleRow` Settings.tsx/Config.tsx/
 // Recovery.tsx already use for every other "label + hint bubble + flush-right
@@ -664,7 +652,7 @@ function UpdateAfterBackupRow({
 // Selector strip) — see HooksEditor's own comment for the full "why" this and
 // its three siblings dropped their own internal useState.
 //
-// PHASE 2 (D-02): the mounts/custom list IS the selection tree now. The
+// The mounts/custom list IS the selection tree now. The
 // editor holds the (includes, exclusions) mirror in HOST path space — the
 // Phase 1 flat encoding's two classes — and every checkbox toggle runs the
 // pure applyToggle reducer over it, then live-saves the whole flat list with
@@ -683,13 +671,13 @@ interface MirrorSets {
 }
 
 /** What one queued container-PATCH save was initiated for (plan 02; generalized
- *  in plan 03 Task 2). The `cls` discriminates the two mutation classes the
+ *  in the plan). The `cls` discriminates the two mutation classes the
  *  editor can owe the server:
  *
  *  - "paths": a backupPaths save. `pre`/`sent` carry the initiating mutation's
  *    effect so a FAILURE can revert by set-difference inverse (revertFrom
  *    below) instead of a captured snapshot — a snapshot would also undo newer
- *    toggles stacked behind the failed one (Pitfall 5). `structural` marks
+ *    toggles stacked behind the failed one. `structural` marks
  *    custom add/remove, which keep their historical toast-only failure path.
  *    `source` carries the SELECTION SOURCE: every tree mutation sets the
  *    literal "tree", keeping the Phase 1 empty-selection guard live; the
@@ -811,20 +799,20 @@ export function FoldersEditor({
   // no coarse-pointer query, so the hook's false default keeps every existing
   // editor harness on the pointer mode it was written against.
   const coarsePointer = useIsCoarsePointer();
-  // Editor-lifetime listings cache (Phase 2 research, Pitfall 3): survives
+  // Editor-lifetime listings cache: survives
   // section close because this component stays mounted above its null
   // return, dies with the page — exactly the panel-lifetime scope the tree
   // is allowed to remember listings for. Plain Map, no state library.
   const browseCache = useRef(new Map<string, Promise<BrowseResponse>>());
-  // PHASE 2 PLAN 02 — the one-deep serialized PATCH queue (RESEARCH Open
-  // Question 4, Pitfalls 4/5): every backupPaths save funnels through ONE
+  // The one-deep serialized PATCH queue: every
+  // backupPaths save funnels through ONE
   // attempt at a time. While an attempt is in flight a further toggle just
   // updates the mirror and marks the queue dirty; when the attempt resolves,
   // a single drain sends the LATEST full flat list. A slow or failing save
   // can therefore never clobber a newer toggle, and a burst collapses to one
-  // draining request (T-02-08).
+  // draining request.
   //
-  // PHASE 3 review WR-02: the queue also serializes the post-reset RELOAD —
+  // The queue also serializes the post-reset RELOAD —
   // the `reload` flag below is set by a successful reset drain and consumed
   // by the finally chain only when no drain is owed, so the refetch GET
   // always starts with the queue idle and can never race (and locally
@@ -858,13 +846,13 @@ export function FoldersEditor({
   // queue must read the LIVE map through a ref, the tree renders the state.
   const [excludeCaches, setExcludeCaches] = useState<Record<string, boolean>>({});
   const cachesRef = useRef<Record<string, boolean>>({});
-  // PHASE 3 PLAN 03 (D-02, SELECT-03 second half) — the narrowing-note
+  // The narrowing-note
   // baseline: the include count of the last state the SERVER acknowledged
   // (the served selection at load, then every ok save's attempted count).
   // Event-driven, not derived: the note fires when an acknowledged attempt
   // carried FEWER includes than this, and the comparison is against the
   // last-SAVED count — never a pre-mutation count — so a burst collapsed by
-  // the queue nets correctly (RESEARCH Pitfall 3: stacked toggles must not
+  // the queue nets correctly (stacked toggles must not
   // each fire their own comparison against the same stale baseline).
   const lastSavedCountRef = useRef(0);
   // The note itself. Transient editor-session state, deliberately NOT
@@ -1016,7 +1004,7 @@ export function FoldersEditor({
         // the reset's own drain has STARTED (its desc consumed here) a later
         // toggle stacks normally and its drain re-sends the live NON-empty
         // list — latest-intent-wins over the just-landed auto-detection,
-        // which the guard never bites on and the WR-02 reload then re-serves.
+        // which the guard never bites on and the post-reset reload then re-serves.
         if (isReset) {
           body.backupPaths = [];
           body.excludeCaches = {};
@@ -1060,7 +1048,7 @@ export function FoldersEditor({
             // exclusions, custom rows and cache toggles gone) must REPLACE
             // everything — the refetch re-runs the load block above,
             // re-seeding the mirror, the custom list, the caches map and the
-            // lastSavedCount baseline together. WR-02: the refetch does NOT
+            // lastSavedCount baseline together. The refetch does NOT
             // start here. Flag it and let the finally chain below issue it
             // only once every stacked drain has settled — a GET fired at this
             // spot would race the drain the finally starts for a mutation
@@ -1128,7 +1116,7 @@ export function FoldersEditor({
           void attemptSave();
         }
       }
-      // WR-02: the post-reset reload rides the queue TAIL — issued only when
+      // The post-reset reload rides the queue TAIL — issued only when
       // this finally did NOT chain a drain and nothing else is owed, so the
       // GET starts after every stacked drain has settled and its response
       // can only reflect final server state. When a drain WAS chained the
@@ -1147,7 +1135,7 @@ export function FoldersEditor({
   // applyToggle's inverse computed as set differences, so a toggle that
   // happened AFTER the failed one (but before its save resolved) survives
   // untouched; restoring a captured pre-mutation snapshot here is the exact
-  // Pitfall 5 bug, because the snapshot also undoes that newer toggle.
+  // bug, because the snapshot also undoes that newer toggle.
   function revertFrom(desc: Extract<SaveDesc, { cls: "paths" }>): void {
     const live = mirrorRef.current;
     const inc = new Set(live.inc);
@@ -1183,7 +1171,7 @@ export function FoldersEditor({
   // value — but ONLY when the live map still carries the attempted value. A
   // newer flip of the SAME key that stacked behind the failed save survives
   // untouched, the same newer-intent-survives discipline revertFrom applies to
-  // paths (Pitfall 5, one class over).
+  // paths (one class over).
   function revertCachesFrom(desc: Extract<SaveDesc, { cls: "caches" }>): void {
     if (cachesRef.current[desc.caches.path] !== desc.caches.next) return;
     const next = { ...cachesRef.current, [desc.caches.path]: desc.caches.pre };
@@ -1517,7 +1505,7 @@ export function FoldersEditor({
       {/* Under 48rem this panel's column (~223px at a 390px viewport) is
           narrower than the browser field's minimum width plus the add
           control, so the horizontal row let the field's right edge run under
-          the button (the one P0 of the 2026-09-14 390px review, proven via
+          the button (proven via
           elementFromPoint). Below that breakpoint the row therefore wraps:
           the field takes the full line and the add action drops onto its
           own, left-aligned; from 48rem up the horizontal items-end row is
@@ -1535,7 +1523,7 @@ export function FoldersEditor({
             badge gets real hue integration + a hover tooltip carrying its
             old label). Colour-engine integration is the SAME already-
             verified mechanism the prior text-button version of this control
-            used (Task 3, jdp live-review): no `hueIndex` needed — this
+            used: no `hueIndex` needed — this
             panel already lives inside ContainerRow's own `.glim-hue`
             element, so Badge's `tone="active"` (icon-only → solid
             `bg-accent`/`text-accentContrast`, see Badge.tsx's own
@@ -1568,7 +1556,7 @@ export function FoldersEditor({
       </div>
       {/* D-05 (INTEG-04): Reset selection — the ONE sanctioned exit back to
           auto-detection. Neutral tone on purpose: the fail-weighted confirm
-          dialog carries the destructive signal (Pitfall 2's companion —
+          dialog carries the destructive signal (
           dialog carries the weight, not the trigger). The keyed wrapper +
           glim-shake is the same nonce-remount technique the tree rows use,
           keyed by the reset control's own shake entry. */}
@@ -1586,7 +1574,6 @@ export function FoldersEditor({
   );
 }
 
-// ---------------------------------------------------------------------------
 // The mobile card list + locally stacked detail.
 //
 // Both components render ONLY below the breakpoint (the page JSX-gates them
@@ -1602,7 +1589,6 @@ export function FoldersEditor({
 // list refetches never re-fire it; a cache entry is dropped when its detail
 // closes so the card refetches a post-edit count. A failed fetch renders NO
 // count at all rather than a wrong one.
-// ---------------------------------------------------------------------------
 
 /** Page-lifetime cache for the card summary/detail-meta fetches. Plain Map of
  *  promises — a failed fetch resolves to null and is NOT retried for the
@@ -2536,7 +2522,7 @@ export function ExcludesEditor({ name, initial, open, t }: { name: string; initi
           <div className="flex flex-col gap-2">
             <p className="text-xs text-carbon-textMuted">{t("excludes.assistHint")}</p>
             <div className="flex items-center gap-3">
-              {/* Colour-engine integration (Task 3, same fix/reasoning as
+              {/* Colour-engine integration (same fix/reasoning as
                   FoldersEditor's "Hinzufügen" button above): was the one
                   plain grey `bg-carbon-surface2` button in this
                   assistant sub-panel, next to its own "Ausschließen"
@@ -2630,7 +2616,7 @@ export function ExcludesEditor({ name, initial, open, t }: { name: string; initi
                   >
                     <span dir="ltr" className="min-w-0 flex-1 truncate font-mono text-xs text-carbon-text text-start">{sg.path}</span>
                     <span
-                      // Task 7: "cache" was bg-statusInfoBg/text-statusInfo (the
+                      // "cache" was bg-statusInfoBg/text-statusInfo (the
                       // old fifth hue). This is a categorisation label — "this
                       // looks like a cache dir" — not activity and not a
                       // pass/fail/warn outcome, so it folds into --status-neutral-*
@@ -2838,7 +2824,7 @@ export function ContainerRow({
           )}
         </div>
 
-        {/* Action badges (Task 2, jdp live-review: "Jetzt sichern und Export
+        {/* Action badges (jdp: "Jetzt sichern und Export
             sollen quadratische Badges mit Glyph sein, die sollen rechts oben
             in der Ecke sein wo jetzt Letztes Backup steht") — the row's
             top-right corner, the exact spot "Letztes Backup" used to occupy.
@@ -3072,9 +3058,7 @@ function ScheduleIncludeAllControl({
   );
 }
 
-// ---------------------------------------------------------------------------
 // Stacks panel (compose-project restore)
-// ---------------------------------------------------------------------------
 
 interface StackGroup {
   project: string;
@@ -3331,9 +3315,7 @@ function StacksPanel({
   );
 }
 
-// ---------------------------------------------------------------------------
 // Backup-order panel (#119) — manual per-container backup sequence
-// ---------------------------------------------------------------------------
 
 // Per-browser: whether the backup-order card is collapsed (#124 — ptmorris1 has
 // many containers). Same "bombvault.*" localStorage convention as the other UI prefs.
@@ -3517,7 +3499,7 @@ function BackupOrderPanel({
     // index.css's card-wide reactive-hover rule keys off, so hovering
     // anywhere on this panel (not just the tiny badge glyph) reveals its hue
     // in reactive rainbow mode.
-    //   mt-4 (Task 1, jdp live-review: "Backup-Reihenfolge Card ist zu weit
+    //   mt-4 (jdp: "Backup-Reihenfolge Card ist zu weit
     // oben, der Abstand nach oben ist zu klein"): the page's own outer
     // `flex flex-col gap-6` already puts a flat, uniform 24px between every
     // top-level section — measured live, byte-identical both above AND below
@@ -3687,9 +3669,7 @@ function BackupOrderPanel({
   );
 }
 
-// ---------------------------------------------------------------------------
 // Containers page
-// ---------------------------------------------------------------------------
 
 export function Containers() {
   const { t } = useT();
@@ -3802,7 +3782,6 @@ export function Containers() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps -- t() is only read to build a failure message; re-fetching on a language switch would be a wasted round-trip
 
   // Reload when the last operation finishes.
-  // ---------------------------------------------------------------------------
   // The fetch above ran once, on mount, and nothing refreshed it afterwards. So
   // restoring a container that was no longer installed worked, the daemon had it
   // running again, and this page went on saying "Not installed" until the user
