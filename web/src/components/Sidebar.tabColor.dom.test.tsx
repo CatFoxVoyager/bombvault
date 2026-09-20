@@ -53,9 +53,9 @@ describe("Sidebar nav rows carry a rainbow hue position", () => {
     const dashHue = dashboard.style.getPropertyValue("--item-hue");
     const recoveryHue = recovery.style.getPropertyValue("--item-hue");
     const containersHue = containers.style.getPropertyValue("--item-hue");
-    expect(dashHue).toMatch(/^#[0-9a-fA-F]{6}$/);
-    expect(recoveryHue).toMatch(/^#[0-9a-fA-F]{6}$/);
-    expect(containersHue).toMatch(/^#[0-9a-fA-F]{6}$/);
+    expect(dashHue).toMatch(/^var\(--rb-[0-7]\)$/);
+    expect(recoveryHue).toMatch(/^var\(--rb-[0-7]\)$/);
+    expect(containersHue).toMatch(/^var\(--rb-[0-7]\)$/);
     // Three consecutive positions in an 8-colour palette are pairwise distinct.
     expect(new Set([dashHue, recoveryHue, containersHue]).size).toBe(3);
   });
@@ -66,7 +66,7 @@ describe("Sidebar nav rows carry a rainbow hue position", () => {
     expect(dashboard.className).toContain("glim-active");
     expect(dashboard.className).toContain("bg-accent");
     expect(dashboard.className).toContain("text-accentContrast");
-    expect(dashboard.style.getPropertyValue("--item-hue")).toMatch(/^#[0-9a-fA-F]{6}$/);
+    expect(dashboard.style.getPropertyValue("--item-hue")).toMatch(/^var\(--rb-[0-7]\)$/);
 
     const recovery = screen.getByRole("link", { name: "Recovery" });
     expect(recovery.className).not.toContain("glim-active");
@@ -110,7 +110,7 @@ describe("Sidebar footer rows carry a hue too", () => {
     expect(toggle.className).toContain("glim-hue");
     // The class alone is not enough: without --item-hue the accent resolves
     // to nothing.
-    expect(toggle.style.getPropertyValue("--item-hue")).toMatch(/^#/);
+    expect(toggle.style.getPropertyValue("--item-hue")).toMatch(/^var\(--rb-[0-7]\)$/);
   });
 
   it("its hue continues the rail's own sequence rather than restarting", () => {

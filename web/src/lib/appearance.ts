@@ -55,12 +55,10 @@ export const RAINBOW_OFF: RainbowState = {
   palette: RAINBOW,
 };
 
-// Module state rather than component state: consumers that never share a
-// component tree, such as the Settings tab strip and a container list, must
-// agree on which colour position three is. Readers subscribe through
-// useRainbow.ts instead of having a prop threaded down to them.
+// Module state rather than component state: the palette lives on the document
+// root, where every hued element reads it through hueVars(), and it changes
+// from outside any component tree (Settings, disco, the server's stored look).
 let state: RainbowState = RAINBOW_OFF;
-const listeners = new Set<() => void>();
 
 // Colour-wipe state for applyRainbow. The first apply is the boot call, with
 // nothing on screen yet to change away from, so wipeMounted keeps it quiet.
@@ -92,21 +90,16 @@ function beginColourWipe(): void {
   }, 500);
 }
 
-/** rainbowState is the current snapshot. Stable identity between changes. */
+/** rainbowState is the current snapshot. */
 export function rainbowState(): RainbowState {
   return state;
 }
 
-export function subscribeRainbow(fn: () => void): () => void {
-  listeners.add(fn);
-  return () => listeners.delete(fn);
-}
-
 /**
- * applyRainbow stores the new state, mirrors it onto the document root and
- * wakes the readers. The custom properties are set even when the mode is off
- * so a stylesheet can reference `--rb-3` without having to know; the
- * `data-rainbow` attribute is what turns the look on.
+ * applyRainbow stores the new state and mirrors it onto the document root.
+ * The `--rb-*` properties are set even when the mode is off, because
+ * hueVars() points every hued element at them; the `data-rainbow` attribute is
+ * what turns the look on.
  *
  * usablePalette is the only way a palette reaches
  * document.documentElement.style: every entry has to be a six-digit hex, and
@@ -122,6 +115,7 @@ export function applyRainbow(next: Partial<RainbowState> | undefined, opts?: App
   const root = document.documentElement;
   for (let i = 0; i < RAINBOW.length; i++) {
     root.style.setProperty(`--rb-${i}`, rainbowAt(i));
+    root.style.setProperty(`--rb-ink-${i}`, contrastOn(rainbowAt(i)));
   }
   const nextAttr = merged.on ? (merged.reactive ? "reactive" : "on") : null;
 
@@ -137,8 +131,6 @@ export function applyRainbow(next: Partial<RainbowState> | undefined, opts?: App
 
   if (nextAttr === null) root.removeAttribute("data-rainbow");
   else root.setAttribute("data-rainbow", nextAttr);
-
-  for (const fn of listeners) fn();
 }
 
 /**
@@ -162,47 +154,42 @@ export function rainbowColorAt(i: number, palette: string[], rotate: boolean, se
 
 /**
  * rainbowAt is the colour at a position for the current state, rotation
- * applied. It answers even when the mode is off, because the Settings page
- * has to show the palette it is editing regardless of the master switch.
+ * applied, which applyRainbow writes to the root. A component uses hueVars()
+ * instead: nothing re-renders when the palette moves, so a colour read during
+ * render would stay where it was.
  */
 export function rainbowAt(i: number): string {
   return rainbowColorAt(i, state.palette, state.rotate, state.seed);
 }
 
 /**
- * rainbowColor is the colour an item should use, or undefined when the mode
- * is off and the single accent applies. Returning undefined rather than the
- * accent keeps the accent in CSS, where a theme change still reaches it.
- */
-export function rainbowColor(i: number): string | undefined {
-  return state.on ? rainbowAt(i) : undefined;
-}
-
-/**
- * hueVars are the inline custom properties an element carrying a palette
- * position sets on itself. The matching `.glim-hue` rules in index.css
+ * hueVars are the inline custom properties an element carrying palette
+ * position `i` sets on itself. The matching `.glim-hue` rules in index.css
  * decide whether the hue is shown at rest or held back until hover, so a
  * component only has to say which colour it owns, never which mode is
  * active. The class and these properties travel together: `.glim-hue`
  * without `--item-hue` resolves the accent to nothing.
+ *
+ * They point at the root's `--rb-*` properties rather than holding the
+ * colour, so a palette or rotation change lands on the root alone, and disco
+ * can glide it there (index.css) instead of stepping every element.
  */
-export function hueVars(hex: string | undefined): Record<string, string> {
-  const parsed = hex ? parseHex(hex) : undefined;
-  if (!parsed || !hex) return {};
-  const { r, g, b } = parsed;
+export function hueVars(i: number): Record<string, string> {
+  const n = ((Math.trunc(i) % RAINBOW.length) + RAINBOW.length) % RAINBOW.length;
+  const hue = `var(--rb-${n})`;
   return {
-    "--item-hue": hex,
-    "--item-hue-ink": contrastOn(hex),
-    "--item-hue-soft": `rgba(${r}, ${g}, ${b}, 0.14)`,
+    "--item-hue": hue,
+    "--item-hue-ink": `var(--rb-ink-${n})`,
+    "--item-hue-soft": `color-mix(in srgb, ${hue} 14%, transparent)`,
     // The wash covers a whole row, so it sits far below the soft tint: at
     // 14% eight rows of eight hues stop being a list and start being a
     // colour chart.
-    "--item-hue-wash": `rgba(${r}, ${g}, ${b}, 0.07)`,
+    "--item-hue-wash": `color-mix(in srgb, ${hue} 7%, transparent)`,
     // The focus ring follows the position too. A gold ring around a teal tab
     // is the one place the single accent leaks back into the plural mode,
     // and it is the most visible one, because it only ever appears on the
     // element the keyboard is standing on.
-    "--item-hue-ring": `rgba(${r}, ${g}, ${b}, 0.55)`,
+    "--item-hue-ring": `color-mix(in srgb, ${hue} 55%, transparent)`,
   };
 }
 

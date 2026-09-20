@@ -30,14 +30,14 @@
 
 import type { ReactNode } from "react";
 
-function G({ children }: { children: ReactNode }) {
+function G({ children, mirror = false }: { children: ReactNode; mirror?: boolean }) {
   return (
     <svg
       width="16"
       height="16"
       viewBox="0 0 14 14"
       fill="currentColor"
-      className="shrink-0"
+      className={mirror ? "shrink-0 rtl:-scale-x-100" : "shrink-0"}
       aria-hidden="true"
     >
       {children}

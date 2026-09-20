@@ -4,7 +4,7 @@ import { Badge } from "../../components/Badge";
 import { ColorPickerSwatch } from "../../components/ColorPickerPopover";
 import { InfoBubble } from "../../components/InfoBubble";
 import { Toggle } from "../../components/Toggle";
-import { hueVars, rainbowAt } from "../../lib/appearance";
+import { hueVars } from "../../lib/appearance";
 import { type CSSProperties } from "react";
 import { useT } from "../../lib/i18n";
 
@@ -44,7 +44,7 @@ export function Card({
       className={`relative glim-notch-card flex flex-col gap-4 ${
         nested ? "pt-5" : "bg-carbon-surface rounded-card p-5"
       }${hueIndex !== undefined ? " glim-hue" : ""}`}
-      style={hueIndex !== undefined ? (hueVars(rainbowAt(hueIndex)) as CSSProperties) : undefined}
+      style={hueIndex !== undefined ? (hueVars(hueIndex) as CSSProperties) : undefined}
     >
       {/* The h2 is for screen readers; what shows is the badge
           (design-language.md rule 11). */}
@@ -146,7 +146,7 @@ export function ToggleRow({
   hueIndex?: number;
 }) {
   // No hooks: Settings.toggleRow.test.ts calls ToggleRow as a plain function,
-  // outside a React renderer. hueVars and rainbowAt are plain functions.
+  // outside a React renderer. hueVars is a plain function.
   //
   // The switch dims itself (Toggle.tsx), so only the label needs `dim`. A
   // plain <div> rather than <fieldset disabled>: around a single control a
@@ -160,7 +160,7 @@ export function ToggleRow({
   return (
     <div
       className={`flex items-start justify-between gap-4${hueOn ? " glim-hue" : ""}`}
-      style={hueOn ? (hueVars(rainbowAt(hueIndex)) as CSSProperties) : undefined}
+      style={hueOn ? (hueVars(hueIndex) as CSSProperties) : undefined}
     >
       <div className="flex flex-col gap-0.5">
         {/* The dimming goes on the label, not on the span that holds the

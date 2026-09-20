@@ -47,7 +47,7 @@ Object.defineProperty(globalThis, "location", {
 });
 
 import { MoreSheet } from "./MoreSheet";
-import { hueVars, rainbowAt } from "../../lib/appearance";
+import { hueVars } from "../../lib/appearance";
 
 // A fresh-DB-plus-two-tabs fixture, the navModel.test.ts idiom (`as Settings`
 // partials): only vms and flash are switched on, so moreDestinations() must
@@ -132,17 +132,17 @@ describe("MoreSheet rotation continuity", () => {
     const rows = within(sheet()).getAllByRole("link");
     const hues = rows.map((row) => (row as HTMLElement).style.getPropertyValue("--item-hue"));
     for (let i = 0; i < hues.length; i++) {
-      expect(hues[i]).toBe(String(hueVars(rainbowAt(4 + i))["--item-hue"]));
+      expect(hues[i]).toBe(String(hueVars(4 + i)["--item-hue"]));
     }
     // The regression this pins: restarting at position 0 would give the
     // sheet's first row the bar's first slot's colour again.
-    expect(hues[0]).not.toBe(String(hueVars(rainbowAt(0))["--item-hue"]));
+    expect(hues[0]).not.toBe(String(hueVars(0)["--item-hue"]));
   });
 
   it("defaults to position 0 when mounted standalone", () => {
     draw({ settings: VMS_FLASH_ON });
     const first = within(sheet()).getAllByRole("link")[0] as HTMLElement;
-    expect(first.style.getPropertyValue("--item-hue")).toBe(String(hueVars(rainbowAt(0))["--item-hue"]));
+    expect(first.style.getPropertyValue("--item-hue")).toBe(String(hueVars(0)["--item-hue"]));
   });
 });
 
@@ -167,7 +167,7 @@ describe("MoreSheet colour engine and view toggle", () => {
     const rows = within(sheet()).getAllByRole("link");
     const hues = rows.map((row) => (row as HTMLElement).style.getPropertyValue("--item-hue"));
     for (const hue of hues) {
-      expect(hue).toMatch(/^#/);
+      expect(hue).toMatch(/^var\(--rb-[0-7]\)$/);
     }
     // Consecutive palette positions are pairwise distinct.
     expect(new Set(hues).size).toBe(hues.length);

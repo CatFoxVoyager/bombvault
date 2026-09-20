@@ -714,7 +714,7 @@ const lv: Partial<Translations> = {
   "settings.rainbow": "Varavīksnes režīms",
   "settings.rainbowHint": "Katra saraksta rinda iegūst savu krāsu no astoņu krāsu kopas, nevis visi koplieto vienu akcenta krāsu. Tas atvieglo garu sarakstu atšķiršanu vienā skatienā.",
   "settings.disco": "Disko režīms",
-  "settings.discoHint": "Katra krāsainā rinda un elements reizi sekundē pāriet uz nākamo paletes krāsu, kamēr ir ieslēgts varavīksnes režīms.",
+  "settings.discoHint": "Katra krāsainā rinda un elements lēni pāriet uz nākamo paletes krāsu, pa vienai ik pēc trim sekundēm, kamēr ir ieslēgts varavīksnes režīms.",
   "settings.rainbowReactive": "Reaktīvais režīms",
   "settings.rainbowReactiveHint": "Kad ieslēgts, rindas vai vienuma krāsa parādās tikai tad, kad novietojat kursoru virs tā vai kad tas darbojas vai ir atlasīts. Pretējā gadījumā tā paliek neitrāla. Kad izslēgts, katra krāsainā rinda un vienums visu laiku rāda savu krāsu.",
   "settings.rainbowRotate": "Krāsu rotācija",
@@ -1270,7 +1270,6 @@ const lv: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Atkopšana",
-  "recovery.pageTitle": "Katastrofu atkopšana",
   "recovery.intro": "Atjaunojiet konteinerus un VM no esošas rezerves kopijas šajā instalācijā.",
   // Step 1
   "recovery.step1": "Vai BombVault var nolasīt jūsu rezerves kopijas?",

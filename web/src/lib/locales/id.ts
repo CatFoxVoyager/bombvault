@@ -714,7 +714,7 @@ const id: Partial<Translations> = {
   "settings.rainbow": "Mode Pelangi",
   "settings.rainbowHint": "Setiap baris dalam daftar mendapatkan warnanya sendiri dari sekumpulan delapan warna, alih-alih semuanya berbagi satu warna aksen. Membuat daftar panjang lebih mudah dibedakan sekilas.",
   "settings.disco": "Mode disko",
-  "settings.discoHint": "Setiap baris dan item berwarna berpindah ke warna berikutnya dalam palet sekali per detik, selama Mode Pelangi aktif.",
+  "settings.discoHint": "Setiap baris dan item berwarna bergeser perlahan ke warna berikutnya dalam palet, satu warna setiap tiga detik, selama Mode Pelangi aktif.",
   "settings.rainbowReactive": "Mode reaktif",
   "settings.rainbowReactiveHint": "Saat aktif, warna baris atau item hanya muncul saat Anda mengarahkan kursor ke sana, atau saat sedang berjalan atau dipilih. Jika tidak, tetap netral. Saat mati, setiap baris dan item berwarna menampilkan warnanya sepanjang waktu.",
   "settings.rainbowRotate": "Rotasi warna",
@@ -1270,7 +1270,6 @@ const id: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Pemulihan",
-  "recovery.pageTitle": "Pemulihan bencana",
   "recovery.intro": "Pulihkan container dan VM Anda dari cadangan yang sudah ada ke instalasi ini.",
   // Step 1
   "recovery.step1": "Bisakah BombVault membaca cadangan Anda?",

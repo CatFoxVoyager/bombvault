@@ -261,7 +261,7 @@ const tr: Partial<Translations> = {
   "settings.rainbow": "Gökkuşağı modu",
   "settings.rainbowHint": "Listedeki her satır, tek bir vurgu rengini paylaşmak yerine sekiz renkten oluşan bir setten kendi rengini alır, bu da uzun listeleri tek bakışta ayırt etmeyi kolaylaştırır.",
   "settings.disco": "Disko modu",
-  "settings.discoHint": "Gökkuşağı modu açık olduğu sürece, renkli her satır ve öğe saniyede bir palette sıradaki renge geçer.",
+  "settings.discoHint": "Gökkuşağı modu açık olduğu sürece, renkli her satır ve öğe üç saniyede bir palette sıradaki renge yavaşça geçer.",
   "settings.rainbowReactive": "Reaktif mod",
   "settings.rainbowReactiveHint": "Açıkken bir satır veya öge rengini yalnızca üzerine gelindiğinde ya da çalışırken veya seçiliyken gösterir. Aksi halde nötr kalır. Kapalıyken renkli her satır ve öge rengini her zaman gösterir.",
   "settings.rainbowRotate": "Renk döngüsü",
@@ -727,7 +727,6 @@ const tr: Partial<Translations> = {
   "recovery.stored": "Güvenle sakladım",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "Felaket kurtarma",
   "recovery.intro": "Konteynerlerinizi ve VM'lerinizi mevcut bir yedekten bu kuruluma geri yükleyin.",
   "recovery.step1": "BombVault yedeklerinizi okuyabiliyor mu?",
   "recovery.appKeyExplain": "Mevcut yedekleri okumak için bu konteynerin daha önce kullandığı AYNI APP_KEY gerekir. Bu, kurtarma kitinizde yer alır. Henüz ayarlı değilse Unraid konteyner şablonunda ayarlayın, ardından yeniden denetleyin.",

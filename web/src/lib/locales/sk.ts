@@ -714,7 +714,7 @@ const sk: Partial<Translations> = {
   "settings.rainbow": "Dúhový režim",
   "settings.rainbowHint": "Každý riadok v zozname dostane vlastnú farbu z ôsmich farieb namiesto toho, aby si všetko delilo jednu zvýrazňujúcu farbu. To uľahčuje rozlíšenie dlhých zoznamov na prvý pohľad.",
   "settings.disco": "Režim disko",
-  "settings.discoHint": "Každý farebný riadok a prvok prejde na ďalšiu farbu palety raz za sekundu, kým je zapnutý režim dúhy.",
+  "settings.discoHint": "Každý farebný riadok a prvok plynulo prechádza na ďalšiu farbu palety, jednu každé tri sekundy, kým je zapnutý režim dúhy.",
   "settings.rainbowReactive": "Reaktívny režim",
   "settings.rainbowReactiveHint": "Keď je zapnutý, farba riadku alebo položky sa objaví iba počas prechádzania kurzorom nad ňou, alebo počas jej behu či výberu, inak zostáva neutrálna. Keď je vypnutý, každý farebný riadok a položka zobrazuje svoju farbu neustále.",
   "settings.rainbowRotate": "Rotácia farieb",
@@ -1270,7 +1270,6 @@ const sk: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Obnova",
-  "recovery.pageTitle": "Obnova po havárii",
   "recovery.intro": "Obnovte svoje kontajnery a VM z existujúcej zálohy na tejto inštalácii.",
   // Step 1
   "recovery.step1": "Dokáže BombVault prečítať vaše zálohy?",

@@ -53,7 +53,6 @@ const baseProps = {
   message: "Delete this backup? This cannot be undone.",
   confirmLabel: "Confirm",
   cancelLabel: "Cancel",
-  closeLabel: "Close",
   onConfirm: noop,
   onCancel: noop,
 };
@@ -94,24 +93,6 @@ describe("ConfirmDialog", () => {
     expect(calls).toBe(1);
   });
 
-  it("calls onCancel when the header close (X) button is clicked", () => {
-    let calls = 0;
-    const tree = ConfirmDialog({ ...baseProps, onCancel: () => calls++ });
-    const buttons = findAllButtons(tree);
-    const closeBtn = buttons.find((b) => b.props?.label === "Close");
-    expect(closeBtn).toBeDefined();
-    closeBtn!.props!.onClick();
-    expect(calls).toBe(1);
-  });
-
-  it("gives the header close button a name distinct from the footer Cancel button", () => {
-    const tree = ConfirmDialog(baseProps);
-    const buttons = findAllButtons(tree);
-    const closeBtn = buttons.find((b) => b.props?.label === "Close");
-    expect(closeBtn?.props?.label).toBe("Close");
-    expect(closeBtn?.props?.label).not.toBe(baseProps.cancelLabel);
-  });
-
   it("calls onCancel when the backdrop itself is clicked", () => {
     let calls = 0;
     const tree = ConfirmDialog({ ...baseProps, onCancel: () => calls++ }) as ElementNode;
@@ -134,7 +115,7 @@ describe("ConfirmDialog", () => {
     expect(cancelBtn?.props?.autoFocus).toBe(true);
   });
 
-  it("gives the commit button its siblings' colour, never a status one", () => {
+  it("paints both answers in the accent, never a status colour", () => {
     // The question states the stakes; a red button on every delete teaches
     // people to read past it.
     const tree = ConfirmDialog(baseProps);
@@ -142,7 +123,7 @@ describe("ConfirmDialog", () => {
     const confirmBtn = buttons.find((b) => visibleText(b) === "Confirm" && b.props?.autoFocus !== true);
     const cancelBtn = buttons.find((b) => b.props?.autoFocus === true);
 
-    expect(confirmBtn?.props?.tone).toBe("neutral");
+    expect(confirmBtn?.props?.tone).toBe("accent");
     expect(confirmBtn?.props?.tone).toBe(cancelBtn?.props?.tone);
   });
 
@@ -151,7 +132,7 @@ describe("ConfirmDialog", () => {
     const tree = ConfirmDialog({ ...baseProps, ...({ tone: "warn" } as object) });
     const buttons = findAllButtons(tree);
     const confirmBtn = buttons.find((b) => visibleText(b) === "Confirm" && b.props?.autoFocus !== true);
-    expect(confirmBtn?.props?.tone).toBe("neutral");
+    expect(confirmBtn?.props?.tone).toBe("accent");
   });
 
   it("labels the dialog via aria-labelledby pointing at the title heading's id", () => {
@@ -199,26 +180,15 @@ describe("ConfirmDialog layout and optional parts", () => {
     expect(all).not.toContain("border-t");
   });
 
-  it("omits the close button when no closeLabel is given", () => {
+  it("offers the two footer answers and no close button in the corner", () => {
     // Counted rather than found by text, since a button with an undefined label
     // has no text but is still there.
-    const buttonsIn = (props: Parameters<typeof ConfirmDialog>[0]) =>
-      findAll(
-        ConfirmDialog(props),
-        (n) => typeof n.type === "function" && (n.type as { name?: string }).name === "Button",
-      );
-    const withX = buttonsIn(baseProps);
-    expect(withX).toHaveLength(3);
-    expect(withX.some((b) => b.props?.labelKey === "common.close")).toBe(true);
-
-    const { closeLabel: _drop, ...withoutClose } = baseProps;
-    const withoutX = buttonsIn(withoutClose);
-    expect(withoutX).toHaveLength(2);
-    expect(withoutX.some((b) => b.props?.labelKey === "common.close")).toBe(false);
-    // and the rest of the window is untouched
-    const text = visibleText(ConfirmDialog(withoutClose));
-    expect(text).toContain("Cancel");
-    expect(text).toContain("Delete this backup? This cannot be undone.");
+    const buttons = findAll(
+      ConfirmDialog(baseProps),
+      (n) => typeof n.type === "function" && (n.type as { name?: string }).name === "Button",
+    );
+    expect(buttons).toHaveLength(2);
+    expect(buttons.some((b) => b.props?.labelKey === "common.close")).toBe(false);
   });
 
   it("puts an `extra` control under the message, not inside it", () => {

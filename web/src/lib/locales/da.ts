@@ -261,7 +261,7 @@ const da: Partial<Translations> = {
   "settings.rainbow": "Regnbuetilstand",
   "settings.rainbowHint": "Hver række på en liste får sin egen farve fra et sæt på otte, i stedet for at alt deler én accentfarve, hvilket gør lange lister nemmere at skelne på et øjeblik.",
   "settings.disco": "Diskotilstand",
-  "settings.discoHint": "Hver farvet række og hvert farvet element skifter til næste farve i paletten en gang i sekundet, så længe regnbuetilstand er slået til.",
+  "settings.discoHint": "Hver farvet række og hvert farvet element glider langsomt over i næste farve i paletten, én hvert tredje sekund, så længe regnbuetilstand er slået til.",
   "settings.rainbowReactive": "Reaktiv tilstand",
   "settings.rainbowReactiveHint": "Når slået til viser en række eller et element kun sin farve ved hover, eller mens det kører eller er valgt. Ellers forbliver den neutral. Når slået fra viser hver farvet række og element sin farve hele tiden.",
   "settings.rainbowRotate": "Farverotation",
@@ -727,7 +727,6 @@ const da: Partial<Translations> = {
   "recovery.stored": "Jeg har gemt det sikkert",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "Katastrofegendannelse",
   "recovery.intro": "Gendan dine containers og VMs fra en eksisterende sikkerhedskopi til denne installation.",
   "recovery.step1": "Kan BombVault læse dine sikkerhedskopier?",
   "recovery.appKeyExplain": "For at læse eksisterende sikkerhedskopier skal denne container bruge den SAMME APP_KEY, som den brugte før. Den findes i dit gendannelseskit. Angiv den i Unraid-containerskabelonen, hvis den ikke allerede er sat, og tjek så igen.",

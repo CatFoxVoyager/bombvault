@@ -714,7 +714,7 @@ const gl: Partial<Translations> = {
   "settings.rainbow": "Modo arco da vella",
   "settings.rainbowHint": "Cada fila dunha lista recibe a súa propia cor dun conxunto de oito, en vez de que todo comparta unha soa cor de acento: isto fai que as listas longas sexan máis fáciles de distinguir dunha ollada.",
   "settings.disco": "Modo disco",
-  "settings.discoHint": "Cada fila e elemento de cor pasa á seguinte cor da paleta unha vez por segundo, mentres o modo arco da vella estea activado.",
+  "settings.discoHint": "Cada fila e elemento de cor esvara suavemente cara á seguinte cor da paleta, unha cada tres segundos, mentres o modo arco da vella estea activado.",
   "settings.rainbowReactive": "Modo reactivo",
   "settings.rainbowReactiveHint": "Cando está activo, a cor dunha fila ou elemento só aparece mentres o tocas co cursor, ou mentres se está a executar ou está seleccionado, se non, mantense neutro. Cando está desactivado, todas as filas e elementos con cor mostran a súa cor sempre.",
   "settings.rainbowRotate": "Rotación de cor",
@@ -1270,7 +1270,6 @@ const gl: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Recuperación",
-  "recovery.pageTitle": "Recuperación de desastres",
   "recovery.intro": "Restaura os teus contedores e MV a partir dunha copia existente nesta instalación.",
   // Step 1
   "recovery.step1": "Pode BombVault ler as túas copias?",

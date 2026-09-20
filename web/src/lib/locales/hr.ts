@@ -714,7 +714,7 @@ const hr: Partial<Translations> = {
   "settings.rainbow": "Rainbow način",
   "settings.rainbowHint": "Svaki redak na popisu dobiva vlastitu boju iz skupa od osam, umjesto da svi dijele jednu naglasnu boju. To olakšava razlikovanje dugih popisa na prvi pogled.",
   "settings.disco": "Disco način",
-  "settings.discoHint": "Svaki obojeni redak i element prelazi na sljedeću boju palete jednom u sekundi, dok je način duge uključen.",
+  "settings.discoHint": "Svaki obojeni redak i element polako prelazi u sljedeću boju palete, jednu svake tri sekunde, dok je način duge uključen.",
   "settings.rainbowReactive": "Reaktivni način",
   "settings.rainbowReactiveHint": "Kad je uključeno, boja retka ili stavke pojavljuje se samo dok je pokazujete mišem, ili dok se izvršava ili je odabrana. Inače ostaje neutralna. Kad je isključeno, svaki obojeni redak i stavka stalno prikazuju svoju boju.",
   "settings.rainbowRotate": "Rotacija boje",
@@ -1270,7 +1270,6 @@ const hr: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Oporavak",
-  "recovery.pageTitle": "Oporavak od katastrofe",
   "recovery.intro": "Vratite svoje kontejnere i VM-ove iz postojeće sigurnosne kopije na ovu instalaciju.",
   // Step 1
   "recovery.step1": "Može li BombVault pročitati vaše sigurnosne kopije?",

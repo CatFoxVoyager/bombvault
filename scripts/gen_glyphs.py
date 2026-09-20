@@ -57,6 +57,10 @@ ACTION = [
     ("IconCompare", "interface-essential/layers-2.svg", "Compare two things"),
 ]
 
+# Glyphs that point along the reading direction, so a right-to-left layout
+# mirrors them.
+MIRRORED = {"IconBack", "IconForward", "IconSignIn", "IconSignOut"}
+
 # Navigation and domain symbols, from the same set so the interface reads as
 # one icon family.
 NAV = [
@@ -298,14 +302,14 @@ ATTRIBUTION = """// %s
 
 import type { ReactNode } from "react";
 
-function G({ children }: { children: ReactNode }) {
+function G({ children, mirror = false }: { children: ReactNode; mirror?: boolean }) {
   return (
     <svg
       width="16"
       height="16"
       viewBox="0 0 14 14"
       fill="currentColor"
-      className="shrink-0"
+      className={mirror ? "shrink-0 rtl:-scale-x-100" : "shrink-0"}
       aria-hidden="true"
     >
       {children}
@@ -360,8 +364,8 @@ def write(path, headline, items, extra=()):
     out = [ATTRIBUTION % headline]
     for name, src, note in items:
         out.append(
-            "\n%s\nexport function %s() {\n  return (\n    <G>\n%s\n    </G>\n  );\n}\n"
-            % (doc(note), name, body(src))
+            "\n%s\nexport function %s() {\n  return (\n    <G%s>\n%s\n    </G>\n  );\n}\n"
+            % (doc(note), name, " mirror" if name in MIRRORED else "", body(src))
         )
     for name, note, viewbox, markup in extra:
         out.append(

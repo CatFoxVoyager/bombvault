@@ -3,7 +3,7 @@
 // share the list; lib/activityLog.ts merges, dedupes and orders them.
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { hueVars, rainbowAt } from "../lib/appearance";
+import { hueVars } from "../lib/appearance";
 import { listRuns, getScheduleNext } from "../lib/api";
 import type { Run, ScheduleNext } from "../lib/api";
 import { useProgress } from "../lib/progress";
@@ -219,7 +219,7 @@ export function ActivityLog({
       className={`relative glim-notch-card bg-carbon-surface rounded-card p-5 flex flex-col gap-3${
         hueIndex !== undefined ? " glim-hue" : ""
       }`}
-      style={hueIndex !== undefined ? (hueVars(rainbowAt(hueIndex)) as CSSProperties) : undefined}
+      style={hueIndex !== undefined ? (hueVars(hueIndex) as CSSProperties) : undefined}
     >
       {/* glim-hue on the card carries the rainbow accent to the focus rings
           and the day chip; glim-notch-card does not set --accent. */}

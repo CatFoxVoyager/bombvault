@@ -714,7 +714,7 @@ const ca: Partial<Translations> = {
   "settings.rainbow": "Mode arc de Sant Martí",
   "settings.rainbowHint": "Cada fila d'una llista rep un color propi d'un conjunt de vuit, en comptes que tot comparteixi un sol color d'accent, fa que les llistes llargues siguin més fàcils de distingir d'un cop d'ull.",
   "settings.disco": "Mode discoteca",
-  "settings.discoHint": "Cada fila i element de color passa al color següent de la paleta un cop per segon, mentre el mode Arc de Sant Martí estigui activat.",
+  "settings.discoHint": "Cada fila i element de color llisca suaument cap al color següent de la paleta, un cada tres segons, mentre el mode Arc de Sant Martí estigui activat.",
   "settings.rainbowReactive": "Mode reactiu",
   "settings.rainbowReactiveHint": "Quan està actiu, el color d'una fila o element només apareix mentre el toques amb el cursor, o mentre s'està executant o està seleccionat. Altrament es manté neutre. Quan està desactivat, totes les files i elements amb color mostren el seu color sempre.",
   "settings.rainbowRotate": "Rotació de color",
@@ -1270,7 +1270,6 @@ const ca: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Recuperació",
-  "recovery.pageTitle": "Recuperació d'avaries",
   "recovery.intro": "Recupera els teus contenidors i MV a partir d'una còpia existent en aquesta instal·lació.",
   // Step 1
   "recovery.step1": "Pot BombVault llegir les teves còpies?",

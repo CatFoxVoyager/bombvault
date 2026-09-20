@@ -261,7 +261,7 @@ const sv: Partial<Translations> = {
   "settings.rainbow": "Regnbågsläge",
   "settings.rainbowHint": "Varje rad i en lista får sin egen färg från en uppsättning på åtta, i stället för att allt delar en enda accentfärg. Det gör långa listor lättare att skilja åt med en blick.",
   "settings.disco": "Discoläge",
-  "settings.discoHint": "Varje färgad rad och varje färgat element går vidare till nästa färg i paletten en gång per sekund, så länge regnbågsläget är påslaget.",
+  "settings.discoHint": "Varje färgad rad och varje färgat element glider långsamt över till nästa färg i paletten, en var tredje sekund, så länge regnbågsläget är påslaget.",
   "settings.rainbowReactive": "Reaktivt läge",
   "settings.rainbowReactiveHint": "När aktiverat visar en rad eller ett objekt bara sin färg vid hovring, eller medan den körs eller är markerad, annars förblir den neutral. När avaktiverat visar varje färgad rad och objekt sin färg hela tiden.",
   "settings.rainbowRotate": "Färgrotation",
@@ -727,7 +727,6 @@ const sv: Partial<Translations> = {
   "recovery.stored": "Jag har förvarat det säkert",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "Katastrofåterställning",
   "recovery.intro": "Återställ dina containrar och VMs från en befintlig säkerhetskopia till den här installationen.",
   "recovery.step1": "Kan BombVault läsa dina säkerhetskopior?",
   "recovery.appKeyExplain": "För att läsa befintliga säkerhetskopior behöver den här containern SAMMA APP_KEY som den använde tidigare. Den finns i ditt återställningskit. Ange den i Unraid-containermallen om den inte redan är satt, och kontrollera sedan igen.",

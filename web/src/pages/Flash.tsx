@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { hueVars, rainbowAt } from "../lib/appearance";
+import { hueVars } from "../lib/appearance";
 import { backupFlashNow, listFlashSnapshots, flashDownloadURL, deleteSnapshot } from "../lib/api";
 import type { Snapshot } from "../lib/api";
 import { useT } from "../lib/i18n";
@@ -102,7 +102,7 @@ function FlashSnapshotRow({ snap, source, onDeleted, t }: { snap: Snapshot; sour
   const [shake, setShake] = useState(0);
 
   async function handleDelete() {
-    if (!(await confirm(t("snapshots.deleteConfirm")))) return;
+    if (!(await confirm(t("snapshots.deleteConfirm"), { confirmKey: "snapshots.delete" }))) return;
     setDeleting(true);
     try {
       const res = await deleteSnapshot("flash", snap.id, source);
@@ -184,24 +184,36 @@ export function Flash() {
   // Any backup, restore or replication in flight disables the backup button
   // up front instead of waiting for the server's 409.
   const running = anyActive(progressMap);
+  const [reloadTick, setReloadTick] = useState(0);
+  const reload = () => setReloadTick((n) => n + 1);
 
-  function load() {
-    setError(null);
-    return listFlashSnapshots(source)
-      .then((res) => {
-        if (res.ok) setSnapshots(res.snapshots ?? []);
-        else setError(res.error ?? t("flash.loadBackupsFailed"));
-      })
-      .catch((err: unknown) =>
-        setError(err instanceof Error ? err.message : t("flash.loadBackupsFailed"))
-      );
-  }
-
+  // A switch of source hides the list until the new one is in (the toggle sets
+  // `loading`); a reload after a backup or a delete swaps it in place. An
+  // answer that arrives after the next switch is dropped, and a failure
+  // empties the list, whose rows belong to the source just left. t() only
+  // builds the failure message, so a language switch fetches nothing.
   useEffect(() => {
-    setLoading(true);
-    void load().finally(() => setLoading(false));
+    let current = true;
+    const fail = (message: string) => {
+      if (!current) return;
+      setSnapshots([]);
+      setError(message);
+    };
+    setError(null);
+    listFlashSnapshots(source)
+      .then((res) => {
+        if (!res.ok) return fail(res.error ?? t("flash.loadBackupsFailed"));
+        if (current) setSnapshots(res.snapshots ?? []);
+      })
+      .catch((err: unknown) => fail(err instanceof Error ? err.message : t("flash.loadBackupsFailed")))
+      .finally(() => {
+        if (current) setLoading(false);
+      });
+    return () => {
+      current = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [source]);
+  }, [source, reloadTick]);
 
   return (
     // The OffsiteIndicator sits inside the heading div, so the shell gap alone
@@ -218,7 +230,7 @@ export function Flash() {
           inner box for the badge's top-0. insetStart={5} lines the badge up
           with the inner p-5. The inner box is what ProgressBar clips to, as
           in Config.tsx's backup card. */}
-      <div className="relative glim-notch-card glim-hue" style={hueVars(rainbowAt(0)) as CSSProperties}>
+      <div className="relative glim-notch-card glim-hue" style={hueVars(0) as CSSProperties}>
         <h2 className="flex items-center">
           <Badge tone="heading" size="heading" wrap hueIndex={0} insetStart={5}>
             {t("flash.backupTitle")}
@@ -229,7 +241,7 @@ export function Flash() {
           <div className="flex justify-end">
             <FlashBackupButton
               t={t}
-              onBackedUp={() => void load()}
+              onBackedUp={reload}
               externallyBusy={running.active}
               busyPhase={running.phase}
             />
@@ -253,7 +265,7 @@ export function Flash() {
       {/* The snapshot rows' badges take this card's hue through the cascade. */}
       <div
         className="relative glim-notch-card glim-hue bg-carbon-surface rounded-card p-5 flex flex-col gap-4"
-        style={hueVars(rainbowAt(1)) as CSSProperties}
+        style={hueVars(1) as CSSProperties}
       >
         <h2 className="flex items-center">
           <Badge tone="heading" size="heading" wrap hueIndex={1}>
@@ -267,7 +279,18 @@ export function Flash() {
             {t("source.label")}
             <InfoBubble tip={t("source.hint")} />
           </span>
-          <SourceToggle source={source} onChange={setSource} disabled={loading} domain="flash" />
+          <SourceToggle
+            source={source}
+            onChange={(next) => {
+              // The selector reports a click on the active source too, and
+              // no load would follow to clear `loading`.
+              if (next === source) return;
+              setLoading(true);
+              setSource(next);
+            }}
+            disabled={loading}
+            domain="flash"
+          />
         </div>
 
         {loading && <p className="text-xs text-carbon-textMuted">{t("dashboard.checking")}</p>}
@@ -278,7 +301,7 @@ export function Flash() {
         {!loading && snapshots.length > 0 && (
           <div className="rounded-card bg-carbon-background px-3 py-1">
             {snapshots.map((snap) => (
-              <FlashSnapshotRow key={snap.id} snap={snap} source={source} onDeleted={() => void load()} t={t} />
+              <FlashSnapshotRow key={snap.id} snap={snap} source={source} onDeleted={reload} t={t} />
             ))}
           </div>
         )}

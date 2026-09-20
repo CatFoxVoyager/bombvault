@@ -261,7 +261,7 @@ const ja: Partial<Translations> = {
   "settings.rainbow": "レインボーモード",
   "settings.rainbowHint": "リストの各行は、単一のアクセントカラーを共有する代わりに、8色のセットから自分専用の色を得ます。これにより長いリストが一目で区別しやすくなります。",
   "settings.disco": "ディスコモード",
-  "settings.discoHint": "レインボーモードが有効な間、色の付いた行や項目が1秒ごとにパレットの次の色へ移ります。",
+  "settings.discoHint": "レインボーモードが有効な間、色の付いた行や項目が3秒ごとにパレットの次の色へゆっくり移り変わります。",
   "settings.rainbowReactive": "リアクティブモード",
   "settings.rainbowReactiveHint": "オンにすると、行や項目はマウスを重ねたとき、または実行中や選択中だけ自分の色を表示し、それ以外は中立色のままになります。オフにすると、色付きの行や項目は常に自分の色を表示します。",
   "settings.rainbowRotate": "カラーローテーション",
@@ -719,7 +719,6 @@ const ja: Partial<Translations> = {
   "recovery.stored": "安全に保管しました",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "災害復旧",
   "recovery.intro": "既存のバックアップからコンテナと VM をこのインストールに復元します。",
   "recovery.step1": "BombVault はバックアップを読み取れますか？",
   "recovery.appKeyExplain": "既存のバックアップを読み取るには、このコンテナに以前と同じ APP_KEY が必要です。リカバリーキットに記載されています。まだ設定していなければ Unraid のコンテナテンプレートで設定し、再確認してください。",

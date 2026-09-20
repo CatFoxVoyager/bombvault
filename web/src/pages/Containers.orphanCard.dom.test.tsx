@@ -4,7 +4,7 @@
 // removal button that matches the VM card's (VMs.test.tsx covers the same
 // cases there).
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { Container } from "../lib/api";
 
 class FakeEventSource {
@@ -83,7 +83,7 @@ describe("ContainerRow when the container is no longer installed", () => {
     expect(screen.queryByRole("button", { name: "containers.deleteBackups" })).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "vms.removeEntry" }));
-    fireEvent.click(await screen.findByRole("button", { name: en["common.confirm"] }));
+    fireEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: en["vms.removeEntry"] }));
 
     await waitFor(() => expect(forgetContainer).toHaveBeenCalledWith("radarr-movies"));
     expect(deleteBackups).not.toHaveBeenCalled();
@@ -102,7 +102,7 @@ describe("ContainerRow when the container is no longer installed", () => {
     expect(screen.queryByRole("button", { name: "vms.removeEntry" })).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "containers.deleteBackups" }));
-    fireEvent.click(await screen.findByRole("button", { name: en["common.confirm"] }));
+    fireEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: en["containers.deleteBackups"] }));
 
     await waitFor(() => expect(deleteBackups).toHaveBeenCalledWith("radarr-movies"));
     expect(forgetContainer).not.toHaveBeenCalled();

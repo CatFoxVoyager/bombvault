@@ -50,7 +50,10 @@ export function OrphanRemoveButton({
   async function run() {
     // TODO: pass what is at stake ("N snapshots, X GB") to confirm() once the
     // interpolated i18n keys exist, as in VMs.tsx and Files.tsx.
-    if (!(await confirm(hasBackups ? deleteConfirm : removeConfirm))) return;
+    const asked = hasBackups
+      ? confirm(deleteConfirm, { confirmKey: "containers.deleteBackups" })
+      : confirm(removeConfirm, { confirmKey: "vms.removeEntry" });
+    if (!(await asked)) return;
     setPending(true);
     try {
       const res = await (hasBackups ? deleteBackups() : removeEntry());

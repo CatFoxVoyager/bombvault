@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { hueVars, rainbowAt } from "../lib/appearance";
+import { hueVars } from "../lib/appearance";
 import {
   backupConfigNow,
   listConfigSnapshots,
@@ -151,7 +151,7 @@ function ConfigSettingsCard({
       className={`relative glim-notch-card bg-carbon-surface rounded-card p-5 flex flex-col gap-4${
         hueIndex !== undefined ? " glim-hue" : ""
       }`}
-      style={hueIndex !== undefined ? (hueVars(rainbowAt(hueIndex)) as CSSProperties) : undefined}
+      style={hueIndex !== undefined ? (hueVars(hueIndex) as CSSProperties) : undefined}
     >
       <h2 className="flex items-center">
         <Badge tone="heading" size="heading" wrap hueIndex={hueIndex}>
@@ -199,7 +199,7 @@ function ConfigSnapshotRow({
   const [shake, setShake] = useState(0);
 
   async function handleDelete() {
-    if (!(await confirm(t("snapshots.deleteConfirm")))) return;
+    if (!(await confirm(t("snapshots.deleteConfirm"), { confirmKey: "snapshots.delete" }))) return;
     setDeleting(true);
     try {
       const res = await deleteSnapshot("config", snap.id, source);
@@ -266,23 +266,36 @@ export function Config() {
       .catch(() => undefined);
   }, []);
 
-  function load() {
-    setError(null);
-    return listConfigSnapshots(source)
-      .then((res) => {
-        if (res.ok) setSnapshots(res.snapshots ?? []);
-        else setError(res.error ?? t("config.loadBackupsFailed"));
-      })
-      .catch((err: unknown) =>
-        setError(err instanceof Error ? err.message : t("config.loadBackupsFailed"))
-      );
-  }
+  const [reloadTick, setReloadTick] = useState(0);
+  const reload = () => setReloadTick((n) => n + 1);
 
+  // A switch of source hides the list until the new one is in (the toggle sets
+  // `loading`); a reload after a backup or a delete swaps it in place. An
+  // answer that arrives after the next switch is dropped, and a failure
+  // empties the list, whose rows belong to the source just left. t() only
+  // builds the failure message, so a language switch fetches nothing.
   useEffect(() => {
-    setLoading(true);
-    void load().finally(() => setLoading(false));
+    let current = true;
+    const fail = (message: string) => {
+      if (!current) return;
+      setSnapshots([]);
+      setError(message);
+    };
+    setError(null);
+    listConfigSnapshots(source)
+      .then((res) => {
+        if (!res.ok) return fail(res.error ?? t("config.loadBackupsFailed"));
+        if (current) setSnapshots(res.snapshots ?? []);
+      })
+      .catch((err: unknown) => fail(err instanceof Error ? err.message : t("config.loadBackupsFailed")))
+      .finally(() => {
+        if (current) setLoading(false);
+      });
+    return () => {
+      current = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [source]);
+  }, [source, reloadTick]);
 
   return (
     <div className={PAGE_SHELL}>
@@ -298,7 +311,7 @@ export function Config() {
       {/* The heading badge pokes out above the card, so it lives on this outer
           div rather than inside the overflow-hidden box that ProgressBar clips
           to. insetStart={5} lines it up with that box's padding. */}
-      <div className="relative glim-notch-card glim-hue" style={hueVars(rainbowAt(1)) as CSSProperties}>
+      <div className="relative glim-notch-card glim-hue" style={hueVars(1) as CSSProperties}>
         <h2 className="flex items-center">
           <Badge tone="heading" size="heading" wrap hueIndex={1} insetStart={5}>
             {t("config.backupTitle")}
@@ -309,7 +322,7 @@ export function Config() {
           <div className="flex justify-end">
             <ConfigBackupButton
               t={t}
-              onBackedUp={() => void load()}
+              onBackedUp={reload}
               externallyBusy={running.active}
               busyPhase={running.phase}
             />
@@ -330,7 +343,7 @@ export function Config() {
 
       <div
         className="relative glim-notch-card glim-hue bg-carbon-surface rounded-card p-5 flex flex-col gap-4"
-        style={hueVars(rainbowAt(2)) as CSSProperties}
+        style={hueVars(2) as CSSProperties}
       >
         <h2 className="flex items-center">
           <Badge tone="heading" size="heading" wrap hueIndex={2}>
@@ -344,7 +357,18 @@ export function Config() {
             {t("source.label")}
             <InfoBubble tip={t("source.hint")} />
           </span>
-          <SourceToggle source={source} onChange={setSource} disabled={loading} domain="config" />
+          <SourceToggle
+            source={source}
+            onChange={(next) => {
+              // The selector reports a click on the active source too, and
+              // no load would follow to clear `loading`.
+              if (next === source) return;
+              setLoading(true);
+              setSource(next);
+            }}
+            disabled={loading}
+            domain="config"
+          />
         </div>
 
         {loading && <p className="text-xs text-carbon-textMuted">{t("dashboard.checking")}</p>}
@@ -359,7 +383,7 @@ export function Config() {
                 key={snap.id}
                 snap={snap}
                 source={source}
-                onDeleted={() => void load()}
+                onDeleted={reload}
                 t={t}
               />
             ))}

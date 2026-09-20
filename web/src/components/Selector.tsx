@@ -18,8 +18,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
-import { hueVars, rainbowAt } from "../lib/appearance";
-import { useRainbow } from "../lib/useRainbow";
+import { hueVars } from "../lib/appearance";
 import { useLabelMode } from "../lib/useLabelMode";
 import type { ControlAxis } from "../lib/controls";
 import { hidesLabel, labelWidth } from "../lib/controls";
@@ -363,9 +362,6 @@ export function Selector(props: SelectorProps) {
     setMatchedWidth(widest);
   }, [pinWidth, matchedWidth, itemsKey, size, items.length]);
 
-  // Subscribes to rainbow changes; see lib/useRainbow.ts. Called even when `hue`
-  // is false, for the rules of hooks.
-  useRainbow();
 
   const many = props.select === "many";
   const chosen = props.select === "many" ? props.active : null;
@@ -485,7 +481,7 @@ export function Selector(props: SelectorProps) {
           .join(" ");
 
         const hueStyle = hue
-          ? (hueVars(rainbowAt(i + hueOffset)) as CSSProperties)
+          ? (hueVars(i + hueOffset) as CSSProperties)
           : undefined;
         const widthStyle: CSSProperties | undefined =
           segmentWidth

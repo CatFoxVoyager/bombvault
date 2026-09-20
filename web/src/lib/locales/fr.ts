@@ -261,7 +261,7 @@ const fr: Partial<Translations> = {
   "settings.rainbow": "Mode arc-en-ciel",
   "settings.rainbowHint": "Chaque ligne d'une liste reçoit sa propre couleur parmi un jeu de huit, au lieu que tout partage une seule couleur d'accentuation : les longues listes se distinguent ainsi d'un coup d'œil.",
   "settings.disco": "Mode disco",
-  "settings.discoHint": "Chaque ligne et élément coloré passe à la couleur suivante de la palette une fois par seconde, tant que le mode arc-en-ciel est activé.",
+  "settings.discoHint": "Chaque ligne et élément coloré glisse doucement vers la couleur suivante de la palette, une toutes les trois secondes, tant que le mode arc-en-ciel est activé.",
   "settings.rainbowReactive": "Mode réactif",
   "settings.rainbowReactiveHint": "Une fois activé, une ligne ou un élément ne montre sa couleur qu'au survol, ou pendant qu'il s'exécute ou qu'il est sélectionné, sinon il reste neutre. Une fois désactivé, chaque ligne et élément colorés affichent leur couleur en permanence.",
   "settings.rainbowRotate": "Rotation des couleurs",
@@ -727,7 +727,6 @@ const fr: Partial<Translations> = {
   "recovery.stored": "Je l'ai conservé en lieu sûr",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "Récupération après sinistre",
   "recovery.intro": "Récupérez vos conteneurs et VMs depuis une sauvegarde existante vers cette installation.",
   "recovery.step1": "BombVault peut-il lire vos sauvegardes ?",
   "recovery.appKeyExplain": "Pour lire des sauvegardes existantes, ce conteneur a besoin de la MÊME APP_KEY qu'auparavant : elle figure dans votre kit de récupération. Définissez-la dans le modèle de conteneur Unraid si ce n'est pas déjà fait, puis relancez la vérification.",

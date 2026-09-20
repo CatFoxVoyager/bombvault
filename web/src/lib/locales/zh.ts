@@ -261,7 +261,7 @@ const zh: Partial<Translations> = {
   "settings.rainbow": "彩虹模式",
   "settings.rainbowHint": "列表中的每一行都会从八种颜色中获得专属颜色，而不是所有内容共用一种强调色，让长列表一眼就能区分开。",
   "settings.disco": "迪斯科模式",
-  "settings.discoHint": "只要彩虹模式开启，每个带颜色的行和条目每秒都会换到调色板中的下一个颜色。",
+  "settings.discoHint": "只要彩虹模式开启，每个带颜色的行和条目都会缓缓过渡到调色板中的下一个颜色，每三秒一个。",
   "settings.rainbowReactive": "响应模式",
   "settings.rainbowReactiveHint": "开启后，行或项目仅在鼠标悬停、正在运行或被选中时显示其颜色，其余时间保持中性色。关闭后，所有彩色行和项目会一直显示各自的颜色。",
   "settings.rainbowRotate": "颜色轮换",
@@ -719,7 +719,6 @@ const zh: Partial<Translations> = {
   "recovery.stored": "我已妥善保存",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "灾难恢复",
   "recovery.intro": "将你的容器和虚拟机从现有备份恢复到此安装。",
   "recovery.step1": "BombVault 能读取你的备份吗？",
   "recovery.appKeyExplain": "要读取现有备份，此容器需要与之前相同的 APP_KEY，它就在你的恢复工具包中。若尚未设置，请在 Unraid 容器模板中设置它，然后重新检查。",

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
-import { hueVars, rainbowAt } from "../lib/appearance";
+import { hueVars } from "../lib/appearance";
 import { listRuns, getSpike, listContainers, listVMs, getSettings, getStatus, getHistory, getStats, downloadRecoveryKit, ackRecoveryKit, runDrill, getScheduleNext, backupEverythingNow, ApiError } from "../lib/api";
 import type { Run, SpikeCheck, Container, Settings, DomainStatus, HistoryDay, DayStat, RepoStat, StorageForecast, ScheduleNext } from "../lib/api";
 import { ErrorDetailPanel } from "../components/ErrorDetailPanel";
@@ -211,7 +211,7 @@ function FailureCounter({
         onClick={onOpen}
         aria-label={`${t("dashboard.statErrors")}: ${count}`}
         className="mb-1 flex min-h-[2.75rem] w-full items-center gap-2 rounded-control bg-carbon-surface2 px-2 py-2 text-start glim-hue"
-        style={hueVars(rainbowAt(hueIndex ?? 0)) as CSSProperties}
+        style={hueVars(hueIndex ?? 0) as CSSProperties}
       >
         <Badge tone="fail">{count}</Badge>
         <span className="min-w-0 flex-1 truncate text-sm text-carbon-text">
@@ -366,7 +366,7 @@ function Card({
     // Card's many call sites.
     <div
       className={`relative glim-notch-card${hueIndex !== undefined ? " glim-hue" : ""}`}
-      style={hueIndex !== undefined ? (hueVars(rainbowAt(hueIndex)) as CSSProperties) : undefined}
+      style={hueIndex !== undefined ? (hueVars(hueIndex) as CSSProperties) : undefined}
     >
       <h2 className="flex items-center">
         <Badge tone="heading" size="heading" wrap hueIndex={hueIndex} insetStart={5}>{title}</Badge>
@@ -1141,7 +1141,7 @@ function RunRow({
         onClick={onTap}
         aria-label={`${statusLabel(run.status, t)} · ${kind} ${target}`}
         className="flex min-h-[2.75rem] w-full items-center gap-2 rounded-control bg-carbon-surface2 px-2 py-2 text-start glim-hue"
-        style={hueVars(rainbowAt(hueIndex ?? 0)) as CSSProperties}
+        style={hueVars(hueIndex ?? 0) as CSSProperties}
       >
         <span className="shrink-0">{badge}</span>
         <span className="min-w-0 flex-1">
@@ -1225,7 +1225,7 @@ function RunsCard({
     // a run (the tap opens the page-hosted RunDetailSheet; no route).
     const recent = runs.slice(0, 4);
     return (
-      <section className="relative flex flex-col gap-2 glim-hue" style={hueVars(rainbowAt(hueIndex ?? 0)) as CSSProperties}>
+      <section className="relative flex flex-col gap-2 glim-hue" style={hueVars(hueIndex ?? 0) as CSSProperties}>
         <MobileSectionLabel t={t} labelKey="dashboard.recentRuns" />
         <div className="rounded-card bg-carbon-surface p-2">
           {failures.length > 0 && (
@@ -1809,7 +1809,7 @@ function StorageCard({
       null
     );
     return (
-      <section className="relative flex flex-col gap-2 glim-hue" style={hueVars(rainbowAt(hueIndex ?? 0)) as CSSProperties}>
+      <section className="relative flex flex-col gap-2 glim-hue" style={hueVars(hueIndex ?? 0) as CSSProperties}>
         <MobileSectionLabel t={t} labelKey="dashboard.storageTitle" />
         <div className="flex flex-col gap-2 rounded-card bg-carbon-surface p-4">
           <div className="flex flex-wrap items-center gap-2">
@@ -2142,7 +2142,7 @@ function SummaryCell({
     // child might add.
     <div
       className={`relative glim-notch-card min-w-0${hueIndex !== undefined ? " glim-hue" : ""}`}
-      style={hueIndex !== undefined ? (hueVars(rainbowAt(hueIndex)) as CSSProperties) : undefined}
+      style={hueIndex !== undefined ? (hueVars(hueIndex) as CSSProperties) : undefined}
     >
       {/* design-language rule 11: each SummaryCell is its own standalone
           bg-carbon-surface rounded-card box; not nested inside an
@@ -2454,7 +2454,7 @@ function NextRunCard({
 
   if (dense) {
     return (
-      <section className="relative flex flex-col gap-2 glim-hue" style={hueVars(rainbowAt(hueIndex ?? 0)) as CSSProperties}>
+      <section className="relative flex flex-col gap-2 glim-hue" style={hueVars(hueIndex ?? 0) as CSSProperties}>
         <MobileSectionLabel t={t} labelKey="dashboard.summaryNextBackup" />
         <div className="flex items-center gap-2 rounded-card bg-carbon-surface p-4">
           {loading ? (
@@ -2582,17 +2582,13 @@ function PhoneEverythingTrigger({
     }
   }, [state, push, t]);
 
-  // The consequence sheet stands between the press and the POST; useConfirm
-  // presents it below the breakpoint automatically (the fail-toned
-  // ConfirmSheet, destructive control on top, safe cancel in the thumb-default
-  // slot). The confirm button reads settings.everythingTitle so its press
-  // names the outcome with the same words as the trigger itself; cancel is
-  // the shared safe default.
+  // The question stands between the press and the POST; useConfirm answers it
+  // in a sheet below the breakpoint and in the card above it. confirmKey makes
+  // the commit button name the outcome with the trigger's own words.
   const { confirm, confirmDialog } = useConfirm();
   const confirmThenFire = useCallback(async () => {
     const ok = await confirm(t("home.newBackupConfirm"), {
-      confirmLabel: t("settings.everythingTitle"),
-      cancelLabel: t("common.cancel"),
+      confirmKey: "settings.everythingTitle",
     });
     if (!ok) return;
     onArmFire();

@@ -261,7 +261,7 @@ const vi: Partial<Translations> = {
   "settings.rainbow": "Chế độ cầu vồng",
   "settings.rainbowHint": "Mỗi dòng trong danh sách nhận màu riêng từ một bộ tám màu, thay vì tất cả dùng chung một màu nhấn, giúp các danh sách dài dễ phân biệt chỉ bằng một cái nhìn.",
   "settings.disco": "Chế độ disco",
-  "settings.discoHint": "Mỗi hàng và mục có màu chuyển sang màu tiếp theo trong bảng màu mỗi giây một lần, miễn là Chế độ cầu vồng đang bật.",
+  "settings.discoHint": "Mỗi hàng và mục có màu chuyển dần sang màu tiếp theo trong bảng màu, cứ ba giây một màu, miễn là Chế độ cầu vồng đang bật.",
   "settings.rainbowReactive": "Chế độ phản ứng",
   "settings.rainbowReactiveHint": "Khi bật, một hàng hoặc mục chỉ hiện màu của nó khi bạn di chuột qua, hoặc khi nó đang chạy hoặc được chọn, còn lại thì giữ màu trung tính. Khi tắt, mọi hàng và mục có màu sẽ luôn hiện màu của nó.",
   "settings.rainbowRotate": "Luân chuyển màu",
@@ -719,7 +719,6 @@ const vi: Partial<Translations> = {
   "recovery.stored": "Tôi đã cất giữ an toàn",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "Khôi phục sau thảm họa",
   "recovery.intro": "Khôi phục các container và VMs của bạn từ một bản sao lưu hiện có vào bản cài đặt này.",
   "recovery.step1": "BombVault có đọc được các bản sao lưu của bạn không?",
   "recovery.appKeyExplain": "Để đọc các bản sao lưu hiện có, container này cần ĐÚNG APP_KEY mà nó đã dùng trước đây. Nó nằm trong bộ khôi phục của bạn. Hãy đặt nó trong container template của Unraid nếu chưa đặt, rồi kiểm tra lại.",

@@ -3,8 +3,7 @@ import { useState, useRef, useEffect, type CSSProperties } from "react";
 import { logout, type Settings } from "../lib/api";
 import { useT } from "../lib/i18n";
 import { useAdvanced } from "../lib/advanced";
-import { hueVars, rainbowAt } from "../lib/appearance";
-import { useRainbow } from "../lib/useRainbow";
+import { hueVars } from "../lib/appearance";
 
 import {
   IconContainers,
@@ -18,8 +17,8 @@ import {
   IconViewSimple,
   IconViewAdvanced,
   IconGear,
-  IconPower,
 } from "./navGlyphs";
+import { IconSignOut } from "./glyphs";
 import { useLabelMode } from "../lib/useLabelMode";
 import { hidesLabel, labelWidth } from "../lib/controls";
 import { useTipBubble } from "../lib/useTipBubble";
@@ -156,7 +155,7 @@ function NavItem({ to, label, icon, hueIndex }: NavItem) {
         }
         style={
           {
-            ...(hueVars(rainbowAt(hueIndex)) as CSSProperties),
+            ...(hueVars(hueIndex) as CSSProperties),
             ...(reactive ? { "--reactive-chars": labelWidth(label) } : {}),
           } as CSSProperties
         }
@@ -201,12 +200,12 @@ function SidebarSignOut({ hueIndex }: { hueIndex: number }) {
         className={`${navBase} ${showLabel ? "" : "justify-center"}${reactive ? " glim-reactive" : ""} glim-hue glim-hue-icon glim-nav-idle ${navInactive} w-full`}
         style={
           {
-            ...(hueVars(rainbowAt(hueIndex)) as CSSProperties),
+            ...(hueVars(hueIndex) as CSSProperties),
             ...(reactive ? { "--reactive-chars": labelWidth(label) } : {}),
           } as CSSProperties
         }
       >
-        {showIcon && <IconPower />}
+        {showIcon && <IconSignOut />}
         <span className={showLabel ? undefined : reactive ? "glim-label-reactive" : "sr-only"}>{label}</span>
       </button>
       {tooltip.bubble}
@@ -247,7 +246,7 @@ function SidebarControls({ hueIndex }: { hueIndex: number }) {
         className={`${navBase} ${showLabel ? "" : "justify-center"}${reactive ? " glim-reactive" : ""} glim-hue glim-hue-icon glim-nav-idle ${navInactive} w-full`}
         style={
           {
-            ...(hueVars(rainbowAt(hueIndex)) as CSSProperties),
+            ...(hueVars(hueIndex) as CSSProperties),
             ...(reactive ? { "--reactive-chars": labelWidth(view) } : {}),
           } as CSSProperties
         }
@@ -285,8 +284,6 @@ export function Sidebar({ settings, authEnabled }: SidebarProps) {
   // the image end up in differently sized boxes.
   const markBox = railNarrow ? "h-12 w-12" : "h-16 w-16";
 
-  // Subscribes to rainbow changes once for the whole rail rather than per row.
-  useRainbow();
 
   // Easter egg: hold the logo and it wobbles, explodes and comes back. A short
   // click still goes to the Dashboard; once the hold has fired, the click that

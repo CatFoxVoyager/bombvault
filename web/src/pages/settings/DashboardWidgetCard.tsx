@@ -5,7 +5,7 @@ import { InfoBubble } from "../../components/InfoBubble";
 import { RevealInput } from "../../components/RevealInput";
 import { IconCopy, IconTrash } from "../../components/navGlyphs";
 import { disableWidgetToken, generateWidgetToken, getDashboardPlugin, installDashboardPlugin, removeDashboardPlugin } from "../../lib/api";
-import { hueVars, rainbowAt } from "../../lib/appearance";
+import { hueVars } from "../../lib/appearance";
 import { copyText } from "../../lib/clipboard";
 import { useT } from "../../lib/i18n";
 import { useToast } from "../../lib/toast";
@@ -295,7 +295,7 @@ export function DashboardWidgetCard({
   }
 
   const hueOn = hueIndex !== undefined;
-  const hueStyle = hueOn ? (hueVars(rainbowAt(hueIndex)) as CSSProperties) : undefined;
+  const hueStyle = hueOn ? (hueVars(hueIndex) as CSSProperties) : undefined;
 
   return (
     <Card title={t("settings.widget")} hint={t("settings.widgetHint")} hueIndex={hueIndex}>

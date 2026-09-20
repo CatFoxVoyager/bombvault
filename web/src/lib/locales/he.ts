@@ -261,7 +261,7 @@ const he: Partial<Translations> = {
   "settings.rainbow": "מצב קשת",
   "settings.rainbowHint": "כל שורה ברשימה מקבלת צבע משלה מתוך מערך של שמונה צבעים, במקום שהכול ישתף צבע הדגשה אחד, כך רשימות ארוכות קלות יותר להבחנה במבט אחד.",
   "settings.disco": "מצב דיסקו",
-  "settings.discoHint": "כל שורה ופריט צבעוניים עוברים לצבע הבא בלוח פעם בשנייה, כל עוד מצב הקשת מופעל.",
+  "settings.discoHint": "כל שורה ופריט צבעוניים עוברים בהדרגה לצבע הבא בלוח, צבע אחד כל שלוש שניות, כל עוד מצב הקשת מופעל.",
   "settings.rainbowReactive": "מצב תגובתי",
   "settings.rainbowReactiveHint": "כשמופעל, שורה או פריט מציגים את הצבע שלהם רק בעת ריחוף העכבר, או בזמן שהם פועלים או נבחרים, אחרת הם נשארים ניטרליים. כשמושבת, כל שורה ופריט צבעוניים מציגים את הצבע שלהם כל הזמן.",
   "settings.rainbowRotate": "סבב צבעים",
@@ -727,7 +727,6 @@ const he: Partial<Translations> = {
   "recovery.stored": "שמרתי אותה בבטחה",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "התאוששות מאסון",
   "recovery.intro": "שחזר את הקונטיינרים וה-VMs שלך מגיבוי קיים אל התקנה זו.",
   "recovery.step1": "האם BombVault יכול לקרוא את הגיבויים שלך?",
   "recovery.appKeyExplain": "כדי לקרוא גיבויים קיימים, קונטיינר זה זקוק לאותו APP_KEY שהשתמש בו קודם. הוא נמצא בערכת השחזור שלך. הגדר אותו בתבנית הקונטיינר של Unraid אם עדיין לא, ואז בדוק שוב.",

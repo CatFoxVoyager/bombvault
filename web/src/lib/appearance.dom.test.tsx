@@ -5,6 +5,7 @@
 // re-merges from the invalid stored value and storage never converges.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { RAINBOW, RAINBOW_OFF, applyRainbow, getRainbow, setRainbow } from "./appearance";
+import { contrastOn } from "./accent";
 
 const STORAGE_KEY = "bv-rainbow";
 
@@ -76,6 +77,16 @@ describe("applyRainbow: --rb-* custom properties", () => {
     const root = document.documentElement;
     for (let i = 0; i < RAINBOW.length; i++) {
       expect(root.style.getPropertyValue(`--rb-${i}`)).toBe(RAINBOW[i]);
+    }
+  });
+
+  it("stamps each position's ink beside its colour, rotation included", () => {
+    applyRainbow({ on: true, palette: CUSTOM_PALETTE, rotate: true, seed: 3 });
+    const root = document.documentElement;
+    for (let i = 0; i < CUSTOM_PALETTE.length; i++) {
+      const colour = root.style.getPropertyValue(`--rb-${i}`);
+      expect(colour).toBe(CUSTOM_PALETTE[(i + 3) % CUSTOM_PALETTE.length]);
+      expect(root.style.getPropertyValue(`--rb-ink-${i}`)).toBe(contrastOn(colour));
     }
   });
 });

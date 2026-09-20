@@ -11,7 +11,7 @@
 // safe area are the primitive's contract, already proven there.
 //
 // Rows sit on the colour engine like every rail row: each carries
-// `glim-hue` + `hueVars(rainbowAt(...))`, continuing the caller's rotation
+// `glim-hue` + `hueVars(...)`, continuing the caller's rotation
 // from hueOffset (the bar passes its slot count plus the trigger's own
 // position, so the sheet never replays the bar's colours), and the row
 // whose route is current is filled; the whole row takes the accent edge
@@ -46,9 +46,10 @@ import type { Settings } from "../../lib/api";
 import { logout } from "../../lib/api";
 import { useT } from "../../lib/i18n";
 import { useAdvanced } from "../../lib/advanced";
-import { hueVars, rainbowAt } from "../../lib/appearance";
+import { hueVars } from "../../lib/appearance";
 import { moreDestinations } from "../../lib/navModel";
-import { IconPower, IconViewAdvanced, IconViewSimple } from "../navGlyphs";
+import { IconSignOut } from "../glyphs";
+import { IconViewAdvanced, IconViewSimple } from "../navGlyphs";
 import { BottomSheet } from "./BottomSheet";
 
 export interface MoreSheetProps {
@@ -132,7 +133,7 @@ export function MoreSheet({ open, onClose, settings, authEnabled, scrollMainToTo
               className={({ isActive }) =>
                 `${rowBase} glim-hue glim-hue-icon ${isActive ? "bg-accent text-accentContrast glim-active" : "text-carbon-text"}`
               }
-              style={hueVars(rainbowAt(hueOffset + i)) as CSSProperties}
+              style={hueVars(hueOffset + i) as CSSProperties}
             >
               {/* 20px glyph; the rail's glim-nav-row sizing (the generated
                   glyphs come out at 16px and are scaled up here, exactly as
@@ -155,7 +156,7 @@ export function MoreSheet({ open, onClose, settings, authEnabled, scrollMainToTo
             onClick={() => setAdvanced(!advanced)}
             aria-pressed={advanced}
             className={`${rowBase} w-full glim-hue glim-hue-icon text-carbon-text`}
-            style={hueVars(rainbowAt(toggleHue)) as CSSProperties}
+            style={hueVars(toggleHue) as CSSProperties}
           >
             {/* One glyph per state, one for each (the rail's convention):
                 the row shows the view it is currently in, and the label says
@@ -166,17 +167,18 @@ export function MoreSheet({ open, onClose, settings, authEnabled, scrollMainToTo
             <span className="min-w-0 truncate">{advanced ? t("mode.advancedView") : t("mode.simpleView")}</span>
           </button>
           {authEnabled && (
-            // The sign-out row: muted text token with the power glyph;
-            // visually quiet next to the rows above it, exactly as the
-            // desktop footer's row reads.
+            // The sign-out row: muted text token, visually quiet next to the
+            // rows above it, exactly as the desktop footer's row reads. The
+            // door glyph is the rail's; the power symbol means shutting a VM
+            // down.
             <button
               type="button"
               onClick={() => void signOut()}
               className={`${rowBase} w-full glim-hue glim-hue-icon text-carbon-textMuted`}
-              style={hueVars(rainbowAt(signOutHue)) as CSSProperties}
+              style={hueVars(signOutHue) as CSSProperties}
             >
               <span className="flex h-5 w-5 items-center justify-center [&_svg]:h-5 [&_svg]:w-5">
-                <IconPower />
+                <IconSignOut />
               </span>
               <span className="min-w-0 truncate">{t("auth.logout")}</span>
             </button>

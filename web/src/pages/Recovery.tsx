@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { useT, type TranslationKey } from "../lib/i18n";
 import { PAGE_SHELL } from "../lib/pageShell";
 import { SelectField } from "../components/SelectField";
-import { hueVars, rainbowAt } from "../lib/appearance";
+import { hueVars } from "../lib/appearance";
 import { RevealInput } from "../components/RevealInput";
 import { useReveal } from "../lib/useReveal";
 import { withLtrIsolates, FOREIGN_APPDATA_DEST_HINT_LTR_FRAGMENTS } from "../lib/ltrFragments";
@@ -104,7 +104,7 @@ function RestoreRow({
   return (
     <div
       className="flex flex-col gap-1 py-2 border-b border-carbon-border last:border-0 glim-hue"
-      style={hueVars(rainbowAt(hueIndex)) as CSSProperties}
+      style={hueVars(hueIndex) as CSSProperties}
     >
       {/* A confirm checkbox does not fit a one-line row, so confirmMessage
           guards the restore with a modal instead. `leading` puts the name and
@@ -204,7 +204,7 @@ function FileSetRecoveryRow({
   return (
     <div
       className="flex flex-col gap-2 py-2 border-b border-carbon-border last:border-0 glim-hue"
-      style={hueVars(rainbowAt(hueIndex)) as CSSProperties}
+      style={hueVars(hueIndex) as CSSProperties}
     >
       {/* Built inline rather than with RestoreAction because this row drives
           fireAndWaitRun itself. The badge stays disabled until a folder is
@@ -427,7 +427,7 @@ function ForeignItemRow({
   return (
     <div
       className="flex flex-col gap-2 py-2 border-b border-carbon-border last:border-0 glim-hue"
-      style={hueVars(rainbowAt(hueIndex)) as CSSProperties}
+      style={hueVars(hueIndex) as CSSProperties}
     >
       <div className="flex items-center gap-3 text-sm flex-wrap">
         <span className="text-carbon-text font-medium flex-1 min-w-0 truncate">{item.name}</span>
@@ -1593,7 +1593,7 @@ export default function Recovery() {
   return (
     <div className={PAGE_SHELL}>
       <div>
-        <h1 className="text-2xl font-semibold text-carbon-text">{t("recovery.pageTitle")}</h1>
+        <h1 className="text-2xl font-semibold text-carbon-text">{t("nav.recovery")}</h1>
         <p className="mt-1 text-sm text-carbon-textSub max-w-2xl">{t("recovery.intro")}</p>
       </div>
 

@@ -928,7 +928,7 @@ export const en = {
   "settings.rainbow": "Rainbow Mode",
   "settings.rainbowHint": "Each row in a list gets its own colour from a set of eight, instead of everything sharing one accent colour, which makes long lists easier to tell apart at a glance.",
   "settings.disco": "Disco Mode",
-  "settings.discoHint": "Every coloured row and item steps to the next colour in the palette once a second, for as long as Rainbow Mode is on.",
+  "settings.discoHint": "Every coloured row and item glides slowly to the next colour in the palette, one every three seconds, for as long as Rainbow Mode is on.",
   "settings.rainbowReactive": "Reactive Mode",
   "settings.rainbowReactiveHint": "When on, a row or item's colour only appears while you're hovering it, or while it's running or selected. Otherwise it stays neutral. When off, every coloured row and item shows its colour all the time.",
   "settings.rainbowRotate": "Colour Rotation",
@@ -1571,11 +1571,9 @@ export const en = {
   "vm.ssh.copyCmd": "Copy command",
   "vm.ssh.guide": "Full setup & networking guide",
 
-  // Guided Recovery tab (disaster-recovery walkthrough) — note: the `recovery.*`
-  // prefix above is the encryption *kit*; the page title uses `recovery.pageTitle`
-  // to avoid colliding with the existing `recovery.title` ("Recovery kit").
+  // Guided Recovery tab. The `recovery.*` keys above belong to the encryption
+  // kit; the page heading reads `nav.recovery`, the same word as the sidebar.
   "nav.recovery": "Recovery",
-  "recovery.pageTitle": "Disaster recovery",
   "recovery.intro": "Recover your containers and VMs from an existing backup onto this install.",
   // Step 1 — connection / APP_KEY readability check
   "recovery.step1": "Can BombVault read your backups?",
@@ -2733,7 +2731,7 @@ export const de: Translations = {
   "settings.rainbow": "Regenbogen-Modus",
   "settings.rainbowHint": "Jede Zeile in einer Liste bekommt eine eigene Farbe aus einer festen Auswahl von acht, statt dass alles dieselbe Akzentfarbe hat. Das macht lange Listen auf einen Blick leichter unterscheidbar.",
   "settings.disco": "Disco-Modus",
-  "settings.discoHint": "Jede farbige Zeile und jedes farbige Element wechselt einmal pro Sekunde zur nächsten Farbe der Palette, solange der Regenbogen-Modus aktiv ist.",
+  "settings.discoHint": "Jede farbige Zeile und jedes farbige Element gleitet langsam zur nächsten Farbe der Palette, alle drei Sekunden eine, solange der Regenbogen-Modus aktiv ist.",
   "settings.rainbowReactive": "Reaktiver Modus",
   "settings.rainbowReactiveHint": "Wenn aktiv, bleiben farbige Zeilen und Elemente neutral, bis du sie mit der Maus berührst oder sie gerade laufen oder ausgewählt sind. Die Farbe erscheint also nur bei Bedarf. Wenn deaktiviert, zeigen alle farbigen Zeilen und Elemente ihre Farbe durchgehend.",
   "settings.rainbowRotate": "Farbenrotation",
@@ -3292,7 +3290,6 @@ export const de: Translations = {
 
   // Guided Recovery tab (disaster-recovery walkthrough)
   "nav.recovery": "Wiederherstellung",
-  "recovery.pageTitle": "Notfall-Wiederherstellung",
   "recovery.intro": "Stelle deine Container und VMs aus einem vorhandenen Backup auf dieser Installation wieder her.",
   // Schritt 1 — Verbindungs-/APP_KEY-Lesbarkeitsprüfung
   "recovery.step1": "Kann BombVault deine Backups lesen?",

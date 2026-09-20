@@ -30,14 +30,14 @@
 
 import type { ReactNode } from "react";
 
-function G({ children }: { children: ReactNode }) {
+function G({ children, mirror = false }: { children: ReactNode; mirror?: boolean }) {
   return (
     <svg
       width="16"
       height="16"
       viewBox="0 0 14 14"
       fill="currentColor"
-      className="shrink-0"
+      className={mirror ? "shrink-0 rtl:-scale-x-100" : "shrink-0"}
       aria-hidden="true"
     >
       {children}
@@ -111,7 +111,7 @@ export function IconStop() {
 /** Back or previous. */
 export function IconBack() {
   return (
-    <G>
+    <G mirror>
       <path fill="currentColor" fillRule="evenodd" d="M10 0a1.5 1.5 0 0 0 -1.5 1.5v11A1.5 1.5 0 0 0 10 14h2.5a1.5 1.5 0 0 0 1.5 -1.5v-11A1.5 1.5 0 0 0 12.5 0H10ZM3.5 4.5a0.5 0.5 0 0 0 -0.854 -0.354l-2.5 2.5a0.5 0.5 0 0 0 0 0.708l2.5 2.5A0.5 0.5 0 0 0 3.5 9.5V8h3a1 1 0 0 0 0 -2h-3V4.5Z" clipRule="evenodd" strokeWidth="1"></path>
     </G>
   );
@@ -120,7 +120,7 @@ export function IconBack() {
 /** Next, continue or forward. */
 export function IconForward() {
   return (
-    <G>
+    <G mirror>
       <path fill="currentColor" fillRule="evenodd" d="M1.5 0A1.5 1.5 0 0 0 0 1.5v11A1.5 1.5 0 0 0 1.5 14H4a1.5 1.5 0 0 0 1.5 -1.5v-11A1.5 1.5 0 0 0 4 0H1.5Zm6 6a1 1 0 0 0 0 2h3v1.5a0.5 0.5 0 0 0 0.854 0.354l2.5 -2.5a0.5 0.5 0 0 0 0 -0.708l-2.5 -2.5a0.5 0.5 0 0 0 -0.854 0.354V6h-3Z" clipRule="evenodd" strokeWidth="1"></path>
     </G>
   );
@@ -201,7 +201,7 @@ export function IconMail() {
 /** Sign in. */
 export function IconSignIn() {
   return (
-    <G>
+    <G mirror>
       <path fill="currentColor" fillRule="evenodd" d="M0 1.5C0 0.671573 0.671573 0 1.5 0h7c0.82843 0 1.5 0.671573 1.5 1.5v3.24998h-0.51563c-0.0888 -0.70641 -0.54957 -1.32045 -1.219 -1.59774 -0.74735 -0.30956 -1.60759 -0.13845 -2.17958 0.43354l-2 2c-0.78105 0.78105 -0.78105 2.04738 0 2.82843l2 1.99999c0.57199 0.572 1.43223 0.7431 2.17958 0.4336 0.66944 -0.2773 1.13022 -0.8914 1.219 -1.59782H10V12.5c0 0.8284 -0.67157 1.5 -1.5 1.5h-7C0.671573 14 0 13.3284 0 12.5v-11Zm7.78701 2.80711c0.28026 0.11609 0.46299 0.38957 0.46299 0.69291v1H13c0.5523 0 1 0.44772 1 1 0 0.55229 -0.4477 1 -1 1H8.25v1c0 0.30335 -0.18273 0.57683 -0.46299 0.69291 -0.28025 0.11609 -0.60284 0.05192 -0.81734 -0.16258l-2 -2c-0.29289 -0.29289 -0.29289 -0.76777 0 -1.06066l2 -2c0.2145 -0.2145 0.53709 -0.27866 0.81734 -0.16258Z" clipRule="evenodd" strokeWidth="1"></path>
     </G>
   );
@@ -210,7 +210,7 @@ export function IconSignIn() {
 /** Sign out. */
 export function IconSignOut() {
   return (
-    <G>
+    <G mirror>
       <path fill="currentColor" fillRule="evenodd" d="M0 1.5C0 0.671573 0.671573 0 1.5 0h7c0.82843 0 1.5 0.671573 1.5 1.5v1.93863c-0.40264 0.32239 -0.66907 0.7919 -0.73437 1.31135H5.75c-1.24264 0 -2.25 1.00735 -2.25 2.25 0 1.24264 1.00736 2.25 2.25 2.25h3.51563c0.06528 0.51946 0.33172 0.98902 0.73437 1.31142V12.5c0 0.8284 -0.67157 1.5 -1.5 1.5h-7C0.671573 14 0 13.3284 0 12.5v-11Zm10.963 2.80711c-0.2803 0.11609 -0.463 0.38957 -0.463 0.69291v1H5.75c-0.55228 0 -1 0.44772 -1 1 0 0.55229 0.44772 1 1 1h4.75v1c0 0.30335 0.1827 0.57683 0.463 0.69291 0.2802 0.11609 0.6028 0.05192 0.8173 -0.16258l2 -2c0.2929 -0.29289 0.2929 -0.76777 0 -1.06066l-2 -2c-0.2145 -0.2145 -0.5371 -0.27866 -0.8173 -0.16258Z" clipRule="evenodd" strokeWidth="1"></path>
     </G>
   );

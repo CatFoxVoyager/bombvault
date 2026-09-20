@@ -47,9 +47,8 @@ import { useProgress, anyActive, busyPhraseKey } from "../lib/progress";
 import { useBackupWatch } from "../lib/backupWatch";
 import { loadErrorMessage } from "../lib/errors";
 import { useConfirm } from "../lib/useConfirm";
-import { hueVars, rainbowAt } from "../lib/appearance";
+import { hueVars } from "../lib/appearance";
 import { Selector, type SelectorItem } from "../components/Selector";
-import { useRainbow } from "../lib/useRainbow";
 import { Badge } from "../components/Badge";
 import { Button } from "../components/Button";
 import { InfoBubble } from "../components/InfoBubble";
@@ -487,7 +486,7 @@ function FileSetSnapshotRow({
   const [shake, setShake] = useState(0);
 
   async function handleDelete() {
-    if (!(await confirm(t("snapshots.deleteConfirm")))) return;
+    if (!(await confirm(t("snapshots.deleteConfirm"), { confirmKey: "snapshots.delete" }))) return;
     setDeleting(true);
     try {
       const res = await deleteSnapshot("files", snap.id, source);
@@ -585,15 +584,28 @@ function FileSetRestorePanel({
 
   useEffect(() => {
     if (!open) return;
+    // An answer that arrives after the next switch is dropped, and a failure
+    // empties the list, whose rows belong to the source just left.
+    let current = true;
+    const fail = (message: string) => {
+      if (!current) return;
+      setSnapshots([]);
+      setError(message);
+    };
     setLoading(true);
     setError(null);
     fileSetSnapshots(set.id, source)
       .then((res) => {
-        if (res.ok) setSnapshots(res.snapshots ?? []);
-        else setError(res.error ?? t("common.loadBackupsFailed"));
+        if (!res.ok) return fail(res.error ?? t("common.loadBackupsFailed"));
+        if (current) setSnapshots(res.snapshots ?? []);
       })
-      .catch(() => setError(t("common.loadBackupsFailed")))
-      .finally(() => setLoading(false));
+      .catch(() => fail(t("common.loadBackupsFailed")))
+      .finally(() => {
+        if (current) setLoading(false);
+      });
+    return () => {
+      current = false;
+    };
   }, [open, set.id, source, reloadTick]); // eslint-disable-line react-hooks/exhaustive-deps -- t() is only read to build a failure message; re-fetching on a language switch would be a wasted round-trip
 
   // A failure goes to a toast: the reload that follows it would clear an
@@ -602,7 +614,7 @@ function FileSetRestorePanel({
     // TODO: name the stake in the confirm ("N snapshots, X GB"); this one
     // deletes every backup the set has. OrphanRemoveButton.tsx and VMs.tsx
     // need the same.
-    if (!(await confirm(t("files.deleteBackupsConfirm")))) return;
+    if (!(await confirm(t("files.deleteBackupsConfirm"), { confirmKey: "snapshots.deleteAll" }))) return;
     setDeletingAll(true);
     deleteFileSetBackups(set.id)
       .then((res) => {
@@ -1155,7 +1167,7 @@ export function FileSetRow({
   const pathMissing = !noPath && !set.pathExists;
 
   async function handleRemove() {
-    if (!(await confirm(t("files.deleteSetConfirm")))) return;
+    if (!(await confirm(t("files.deleteSetConfirm"), { confirmKey: "common.delete" }))) return;
     setRemoving(true);
     try {
       const res = await deleteFileSet(set.id);
@@ -1174,7 +1186,7 @@ export function FileSetRow({
 
   return (
     <div
-      style={{ ...hueVars(rainbowAt(index)), "--row-i": String(index) } as CSSProperties}
+      style={{ ...hueVars(index), "--row-i": String(index) } as CSSProperties}
       // glim-active while this set's own backup or restore runs, as in
       // ContainerRow and VMRow.
       className={`relative overflow-hidden bg-carbon-surface rounded-card p-4 flex flex-col gap-3 glim-hue glim-stagger-row ${
@@ -1311,8 +1323,6 @@ export function FileSetRow({
 export function Files() {
   const { t } = useT();
   const { push } = useToast();
-  // One rainbow subscription for the whole list rather than one per row.
-  useRainbow();
   // Any backup, restore or replication in flight disables the bulk buttons.
   const running = anyActive(useProgress());
   const [sets, setSets] = useState<FileSetView[]>([]);
@@ -1494,7 +1504,7 @@ export function Files() {
       {showEmptyState && (
         <div
           className="relative glim-notch-card glim-hue bg-carbon-surface rounded-card p-6 text-center flex flex-col items-center gap-3"
-          style={hueVars(rainbowAt(0)) as CSSProperties}
+          style={hueVars(0) as CSSProperties}
         >
           <h2 className="flex items-center">
             <Badge tone="heading" size="heading" wrap hueIndex={0} insetStart={6}>

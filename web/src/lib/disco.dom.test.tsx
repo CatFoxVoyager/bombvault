@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-// Disco: a persisted tick would write localStorage and sync to the server
-// every second, so only the switch is stored. The unlock gesture counts
+// Disco: a persisted tick would write localStorage and sync to the server on
+// every step, so only the switch is stored. The unlock gesture counts
 // turn-ons inside a time window, so comparing rainbow on and off does not
 // trigger it.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -50,7 +50,7 @@ describe("the switch", () => {
 });
 
 describe("the tick", () => {
-  it("walks the seed once per second while rainbow is on", () => {
+  it("walks the seed once a tick while rainbow is on", () => {
     setRainbow({ on: true, seed: 0 });
     setDisco(true);
     applyStoredDisco();
@@ -151,6 +151,36 @@ describe("the tick", () => {
     expect(document.documentElement.getAttribute("data-disco")).toBe("on");
     setDisco(false);
     expect(document.documentElement.hasAttribute("data-disco")).toBe(false);
+  });
+
+  it("cuts a glide short when the walk stops, and leaves other animations alone", () => {
+    // Chromium keeps a transition on a registered property running after its
+    // rule stops matching, so the restored palette would land a tick late.
+    const root = document.documentElement;
+    const glide = { transitionProperty: "--rb-3", cancel: vi.fn() };
+    const other = { transitionProperty: "opacity", cancel: vi.fn() };
+    root.getAnimations = () => [glide, other] as unknown as Animation[];
+    try {
+      setRainbow({ on: true });
+      setDisco(true);
+      vi.advanceTimersByTime(DISCO_TICK_MS);
+      setDisco(false);
+      expect(glide.cancel).toHaveBeenCalled();
+      expect(other.cancel).not.toHaveBeenCalled();
+    } finally {
+      delete (root as { getAnimations?: unknown }).getAnimations;
+    }
+  });
+
+  it("hands the stylesheet a glide as long as one step", () => {
+    // index.css glides each hue over --disco-step. A shorter glide pauses
+    // between steps, a longer one is overtaken before it arrives.
+    const root = document.documentElement;
+    setRainbow({ on: true });
+    setDisco(true);
+    expect(root.style.getPropertyValue("--disco-step")).toBe(`${DISCO_TICK_MS}ms`);
+    setDisco(false);
+    expect(root.style.getPropertyValue("--disco-step")).toBe("");
   });
 });
 

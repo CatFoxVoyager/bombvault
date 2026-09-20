@@ -24,7 +24,7 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { MemoryRouter } from "react-router-dom";
 import { BottomNav } from "./BottomNav";
 import { I18nProvider } from "../../lib/i18n";
-import { hueVars, rainbowAt } from "../../lib/appearance";
+import { hueVars } from "../../lib/appearance";
 import type { Settings } from "../../lib/api";
 
 function draw(path: string, settings: Settings | null = null) {
@@ -82,7 +82,7 @@ describe("BottomNav colour engine", () => {
     const slots = Array.from(bar().querySelectorAll("div.flex.h-14 > *")) as HTMLElement[];
     const hues = slots.map((s) => s.style.getPropertyValue("--item-hue"));
     for (const hue of hues) {
-      expect(hue).toMatch(/^#/);
+      expect(hue).toMatch(/^var\(--rb-[0-7]\)$/);
     }
     expect(new Set(hues).size).toBe(hues.length);
     for (const slot of slots) {
@@ -137,7 +137,7 @@ describe("BottomNav More trigger", () => {
     // Restarting at the palette's first colour would repeat the bar's first
     // slot's colour on the same screen.
     expect(firstRowHue).not.toBe(triggerHue);
-    expect(firstRowHue).toBe(String(hueVars(rainbowAt(slots.length))["--item-hue"]));
+    expect(firstRowHue).toBe(String(hueVars(slots.length)["--item-hue"]));
   });
 });
 

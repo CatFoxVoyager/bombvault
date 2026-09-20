@@ -52,7 +52,7 @@
 // never follows the label mode, which is what keeps the shell's chrome
 // geometry stable across the whole settings surface.
 //
-// Colour engine: every slot carries `glim-hue` + `hueVars(rainbowAt(i))`
+// Colour engine: every slot carries `glim-hue` + `hueVars(i)`
 // exactly like a Sidebar row; position i being the slot's own rank among
 // the slots actually rendered, so hiding a gated slot shifts later slots
 // the same way a hidden Sidebar tab does. The active slot adds
@@ -78,7 +78,7 @@ import type { Settings } from "../../lib/api";
 import { useT } from "../../lib/i18n";
 import { barDestinations, moreDestinations, type NavDestination } from "../../lib/navModel";
 import { hidesLabel, labelWidth } from "../../lib/controls";
-import { hueVars, rainbowAt } from "../../lib/appearance";
+import { hueVars } from "../../lib/appearance";
 import { useLabelMode } from "../../lib/useLabelMode";
 import { useTipBubble } from "../../lib/useTipBubble";
 import { IconEllipsis } from "../navGlyphs";
@@ -202,7 +202,7 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
             className={`${slotBase} rounded-control ${reactive && !showLabel ? "glim-reactive" : ""} glim-hue glim-hue-icon ${moreActive ? "bg-accent text-accentContrast glim-active" : "text-carbon-textMuted"}`}
             style={
               {
-                ...(hueVars(rainbowAt(slots.length)) as CSSProperties),
+                ...(hueVars(slots.length) as CSSProperties),
                 ...(reactive && !showLabel ? { "--reactive-chars": labelWidth(t("nav.more")) } : {}),
               } as CSSProperties
             }
@@ -279,7 +279,7 @@ function BarSlot({
         }
         style={
           {
-            ...(hueVars(rainbowAt(hueIndex)) as CSSProperties),
+            ...(hueVars(hueIndex) as CSSProperties),
             ...(reactive && !showLabel ? { "--reactive-chars": labelWidth(label) } : {}),
           } as CSSProperties
         }

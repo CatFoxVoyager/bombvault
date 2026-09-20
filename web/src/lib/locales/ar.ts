@@ -261,7 +261,7 @@ const ar: Partial<Translations> = {
   "settings.rainbow": "وضع قوس قزح",
   "settings.rainbowHint": "يحصل كل صف في القائمة على لونه الخاص من مجموعة مكوّنة من ثمانية ألوان، بدلاً من أن يشترك كل شيء في لون تمييز واحد، ما يجعل القوائم الطويلة أسهل تمييزًا للوهلة الأولى.",
   "settings.disco": "وضع الديسكو",
-  "settings.discoHint": "كل صف وعنصر ملون ينتقل إلى اللون التالي في اللوحة مرة كل ثانية، طالما كان وضع قوس قزح مفعلاً.",
+  "settings.discoHint": "كل صف وعنصر ملون ينتقل بهدوء إلى اللون التالي في اللوحة، لونًا كل ثلاث ثوانٍ، طالما كان وضع قوس قزح مفعلاً.",
   "settings.rainbowReactive": "الوضع التفاعلي",
   "settings.rainbowReactiveHint": "عند التفعيل، يعرض الصف أو العنصر لونه فقط عند تمرير المؤشر فوقه، أو أثناء تشغيله أو تحديده، وإلا يبقى محايدًا. عند الإيقاف، يعرض كل صف وعنصر ملوّن لونه طوال الوقت.",
   "settings.rainbowRotate": "تدوير الألوان",
@@ -730,7 +730,6 @@ const ar: Partial<Translations> = {
   "recovery.stored": "حفظتها بأمان",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "التعافي من الكوارث",
   "recovery.intro": "استعد الـ containers والـ VMs من نسخة احتياطية موجودة إلى هذا التثبيت.",
   "recovery.step1": "هل يستطيع BombVault قراءة نسخك الاحتياطية؟",
   "recovery.appKeyExplain": "لقراءة النسخ الاحتياطية الموجودة يحتاج هذا الـ container إلى نفس APP_KEY الذي استخدمه سابقاً. إنه في حقيبة الاستعادة الخاصة بك. اضبطه في قالب حاوية Unraid إن لم يكن مضبوطاً، ثم أعد الفحص.",

@@ -712,7 +712,7 @@ const sl: Partial<Translations> = {
   "settings.rainbow": "Mavrični način",
   "settings.rainbowHint": "Vsaka vrstica na seznamu dobi lastno barvo iz nabora osmih, namesto da si vse deli eno poudarjeno barvo. Dolge sezname naredi lažje razločljive na prvi pogled.",
   "settings.disco": "Disko način",
-  "settings.discoHint": "Vsaka obarvana vrstica in element preideta na naslednjo barvo palete enkrat na sekundo, dokler je mavrični način vklopljen.",
+  "settings.discoHint": "Vsaka obarvana vrstica in element počasi preideta v naslednjo barvo palete, eno vsake tri sekunde, dokler je mavrični način vklopljen.",
   "settings.rainbowReactive": "Odzivni način",
   "settings.rainbowReactiveHint": "Ko je vklopljeno, se barva vrstice ali elementa pojavi samo, ko nanjo kažeš z miško ali ko teče ali je izbrana, sicer ostane nevtralna. Ko je izklopljeno, vsaka pobarvana vrstica in element ves čas kažeta svojo barvo.",
   "settings.rainbowRotate": "Vrtenje barv",
@@ -1264,7 +1264,6 @@ const sl: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Obnova",
-  "recovery.pageTitle": "Obnovitev po katastrofi",
   "recovery.intro": "Obnovi svoje vsebnike in VM-je iz obstoječe varnostne kopije na to namestitev.",
   "recovery.step1": "Ali lahko BombVault prebere tvoje varnostne kopije?",
   "recovery.appKeyExplain": "Za branje obstoječih varnostnih kopij ta vsebnik potrebuje ISTI APP_KEY, kot ga je uporabljal prej. Najdeš ga v svojem obnovitvenem kompletu. Nastavi ga v Unraidovi predlogi vsebnika, če še ni, nato znova preveri.",

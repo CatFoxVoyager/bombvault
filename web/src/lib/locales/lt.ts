@@ -714,7 +714,7 @@ const lt: Partial<Translations> = {
   "settings.rainbow": "Vaivorykštės režimas",
   "settings.rainbowHint": "Kiekviena sąrašo eilutė gauna savo spalvą iš aštuonių spalvų rinkinio, o ne visos dalijasi viena akcentine spalva. Tai palengvina ilgų sąrašų atskyrimą vienu žvilgsniu.",
   "settings.disco": "Disko režimas",
-  "settings.discoHint": "Kiekviena spalvota eilutė ir elementas kartą per sekundę pereina prie kitos paletės spalvos, kol įjungtas vaivorykštės režimas.",
+  "settings.discoHint": "Kiekviena spalvota eilutė ir elementas sklandžiai pereina prie kitos paletės spalvos, po vieną kas tris sekundes, kol įjungtas vaivorykštės režimas.",
   "settings.rainbowReactive": "Reaktyvus režimas",
   "settings.rainbowReactiveHint": "Kai įjungta, eilutės ar elemento spalva pasirodo tik tada, kai užvedate pelės žymeklį virš jo, arba kai jis vykdomas ar pasirinktas. Kitu atveju jis lieka neutralus. Kai išjungta, kiekviena spalvota eilutė ir elementas visą laiką rodo savo spalvą.",
   "settings.rainbowRotate": "Spalvų sukimas",
@@ -1270,7 +1270,6 @@ const lt: Partial<Translations> = {
 
   // Guided Recovery tab
   "nav.recovery": "Atkūrimas",
-  "recovery.pageTitle": "Nelaimių atkūrimas",
   "recovery.intro": "Atkurkite savo konteinerius ir VM iš esamos atsarginės kopijos šioje diegtyje.",
   // Step 1
   "recovery.step1": "Ar BombVault gali perskaityti jūsų atsargines kopijas?",

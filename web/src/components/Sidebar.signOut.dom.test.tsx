@@ -86,10 +86,19 @@ describe("Sidebar sign-out and the labelling engine", () => {
     expect(out.querySelector("svg")).not.toBeNull();
   });
 
+  // The door's arrow points out along the reading direction, so it turns
+  // round with the layout; the power mark it replaced was symmetric.
+  it("wears a sign-out glyph that mirrors in a right-to-left layout", () => {
+    localStorage.setItem("bv-labels-sidebar", "glyph");
+    draw(true);
+    const glyph = screen.getByRole("button", { name: /sign out/i }).querySelector("svg");
+    expect(glyph?.getAttribute("class")).toContain("rtl:-scale-x-100");
+  });
+
   it("carries glim-hue and a --item-hue of its own", () => {
     draw(true);
     const out = screen.getByRole("button", { name: /sign out/i });
     expect(out.className).toContain("glim-hue");
-    expect(out.style.getPropertyValue("--item-hue")).toMatch(/^#/);
+    expect(out.style.getPropertyValue("--item-hue")).toMatch(/^var\(--rb-[0-7]\)$/);
   });
 });

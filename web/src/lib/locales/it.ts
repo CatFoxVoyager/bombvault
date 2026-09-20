@@ -261,7 +261,7 @@ const it: Partial<Translations> = {
   "settings.rainbow": "Modalità arcobaleno",
   "settings.rainbowHint": "Ogni riga di un elenco riceve un proprio colore da un set di otto, invece che condividere tutti lo stesso colore di accento, così gli elenchi lunghi si distinguono a colpo d'occhio.",
   "settings.disco": "Modalità disco",
-  "settings.discoHint": "Ogni riga ed elemento colorato passa al colore successivo della palette una volta al secondo, finché la modalità arcobaleno è attiva.",
+  "settings.discoHint": "Ogni riga ed elemento colorato scivola lentamente verso il colore successivo della palette, uno ogni tre secondi, finché la modalità arcobaleno è attiva.",
   "settings.rainbowReactive": "Modalità reattiva",
   "settings.rainbowReactiveHint": "Se attivo, una riga o un elemento mostra il proprio colore solo al passaggio del mouse, oppure mentre è in esecuzione o selezionato, altrimenti resta neutro. Se disattivo, ogni riga ed elemento colorati mostrano il proprio colore sempre.",
   "settings.rainbowRotate": "Rotazione dei colori",
@@ -727,7 +727,6 @@ const it: Partial<Translations> = {
   "recovery.stored": "L'ho conservato in modo sicuro",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "Ripristino di emergenza",
   "recovery.intro": "Ripristina i tuoi container e le tue VM da un backup esistente su questa installazione.",
   "recovery.step1": "BombVault può leggere i tuoi backup?",
   "recovery.appKeyExplain": "Per leggere i backup esistenti questo container ha bisogno della STESSA APP_KEY usata in precedenza. Si trova nel tuo kit di ripristino. Impostala nel template del container Unraid se non l'hai già fatto, poi riverifica.",

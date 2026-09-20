@@ -261,7 +261,7 @@ const hu: Partial<Translations> = {
   "settings.rainbow": "Szivárvány mód",
   "settings.rainbowHint": "A lista minden sora saját színt kap egy nyolcból álló készletből, ahelyett hogy minden egy kiemelőszínt osztana meg, így a hosszú listák egy pillantással megkülönböztethetők.",
   "settings.disco": "Diszkó mód",
-  "settings.discoHint": "Minden színes sor és elem másodpercenként egyszer a paletta következő színére lép, amíg a szivárvány mód be van kapcsolva.",
+  "settings.discoHint": "Minden színes sor és elem lassan átúszik a paletta következő színébe, három másodpercenként egyet, amíg a szivárvány mód be van kapcsolva.",
   "settings.rainbowReactive": "Reaktív mód",
   "settings.rainbowReactiveHint": "Ha be van kapcsolva, egy sor vagy elem csak rámutatáskor, vagy amíg fut vagy ki van választva mutatja a színét. Egyébként semleges marad. Ha ki van kapcsolva, minden színes sor és elem folyamatosan mutatja a színét.",
   "settings.rainbowRotate": "Színforgatás",
@@ -730,7 +730,6 @@ const hu: Partial<Translations> = {
   "recovery.stored": "Biztonságosan eltároltam",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "Vészhelyreállítás",
   "recovery.intro": "Állítsd vissza a konténereidet és VM-jeidet egy meglévő biztonsági mentésből erre a telepítésre.",
   "recovery.step1": "Tudja a BombVault olvasni a mentéseidet?",
   "recovery.appKeyExplain": "A meglévő mentések olvasásához ennek a konténernek UGYANARRA az APP_KEY-re van szüksége, amit korábban használt. Ez a helyreállítási csomagodban van. Állítsd be az Unraid konténer-sablonban, ha még nincs, majd ellenőrizd újra.",

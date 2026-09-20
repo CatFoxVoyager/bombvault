@@ -4,11 +4,10 @@ import { Badge } from "./Badge";
 import { Button } from "./Button";
 import { CoinMark } from "./donateMarks";
 import { QRCode } from "./QRCode";
-import { hueVars, rainbowAt } from "../lib/appearance";
+import { hueVars } from "../lib/appearance";
 import { copyText } from "../lib/clipboard";
 import { useT } from "../lib/i18n";
 import { useLabelMode } from "../lib/useLabelMode";
-import { useRainbow } from "../lib/useRainbow";
 import { useToast } from "../lib/toast";
 import { CRYPTO_COINS, type CryptoCoin, type CryptoNetwork } from "../lib/donate";
 
@@ -35,8 +34,6 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
   const reactive = mode === "reactive";
   const showMark = mode !== "text";
   const showTicker = mode !== "glyph";
-  // Subscribed once for the whole window rather than once per tile.
-  useRainbow();
 
   // Escape closes, and focus starts inside the window.
   useEffect(() => {
@@ -114,7 +111,7 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
                   role="option"
                   aria-selected={n.id === network.id}
                   onClick={() => setNetwork(n)}
-                  style={hueVars(rainbowAt(i)) as CSSProperties}
+                  style={hueVars(i) as CSSProperties}
                   className={`glim-hue rounded-pill px-3 py-1 text-xs font-medium transition-colors ${
                     n.id === network.id
                       ? "glim-active bg-accent text-accentContrast"
@@ -154,7 +151,7 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
                 aria-label={`${c.name} (${c.symbol})`}
                 title={c.name}
                 onClick={() => pickCoin(c)}
-                style={hueVars(rainbowAt(i)) as CSSProperties}
+                style={hueVars(i) as CSSProperties}
                 // `aspect-square` keeps the tile square in every label mode, so
                 // the grid does not reflow when the mode changes. A one step
                 // lighter hover goes unnoticed on a dark ground, so the dark

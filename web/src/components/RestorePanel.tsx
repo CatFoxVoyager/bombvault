@@ -631,7 +631,7 @@ function SnapshotRow({
   const [shake, setShake] = useState(0);
 
   async function handleDelete() {
-    if (!(await confirm(t("snapshots.deleteConfirm")))) return;
+    if (!(await confirm(t("snapshots.deleteConfirm"), { confirmKey: "snapshots.delete" }))) return;
     setDeleting(true);
     try {
       const res = await deleteSnapshot("containers", snap.id, source);
@@ -808,15 +808,28 @@ export function RestorePanel({ name, t, installed = true, open }: RestorePanelPr
 
   useEffect(() => {
     if (!open) return;
+    // An answer that arrives after the next switch is dropped, and a failure
+    // empties the list, whose rows belong to the source just left.
+    let current = true;
+    const fail = (message: string) => {
+      if (!current) return;
+      setSnapshots([]);
+      setError(message);
+    };
     setLoading(true);
     setError(null);
     listSnapshots(name, source)
       .then((res) => {
-        if (res.ok) setSnapshots(res.snapshots ?? []);
-        else setError(res.error ?? t("common.loadBackupsFailed"));
+        if (!res.ok) return fail(res.error ?? t("common.loadBackupsFailed"));
+        if (current) setSnapshots(res.snapshots ?? []);
       })
-      .catch(() => setError(t("common.loadBackupsFailed")))
-      .finally(() => setLoading(false));
+      .catch(() => fail(t("common.loadBackupsFailed")))
+      .finally(() => {
+        if (current) setLoading(false);
+      });
+    return () => {
+      current = false;
+    };
   }, [open, name, source, reloadTick]); // eslint-disable-line react-hooks/exhaustive-deps -- t() is only read to build a failure message; re-fetching on a language switch would be a wasted round-trip
 
   if (!open) return null;

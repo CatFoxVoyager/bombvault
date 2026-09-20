@@ -36,8 +36,7 @@ import { useProgress, anyActive, busyPhraseKey } from "../lib/progress";
 import { relativeTime } from "../lib/reltime";
 import { useDragReorder } from "../lib/useDragReorder";
 import { useConfirm } from "../lib/useConfirm";
-import { hueVars, rainbowAt } from "../lib/appearance";
-import { useRainbow } from "../lib/useRainbow";
+import { hueVars } from "../lib/appearance";
 import { Selector, type SelectorItem } from "../components/Selector";
 import { useToast } from "../lib/toast";
 import { IconSearch } from "../components/glyphs";
@@ -812,9 +811,8 @@ export function FoldersEditor({
   // persisted: no server-side include-count history exists to restore it
   // from, and reopening the section re-derives truth from the served state.
   const [narrowed, setNarrowed] = useState(false);
-  // D-05 reset confirm — fail tone with both consequences named in the
-  // message itself (ConfirmDialog's own precedent: the dialog carries the
-  // destructive weight, the trigger stays neutral).
+  // The reset confirm names both consequences in its message, so the dialog
+  // carries the weight and the trigger stays neutral.
   const { confirm, confirmDialog } = useConfirm();
 
   // Closing the section clears the note: the editor session it belongs to is
@@ -2331,7 +2329,7 @@ export function ContainerRow({
 
   return (
     <div
-      style={{ ...hueVars(rainbowAt(index)), "--row-i": String(index) } as CSSProperties}
+      style={{ ...hueVars(index), "--row-i": String(index) } as CSSProperties}
       // glim-hue owns the position; glim-tint washes the WHOLE card with it
       // (trap #2, design-language.md's "Rainbow" section) — without the wash
       // this card shows almost no colour at rest, since nothing else on it
@@ -2701,24 +2699,10 @@ function StackCard({
   group: StackGroup;
   onRestored: () => void;
   t: T;
-  /** Rainbow position for THIS card — GlimStone standing colour-engine rule
-   *  (jdp, live review, emphatic, five escalations deep: "Es soll immer
-   *  alles in die Farb- und Formengine integriert werden!! IMMER!!"). A gap
-   *  that survived even the fifth escalation's own sweep of this file (see
-   *  StacksPanel's own `hueIndex` doc comment above, which hued the panel's
-   *  HEADING but left every card underneath it flat): StackCard is the exact
-   *  same "row card in a list" shape as ContainerRow right above it in this
-   *  file (and Files.tsx/Fleet.tsx/Receiver.tsx/VMs.tsx's own list-row
-   *  cards) — glim-hue/glim-tint/glim-stagger-row + `hueVars(rainbowAt(index))`
-   *  — yet was the one card shape in this file with NO colour-engine wiring
-   *  at all. By LIST INDEX among the stacks rendered together (StacksPanel's
-   *  own `stacks.map`), a separate local 0-based sequence from
-   *  ContainerRow's own `live`/`orphans` index (a different list, own local
-   *  index per group — the same rule ToggleRow's own `hueIndex` doc
-   *  documents) and from the page-wide `nextHue()` counter the panel's own
-   *  heading badge uses (a heading notch and its list's row cards are two
-   *  independent sequences, same split as every other headed list on this
-   *  page). */
+  /** Rainbow position of this card among the stacks rendered together. It
+   *  counts separately from the container rows and from the page-wide
+   *  sequence the panel heading takes, as every headed list on this page
+   *  does. */
   index: number;
 }) {
   const [open, setOpen] = useState(false);
@@ -2799,7 +2783,7 @@ function StackCard({
 
   return (
     <div
-      style={{ ...hueVars(rainbowAt(index)), "--row-i": String(index) } as CSSProperties}
+      style={{ ...hueVars(index), "--row-i": String(index) } as CSSProperties}
       // glim-hue owns the position; glim-tint washes the whole card with it,
       // glim-stagger-row reuses the same `index` for the entrance stagger — the
       // identical trio ContainerRow's own outer <div> carries above (see this
@@ -2892,19 +2876,9 @@ function StacksPanel({
   containers: Container[];
   onRestored: () => void;
   t: T;
-  /** Rainbow position for THIS panel's own heading notch — GlimStone
-   *  follow-up pass (jdp, live review, emphatic, fifth escalation of the
-   *  standing colour-engine rule): this section heading was a
-   *  tone="heading" Badge with no hueIndex at all, so in rainbow mode it
-   *  stayed flat --accent instead of joining the same sequence the
-   *  ContainerRow cards below it clearly carry (rainbowAt(index)). Resolved
-   *  by the caller's own `nextHue()` counter, called DIRECTLY at the JSX
-   *  call site, gated on `stackGroups.length > 0` there (never an
-   *  unconditional call — see that call site's own comment for why: this
-   *  component returns null internally whenever there is no multi-member
-   *  stack, and hueIndex must never fire for a heading that won't actually
-   *  render). Omit for a genuine singleton — same rule as every other
-   *  hueIndex call site. */
+  /** Rainbow position of the panel heading. The caller passes it only when
+   *  a stack exists, because the panel renders nothing without one and an
+   *  unrendered heading must not use up a position. */
   hueIndex?: number;
 }) {
   const stacks = groupStacks(containers);
@@ -3136,7 +3110,7 @@ function BackupOrderPanel({
       className={`relative glim-notch-card bg-carbon-surface rounded-card p-4 mt-4 flex flex-col gap-3${
         hueIndex !== undefined ? " glim-hue" : ""
       }`}
-      style={hueIndex !== undefined ? (hueVars(rainbowAt(hueIndex)) as CSSProperties) : undefined}
+      style={hueIndex !== undefined ? (hueVars(hueIndex) as CSSProperties) : undefined}
     >
       {/* Title notch, always visible regardless of collapse state (matches
           the PRE-fix behaviour, where title+count stayed visible collapsed
@@ -3285,10 +3259,6 @@ function BackupOrderPanel({
 
 export function Containers() {
   const { t } = useT();
-  // One subscription for the whole list rather than one per row: the palette
-  // changes for every row at once anyway, so this alone is what makes rainbow
-  // on/off/reactive/rotate/palette edits repaint the list live, no reload.
-  useRainbow();
   // Advanced-mode flag read directly (not just via the <Advanced> wrapper
   // below): BackupOrderPanel's own hueIndex must only be resolved via
   // `nextHue()` when the panel will ACTUALLY render — a JSX child's props

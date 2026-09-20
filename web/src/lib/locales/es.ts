@@ -261,7 +261,7 @@ const es: Partial<Translations> = {
   "settings.rainbow": "Modo arcoíris",
   "settings.rainbowHint": "Cada fila de una lista recibe su propio color de un conjunto de ocho, en lugar de que todo comparta un solo color de acento. Así las listas largas se distinguen de un vistazo.",
   "settings.disco": "Modo disco",
-  "settings.discoHint": "Cada fila y elemento de color pasa al siguiente color de la paleta una vez por segundo, mientras el modo arcoíris esté activado.",
+  "settings.discoHint": "Cada fila y elemento de color se desliza suavemente al siguiente color de la paleta, uno cada tres segundos, mientras el modo arcoíris esté activado.",
   "settings.rainbowReactive": "Modo reactivo",
   "settings.rainbowReactiveHint": "Activado, una fila o elemento solo muestra su color al pasar el ratón por encima, o mientras se está ejecutando o está seleccionado. El resto del tiempo permanece neutro. Desactivado, todas las filas y elementos coloreados muestran su color todo el tiempo.",
   "settings.rainbowRotate": "Rotación de colores",
@@ -735,7 +735,6 @@ const es: Partial<Translations> = {
   "recovery.stored": "Lo he guardado de forma segura",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "Recuperación ante desastres",
   "recovery.intro": "Recupera tus contenedores y VMs desde una copia existente en esta instalación.",
   "recovery.step1": "¿Puede BombVault leer tus copias?",
   "recovery.appKeyExplain": "Para leer copias existentes, este contenedor necesita la MISMA APP_KEY que usaba antes. Está en tu kit de recuperación. Configúrala en la plantilla del contenedor de Unraid si aún no lo está y vuelve a comprobar.",

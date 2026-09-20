@@ -27,8 +27,7 @@ import { IncludeToggle } from "../components/IncludeToggle";
 import { useProgress, anyActive, busyPhraseKey } from "../lib/progress";
 import { useBackupWatch, fireAndWaitRun } from "../lib/backupWatch";
 import { useConfirm } from "../lib/useConfirm";
-import { hueVars, rainbowAt } from "../lib/appearance";
-import { useRainbow } from "../lib/useRainbow";
+import { hueVars } from "../lib/appearance";
 import { Selector } from "../components/Selector";
 import { useToast } from "../lib/toast";
 import { RepoPicker } from "../components/RepoPicker";
@@ -383,7 +382,7 @@ function VMSnapshotRow({
   const { confirm, confirmDialog } = useConfirm();
 
   async function handleDelete() {
-    if (!(await confirm(t("snapshots.deleteConfirm")))) return;
+    if (!(await confirm(t("snapshots.deleteConfirm"), { confirmKey: "snapshots.delete" }))) return;
     setDeleting(true);
     try {
       const res = await deleteSnapshot("vms", snap.id, source);
@@ -490,22 +489,35 @@ function VMRestorePanel({
 
   useEffect(() => {
     if (!open) return;
+    // An answer that arrives after the next switch is dropped, and a failure
+    // empties the list, whose rows belong to the source just left.
+    let current = true;
+    const fail = (message: string) => {
+      if (!current) return;
+      setSnapshots([]);
+      setError(message);
+    };
     setLoading(true);
     setError(null);
     listVMSnapshots(name, source)
       .then((res) => {
-        if (res.ok) setSnapshots(res.snapshots ?? []);
-        else setError(res.error ?? t("common.loadBackupsFailed"));
+        if (!res.ok) return fail(res.error ?? t("common.loadBackupsFailed"));
+        if (current) setSnapshots(res.snapshots ?? []);
       })
-      .catch(() => setError(t("common.loadBackupsFailed")))
-      .finally(() => setLoading(false));
+      .catch(() => fail(t("common.loadBackupsFailed")))
+      .finally(() => {
+        if (current) setLoading(false);
+      });
+    return () => {
+      current = false;
+    };
   }, [open, name, source, reloadTick]); // eslint-disable-line react-hooks/exhaustive-deps -- t() is only read to build a failure message; re-fetching on a language switch would be a wasted round-trip
 
   // A failure is toasted rather than set as `error`: the reload in .finally()
   // clears `error` again straight away.
   async function handleDeleteAll() {
     // TODO: name the stake in the confirmation ("N snapshots, X GB").
-    if (!(await confirm(t("snapshots.deleteAllConfirm")))) return;
+    if (!(await confirm(t("snapshots.deleteAllConfirm"), { confirmKey: "snapshots.deleteAll" }))) return;
     setDeletingAll(true);
     deleteBackupsVM(name, source)
       .then((res) => {
@@ -637,7 +649,7 @@ export function VMRow({
 
   return (
     <div
-      style={{ ...hueVars(rainbowAt(index)), "--row-i": String(index) } as CSSProperties}
+      style={{ ...hueVars(index), "--row-i": String(index) } as CSSProperties}
       // glim-active while this VM's own backup or restore runs, so reactive
       // mode shows the hue without hover, as on ContainerRow.
       className={`relative overflow-hidden bg-carbon-surface rounded-card p-4 flex flex-col gap-3 glim-hue glim-stagger-row ${
@@ -1006,7 +1018,7 @@ function VMBackupOrderPanel({
       className={`relative glim-notch-card bg-carbon-surface rounded-card p-4 flex flex-col gap-3${
         hueIndex !== undefined ? " glim-hue" : ""
       }`}
-      style={hueIndex !== undefined ? (hueVars(rainbowAt(hueIndex)) as CSSProperties) : undefined}
+      style={hueIndex !== undefined ? (hueVars(hueIndex) as CSSProperties) : undefined}
     >
       {/* The Badge is the h2's only child: size="heading" positions it
           absolutely, so a sibling would land in its vacated slot. The count
@@ -1129,8 +1141,6 @@ function VMBackupOrderPanel({
 
 export function VMs() {
   const { t } = useT();
-  // One subscription for the whole list rather than one per row.
-  useRainbow();
   // Read directly rather than relying on <Advanced>: the order panel's
   // hueIndex={nextHue()} is evaluated when the element is built, even if
   // <Advanced> then renders nothing, so nextHue() may only run when the panel

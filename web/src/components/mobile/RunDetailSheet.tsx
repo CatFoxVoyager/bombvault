@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
-import { hueVars, rainbowAt } from "../../lib/appearance";
+import { hueVars } from "../../lib/appearance";
 import { checkDomain, listSnapshotFiles, listSnapshotFilesFileSet } from "../../lib/api";
 import type { FileEntry, Run } from "../../lib/api";
 import { useT } from "../../lib/i18n";
@@ -294,7 +294,7 @@ function SheetActionRow({
       className={`flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-control text-sm text-carbon-text hover:bg-carbon-hover motion-safe:active:scale-[var(--motion-press-scale)] disabled:opacity-60 glim-hue ${
         tone === "neutral" ? "bg-carbon-surface3" : "bg-carbon-surface2"
       }`}
-      style={hueVars(rainbowAt(hueIndex ?? 0)) as CSSProperties}
+      style={hueVars(hueIndex ?? 0) as CSSProperties}
     >
       {label}
     </button>

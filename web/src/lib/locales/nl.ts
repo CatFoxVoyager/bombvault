@@ -256,7 +256,7 @@ const nl: Partial<Translations> = {
   "settings.rainbow": "Regenboogmodus",
   "settings.rainbowHint": "Elke rij in een lijst krijgt zijn eigen kleur uit een set van acht, in plaats van dat alles dezelfde accentkleur deelt. Zo zijn lange lijsten in één oogopslag te onderscheiden.",
   "settings.disco": "Discomodus",
-  "settings.discoHint": "Elke gekleurde rij en elk gekleurd item schuift één keer per seconde door naar de volgende kleur van het palet, zolang de regenboogmodus aan staat.",
+  "settings.discoHint": "Elke gekleurde rij en elk gekleurd item glijdt langzaam door naar de volgende kleur van het palet, om de drie seconden één, zolang de regenboogmodus aan staat.",
   "settings.rainbowReactive": "Reactieve modus",
   "settings.rainbowReactiveHint": "Indien aan toont een rij of item zijn kleur alleen bij hover, of terwijl het draait of geselecteerd is, anders blijft het neutraal. Indien uit tonen alle gekleurde rijen en items hun kleur voortdurend.",
   "settings.rainbowRotate": "Kleurrotatie",
@@ -698,7 +698,6 @@ const nl: Partial<Translations> = {
   "recovery.stored": "Ik heb hem veilig bewaard",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "Noodherstel",
   "recovery.intro": "Herstel je containers en VM's uit een bestaande back-up op deze installatie.",
   "recovery.step1": "Kan BombVault je back-ups lezen?",
   "recovery.appKeyExplain": "Om bestaande back-ups te lezen heeft deze container DEZELFDE APP_KEY nodig als voorheen. Die staat in je herstelkit. Stel hem in de Unraid-containersjabloon in als dat nog niet is gebeurd en controleer opnieuw.",

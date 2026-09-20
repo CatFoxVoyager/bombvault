@@ -256,7 +256,7 @@ const pl: Partial<Translations> = {
   "settings.rainbow": "Tryb tęczowy",
   "settings.rainbowHint": "Każdy wiersz na liście otrzymuje własny kolor z zestawu ośmiu, zamiast dzielić jeden wspólny kolor akcentu. Dzięki temu długie listy łatwiej odróżnić na pierwszy rzut oka.",
   "settings.disco": "Tryb disco",
-  "settings.discoHint": "Każdy kolorowy wiersz i element przechodzi do następnego koloru palety raz na sekundę, dopóki tryb tęczy jest włączony.",
+  "settings.discoHint": "Każdy kolorowy wiersz i element płynnie przechodzi do następnego koloru palety, jeden co trzy sekundy, dopóki tryb tęczy jest włączony.",
   "settings.rainbowReactive": "Tryb reaktywny",
   "settings.rainbowReactiveHint": "Gdy włączone, wiersz lub element pokazuje swój kolor tylko po najechaniu kursorem albo gdy działa lub jest zaznaczony, w innym wypadku pozostaje neutralny. Gdy wyłączone, każdy kolorowy wiersz i element pokazuje swój kolor przez cały czas.",
   "settings.rainbowRotate": "Rotacja kolorów",
@@ -719,7 +719,6 @@ const pl: Partial<Translations> = {
   "recovery.stored": "Bezpiecznie zapisałem",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "Odzyskiwanie po awarii",
   "recovery.intro": "Odzyskaj swoje kontenery i maszyny wirtualne z istniejącej kopii zapasowej na tę instalację.",
   "recovery.step1": "Czy BombVault może odczytać Twoje kopie zapasowe?",
   "recovery.appKeyExplain": "Aby odczytać istniejące kopie zapasowe, ten kontener potrzebuje TEGO SAMEGO APP_KEY, którego używał wcześniej. Znajdziesz go w swoim zestawie odzyskiwania. Ustaw go w szablonie kontenera Unraid, jeśli jeszcze go nie ma, a następnie sprawdź ponownie.",

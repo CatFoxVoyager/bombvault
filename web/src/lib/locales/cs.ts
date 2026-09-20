@@ -261,7 +261,7 @@ const cs: Partial<Translations> = {
   "settings.rainbow": "Duhový režim",
   "settings.rainbowHint": "Každý řádek v seznamu dostane vlastní barvu z osmi barevné palety místo toho, aby vše sdílelo jeden akcent. Dlouhé seznamy se tak na první pohled snáze rozliší.",
   "settings.disco": "Režim disko",
-  "settings.discoHint": "Každý barevný řádek a prvek přejde na další barvu palety jednou za sekundu, dokud je zapnutý režim duhy.",
+  "settings.discoHint": "Každý barevný řádek a prvek plynule přechází na další barvu palety, jednu každé tři sekundy, dokud je zapnutý režim duhy.",
   "settings.rainbowReactive": "Reaktivní režim",
   "settings.rainbowReactiveHint": "Když je zapnuto, řádek nebo prvek zobrazí svou barvu jen při najetí myší, nebo když právě běží či je vybraný, jinak zůstává neutrální. Když je vypnuto, každý barevný řádek a prvek zobrazuje svou barvu neustále.",
   "settings.rainbowRotate": "Rotace barev",
@@ -725,7 +725,6 @@ const cs: Partial<Translations> = {
   "recovery.stored": "Uložil jsem ji bezpečně",
 
   // Guided Recovery tab (disaster-recovery walkthrough)
-  "recovery.pageTitle": "Zotavení po havárii",
   "recovery.intro": "Obnovte své kontejnery a VM z existující zálohy do této instalace.",
   "recovery.step1": "Může BombVault číst vaše zálohy?",
   "recovery.appKeyExplain": "Ke čtení existujících záloh potřebuje tento kontejner STEJNÝ APP_KEY, který používal dříve. Najdete jej ve své sadě pro obnovu. Nastavte jej v šabloně kontejneru Unraid, pokud ještě není, a poté proveďte opětovnou kontrolu.",
