@@ -129,7 +129,7 @@ async function computeStatData(): Promise<StatData> {
   const schedEnabled = settings ? settings.containersSchedule !== "off" && settings.containersSchedule !== "" : false;
   const activeJobs = schedEnabled ? installed.filter((c) => c.includeInSchedule).length : 0;
   const pausedJobs = !schedEnabled ? installed.filter((c) => c.includeInSchedule).length : 0;
-  // Scoped to backup/restore/update kinds: a failed prune/verify
+  // Scoped to backup/restore/update kinds — a failed prune/verify
   // (maintenance) run is surfaced in the Activity Log, not here, so this
   // badge keeps its original "backup/restore failures" meaning (#3).
   const errors = failedRunsNeedingAttention(runs).length;
@@ -375,9 +375,9 @@ function Card({
         {/* action used to share a `justify-between` row with the <h2> above,
             pinned to the row's far end opposite the title. Now that the
             title lives outside this div entirely, `justify-end` replaces
-            `justify-between` (which needs 2+ items to do anything; with
+            `justify-between` (which needs 2+ items to do anything — with
             only `action` left in the row, `justify-between` would dock it
-            to the start instead of the end it always visually occupied). */}
+            to the START instead of the end it always visually occupied). */}
         {action && <div className="flex justify-end">{action}</div>}
         {children}
       </div>
@@ -602,17 +602,17 @@ export function ProtectionCard({
             const drCapable = d.domain === "containers" || d.domain === "flash" || d.domain === "files";
             // Off-site DR opt-out (#37): the scheduled DR drill is turned off for a
             // DR-capable domain that HAS an off-site repo. The pill then reads NEUTRAL
-            // ("manual only"): but only when there is no failing result to show.
+            // ("manual only") — but only when there is no failing result to show.
             const drUnscheduled = drCapable && d.offsiteConfigured && !d.offsiteDrillScheduled;
             // The red "proven restorable off-site" state: a recorded off-site DR drill
             // that failed. A real failure (scheduled OR a manual run) is ALWAYS shown,
-            // never masked by the opt-out, only "never drilled" goes neutral.
+            // never masked by the opt-out — only "never drilled" goes neutral.
             const drFailed = !off && drCapable && d.lastDrDrillAt > 0 && !d.lastDrDrillOK;
             return (
               <div key={d.domain} className="flex flex-col gap-1 rounded-control bg-carbon-surface2 px-2 py-2.5 text-sm">
                 {/* Two-mode row layout (#66 follow-up). WIDE card (container query
                     @[44rem] on the rows wrapper): every row lays its cells on the
-                    Same shared grid track template so the same kind of info sits in
+                    SAME shared grid track template so the same kind of info sits in
                     the same column down the whole card, regardless of which cells a
                     row populates: [domain] [status] [schedule] [last run] [verified]
                     [off-site verified] [off-site DR]. Fixed tracks for the
@@ -622,9 +622,9 @@ export function ProtectionCard({
                     leave their column blank without re-flowing the others; the
                     three badge columns get a readable floor width (not minmax(0,…))
                     so they wrap at word boundaries instead of being squeezed thin
-                    enough to hyphenate mid-word. Narrow card: the row falls back to
-                    a wrapped flex stack; the domain name reads as a full-width
-                    heading (basis-full) and the remaining cells flow underneath;
+                    enough to hyphenate mid-word. NARROW card: the row falls back to
+                    a wrapped flex stack — the domain name reads as a full-width
+                    heading (basis-full) and the remaining cells flow underneath —
                     so a half-width card never grows per-row horizontal
                     scrollbars. */}
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 py-0.5 @[44rem]:grid @[44rem]:gap-3 @[44rem]:grid-cols-[7rem_minmax(0,1fr)_minmax(0,1fr)_5rem_minmax(6.5rem,1fr)_minmax(7.5rem,1.2fr)_minmax(7.5rem,1.6fr)]">
@@ -651,10 +651,10 @@ export function ProtectionCard({
                           {rpoLabel(d.status)}
                         </span>
                       </div>
-                      {/* Col 3, schedule cadence. A domain with no cadence of
+                      {/* Col 3 — schedule cadence. A domain with no cadence of
                           its own can still be covered by the whole-server
                           "Backup Everything" pass, and then it is the pass's
-                          cadence that applies; naming it keeps the row from
+                          cadence that applies — naming it keeps the row from
                           contradicting the domain's own card, which correctly
                           shows no schedule (#177). */}
                       <span className="col-start-3 min-w-0 truncate text-carbon-textMuted text-xs">
@@ -682,13 +682,13 @@ export function ProtectionCard({
                           </Badge>
                         </div>
                       ) : null}
-                      {/* Cols 6+7; no off-site repo at all ([376]).
-                          Both off-site columns below are driven by a recorded
+                      {/* Cols 6+7 — NO off-site repo at all ([376]).
+                          Both off-site columns below are driven by a RECORDED
                           run, so a domain that has no second copy anywhere
                           renders neither, and the row goes quiet at exactly the
                           point where it has the most to say. Measured on jdp's
                           box: protectionLevel returned "red" for all five
-                          domains ("enabled but no off-site copy; unprotected by
+                          domains ("enabled but no off-site copy — unprotected by
                           design") while the page never printed the words
                           off-site, append-only or 3-2-1 once.
 
@@ -705,12 +705,12 @@ export function ProtectionCard({
                           </Badge>
                         </div>
                       ) : null}
-                      {/* Col 6, Off-site SUBSET badge (#63), the off-site integrity
+                      {/* Col 6 — Off-site SUBSET badge (#63) — the off-site integrity
                           check (`restic check --read-data-subset` against the off-site
                           repo). Mirrors the local-verify shield above (same pills)
-                          and is the only off-site drill VMs can run (DR restores
-                          are refused for them), so it shows for every domain with
-                          a recorded run; alongside, never instead of, the DR pill
+                          and is the ONLY off-site drill VMs can run (DR restores
+                          are refused for them), so it shows for EVERY domain with
+                          a recorded run — alongside, never instead of, the DR pill
                           below. */}
                       {d.lastOffsiteSubsetAt ? (
                         <div className="col-start-6 min-w-0">
@@ -726,10 +726,10 @@ export function ProtectionCard({
                       ) : null}
                       {/* Col 7 — Off-site restorability (DR) badge — mirrors the
                           local-verify shield above (same pills), but proves the backup
-                          is recoverable from the off-site repo (a real DR sandbox
+                          is recoverable from the OFF-SITE repo (a real DR sandbox
                           restore). Only containers + flash + files ever run a DR drill,
                           so VMs/config never show this pill (empty column). On a
-                          failure the tooltip names which check + the reason. */}
+                          failure the tooltip names WHICH check + the reason. */}
                       <div className="col-start-7 min-w-0">
                         {drCapable && d.lastDrDrillAt && d.lastDrDrillOK ? (
                           // GREEN — proven restorable off-site. A real passed run (even
@@ -772,9 +772,9 @@ export function ProtectionCard({
                 </div>
                 {/* Manual off-site DR: the "Run off-site DR check" button is always
                     reachable for a configured domain (so a manual run works when
-                    opted out and when currently green), while the red which-check +
-                    Why reason stays gated to an actual scheduled failure (drFailed).
-                    Only the off-site DR row drives that red; a local subset pass
+                    opted out AND when currently green), while the red WHICH-check +
+                    WHY reason stays gated to an actual scheduled failure (drFailed).
+                    Only the off-site DR row drives that red — a local subset pass
                     can't clear it, so we run {offsite,dr} explicitly. */}
                 {!off && drCapable && (drFailed || d.offsiteConfigured) && (
                   <div className="flex flex-wrap items-center gap-2 ps-1">
@@ -969,7 +969,7 @@ export function RansomwareCard({
       <div className="flex flex-col gap-1 glim-content-fade">
       {shown.map((d) => {
           // Each row: label, state, and an optional age stamp. A "bad" row is a red
-          // gap the user should fix, it deep-links into Settings. Every state comes
+          // gap the user should fix — it deep-links into Settings. Every state comes
           // from the backend so it cannot diverge from the chip above.
           const ao = appendOnlyRow(d);
           const rep = replicationRow(d);
@@ -1302,8 +1302,7 @@ function RunsCard({
               className="rounded-control bg-carbon-surface2 px-2 py-1 text-xs text-carbon-text glim-field-focus"
             />
           </div>
-          {/* Scrollable list; all runs in the window (filtered by day). Rows
-              separated by shade (soft tiles), never divider lines. */}
+          {/* Scrollable list — all runs in the window (filtered by day) */}
           <div className="flex flex-col gap-1 max-h-128 overflow-y-auto pe-2">
             {shown.map((run) => (
               <RunRow key={run.id} t={t} run={run} />
@@ -1355,7 +1354,7 @@ function LastBackupsCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hue
         <div className="flex flex-col gap-1 glim-content-fade">
           {withBackups.map((c) => {
             // Older data (or a run before the start time was recorded) has no
-            // lastBackupStarted: fall back to just the finish time, never a
+            // lastBackupStarted — fall back to just the finish time, never a
             // negative/broken duration.
             const hasStart = c.lastBackupStarted != null && c.lastBackup != null;
             const duration = hasStart
@@ -1390,7 +1389,7 @@ function LastBackupsCard({ t, hueIndex }: { t: ReturnType<typeof useT>["t"]; hue
         <div className="flex flex-col gap-1">
           {/* "Never" said two different things at once ([379]). A container
               nobody scheduled has never been backed up and that is the plan; a
-              container that is scheduled and still shows "never" is a gap. Both
+              container that IS scheduled and still shows "never" is a gap. Both
               rendered the same word, so the list could not be read: on jdp's
               box four rows said "Nie" and there was no way to tell, from the
               dashboard, which of them were meant to.
@@ -1731,7 +1730,7 @@ function StorageCard({
   const [loading, setLoading] = useState(true);
 
   // Resolves a translation key (+ optional {placeholder} params) for the
-  // forecast line: the same injected seam ActivityLog uses, so
+  // forecast line — the same injected seam ActivityLog uses, so
   // buildForecastLine stays pure and testable without an I18nProvider.
   const resolveForecast: ResolveForecast = (key, params) => {
     let s = t(key as TranslationKey);
@@ -1879,7 +1878,7 @@ function StorageCard({
                 : "—";
             // Compact per-domain forecast line (growth/week + time-to-full +
             // free space) from the same /api/stats response. Null when the
-            // backend could determine nothing: then no line renders at all.
+            // backend could determine nothing — then no line renders at all.
             const forecastLine = buildForecastLine(d.forecast, resolveForecast);
             return (
               <div key={d.domain} className="flex flex-col gap-0.5 rounded-control bg-carbon-surface2 px-2 py-2.5 min-w-0">
@@ -1977,8 +1976,8 @@ function RecoveryNag({ t, suppressed }: { t: ReturnType<typeof useT>["t"]; suppr
 
   return (
     <div className="rounded-card bg-statusWarnBg px-4 py-3 flex flex-col gap-2">
-      {/* design-language rule 11: deliberately not a heading badge, and the one
-          outermost <h2> on this page that isn't; see Badge.tsx's file header
+      {/* Task 5 (rule 11): deliberately NOT a heading badge, and the one
+          outermost <h2> on this page that isn't — see Badge.tsx's file header
           for the shared reasoning. Short version: this panel's own surface is
           already a filled status wash (bg-statusWarnBg), so a "filled" badge
           on top of it has nothing to fill against. Measured on the live page,
@@ -1999,7 +1998,7 @@ function RecoveryNag({ t, suppressed }: { t: ReturnType<typeof useT>["t"]; suppr
       </p>
       <div className="flex flex-wrap items-center gap-2">
         {/* Fetch-based download (mirrors Settings): a raw <a download> would save
-            the 403 refusal body as the .md file when auth is off, the backend
+            the 403 refusal body as the .md file when auth is off — the backend
             fails closed for this export, so surface its message instead (#A1). */}
         <button
           type="button"
@@ -2060,9 +2059,9 @@ function FreshInstallNudge({
             with the raw accent colour and no fill at all. This card's own one
             call-to-action functions as a primary action (rule 3 allows
             exactly one solid-accent primary action per page/card), so it
-            takes the same filled rounded-control/bg-accent/text-accentContrast
+            takes the SAME filled rounded-control/bg-accent/text-accentContrast
             treatment every other primary button in this app already uses
-            (e.g. Config.tsx's Save button); matching an established idiom
+            (e.g. Config.tsx's Save button) — matching an established idiom
             rather than routing through Badge's tone system, which has no
             "primary CTA" tone of its own and isn't the right place to invent
             one for a single call site. Under 48rem the CTA also takes the
@@ -2100,7 +2099,7 @@ function FreshInstallNudge({
 }
 
 // ---------------------------------------------------------------------------
-// Summary tier: a compact three-cell overview above the detail cards. It
+// Summary tier — a compact three-cell overview above the detail cards. It
 // reuses the same Card/StatCard surface + Badge visual language as the
 // detail tier below, reading the shared /api/status domains and the newest
 // listRuns entry (no extra round-trips beyond the one runs fetch in the parent).
@@ -2149,17 +2148,17 @@ function SummaryCell({
     //
     // `.glim-hue` ALSO added, same rainbow-mode completeness fix as Card()
     // above (jdp live review): this cell's own status Badges read
-    // tone={statusTone(...)}: load-bearing status signals that read
-    // --status-* tokens, never --accent: so they stay untouched; this only
+    // tone={statusTone(...)} — load-bearing status signals that read
+    // --status-* tokens, never --accent — so they stay untouched; this only
     // matters for anything focusable/accent-coloured a future SummaryCell
     // child might add.
     <div
       className={`relative glim-notch-card min-w-0${hueIndex !== undefined ? " glim-hue" : ""}`}
       style={hueIndex !== undefined ? (hueVars(hueIndex) as CSSProperties) : undefined}
     >
-      {/* design-language rule 11: each SummaryCell is its own standalone
-          bg-carbon-surface rounded-card box; not nested inside an
-          already-badged heading; so it gets the same Badge-in-<h2>
+      {/* Task 5 (rule 11): each SummaryCell is its own standalone
+          bg-carbon-surface rounded-card box — not nested inside an
+          already-badged heading — so it gets the same Badge-in-<h2>
           treatment as every other outermost Card heading on this page (see
           Card just above and Badge.tsx's file header). `wrap` + max-w-full
           because this sits in a narrow sm:grid-cols-3 cell. */}
@@ -2169,17 +2168,17 @@ function SummaryCell({
       {/* p-5 (was px-4 py-3, GlimStone follow-up pass, jdp emphatic: "Die
           Cards von Gesamtzustand, Nächstes Backup, Letztes Ergebnis größer
           machen damit der Inhalt nicht so knapp unter dem Cardtitelbadge
-          klebt"; make these 3 cards bigger, the content sticks too close
+          klebt" — make these 3 cards bigger, the content sticks too close
           under the badge). The badge's own -50%-translate overlap always
           pokes exactly 11px into whatever box sits below it (half of the
-          22px heading stage; see Badge.tsx's badgeClassName comment), so
-          the clearance between the badge's bottom edge and the first line of
+          22px heading stage — see Badge.tsx's badgeClassName comment), so
+          the CLEARANCE between the badge's bottom edge and the first line of
           real content is simply this box's own top padding minus that fixed
-          11px. py-3's 12px top padding left only ~1px of clearance; the "OK
+          11px. py-3's 12px top padding left only ~1px of clearance — the "OK
           Aktuell" text visibly touching the badge, confirmed live via
           getBoundingClientRect (11px overlap vs. 12px padding). Card()
           above uses p-5 (20px) for the exact same badge, giving it ~9px of
-          breathing room; the "comfortable" feel every other Dashboard card
+          breathing room — the "comfortable" feel every other Dashboard card
           already has. Matching that value here (rather than inventing a new
           number) makes these three cells read as the same weight of card as
           their neighbours, not a cramped miniature of one. */}
@@ -2300,37 +2299,39 @@ function SummaryTier({
   domains: DomainStatus[];
   loading: boolean;
   newestRun: Run | null;
-  /** This tier's three cells' own rainbow positions. See the main Dashboard
-   *  component's `hueSeq`/`nextHue` comment. Plain numbers, each computed by
-   *  the caller's `nextHue()` at the same synchronous point as every other
-   *  block's own `hueIndex={nextHue()}` (not a `nextHue` function passed down
-   *  for this component to call from its own body): React runs a child
-   *  function component's body only after the parent's own render function
-   *  has returned, so a `nextHue()` call made inside this component's body
-   *  would run after every sibling block's direct `nextHue()` call had
-   *  already consumed the rotation's slots, and these three cells would land
-   *  on the wrong hues. Passing three already-resolved numbers sidesteps the
-   *  "when does React actually call this component" question: the values are
-   *  fixed the instant `nextHue()` runs, in the caller's own array order. */
+  /** This tier's three cells' own rainbow positions — see the main Dashboard
+   *  component's own `hueSeq`/`nextHue` comment. Plain numbers, each computed
+   *  by the CALLER's `nextHue()` at the SAME synchronous point every other
+   *  block's own `hueIndex={nextHue()}` is (not a `nextHue` function passed
+   *  down for this component to call from its OWN body): a first version of
+   *  this fix did exactly that, and it broke, live — React doesn't call a
+   *  child function component's body until AFTER the parent's own render
+   *  function has already returned, so `nextHue()` calls made from inside
+   *  THIS component's body ran strictly after every sibling block's own
+   *  direct `nextHue()` call already consumed slots 0-7, landing this tier's
+   *  three cells on indices 8/9/10 (wrapping back to red/orange/yellow)
+   *  instead of the 0/1/2 they visually occupy first on the page — caught
+   *  live via getComputedStyle against the real deployed container, not by
+   *  reading the code. Passing three already-resolved numbers sidesteps the
+   *  whole "when does React actually call this component" question: the
+   *  values are fixed the instant `nextHue()` runs, in the caller's own
+   *  array order, same as every other block. */
   healthHueIndex?: number;
   nextBackupHueIndex?: number;
   lastResultHueIndex?: number;
-  /** GET /api/schedule/next, soonest first, the scheduler's own answer to
+  /** GET /api/schedule/next, soonest first — the scheduler's own answer to
    *  "what fires next", the same source the activity log below already reads
    *  and the Unraid widget uses (issue #187, [545]). */
   scheduleNext: ScheduleNext[];
 }) {
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      {/* Overall health, worst RPO status across enabled domains */}
+      {/* Overall health — worst RPO status across enabled domains */}
       <SummaryCell label={t("dashboard.summaryHealth")} hueIndex={healthHueIndex}>
         <WorstRpoHealthLine t={t} domains={domains} loading={loading} />
       </SummaryCell>
 
-      {/* Next backup; the soonest real fire time from the scheduler, as a
-          countdown. One component for both densities (the phone glance block
-          is this same NextRunCard at dense): the derivation lives once, in
-          the card, so the two faces cannot disagree. */}
+      {/* Next backup — the soonest real fire time from the scheduler, as a countdown */}
       <NextRunCard
         t={t}
         dense={false}
@@ -2340,7 +2341,7 @@ function SummaryTier({
         loading={loading}
       />
 
-      {/* Last result, the newest run: status chip + target + relative time */}
+      {/* Last result — the newest run: status chip + target + relative time */}
       <SummaryCell label={t("dashboard.summaryLastResult")} hueIndex={lastResultHueIndex}>
         {newestRun ? (
           <>
@@ -2731,7 +2732,7 @@ export function Dashboard() {
   }, [isDesktop]);
 
   // Single /api/status fetch shared by the Protection + Ransomware cards (no
-  // duplicate round-trip: both cards read the same extended domain status).
+  // duplicate round-trip — both cards read the same extended domain status).
   const [statusDomains, setStatusDomains] = useState<DomainStatus[]>([]);
   const [statusLoading, setStatusLoading] = useState(true);
   // The last /api/status load refused or failed; cleared by the next
@@ -2742,7 +2743,7 @@ export function Dashboard() {
   // Newest run for the summary tier's "Last result" cell. listRuns returns
   // newest-first, so runs[0] is the latest. Polled (not fetched once) so the
   // cell doesn't freeze on whatever domain happened to be running at page
-  // load: mirrors ActivityLog's own listRuns polling (same cadence) so both
+  // load — mirrors ActivityLog's own listRuns polling (same cadence) so both
   // widgets stay in sync (#158: card stuck on a finished run while the
   // Activity Log had already moved on to the next domain).
   const [runs, setRuns] = useState<Run[]>([]);
@@ -2800,7 +2801,7 @@ export function Dashboard() {
 
   // The scheduler's own "what fires next" list, for the summary tier's Next
   // backup cell ([545], issue #187). Polled on the same 30s cadence
-  // ActivityLog uses for the identical endpoint, the two read the same source
+  // ActivityLog uses for the identical endpoint — the two read the same source
   // and must not be able to disagree with each other on screen, which was the
   // whole complaint.
   const [scheduleNext, setScheduleNext] = useState<ScheduleNext[]>([]);
@@ -2892,7 +2893,7 @@ export function Dashboard() {
     el.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
   };
 
-  // Customizable dashboard (#46): everything below the heading + banners is a
+  // Customizable dashboard (#46) — everything below the heading + banners is a
   // reorderable / hideable block, persisted per-browser via useDashboardLayout.
   const [editing, setEditing] = useState(false);
 
@@ -3103,11 +3104,11 @@ export function Dashboard() {
     // reason: matching an established convention beats reinventing one).
     //   PAGE_SHELL (jdp live-review, "Können wir die nicht überall gleich
     // breit machen?"): this page's `gap-10 max-w-6xl` is now that shared
-    // constant, unchanged in value: it is the page the app-wide 1152px was
+    // constant, unchanged in value — it is the page the app-wide 1152px was
     // chosen FROM, because it owns the only content dense enough to have a
     // measurable opinion about width (a md:grid-cols-2 block grid, 7-column
     // container-query run rows, and the Advanced 7-across stat tier, whose
-    // longest German label needs exactly 136px of a 136px cell at 1024px,
+    // longest German label needs exactly 136px of a 136px cell at 1024px —
     // zero slack). Swapping the literal for the constant is what stops the
     // other nine pages drifting away from it again. See lib/pageShell.ts.
     //   The nested gap-6 group below stays: heading + banner are a tight pair
@@ -3118,18 +3119,18 @@ export function Dashboard() {
     // lib/pageShell.ts's PAGE_SHELL_RESPONSIVE and the eslint exceptions data.
     <div className={PAGE_SHELL_RESPONSIVE}>
       <div className="flex flex-col gap-6">
-      {/* Page heading, fixed (contextual, not customizable). The pencil in the
+      {/* Page heading — fixed (contextual, not customizable). The pencil in the
           top-right corner toggles the customize/edit mode.
             That pencil is `h-8 w-8` + centring, not the `p-2` it used to size
           itself with. It is a square icon-only badge by every other measure
           (the same rounded-control tile, the same bg-carbon-surface2/hover
           recipe as Settings' Registry add/remove and FolderBrowser's browse
           badge), but it derived its own footprint from padding around an 18px
-          glyph and landed on 34px; measured live; where every other square
+          glyph and landed on 34px — measured live — where every other square
           icon badge in the app is 32px. Two pixels, but exactly the drift the
           one-size rule exists to stop: a call site sizing itself from its own
-          contents instead of taking the shared number. See Badge.tsx's "one
-          Size for square icon badges" block. */}
+          contents instead of taking the shared number. See Badge.tsx's "ONE
+          SIZE FOR SQUARE ICON BADGES" block. */}
       <div className="flex items-start justify-between gap-4">
         <div>
           {/* Identity header, mobile half: the app wordmark (the same
@@ -3176,8 +3177,8 @@ export function Dashboard() {
           </div>
         </div>
         {/* Real `.glim-bubble` tooltip, not the OS's native `title=` balloon
-            (whole-app sweep). This was the last icon-only control in the app
-            still naming itself with a bare `title=`/`aria-label` pair;
+            (whole-app sweep). This was the LAST icon-only control in the app
+            still naming itself with a bare `title=`/`aria-label` pair —
             measured live on the deployed container: 32px, rounded-control,
             and `title` present, while every other icon-only trigger (every
             Badge `tip`, FolderBrowser's browse badge, Settings' registry and
@@ -3212,27 +3213,27 @@ export function Dashboard() {
               : "bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-surface3 hover:text-carbon-text"
           }`}
         >
-          {/* filled pencil (design-language.md "Icon glyphs", rule 218,
+          {/* FILLED pencil (design-language.md "Icon glyphs", rule 218 —
               already a closed silhouette under its old stroke, so it flips
               directly: same path data, `fill="currentColor"`). The old
               facet-highlight line is dropped rather than faked as a
-              surface-colour cutout; this button's own background flips
+              surface-colour cutout — this button's own background flips
               between `bg-carbon-surface2` and `bg-accent` (the `editing`
               state above), so a cutout hard-coded to one of those two colours
               would show a visible mismatched patch in the other; the plain
               pencil silhouette alone already reads clearly as "edit" without
               it.
                 This used to be an inline `<svg>` right here, and it was the
-              app's only pencil. Files.tsx's own "Ordner-Set bearbeiten" badge
+              app's ONLY pencil. Files.tsx's own "Ordner-Set bearbeiten" badge
               needed the same glyph (jdp's icon-badge round for that tab), and
               the standing instruction there was to reuse this one rather than
-              draw a second; so the path moved verbatim into Sidebar.tsx's
+              draw a second — so the path moved verbatim into Sidebar.tsx's
               shared icon set as IconPencil and this call site now renders that
               component. Same silhouette; the only difference is that IconPencil
               crops its viewBox to the ink (see its own comment for the measured
               numbers and why), so this button's glyph goes from 11.34 × 10.58
               px of ink at 18px to 12.20 × 11.39 px at the app's standard 16px
-              icon-badge glyph size; sub-pixel-per-axis in practice, and it
+              icon-badge glyph size — sub-pixel-per-axis in practice, and it
               brings this one in line with every other 16px glyph in a 32px
               tile. The button itself is untouched: it stays a hand-rolled
               `h-8 w-8` rather than a Badge, because its background legitimately
@@ -3253,11 +3254,11 @@ export function Dashboard() {
         onDismiss={dismissFresh}
       />
 
-      {/* Recovery-kit nag, fixed (contextual): only while encryption is on and
+      {/* Recovery-kit nag — fixed (contextual): only while encryption is on and
           the recovery kit is unstored. */}
       <RecoveryNag t={t} suppressed={freshShown} />
 
-      {/* Customize controls, the pencil in the heading toggles edit mode; while
+      {/* Customize controls — the pencil in the heading toggles edit mode; while
           editing, the Reset button + hint appear here. */}
       {editing && (
         <div className="flex flex-col gap-2 max-md:hidden">
@@ -3306,39 +3307,39 @@ export function Dashboard() {
       )}
 
       {/* Ordered, visible blocks in a responsive grid: full-width cards span
-          both columns, half-width cards flow two-per-row (request B). The
+          both columns, half-width cards flow two-per-row (request B). Below
           grid is JSX-gated on isDesktop (see the max-md note by the gate
           below); the phone reads the Home blocks above instead. The
-          col-span lives on this wrapper div (not on
-          CustomizableBlock's own root) so it applies in both edit mode (where
+          width. The col-span lives on this wrapper div (not on
+          CustomizableBlock's own root) so it applies in BOTH edit mode (where
           CustomizableBlock renders its control-bar div) and view mode (where
           it renders only `<>{children}</>`). In edit mode each block carries a
           control bar + native drag-and-drop; otherwise the card renders
-          plainly. Dragging still reorders the flat `order` array; the grid
+          plainly. Dragging still reorders the flat `order` array — the grid
           simply derives each cell's span from order + width. */}
-      {/* hueSeq/nextHue, same page-wide running-counter pattern as
+      {/* hueSeq/nextHue — SAME page-wide running-counter pattern as
           Settings.tsx's own `nextHue()` (see that file's own `hueSeq`
           comment), just declared here instead of at the top of the return:
           it must be freshly reset to 0 on every render (a stale count would
-          drift every heading's colour after any state change) and consumed
-          in the actual rendered order of `visibleBlocks` below; the user's
+          drift every heading's colour after any state change) AND consumed
+          in the ACTUAL rendered order of `visibleBlocks` below — the user's
           own current drag-reorder/hide-show layout, not this file's fixed
           `blocks` definition order (GlimStone follow-up pass, jdp: "Alle
-          sind nicht im Regenbogenmodus"; every heading on this page was
-          still the flat, un-hued default before the counter landed; see the
+          sind nicht im Regenbogenmodus" — every heading on this page was
+          still the flat, un-hued Task-5 default; see the `blocks` array's
           `blocks` array's
           own `render` comment above for why a plain per-block literal index
           can't do this and a shared counter can). Each block's own `render`
-          callback calls this directly, once per real heading badge it owns,
+          callback calls this DIRECTLY, once per real heading badge it owns,
           right here in this synchronous pass (most blocks once; "summary"
           three times, back-to-back, for its own three SummaryCells; "stats"
-          zero times; StatCardsRow has no heading to hue); never by handing
+          zero times — StatCardsRow has no heading to hue) — never by handing
           the `nextHue` function itself to a child component to call later
           from its own body: React doesn't actually invoke a child function
-          component until after this whole render pass has returned, so a
+          component until after THIS WHOLE render pass has returned, so a
           call made from inside a child runs strictly after every direct
           call made here, landing on the wrong (already-past-the-end)
-          indices; caught live the first time this shipped (see
+          indices — caught live the first time this shipped (see
           SummaryTier's own `healthHueIndex` doc for the exact live numbers)
           and fixed by resolving all three of its indices to plain numbers
           right here, the same way every other block already does. */}
@@ -3393,7 +3394,7 @@ export function Dashboard() {
       </div>
       )}
 
-      {/* Hidden-cards tray, only while editing and something is hidden. */}
+      {/* Hidden-cards tray — only while editing and something is hidden. */}
       {/* Desktop-only like the grid it serves: editing is only reachable
           through the pencil, which the isDesktop gate unmounts on the phone.
           max-md:hidden stays as the belt over the resize window where editing

@@ -319,7 +319,7 @@ export const en = {
   // `settings.encryption` ("Encryption"), the old standalone <h3> heading
   // above this sub-section, is RETIRED (jdp, live-review, GlimStone
   // follow-up round: "Export und Verschlüsselung: Texte normal formatieren,
-  // es sind keine Überschriften mehr"), the ToggleRow below now shows its
+  // es sind keine Überschriften mehr") — the ToggleRow below now shows its
   // own dynamic on/off label directly (settings.encryptionOn/Off), which
   // already says more than the static generic word this key held, so a
   // second, now-unused heading string would just be dead weight.

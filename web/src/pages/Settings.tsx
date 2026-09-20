@@ -331,9 +331,9 @@ function ContainersSection({
       {/* Cadence row */}
       <ScheduleRow schedule={schedule} />
 
-      {/* Editable cadence builder. `hueIndex` passed straight through, the
-          same position this Card's own heading notch already got above, not
-          a second independent value, so the TimePicker inside picks up this
+      {/* Editable cadence builder. `hueIndex` passed straight through — the
+          SAME position this Card's own heading notch already got above, not
+          a second independent value — so the TimePicker inside picks up this
           Card's own stable rainbow colour (Task 3, jdp: "Der Zeitpicker ist
           nicht im Regenbogenmodus"; see CadenceBuilder's own hueIndex doc). */}
       <div className="rounded-card bg-carbon-surface2 p-4">
@@ -493,18 +493,18 @@ function FlashSection({
           onChange={onChange}
           hueIndex={hueIndex}
         />
-        {/* GlimStone follow-up pass: stays permanent text, not bubbled, a
+        {/* GlimStone follow-up pass: stays permanent text, NOT bubbled — a
             behavioural caveat ("this control looks live but silently does
             nothing yet") someone hits while confused about why a saved
             Flash schedule never runs, not a one-time "what does this do"
             explainer. Same carve-out category as notify.healthchecksLifecycle
             above (NotifyCard's own header comment).
-              Live-review round (jdp, Task 7, "Wieso steht in der Flash
+              Live-review round (jdp, Task 7 — "Wieso steht in der Flash
             Zeitplan Card die Zeile mit dem Text 'Unraid Flash-
             Konfiguration'? Kann das nicht weg?"): that was a SEPARATE
             trailing "member row" below this paragraph (dot + name +
             "planned" status, styled like a ContainersSection/VMsSection
-            member-list row), removed outright, along with its now-orphaned
+            member-list row) — removed outright, along with its now-orphaned
             jobs.flashRow/jobs.flashPlanned keys, since Flash has no actual
             per-item collection to list and the row conveyed nothing this
             paragraph doesn't already say. The paragraph that stood here is
@@ -630,14 +630,14 @@ function FilesSection({
                 </span>
               )}
               {/* No-empty-toggles audit (jdp): this row used to `hideLabel`
-                  with no visible caption anywhere in the row at all, worse
+                  with no visible caption anywhere in the row at all — worse
                   than the Card-title-redundant pattern found elsewhere, since
                   there wasn't even a duplicate label to point to, only the
                   set's own NAME (which identifies the row, not what the
                   switch does). Wrapped in the same `<label>` + sibling
                   `<span>` shape FileSetEnabledToggle then
                   used for a per-row switch: `hideLabel` stays on the bare
-                  Toggle (legitimate here, the caller right beside it now
+                  Toggle (legitimate here — the caller right beside it now
                   draws the same text), but the text is genuinely visible in
                   the row, always, not just conveyed via aria-label. */}
               <label className="flex items-center gap-2 shrink-0 cursor-pointer">
@@ -652,9 +652,9 @@ function FilesSection({
               </label>
             </div>
             {/* #199: the one line that says what actually happens to this set.
-                Rendered always, not only under `perItem`, because the worst
+                Rendered ALWAYS, not only under `perItem`, because the worst
                 outcome ("not backed up automatically") is reachable with the
-                per-item toggle off, that is what "Include in schedule" does
+                per-item toggle off — that is what "Include in schedule" does
                 on its own, and it is exactly the state manilx put three of his
                 four folders into while believing Backup Everything still
                 covered them. */}
@@ -741,7 +741,7 @@ export function EverythingSection({
         {/* Conditional overlap warning — see this component's header for why
             it is no longer permanent. Same markup as the tamper-schedule-
             inactive warning further down: status amber on a plain readout
-            surface, which rule 5 keeps out of the accent/rainbow engine on
+            surface, which rule 5 keeps OUT of the accent/rainbow engine on
             purpose (a status colour, not control chrome). */}
         {overlapWarning && (
           <div className="mt-3 rounded-card bg-statusWarnBg px-3 py-2.5 text-xs text-statusWarn leading-relaxed">
@@ -762,7 +762,7 @@ export function EverythingSection({
         {/* A stored hook is never echoed back, so the field arrives blank with
             ...Set true. It then shows the same "already set" placeholder every
             write-only secret field on this page uses, and a Remove badge, which
-            is the only way to actually delete one, a blank field means "keep"
+            is the only way to actually delete one — a blank field means "keep"
             on save. Both labels are existing keys, so this adds no new i18n. */}
         <label className="flex flex-col gap-1">
           <span className="text-xs text-carbon-textSub">{t("hooks.pre")}</span>
@@ -814,7 +814,7 @@ export function EverythingSection({
       {/* `justify-end` on the row rather than `ms-auto` on the badge: this
           app's flush-right idiom is ms-auto only when the badge has a leading
           sibling to push away from (Containers' BackupButton/ExportButton
-          pair), and there is none here, byte-identical to how Flash's and
+          pair), and there is none here — byte-identical to how Flash's and
           Config's own backup-now cards do it. */}
       <div className="flex justify-end">
         <Button
@@ -1320,9 +1320,9 @@ export function SettingsPage() {
   const [discoFound, setDiscoFound] = useState(false);
   const [disco, setDiscoLocal] = useState<boolean>(() => getDisco());
   const discoClicks = useRef({ taps: 0, last: 0 });
-  // #178: the label modes, mirrored into local state so the selectors
+  // #178: the three label modes, mirrored into local state so the selectors
   // show the current choice; the controls themselves read through
-  // useLabelMode, which the labelModeChanged() call below wakes. The card
+  // useLabelMode, which the labelModeChanged() call below wakes.
   // renders one selector per CONTROL_AXES entry, so the mobile bottom bar's
   // axis appears here the same way the other three do.
   const [labelModes, setLabelModes] = useState<Record<ControlAxis, LabelMode>>(() => ({
@@ -1332,7 +1332,7 @@ export function SettingsPage() {
     bottombar: getLabelMode("bottombar"),
   }));
 
-  // Rainbow state (GlimStone form-engine Phase 2, Task 1), synced from/to
+  // Rainbow state (GlimStone form-engine Phase 2, Task 1) — synced from/to
   // localStorage via appearance.ts, the same pattern as accentHex above.
   // setRainbow() persists + applies + returns the new (validated) state in
   // one call, so this only ever needs updating from that return value, never
@@ -2034,7 +2034,7 @@ export function SettingsPage() {
           if (fresh.hostMountRoot) setHostMountRoot(fresh.hostMountRoot);
           if (fresh.platform) setPlatformKind(fresh.platform);
         } else {
-          setLoadError("Settings were imported, but reloading them failed; reload the page.");
+          setLoadError("Settings were imported, but reloading them failed — reload the page.");
         }
         // Domains may have been switched on or off by the import: the sidebar and
         // layout listen for this and refetch, exactly as they do after a save.
@@ -2433,16 +2433,16 @@ export function SettingsPage() {
     // flagged for jdp rather than taken here. See lib/pageShell.ts.
     <div className={PAGE_SHELL_TABBED}>
       {/* Heading + tab strip, grouped in their own gap-6 column (GlimStone
-          follow-up pass, live-review round, the width-mismatch fix below
+          follow-up pass, live-review round — the width-mismatch fix below
           needed a wrapper here to isolate this pair's own 24px gap from the
           new gap-10 the OUTER wrapper now uses for the tab-strip-to-first-
           card gap; before this pass, heading/strip/panels were three
-          siblings sharing one flat gap value). Deliberately not inside the
+          siblings sharing one flat gap value). Deliberately NOT inside the
           max-w-3xl reading column the panels wrapper further down used to
           own alone (GlimStone follow-up pass, live-review point 7): every
           OTHER page's own <h1>/<p> (Dashboard.tsx, Containers.tsx, VMs.tsx,
           Files.tsx, Flash.tsx, Config.tsx, Receiver.tsx, Fleet.tsx) renders
-          at the page's own full width, un-capped, Settings.tsx was the one
+          at the page's own full width, un-capped — Settings.tsx was the one
           page that swept its heading into the same narrow column as its
           form content, which that pass undid to match that convention. */}
       <div className="flex flex-col gap-6">
@@ -2508,7 +2508,7 @@ export function SettingsPage() {
         size="lg"
         equalWidth
         /* #178, [200]: the strip joins the size system, with jdp's stated
-           exception that these segments must be equal always. groupWidth picks
+           exception that these segments must be equal ALWAYS. groupWidth picks
            the stage the longest tab name needs in the current language and
            gives it to every tab, so the strip is uniform by construction
            rather than by measurement. That also retires the failure this
@@ -2532,22 +2532,22 @@ export function SettingsPage() {
 
       {/* Tab panels. GlimStone follow-up pass, live-review round ("Settings
           cards should match the tab row's width"): the `max-w-3xl` cap that
-          used to live on this wrapper is gone, removed, not resized to a
+          used to live on this wrapper is GONE — removed, not resized to a
           new guessed number.
 
-          UPDATED (equalWidth correction round, see the tab strip's own
+          UPDATED (equalWidth correction round — see the tab strip's own
           comment block above): back when `equalWidth` stretched the strip to
-          fill the full row, this wrapper needed no cap at all, both it and
+          fill the full row, this wrapper needed no cap at all — both it and
           the strip were simply full-width by construction, so they matched
           automatically. Now that the strip hugs its own (narrower, content-
           matched) width instead, that "both happen to be full-width"
-          assumption no longer holds, a truly uncapped Card would render
+          assumption no longer holds — a truly uncapped Card would render
           wider than the tabs sitting above it again, the exact mismatch this
           whole feature exists to prevent. `style={{ maxWidth: tabStripWidth
           }}` (below) is the fix: `tabStripWidth` is a REAL measured pixel
           value (this component's own ResizeObserver, set up in the state
           block near the top of SettingsPage), read off the actual rendered
-          tab strip rather than a guessed literal, so it tracks correctly
+          tab strip rather than a guessed literal — so it tracks correctly
           across every locale's own longest label, a window resize, or a
           zoom level change, none of which a hard-coded number could.
           `?? undefined` for the one frame before the observer's first
@@ -2555,23 +2555,23 @@ export function SettingsPage() {
           React would warn, `undefined` simply omits the style property that
           render, matching this wrapper's original uncapped look until the
           real number is known.
-            gap-10 (live-review round, "more air between Cards, there's
+            gap-10 (live-review round — "more air between Cards, there's
           plenty of room"): was gap-6 (24px), already the single largest gap
-          value used anywhere in this app before this bump (verified, no
+          value used anywhere in this app before this bump (verified — no
           other call site reaches past gap-6). Every direct child of this
           wrapper is either a whole Card (own bg-carbon-surface + p-5 box) or
-          an equivalent top-level section, so this one value is the vertical
+          an equivalent top-level section, so this one value IS the vertical
           rhythm between Settings' Domains/Language/Theme/Accent/Shape/
-          Rainbow/Quiet-toasts blocks, bumping it here, and only here,
+          Rainbow/Quiet-toasts blocks — bumping it here, and only here,
           reaches every one of them. 40px (~1.67x the old 24px, inside the
           requested 1.5-2x range) reads as a deliberate step up without the
           Cards feeling disconnected from each other on the page. The outer
           wrapper above reuses this same gap-10 value for the tab-strip-to-
-          first-card gap (a separate live-review ask, its own comment),
+          first-card gap (a separate live-review ask, its own comment) —
           matching this established rhythm rather than inventing a different
           number for that gap too. */}
       {/* key={tab} (GlimStone motion-engine animation 7, Settings tab slide):
-          this one div wraps every `{tab === "x" && ...}` panel below, every
+          this ONE div wraps every `{tab === "x" && ...}` panel below — every
           Card inside it ALREADY fully unmounts/remounts on a tab switch via
           those conditionals alone, key or no key; keying the WRAPPER too
           changes nothing about which children exist, it only makes the
@@ -2580,23 +2580,23 @@ export function SettingsPage() {
           time instead of only once at Settings' own first mount (a
           persistent class on a node that never gets recreated never
           replays its animation, the same reasoning glim-stagger-row's own
-          comment gives for why a list re-render does not replay). --tab-dir
+          comment gives for why a list re-render does NOT replay). --tab-dir
           is set from `tabDir` state, computed by whichever caller last
           changed `tab` (the Selector's onChange below, or the hashchange
-          effect above) in the same synchronous handler that called setTab,
+          effect above) in the SAME synchronous handler that called setTab —
           see either call site's own comment for the exact "old index vs new
           index" math.
-            `flex-1` (sticky-footer round, jdp live review, see AboutFooter's
-          own header comment for the full before/after): this is the one
+            `flex-1` (sticky-footer round, jdp live review — see AboutFooter's
+          own header comment for the full before/after): this is the ONE
           child of the page root (above) that should absorb whatever extra
-          height that root has beyond its own natural content size, the
+          height that root has beyond its own natural content size — the
           heading+tab-strip block above it is a fixed-content block that
           should never stretch, and AboutFooter below it is the thing being
           pushed down, not the thing doing the pushing. flex-basis 0 + grow 1
           (Tailwind's `flex-1`) means this wrapper fills the ROOT's leftover
           vertical space when its own Cards don't need all of it (short tabs
           like General), while its automatic minimum height still floors at
-          whatever its own content actually needs, so on a long tab
+          whatever its own content actually needs — so on a long tab
           (Storage, Schedules) it simply renders at full content height
           exactly as before, growing `main` past the viewport and letting it
           scroll normally, with AboutFooter still following right after it
@@ -2608,25 +2608,25 @@ export function SettingsPage() {
       >
 
       {/* ------------------------------------------------------------------ */}
-      {/* SCHEDULES, the single owner of every cadence (migrated from Plans).  */}
+      {/* SCHEDULES — the single owner of every cadence (migrated from Plans).  */}
       {/* Backup schedules reuse the proven per-domain sections + sync toggle;  */}
       {/* off-site / self-backup / restore-check cadences are edited here too.   */}
-      {/* Task 5 (live-review, "Speichern-Buttons können weg, es soll immer    */}
+      {/* Task 5 (live-review — "Speichern-Buttons können weg, es soll immer    */}
       {/* alles live gespeichert werden"): every field on this tab auto-saves   */}
       {/* itself now (scheduleField/autoSaveScheduleField/handleSyncSchedules-  */}
-      {/* Toggle above), there is no tab-wide SaveBar left to persist them.    */}
+      {/* Toggle above) — there is no tab-wide SaveBar left to persist them.    */}
       {/* ------------------------------------------------------------------ */}
       {tab === "schedules" && (
         <>
-          {/* Schedule options (jdp, live-review, "Die beiden Toggle sollen in
+          {/* Schedule options (jdp, live-review — "Die beiden Toggle sollen in
               eine eigene Card"): perItemSchedules (#121) and the Containers-
               sync toggle used to be two raw <input type="checkbox"> rows
               sitting directly in this tab, outside any Card. Both are now the
               shared ToggleRow component, grouped in their own Card, first on
-              this tab, directly above ContainersSection, perItem first, sync
+              this tab, directly above ContainersSection — perItem first, sync
               directly below it, per jdp's own ordering. (The group-level
               "Backup-Zeitpläne" Badge heading that used to sit above this
-              Card was removed on jdp's live-review ask, the four domain
+              Card was removed on jdp's live-review ask — the four domain
               schedule Cards below already carry their own clear headings, so
               the group label was redundant; nextHue()'s sequence starts
               directly with this Card now, one call short of before.) A
@@ -2646,9 +2646,9 @@ export function SettingsPage() {
               pulseNonce={fieldPulse.perItemSchedules}
               hueIndex={0}
             />
-            {/* Sync toggle, applies the Containers cadence to VMs, Flash and
+            {/* Sync toggle — applies the Containers cadence to VMs, Flash AND
                 Folders (Task 2 extended this from "VMs + Flash" to also cover
-                Folders, see FilesSection's own new syncSchedules prop). */}
+                Folders — see FilesSection's own new syncSchedules prop). */}
             <ToggleRow
               label={t("jobs.syncSchedules")}
               hint={t("jobs.syncSchedulesHint")}
@@ -2665,7 +2665,7 @@ export function SettingsPage() {
             />
           </Card>
           {/* Backup Everything (schedulesEverything): a 6th, independent pass over
-              all five domains below + a manual trigger. See EverythingSection's
+              all five domains BELOW + a manual trigger. See EverythingSection's
               own doc comment for the convention pass this card needed after the
               merge, the conditional overlap warning included.
                 `update={scheduleUpdate}` rather than the bare setSettings merge
@@ -2679,7 +2679,7 @@ export function SettingsPage() {
               SECOND on the tab, not last ([413]). It shipped at the bottom,
               below five per-domain cadences, the off-site and self-backup
               schedules and two detail cards, and a forum user could not find it
-              at all after being told it was "in Settings", with seven tabs, the
+              at all after being told it was "in Settings" — with seven tabs, the
               bottom of the third is not somewhere anybody lands by accident.
               Someone who wants "back the whole server up on one schedule" now
               meets that before the parts it is made of.
@@ -2690,7 +2690,7 @@ export function SettingsPage() {
               wins for this region on merge: leaving it would have silently
               undone their fix.
 
-                `hueIndex={nextHue()}`, the counter runs in RENDER order, so
+                `hueIndex={nextHue()}` — the counter runs in RENDER order, so
               moving the call shifts every rainbow position after it by one and
               needs no renumbering anywhere. That is what the counter is for. */}
           <EverythingSection settings={settings} update={scheduleUpdate} t={t} hueIndex={nextHue()} />
@@ -2764,7 +2764,7 @@ export function SettingsPage() {
               FlashSection/FilesSection's own shape: the same status row +
               CadenceBuilder-in-a-well, one IIFE-captured `hueIdx` feeding
               both this Card's heading notch and the CadenceBuilder's
-              TimePicker inside it, identical to the schedulesChecks Card
+              TimePicker inside it — identical to the schedulesChecks Card
               just below (see that IIFE's own comment for why a bare inline
               `hueIndex={nextHue()}` can't feed two hue-aware children from
               one call).
@@ -2773,12 +2773,12 @@ export function SettingsPage() {
               this one used to hide its own caption the same way (reasoning:
               "the Card's title already says the same thing"), and jdp
               explicitly reversed that exact pattern there ("Bei erstem
-              Toggle bitte 'Automatische Restore-Prüfungen' hinschreiben"),
+              Toggle bitte 'Automatische Restore-Prüfungen' hinschreiben") —
               so this toggle reuses that Card's own corrected shape instead:
-              the same string as both the Card's `title` and the ToggleRow's
+              the SAME string as both the Card's `title` and the ToggleRow's
               visible `label`, no `hideLabel`. No `hueIndex` on the toggle
               itself either, matching that same corrected ToggleRow (and
-              FlashZipExportCard's lone ToggleRow), a single stand-alone
+              FlashZipExportCard's lone ToggleRow) — a single stand-alone
               switch with no sibling toggles of its own kind in this Card is
               the one case ToggleRow's own hueIndex doc carves out as having
               no list to walk. See toggleConfigSchedule's own comment above
@@ -2813,7 +2813,7 @@ export function SettingsPage() {
 
           {/* Restore-check drills (RestoreChecksSection) moved to the Integrity
               tab (jdp, live-review: "Gehört die 'Automatische Restore-
-              Prüfungen' Card nicht in den Integritäts-Tab?"), it configures
+              Prüfungen' Card nicht in den Integritäts-Tab?") — it configures
               WHAT gets verified and how often, which fits that tab's existing
               verify/unlock/prune/drill actions better than this tab's own
               "when do backup jobs run" focus. See the `tab === "integrity"`
@@ -2848,7 +2848,7 @@ export function SettingsPage() {
                 "Die Speicher-Buttons sollen in allen Tabs weg. Überall soll
                 es automatisch speichern."): this was the one Card left on
                 the Schedules tab still batched into its own manual SaveBar
-                after Task 5 converted every other field here, that task's
+                after Task 5 converted every other field here — that task's
                 own comment named it as a deliberate exception at the time;
                 this pass closes it out with the exact same shapes Task 5
                 already established one Card up (autoSaveScheduleField for
@@ -2892,44 +2892,44 @@ export function SettingsPage() {
           </Card>
 
           {/* Restore-check schedule (schedulesChecks) moved to the Integrity
-              tab alongside RestoreChecksSection above (jdp, live-review,
-              same "belongs with what/how-often gets verified, not when
+              tab alongside RestoreChecksSection above (jdp, live-review —
+              same "belongs with WHAT/how-often gets verified, not WHEN
               backup jobs run" reasoning). See the `tab === "integrity"`
               block below for its new call site. */}
 
           {/* Backup Everything used to be here, as the last card on the tab.
-              It now renders second, right after Schedule options, see its call
+              It now renders SECOND, right after Schedule options — see its call
               site up there for why ([413]). */}
 
-          {/* No SaveBar: every field in this tab auto-saves, see scheduleField
+          {/* No SaveBar: every field in this tab auto-saves — see scheduleField
               / autoSaveScheduleField. main's buildSchedulePatch() is gone. */}
         </>
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* GENERAL, Domains                                                   */}
+      {/* GENERAL — Domains                                                   */}
       {/* ------------------------------------------------------------------ */}
       {tab === "general" && (
       <Card title={t("settings.domains")} hint={t("settings.domainsHint")} hueIndex={nextHue()}>
         {/* Live-review round 3, point 4: all 7 rows here used to show a
-            permanent visible caption under the label (rule 8 violation, the
+            permanent visible caption under the label (rule 8 violation — the
             first 5 were even raw hardcoded English strings, never localized
             at all). Every row now carries its explanation via ToggleRow's
-            `hint` prop (an InfoBubble beside the label) instead, receiver/
+            `hint` prop (an InfoBubble beside the label) instead — receiver/
             fleet already had a real i18n key for their caption and just
             needed the prop swapped; containers/vms/flash/files/config
-            needed a new *Hint key added (and translated into all 26
+            needed a NEW *Hint key added (and translated into all 26
             locales) since their old text was never a translation key.
 
             #142 (jdp, live review): "Bei Domänen der Speichern-Button
             entfernen, es soll automatisch speichern und den Tab live
-            einblenden/ausblenden", no more batched SaveBar. Each row now
+            einblenden/ausblenden" — no more batched SaveBar. Each row now
             calls toggleDomainEnabled directly: optimistic flip, persist via
             the shared save() (which already broadcasts
             "bv:settings-changed" so Layout/Sidebar re-fetch and the domain's
             nav tab appears/disappears live, no reload), and on a rejected
-            save, e.g. enabling VMs with no working SSH connection to the
-            libvirt host, revert to the pre-click state and shake. `disabled`
+            save — e.g. enabling VMs with no working SSH connection to the
+            libvirt host — revert to the pre-click state and shake. `disabled`
             covers this row's own request still being in flight
             (domainToggleBusy), so a user can't fire a second click at the
             same toggle before the first one resolves. */}
@@ -3029,14 +3029,14 @@ export function SettingsPage() {
       {tab === "storage" && <ReposCard hueIndex={nextHue()} />}
 
       {/* ------------------------------------------------------------------ */}
-      {/* STORAGE, Backup paths                                             */}
+      {/* STORAGE — Backup paths                                             */}
       {/* ------------------------------------------------------------------ */}
       {tab === "storage" && (
       <Card title={t("settings.paths")} hint={t("settings.pathsHint").replace("{root}", hostMountRoot)} hueIndex={nextHue()}>
         {/* Full-page Speichern-Button sweep (jdp, live review, emphatic:
             "Die Speicher-Buttons sollen in allen Tabs weg. Überall soll es
             automatisch speichern."): all six fields below used to batch into
-            one bottom SaveBar. Each now debounce-auto-saves itself instead,
+            one bottom SaveBar. Each now debounce-auto-saves itself instead —
             the exact same `debouncedSave`-keyed-by-field-name shape the
             Schedules tab's own `scheduleField` already established for
             continuously-typed values (a path is typed/browsed the same way a
@@ -3341,7 +3341,7 @@ export function SettingsPage() {
               </label>
               {/* Square icon-only remove button with a trash-can glyph (jdp,
                   live-review: "Wenn man eine Registry hinzufügt, soll der
-                  Entfernen-Button quadratisch sein mit Mülleimer-Icon"), was
+                  Entfernen-Button quadratisch sein mit Mülleimer-Icon") — was
                   a bare text `<button>` ("Entfernen"/"Remove"). IconTipButton
                   (components/IconTipButton.tsx) for the same real
                   `.glim-bubble` hover tooltip every other icon-only control on
@@ -3357,7 +3357,7 @@ export function SettingsPage() {
                   special-casing removed a round earlier. Both are real
                   `Badge`s now (`as="button" tone="active" shape="square"
                   size="icon"`), which for an icon-only badge resolves to the
-                  full solid `bg-accent`/`text-accentContrast` fill, not the
+                  full solid `bg-accent`/`text-accentContrast` fill, NOT the
                   pale wash jdp rejected as "halb abgedunkelt" (see Badge.tsx's
                   own `toneClasses` ROUND 2 comment).
                     No `hueIndex` prop, and none needed: this Card is
@@ -3365,26 +3365,26 @@ export function SettingsPage() {
                   hand down, but Card's own wrapper carries `.glim-hue`, and
                   `[data-rainbow] .glim-hue` (index.css) redefines
                   `--color-accent` for its whole subtree, so `bg-accent` here
-                  already computes to this Card's rainbow position by ordinary
+                  already computes to THIS Card's rainbow position by ordinary
                   custom-property inheritance. Same mechanism Containers.tsx's
                   own folder-add badge documents; wrapping this Card in an IIFE
                   purely to capture `nextHue()` would add a second source of
                   truth for a colour that already resolves correctly. Verified
                   live with getComputedStyle against the Card's own
                   `--item-hue`.
-                    `size="icon"` is the app's one square-icon-badge size and
+                    `size="icon"` is the app's ONE square-icon-badge size and
                   is the same 32px this call site already had, so the footprint
                   is unchanged; `shrink-0` survives as `className` because it
                   is layout, not appearance. Not a fresh guess either: this
                   row's own three text fields
-                  are `text-sm px-3 py-1.5`, the same classes already
+                  are `text-sm px-3 py-1.5` — the SAME classes already
                   measured live to render at 32px for those other controls
                   (see Selector.tsx's own `iconOnly` doc for that
-                  measurement's full writeup), so 32px is this row's real
+                  measurement's full writeup) — so 32px is this row's real
                   control height too, confirmed, not assumed from a token
                   used elsewhere. IconTrash (components/Sidebar.tsx) drawn
-                  fresh for this, no trash glyph existed in this codebase
-                  yet, filled/`currentColor`-only, no `stroke`, matching
+                  fresh for this — no trash glyph existed in this codebase
+                  yet — filled/`currentColor`-only, no `stroke`, matching
                   every other icon in that file's icon-only-badge set. */}
               <Button
                 label={t("settings.registryRemove")}
@@ -3419,13 +3419,13 @@ export function SettingsPage() {
           })}
           {/* Icon-only + right-aligned (GlimStone follow-up round, live-review:
               "Registry hinzufügen button soll bündig nach rechts... einen
-              Glyph statt Text bekommen, mit Hover-Infobubble"), `flex
+              Glyph statt Text bekommen, mit Hover-Infobubble") — `flex
               justify-end` is this file's own established idiom for a single
               trailing action in an otherwise block-level row (see e.g.
               Dashboard.tsx's/VMs.tsx's identical `<div className="flex
               justify-end">` wrapper for a lone action). The row's own text
               label moves onto the button's `IconTipButton` tip instead of
-              disappearing, an icon-only trigger has no other way to say
+              disappearing — an icon-only trigger has no other way to say
               what it does. Same 32px square-icon-badge footprint as
               FolderBrowser's own "Durchsuchen" badge (the one real field/
               control height already established on this page), expressed as
@@ -3469,14 +3469,14 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* STORAGE, restic cache size limit. The persistent cache under        */}
+      {/* STORAGE — restic cache size limit. The persistent cache under        */}
       {/* /config (RESTIC_CACHE_DIR) survives restarts and would otherwise     */}
       {/* grow unbounded; LRU per-repo caches are evicted after scheduled runs.*/}
       {/* ------------------------------------------------------------------ */}
       {/* `advanced &&` inline (not the <Advanced> wrapper component): the
           wrapper takes children as an ALREADY-BUILT prop, so this Card's own
           hueIndex={nextHue()} would fire every render regardless of whether
-          Advanced end up showing it, caught live (Playwright against the
+          Advanced end up showing it — caught live (Playwright against the
           real container) as a hue slot silently "spent" on a Card that never
           painted, shifting every later Storage-tab heading by one position
           while Advanced was off. Plain `&&` short-circuits properly, exactly
@@ -3567,18 +3567,18 @@ export function SettingsPage() {
       <Card title={t("settings.exportsEncryptionTitle")} hint={t("settings.exportsEncryptionHint")} hueIndex={nextHue()}>
         {/* Plain-export encryption (age) -------------------------------------- */}
         {/* No `border-t` divider against Repository encryption below it (jdp,
-            live review: "die Linien dazwischen weg"), the Card's own `gap-4`
+            live review: "die Linien dazwischen weg") — the Card's own `gap-4`
             between direct children already separates the two sub-sections,
             same spacing-only convention as the Colors Card's own accent/
             rainbow halves and its own rainbow ToggleRow trio
             (settings.rainbow/-Reactive/-Rotate) elsewhere in this file, none
             of which ever had a rule line between their parts either. (A
-            THIRD sub-section, Flash-ZIP-Export, used to sit above this one,
+            THIRD sub-section, Flash-ZIP-Export, used to sit above this one —
             see this Card's own header comment for where it moved.) */}
         <div className="flex flex-col gap-3">
           {/* No more standalone <h3> sub-heading (jdp, live-review: "Export
               und Verschlüsselung: Texte normal formatieren, es sind keine
-              Überschriften mehr"), this sub-section is now just a single
+              Überschriften mehr") — this sub-section is now JUST a single
               ToggleRow with an optional conditional block beneath it, not a
               heading introducing its own block of content, so it shouldn't
               LOOK like one either. `hideLabel` is gone below: the row's own
@@ -3588,14 +3588,14 @@ export function SettingsPage() {
               heading treatment the removed `<h3>` had) is now this
               sub-section's only visible caption. `export.encrypt.title` (the
               old heading's own text, "Encrypt plain exports"/"Plain-Exporte
-              verschlüsseln") is retired, the ToggleRow's own
+              verschlüsseln") is retired — the ToggleRow's own
               `export.encrypt.enable` label already names the same action
               ("Encrypt exports with age"/"Exporte mit age verschlüsseln")
               and is the one text a screen reader announces for this switch
               either way, so keeping both would be two competing captions for
               one control. The old heading's own three-sentence InfoBubble
               tip (what age is, what enabling it does) moves onto the
-              ToggleRow's own `hint` unchanged, the same content, now
+              ToggleRow's own `hint` unchanged — the same content, now
               anchored to the control it actually describes instead of a
               heading standing in front of it. */}
           <ToggleRow
@@ -3614,7 +3614,7 @@ export function SettingsPage() {
                   (the "one per line, age1.../SSH key format" caption on the
                   textarea) is left as permanent text on purpose, the same
                   "genuine toss-up" carve-out settings.offsiteHint documents
-                  further up this file, it names the exact accepted KEY
+                  further up this file — it names the exact accepted KEY
                   SYNTAX for a multi-line field someone fills in by pasting one
                   key per line, which reads as reference to consult while
                   composing the list rather than a one-time "what does this
@@ -3649,12 +3649,12 @@ export function SettingsPage() {
             Text. Nur die Überschrift als Text, alles andere in die
             Infobubble." This sub-heading was the one holdout in this card
             still pairing a bare <h3> with a permanent paragraph underneath
-            it (settings.encryptionWarning, now settings.encryptionHint),
+            it (settings.encryptionWarning, now settings.encryptionHint) —
             its two siblings above already fold that same kind of one-time
             "here's what this does" text into the heading's own InfoBubble
             (flash.zipExport.hint, export.encrypt.hint+ageInfo). Renamed
             .../Warning -> .../Hint on the move: it's no longer a
-            statusWarnBg banner, so it no longer earns the "Warning" name,
+            statusWarnBg banner, so it no longer earns the "Warning" name —
             see the still-conditional flash.zipExport.plaintextWarn a few
             lines up for the genuine, actively-risky warning case (only
             rendered while the risk applies) this text never was: it's an
@@ -3663,22 +3663,22 @@ export function SettingsPage() {
             same reasoning as the Plain-export block above.
               FOLLOW-UP (jdp, live-review, fresh screenshot proved a prior
             round's claim wrong): that earlier pass only bubbled the STATIC
-            explainer above, it left the master ToggleRow's own DYNAMIC
+            explainer above — it left the master ToggleRow's own DYNAMIC
             status label ("Aktiviert (Passwort aus APP_KEY)" /
             "Deaktiviert (kein Passwort)") sitting directly under this same
             heading in plain view, which is exactly the line the fresh
             screenshot still showed. `hideLabel` below hides it now, same as
             its two siblings above; the state it used to carry moves into the
-            bubble's own tip, computed per render off the live
+            bubble's own tip — computed per render off the live
             `settings.encryptionEnabled` value (the same values
             settings.encryptionOn/Off already translate in every locale, just
-            read here instead of handed to the ToggleRow as visible text),
+            read here instead of handed to the ToggleRow as visible text) —
             rather than a static string, so the bubble still answers "is this
             actually on right now" concretely instead of only explaining the
             feature in the abstract. The switch's own filled/unfilled track
             still shows on/off at a glance without hovering anything. */}
         <div className="flex flex-col gap-3">
-          {/* No more standalone <h3> sub-heading here either, same fix, same
+          {/* No more standalone <h3> sub-heading here either — same fix, same
               reasoning, as the Plain-export block above (jdp, live-review:
               "Export und Verschlüsselung: Texte normal formatieren, es sind
               keine Überschriften mehr"). `hideLabel` is gone: the ToggleRow's
@@ -3688,13 +3688,13 @@ export function SettingsPage() {
               text-carbon-text` weight, not the retired heading's bold/
               uppercase/tracking-widest treatment. `settings.encryption` (the
               old heading's own generic "Encryption"/"Verschlüsselung" text)
-              is retired, the row's own live on/off label already says more
+              is retired — the row's own live on/off label already says more
               than that static word did. The bubble's own tip drops the
               on/off-state PREFIX it used to carry (`settings.encryptionOn`/
               `Off` concatenated in front of `settings.encryptionHint`): that
               existed only because the label sitting above it was hidden and
-              had nowhere else to show the current state, now that the
-              state is the visible label, repeating it inside the bubble too
+              had nowhere else to show the current state — now that the
+              state IS the visible label, repeating it inside the bubble too
               would just be the same sentence twice. */}
           <ToggleRow
             label={
@@ -3722,12 +3722,12 @@ export function SettingsPage() {
                   it explains a real data-loss risk: the RECURRING "you still
                   haven't saved this" job is already owned by Dashboard.tsx's own
                   separate, more prominent recovery.nagTitle/nagBody banner
-                  (dismissed only by recovery.stored), this paragraph is purely
+                  (dismissed only by recovery.stored) — this paragraph is purely
                   the one-time "here's why, if you're curious" context for the
                   button below it, not the app's only safeguard against
                   forgetting. */}
               {/* No more heading-styled <h4> here either (jdp, live-review:
-                  "Wiederherstellungs-Kit bitte auch normal formatieren"), same
+                  "Wiederherstellungs-Kit bitte auch normal formatieren") — same
                   fix, same reasoning, as the Plain-export/Encryption blocks
                   above: this sub-section is just a caption plus a single
                   icon-only download button beneath it, not a heading
@@ -3736,7 +3736,7 @@ export function SettingsPage() {
                   for a plain `<span>` carrying ToggleRow's own exact label
                   classes (`flex items-center gap-1.5 text-sm text-carbon-text`,
                   see ToggleRow's own label span above) instead of the retired
-                  bold/uppercase/tracking-widest heading treatment, the one
+                  bold/uppercase/tracking-widest heading treatment — the ONE
                   normal-caption style this page already uses everywhere else,
                   reused verbatim rather than inventing a second one for this
                   call site. The InfoBubble stays put unchanged; there's no
@@ -3749,17 +3749,17 @@ export function SettingsPage() {
               {/* Icon-only + right-aligned (GlimStone follow-up round,
                   live-review: "...ebenso der Recovery Kit herunterladen
                   button. Beide sollen einen Glyph statt Text bekommen, mit
-                  Hover-Infobubble"), the visible "Recovery-Kit
+                  Hover-Infobubble") — the visible "Recovery-Kit
                   herunterladen" label moves onto the IconTipButton's own
                   tip, the only remaining visible text in this sub-section is
                   its heading, same "only heading + a bare bubbled/tooltipped
                   control" shape the encryption toggle right above it now
-                  has. `self-end` (not a `flex justify-end` wrapper, this
+                  has. `self-end` (not a `flex justify-end` wrapper — this
                   button is already a direct child of the section's own
                   `flex flex-col` above) flips this from the row's start edge
                   to its end edge, RTL-safe, same as every other logical
                   start/end pairing on this page. `size="icon"` is the app's
-                  one square-icon-badge size (32px), the same footprint
+                  ONE square-icon-badge size (32px), the same footprint
                   FolderBrowser's own Browse badge and the Registry-add badge
                   above use, expressed as Badge's own size stage rather than a
                   hand-written `h-8 w-8`. Converted from flat
@@ -3802,15 +3802,15 @@ export function SettingsPage() {
       {/* Live-review round ("Bei der ersten Card überlappen sich zwei
           Cardtitelbadges. Können wir für Container, VMs, Flash, Ordner
           jeweils eine eigene Card machen?"): this used to be a group-heading
-          `<h2>` badge (offsite.sectionTitle) immediately followed by one
-          shared Card whose body looped over all four domains, the group
+          `<h2>` badge (offsite.sectionTitle) immediately followed by ONE
+          shared Card whose body looped over all four domains — the group
           badge's own `-top-[11px]` notch and the Card's own `-top-[11px]`
           notch, only `gap-6` (24px) apart with the group heading rendering
-          at zero height (its only child is `position: absolute`, so it
-          contributes nothing to flow height, see Card's own comment on why
+          at ZERO height (its only child is `position: absolute`, so it
+          contributes nothing to flow height — see Card's own comment on why
           the badge straddles the card's top edge this way), landed the two
           22px-tall badges overlapping by several px. Splitting into four
-          per-domain Cards does not fix that geometry on its own, the first
+          per-domain Cards does NOT fix that geometry on its own — the FIRST
           new Card would sit exactly `gap-6` below the same zero-height group
           heading, reproducing the identical overlap (verified against the
           live math before shipping this, not just assumed). The actual fix
@@ -3818,7 +3818,7 @@ export function SettingsPage() {
           round for the identical shape (see that tab's own history: its
           "Backup-Zeitpläne" group heading was removed because "these Cards
           already carry their own clear headings, so the group label was
-          redundant"), dropping the group heading entirely, now that each
+          redundant") — dropping the group heading entirely, now that each
           of the four Cards below carries an unambiguous
           "OFFSITE-KOPIE <DOMAIN>" title of its own. offsite.sectionTitle
           had no other call site, so it's gone from i18n.ts (en/de) and all
@@ -3826,16 +3826,16 @@ export function SettingsPage() {
           settings.schedulesBackup got.
           `gap-6` on this wrapper: Card's own outer `<div>` no longer needs
           `relative` here (there is no sibling group-heading badge left to
-          coexist with), and the four per-domain Cards need the same
+          coexist with), and the four per-domain Cards need the SAME
           vertical rhythm every other multi-Card tab in this file already
           gets from the shared `<div className="flex flex-col gap-6">`
-          wrapping the whole tab body two levels up, this nested wrapper
+          wrapping the whole tab body two levels up — this nested wrapper
           exists only because `id="offsite"` (the deep-link anchor,
           `/settings#offsite`) needs a real element to attach to, not a
           Fragment. */}
       {/* Self-backup ("config") sits here with the rest since #176 (kramttocs:
           "Self-Backup should probably be more closely related to the other
-          Off-site sections"). It was never a lesser domain in the backend, it
+          Off-site sections"). It was never a lesser domain in the backend — it
           has had configOffsite, its own targets and its own primary-remote row
           all along. It was simply missing from this list, so it alone got a
           bare URL field on its own page instead of a wizard, a connection test
@@ -3848,32 +3848,32 @@ export function SettingsPage() {
         ["configOffsite", "nav.config", "config"],
       ] as const).map(([repoKey, label, domain]) => {
         const wizardOpen = offsiteWizard === domain;
-        // This domain's own rainbow position, the same value fed to this
+        // This domain's OWN rainbow position — the SAME value fed to this
         // Card's own heading notch below AND to every clickable control
         // inside it (TestConnectionButton/ReplicateNowButton/the Einrichten
         // toggle/OffsiteTargetsSection's own "Ziel hinzufügen" button), per
         // jdp's explicit ask ("Die Buttons ... in die Farbengine
-        // aufnehmen"): not four independent nextHue() calls, which would
+        // aufnehmen") — not four independent nextHue() calls, which would
         // desync a domain's own action buttons from its own Card's colour.
         const hueIdx = nextHue();
         return (
         <Card key={repoKey} title={t("offsite.copyDomainTitle").replace("{domain}", t(label))} hueIndex={hueIdx}>
-          {/* GlimStone follow-up pass: the one genuine toss-up in this pass,
+          {/* GlimStone follow-up pass: the one genuine toss-up in this pass —
               left as permanent text rather than force a call. It names three
               backend URL prefixes (rest:/s3:/b2:), but that's only PARTIALLY
               unique reference: the field's own placeholder already shows a
               rest: example, and offsite.repoLocalHint right below each field
               already documents the relative-path option. What it adds beyond
-              those is s3: and b2: as valid prefixes here specifically, real
+              those is s3: and b2: as valid prefixes here specifically — real
               but thinner value than RcloneCard's/CloudCard's own hints above
               (the sole documentation of their syntax anywhere). Whether that
               remainder is enough to justify a permanent paragraph, or should
               fold into the placeholder/caption instead, is a real design call,
-              not a mechanical one, flagged rather than decided here.
+              not a mechanical one — flagged rather than decided here.
               CARD-SPLIT FOLLOW-UP: this text applies identically to all four
               domains (it's about repo URL syntax, not domain-specific), so it
               stays a one-time read rather than repeating verbatim in every
-              new Card, shown once, in the first (Containers) Card only. */}
+              new Card — shown once, in the first (Containers) Card only. */}
           {domain === "containers" && (
             <p className="text-xs text-carbon-textMuted -mt-1">{t("settings.offsiteHint")}</p>
           )}
@@ -3888,13 +3888,13 @@ export function SettingsPage() {
                   </>
                 )}
                 {/* GlimStone follow-up round (jdp, live review: "Können wir die
-                    Buttons in quadratische Badges mit Glyphen umwandeln?"), a
+                    Buttons in quadratische Badges mit Glyphen umwandeln?") — a
                     square icon-only badge, IconGear when the wizard is closed
                     (offering to open setup) swapping to IconClose when it's
                     open, the exact same open/closed condition that used to
                     swap the button's own visible text between
                     "Einrichten…"/"Schließen". Both strings survive unchanged
-                    as the `tip` tooltip's content instead, see
+                    as the `tip` tooltip's content instead — see
                     ReplicateNowButton's own comment above for the full
                     "coloured text -> neutral glyph, wash -> solid fill"
                     writeup this shares. */}
@@ -3942,7 +3942,7 @@ export function SettingsPage() {
                   className="rounded-control bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text font-mono glim-field-focus text-start"
                 />
                 {/* A mounted share is a perfectly valid off-site target, but the
-                    placeholder only ever showed a REST URL, so nothing told the
+                    placeholder only ever showed a REST URL — so nothing told the
                     operator a bare relative path works here (issue #138). */}
                 <span className="text-xs text-carbon-textMuted">
                   {withLtrFragments(t("offsite.repoLocalHint"), REPO_LOCAL_HINT_LTR_FRAGMENTS)}
@@ -3951,7 +3951,7 @@ export function SettingsPage() {
             )}
             {/* Additional off-site targets (multi-off-site): extra copies of this
                 domain beyond the primary editor above, managed via the CRUD API.
-                hueIndex threaded through for the same "Ziel hinzufügen" button,
+                hueIndex threaded through for the same "Ziel hinzufügen" button —
                 see that component's own comment. */}
             <OffsiteTargetsSection domain={domain} t={t} hueIndex={hueIdx} />
           </div>
@@ -4035,19 +4035,19 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* SYSTEM, Monitoring (Prometheus)                                   */}
+      {/* SYSTEM — Monitoring (Prometheus)                                   */}
       {/* ------------------------------------------------------------------ */}
-      {/* `advanced &&` inline, not the <Advanced> wrapper, same reason as
+      {/* `advanced &&` inline, not the <Advanced> wrapper — same reason as
           the Storage tab's cacheTitle Card above. */}
       {tab === "system" && advanced && (
       <Card title={t("settings.metrics")} hueIndex={nextHue()}>
         {/* GlimStone follow-up round (jdp, live review: "Prometheus-Metriken
-            unter /metrics ... in eine InfoBubble", design-language.md rule 8,
+            unter /metrics ... in eine InfoBubble" — design-language.md rule 8,
             "explanations live in a bubble, not on the page"): this used to be
             a permanent `<p>` under the Card title, reasoned at the time as an
             "exact syntax to copy correctly" carve-out (the same one RcloneCard's/
             CloudCard's own hints still use). jdp's live review overruled that
-            specifically for this text, unlike rclone.pathHint's own
+            specifically for this text — unlike rclone.pathHint's own
             "rclone:<remote>:<bucket>/path" syntax (which someone fills into a
             DIFFERENT tab's Backup Path field from memory, so it needs to stay
             findable without already hovering an icon here), this hint is
@@ -4055,9 +4055,9 @@ export function SettingsPage() {
             right here, on the same toggle, so a hover bubble is not hiding
             anything a reader would need on a different screen. Moved onto the
             ToggleRow's own `hint` prop below (the same "(i) beside the label"
-            mechanism as every other bubbled explanation in this file), no
+            mechanism as every other bubbled explanation in this file) — no
             `description` here for the same "the Card's own hint already
-            covers it" reasoning this row's old comment gave, just now living
+            covers it" reasoning this row's OLD comment gave, just now living
             on the toggle's `hint` instead of a Card-level paragraph. */}
         <ToggleRow
           label={tLtr(t, "settings.metricsEnable")}
@@ -4069,7 +4069,7 @@ export function SettingsPage() {
           pulseNonce={fieldPulse.metricsEnabled}
         />
         {/* Write-only secret (the GET never echoes it): blank-on-save keeps the
-            stored token, so a stored one shows as the same "saved, leave blank
+            stored token, so a stored one shows as the same "saved — leave blank
             to keep" placeholder the cloud-credential secrets use. */}
         <label className="flex flex-col gap-1.5">
           <span className="text-xs text-carbon-textSub">{t("settings.metricsToken")}</span>
@@ -4192,12 +4192,12 @@ export function SettingsPage() {
         );
       })()}
 
-      {/* NOTIFICATIONS, Weekly digest: one summary message per week through
+      {/* NOTIFICATIONS — Weekly digest: one summary message per week through
           the channels configured above. Schedule input mirrors the drills/
           tamper cadence editors (CadenceBuilder's own <fieldset disabled>
-          handles the dimming, no opacity gate on the wrapping container).
+          handles the dimming — no opacity gate on the wrapping container).
             IIFE for the same reason as the tamper-test schedule Card above
-          (Task 3): `hueIdx` is captured once and handed to both this Card's
+          (Task 3): `hueIdx` is captured once and handed to BOTH this Card's
           own heading notch and the CadenceBuilder's TimePicker inside it,
           instead of two independent `nextHue()` calls landing on different
           colours for one visually-grouped Card. */}
@@ -4206,7 +4206,7 @@ export function SettingsPage() {
         return (
           <Card title={t("settings.digestTitle")} hint={t("settings.digestHint")} hueIndex={hueIdx}>
             {/* Full-page Speichern-Button sweep: this Card's own bottom
-                SaveBar is gone, the toggle auto-saves immediately (revert +
+                SaveBar is gone — the toggle auto-saves immediately (revert +
                 shake on failure, via the page-wide autoSaveToggle), the
                 cadence debounces (via debouncedSave), same split every other
                 toggle+cadence pairing on this page already uses.
@@ -4217,7 +4217,7 @@ export function SettingsPage() {
                 got built in this file after jdp reversed it twice before
                 (Rainbow master toggle, Restore-Prüfungen toggle). `hideLabel`
                 is gone from ToggleRow entirely now (see its own header
-                comment), the row's own label is always visible. */}
+                comment) — the row's own label is always visible. */}
             <ToggleRow
               label={t("settings.digestToggle")}
               checked={settings.digestEnabled}
@@ -4226,12 +4226,12 @@ export function SettingsPage() {
               shakeNonce={fieldShake.digestEnabled}
               pulseNonce={fieldPulse.digestEnabled}
             />
-            {/* Resolved-schedule badge, new this round, same reason as
+            {/* Resolved-schedule badge — NEW this round, same reason as
                 RestoreChecksSection's (see that call site's own comment):
                 this was the second of the three cadence editors that had no
                 badge above them and relied on CadenceBuilder's own inline
                 preview, now removed. `enabled` wired to `digestEnabled` for
-                the same reason, the on/off is a separate toggle here, not
+                the same reason — the on/off is a separate toggle here, not
                 the cadence string's own "off" mode. */}
             <ScheduleRow schedule={settings.digestSchedule} enabled={settings.digestEnabled} />
             {/* The editor goes with the toggle above, exactly as in
@@ -4258,13 +4258,13 @@ export function SettingsPage() {
         );
       })()}
 
-      {/* NOTIFICATIONS, Overdue-backup watchdog: a fixed daily check (09:00)
-          that pushes one notification per overdue episode through the channels
+      {/* NOTIFICATIONS — Overdue-backup watchdog: a fixed daily check (09:00)
+          that pushes ONE notification per overdue episode through the channels
           configured above; a new successful backup re-arms it. */}
       {tab === "notifications" && (
         <Card title={t("settings.watchdogTitle")} hint={t("settings.watchdogHint")} hueIndex={nextHue()}>
           {/* Full-page Speichern-Button sweep: was this Card's own bottom
-              SaveBar, a single toggle, so it now just auto-saves itself. */}
+              SaveBar — a single toggle, so it now just auto-saves itself. */}
           <ToggleRow
             label={t("settings.watchdogToggle")}
             checked={settings.watchdogEnabled}
@@ -4277,26 +4277,26 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* SYSTEM, Spike (host-integration check; keep, it is LIVE).         */}
+      {/* SYSTEM — Spike (host-integration check; KEEP — it is LIVE).         */}
       {/* ------------------------------------------------------------------ */}
       {/* `advanced &&` inline, not the <Advanced> wrapper component: the
           wrapper takes `children` as an ALREADY-BUILT prop, so a
           hueIndex={nextHue()} inside it would fire every render regardless
-          of whether Advanced ends up showing it, caught live (Playwright
+          of whether Advanced ends up showing it — caught live (Playwright
           against the real deployed container: this exact site, plus three
-          more of the same shape, cacheTitle/offsiteLimits/metrics above,
+          more of the same shape — cacheTitle/offsiteLimits/metrics above —
           were each silently "spending" a hue slot on a Card that never
           painted, shifting every later heading on that tab by one position
           while Advanced was off). Plain `&&` short-circuits correctly,
-          exactly like every other conditional Card on this page, this was
+          exactly like every other conditional Card on this page — this was
           the one call site that still used the wrapper component instead. */}
       {tab === "system" && advanced && (() => {
-        // Button-size/colour-engine sweep (jdp, live review, "Die vielen
+        // Button-size/colour-engine sweep (jdp, live review — "Die vielen
         // Buttons sind unterschiedlich groß und nicht alle im
         // Regenbogenmodus"): the Check Now button inside SpikePanel had no
         // tie to this Card's own hueIndex at all. `hueIdx` captured once in
         // this IIFE and threaded into BOTH the Card's own heading notch and
-        // SpikePanel's new `hueIndex` prop: the same "one Card, two
+        // SpikePanel's new `hueIndex` prop — the same "one Card, two
         // hue-aware children share ONE position" shape the schedulesChecks
         // Card's own IIFE below already uses for its Card+CadenceBuilder
         // pair, not a second independent `nextHue()` call.
@@ -4309,29 +4309,29 @@ export function SettingsPage() {
       })()}
 
       {/* ------------------------------------------------------------------ */}
-      {/* INTEGRITY, Integrity, maintenance & restore drills                 */}
-      {/* Default-visible (v4): manual restore drills, including the real     */}
-      {/* off-site DR restore, are part of the core ransomware-protection     */}
+      {/* INTEGRITY — Integrity, maintenance & restore drills                 */}
+      {/* Default-visible (v4): manual restore drills — including the real     */}
+      {/* off-site DR restore — are part of the core ransomware-protection     */}
       {/* flow, alongside the un-gated off-site + retention cards above.       */}
       {/* ------------------------------------------------------------------ */}
       {tab === "integrity" && (
       <>
         {/* IntegrityCard used to be documented here as the ONLY Card this tab
-            ever rendered, a genuine singleton per design-language's own
+            ever rendered — a genuine singleton per design-language's own
             exclusion ("the only one of its kind on the page keeps the single
             accent"), so it deliberately took no `hueIndex` at all. That
-            exemption no longer applies (jdp, live-review, "Gehört die
+            exemption no longer applies (jdp, live-review — "Gehört die
             'Automatische Restore-Prüfungen' Card nicht in den
             Integritäts-Tab?"): RestoreChecksSection and the schedulesChecks
             Card below moved here from the Schedules tab, both configuring
-            WHAT gets verified and how often, a natural fit next to this
+            WHAT gets verified and how often — a natural fit next to this
             Card's own verify/unlock/prune/drill actions. With three Cards
             now genuinely on this tab, IntegrityCard gets a real `nextHue()`
             call like everything else, first in visual order since it's the
             tab's primary/pre-existing content. */}
         <IntegrityCard t={t} settings={settings} setSettings={setSettings} save={save} hueIndex={nextHue()} />
 
-        {/* Restore-check drills (RestoreChecksSection renders its own Card),
+        {/* Restore-check drills (RestoreChecksSection renders its own Card) —
             moved from the Schedules tab (see that tab's own comment at its
             old call site). */}
         <RestoreChecksSection
@@ -4345,14 +4345,14 @@ export function SettingsPage() {
         />
 
         {/* Restore-check schedule (schedulesChecks): the scheduled off-site
-            append-only tamper test, moved from the Schedules tab (see that
+            append-only tamper test — moved from the Schedules tab (see that
             tab's own comment at its old call site).
               `hueIdx` captured once in this IIFE and reused for both the
             Card's own heading notch and the CadenceBuilder's TimePicker
             inside it (Task 3, jdp: "Der Zeitpicker ist nicht im
-            Regenbogenmodus"), a bare inline `<Card hueIndex={nextHue()}>`
+            Regenbogenmodus") — a bare inline `<Card hueIndex={nextHue()}>`
             here has no local variable to also hand the CadenceBuilder below,
-            and calling `nextHue()` a second time would consume a second,
+            and calling `nextHue()` a second time would consume a SECOND,
             different position for one visually-grouped Card (exactly the
             trap SaveBar's own header comment already warns about for the
             identical "one Card, two hue-aware children" shape). The IIFE is
@@ -4363,18 +4363,18 @@ export function SettingsPage() {
           const hueIdx = nextHue();
           return (
             <Card title={t("settings.schedulesChecks")} hueIndex={hueIdx}>
-              {/* Resolved-schedule badge, new this round, the third and last
+              {/* Resolved-schedule badge — NEW this round, the third and last
                   cadence editor that had none (see RestoreChecksSection's own
                   comment for why CadenceBuilder's inline preview could only be
                   deleted once all three had one). NO `enabled` prop here,
                   unlike the other two: this Card has no on/off toggle of its
-                  own, the cadence string's own "off" mode is the control, the
+                  own — the cadence string's own "off" mode IS the control, the
                   same shape the four domain Cards use. The separate
-                  `tamperScheduleActive` precondition below is deliberately not
+                  `tamperScheduleActive` precondition below is deliberately NOT
                   folded into the badge: it isn't this card's own on/off but a
                   cross-cutting "no qualifying domain configured" state, and it
                   already has its own explicit amber explanation right beneath
-                  (#109, the one place that told manilx why Sun 08:00 never
+                  (#109 — the one place that told manilx why Sun 08:00 never
                   ran). Restating it as a grey "Kein Zeitplan" badge would
                   contradict the cadence the user can plainly see set in the
                   editor. */}
@@ -4401,17 +4401,17 @@ export function SettingsPage() {
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* SYSTEM, Security                                                  */}
+      {/* SYSTEM — Security                                                  */}
       {/* ------------------------------------------------------------------ */}
-      {/* Button-size/colour-engine sweep (jdp, live review, "Die vielen
+      {/* Button-size/colour-engine sweep (jdp, live review — "Die vielen
           Buttons sind unterschiedlich groß und nicht alle im
           Regenbogenmodus"): the buttons below had no tie to this Card's own
           hue at all. (It used to name three - Save, Logout and
           Logout-everywhere; the two sign-out buttons are gone, see the note
           where they stood.) IIFE captures `hueIdx`
           once and reuses it for both the Card's own heading notch and every
-          button inside it, the same "one Card, several hue-aware children
-          share one position" shape the schedulesChecks/Spike Cards above
+          button inside it — the same "one Card, several hue-aware children
+          share ONE position" shape the schedulesChecks/Spike Cards above
           already use, not several independent `nextHue()` calls. */}
       {tab === "system" && (() => {
         const hueIdx = nextHue();
@@ -4478,7 +4478,7 @@ export function SettingsPage() {
               hueIndex={hueIdx}
             />
             {/* Only the pre-flight mismatch validation error renders here now
-                (GlimStone form-engine Task 9), the post-save success/failure
+                (GlimStone form-engine Task 9) — the post-save success/failure
                 notice is a toast instead; see handleSetPassword's own comment. */}
             {pwSaveState === "error" && pwSaveMsg && (
               <span className="text-sm text-statusFail">{pwSaveMsg}</span>
@@ -4553,7 +4553,7 @@ export function SettingsPage() {
       {tab === "general" && <ThemeCard t={t} hueIndex={nextHue()} />}
 
       {/* ------------------------------------------------------------------ */}
-      {/* GENERAL, Appearance                                               */}
+      {/* GENERAL — Appearance                                               */}
       {/* GlimStone follow-up pass, live-review point 5: this used to be ONE  */}
       {/* shared Card with four sub-topics (accent / shape / rainbow / quiet  */}
       {/* toasts) separated by `border-t border-carbon-border` divider lines,  */}
@@ -4561,89 +4561,89 @@ export function SettingsPage() {
       {/* border line, only shade/shadow" house rule (see index.css's shape-  */}
       {/* token comments and Badge.tsx's file header: every OTHER visual      */}
       {/* separation in this app comes from a surface's own elevation, not a  */}
-      {/* rule). Each of the four became its own Card that round, same       */}
+      {/* rule). Each of the four became its OWN Card that round — same       */}
       {/* bg-carbon-surface + rounded-card + shadow every other Settings      */}
       {/* topic already renders through, no divider needed because there's   */}
       {/* no longer a shared surface to divide.                              */}
       {/*   LATER live-review round (jdp: "Die card von Akzentfarbe und       */}
       {/* Regenbogenmodus in eine mergen. Gehört ja zusammen"): accent and    */}
-      {/* rainbow are back to one Card below, see that Card's own header     */}
+      {/* rainbow are back to ONE Card below — see that Card's own header     */}
       {/* comment for the merge, the hint relocation, and the hue-integration  */}
       {/* fixes that landed in the same pass. Shape and Quiet toasts stay     */}
       {/* their own separate Cards; `settings.appearance` (the old umbrella   */}
       {/* title from the FOUR-way split) still has no call site and stays     */}
       {/* removed from every locale rather than kept as a dead key. Same      */}
-      {/* "general" tab condition repeated per Card, the pattern every OTHER */}
+      {/* "general" tab condition repeated per Card — the pattern every OTHER */}
       {/* multi-Card tab on this page already uses (e.g. the "system" tab's   */}
-      {/* Security Card + Settings Portability Card further down, AboutFooter, */}
+      {/* Security Card + Settings Portability Card further down — AboutFooter, */}
       {/* the system tab's old THIRD tab-conditioned element, has since moved  */}
       {/* out of this repeated-per-Card condition entirely; see its own header */}
       {/* comment), not a wrapping Fragment introduced just for this section.  */}
       {/* ------------------------------------------------------------------ */}
 
-      {/* Shape (GlimStone form-engine, shape engine; design-language.md's
+      {/* Shape (GlimStone form-engine — shape engine; design-language.md's
           "The user-owned axes": data-shape on <html>, round/soft/square,
           one radius token set driving every rounded corner). lib/shape.ts is
           the JS half (read/write/persist which of the three is chosen, stamp
           the attribute), index.css already carries the matching
           [data-shape="soft"|"square"] radius-token overrides. Lives directly
           above the merged Colors Card below: same kind of setting
-          (client-only, applied at the app root, shape.ts's own header
+          (client-only, applied at the app root — shape.ts's own header
           comment), same "one picker, no Save step" shape.
-            Selector, not a bespoke button row: this is "three mutually
+            Selector, not a bespoke button row: this IS "three mutually
           exclusive options" (design-language.md's "The one horizontal
           selector"), the exact shape Dashboard.tsx's heatmap-domain toggle
           already uses this component for.
-            reversed (jdp, live-review, extremely emphatic standing rule,
+            REVERSED (jdp, live-review, extremely emphatic standing rule —
           "Der horizontale Selektor der Ecken ist nicht im Regenbogen-Modus
           integriert... Es soll immer alles in die Farb- und Formengine
           integriert werden!! IMMER!!"): this used to carry `hue={false}`,
           reasoned at the time as "round/soft/square are a form choice, not a
           position in a list, and tinting the segments would compete with
           the choice itself." That is exactly the kind of self-authored
-          aesthetic exception jdp has now ruled out categorically, a
+          aesthetic exception jdp has now ruled out categorically — a
           plausible-sounding taste judgement is never grounds to unilaterally
           exclude a control from the colour engine. `hue` now stays on its
           plain `true` default, so this Selector's three segments read
-          RAINBOW[0]/[1]/[2] like any other hue-enabled Selector in the app,
+          RAINBOW[0]/[1]/[2] like any other hue-enabled Selector in the app —
           see Selector.tsx's own file header item 1 for the full reversal
           note (Dashboard's heatmap toggle got the identical fix in the same
           pass).
-            `size="lg"` (GlimStone follow-up pass, live-review point 1,
+            `size="lg"` (GlimStone follow-up pass, live-review point 1 —
           up from the original "sm"): this is a full, standalone Settings
           decision in its own right, the same visual register as the page's
-          own 7-tab Selector strip further up this file (also `size="lg"`),
+          OWN 7-tab Selector strip further up this file (also `size="lg"`),
           not a tight toolbar chip like Dashboard's heatmap toggle or
-          CadenceBuilder's weekday pills, "sm" undersold it next to
+          CadenceBuilder's weekday pills — "sm" undersold it next to
           everything else in this Card.
             No `icon` per item anymore (live-review point 2): the original
           per-option glyph (a small outlined square drawn at a SCALED-DOWN
-          6px/2px/0 preview radius, deliberately not the real 10px/5px/0
+          6px/2px/0 preview radius — deliberately not the real 10px/5px/0
           --radius-control values, for legibility at 14px) turned out to
           undercut its own point live: a smaller-than-real preview sitting
           right next to the label read as "round isn't very round," the
           opposite of what it was meant to show. Text-only avoids that
-          entirely, the real Selector segment the user is looking at is the
+          entirely — the real Selector segment the user is looking at IS the
           shape preview, at its own true radius, with no scaled-down stand-in
           competing with it.
             `variant="well" equalWidth` (GlimStone follow-up pass,
-          live-review point 7, "turn the shape picker into a horizontal
-          selector styled like the one in TrickWork"): the first call site to
+          live-review point 7 — "turn the shape picker into a horizontal
+          selector styled like the one in TrickWork"): the FIRST call site to
           exercise Selector's grooved variant (components/Selector.tsx's own
-          file header, item 5), TrickWork's shared padded background with
+          file header, item 5) — TrickWork's shared padded background with
           flush, crossfade-only segments, no sliding pill. Picked for that
           first try specifically because it's already icon-free (no glyph
           competing with the groove's own look) and already the page's most
           "three mutually exclusive settings, read together as one control"
-          Selector, the shape it suits best. A LATER round gave the Theme
+          Selector — the shape it suits best. A LATER round gave the Theme
           Card's own light/dark picker (above) this exact same treatment, and
           round 8 spread the variant itself (minus `equalWidth`) to every
           small in-card selector in the app. The 7-tab strip above stays on
-          `variant="chip"`, it is a tab strip of individual badges, not a
+          `variant="chip"` — it is a tab strip of individual badges, not a
           grooved segmented control; see Selector.tsx's item 5b. */}
       {tab === "general" && (
       <Card title={t("settings.shape")} hint={t("settings.shapeHint")} hueIndex={nextHue()}>
-        {/* No "don't stretch" wrapper div here any more, `variant="well"`
+        {/* No "don't stretch" wrapper div here any more — `variant="well"`
             carries `w-fit max-w-full` itself as of round 8, which opts the
             row out of this Card's `flex flex-col` default
             `align-items: stretch` without an extra element. See the Theme
@@ -4668,12 +4668,12 @@ export function SettingsPage() {
       </Card>
       )}
 
-      {/* Motion intensity (GlimStone motion-engine, jdp, live-review:
+      {/* Motion intensity (GlimStone motion-engine — jdp, live-review:
           "Wäre eine Animationsengine gut?" -> "Echte Engine mit eigenem
-          Nutzer-Schalter"). A deliberate reversal of design-language.md's
+          Nutzer-Schalter"). A DELIBERATE reversal of design-language.md's
           own prior Motion-Engine section (2026-08-18: "kein In-App-Schalter
           dafür ... kein fünfter Nutzer-Schalter, rein OS-gesteuert für
-          jetzt"), see that doc's updated Motion Intensity write-up for the
+          jetzt") — see that doc's updated Motion Intensity write-up for the
           full course-correction note, quoting the old text rather than
           silently dropping it.
             Same architecture as the Shape Card right above (lib/motion.ts
@@ -4685,7 +4685,7 @@ export function SettingsPage() {
           `variant="well" equalWidth`/`size="lg"` treatment already proven
           live on Theme's and Shape's own pickers right above.
             `hue` stays on its plain `true` default (Selector's own
-          default), this repo's standing colour-engine rule is explicit
+          default) — this repo's standing colour-engine rule is explicit
           that "it's a settings control, not content" is exactly the kind
           of self-authored exception that rule forbids; this Selector's
           three segments read RAINBOW[0]/[1]/[2] like Shape's own segments
@@ -4695,7 +4695,7 @@ export function SettingsPage() {
       {tab === "general" && (
       <Card title={t("settings.motion")} hint={t("settings.motionHint")} hueIndex={nextHue()}>
         {/* No "don't stretch" wrapper div, same as the Theme/Shape Selectors
-            right above, `variant="well"` hugs its own segments now. */}
+            right above — `variant="well"` hugs its own segments now. */}
         {/* THE FOURTH SEGMENT IS NOT ALWAYS THERE, GSS 1.17.0's hidden level.
             It is offered while it is CHOSEN - a picker that hid the value it
             is currently showing would be lying about the interface - and
@@ -4784,18 +4784,18 @@ export function SettingsPage() {
       )}
 
       {/* Colors (GlimStone form-engine Phase 2, Task 1; the accent Card and
-          the Rainbow Card, MERGED, jdp, live-review: "Die card von
+          the Rainbow Card, MERGED — jdp, live-review: "Die card von
           Akzentfarbe und Regenbogenmodus in eine mergen. Gehört ja
           zusammen"). AccentCard above now returns just its own body (no
-          Card wrapper of its own, see its header comment), composed here
+          Card wrapper of its own — see its header comment), composed here
           alongside the Rainbow controls this Card used to hold on its own.
-          One heading, `settings.colors` ("Colours"/"Farben"), new key, not
+          One heading, `settings.colors` ("Colours"/"Farben") — new key, not
           a repurposed `settings.accentColor`/`settings.rainbow`: those two
           stay in use as the sub-topics' own row labels below, so the Card's
-          own title needed a third string that reads as "colour, broadly"
+          own title needed a THIRD string that reads as "colour, broadly"
           without clashing with either. No `hint` on the Card itself any
           more (see the master toggle below for where Rainbow's own hint
-          moved). No divider between the two halves, spacing only, this
+          moved). No divider between the two halves — spacing only, this
           app's established "cards separate sections, never a rule line"
           convention (see the Shape/Rainbow split's own comment above for
           the fuller house-rule writeup); AccentCard's body and the rainbow
@@ -4804,41 +4804,41 @@ export function SettingsPage() {
           shape the (now-relocated) Flash-zip-export/Plain-export/Repository
           trio in the Storage tab's encryption Card already established.
             hueIndex: merging two Cards into one Card means one FEWER
-          `nextHue()` call in the sequence than before, removed here rather
+          `nextHue()` call in the sequence than before — removed here rather
           than left as a dead call, since `hueSeq++` would otherwise burn a
           position nothing renders. Every Card below this one (Quiet toasts,
           the "system"/"storage"/etc. tabs' own Cards) is still numbered
           correctly with no manual re-numbering: `nextHue()` is a plain
           `hueSeq++` evaluated in JSX order at render time (see this
           function's own `hueSeq`/`nextHue` comment above), so removing one
-          call site automatically shifts every LATER one down by one, the
+          call site automatically shifts every LATER one down by one — the
           exact self-correcting behaviour that comment already documents.
             This switch genuinely repaints the app: every hue-enabled
-          Selector segment (components/Selector.tsx, its own default,
+          Selector segment (components/Selector.tsx, its own default —
           twelve call sites across seven files, including the Settings tab
           strip above and the drill-type toggle further down) and the
           container/VM/file-set list rows all read a rainbow position, so
           turning this on sets data-rainbow + --rb-0..--rb-7 on <html> AND
           immediately recolours those real call sites. The sidebar nav is
-          deliberately not a consumer (Sidebar.tsx carries the reasoning), so
+          deliberately NOT a consumer (Sidebar.tsx carries the reasoning), so
           flipping this switch never changes the rail's own colours.
             The master toggle's own hueIndex/hint fixes are documented right
-          on that ToggleRow below, see its own comment for both.
+          on that ToggleRow below — see its own comment for both.
             IIFE-captured `hueIdx` feeds this Card's own heading notch plus
-          the three rainbow ToggleRows below (hueIndex 0/1/2), the same
+          the three rainbow ToggleRows below (hueIndex 0/1/2) — the same
           one-call-feeds-several-children shape the schedulesSelfBackup Card
           (Card+CadenceBuilder) and every offsite per-domain Card above
           already use, so a bare inline `hueIndex={nextHue()}` on the Card
           alone doesn't also have to be re-derived at each child call site.
             This Card's own two reset Badges (the accent-preset reset inside
           AccentCard below, and the rainbow-palette reset further down) are
-          DELIBERATELY NOT among hueIdx's consumers, both are `tone="neutral"`,
+          DELIBERATELY NOT among hueIdx's consumers — both are `tone="neutral"`,
           not hue-tinted, on purpose (see each Badge's own call-site comment
           for the full "a reset control must not blend into the very colours
           it resets" reasoning), so neither reads `hueIdx` at all. */}
       {tab === "general" && (() => {
       const hueIdx = nextHue();
-      // "Is there anything left to reset?" for the palette row below, the
+      // "Is there anything left to reset?" for the palette row below — the
       // mirror of AccentCard's own `presetsAreDefault`, same case-insensitive
       // comparison (setRainbow()/isValidPalette() accept either case, so a
       // palette restored by hand as "#ff8389" must still count as default).
@@ -4856,7 +4856,7 @@ export function SettingsPage() {
             label={t("settings.rainbow")}
             // Moved DOWN from the Card's own `hint` (jdp, live-review: "die
             // infobubble des regenbogenmodus ist unverständlich und sie soll
-            // von titelbadge runterwandern in die toggle zeile"), same
+            // von titelbadge runterwandern in die toggle zeile") — same
             // `hint` prop mechanism the Reactive/Rotation rows below already
             // use for their own explanations. Text rewritten for this same
             // move: see settings.rainbowHint's own value for the rewrite
@@ -4878,7 +4878,7 @@ export function SettingsPage() {
               is. The "not hidden" rule protects the switch for the MODE, not
               its sub-controls.
 
-              The accent row two cards up is deliberately not this case and
+              The accent row two cards up is deliberately NOT this case and
               keeps its dimming: its value still paints every control the
               rainbow does not reach, so it is a setting that is partly
               overridden rather than one with nothing behind it. GlimStone
@@ -4932,33 +4932,33 @@ export function SettingsPage() {
               of the 8 is independently editable; setRainbow()/
               isValidPalette() enforce all-or-nothing validation on the
               resulting palette before it ever reaches
-              document.documentElement.style, see lib/appearance.ts.
+              document.documentElement.style — see lib/appearance.ts.
                 Live-review round 3, point 2: the "Palettenfarbe:"/"Palette
               colour" caption in front of the swatches read as noise once you
-              can already see eight colour swatches sitting there, removed.
-              settings.rainbowPalette itself is not orphaned: PaletteSwatch
+              can already see eight colour swatches sitting there — removed.
+              settings.rainbowPalette itself is NOT orphaned: PaletteSwatch
               still reads it (see that component's own `label` line above)
               for each swatch's title/aria-label ("Palette colour 1", "...2",
               …), so the key stays in every locale unchanged.
                 Live-review round 4 REVERSES the point above (jdp: "Bei der
               Rainbow-Farbpalette soll 'Farbpalette' stehen und dann die
-              Farbfelder kommen"), a caption is back after all, just a
+              Farbfelder kommen") — a caption is back after all, just a
               different string than the one removed: settings.rainbowPalette
               ("Palette colour") stays a per-swatch aria-label only, unchanged;
               this new settings.rainbowPaletteLabel ("Colour palette") is a
               standalone row-opening label, matching how the Accent row right
               above it now opens with its own "Akzentfarbe" caption before
-              its controls, same "label first" ordering, so the two rows in
+              its controls — same "label first" ordering, so the two rows in
               this merged Card read as one consistent pair rather than the
               swatch row being the odd one out again.
                 Label now bare, no trailing colon (jdp, live-review: "Der
-              Doppelpunkt nach Akzentfarbe und Farbpalette weg"), the colon
+              Doppelpunkt nach Akzentfarbe und Farbpalette weg") — the colon
               was appended in JSX only, never in the translated string (all
               42 locales checked), so removing it here is the whole fix.
                 Swatches+reset now right-aligned as their own `ms-auto` group
               (jdp, live-review: "Die Farbfelder der Farbpalette auch ganz
               nach rechts verschieben"), matching the Accent row's own
-              identical right-alignment right above, the label stays at the
+              identical right-alignment right above — the label stays at the
               row's start, everything clickable moves to the row's end. */}
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm text-carbon-text">{t("settings.rainbowPaletteLabel")}</span>
@@ -4984,67 +4984,67 @@ export function SettingsPage() {
                 reads as part of the same row of controls rather than a
                 mismatched afterthought.
                   SQUARE (jdp, live-review: "Die Zurücksetzen-Option soll ein
-                quadratischer Badge mit Glyph sein"), `shape="square"` still
+                quadratischer Badge mit Glyph sein") — `shape="square"` still
                 resolves through `rounded-control`, the shape engine's own
                 live token, so this genuinely tracks round/soft/square (under
                 "Rund" it renders as a full circle, same as every other
                 square badge in the app).
                   NEUTRAL now, not hue-tinted (jdp, re-reporting: "Der
                 Reset-Badge soll ... nicht farbig sein, damit er sich besser
-                von den Farbflächen abhebt", measured live, this Badge's
+                von den Farbflächen abhebt" — measured live, this Badge's
                 `tone="active"` fill was rendering the literal flat accent
-                gold, `rgb(252,196,25)`, the exact same value as one of the
+                gold, `rgb(252,196,25)` — the EXACT SAME value as one of the
                 eight palette swatches sitting right beside it, making the
                 reset control indistinguishable from an actual colour choice
-                at a glance). deliberate exception to this app's standing
+                at a glance). DELIBERATE EXCEPTION to this app's standing
                 "every icon-only badge gets real colour-engine integration"
-                rule, see AccentCard's mirror reset Badge (Settings.tsx,
+                rule — see AccentCard's mirror reset Badge (Settings.tsx,
                 same file, a few hundred lines up) for the full "a reset
                 control sitting beside the very colours it resets must not
                 itself be one of those colours" reasoning, which applies
                 here identically. `border-2 border-carbon-border` (NEW)
                 matches PaletteSwatch's own border exactly (`h-7 w-7 ...
-                border-2 border-carbon-border` a few dozen lines up), without
+                border-2 border-carbon-border` a few dozen lines up) — without
                 it this Badge's solid fill filled the full 28×28 box edge to
                 edge while each PaletteSwatch's own visible colour disc is
                 actually only 24×24 (28px border-box minus its own 2px
                 ring), which is what actually made this control read as
                 BIGGER than its neighbours (jdp: "der Reset-Badge ist größer
                 als die Farbfelder") despite an IDENTICAL measured 28×28
-                bounding box, a real optical-weight defect a bounding-box
+                bounding box — a real optical-weight defect a bounding-box
                 check alone never catches, now closed by giving this Badge
                 the exact same border every swatch beside it already has.
-                  IconResetArrow (redesigned, see that icon's own header
-                comment), the established counter-clockwise "reset" arrow
+                  IconResetArrow (redesigned — see that icon's own header
+                comment) — the established counter-clockwise "reset" arrow
                 convention, redrawn bolder for legibility at this small
                 badge-in-a-busy-row size.
-                  disabled only when there is nothing to reset, the same
+                  DISABLED ONLY WHEN THERE IS NOTHING TO RESET — the same
                 dead-control audit that unified AccentCard's two resets above
                 was run against this badge, and it had a milder version of the
                 same defect from the other direction: gated on `!rainbow.on`
                 alone, it sat ENABLED whenever rainbow mode was on even with
                 the palette already byte-identical to RAINBOW, so a click was
-                a silent no-op, a control that looks live and does nothing is
+                a silent no-op — a control that looks live and does nothing is
                 the same broken promise as one that is permanently greyed out,
                 just harder to notice. `paletteIsDefault` (computed beside
                 `hueIdx` at this Card's own IIFE head) closes that: the badge
                 is now live exactly when a click would actually change
-                something. The `!rainbow.on` half of the gate stays, the
+                something. The `!rainbow.on` half of the gate STAYS — the
                 eight PaletteSwatches next to it carry the identical
                 `disabled={!rainbow.on}`, so the whole row switches off
                 together, which reads as "this section is off" rather than as
                 one arbitrarily dead control among live ones (the very
                 confusion that made AccentCard's badge unreadable).
-                  size="icon", the app's one square-icon-badge size (32px),
+                  size="icon" — the app's ONE square-icon-badge size (32px),
                 never re-derived from the swatch box model. It was 28px, sized
                 to this row's swatches; the app-wide unification moved the
                 swatches instead (PaletteSwatch h-7 w-7 → h-8 w-8), so this
                 badge and its eight neighbours still share one measured
                 footprint and one 28px inner disc inside their `border-2`.
-                  tip (not title/ariaLabel), IconTipButton's real hover/focus
+                  tip (not title/ariaLabel) — IconTipButton's real hover/focus
                 bubble. Now settings.rainbowPaletteReset ("Reset color
                 palette"), not the generic common.reset it carried before:
-                after the merge above, this Card holds two neutral square
+                after the merge above, this Card holds TWO neutral square
                 reset badges a few rows apart, and two identical "Reset"
                 bubbles on two controls with different targets is exactly the
                 ambiguity the accentPresetsReset key was originally introduced
@@ -5052,13 +5052,13 @@ export function SettingsPage() {
                 itself had no other reader left once the accent row's text
                 button was deleted, and was dropped from all 42 locales.)
                 Kept shape/tone/size/glyph/border identical to the AccentCard
-                mirror above, the established "these two mirror each
+                mirror above — the established "these two mirror each
                 other" pairing.
-                  tone="neutral" is a deliberate exception to "every icon
-                badge goes in the colour engine", see the AccentCard mirror
+                  tone="neutral" IS A DELIBERATE EXCEPTION to "every icon
+                badge goes in the colour engine" — see the AccentCard mirror
                 above for the full reasoning, which applies here even more
                 literally: this badge is the ninth 32px `border-2` tile in a
-                row whose other eight are the rainbow palette's own colours
+                row whose other eight ARE the rainbow palette's own colours
                 (measured live: #FF8389 #FF832B #FCC419 #6FDC8C #3DDBD9
                 #1D99F3 #BE95FF #FF7EB6). Giving it a rainbow fill would make
                 the control that RESETS the palette look like a ninth entry
@@ -5088,26 +5088,26 @@ export function SettingsPage() {
       );
       })()}
 
-      {/* Quiet toasts (GlimStone form-engine Task 9), the toast system's
+      {/* Quiet toasts (GlimStone form-engine Task 9) — the toast system's
           severity-based quiet mode. Its own Card now (previously the last,
           divider-less sub-topic tacked onto the shared Appearance Card), next
           to the other purely client-side display preferences, rather than
           being bolted onto NotifyConfig's server-side "on" field above (that
-          one gates external webhook/Matrix/email notifications, a different
-          axis entirely; muting a toast in this browser must never silently
+          one gates external webhook/Matrix/email notifications — a different
+          axis entirely; muting a toast in THIS browser must never silently
           change what a webhook receives elsewhere).
             No-empty-toggles audit (jdp): this row used to `hideLabel`
-          because the Card's own title already says "Quiet toasts", the
+          because the Card's own title already says "Quiet toasts" — the
           exact single-purpose-Card pattern the merged Colors Card's master
           "Regenbogen-Modus" toggle and RestoreChecksSection's "Automatische
           Restore-Prüfungen" toggle already had reversed, and this one was
           the leftover fourth instance the full-app grep in this pass caught.
           `hideLabel` is gone from ToggleRow entirely now (see its own header
-          comment), the label is visible again.
+          comment) — the label is visible again.
             "Explanations belong in a bubble" pass (jdp): what explains this
           toggle was a permanent `description` caption printed under the row
           on every load, not an explanation gated behind the (i) affordance
-          the rest of this page already uses, the exact anti-pattern
+          the rest of this page already uses — the exact anti-pattern
           Apprise's own ToggleRow comment above documents fixing the same way.
           Moved verbatim into `hint` instead (ToggleRow's own InfoBubble prop,
           same content contract as Card's `title`/`hint` pair): no wording
