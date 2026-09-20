@@ -121,9 +121,11 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
   // The More trigger reads as active while the current route lives on the
   // More side of the registry (the non-bar destinations, Settings
   // included), the same "you can see where you are" contract the
-  // destination slots get from NavLink's isActive.
-  const moreActive =
-    location.pathname === "/settings" || moreDestinations(settings).some((d) => d.to === location.pathname);
+  // destination slots get from NavLink's isActive. One lookup, no special
+  // case: /settings is an always-enabled registry entry, so a literal
+  // `pathname === "/settings"` disjunct beside the lookup was dead code that
+  // could only ever drift from it (maintainer #244 round 3, test item T3).
+  const moreActive = moreDestinations(settings).some((d) => d.to === location.pathname);
   // The More trigger's bubble: worded only in hiding modes, the same rule
   // the sidebar's rows follow (reactive mode brings the word back on hover).
   const moreTip = useTipBubble(showLabel || reactive ? undefined : t("nav.more"));

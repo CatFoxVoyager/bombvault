@@ -129,6 +129,22 @@ describe("BottomNav More trigger", () => {
     expect(onBarRoute.getAttribute("aria-current")).toBeNull();
   });
 
+  it("is filled on a gated More-side route exactly while its gate is on: the registry lookup decides, never the path", () => {
+    // /vms has no literal in the trigger's active logic (the retired
+    // special-case disjunct did) — its More-side membership is purely the
+    // enabled flag in the registry, so the gate flip is what this assertion
+    // rides (maintainer #244 round 3, test item T3).
+    draw("/vms", { vmsEnabled: true } as Settings);
+    const gateOn = within(bar()).getByRole("button", { name: "More" });
+    expect(gateOn.className).toContain("bg-accent");
+    expect(gateOn.getAttribute("aria-current")).toBe("true");
+    cleanup();
+    draw("/vms");
+    const gateOff = within(bar()).getByRole("button", { name: "More" });
+    expect(gateOff.className).not.toContain("bg-accent");
+    expect(gateOff.getAttribute("aria-current")).toBeNull();
+  });
+
   it("hands the sheet a rotation position that continues the bar's, not a restart", () => {
     draw("/dashboard");
     const slots = Array.from(bar().querySelectorAll("div.flex.h-14 > *")) as HTMLElement[];

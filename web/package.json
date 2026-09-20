@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "lint": "eslint src e2e playwright.config.ts",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "node e2e/ensure-binary.mjs && playwright test"
   },
   "dependencies": {
     "flag-icons": "^7.5.0",
