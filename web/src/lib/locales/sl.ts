@@ -663,7 +663,6 @@ const sl: Partial<Translations> = {
   "folders.narrowedNote": "Izbira zdaj zajema manj map kot prej. Od naslednje varnostne kopije naprej bodo posnetki vsebovali samo izbrane mape. Obstoječi posnetki se ne spremenijo.",
   "folders.cachedirToggle": "Preskoči mape predpomnilnika (CACHEDIR.TAG)",
   "folders.cachedirScope": "Velja za celotno varnostno kopijo tega vsebnika, ne samo za to mapo.",
-  "folders.handedToRestic": "{n} map, predanih resticu",
   "stophook.title": "Ustavi druge vsebnike",
   "stophook.hint": "Med varnostnim kopiranjem tega vsebnika ustavi te druge vsebnike (na primer bazo podatkov), nato jih po njem znova zaženi.",
   "stophook.noCandidates": "Ni najdenih drugih nameščenih vsebnikov.",

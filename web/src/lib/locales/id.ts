@@ -663,7 +663,6 @@ const id: Partial<Translations> = {
   "folders.narrowedNote": "Pilihan sekarang mencakup lebih sedikit folder dari sebelumnya. Mulai dari pencadangan berikutnya, snapshot hanya akan berisi folder yang dipilih. Snapshot yang ada tidak berubah.",
   "folders.cachedirToggle": "Lewati folder cache (CACHEDIR.TAG)",
   "folders.cachedirScope": "Berlaku untuk seluruh pencadangan kontainer ini, bukan hanya folder ini.",
-  "folders.handedToRestic": "{n} folder diserahkan ke restic",
   "stophook.title": "Hentikan container lain",
   "stophook.hint": "Hentikan container lain ini selama container ini dicadangkan (misalnya database), lalu jalankan kembali setelahnya.",
   "stophook.noCandidates": "Tidak ditemukan container lain yang terinstal.",

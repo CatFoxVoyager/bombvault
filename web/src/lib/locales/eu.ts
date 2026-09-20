@@ -663,7 +663,6 @@ const eu: Partial<Translations> = {
   "folders.narrowedNote": "Hautapenak orain aurrekoa baino karpeta gutxiago hartzen ditu barne. Hurrengo babeskopiatik aurrera, snapshot-ek hautatutako karpetak bakarrik edukiko dituzte. Existitzen diren snapshot-ek ez dute aldatzen.",
   "folders.cachedirToggle": "Saltatu cache karpetak (CACHEDIR.TAG)",
   "folders.cachedirScope": "Edukiontzi honen babeskopia osoari aplikatzen zaio, ez bakarrik karpeta honi.",
-  "folders.handedToRestic": "{n} karpeta restic-i eman zaizkio",
   "stophook.title": "Gelditu beste edukiontzi batzuk",
   "stophook.hint": "Gelditu beste edukiontzi hauek hau babesten den bitartean (adibidez datu-base bat), eta abiarazi berriz gero.",
   "stophook.noCandidates": "Ez da beste edukiontzi instalaturik aurkitu.",

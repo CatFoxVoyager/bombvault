@@ -663,7 +663,6 @@ const lt: Partial<Translations> = {
   "folders.narrowedNote": "Pasirinkimas dabar apima mažiau aplankų nei anksčiau. Nuo kito atsarginio kopijavimo momentinės kopijos talpins tik pasirinktus aplankus. Esamos momentinės kopijos lieka nepakitusios.",
   "folders.cachedirToggle": "Praleisti podėlio aplankus (CACHEDIR.TAG)",
   "folders.cachedirScope": "Taikoma visai šio konteinerio atsarginei kopijai, o ne tik šiam aplankui.",
-  "folders.handedToRestic": "{n} aplankų perduota restic",
   "stophook.title": "Sustabdyti kitus konteinerius",
   "stophook.hint": "Sustabdykite šiuos kitus konteinerius, kol kopijuojamas šis (pvz., duomenų bazę), tada vėl juos paleiskite po to.",
   "stophook.noCandidates": "Kitų įdiegtų konteinerių nerasta.",

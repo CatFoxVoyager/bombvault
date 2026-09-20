@@ -719,7 +719,6 @@ const el: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "Το BombVault εντόπισε αυτόν τον υπολογιστή ως \"{platform}\", όχι ως Unraid. Οι ειδοποιήσεις Unraid παραμένουν απενεργοποιημένες ακόμη κι αν αυτή η επιλογή είναι ενεργή. Αν πρόκειται πράγματι για υπολογιστή Unraid, ελέγξτε ότι το /boot του host είναι προσαρτημένο (bind-mount) στο /host/boot μέσα στο container (δείτε το πρότυπο BombVault για Unraid) και επανεκκινήστε το container.",
   "notify.test": "Αποστολή δοκιμής",
   "notify.tested": "Η δοκιμή στάλθηκε",
-  "folders.handedToRestic": "{n} φάκελοι παραδόθηκαν στο restic",
   "stophook.title": "Διακοπή άλλων κοντέινερ",
   "stophook.hint": "Διακόψτε αυτά τα άλλα κοντέινερ κατά τη δημιουργία αντιγράφου ασφαλείας αυτού του κοντέινερ (για παράδειγμα μια βάση δεδομένων) και ξεκινήστε τα ξανά μετά.",
   "stophook.noCandidates": "Δεν βρέθηκαν άλλα εγκατεστημένα κοντέινερ.",

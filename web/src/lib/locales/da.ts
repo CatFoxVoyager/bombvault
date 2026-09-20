@@ -719,7 +719,6 @@ const da: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "BombVault har registreret denne vært som \"{platform}\", ikke Unraid. Unraid-notifikationer forbliver slået fra, selvom denne indstilling er slået til. Hvis dette RENT FAKTISK er en Unraid-vært, så tjek at værtens /boot er bind-mountet til /host/boot inde i containeren (se BombVault Unraid-skabelonen), og genstart containeren.",
   "notify.test": "Send test",
   "notify.tested": "Test sendt",
-  "folders.handedToRestic": "{n} mapper overdraget til restic",
   "stophook.title": "Stop andre containere",
   "stophook.hint": "Stop disse andre containere, mens denne sikkerhedskopieres (for eksempel en database), og start dem igen bagefter.",
   "stophook.noCandidates": "Ingen andre installerede containere fundet.",

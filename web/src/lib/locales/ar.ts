@@ -719,7 +719,6 @@ const ar: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "اكتشف BombVault أن هذا المضيف هو \"{platform}\"، وليس Unraid، لذا تظل إشعارات Unraid متوقفة حتى مع تفعيل هذا الخيار. إذا كان هذا فعلاً مضيف Unraid، تحقق من أن /boot الخاص بالمضيف مربوط (bind-mounted) بالمسار /host/boot داخل الحاوية (راجع قالب BombVault لـ Unraid)، ثم أعد تشغيل الحاوية.",
   "notify.test": "إرسال اختبار",
   "notify.tested": "تم إرسال الاختبار",
-  "folders.handedToRestic": "{n} مجلدات مُسلَّمة إلى restic",
   "stophook.title": "إيقاف حاويات أخرى",
   "stophook.hint": "أوقف هذه الحاويات الأخرى أثناء النسخ الاحتياطي لهذه الحاوية (مثل قاعدة بيانات)، ثم أعد تشغيلها بعد ذلك.",
   "stophook.noCandidates": "لم يتم العثور على حاويات أخرى مثبتة.",

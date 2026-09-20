@@ -719,7 +719,6 @@ const he: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "BombVault זיהה את המארח הזה כ-\"{platform}\", לא כ-Unraid. לכן התראות Unraid נשארות כבויות גם כשהאפשרות הזו מופעלת. אם זהו אכן מארח Unraid, בדוק שה-/boot של המארח מחובר (bind-mount) אל /host/boot בתוך הקונטיינר (ראה את תבנית ה-Unraid של BombVault), והפעל מחדש את הקונטיינר.",
   "notify.test": "שלח בדיקה",
   "notify.tested": "הבדיקה נשלחה",
-  "folders.handedToRestic": "{n} תיקיות נמסרו ל־restic",
   "stophook.title": "עצירת מכולות אחרות",
   "stophook.hint": "עצור את המכולות האחרות האלה בזמן הגיבוי של מכולה זו (לדוגמה מסד נתונים) והפעל אותן מחדש לאחר מכן.",
   "stophook.noCandidates": "לא נמצאו מכולות מותקנות אחרות.",

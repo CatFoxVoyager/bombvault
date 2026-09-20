@@ -711,7 +711,6 @@ const vi: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "BombVault đã phát hiện máy chủ này là \"{platform}\", không phải Unraid. Thông báo Unraid vẫn tắt dù tùy chọn này đang bật. Nếu đây THỰC SỰ là máy chủ Unraid, hãy kiểm tra xem /boot của máy chủ đã được bind-mount tới /host/boot bên trong container chưa (xem mẫu Unraid của BombVault), rồi khởi động lại container.",
   "notify.test": "Gửi thử",
   "notify.tested": "Đã gửi thử",
-  "folders.handedToRestic": "{n} thư mục đã bàn giao cho restic",
   "stophook.title": "Dừng các container khác",
   "stophook.hint": "Dừng các container khác này trong khi container này đang được sao lưu (ví dụ một cơ sở dữ liệu), sau đó khởi động lại chúng.",
   "stophook.noCandidates": "Không tìm thấy container nào khác đã cài đặt.",

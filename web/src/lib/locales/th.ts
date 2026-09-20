@@ -719,7 +719,6 @@ const th: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "BombVault ตรวจพบว่าโฮสต์นี้เป็น \"{platform}\" ไม่ใช่ Unraid การแจ้งเตือน Unraid จึงยังคงปิดอยู่แม้ว่าตัวเลือกนี้จะเปิดใช้งาน หากนี่เป็นโฮสต์ Unraid จริง ให้ตรวจสอบว่า /boot ของโฮสต์ถูก bind-mount ไปยัง /host/boot ภายในคอนเทนเนอร์แล้ว (ดูเทมเพลต Unraid ของ BombVault) แล้วรีสตาร์ทคอนเทนเนอร์",
   "notify.test": "ส่งทดสอบ",
   "notify.tested": "ส่งการทดสอบแล้ว",
-  "folders.handedToRestic": "ส่งโฟลเดอร์ {n} รายการให้ restic",
   "stophook.title": "หยุดคอนเทนเนอร์อื่น",
   "stophook.hint": "หยุดคอนเทนเนอร์อื่นเหล่านี้ขณะที่กำลังสำรองข้อมูลคอนเทนเนอร์นี้ (เช่น ฐานข้อมูล) แล้วเริ่มต้นใหม่อีกครั้งหลังจากนั้น",
   "stophook.noCandidates": "ไม่พบคอนเทนเนอร์อื่นที่ติดตั้งไว้",

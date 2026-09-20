@@ -719,7 +719,6 @@ const hu: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "A BombVault ezt a hosztot \"{platform}\" típusúnak érzékelte, nem Unraidnek. Az Unraid-értesítések így kikapcsolva maradnak, még ha ez a kapcsoló be is van kapcsolva. Ha ez valóban Unraid hoszt, ellenőrizd, hogy a host /boot útvonala be van-e kötve (bind-mount) a konténeren belül a /host/boot alá (lásd a BombVault Unraid sablonját), majd indítsd újra a konténert.",
   "notify.test": "Teszt küldése",
   "notify.tested": "Teszt elküldve",
-  "folders.handedToRestic": "{n} mappa átadva a resticnek",
   "stophook.title": "Más konténerek leállítása",
   "stophook.hint": "Állítsd le ezeket a többi konténert ennek a konténernek a mentése idejére (például egy adatbázist), majd indítsd el őket utána újra.",
   "stophook.noCandidates": "Nem található más telepített konténer.",

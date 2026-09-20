@@ -714,7 +714,6 @@ const uk: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "BombVault визначив цей хост як \"{platform}\", а не як Unraid — сповіщення Unraid залишаються вимкненими, навіть якщо цю опцію увімкнено. Якщо це СПРАВДІ хост Unraid, перевірте, що /boot хоста змонтовано (bind-mount) до /host/boot всередині контейнера (див. шаблон Unraid для BombVault), і перезапустіть контейнер.",
   "notify.test": "Надіслати тест",
   "notify.tested": "Тест надіслано",
-  "folders.handedToRestic": "{n} папок передано restic",
   "stophook.title": "Зупинити інші контейнери",
   "stophook.hint": "Зупинити ці інші контейнери на час резервного копіювання цього контейнера (наприклад базу даних), а потім знову запустити їх.",
   "stophook.noCandidates": "Інших встановлених контейнерів не знайдено.",

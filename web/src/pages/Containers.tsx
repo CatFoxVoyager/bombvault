@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { listContainers, deleteBackups, forgetContainer, backupAll, restore, restoreStack, discover, setContainerHooks, getContainerMounts, setContainerRepo, setContainerTargets, setStopContainers, setContainerExcludes, previewContainerExcludes, suggestContainerExcludes, exportContainer, setIncludeAll, setUpdateAfterBackup, getBackupOrder, setBackupOrder, ApiError, type ContainerTargetsBody, type ContainerMountsResponse } from "../lib/api";
 import type { Container, ExcludeSuggestion, MountInfo, CustomPath, ContainerOrder, BrowseResponse, Run } from "../lib/api";
 import { applyToggle, browseRelToHost, classifyNode, isAtOrUnder, partitionCustomPaths, toFlatList } from "../lib/selectionTree";
 import { useIsCoarsePointer, useIsDesktop } from "../lib/useMediaQuery";
 import { SelectionTree } from "../components/SelectionTree";
-import { StickyActionBar } from "../components/mobile/StickyActionBar";
 import { RunDetailSheet } from "../components/mobile/RunDetailSheet";
 import { ListToolbar } from "../components/mobile/ListToolbar";
 import { useLoadMore } from "../lib/useLoadMore";
@@ -677,29 +676,12 @@ type SaveDesc =
  *  can never collide with a tree row's key in the same maps. */
 const RESET_ROW_KEY = "__resetSelection__";
 
-/** Busy/shake map key for the mobile Save bar's flush.
- *  Same "not a host path" guarantee as RESET_ROW_KEY: a failed flush shakes
- *  THIS key, and the published shakeNonce re-keys the Save button so the bar
- *  itself shakes — the row-row maps it rides in are never touched by a tree
- *  row, and vice versa. */
-const SAVE_FLUSH_KEY = "__saveBarFlush__";
-
-/** The live state the container editor publishes to the mobile Save bar:
- *  how many folders the next backup hands restic, whether the
- *  serialized queue currently has an attempt in flight (spinner + disabled
- *  Save), and the flush-failure shake nonce. Published through an additive
- *  FoldersEditor prop so the ONE desktop-identical queue stays the only
- *  source of save truth — the bar derives everything it shows from it. */
-export type SaveBarState = { ticked: number; inFlight: boolean; shakeNonce: number };
-
 export function FoldersEditor({
   name,
   stack,
   open,
   t,
   lastBackup = null,
-  onSaveState,
-  flushRef,
   treeViewportClassName,
   repo = "",
 }: {
@@ -720,23 +702,6 @@ export function FoldersEditor({
    *  about. Optional only so the dom harnesses can omit it; the production
    *  caller (ContainerRow) always passes container.lastBackup. */
   lastBackup?: number | null;
-  /** Receives the Save bar's live state — the
-   *  ticked-include count, whether the queue has an attempt in flight, and
-   *  the flush-failure shake nonce. Read-only plumbing: the bar derives
-   *  everything it shows from the SAME queue the desktop editor drives, so
-   *  there is no second save mechanism to keep in sync. Optional; the mobile
-   *  stacked detail (Containers()) is the only caller that passes it — the
-   *  desktop ContainerRow mount simply omits it and nothing publishes.
-   *  useState's setter is a stable function identity, so the publishing
-   *  effect below can list it in its deps without re-firing per render. */
-  onSaveState?: (s: SaveBarState) => void;
-  /** Filled with the flush closure the Save bar's press
-   *  invokes — drain any pending attempt of the serialized queue, then
-   *  re-assert the live mirror so an idle press still lands a confirmation
-   *  save through the one existing path. Assigned every render (no dep
-   *  array) so the closure can never go stale against the mirror refs.
-   *  Optional; same single-caller story as onSaveState. */
-  flushRef?: RefObject<(() => void) | null>;
   /** Passed through to SelectionTree's viewportClassName —
    *  the stacked detail renders the tree at natural height so the PAGE owns
    *  scrolling instead of an inner clamp-height scrollbox. Optional; every
@@ -781,7 +746,7 @@ export function FoldersEditor({
   // the Save bar (rendered by the parent, outside this component) can re-render
   // when a drain starts and settles. The queue itself stays ref-driven — this
   // flag is publish-only and never read by the save logic.
-  const [queueBusy, setQueueBusy] = useState(false);
+  const [, setQueueBusy] = useState(false);
   // The path whose last toggle was refused client-side for emptying the
   // selection; SelectionTree renders the inline warn line under that row.
   const [blockedPath, setBlockedPath] = useState<string | null>(null);
@@ -1386,70 +1351,6 @@ export function FoldersEditor({
     scheduleSave({ cls: "caches", node: hostPath, caches: { path: hostPath, pre, next } });
   }
 
-  // The mobile Save bar's flush descriptor — a
-  // paths-class desc whose pre and sent are BOTH the live mirror (an EMPTY
-  // delta). It exists so an idle Save press still routes through the ONE
-  // serialized queue: the drain sends the live flat list under "tree", the ok
-  // path toasts t("folders.saved") exactly as a toggle's save does, and a
-  // failure reverts a zero delta (a no-op on the mirror) while shaking
-  // SAVE_FLUSH_KEY — which the published shakeNonce turns into a bar shake.
-  // A toggle desc's revert recipe is never displaced by it in the idle case
-  // (scheduleSave composes a fresh pendingDescs per attempt); in the
-  // mid-flight case flushSaveQueue only fills an ABSENT paths slot, so a
-  // pending toggle's or reset's desc always wins.
-  function flushDesc(): Extract<SaveDesc, { cls: "paths" }> {
-    const live = mirrorRef.current;
-    return {
-      cls: "paths",
-      node: SAVE_FLUSH_KEY,
-      pre: { includes: live.inc, exclusions: live.exc },
-      sent: { includes: live.inc, exclusions: live.exc },
-      structural: false,
-      source: "tree",
-    };
-  }
-
-  // The Save bar press itself. Two queues states, two honest behaviours:
-  // mid-drain, the press marks the queue dirty and owes the paths class so
-  // the running attempt's finally chain drains again with the LATEST mirror —
-  // the same stacking a tree toggle during flight gets, byte for byte. Idle,
-  // the press schedules the empty-delta flush — which re-asserts the live
-  // mirror against the server and lands the confirmation toast, so "Save"
-  // with nothing pending still completes as a save, not a dead button. A
-  // zero-tick idle press is a deliberate no-op: the zero-include guard
-  // forbids a "tree"-sourced empty selection, and the count row above already
-  // states exactly what would be handed to restic (nothing).
-  function flushSaveQueue(): void {
-    if (queueRef.current.inFlight) {
-      queueRef.current.dirty = true;
-      owedRef.current.add("paths");
-      if (!pendingDescsRef.current.paths) pendingDescsRef.current.paths = flushDesc();
-      return;
-    }
-    if (mirrorRef.current.inc.size === 0) return;
-    scheduleSave(flushDesc());
-  }
-
-  // Publish the Save bar's live state. One effect per state change burst —
-  // the parent's setter is stable (a useState setter from the only caller
-  // that passes it), so this fires only when the count, the queue's in-flight
-  // mirror, or a shake nonce actually moves.
-  useEffect(() => {
-    if (!onSaveState) return;
-    onSaveState({
-      ticked: includes.size,
-      inFlight: queueBusy,
-      shakeNonce: rowShake[SAVE_FLUSH_KEY] ?? 0,
-    });
-  }, [onSaveState, includes, queueBusy, rowShake]);
-
-  // Hand the flush closure to the Save bar. Re-assigned every render (no dep
-  // array) so the closure always reads the live mirror refs — the same
-  // fresh-closure discipline the queue's own read path follows.
-  useEffect(() => {
-    if (flushRef) flushRef.current = flushSaveQueue;
-  });
-
   // Sub-include absorption (INTEG-01, D-02, RESEARCH Q1): the server files
   // every include that is not EXACTLY a mount root under custom[], so a
   // sub-include under a reachable mount arrives here as a custom row. Those
@@ -1812,8 +1713,6 @@ function MobileContainerDetail({
   onBack,
   onDeleted,
   installedContainers,
-  onSaveState,
-  flushRef,
 }: {
   container: Container;
   t: T;
@@ -1825,10 +1724,6 @@ function MobileContainerDetail({
   /** The full installed set, straight through to StopContainersEditor's
    *  picker — the same array the desktop row gets. */
   installedContainers: Container[];
-  /** Save-bar plumbing, passed straight through to the FoldersEditor — see
-   *  the props' own comments there. */
-  onSaveState: (s: SaveBarState) => void;
-  flushRef: RefObject<(() => void) | null>;
 }) {
   // The host mount root for the detail's mono meta line — served by the same
   // already-cached mounts response the cards use (React escaping
@@ -1982,8 +1877,6 @@ function MobileContainerDetail({
           lastBackup={container.lastBackup}
           repo={container.repo ?? ""}
           treeViewportClassName="h-auto"
-          onSaveState={onSaveState}
-          flushRef={flushRef}
         />
       </Advanced>
       {/* The remaining sections through the SAME chips block the desktop row
@@ -3789,19 +3682,12 @@ export function Containers() {
   // the full list height exists to scroll back into).
   const listScrollRef = useRef(0);
   const restoreScrollRef = useRef(false);
-  // The Save bar's published live state + the flush closure handle — see
-  // SaveBarState and FoldersEditor's onSaveState/flushRef props. saveState is
-  // reset per open so the bar can never show the PREVIOUS container's count
-  // in the frame before this editor's first publish.
-  const [saveState, setSaveState] = useState<SaveBarState>({ ticked: 0, inFlight: false, shakeNonce: 0 });
-  const saveFlushRef = useRef<(() => void) | null>(null);
   // Bumped when a detail closes: cards of the edited container re-read the
   // (cache-invalidated) mounts response so their count line reflects the edit.
   const [cardNonce, setCardNonce] = useState(0);
 
   function openCard(c: Container) {
     listScrollRef.current = document.getElementById("bv-main")?.scrollTop ?? 0;
-    setSaveState({ ticked: 0, inFlight: false, shakeNonce: 0 });
     setOpenContainer(c);
     // After the detail commits, the page reads from the top (the back row is
     // the first thing on screen).
@@ -4208,8 +4094,7 @@ export function Containers() {
           page column ABOVE where the list sits — the back row is the first
           thing on screen after openCard scrolls to top. The list itself is
           off the tree while the detail is open (its scroll position saved and
-          restored on Back); the shared StickyActionBar Save bar for this
-          detail renders as the page column's LAST child, further down.
+          restored on Back).
           Desktop never evaluates this branch (`!isDesktop`). */}
       {!isDesktop && openContainer !== null && (
         <MobileContainerDetail
@@ -4222,8 +4107,6 @@ export function Containers() {
             void loadContainers();
           }}
           installedContainers={installedContainers}
-          onSaveState={setSaveState}
-          flushRef={saveFlushRef}
         />
       )}
 
@@ -4586,49 +4469,6 @@ export function Containers() {
           same copy below the breakpoint, so exactly one renders per width. */}
       {isDesktop && !loading && !error && !listChromeHidden && noMatch && (
         <p className="text-sm text-carbon-textMuted">{t("filter.noMatch")}</p>
-      )}
-      {/* The container detail's sticky Save bar — the page column's LAST
-          visible child, so its sticky positioning resolves against
-          main#bv-main (nested in a Card it would stick only within the
-          card's own box). Two rows: row 1 = live "handed to restic" count
-          (accentSoft chip, tabular) + the queue spinner; row 2 = Save, which
-          flushes the ONE serialized queue. A former row 3 — the CACHEDIR.TAG
-          plain-language line — was removed, a recorded decision: it
-          duplicated what the tree's per-set toggles already show IN PLACE,
-          next to the state they switch; one presentation, where the flag
-          actually lives. Rendered only while the detail is open AND its
-          editor is present (advanced + installed) — with no editor there is
-          no queue to flush. */}
-      {!isDesktop && openContainer !== null && openContainer.installed && advanced && (
-        <StickyActionBar>
-          <div className="flex items-center gap-2 min-h-[1.25rem]">
-            {saveState.inFlight && (
-              <span
-                aria-hidden
-                className="h-3 w-3 rounded-full border-2 border-t-transparent animate-spin inline-block"
-                style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }}
-              />
-            )}
-            <Badge tone="active" className="tabular-nums">
-              {t("folders.handedToRestic").replace("{n}", String(saveState.ticked))}
-            </Badge>
-          </div>
-          {/* Save = FLUSH: no mobile buffer, no second save path — the press
-              drains the desktop-identical queue. Re-keyed by the published
-              shake nonce so a failed flush shakes THIS button (failure toasts
-              AND shakes, the house live-save semantics). */}
-          <Button
-            key={saveState.shakeNonce}
-            label={t("folders.save")}
-            labelKey="folders.save"
-            tone="accent"
-            keepLabel
-            disabled={saveState.inFlight}
-            busy={saveState.inFlight}
-            onClick={() => saveFlushRef.current?.()}
-            className={`w-full min-h-[2.75rem] justify-center${saveState.shakeNonce ? " glim-shake" : ""}`}
-          />
-        </StickyActionBar>
       )}
       {confirmDialog}
     </div>

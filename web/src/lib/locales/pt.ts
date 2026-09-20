@@ -716,7 +716,6 @@ const pt: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "O BombVault detetou este host como \"{platform}\", não como Unraid. As notificações do Unraid permanecem desativadas mesmo com esta opção ativada. Se este FOR realmente um host Unraid, verifique se o /boot do host está montado (bind-mount) em /host/boot dentro do contêiner (consulte o template Unraid do BombVault) e reinicie o contêiner.",
   "notify.test": "Enviar teste",
   "notify.tested": "Teste enviado",
-  "folders.handedToRestic": "{n} pastas entregues ao restic",
   "stophook.title": "Parar outros contentores",
   "stophook.hint": "Parar estes outros contentores enquanto este é copiado (por exemplo uma base de dados) e iniciá-los novamente depois.",
   "stophook.noCandidates": "Não foram encontrados outros contentores instalados.",

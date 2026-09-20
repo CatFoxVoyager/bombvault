@@ -717,7 +717,6 @@ const cs: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "BombVault rozpoznal tento hostitel jako \"{platform}\", nikoli jako Unraid. Oznámení Unraid tak zůstávají vypnutá, i když je tato možnost zapnutá. Pokud je to skutečně hostitel Unraid, zkontrolujte, že cesta /boot hostitele je připojena (bind-mount) do kontejneru na /host/boot (viz šablona BombVault pro Unraid), a kontejner restartujte.",
   "notify.test": "Odeslat test",
   "notify.tested": "Test odeslán",
-  "folders.handedToRestic": "{n} složek předáno nástroji restic",
   "stophook.title": "Zastavit ostatní kontejnery",
   "stophook.hint": "Zastavit tyto ostatní kontejnery během zálohování tohoto kontejneru (například databázi) a poté je znovu spustit.",
   "stophook.noCandidates": "Nebyly nalezeny žádné jiné nainstalované kontejnery.",

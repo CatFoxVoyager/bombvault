@@ -719,7 +719,6 @@ const fi: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "BombVault tunnisti tämän isännän tyypiksi \"{platform}\", ei Unraidiksi. Unraid-ilmoitukset pysyvät pois päältä, vaikka tämä on päällä. Jos kyseessä ON oikeasti Unraid-isäntä, tarkista, että isännän /boot on bind-mountattu kontin sisällä kohteeseen /host/boot (katso BombVaultin Unraid-mallipohja), ja käynnistä kontti uudelleen.",
   "notify.test": "Lähetä testi",
   "notify.tested": "Testi lähetetty",
-  "folders.handedToRestic": "{n} kansiota luovutettu resticille",
   "stophook.title": "Pysäytä muut säiliöt",
   "stophook.hint": "Pysäytä nämä muut säiliöt tämän säiliön varmuuskopioinnin ajaksi (esimerkiksi tietokanta) ja käynnistä ne sen jälkeen uudelleen.",
   "stophook.noCandidates": "Muita asennettuja säiliöitä ei löytynyt.",

@@ -711,7 +711,6 @@ const zh: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "BombVault 检测到该主机是 “{platform}”，而不是 Unraid。即使此选项已开启，Unraid 通知仍会保持关闭状态。如果这确实是 Unraid 主机，请检查主机的 /boot 是否已绑定挂载（bind-mount）到容器内的 /host/boot（参见 BombVault 的 Unraid 模板），然后重启容器。",
   "notify.test": "发送测试",
   "notify.tested": "测试已发送",
-  "folders.handedToRestic": "已将 {n} 个文件夹交给 restic",
   "stophook.title": "停止其他容器",
   "stophook.hint": "在备份此容器期间停止这些其他容器（例如数据库），之后再重新启动它们。",
   "stophook.noCandidates": "未找到其他已安装的容器。",

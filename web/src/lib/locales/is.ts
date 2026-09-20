@@ -663,7 +663,6 @@ const is: Partial<Translations> = {
   "folders.narrowedNote": "Valið nær nú yfir færri möppur en áður. Frá og með næstu öryggisafritun munu skyggnur aðeins innihalda valdar möppur. Fyrirliggjandi skyggnur breytast ekki.",
   "folders.cachedirToggle": "Sleppa skyndiminnismöppum (CACHEDIR.TAG)",
   "folders.cachedirScope": "Á við allt öryggisafrit þessa gáms, ekki aðeins þessa möppu.",
-  "folders.handedToRestic": "{n} möppur afhentar til restic",
   "stophook.title": "Stöðva aðra gáma",
   "stophook.hint": "Stöðvaðu þessa aðra gáma á meðan þessi er afritaður (t.d. gagnagrunn), og ræstu þá svo aftur á eftir.",
   "stophook.noCandidates": "Engir aðrir uppsettir gámar fundust.",

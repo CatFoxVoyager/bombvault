@@ -663,7 +663,6 @@ const ms: Partial<Translations> = {
   "folders.narrowedNote": "Pilihan kini meliputi lebih kurang folder berbanding sebelumnya. Mulai sandaran seterusnya, snapshot hanya akan mengandungi folder yang dipilih. Snapshot sedia ada tidak berubah.",
   "folders.cachedirToggle": "Langkau folder cache (CACHEDIR.TAG)",
   "folders.cachedirScope": "Terpakai kepada keseluruhan sandaran bekas ini, bukan hanya folder ini.",
-  "folders.handedToRestic": "{n} folder diserahkan kepada restic",
   "stophook.title": "Hentikan bekas lain",
   "stophook.hint": "Hentikan bekas lain ini semasa bekas ini disandarkan (contohnya pangkalan data), kemudian mulakan semula selepas itu.",
   "stophook.noCandidates": "Tiada bekas terpasang lain ditemui.",

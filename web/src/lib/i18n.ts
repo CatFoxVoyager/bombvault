@@ -825,7 +825,6 @@ export const en = {
   "folders.cachedirScope": "Applies to the entire backup of this container, not only this folder.",
   // Live count for the mobile Save bar: how many folders the next backup
   // hands restic. Invariant {n}, no plural forms — zero is a real answer.
-  "folders.handedToRestic": "{n} folders handed to restic",
   "stophook.title": "Stop other containers",
   "stophook.hint": "Stop these other containers while this one is backed up (for example a database), then start them again afterwards.",
   "stophook.noCandidates": "No other installed containers found.",
@@ -2725,7 +2724,6 @@ export const de: Translations = {
     "Die Auswahl umfasst jetzt weniger Ordner als zuvor. Ab der nächsten Sicherung enthalten Snapshots nur noch die ausgewählten Ordner. Bestehende Snapshots bleiben unverändert.",
   "folders.cachedirToggle": "Cache-Ordner überspringen (CACHEDIR.TAG)",
   "folders.cachedirScope": "Gilt für die gesamte Sicherung dieses Containers, nicht nur für diesen Ordner.",
-  "folders.handedToRestic": "{n} Ordner an restic übergeben",
   "stophook.title": "Andere Container stoppen",
   "stophook.hint": "Diese anderen Container während des Backups dieses Containers stoppen (zum Beispiel eine Datenbank) und danach wieder starten.",
   "stophook.noCandidates": "Keine anderen installierten Container gefunden.",

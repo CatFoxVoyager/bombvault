@@ -663,7 +663,6 @@ const ca: Partial<Translations> = {
   "folders.narrowedNote": "La selecció ara inclou menys carpetes que abans. A partir de la propera còpia de seguretat, les instantànies contindran només les carpetes seleccionades. Les instantànies existents no canvien.",
   "folders.cachedirToggle": "Omet les carpetes de memòria cau (CACHEDIR.TAG)",
   "folders.cachedirScope": "S'aplica a tota la còpia de seguretat d'aquest contenidor, no només a aquesta carpeta.",
-  "folders.handedToRestic": "{n} carpetes lliurades al restic",
   "stophook.title": "Atura altres contenidors",
   "stophook.hint": "Atura aquests altres contenidors mentre es copia aquest (per exemple una base de dades), i torna'ls a iniciar després.",
   "stophook.noCandidates": "No s'han trobat altres contenidors instal·lats.",

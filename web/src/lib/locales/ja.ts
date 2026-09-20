@@ -711,7 +711,6 @@ const ja: Partial<Translations> = {
   "notify.unraidPlatformMismatch": "BombVault はこのホストを Unraid ではなく \"{platform}\" として検出しました。このオプションが有効でも Unraid 通知は無効のままです。実際に Unraid ホストである場合は、ホストの /boot がコンテナ内の /host/boot にバインドマウントされているか確認し（BombVault の Unraid テンプレートを参照）、コンテナを再起動してください。",
   "notify.test": "テスト送信",
   "notify.tested": "テストを送信しました",
-  "folders.handedToRestic": "{n} 個のフォルダーを restic に引き渡しました",
   "stophook.title": "他のコンテナを停止",
   "stophook.hint": "このコンテナのバックアップ中に、これらの他のコンテナ（例えばデータベース）を停止し、その後に再び起動します。",
   "stophook.noCandidates": "他にインストール済みのコンテナが見つかりません。",

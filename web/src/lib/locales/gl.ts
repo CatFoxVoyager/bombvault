@@ -663,7 +663,6 @@ const gl: Partial<Translations> = {
   "folders.narrowedNote": "A selección abarca agora menos cartafoles que antes. A partir da próxima copia, as instantáneas conterán só os cartafoles seleccionados. As instantáneas existentes non cambian.",
   "folders.cachedirToggle": "Omitir cartafoles da caché (CACHEDIR.TAG)",
   "folders.cachedirScope": "Aplícase a toda a copia de seguranza deste contedor, non só a este cartafol.",
-  "folders.handedToRestic": "{n} carteiras entregues a restic",
   "stophook.title": "Deter outros contedores",
   "stophook.hint": "Detén estes outros contedores mentres se copia este (por exemplo unha base de datos), e volve inicialos despois.",
   "stophook.noCandidates": "Non se atoparon outros contedores instalados.",

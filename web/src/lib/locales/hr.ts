@@ -663,7 +663,6 @@ const hr: Partial<Translations> = {
   "folders.narrowedNote": "Odabir sada obuhvaća manje mapa nego prije. Od sljedeće sigurnosne kopije snimke će sadržavati samo odabrane mape. Postojeće snimke ostaju nepromijenjene.",
   "folders.cachedirToggle": "Preskoči mape predmemorije (CACHEDIR.TAG)",
   "folders.cachedirScope": "Primjenjuje se na cijelu sigurnosnu kopiju ovog kontejnera, ne samo na ovu mapu.",
-  "folders.handedToRestic": "{n} mapa predano resticu",
   "stophook.title": "Zaustavi druge kontejnere",
   "stophook.hint": "Zaustavite ove druge kontejnere dok se ovaj sigurnosno kopira (npr. bazu podataka), zatim ih naknadno ponovno pokrenite.",
   "stophook.noCandidates": "Nisu pronađeni drugi instalirani kontejneri.",
