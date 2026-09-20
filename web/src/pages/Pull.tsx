@@ -68,7 +68,7 @@ function PullSourceCard({
       const res = await runPullSource(source.id);
       if (res.ok) {
         const n = res.snapshots ?? 0;
-        push(n === 0 ? t("pull.nothingNew") : t("pull.pulled").replace("{n}", String(n)), "success");
+        push(n === 0 ? t("pull.nothingNew") : t("pull.pulled", n), "success");
       } else {
         push(res.error ?? t("pull.pullFailed"), "fail");
       }
@@ -128,7 +128,7 @@ function PullSourceCard({
           </div>
           {source.snapshotsPulled > 0 && (
             <div className="glim-num">
-              {t("pull.snapshotsPulled").replace("{n}", String(source.snapshotsPulled))}
+              {t("pull.snapshotsPulled", source.snapshotsPulled)}
             </div>
           )}
         </div>

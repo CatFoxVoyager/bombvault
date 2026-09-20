@@ -106,7 +106,7 @@ export function formatCadence(raw: string, t: CadenceT, lang: string): string {
     case "everyN":
       // An interval of 1 is just daily.
       if (s.intervalDays <= 1) return t("cadence.fmtDaily").replace("{time}", time);
-      return t("cadence.fmtEveryN").replace("{n}", String(s.intervalDays)).replace("{time}", time);
+      return t("cadence.fmtEveryN", s.intervalDays).replace("{time}", time);
     case "cron":
       // A raw expression has no prose form, so it is shown verbatim.
       return t("cadence.fmtCron").replace("{expr}", s.cron);

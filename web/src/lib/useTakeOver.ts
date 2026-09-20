@@ -52,12 +52,11 @@ export async function countBackups(api: TakeoverApi, name: string): Promise<numb
 }
 
 export function backupCountText(t: T, n: number): string {
-  return n === 1 ? t("takeover.backup") : t("takeover.backups").replace("{n}", String(n));
+  return t("takeover.backups", n);
 }
 
 function historyKey(backups: number | null): TranslationKey {
-  if (backups === null) return "takeover.historyUnknown";
-  return backups === 1 ? "takeover.historyOne" : "takeover.historyMany";
+  return backups === null ? "takeover.historyUnknown" : "takeover.historyMany";
 }
 
 /**
@@ -93,8 +92,7 @@ export function useTakeOver(entry: TakeoverEntry, onDone: () => void, t: T) {
   }
 
   async function takeOver(from: string, backups: number | null, onRefused: () => void) {
-    const history = t(historyKey(backups))
-      .replace("{n}", String(backups))
+    const history = t(historyKey(backups), backups ?? undefined)
       .replace("{old}", from)
       .replace("{new}", entry.displayName);
     const message = t("takeover.confirm")

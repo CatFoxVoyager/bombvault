@@ -229,7 +229,7 @@ export function TwoFactorCard({
         <div className="flex flex-col gap-3">
           {recoveryLeft !== undefined && (
             <p className="text-sm text-carbon-textSub">
-              {t("auth.recoveryLeft").replace("{n}", String(recoveryLeft))}
+              {t("auth.recoveryLeft", recoveryLeft)}
             </p>
           )}
           {!disarming ? (

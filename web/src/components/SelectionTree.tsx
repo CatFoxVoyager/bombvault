@@ -247,7 +247,7 @@ export function SelectionTree({
           {/* Counted from the includes alone, so it matches what the next
               save sends. Shown on every root, zero included. */}
           <span className="text-xs text-carbon-textMuted">
-            {t("folders.previewPaths").replace("{n}", String(rootIncludeCount(m.source, includes)))}
+            {t("folders.previewPaths", rootIncludeCount(m.source, includes))}
           </span>
         </span>
       ),
@@ -268,7 +268,7 @@ export function SelectionTree({
           </span>
           {!cp.exists && <span className="text-statusFail">{t("folders.customMissing")}</span>}
           <span className="text-xs text-carbon-textMuted">
-            {t("folders.previewPaths").replace("{n}", String(rootIncludeCount(cp.path, includes)))}
+            {t("folders.previewPaths", rootIncludeCount(cp.path, includes))}
           </span>
         </span>
       ),
@@ -481,7 +481,7 @@ export function SelectionTree({
                   <path fill="currentColor" d="M4 1.3 8.5 6 4 10.7Z" />
                 </svg>
               </span>
-              {t("folders.exclusions").replace("{n}", String(rootExcl.length))}
+              {t("folders.exclusions", rootExcl.length)}
             </button>
             {exclOpen.has(spec.path) && (
               <ul id={exclListId}>

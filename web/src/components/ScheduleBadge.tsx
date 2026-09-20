@@ -29,7 +29,7 @@ export function cadenceLabel(raw: string, t: ScheduleT): string {
   if (weeklyM) return t("jobs.cadenceWeekly").replace("{days}", weeklyM[1]).replace("{time}", weeklyM[2]);
 
   const everyNM = /^everyN\s+(\d+)\s+(\d{1,2}:\d{2})$/.exec(s);
-  if (everyNM) return t("jobs.cadenceEveryN").replace("{n}", everyNM[1]).replace("{time}", everyNM[2]);
+  if (everyNM) return t("jobs.cadenceEveryN", Number(everyNM[1])).replace("{time}", everyNM[2]);
 
   return s;
 }

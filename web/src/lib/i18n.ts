@@ -176,13 +176,11 @@ export const en = {
   "takeover.reason.composeService": "same compose service",
   "takeover.reason.templateLineage": "Unraid renamed its template",
   "takeover.reason.libvirtUuid": "same VM (UUID)",
-  "takeover.backup": "1 backup",
-  "takeover.backups": "{n} backups",
+  "takeover.backups": "one={n} backup|other={n} backups",
   "takeover.accept": "Take over",
   "takeover.decline": "Not this one",
   "takeover.confirm": "Take over {old}? Its settings move to {new}. {history} From then on, retention counts the backups of both together. You can undo the link later.",
-  "takeover.historyOne": "The backup of {old} becomes the history of {new}.",
-  "takeover.historyMany": "The {n} backups of {old} become the history of {new}.",
+  "takeover.historyMany": "one=The backup of {old} becomes the history of {new}.|other=The {n} backups of {old} become the history of {new}.",
   "takeover.historyUnknown": "The backups of {old} become the history of {new}.",
   "takeover.done": "{old} now belongs to {new}.",
   "takeover.undo": "Undo",
@@ -302,7 +300,7 @@ export const en = {
   // Stacks (compose-project restore)
   "stack.title": "Stacks",
   "stack.restore": "Restore stack…",
-  "stack.members": "{n} containers",
+  "stack.members": "one={n} container|other={n} containers",
   "stack.restoreHint":
     "Restores every container in this stack from its latest backup, left stopped, then (optionally) starts them in dependency order.",
   "stack.startInOrder": "Start in dependency order after restore",
@@ -800,10 +798,10 @@ export const en = {
   // Phase 3 (D-01): per-root effective-selection preview; {n} = stored
   // maximal includes at-or-under the root. Invariant {n} key, no plural
   // fork (stack.members precedent).
-  "folders.previewPaths": "{n} paths",
+  "folders.previewPaths": "one={n} path|other={n} paths",
   // Phase 3 (D-03/D-04): per-root reviewable-exclusions disclosure label;
   // {n} = stored exclusions strictly under the root (dormant included).
-  "folders.exclusions": "{n} exclusions",
+  "folders.exclusions": "one={n} exclusion|other={n} exclusions",
   // Phase 3 plan 03 (D-05, INTEG-04): the reset control and its fail-tone
   // confirm. The confirm message names every consequence (auto-detection
   // returns, remembered exclusions are removed, and the per-root cache-folder
@@ -1101,7 +1099,7 @@ export const en = {
   "picker.saturationBrightness": "Saturation and brightness",
   "jobs.cadenceDaily": "Daily at {time}",
   "jobs.cadenceWeekly": "Weekly ({days}) at {time}",
-  "jobs.cadenceEveryN": "Every {n} days at {time}",
+  "jobs.cadenceEveryN": "one=Every day at {time}|other=Every {n} days at {time}",
   "sort.label": "Sort:",
   "sort.nameAsc": "Name (A–Z)",
   "sort.status": "Status",
@@ -1117,7 +1115,7 @@ export const en = {
   "cadence.daysUnit": "days",
   "cadence.fmtDaily": "daily at {time}",
   "cadence.fmtWeekly": "weekly ({days}) at {time}",
-  "cadence.fmtEveryN": "every {n} days at {time}",
+  "cadence.fmtEveryN": "one=every day at {time}|other=every {n} days at {time}",
   // Cron cadence mode (#107)
   "cadence.cron": "Cron",
   "cadence.cronExpr": "Expression",
@@ -1138,12 +1136,9 @@ export const en = {
   "timePicker.hour": "Hour",
   "timePicker.minute": "Minute",
   "time.justNow": "just now",
-  "time.minuteAgo": "1 minute ago",
-  "time.minutesAgo": "{n} minutes ago",
-  "time.hourAgo": "1 hour ago",
-  "time.hoursAgo": "{n} hours ago",
-  "time.dayAgo": "1 day ago",
-  "time.daysAgo": "{n} days ago",
+  "time.minutesAgo": "one={n} minute ago|other={n} minutes ago",
+  "time.hoursAgo": "one={n} hour ago|other={n} hours ago",
+  "time.daysAgo": "one={n} day ago|other={n} days ago",
   "folder.browse": "Browse…",
   "folder.browseTitle": "Browse folders",
   "folder.use": "Use this folder",
@@ -1250,10 +1245,10 @@ export const en = {
   "auth.confirmCode": "Enter the code the app shows now",
   "auth.recoveryTitle": "Recovery codes",
   "auth.recoveryHint": "Write these down now. Each one works once, and they are not shown again.",
-  "auth.recoveryLeft": "{n} recovery codes left",
+  "auth.recoveryLeft": "one={n} recovery code left|other={n} recovery codes left",
   "auth.recoverySaved": "I have written them down",
   "auth.disableCodePrompt": "Enter a current code to turn it off",
-  "auth.passwordMinHint": "At least {n} characters.",
+  "auth.passwordMinHint": "one=At least {n} character.|other=At least {n} characters.",
 
   // Common action labels (shared across container / VM / settings buttons)
   "common.backingUp": "Backing up…",
@@ -1422,7 +1417,7 @@ export const en = {
   "receiver.monitoringOff": "Monitoring off",
   "receiver.lastReceived": "Last received",
   "receiver.never": "Never",
-  "receiver.snapshotsCount": "{n} snapshots",
+  "receiver.snapshotsCount": "one={n} snapshot|other={n} snapshots",
   "receiver.checkOk": "Check OK",
   "receiver.checkFailed": "Check failed",
   "receiver.checkNever": "Not checked yet",
@@ -1495,9 +1490,9 @@ export const en = {
   "pull.pullOk": "Pull OK",
   "pull.pullFailed": "Pull failed",
   "pull.pullingOff": "Pulling off",
-  "pull.snapshotsPulled": "{n} snapshots pulled",
+  "pull.snapshotsPulled": "one={n} snapshot pulled|other={n} snapshots pulled",
   "pull.nothingNew": "Nothing new to pull.",
-  "pull.pulled": "Pulled {n} snapshots.",
+  "pull.pulled": "one=Pulled {n} snapshot.|other=Pulled {n} snapshots.",
   "pull.testOk": "The source answered.",
   "pull.saveError": "Could not save the pull source.",
   "settings.pullEnabled": "Pull from other instances",
@@ -2164,13 +2159,11 @@ export const de: Translations = {
   "takeover.reason.composeService": "derselbe Compose-Dienst",
   "takeover.reason.templateLineage": "Unraid hat die Vorlage umbenannt",
   "takeover.reason.libvirtUuid": "dieselbe VM (UUID)",
-  "takeover.backup": "1 Backup",
-  "takeover.backups": "{n} Backups",
+  "takeover.backups": "one={n} Backup|other={n} Backups",
   "takeover.accept": "Übernehmen",
   "takeover.decline": "Passt nicht",
   "takeover.confirm": "{old} übernehmen? Die Einstellungen gehen dann auf {new} über. {history} Die Aufbewahrungsregeln zählen danach die Backups beider zusammen. Die Verknüpfung lässt sich später wieder lösen.",
-  "takeover.historyOne": "Das Backup von {old} gehört dann zum Verlauf von {new}.",
-  "takeover.historyMany": "Die {n} Backups von {old} gehören dann zum Verlauf von {new}.",
+  "takeover.historyMany": "one=Das Backup von {old} gehört dann zum Verlauf von {new}.|other=Die {n} Backups von {old} gehören dann zum Verlauf von {new}.",
   "takeover.historyUnknown": "Die Backups von {old} gehören dann zum Verlauf von {new}.",
   "takeover.done": "{old} gehört jetzt zu {new}.",
   "takeover.undo": "Rückgängig",
@@ -2707,8 +2700,8 @@ export const de: Translations = {
   "folders.retry": "Erneut versuchen",
   "folders.emptySelectionBlocked":
     "Mindestens ein Ordner muss ausgewählt bleiben. Um nichts von diesem Container zu sichern, deaktiviere die Zeitplan-Einbindung. Um zur automatischen Erkennung zurückzukehren, nutze Auswahl zurücksetzen.",
-  "folders.previewPaths": "{n} Pfade",
-  "folders.exclusions": "{n} Ausschlüsse",
+  "folders.previewPaths": "one={n} Pfad|other={n} Pfade",
+  "folders.exclusions": "one={n} Ausschluss|other={n} Ausschlüsse",
   "folders.resetSelection": "Auswahl zurücksetzen",
   "folders.resetConfirm":
     "Ordnerauswahl zurücksetzen? Der Container kehrt zur automatischen Erkennung zurück (appdata-Standard), und alle gemerkten Ausschlüsse und Cache-Ordner-Einstellungen werden entfernt.",
@@ -2913,7 +2906,7 @@ export const de: Translations = {
   "picker.saturationBrightness": "Sättigung und Helligkeit",
   "jobs.cadenceDaily": "Täglich um {time}",
   "jobs.cadenceWeekly": "Wöchentlich ({days}) um {time}",
-  "jobs.cadenceEveryN": "Alle {n} Tage um {time}",
+  "jobs.cadenceEveryN": "one=Jeden Tag um {time}|other=Alle {n} Tage um {time}",
   "sort.label": "Sortieren:",
   "sort.nameAsc": "Name (A–Z)",
   "sort.status": "Status",
@@ -2929,7 +2922,7 @@ export const de: Translations = {
   "cadence.daysUnit": "Tage",
   "cadence.fmtDaily": "täglich um {time} Uhr",
   "cadence.fmtWeekly": "wöchentlich ({days}) um {time} Uhr",
-  "cadence.fmtEveryN": "jeden {n}. Tag um {time} Uhr",
+  "cadence.fmtEveryN": "one=jeden Tag um {time} Uhr|other=jeden {n}. Tag um {time} Uhr",
   // Cron cadence mode (#107)
   "cadence.cron": "Cron",
   "cadence.cronExpr": "Ausdruck",
@@ -2945,12 +2938,9 @@ export const de: Translations = {
   "timePicker.hour": "Stunde",
   "timePicker.minute": "Minute",
   "time.justNow": "gerade eben",
-  "time.minuteAgo": "vor 1 Minute",
-  "time.minutesAgo": "vor {n} Minuten",
-  "time.hourAgo": "vor 1 Stunde",
-  "time.hoursAgo": "vor {n} Stunden",
-  "time.dayAgo": "vor 1 Tag",
-  "time.daysAgo": "vor {n} Tagen",
+  "time.minutesAgo": "one=vor {n} Minute|other=vor {n} Minuten",
+  "time.hoursAgo": "one=vor {n} Stunde|other=vor {n} Stunden",
+  "time.daysAgo": "one=vor {n} Tag|other=vor {n} Tagen",
   "folder.browse": "Durchsuchen…",
   "folder.browseTitle": "Ordner durchsuchen",
   "folder.use": "Diesen Ordner verwenden",
@@ -3051,7 +3041,7 @@ export const de: Translations = {
   "auth.confirmCode": "Gib den Code ein, den die App jetzt zeigt",
   "auth.recoveryTitle": "Notfallcodes",
   "auth.recoveryHint": "Schreib sie jetzt auf. Jeder funktioniert einmal, und sie werden nicht noch einmal angezeigt.",
-  "auth.recoveryLeft": "Noch {n} Notfallcodes übrig",
+  "auth.recoveryLeft": "one=Noch {n} Notfallcode übrig|other=Noch {n} Notfallcodes übrig",
   "auth.recoverySaved": "Ich habe sie aufgeschrieben",
   "auth.disableCodePrompt": "Gib zum Ausschalten einen aktuellen Code ein",
   "auth.passwordMinHint": "Mindestens {n} Zeichen.",
@@ -3183,7 +3173,7 @@ export const de: Translations = {
   "receiver.monitoringOff": "Überwachung aus",
   "receiver.lastReceived": "Zuletzt empfangen",
   "receiver.never": "Nie",
-  "receiver.snapshotsCount": "{n} Backups",
+  "receiver.snapshotsCount": "one={n} Backup|other={n} Backups",
   "receiver.checkOk": "Prüfung OK",
   "receiver.checkFailed": "Prüfung fehlgeschlagen",
   "receiver.checkNever": "Noch nicht geprüft",
@@ -3251,9 +3241,9 @@ export const de: Translations = {
   "pull.pullOk": "Holen erfolgreich",
   "pull.pullFailed": "Holen fehlgeschlagen",
   "pull.pullingOff": "Holen aus",
-  "pull.snapshotsPulled": "{n} Snapshots geholt",
+  "pull.snapshotsPulled": "one={n} Snapshot geholt|other={n} Snapshots geholt",
   "pull.nothingNew": "Nichts Neues zu holen.",
-  "pull.pulled": "{n} Snapshots geholt.",
+  "pull.pulled": "one={n} Snapshot geholt.|other={n} Snapshots geholt.",
   "pull.testOk": "Die Quelle hat geantwortet.",
   "pull.saveError": "Die Quelle konnte nicht gespeichert werden.",
   "settings.pullEnabled": "Von anderen Instanzen holen",
@@ -3870,15 +3860,50 @@ export function applyStoredLanguage(): void {
 export interface I18nContextValue {
   lang: string;
   setLanguage: (code: string) => void;
-  t: (key: TranslationKey) => string;
+  /** With a count, picks the form that count needs and puts it in. */
+  t: (key: TranslationKey, n?: number) => string;
   languages: Language[];
+}
+
+const PLURAL_CATEGORIES = new Set(["zero", "one", "two", "few", "many", "other"]);
+
+/**
+ * pluralForms reads the forms a value offers, each labelled with the category
+ * it serves: "one={n} backup|other={n} backups". Russian needs three of them,
+ * Slovenian four, English two, and most strings none at all, which is what a
+ * value without labels is. Every segment has to be labelled, so a sentence that
+ * merely contains "=" or "|" stays the one form it is.
+ */
+function pluralForms(value: string): Map<string, string> | null {
+  const forms = new Map<string, string>();
+  for (const part of value.split("|")) {
+    const at = part.indexOf("=");
+    if (at <= 0 || !PLURAL_CATEGORIES.has(part.slice(0, at))) return null;
+    forms.set(part.slice(0, at), part.slice(at + 1));
+  }
+  return forms.size > 0 ? forms : null;
+}
+
+/**
+ * countText is the form of value that lang uses for n, with n put in. Without
+ * a count it answers with the plain form, so a caller that has none renders a
+ * sentence rather than the labels.
+ */
+export function countText(value: string, lang: string, n?: number): string {
+  const forms = pluralForms(value);
+  let text = value;
+  if (forms) {
+    const category = n === undefined ? "other" : new Intl.PluralRules(lang).select(n);
+    text = forms.get(category) ?? forms.get("other") ?? value;
+  }
+  return n === undefined ? text : text.split("{n}").join(String(n));
 }
 
 // Provide a safe default so `useT()` never throws outside a Provider during tests.
 const I18nContext = createContext<I18nContextValue>({
   lang: DEFAULT_CODE,
   setLanguage: () => undefined,
-  t: (key) => en[key] ?? key,
+  t: (key, n) => countText(en[key] ?? key, DEFAULT_CODE, n),
   languages: OFFERED_LANGUAGES,
 });
 
@@ -3943,8 +3968,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, [adopt]);
 
   const t = useCallback(
-    (key: TranslationKey): string => table[key] ?? en[key] ?? key,
-    [table]
+    (key: TranslationKey, n?: number): string => countText(table[key] ?? en[key] ?? key, lang, n),
+    [table, lang]
   );
 
   return createElement(

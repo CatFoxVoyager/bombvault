@@ -4903,7 +4903,7 @@ func (s *Service) Backup(ctx context.Context, name string) (_ backup.Summary, re
 	orchestrated := false
 	defer func() {
 		if retErr != nil && !orchestrated && !errors.Is(retErr, backup.ErrContainerNotInstalled) {
-			s.recordContainerFailure(name, targetID, retErr)
+			s.recordPreflightFailure("Backup", name, targetID, retErr)
 		}
 	}()
 
@@ -7155,6 +7155,14 @@ func (s *Service) LatestContainerBackupTimes(ctx context.Context) (map[string]in
 		}
 	}
 	return s.latestBackupTimes(ctx, "containers", "container", idToName)
+}
+
+// LatestFileSetBackupTimes is LatestContainerBackupTimes for the folder sets.
+// A set's name is fixed once it has backups, so no former name folds into it;
+// backups left under a name no set carries any more come back as their own set
+// through Discover.
+func (s *Service) LatestFileSetBackupTimes(ctx context.Context) (map[string]int64, error) {
+	return s.latestBackupTimes(ctx, "files", "fileset", nil)
 }
 
 // LatestVMBackupTimes is LatestContainerBackupTimes for the VMs domain.
@@ -10809,7 +10817,7 @@ func (s *Service) vmDiskContainerPaths(name string, domain virshcli.DomainInfo) 
 	return diskPaths, nil
 }
 
-func (s *Service) BackupVM(ctx context.Context, name string) (backup.Summary, error) {
+func (s *Service) BackupVM(ctx context.Context, name string) (_ backup.Summary, retErr error) {
 	// Survive the client that triggered it disconnecting (see Backup): detach from
 	// the request's cancellation with a generous hard cap.
 	ctx, cancel := backupHoldCtx(ctx)
@@ -10817,6 +10825,21 @@ func (s *Service) BackupVM(ctx context.Context, name string) (backup.Summary, er
 	s.registerBackupCancel("vm:"+name, cancel) // reachable by shutdown ([375])
 	defer s.unregisterBackupCancel("vm:" + name)
 	defer s.lockDomain("vms")() // serialise per repo; blocks maintenance ops meanwhile
+
+	// Everything down to the orchestrator returns before any run is recorded,
+	// so a failure there would leave the card that started this backup waiting
+	// for one. Record it as Backup does; a VM that is not defined on the host
+	// is a skip, not a failure.
+	var targetID string
+	if tg, tErr := s.store.GetVMTargetByName(name); tErr == nil {
+		targetID = tg.ID
+	}
+	orchestrated := false
+	defer func() {
+		if retErr != nil && !orchestrated && !errors.Is(retErr, backup.ErrVMNotInstalled) {
+			s.recordPreflightFailure("BackupVM", name, targetID, retErr)
+		}
+	}()
 	settings, err := s.store.GetSettings()
 	if err != nil {
 		return backup.Summary{}, fmt.Errorf("read settings: %w", err)
@@ -11062,6 +11085,9 @@ func (s *Service) BackupVM(ctx context.Context, name string) (backup.Summary, er
 	// (incl. the ErrVMNotInstalled skip), so the paired done/fail notifyBackup below
 	// always follows (no dangling /start).
 	s.notifyBackupStart(ctx, "VM")
+	// The orchestrator records its own run from here on, so the finisher above
+	// stands down.
+	orchestrated = true
 	bctx, startedAt := s.progBegin(ctx, vkey, "backup")
 	var sum backup.Summary
 	if live {
@@ -11279,16 +11305,17 @@ func (s *Service) prepareRestoreVMForTarget(ctx context.Context, ref repoRef, na
 		return vmRestorePlan{}, fmt.Errorf("restore vm: unmarshal definition: %w", err)
 	}
 
-	// Disks must live within the Host Data mount (that is how restic reaches
-	// them). SKIP any that don't rather than refusing the whole VM.
-	var diskPaths []string
+	// Disks must live within the Host Data mount, which is how restic reaches
+	// them. The backup refuses a VM with a disk outside it and refuses it whole,
+	// so the restore refuses too: leaving the disk out and defining the VM from
+	// an XML that still lists it hands back a machine with a missing or stale
+	// disk and says nothing.
 	for _, p := range def.DiskPaths {
-		if paths.Within(s.cfg.HostMountRoot, p) {
-			diskPaths = append(diskPaths, p)
-		} else {
-			log.Printf("api: RestoreVM: skipping disk path %q outside mount root", p) //nolint:gosec // G706: %q-quoted
+		if !paths.Within(s.cfg.HostMountRoot, p) {
+			return vmRestorePlan{}, destinationRefusal("disk %s in this backup is not under your Host Data mount (%s) and cannot be restored. Move it under that mount, or restore this VM to another instance with a destination folder", p, s.cfg.HostSourceRoot)
 		}
 	}
+	diskPaths := def.DiskPaths
 	if len(diskPaths) == 0 {
 		return vmRestorePlan{}, errors.New("no restorable disk paths found in this backup")
 	}
@@ -11331,8 +11358,16 @@ func (s *Service) prepareRestoreVMForTarget(ctx context.Context, ref repoRef, na
 		diskRemap := make(map[string]string, len(diskPaths))
 		seenDir := map[string]bool{}
 		remapped := make([]string, 0, len(diskPaths))
+		// Every disk lands in one folder here, so two disks that share a file
+		// name would land on each other. The same-instance path refuses the
+		// mirror image of this a few lines up.
+		takenBy := make(map[string]string, len(diskPaths))
 		for i, cp := range diskPaths {
 			base := path.Base(cp)
+			if other, taken := takenBy[base]; taken {
+				return vmRestorePlan{}, destinationRefusal("this VM has two disks called %s, %s and %s, and both would be restored into %s. Rename one of them in the VM, or restore to a destination that keeps their folders apart", base, s.toHostPath(other), s.toHostPath(cp), destHostDir)
+			}
+			takenBy[base] = cp
 			remapped = append(remapped, destDir+"/"+base)
 			diskRemap[s.toHostPath(cp)] = destHostDir + "/" + base
 			if src := path.Dir(sources[i]); !seenDir[src] {
@@ -12432,7 +12467,7 @@ type FileSetView struct {
 
 // ListFileSetViews returns all configured file sets with their last-backup
 // time and source-path existence.
-func (s *Service) ListFileSetViews(_ context.Context) ([]FileSetView, error) {
+func (s *Service) ListFileSetViews(ctx context.Context) ([]FileSetView, error) {
 	sets, err := s.store.ListFileSets()
 	if err != nil {
 		return nil, fmt.Errorf("list file sets: %w", err)
@@ -12442,6 +12477,17 @@ func (s *Service) ListFileSetViews(_ context.Context) ([]FileSetView, error) {
 	settings, err := s.store.GetSettings()
 	if err != nil {
 		return nil, fmt.Errorf("read settings: %w", err)
+	}
+	// Dated from the backups a set owns, as on the container and VM lists.
+	var snapTimes map[string]int64
+	snapTimesFailed := false
+	if len(sets) > 0 {
+		if m, sErr := s.LatestFileSetBackupTimes(ctx); sErr != nil {
+			log.Printf("api: list file sets: latest backup times: %v", sErr)
+			snapTimesFailed = true
+		} else {
+			snapTimes = m
+		}
 	}
 	views := make([]FileSetView, 0, len(sets))
 	for _, set := range sets {
@@ -12472,8 +12518,9 @@ func (s *Service) ListFileSetViews(_ context.Context) ([]FileSetView, error) {
 		// NormalizeSelection, and the view is a mirror of the column. nil stays
 		// nil so omitempty drops the key (the NULL legacy switch).
 		v.SelectedPaths = set.SelectedPaths
-		if run, _ := s.store.LastSuccessfulBackup(set.ID); run != nil && run.FinishedAt != nil {
-			v.LastBackup = *run.FinishedAt
+		run, _ := s.store.LastSuccessfulBackup(set.ID)
+		if finished, _ := lastBackupDate(set.Name, run, snapTimes, snapTimesFailed); finished != nil {
+			v.LastBackup = *finished
 		}
 		if resolved, rErr := paths.Resolve(s.cfg.HostMountRoot, set.Path); rErr == nil {
 			if _, statErr := os.Stat(resolved); statErr == nil { //nolint:gosec // G703: resolved is containment-validated under the host mount root
@@ -16500,29 +16547,27 @@ func (s *Service) recordAndNotifyContainerSkip(ctx context.Context, name string)
 	}
 }
 
-// recordContainerFailure records a FAILED backup run for a container that failed
-// BEFORE backup.BackupContainer could take over run bookkeeping — i.e. at one of
-// Backup's pre-flight early-returns (settings / repo path / EnsureRepo / inspect /
-// empty-paths / upsert). It mirrors recordAndNotifyContainerSkip: given the resolved
-// target, StartRun then FinishRun with the (truncated) reason, so a domain-wide fault
-// that trips these for every remaining container shows up as reds — each carrying its
-// cause — on the dashboard heatmap/history instead of vanishing (#64). Best-effort: a
-// bookkeeping error is logged, never returned (the caller is already returning the real
-// error). targetID is the caller's pre-resolved id; when empty (a brand-new container
-// with no target row yet) the failure can't be keyed to a run, so it is only logged
-// here — the scheduled-summary notification still names it from the returned error.
-func (s *Service) recordContainerFailure(name, targetID string, cause error) {
+// recordPreflightFailure records a failed backup run for an entry that failed
+// before the orchestrator could take over run bookkeeping, at one of the
+// pre-flight early returns (settings, repo path, EnsureRepo, inspect, upsert).
+// Without it a domain-wide fault that trips those for every entry leaves no red
+// anywhere (#64), and the card that started a single backup waits for a run that
+// never comes (#251). Best-effort: a bookkeeping error is logged, never returned,
+// since the caller is already returning the real one. An entry with no target row
+// yet has nothing to key a run to, so there the reason is only logged, and the
+// scheduled summary still names it from the returned error.
+func (s *Service) recordPreflightFailure(kind, name, targetID string, cause error) {
 	if targetID == "" {
-		log.Printf("api: Backup: %q failed before a run could be recorded (no target row yet): %v", name, cause) //nolint:gosec // G706: name is %q-quoted
+		log.Printf("api: %s: %q failed before a run could be recorded (no target row yet): %v", kind, name, cause) //nolint:gosec // G706: kind is a fixed literal, name is %q-quoted
 		return
 	}
 	runID, err := s.store.StartRun(targetID, "backup")
 	if err != nil {
-		log.Printf("api: Backup: %q: start failed run: %v", name, err) //nolint:gosec // G706: name is %q-quoted
+		log.Printf("api: %s: %q: start failed run: %v", kind, name, err) //nolint:gosec // G706: see above
 		return
 	}
 	if err := s.store.FinishRun(runID, "failed", "", 0, truncateRunErr(cause)); err != nil {
-		log.Printf("api: Backup: %q: finish failed run: %v", name, err) //nolint:gosec // G706: name is %q-quoted
+		log.Printf("api: %s: %q: finish failed run: %v", kind, name, err) //nolint:gosec // G706: see above
 	}
 }
 

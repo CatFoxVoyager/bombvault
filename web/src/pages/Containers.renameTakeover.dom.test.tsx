@@ -33,11 +33,11 @@ vi.mock("../lib/api", async () => {
 
 const { listContainers, listSnapshots, takeOverContainer, unlinkContainerAlias } = await import("../lib/api");
 const { ContainerRow, Containers } = await import("./Containers");
-const { en } = await import("../lib/i18n");
+const { countText, en } = await import("../lib/i18n");
 const { ToastProvider } = await import("../lib/toast");
 const { AdvancedProvider } = await import("../lib/advanced");
 
-const t = ((key: TranslationKey) => en[key]) as unknown as Parameters<typeof ContainerRow>[0]["t"];
+const t = ((key: TranslationKey, n?: number) => countText(en[key], "en", n)) as unknown as Parameters<typeof ContainerRow>[0]["t"];
 
 const radarr: Container = {
   name: "radarr",

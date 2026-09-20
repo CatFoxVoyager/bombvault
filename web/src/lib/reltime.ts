@@ -4,21 +4,21 @@ type T = ReturnType<typeof useT>["t"];
 
 /**
  * relativeTime renders a unix timestamp as a localized "time ago" string such
- * as "5 minutes ago". A count of one has its own key so the grammar holds.
+ * as "5 minutes ago".
  */
 export function relativeTime(t: T, unix: number): string {
   const diff = Math.floor((Date.now() - unix * 1000) / 1000);
   if (diff < 60) return t("time.justNow");
   if (diff < 3600) {
     const n = Math.floor(diff / 60);
-    return n === 1 ? t("time.minuteAgo") : t("time.minutesAgo").replace("{n}", String(n));
+    return t("time.minutesAgo", n);
   }
   if (diff < 86400) {
     const n = Math.floor(diff / 3600);
-    return n === 1 ? t("time.hourAgo") : t("time.hoursAgo").replace("{n}", String(n));
+    return t("time.hoursAgo", n);
   }
   const n = Math.floor(diff / 86400);
-  return n === 1 ? t("time.dayAgo") : t("time.daysAgo").replace("{n}", String(n));
+  return t("time.daysAgo", n);
 }
 
 /**

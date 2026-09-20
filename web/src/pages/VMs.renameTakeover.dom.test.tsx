@@ -31,10 +31,10 @@ vi.mock("../lib/api", async () => {
 
 const { listVMs, listVMSnapshots, takeOverVM, unlinkVMAlias } = await import("../lib/api");
 const { VMRow, VMs } = await import("./VMs");
-const { en } = await import("../lib/i18n");
+const { countText, en } = await import("../lib/i18n");
 const { ToastProvider } = await import("../lib/toast");
 
-const t = ((key: TranslationKey) => en[key]) as unknown as Parameters<typeof VMRow>[0]["t"];
+const t = ((key: TranslationKey, n?: number) => countText(en[key], "en", n)) as unknown as Parameters<typeof VMRow>[0]["t"];
 
 // On TrueNAS the name a user reads and the libvirt name differ, and only the
 // libvirt name reaches a route.

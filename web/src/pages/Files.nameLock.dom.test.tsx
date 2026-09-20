@@ -14,9 +14,9 @@ vi.mock("../lib/api", async () => {
 });
 
 const { FileSetDialog } = await import("./Files");
-const { en } = await import("../lib/i18n");
+const { countText, en } = await import("../lib/i18n");
 
-const t = ((key: TranslationKey) => en[key]) as unknown as Parameters<typeof FileSetDialog>[0]["t"];
+const t = ((key: TranslationKey, n?: number) => countText(en[key], "en", n)) as unknown as Parameters<typeof FileSetDialog>[0]["t"];
 
 const documents: FileSetView = {
   id: "set1",
