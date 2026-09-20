@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
 import { listContainers, deleteBackups, forgetContainer, backupAll, restore, restoreStack, discover, setContainerHooks, getContainerMounts, setContainerRepo, setContainerTargets, setStopContainers, setContainerExcludes, previewContainerExcludes, suggestContainerExcludes, exportContainer, setIncludeAll, setUpdateAfterBackup, getBackupOrder, setBackupOrder, ApiError, type ContainerTargetsBody, type ContainerMountsResponse } from "../lib/api";
 import type { Container, ExcludeSuggestion, MountInfo, CustomPath, ContainerOrder, BrowseResponse, Run } from "../lib/api";
 import { applyToggle, browseRelToHost, classifyNode, isAtOrUnder, partitionCustomPaths, toFlatList } from "../lib/selectionTree";
@@ -1678,6 +1678,72 @@ function tickedCountFrom(r: ContainerMountsResponse): number {
   ]).size;
 }
 
+/** The disclosure chips of one container card — the SAME block both faces of
+ *  the page render: the desktop row and the phone detail share the Selector,
+ *  the section set, the advanced+installed gating and the "has data" dots,
+ *  so the two faces cannot drift apart. The panes the chips open stay at the
+ *  call site (the desktop stacks them in the card; the phone detail keeps
+ *  its FoldersEditor permanently open and only chips the rest).
+ *  `showFoldersChip={false}` is the phone detail: its FoldersEditor is the
+ *  detail's own body, always open, so a chip would open what is already
+ *  open. */
+function ContainerSectionChips({
+  container,
+  t,
+  openSections,
+  onToggle,
+  trailing,
+  showFoldersChip = true,
+}: {
+  container: Container;
+  t: T;
+  /** Controlled open set — one section at a time, the desktop row's rule. */
+  openSections: ReadonlySet<string>;
+  onToggle: (id: string) => void;
+  /** Trailing inline summary; the desktop row renders the last-backup line. */
+  trailing?: ReactNode;
+  showFoldersChip?: boolean;
+}) {
+  const { advanced } = useAdvanced();
+  const installed = container.installed;
+  // "Has data configured" dots — the same three facts the three editors
+  // render on the desktop card's chips.
+  const stopHasData = (container.stopContainers ?? []).length > 0;
+  const excludesHasData = (container.excludes ?? []).length > 0;
+  const hooksHasData = !!(container.preHook || container.postHook);
+  const configuredDot = (
+    <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-statusOk shrink-0" />
+  );
+  // Advanced+installed-only sections mirror the exact gate their panes sit
+  // behind, so a chip never exists for a pane that could not render. Backups
+  // (RestorePanel) is always offered: it works on a not-installed entry too.
+  const sectionItems: SelectorItem[] = [];
+  if (advanced && installed) {
+    if (showFoldersChip) sectionItems.push({ id: "folders", label: t("folders.title") });
+    sectionItems.push(
+      { id: "stop", label: t("stophook.title"), icon: stopHasData ? configuredDot : undefined },
+      { id: "excludes", label: t("excludes.title"), icon: excludesHasData ? configuredDot : undefined },
+      { id: "hooks", label: t("hooks.title"), icon: hooksHasData ? configuredDot : undefined }
+    );
+  }
+  sectionItems.push({ id: "backups", label: t("snapshots.title") });
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <Selector
+        items={sectionItems}
+        label={t("containers.sectionsLabel")}
+        select="many"
+        active={openSections}
+        buttonHeight
+        onChange={onToggle}
+      />
+      {trailing && (
+        <span className="ms-auto shrink-0 text-xs text-carbon-textMuted whitespace-nowrap">{trailing}</span>
+      )}
+    </div>
+  );
+}
+
 function MobileContainerCard({
   container,
   t,
@@ -1744,6 +1810,8 @@ function MobileContainerDetail({
   t,
   nonce,
   onBack,
+  onDeleted,
+  installedContainers,
   onSaveState,
   flushRef,
 }: {
@@ -1751,6 +1819,12 @@ function MobileContainerDetail({
   t: T;
   nonce: number;
   onBack: () => void;
+  /** A remove or delete-backups from this detail took the entry off the
+   *  list: the parent closes the detail and refreshes. */
+  onDeleted: () => void;
+  /** The full installed set, straight through to StopContainersEditor's
+   *  picker — the same array the desktop row gets. */
+  installedContainers: Container[];
   /** Save-bar plumbing, passed straight through to the FoldersEditor — see
    *  the props' own comments there. */
   onSaveState: (s: SaveBarState) => void;
@@ -1769,16 +1843,18 @@ function MobileContainerDetail({
       alive = false;
     };
   }, [container.name, nonce]);
-  // ---- Backup trigger + run deep-link --------------------------------------
-  // The trigger IS the desktop row's BackupButton component (zero new trigger
-  // path; the #197 stop-ack confirm inherits the ConfirmSheet below the
-  // breakpoint through useConfirm's own media switch). On correlation the
-  // RunDetailSheet opens over the detail with the LIVE run (component-
-  // local hosting, no route). onRun fires on every poll,
-  // so sheetRun always holds the freshest record (running → terminal renders
-  // truthfully); a sheet the user closed is NEVER re-opened by later polls
-  // of the same watch — the terminal outcome still toasts from BackupButton.
-  const running = anyActive(useProgress());
+  // Backup trigger + run deep-link: the trigger IS the desktop row's
+  // BackupButton component (zero new trigger path; the #197 stop-ack confirm
+  // inherits the ConfirmSheet below the breakpoint through useConfirm's own
+  // media switch). On correlation the RunDetailSheet opens over the detail
+  // with the LIVE run (component-local hosting, no route). onRun fires on
+  // every poll, so sheetRun always holds the freshest record (running →
+  // terminal renders truthfully); a sheet the user closed is NEVER re-opened
+  // by later polls of the same watch — the terminal outcome still toasts
+  // from BackupButton.
+  const progressMap = useProgress();
+  const progress = progressMap[`container:${container.name}`];
+  const running = anyActive(progressMap);
   const [sheetRun, setSheetRun] = useState<Run | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const sheetDismissed = useRef(false);
@@ -1787,6 +1863,16 @@ function MobileContainerDetail({
   // dismissal would silence every later "Back up now" press, and the user
   // would wait out the whole run for nothing but the terminal toast.
   const lastCorrelatedRun = useRef<string | null>(null);
+  // Same one-section-at-a-time chips rule as the desktop row, through the
+  // same shared block.
+  const [openSections, setOpenSections] = useState<Set<string>>(() => new Set());
+  function toggleSection(id: string) {
+    setOpenSections((prev) => (prev.has(id) ? new Set() : new Set([id])));
+  }
+  const installed = container.installed;
+  const self = container.self;
+  const aliases = container.aliases ?? [];
+  const takeoverEntry = { name: container.name, displayName: container.name, api: containerTakeover };
   return (
     <div className="flex flex-col gap-4 glim-content-fade">
       {/* Back row: chevron + VISIBLE label, never icon-only. The
@@ -1813,10 +1899,42 @@ function MobileContainerDetail({
           </p>
         )}
       </div>
-      {/* The trigger: the desktop row's own BackupButton (semantics AND
-          confirm inherited verbatim), presented in the detail's flow. Gated
-          on installed, mirroring the desktop row's actions block. */}
-      {container.installed && (
+      {/* Every control the desktop card carries, in the detail's flow. The
+          corner's removal button for a not-installed entry (a deleted entry
+          used to open a detail whose only way out was Back) and the self
+          note come first, then the takeover pair, then the trigger. */}
+      {!installed && (
+        <OrphanRemoveButton
+          hasBackups={container.lastBackup != null}
+          deleteConfirm={t("containers.deleteBackupsConfirm")}
+          removeConfirm={t("containers.removeEntryConfirm")}
+          deleteBackups={() => deleteBackups(container.name)}
+          removeEntry={() => forgetContainer(container.name)}
+          onDone={onDeleted}
+          t={t}
+        />
+      )}
+      {self && <p className="text-xs text-carbon-textMuted">{t("containers.selfNote")}</p>}
+      {installed && !self && container.renameFrom && (
+        <RenameTakeoverRow
+          key={container.renameFrom}
+          from={container.renameFrom}
+          reason={container.renameReason ?? ""}
+          entry={takeoverEntry}
+          onDone={onDeleted}
+          t={t}
+        />
+      )}
+      {aliases.length > 0 && (
+        <FormerNames
+          aliases={aliases}
+          conflicts={container.aliasConflicts ?? []}
+          entry={takeoverEntry}
+          onDone={onDeleted}
+          t={t}
+        />
+      )}
+      {installed && !self && (
         <BackupButton
           name={container.name}
           t={t}
@@ -1831,12 +1949,30 @@ function MobileContainerDetail({
           }}
         />
       )}
+      {/* The schedule block: the include switch, then the update-after row.
+          A not-installed entry keeps the switch too, same as the desktop
+          card: it stays scheduled and every run records a skip for it, and
+          this switch ends that without deleting its backups. */}
+      {installed && (
+        <div className="flex flex-col gap-2">
+          <IncludeToggle name={container.name} initial={container.includeInSchedule} />
+          <Advanced when={installed}>
+            <UpdateAfterBackupRow
+              name={container.name}
+              initial={container.updateAfterBackup ?? false}
+              lastUpdateCheck={container.lastUpdateCheck}
+              lastUpdateResult={container.lastUpdateResult}
+              t={t}
+            />
+          </Advanced>
+        </div>
+      )}
       {/* The SAME editor the desktop row expands — one tree, one queue, zero
           forks. Keyed by container identity: switching targets can
           never inherit the previous container's mirror, browse cache or save
           queue. Advanced+installed gating mirrors the desktop row's folders
           chip exactly. */}
-      <Advanced when={container.installed}>
+      <Advanced when={installed}>
         <FoldersEditor
           key={container.name}
           name={container.name}
@@ -1850,6 +1986,64 @@ function MobileContainerDetail({
           flushRef={flushRef}
         />
       </Advanced>
+      {/* The remaining sections through the SAME chips block the desktop row
+          renders (folders is the detail's own body, already open), then
+          stop-a-running-backup and the live progress, both gated exactly as
+          on the desktop card. */}
+      <div className="flex flex-col gap-2">
+        <ContainerSectionChips
+          container={container}
+          t={t}
+          openSections={openSections}
+          onToggle={toggleSection}
+          showFoldersChip={false}
+        />
+        <Advanced when={installed}>
+          <StopContainersEditor
+            name={container.name}
+            initial={container.stopContainers ?? []}
+            installedContainers={installedContainers}
+            open={openSections.has("stop")}
+            t={t}
+          />
+          <ExcludesEditor
+            name={container.name}
+            initial={container.excludes ?? []}
+            open={openSections.has("excludes")}
+            t={t}
+          />
+          <HooksEditor
+            name={container.name}
+            initialPre={container.preHook}
+            initialPost={container.postHook}
+            open={openSections.has("hooks")}
+            t={t}
+          />
+        </Advanced>
+        <RestorePanel
+          name={container.name}
+          aliases={aliases}
+          t={t}
+          installed={installed}
+          open={openSections.has("backups")}
+        />
+      </div>
+      {/* Not on a restore, which has its own control and warning about a
+          half-restored target inside the Backups panel, and only while the
+          run is active, so a finished run's last frame does not leave a
+          button that can only answer "nothing to cancel". */}
+      {progress && progress.active && progress.phase !== "restore" && (
+        <div className="flex justify-end">
+          <BackupCancelButton cancelKey={`container:${container.name}`} name={container.name} t={t} />
+        </div>
+      )}
+      {progress && (
+        <ProgressBar
+          percent={progress.percent}
+          active={progress.active}
+          label={progress.phase === "restore" ? t("common.restoring") : t("common.backingUp")}
+        />
+      )}
       {/* The run sheet, hosted component-locally: opens on the
           useBackupWatch baseline-id correlation, closes through BottomSheet's
           three paths, and never re-opens itself after dismissal. */}
@@ -2624,63 +2818,16 @@ export function ContainerRow({
   // "Something is running" across any domain — used to busy-guard this row's
   // own backup button (its OWN in-flight backup is handled by isPending inside).
   const running = anyActive(progressMap);
-  const { advanced } = useAdvanced();
 
-  // GlimStone follow-up round (jdp, live-review, screenshot of this exact
-  // row's five stacked disclosure triggers: "Können wir hier Buttons machen
-  // die alle in einer Zeile stehen?") — ONE state bag for all five sections
-  // (Gesicherte Ordner/Andere Container stoppen/Ausschlussmuster/Backup-
-  // Hooks/Backups), replacing the five separate internal `useState` booleans
-  // each editor used to own. Confirmed against the PRE-existing code before
-  // touching any of it: every one of the five toggled independently already
-  // (five separate `useState(false)`s, none of them ever closing a sibling),
-  // so this is a `Set`, not a single active id — the shared row below uses
-  // Selector's `select="many"` mode for exactly that shape (the SAME
-  // independent-toggle-chips pattern CadenceBuilder's own weekday multi-
-  // select already established on this codebase, not a tablist/accordion).
   // ONE section at a time (jdp: "Von den tabs in der container-card ... soll
-  // immer nur einer angezeigt werden. jetzt stapeln sie sich untereinander wenn
-  // man den tab wechselt"). This reverses the original design, which made them
-  // independently openable on purpose — see the `sectionItems` comment further
-  // down, which still explains that reasoning. It reads fine on paper and
-  // stacks four editors down the card in practice.
-  //
-  // The state stays a `Set` rather than becoming `string | undefined`, because
-  // the five editors below each take an `open` boolean off `.has(...)` and the
-  // Selector stays `select="many"` — which is what keeps a section CLOSABLE by
-  // clicking its own chip again. A `select="one"` strip always has exactly one
-  // thing selected and could never close the last one.
+  // immer nur einer angezeigt werden"). The state stays a `Set` rather than
+  // becoming `string | undefined`, because the editors below each take an
+  // `open` boolean off `.has(...)` and the shared chips stay `select="many"` —
+  // which is what keeps a section CLOSABLE by clicking its own chip again.
   const [openSections, setOpenSections] = useState<Set<string>>(() => new Set());
   function toggleSection(id: string) {
     setOpenSections((prev) => (prev.has(id) ? new Set() : new Set([id])));
   }
-
-  // "Has data configured" indicator — the same three facts
-  // StopContainersEditor/ExcludesEditor/HooksEditor used to check internally
-  // to decide whether to render their own green dot next to their own label.
-  // Computed once here instead, since the dot now lives on the SHARED chip
-  // (see `sectionItems` below), not on each editor's own now-removed trigger.
-  const stopHasData = (container.stopContainers ?? []).length > 0;
-  const excludesHasData = (container.excludes ?? []).length > 0;
-  const hooksHasData = !!(container.preHook || container.postHook);
-  const configuredDot = (
-    <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-statusOk shrink-0" />
-  );
-
-  // Folders/Stop/Excludes/Hooks are advanced+installed-only, mirroring the
-  // exact `advanced && installed` gate `<Advanced when={installed}>` always
-  // enforced for them (see the render below) — so their chips simply don't
-  // exist otherwise, rather than existing disabled. Backups is unconditional.
-  const sectionItems: SelectorItem[] = [];
-  if (advanced && installed) {
-    sectionItems.push(
-      { id: "folders", label: t("folders.title") },
-      { id: "stop", label: t("stophook.title"), icon: stopHasData ? configuredDot : undefined },
-      { id: "excludes", label: t("excludes.title"), icon: excludesHasData ? configuredDot : undefined },
-      { id: "hooks", label: t("hooks.title"), icon: hooksHasData ? configuredDot : undefined }
-    );
-  }
-  sectionItems.push({ id: "backups", label: t("snapshots.title") });
 
   const lastBackupText = `${t("containers.lastBackup")}: ${container.lastBackup ? formatTs(container.lastBackup) : t("containers.never")}`;
 
@@ -2830,60 +2977,18 @@ export function ContainerRow({
         </div>
       </div>
 
-      {/* Disclosure-section trigger row (GlimStone follow-up round, jdp
-          live-review, screenshot of the five stacked full-width triggers
-          below: "Können wir hier Buttons machen die alle in einer Zeile
-          stehen?") — Gesicherte Ordner/Andere Container stoppen/
-          Ausschlussmuster/Backup-Hooks are advanced+installed-only (the same
-          `advanced && installed` gate `<Advanced when={installed}>` always
-          enforced); Backups is always offered (works even when not
-          installed, same as before). One shared `Selector` in `select="many"`
-          mode — the established "several independent toggle chips in one
-          row" pattern (CadenceBuilder's own weekday multi-select is the
-          precedent), NOT a tablist/accordion: `openSections` is a `Set`
-          precisely because these stay independently openable, never
-          mutually exclusive. Each chip's own rainbow position comes from
-          Selector's own default per-item hueing (list index 0..4), the same
-          mechanism every other Selector row on this page already uses — nesting
-          it inside this already-hued ContainerRow doesn't fight that; it's the
-          same "a row of several items gets its own hue sequence" rule
-          CadenceBuilder's weekday pills already apply inside their own
-          (also-hued) Settings card.
-          The small green dot HooksEditor/StopContainersEditor/ExcludesEditor
-          used to render next to their own label ("has data configured")
-          survives as the chip's own leading `icon` slot — a plain
-          `bg-statusOk` dot, not an `<svg>`, so Selector's `.glim-hue-icon`
-          rule (which only ever touches an `<svg>` descendant — checked
-          against index.css) never tints it; it stays the same fixed status
-          colour regardless of the chip's own hue or open/closed state.
-          `lastBackupText` (used to share the "Backups" trigger's own line,
-          Task 3's "eine Zeile, nicht zwei") is rendered next to the row
-          instead — always-visible summary data, not part of the expandable
-          content, wrapping onto its own line at narrow widths via the same
-          `flex-wrap` this row already needs for the chips themselves. */}
+      {/* Disclosure sections through the shared chips block (the phone
+          detail renders the same one): `lastBackupText` trails the chips as
+          always-visible summary data, wrapping onto its own line at narrow
+          widths via the same `flex-wrap` the chips themselves need. */}
       <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* buttonHeight, so this row's triggers are the same size as the
-              folder card's (jdp, 2026-09-11: "auf der container cards und der
-              ordner cards sind diese buttons unterschiedlich groß"). Measured:
-              these chips were 24px and the folder card's own Backups trigger
-              32px, because one card expresses its disclosure as a Selector and
-              the other as a Button. Both are the same THING - the control that
-              opens a section of the card - so both take the height the house
-              gives a button, and the two cards stop disagreeing about how big
-              "Backups" is. */}
-          <Selector
-            items={sectionItems}
-            label={t("containers.sectionsLabel")}
-            select="many"
-            active={openSections}
-            buttonHeight
-            onChange={toggleSection}
-          />
-          <span className="ms-auto shrink-0 text-xs text-carbon-textMuted whitespace-nowrap">
-            {lastBackupText}
-          </span>
-        </div>
+        <ContainerSectionChips
+          container={container}
+          t={t}
+          openSections={openSections}
+          onToggle={toggleSection}
+          trailing={lastBackupText}
+        />
 
         {/* Content panes, in a fixed, predictable order regardless of which
             chip was clicked last — each editor now takes `open` as a PROP
@@ -4112,6 +4217,11 @@ export function Containers() {
           t={t}
           nonce={cardNonce}
           onBack={closeDetail}
+          onDeleted={() => {
+            closeDetail();
+            void loadContainers();
+          }}
+          installedContainers={installedContainers}
           onSaveState={setSaveState}
           flushRef={saveFlushRef}
         />
