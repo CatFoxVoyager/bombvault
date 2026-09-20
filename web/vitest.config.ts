@@ -8,5 +8,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    // jsdom has no ResizeObserver, and Selector observes its row; see the
+    // stub's own header.
+    setupFiles: ["src/lib/testSetup/resizeObserver.ts"],
   },
 });

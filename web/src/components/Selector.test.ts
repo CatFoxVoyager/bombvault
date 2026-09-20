@@ -1,7 +1,7 @@
 // The navigation math of Selector. Focus, clicks and the RTL read are tested in
 // Selector.dom.test.tsx.
 import { describe, expect, it } from "vitest";
-import { nextFocusIndex, rovedIndex, stepFor, type SelectorNavKey } from "./Selector";
+import { nextFocusIndex, rovedIndex, rowFill, stepFor, type SelectorNavKey } from "./Selector";
 
 describe("stepFor", () => {
   it("ArrowRight steps +1 in LTR", () => {
@@ -105,5 +105,43 @@ describe("rovedIndex", () => {
 
   it("falls back to index 0 for an empty items list", () => {
     expect(rovedIndex([], -1)).toBe(0);
+  });
+});
+
+describe("rowFill", () => {
+  // The widths are the settings column at the viewport named, measured on a
+  // running instance: the card's content box less the groove's own padding.
+  const PIN = 200;
+
+  it("keeps the pinned width while the whole strip fits one row", () => {
+    expect(rowFill(PIN, 4, 898.6)).toBe(PIN);
+    expect(rowFill(PIN, 2, 898.6)).toBe(PIN);
+  });
+
+  it("keeps it at the exact boundary, where the last segment still fits", () => {
+    expect(rowFill(PIN, 4, 4 * PIN + 3 * 3.2)).toBe(PIN);
+  });
+
+  it("gives a segment the whole row once two do not fit", () => {
+    // 390px viewport: four label modes, one under the other, no bare track.
+    expect(rowFill(PIN, 4, 287.6)).toBeCloseTo(287.6, 5);
+    expect(rowFill(PIN, 3, 287.6)).toBeCloseTo(287.6, 5);
+  });
+
+  it("divides into columns that go into the strip, not as many as fit", () => {
+    // 1024px viewport: three segments fit, so four come out two and two
+    // rather than three and a lone stretched one.
+    expect(rowFill(PIN, 4, 642.6)).toBeCloseTo(319.7, 5);
+  });
+
+  it("drops to one column when no wider one divides the strip", () => {
+    // 600px viewport: two fit, and three over two columns would leave the
+    // second row half empty, which is the track this is here to remove.
+    expect(rowFill(PIN, 3, 497.6)).toBeCloseTo(497.6, 5);
+  });
+
+  it("leaves the pinned width alone for a row that measures nothing", () => {
+    expect(rowFill(PIN, 4, 0)).toBe(PIN);
+    expect(rowFill(PIN, 4, -6.4)).toBe(PIN);
   });
 });
