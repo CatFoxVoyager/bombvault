@@ -244,8 +244,19 @@ export function BottomSheet({ open, onClose, headerClose = true, title, children
         </div>
         {/* Body (scrolls); its own scroll contains all interaction and
             background content is unreachable through the Tab trap, so no
-            body-scroll-lock. Bottom padding clears the device safe area. */}
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[var(--safe-area-bottom)] pl-[max(1rem,var(--safe-area-left))] pr-[max(1rem,var(--safe-area-right))]">
+            body-scroll-lock. Bottom padding clears the device safe area —
+            but only when no footer follows: the footer is the last surface
+            on screen and pads itself, so a body inset beside one paid the
+            home-indicator gap twice, 34px of dead surface between the
+            message and the action row on an iPhone (maintainer #244 round
+            3, bug B9). Ternary between complete literal classes only: the
+            Tailwind JIT scans source text, so a token assembled from
+            fragments would silently stop existing. */}
+        <div
+          className={`min-h-0 flex-1 overflow-y-auto overscroll-contain pl-[max(1rem,var(--safe-area-left))] pr-[max(1rem,var(--safe-area-right))] ${
+            footer === undefined ? "pb-[var(--safe-area-bottom)]" : ""
+          }`}
+        >
           {children}
         </div>
         {/* Footer (optional); pinned after the scroll body so actions never

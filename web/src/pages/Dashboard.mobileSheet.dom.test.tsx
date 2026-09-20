@@ -16,9 +16,11 @@
 //   2. Live refresh; a sheet opened from Recent runs resolves its run by id
 //      out of the page's polled listRuns state at render, so it follows the
 //      run from Running to its terminal status without being re-opened.
-//   3. Rotation; crossing to desktop unmounts the sheet (and the phone
-//      trigger): the bottom sheet has no desktop form, so it must not float
-//      over the desktop grid.
+//   3. Rotation; crossing to desktop unmounts the sheet (the bottom sheet
+//      has no desktop form, so it must not float over the desktop grid),
+//      while the thumb-zone trigger STAYS MOUNTED: unmounting it at the
+//      breakpoint killed the live watch mid-pass and stranded a running
+//      Backup Everything on rotation (maintainer #244 round 3, bug B4).
 //
 // The page renders through the real components against a mocked api module
 // (only the read endpoints are stubbed; ApiError and every type stay the real
@@ -310,7 +312,7 @@ describe("Dashboard phone run sheet", () => {
     expect(within(after).queryByText(en["run.statusRunning"])).toBeNull();
   });
 
-  it("unmounts the sheet and the trigger when the viewport crosses to desktop", async () => {
+  it("unmounts the sheet at the breakpoint while the trigger stays mounted, hidden", async () => {
     const plex = makeRun({ id: "run-plex-2", target: "plex", status: "failed" });
     currentRuns = [plex];
     renderPage();
@@ -323,7 +325,60 @@ describe("Dashboard phone run sheet", () => {
     setDesktop(true);
     await act(async () => {});
 
+    // The sheet is gone (no desktop form)...
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(screen.queryByRole("button", { name: en["settings.everythingTitle"] })).toBeNull();
+    // ...but the trigger stays in the tree: unmounting it would kill the
+    // watch mid-pass (bug B4, round 3). Its bar is md:hidden, so a real
+    // desktop paints nothing; jsdom applies no CSS, so the observable form
+    // of "mounted but hidden" is presence + the bar's visibility gate class.
+    const trigger = screen.getByRole("button", { name: en["settings.everythingTitle"] });
+    const bar = trigger.closest(".md\\:hidden");
+    expect(bar).not.toBeNull();
+  });
+
+  it("a pass fired on the phone survives the desktop round trip and deep-links again", async () => {
+    // Bug B4's scenario end to end: fire, rotate to landscape (>=48rem:
+    // iPhone 15 is 852px), rotate back. The unmounting trigger used to drop
+    // the watch, and the fresh hook read idle: the bar said ready while the
+    // pass ran on the server. Now the watch rides across, and the sheet
+    // deep-links again on the next tick.
+    const plex = makeRun({ id: "run-plex-4", target: "plex", status: "failed" });
+    currentRuns = [plex];
+    renderPage();
+    await settle();
+
+    await fireEverything();
+    const running = makeRun({
+      id: "run-everything-4",
+      target: "all-domains",
+      targetId: "everything",
+      domain: "everything",
+      status: "running",
+      finishedAt: null,
+      error: "",
+      snapshotId: "",
+      bytes: 0,
+    });
+    currentRuns = [running, plex];
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(700);
+    });
+    expect(within(screen.getByRole("dialog")).getByText(/backup everything/i)).toBeTruthy();
+
+    // Cross to desktop mid-pass: the sheet unmounts, the trigger does not.
+    setDesktop(true);
+    await act(async () => {});
+    expect(screen.queryByRole("dialog")).toBeNull();
+
+    // And back: the sheet state was cleared by the rotation, but the watch
+    // is still live, so the next tick re-correlates and deep-links again.
+    setDesktop(false);
+    await act(async () => {});
+    expect(screen.queryByRole("dialog")).toBeNull();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_000);
+    });
+    expect(within(screen.getByRole("dialog")).getByText(/backup everything/i)).toBeTruthy();
+    expect(within(screen.getByRole("dialog")).getByText(en["run.statusRunning"])).toBeTruthy();
   });
 });

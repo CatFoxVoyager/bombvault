@@ -1,6 +1,12 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { hueVars } from "../../lib/appearance";
-import { checkDomain, listSnapshotFiles, listSnapshotFilesFileSet } from "../../lib/api";
+import {
+  checkDomain,
+  listSnapshotFiles,
+  listSnapshotFilesFileSet,
+  restoreContainerFiles,
+  restoreFileSetFiles,
+} from "../../lib/api";
 import type { FileEntry, Run } from "../../lib/api";
 import { useT } from "../../lib/i18n";
 import type { TranslationKey } from "../../lib/i18n";
@@ -11,8 +17,10 @@ import { runKindLabel, runTargetText, statusLabel, statusTone } from "../../lib/
 import { buildLogLines, formatLogDate } from "../../lib/activityLog";
 import type { LogLine, ResolveName } from "../../lib/activityLog";
 import { useProgress } from "../../lib/progress";
+import type { ProgressMap } from "../../lib/progress";
 import { useVisibilityGate } from "../../lib/useVisibilityGate";
 import { loadErrorMessage } from "../../lib/errors";
+import { useConfirm } from "../../lib/useConfirm";
 import { Badge } from "../Badge";
 import { CheckDraw } from "../CheckDraw";
 import { colorFor, glyphFor, glyphLabelKey } from "../ActivityLog";
@@ -59,9 +67,11 @@ import { BottomSheet } from "./BottomSheet";
 //   - restore entry: the desktop restore surface's own label
 //     ("snapshots.restore"), secondary and tonal, never accent, because a
 //     restore is a decision rather than the sheet's primary action. The
-//     guided restore flow is not wired here; this entry only reveals the
-//     snapshot file tree, the surface the desktop restore flow starts from, and
-//     adds no deep link into the wizard.
+//     guided restore flow is not wired here; the entry restores the browse
+//     tree's selection in place (the desktop surfaces' files.restoreConfirm
+//     gate, restoreContainerFiles / restoreFileSetFiles) and with nothing
+//     selected opens the tree — the selection is the path's input. No deep
+//     link into the wizard.
 //
 // Domain honesty; what each run kind gets:
 //   - browse/restore entry: container + files domains only (the two domains
@@ -216,15 +226,27 @@ function LiveRunSection({ run, progressKey }: { run: Run; progressKey: string | 
   }, []);
 
   const resolveName = makeResolver(t);
+  // The map is sliced to THIS run's single key before the builder sees it.
+  // buildLiveLines emits one line per active key in the map it is handed, so
+  // handing over the whole shared map made the sheet of one run list every
+  // other run's live lines under its title: during a Backup Everything pass,
+  // the "Backup · plex" sheet carried the VM, flash and folder lines too
+  // (maintainer #244 round 3, bug B2). The runs array was already scoped to
+  // the one record, so history lines were never affected; only the map was.
+  // The everything parent streams no key of its own (progressKeyFor returns
+  // null), so its slice is the empty map and its live section shows the
+  // progress bar alone.
+  const entry = progressKey != null ? progressMap[progressKey] : undefined;
+  const ownMap: ProgressMap = entry && progressKey != null ? { [progressKey]: entry } : {};
   // Computed per render rather than memoized: the input is one run (the
   // builder is linear in runs), and the live tick re-renders this section
   // every second anyway. An idle "next up" line is dashboard-log furniture;
   // inside a specific run's detail it would read as run content; the
   // `!l.idle` filter is also what keeps the empty-progress edge (no SSE entry
   // yet) from rendering the activity-log's idle-empty line in the sheet.
-  const lines = buildLogLines([run], progressMap, [], resolveName, now, now).filter((l) => !l.idle);
+  const lines = buildLogLines([run], ownMap, [], resolveName, now, now).filter((l) => !l.idle);
 
-  const prog = progressKey ? progressMap[progressKey] : undefined;
+  const prog = entry;
   return (
     <>
       {/* The inline variant: the default ProgressBar pins
@@ -254,10 +276,10 @@ function HistoryLogSection({ run }: { run: Run }) {
 // ---------------------------------------------------------------------------
 // Tonal touch row (>=44px); the sheet's action-row shape, shared by the
 // footer's verify/browse rows and the body's restore entry. Hand-rolled rather
-// than Button because the two browse-section controls are disclosures and need
-// aria-expanded/aria-controls, which the Button engine does not pass through;
-// the classes are the Button "subtle"/"neutral" tone tokens (bg-carbon-surface2
-// / surface3, rounded-control) so the rows read as the same engine language.
+// than Button because the browse disclosure row needs aria-expanded
+// /aria-controls, which the Button engine does not pass through; the classes
+// are the Button "subtle"/"neutral" tone tokens (bg-carbon-surface2 /
+// surface3, rounded-control) so the rows read as the same engine language.
 // Never accent: restore and browse are secondary actions, and the accent
 // belongs to the one primary action on a surface. Each row
 // still takes its position in the sheet's hue rotation (.glim-hue): the
@@ -368,13 +390,29 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
   // --- verify row (checkDomain + inline result, IntegrityCard's vocabulary) -
   const [verifyState, setVerifyState] = useState<"idle" | "busy" | "ok" | "fail">("idle");
   const [verifyError, setVerifyError] = useState<string | null>(null);
+  // A check that resolves after the sheet closed must not write its outcome
+  // onto whatever run the host shows next: "open a VM run, see the container
+  // repo's red failure line" (maintainer #244 round 3, bug B3). The refs are
+  // runVerify's shape of the browse effect's `let cancelled` above: a ref,
+  // because runVerify is a callback rather than an effect with a cleanup.
+  // verifyCancelledRef is flipped by the close/run-swap effects below and
+  // re-checked after every await, before any setState. verifyInFlightRef is
+  // the busy guard the old state reset used to swallow: the reset effect
+  // puts verifyState back to "idle" on close, so the `verifyState === "busy"`
+  // check alone let a second check start beside the first after a
+  // close-and-reopen mid-check.
+  const verifyCancelledRef = useRef(false);
+  const verifyInFlightRef = useRef(false);
 
   async function runVerify() {
-    if (!verifyDomain || verifyState === "busy") return;
+    if (!verifyDomain || verifyInFlightRef.current) return;
+    verifyInFlightRef.current = true;
+    verifyCancelledRef.current = false;
     setVerifyState("busy");
     setVerifyError(null);
     try {
       const res = await checkDomain(verifyDomain);
+      if (verifyCancelledRef.current) return;
       if (res.ok) {
         setVerifyState("ok");
       } else {
@@ -382,8 +420,61 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
         setVerifyError(res.error ?? t("verify.failed"));
       }
     } catch (err) {
+      if (verifyCancelledRef.current) return;
       setVerifyState("fail");
       setVerifyError(err instanceof Error ? err.message : t("verify.failed"));
+    } finally {
+      verifyInFlightRef.current = false;
+    }
+  }
+
+  // --- restore row (the selection the tree collects, restored in place) -----
+  // The sheet's own restore path: the SnapshotFileTree selection restored to
+  // the original locations, behind the same confirm gate the desktop restore
+  // surfaces answer (Files.tsx / RestorePanel.tsx, files.restoreConfirm).
+  // Round 1 shipped the row as a second toggle of the browse disclosure, so
+  // two adjacent buttons promised a restore while one disclosure answered
+  // for both, and pressing "Restore" with the tree open CLOSED it
+  // (maintainer #244 round 3, bug B6). Now the row restores the selection,
+  // and with nothing selected it only ever OPENS the tree — the selection is
+  // this path's input; it never closes it. The same cancel/in-flight ref
+  // pair as the verify row above, for the identical reason: an ack landing
+  // after a close must not paint the next run's sheet.
+  const [restoring, setRestoring] = useState(false);
+  const [restoreResult, setRestoreResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const restoreCancelledRef = useRef(false);
+  const restoreInFlightRef = useRef(false);
+  const { confirm, confirmDialog } = useConfirm();
+
+  async function restoreSelection() {
+    if (restoring || restoreInFlightRef.current) return;
+    if (selected.size === 0) {
+      setBrowseOpen(true);
+      return;
+    }
+    if (!(await confirm(t("files.restoreConfirm")))) return;
+    restoreInFlightRef.current = true;
+    restoreCancelledRef.current = false;
+    setRestoring(true);
+    setRestoreResult(null);
+    try {
+      const paths = [...selected];
+      const res =
+        run.domain === "container"
+          ? await restoreContainerFiles(run.target, run.snapshotId, paths, "", true)
+          : await restoreFileSetFiles(run.targetId, run.snapshotId, paths, "", true);
+      if (restoreCancelledRef.current) return;
+      if (res.ok) {
+        setRestoreResult({ ok: true, text: t("restore.restoredTo").replace("{path}", res.target ?? "") });
+      } else {
+        setRestoreResult({ ok: false, text: loadErrorMessage(res, t("files.loadFailed")) });
+      }
+    } catch (err) {
+      if (restoreCancelledRef.current) return;
+      setRestoreResult({ ok: false, text: err instanceof Error ? err.message : t("files.loadFailed") });
+    } finally {
+      restoreInFlightRef.current = false;
+      if (!restoreCancelledRef.current) setRestoring(false);
     }
   }
 
@@ -415,7 +506,9 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
   // Everything the sheet holds is per-open-session state; reset on close so a
   // consumer reusing the same mount for a different run starts clean; the
   // check gate included: a witnessed animation belongs to the open session
-  // that saw the transition, never to the next one.
+  // that saw the transition, never to the next one. The cancel refs flip
+  // here too: in-flight verify/restore writes are dropped, not delivered
+  // into the reset (freshly cleaned) state.
   useEffect(() => {
     if (open) return;
     setBrowseOpen(false);
@@ -427,7 +520,19 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
     setVerifyState("idle");
     setVerifyError(null);
     setFreshOk(false);
+    setRestoreResult(null);
+    verifyCancelledRef.current = true;
+    restoreCancelledRef.current = true;
   }, [open]);
+
+  // A run swap by the host (the single-mounted-sheet contract) cancels the
+  // same writes a close does: the outcome must never surface under the next
+  // run's title. The refs flip on the run's identity primitives, so a parent
+  // refetch that re-creates the Run object does not cancel anything.
+  useEffect(() => {
+    verifyCancelledRef.current = true;
+    restoreCancelledRef.current = true;
+  }, [run.id]);
 
   if (!open) return null;
 
@@ -448,9 +553,16 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
   const volumeText = hasSnapshot ? humanBytes(run.bytes) : "—";
   const volumeMissing = !hasSnapshot;
 
+  // No horizontal padding on either slot wrapper (footer below, body in the
+  // JSX): the BottomSheet slots already inset-clamp every side to
+  // max(1rem, safe-area), so a wrapper px-4 doubled the edge to 32px — 16px
+  // past every other sheet surface, worse in landscape where the clamp has
+  // widened to the cutout (maintainer #244 round 3, bug B11). The inner
+  // rounded cards keep their own px-4: they inset from the slot, not from
+  // the screen.
   const footerContent =
     browseSupported || verifyDomain ? (
-      <div className="flex flex-col gap-2 px-4 py-4">
+      <div className="flex flex-col gap-2 py-4">
         <div className={browseSupported && verifyDomain ? "grid grid-cols-2 gap-2" : "flex"}>
           {browseSupported && (
             <SheetActionRow
@@ -500,7 +612,7 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
       title={`${runKindLabel(t, run.kind)} · ${runTargetText(t, run)}`}
       footer={footerContent}
     >
-      <div className="flex flex-col gap-4 px-4 py-4">
+      <div className="flex flex-col gap-4 py-4">
         {/* Status headline: the shared status chip + completion time. The
             drawn check appears only on a fresh running→success transition
             observed while open (see the gate above). */}
@@ -581,8 +693,8 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
 
         {/* Browse section; the SnapshotFileTree mount (the Recovery.tsx /
             Files.tsx precedent: purely presentational tree, the parent
-            owns the fetch). Revealed by either the footer browse row or the
-            restore entry below. */}
+            owns the fetch). Revealed by the footer browse disclosure, or
+            opened by the restore entry below when it needs a selection. */}
         {browseSupported && browseOpen && (
           <div id={browseId}>
             <SnapshotFileTree
@@ -600,19 +712,37 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
 
         {/* Restore entry; in the scroll body, above the footer rows, so it
             sits away from the thumb's default path: a restore is a decision.
-            It reveals the same snapshot file surface the desktop restore flow
-            starts from, and adds no deep link into the guided restore
-            flow. */}
+            The row restores the tree's selection in place behind the desktop
+            confirm gate (restoreSelection above); it carries no
+            aria-expanded/aria-controls — the footer's Browse & restore row
+            is the section's one disclosure owner, and a second control
+            answering "expanded" about a different action read as a
+            duplicate disclosure to a screen reader. */}
         {browseSupported && (
           <SheetActionRow
             label={t("snapshots.restore")}
-            onClick={() => setBrowseOpen((o) => !o)}
-            expanded={browseOpen}
-            controlsId={browseId}
+            onClick={() => void restoreSelection()}
+            disabled={restoring}
             tone="neutral"
             hueIndex={2}
           />
         )}
+        {/* The restore's own result, adjacent to its control; the same
+            shape as the verify result below the footer rows. The restored
+            target is the server's resolved path from the ack. */}
+        {restoreResult != null && (
+          <p
+            className={`text-xs leading-relaxed wrap-break-word ${
+              restoreResult.ok ? "text-statusOk" : "text-statusFail"
+            }`}
+          >
+            {restoreResult.text}
+          </p>
+        )}
+        {/* The restore confirm renders through its own portal; nested here
+            so the sheet's JSX owns its lifecycle (the sheet-stack keyboard
+            contract makes a confirm over a sheet safe). */}
+        {confirmDialog}
       </div>
     </BottomSheet>
   );

@@ -2497,20 +2497,26 @@ function NextRunCard({
 
 // ---------------------------------------------------------------------------
 // Phone thumb-zone trigger; the surface's one solid-accent control, and the
-// owner of the everything pass's fire-and-watch cycle. Mounted only below
-// 48rem (the page's !isDesktop gate): the progress subscription behind
-// useBackupWatch re-renders its subscriber on every SSE frame, and a desktop
-// session has no control that needs this watch (desktop backup buttons own
-// their own watches); so the desktop page must not mount it at all, and the
-// desktop page stops re-rendering per progress frame. Phone behavior is
-// unchanged from when the watch lived on the page component: same watch args,
-// confirm-first press, deep-link into the run sheet via the page's latch, and
-// terminal toasts.
+// owner of the everything pass's fire-and-watch cycle. Mounted at EVERY
+// width: unmounting it at 48rem killed the live watch the moment a phone
+// rotated to a landscape at or above the breakpoint (iPhone 15 is 852px,
+// Pixel 8 is 892px), and rotating back mounted a fresh hook in the idle
+// phase — the bar read ready while the pass was still running on the
+// server, with no sheet, no progress and no toast (maintainer #244 round 3,
+// bug B4). The desktop cost is bounded by the child itself: the bar is
+// md:hidden (painted below the breakpoint only), the confirm dialog exists
+// only while a confirm is pending, and what remains mounted is one idle
+// progress subscription in a leaf component — not a page re-render per SSE
+// frame. Phone behavior is unchanged from when the watch lived on the page
+// component: same watch args, confirm-first press, deep-link into the run
+// sheet via the page's latch, and terminal toasts (now at either width — a
+// pass fired on a phone also reports its outcome after the rotation).
 // ---------------------------------------------------------------------------
 function PhoneEverythingTrigger({
   t,
   onWatchRun,
   onArmFire,
+  onWatchStopped,
 }: {
   t: ReturnType<typeof useT>["t"];
   /** Called on every watch poll with the correlated run; the page's
@@ -2519,6 +2525,11 @@ function PhoneEverythingTrigger({
   /** Called the moment the user confirms a fire; arms the page's deep-link
    *  latch so the correlation of this pass may steal the sheet. */
   onArmFire: () => void;
+  /** Called when the fire-and-watch chain ends (the pending phase clearing,
+   *  by terminal outcome or timeout). The page releases the watch's display
+   *  ownership at that moment (watchOwnedRun): only a live chain's records
+   *  are fresher than the polled list. */
+  onWatchStopped: () => void;
 }) {
   // Thumb-zone trigger watch (BackupButton's semantics verbatim). The
   // everything pass is async on the server, so the press only starts it
@@ -2563,7 +2574,12 @@ function PhoneEverythingTrigger({
   const seenPhase = useRef(state.phase);
   useEffect(() => {
     if (state.phase === seenPhase.current) return;
+    const was = seenPhase.current;
     seenPhase.current = state.phase;
+    // Leaving "pending" is the chain's end (terminal outcome, timeout, or a
+    // reset). The page hears it before the toast arms: ownership and
+    // outcome travel together.
+    if (was === "pending" && state.phase !== "pending") onWatchStopped();
     if (state.phase === "success") {
       push(
         state.snapshotId ? `${t("common.done")} · ${state.snapshotId.slice(0, 8)}` : t("common.done"),
@@ -2573,7 +2589,7 @@ function PhoneEverythingTrigger({
       push(state.message, "fail");
       setShake((n) => n + 1);
     }
-  }, [state, push, t]);
+  }, [state, push, t, onWatchStopped]);
 
   // The question stands between the press and the POST; useConfirm answers it
   // in a sheet below the breakpoint and in the card above it. confirmKey makes
@@ -2654,6 +2670,12 @@ export function Dashboard() {
   }, []);
   const openRun = (run: Run) => {
     sheetDismissed.current = false;
+    // A fresh open also releases the watch's display ownership
+    // (watchOwnedRun, declared with displayedRun below): the run the user
+    // just opened is the polled list's to refresh until a live watch tick
+    // re-claims it, never the frozen record of a watch that has since
+    // stopped speaking about it (maintainer #244 round 3, bug B5).
+    watchOwnedRun.current = null;
     setSheetRun(run);
     setSheetOpen(true);
   };
@@ -2750,6 +2772,18 @@ export function Dashboard() {
       ? sheetRun
       : runs.find((r) => r.id === sheetRun.id) ?? sheetRun
     : null;
+  // The watch chain's end, reported by the trigger (the pending phase
+  // clearing): ownership is released so displayedRun falls back to the
+  // polled list again. A chain that died without delivering a terminal
+  // record — the watch's own timeout, a stranded trigger — kept the sheet
+  // frozen on its last watch record ("Running") while the 10s list already
+  // showed the truth: the row behind the sheet flipping to Success under a
+  // sheet that never follows (maintainer #244 round 3, bug B5). openRun
+  // clears it the same way. Idempotent by construction: a later tick simply
+  // re-claims ownership.
+  const watchStopped = useCallback(() => {
+    watchOwnedRun.current = null;
+  }, []);
 
   // The scheduler's own "what fires next" list, for the summary tier's Next
   // backup cell ([545], issue #187). Polled on the same 30s cadence
@@ -3399,9 +3433,16 @@ export function Dashboard() {
       )}
 
       {/* Thumb-zone trigger (the watch + confirm + toasts live in the child):
-          mounted only below 48rem so a desktop session never subscribes to
-          the progress stream; the child's header note carries the why. */}
-      {!isDesktop && <PhoneEverythingTrigger t={t} onWatchRun={handleWatchRun} onArmFire={armFire} />}
+          mounted at every width — unmounting it at the breakpoint stranded a
+          running pass on rotation (the child's header note carries the
+          why). It paints nothing on desktop: the bar is md:hidden and the
+          dialog exists only while a confirm is pending. */}
+      <PhoneEverythingTrigger
+        t={t}
+        onWatchRun={handleWatchRun}
+        onArmFire={armFire}
+        onWatchStopped={watchStopped}
+      />
     </div>
   );
 }

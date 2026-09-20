@@ -33,9 +33,10 @@ import type { Run } from "../../lib/api";
 
 // The two file-listing endpoints are replaced with manually-resolved
 // deferreds so a test can hold a listing in flight and resolve it late;
-// the late-response scenario itself. Every other export (types, ApiError,
-// formatters) stays the real module. checkDomain is never pressed by these
-// tests, so it keeps its real implementation.
+// the late-response scenario itself. The verify and restore endpoints get
+// the same treatment (the verify-write guard and the restore-path tests
+// hold requests in flight across close/rerender). Every other export
+// (types, ApiError, formatters) stays the real module.
 const listingControl = vi.hoisted(() => {
   const pending: { resolve: (value: unknown) => void }[] = [];
   return {
@@ -52,12 +53,32 @@ const listingControl = vi.hoisted(() => {
   };
 });
 
+// Deferreds for the check/restore POSTs; tagged so a test with several in
+// flight can pick the right one.
+const apiControl = vi.hoisted(() => {
+  const pending: { resolve: (value: unknown) => void; kind: string }[] = [];
+  return {
+    pending,
+    deferred(kind: string) {
+      let resolve!: (value: unknown) => void;
+      const promise = new Promise((res) => {
+        resolve = res;
+      });
+      pending.push({ resolve, kind });
+      return promise;
+    },
+  };
+});
+
 vi.mock("../../lib/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../lib/api")>();
   return {
     ...actual,
     listSnapshotFiles: () => listingControl.deferred(),
     listSnapshotFilesFileSet: () => listingControl.deferred(),
+    checkDomain: () => apiControl.deferred("check"),
+    restoreContainerFiles: () => apiControl.deferred("restore-container"),
+    restoreFileSetFiles: () => apiControl.deferred("restore-files"),
   };
 });
 
@@ -115,6 +136,7 @@ class FakeEventSource {
 beforeEach(() => {
   instances.length = 0;
   listingControl.pending.length = 0;
+  apiControl.pending.length = 0;
   // @ts-expect-error -- test-only global stub; jsdom has no EventSource
   global.EventSource = FakeEventSource;
 });
@@ -535,5 +557,153 @@ describe("RunDetailSheet", () => {
     // ...so the reopen shows the completed run without the animation.
     rerender(sheet(makeRun({ status: "success" }), true));
     expect(draws()).toBe(0);
+  });
+
+  // --- the live tail is scoped to THIS run's progress key (bug B2, round 3)
+  // buildLiveLines emits one line per active key in the map it is handed, so
+  // the whole shared map used to give a single run's sheet every other
+  // pass member's lines under its title.
+
+  it("during a multi-run pass the sheet's live tail carries only this run's key", () => {
+    vi.useFakeTimers();
+    renderSheet(makeRun({ status: "running", finishedAt: null }));
+    // A Backup Everything pass: the container child's frames share the SSE
+    // stream with the VM and flash children. Only the sheet's own key may
+    // reach the tail.
+    act(() => {
+      instances[0].emit({ key: "container:plex", phase: "backup", percent: 10, active: true, startedAt: DONE_RUN.startedAt });
+      instances[0].emit({ key: "vm:win11", phase: "backup", percent: 30, active: true, startedAt: DONE_RUN.startedAt });
+      instances[0].emit({ key: "flash", phase: "backup", percent: 40, active: true, startedAt: DONE_RUN.startedAt });
+    });
+    // This run's own line renders (its key survived the slice)...
+    expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("10");
+    // ...and no other pass member's line does.
+    expect(screen.queryByText(/win11/i)).toBeNull();
+    expect(screen.queryByText(/flash/i)).toBeNull();
+  });
+
+  // --- the verify write guard (bug B3, round 3) ------------------------------
+
+  it("verify: the row disables for the flight and re-arms after the outcome", async () => {
+    renderSheet(DONE_RUN);
+    fireEvent.click(screen.getByRole("button", { name: en["integrity.verify"] }));
+    await act(async () => {});
+    // Mid-flight: the checking copy, and the row disabled so a second check
+    // cannot start beside the first.
+    const checking = screen.getByRole("button", { name: en["integrity.checking"] }) as HTMLButtonElement;
+    expect(checking.disabled).toBe(true);
+    const check = apiControl.pending.find((e) => e.kind === "check");
+    expect(check).toBeDefined();
+    await act(async () => {
+      check!.resolve({ ok: true });
+    });
+    const reArmed = screen.getByRole("button", { name: en["integrity.verify"] }) as HTMLButtonElement;
+    expect(reArmed.disabled).toBe(false);
+  });
+
+  it("a check that lands after the sheet closed never writes onto the next run", async () => {
+    const containerRun = DONE_RUN;
+    const vmRun = makeRun({
+      domain: "vm",
+      target: "win11",
+      targetId: "a1b2c3d4e5f60718293a4b5c6d7e8f90",
+    });
+    const shape = (run: Run, open: boolean) => (
+      <I18nProvider>
+        <RunDetailSheet run={run} open={open} onClose={() => {}} />
+      </I18nProvider>
+    );
+    const { rerender } = render(shape(containerRun, true));
+    fireEvent.click(screen.getByRole("button", { name: en["integrity.verify"] }));
+    await act(async () => {});
+    expect(apiControl.pending.find((e) => e.kind === "check")).toBeDefined();
+
+    // The user closes the sheet mid-check; the host then shows a VM run.
+    // The pending check's failure must be dropped, not painted there.
+    rerender(shape(containerRun, false));
+    rerender(shape(vmRun, true));
+    const check = apiControl.pending.find((e) => e.kind === "check")!;
+    await act(async () => {
+      check.resolve({ ok: false, error: "restic: repository is locked" });
+    });
+    expect(screen.queryByText("restic: repository is locked")).toBeNull();
+    expect(screen.queryByText(en["verify.failed"])).toBeNull();
+  });
+
+  // --- the restore row is a real restore path (bug B6, round 3) --------------
+
+  it("restore: confirm gate, restore API called, the tree stays open, no disclosure semantics", async () => {
+    renderSheet(DONE_RUN);
+    const restore = screen.getByRole("button", { name: en["snapshots.restore"] });
+    // The footer's Browse & restore row is the section's one disclosure
+    // owner; the restore row answers nothing about expansion.
+    expect(restore.getAttribute("aria-expanded")).toBeNull();
+    expect(restore.getAttribute("aria-controls")).toBeNull();
+
+    // Give the tree a selection.
+    fireEvent.click(screen.getByRole("button", { name: en["recovery.foreignStepBrowse"] }));
+    await act(async () => {});
+    const listing = listingControl.pending.shift()!;
+    await act(async () => {
+      listing.resolve({ ok: true, files: [{ path: "/config/plex.ini", type: "file", size: 12 }] });
+    });
+    fireEvent.click(screen.getByRole("checkbox", { name: "/config/plex.ini" }));
+
+    // Press Restore: the confirm gate asks before anything fires.
+    fireEvent.click(screen.getByRole("button", { name: en["snapshots.restore"] }));
+    await act(async () => {});
+    const confirmButton = screen
+      .getAllByRole("button", { name: en["common.confirm"] })
+      .find((b) => b.closest("[role='dialog']") !== null);
+    expect(confirmButton).toBeDefined();
+
+    // The tree is NOT toggled by the restore press (the round-3 bug: it
+    // used to close on press).
+    expect(screen.getByRole("checkbox", { name: "/config/plex.ini" })).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.click(confirmButton!);
+    });
+    // The container restore endpoint got the selection, in place.
+    const post = apiControl.pending.find((e) => e.kind === "restore-container");
+    expect(post).toBeDefined();
+    await act(async () => {
+      post!.resolve({ ok: true, target: "/mnt/user/appdata/plex" });
+    });
+    // The ack's resolved target is the outcome line, still over an open tree.
+    expect(screen.getByText("Restored to /mnt/user/appdata/plex")).toBeTruthy();
+    expect(screen.getByRole("checkbox", { name: "/config/plex.ini" })).toBeTruthy();
+  });
+
+  it("restore with nothing selected only opens the tree, never fires the API and never closes it", async () => {
+    renderSheet(DONE_RUN);
+    fireEvent.click(screen.getByRole("button", { name: en["snapshots.restore"] }));
+    // The tree opened (the selection is the path's input)...
+    expect(screen.getByRole("textbox")).toBeTruthy();
+    expect(apiControl.pending.length).toBe(0);
+    // ...and pressing again with still nothing selected leaves it open,
+    // with no confirm and no request.
+    fireEvent.click(screen.getByRole("button", { name: en["snapshots.restore"] }));
+    expect(screen.getByRole("textbox")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: en["common.confirm"] })).toBeNull();
+    expect(apiControl.pending.length).toBe(0);
+  });
+
+  // --- the slot wrappers own no horizontal padding (bug B11, round 3) --------
+
+  it("body and footer slots carry no px of their own; the BottomSheet clamp owns the insets", () => {
+    renderSheet(DONE_RUN);
+    // The body slot: BottomSheet's scroll container.
+    const bodySlot = document.body.querySelector("div.overflow-y-auto") as HTMLElement;
+    expect(bodySlot.className).not.toContain("px-4");
+    // The footer slot: the chrome-surface wrapper around the footer rows.
+    const footerSlot = screen
+      .getByRole("button", { name: en["integrity.verify"] })
+      .closest("div.bg-carbon-sidebar") as HTMLElement;
+    expect(footerSlot.className).not.toContain("px-4");
+    // The inner rounded cards keep their own px-4: they inset from the slot,
+    // not from the screen.
+    const logCard = document.body.querySelector("div.font-mono.text-xs") as HTMLElement;
+    expect(logCard.className).toContain("px-4");
   });
 });
