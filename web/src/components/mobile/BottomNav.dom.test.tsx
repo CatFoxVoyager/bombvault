@@ -117,11 +117,16 @@ describe("BottomNav More trigger", () => {
     const onMoreRoute = within(bar()).getByRole("button", { name: "More" });
     expect(onMoreRoute.className).toContain("bg-accent");
     expect(onMoreRoute.className).toContain("glim-active");
+    // The state is announced as well as painted, so it survives a screen
+    // reader and forced colours; the destination slots get the same from
+    // NavLink.
+    expect(onMoreRoute.getAttribute("aria-current")).toBe("true");
     cleanup();
     draw("/dashboard");
     const onBarRoute = within(bar()).getByRole("button", { name: "More" });
     expect(onBarRoute.className).not.toContain("bg-accent");
     expect(onBarRoute.className).not.toContain("glim-active");
+    expect(onBarRoute.getAttribute("aria-current")).toBeNull();
   });
 
   it("hands the sheet a rotation position that continues the bar's, not a restart", () => {

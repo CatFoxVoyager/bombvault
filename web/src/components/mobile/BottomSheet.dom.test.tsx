@@ -21,17 +21,15 @@ import { en, I18nProvider } from "../../lib/i18n";
 //       ConfirmDialog autoFocus parity) and restored to the trigger on close
 //
 // The second describe asserts the additive capabilities the same way, with
-// one documented exception to the no-class-snapshot rule: the
-// fullHeight / footer / tone / inset-clamped-padding / key-height-close
-// contracts
-// are styling contracts, and jsdom computes no geometry, so the observable
-// form of "the panel is h-dvh" is the class token. These tests assert the
-// presence of the load-bearing tokens (has-class, never a whole className
-// string); the same targeted-token discipline, not a snapshot.
+// one exception to the no-class-snapshot rule: fullHeight, the footer, the
+// inset-clamped padding and the key-height close are styling contracts, and
+// jsdom computes no geometry, so the observable form of "the panel is h-dvh"
+// is the class token. These tests assert the presence of a load-bearing
+// token, never a whole className string.
 //
-// Deliberately self-sufficient: BottomSheet touches no matchMedia /
-// visualViewport API, so this suite passes whether or not the vitest
-// setupFiles matchMedia stub is installed; nothing here relies on it.
+// The suite is self-sufficient: BottomSheet touches no matchMedia or
+// visualViewport API, so it passes whether or not the vitest setupFiles
+// matchMedia stub is installed.
 
 function SheetHarness({
   onClose,
@@ -155,13 +153,70 @@ describe("BottomSheet", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(document.activeElement).toBe(trigger); // restored
   });
+
+  it("leaves focus alone when another surface has already taken it", () => {
+    render(
+      <I18nProvider>
+        <button>trigger</button>
+        <button>the surface that took over</button>
+        <BottomSheet open={false} onClose={vi.fn()} title={en["nav.more"]}>
+          <button>body one</button>
+        </BottomSheet>
+      </I18nProvider>,
+    );
+    const trigger = screen.getByRole("button", { name: "trigger" });
+    trigger.focus();
+    const { rerender } = render(
+      <I18nProvider>
+        <button>trigger</button>
+        <BottomSheet open onClose={vi.fn()} title={en["nav.more"]}>
+          <button>body one</button>
+        </BottomSheet>
+      </I18nProvider>,
+    );
+    // A replacement modal focuses its own control during the commit, which is
+    // what a width flip mid-confirmation does. Unmounting the sheet must not
+    // drag focus back to the trigger behind it.
+    const successor = screen.getByRole("button", { name: "the surface that took over" });
+    successor.focus();
+    rerender(
+      <I18nProvider>
+        <button>trigger</button>
+      </I18nProvider>,
+    );
+    expect(document.activeElement).toBe(successor);
+  });
+
+  it("answers Tab in the newest sheet only, so two open sheets do not fight", () => {
+    render(
+      <I18nProvider>
+        <BottomSheet open onClose={vi.fn()} title={en["nav.more"]}>
+          <button>under one</button>
+          <button>under two</button>
+        </BottomSheet>
+        <BottomSheet open onClose={vi.fn()} title={en["run.detailTitle"] ?? "Run"}>
+          <button>over one</button>
+          <button>over two</button>
+        </BottomSheet>
+      </I18nProvider>,
+    );
+    const overOne = screen.getByRole("button", { name: "over one" });
+    overOne.focus();
+    // Focus sits inside the top sheet and not on its last control, so the trap
+    // has nothing to do and the browser's own Tab has to go through. A second
+    // live listener would cancel it and pull focus into the sheet underneath,
+    // which is what pins a keyboard user to one control.
+    const wentThrough = fireEvent.keyDown(document, { key: "Tab" });
+    expect(wentThrough).toBe(true);
+    expect(document.activeElement).toBe(overOne);
+  });
 });
 
 // ---------------------------------------------------------------------------
 // Extension contracts. PropsHarness forwards the additive props onto an
 // already-open sheet; the capabilities are consumed with the sheet open,
-// exactly as RunDetailSheet (fullHeight + footer) and ConfirmSheet (tone)
-// mount them.
+// exactly as RunDetailSheet (fullHeight and footer) and ConfirmSheet mount
+// them.
 // ---------------------------------------------------------------------------
 function PropsHarness({ sheetProps }: { sheetProps: Partial<BottomSheetProps> }) {
   return (
@@ -236,25 +291,13 @@ describe("BottomSheet extensions", () => {
     expect(close.className).toContain("glim-btn");
   });
 
-  it("keeps the carbon-surface panel by default and tints it only for a tone", () => {
-    const { unmount } = render(<PropsHarness sheetProps={{}} />);
-    expect(screen.getByRole("dialog").className).toContain("bg-carbon-surface");
-    expect(screen.getByRole("dialog").className).not.toContain("statusFail");
-    unmount();
-
-    // The fail-tone confirm sheet surface.
-    const fail = render(<PropsHarness sheetProps={{ tone: "fail" }} />);
-    let panel = screen.getByRole("dialog");
-    expect(panel.className).toContain("bg-statusFailBg");
-    expect(panel.className).toContain("border-statusFailBorder");
-    fail.unmount();
-
-    // The warn tone mirrors ConfirmDialog's non-destructive branch.
-    const warn = render(<PropsHarness sheetProps={{ tone: "warn" }} />);
-    panel = screen.getByRole("dialog");
-    expect(panel.className).toContain("bg-statusWarnBg");
-    expect(panel.className).toContain("border-statusWarnBorder");
-    warn.unmount();
+  it("keeps the one carbon-surface panel, never a status tint or a hairline", () => {
+    render(<PropsHarness sheetProps={{}} />);
+    const panel = screen.getByRole("dialog");
+    expect(panel.className).toContain("bg-carbon-surface");
+    expect(panel.className).not.toContain("statusFail");
+    expect(panel.className).not.toContain("statusWarn");
+    expect(panel.className).not.toMatch(/\bborder\b/);
   });
 
   it("renders an optional footer after the scroll body, chrome-styled and safe-area padded", () => {

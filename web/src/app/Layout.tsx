@@ -284,9 +284,14 @@ export function Layout() {
     // scroller is the surface whose content would slide beneath it. max()
     // with the 1rem gutter floor renders identically wherever the inset is
     // 0px, so plain phones and desktops are unchanged.
+    //
+    // scroll-padding-bottom keeps the sticky action bar out of the resting
+    // place a keyboard scroll lands on: without it the browser parks a
+    // focused control at the bottom edge, where an opaque bar is painted over
+    // it (WCAG 2.2, focus not obscured).
     <main
       id="bv-main"
-      className="flex-1 flex flex-col overflow-y-auto p-4 pb-0 pl-[max(1rem,var(--safe-area-left))] pr-[max(1rem,var(--safe-area-right))] min-w-0"
+      className="flex-1 flex flex-col overflow-y-auto p-4 pb-0 scroll-pb-[var(--sticky-action-h)] pl-[max(1rem,var(--safe-area-left))] pr-[max(1rem,var(--safe-area-right))] min-w-0"
     >
       <div key={location.pathname} className="glim-page-enter flex-1 flex flex-col">
         <Outlet />

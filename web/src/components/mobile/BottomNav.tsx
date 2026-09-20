@@ -22,7 +22,7 @@
 // Slots are never hand-typed: every destination slot is derived from the one
 // nav registry (lib/navModel.ts); same order, same settings gates. The
 // desktop rail keeps its own hand-written JSX (its render-order hue counter
-// and inline gates are the part the registry deliberately cannot own), so
+// and inline gates are the part the registry cannot own), so
 // the two listings are held equal by test rather than by construction:
 // Sidebar.navModel.dom.test.tsx fails the moment Sidebar and the registry
 // disagree about which destinations exist. The registry's `bar` members fill
@@ -119,9 +119,9 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
   const showLabel = !hidesLabel(labelMode);
   const reactive = labelMode === "reactive";
   // The More trigger reads as active while the current route lives on the
-  // More side of the registry (the non-bar destinations, Settings included)
-  //; the same "you can see where you are" contract the destination slots
-  // get from NavLink's isActive.
+  // More side of the registry (the non-bar destinations, Settings
+  // included), the same "you can see where you are" contract the
+  // destination slots get from NavLink's isActive.
   const moreActive =
     location.pathname === "/settings" || moreDestinations(settings).some((d) => d.to === location.pathname);
   // The More trigger's bubble: worded only in hiding modes, the same rule
@@ -199,6 +199,12 @@ export function BottomNav({ settings, authEnabled, scrollMainToTop }: BottomNavP
             {...moreTip.handlers}
             aria-haspopup="dialog"
             aria-expanded={moreOpen}
+            // The destination slots get "where am I" from NavLink's
+            // aria-current; this one is a disclosure rather than a link to the
+            // page, so it says "true" instead of "page". Without it the fill
+            // is the only signal, and a screen reader or forced-colors user
+            // has none.
+            aria-current={moreActive ? "true" : undefined}
             className={`${slotBase} rounded-control ${reactive && !showLabel ? "glim-reactive" : ""} glim-hue glim-hue-icon ${moreActive ? "bg-accent text-accentContrast glim-active" : "text-carbon-textMuted"}`}
             style={
               {

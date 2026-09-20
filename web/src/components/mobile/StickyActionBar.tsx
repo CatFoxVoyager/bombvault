@@ -18,15 +18,14 @@
 // Layout renders, is verified clean).
 //
 // Chrome mirrors the BottomNav precedent (BottomNav.tsx): sidebar surface,
-// padded below by max(0.75rem, var(--safe-area-bottom)) so the home-indicator
-// / gesture-bar inset never swallows the action row. Deliberately no separator
-// line of its own: the shell's one edge line lives on the BottomNav sitting
-// directly below, and a second rule on this bar read as a double border once
-// the page ends flush against the nav; the surface tone alone separates the
-// bar from the page it overlays. Deliberately no negative margins and no
-// fixed positioning; the bar spans the page column's own width inside the
-// scroller gutter (the phone's 16px `main` padding), the mobile shell's
-// convention.
+// padded below by max(0.75rem, var(--safe-area-bottom)). No separator line,
+// because surfaces in this app are told apart by shade. No negative margins
+// and no fixed positioning either; the bar spans the page column's own width
+// inside the scroller gutter (the phone's 16px `main` padding).
+//
+// The scroller keeps --sticky-action-h of scroll padding for this bar
+// (Layout.tsx), so a control the keyboard scrolls to does not come to rest
+// underneath it.
 // ---------------------------------------------------------------------------
 
 import type { ReactNode } from "react";

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { Badge } from "../Badge";
 import { Button } from "../Button";
@@ -51,23 +51,10 @@ export interface BottomSheetProps {
    *  no line), safe-area padded, never scrolled away; content padding is
    *  the consumer's. */
   footer?: ReactNode;
-  /** Panel surface. "default" (absent) is the carbon-surface sheet;
-   *  "fail"/"warn" tint the panel with the matching status tokens. Closed
-   *  union, ConfirmDialog's `tone`'s shape: a className pass-through would
-   *  pit two bg-* utilities against each other in stylesheet order
-   *  (Button.tsx's TONE_TABLE). */
-  tone?: "default" | "fail" | "warn";
   /** Optional id the panel's aria-describedby points at; the consumer owns
    *  element and id, the primitive only wires the reference. */
   describedBy?: string;
 }
-
-// Panel surface per `tone`; token utilities only, no raw hex; hairline only on toned (alert-card) surfaces.
-const TONE_PANEL_CLASS: Record<NonNullable<BottomSheetProps["tone"]>, string> = {
-  default: "bg-carbon-surface",
-  fail: "bg-statusFailBg border border-statusFailBorder",
-  warn: "bg-statusWarnBg border border-statusWarnBorder",
-};
 
 // The panel's focusables, DOM/tab order; verbatim useConfirm.tsx, generic so the body can grow controls.
 const FOCUSABLE_SELECTOR =
@@ -77,7 +64,13 @@ function focusableElements(root: HTMLElement): HTMLElement[] {
   return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
 }
 
-export function BottomSheet({ open, onClose, headerClose = true, title, children, fullHeight, footer, tone, describedBy }: BottomSheetProps) {
+// The open panels, newest last. Two sheets can be up at once (the More sheet
+// with the run sheet over it), and each listens on the document, so without a
+// top-of-stack check both would pull focus into their own panel on every Tab
+// and the keyboard would stop moving.
+const openPanels: RefObject<HTMLDivElement | null>[] = [];
+
+export function BottomSheet({ open, onClose, headerClose = true, title, children, fullHeight, footer, describedBy }: BottomSheetProps) {
   const { t } = useT();
   const titleId = useId();
   // panelRef roots the Tab trap; closeRef gets initial focus; triggerRef is restored on close (useConfirm.tsx's trio).
@@ -90,9 +83,9 @@ export function BottomSheet({ open, onClose, headerClose = true, title, children
 
   // Focus capture + initial focus-in + restore, in one effect. A controlled
   // component has no confirm()-style call to capture the trigger from, so the
-  // open transition is the entry point; deliberately no `autoFocus`: React
+  // open transition is the entry point. No `autoFocus` on any child: React
   // applies it during the commit, before this effect runs, so the captured
-  // "trigger" would be the sheet's own close button. The focus-in is
+  // "trigger" would be the sheet's own first control. The focus-in is
   // ConfirmDialog parity: focus starts inside the aria-modal surface.
   useEffect(() => {
     if (!open) return;
@@ -103,7 +96,18 @@ export function BottomSheet({ open, onClose, headerClose = true, title, children
     const trigger = triggerRef.current;
     return () => {
       triggerRef.current = null;
-      // A trigger that unmounted while the sheet was open cannot take focus back.
+      // Focus is only ours to give back while it still sits in this sheet or
+      // has fallen to the body. A width flip mid-confirmation swaps the sheet
+      // for the desktop card, which focuses its own Cancel during the commit;
+      // restoring the trigger there would pull focus out of the modal that
+      // just took over.
+      const active = document.activeElement;
+      const taken =
+        active instanceof HTMLElement &&
+        active !== document.body &&
+        panel !== null &&
+        !panel.contains(active);
+      if (taken) return;
       if (trigger && document.contains(trigger)) trigger.focus();
     };
   }, [open]);
@@ -113,7 +117,9 @@ export function BottomSheet({ open, onClose, headerClose = true, title, children
   // trap, lifted from useConfirm.tsx with card->panel and settle(false)->onClose().
   useEffect(() => {
     if (!open) return;
+    openPanels.push(panelRef);
     function onKeyDown(e: KeyboardEvent) {
+      if (openPanels[openPanels.length - 1] !== panelRef) return;
       if (e.key === "Escape") {
         e.preventDefault();
         onClose();
@@ -141,7 +147,11 @@ export function BottomSheet({ open, onClose, headerClose = true, title, children
       }
     }
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      const at = openPanels.lastIndexOf(panelRef);
+      if (at !== -1) openPanels.splice(at, 1);
+    };
   }, [open, onClose]);
 
   // Slide-up entrance under motion-safe: only (header note has the why).
@@ -189,7 +199,7 @@ export function BottomSheet({ open, onClose, headerClose = true, title, children
         aria-describedby={describedBy}
         className={`fixed inset-x-0 bottom-0 z-50 flex ${
           fullHeight ? "h-dvh" : "max-h-[85dvh]"
-        } flex-col rounded-t-card ${TONE_PANEL_CLASS[tone ?? "default"]} shadow-2xl motion-safe:transition-transform motion-safe:duration-[var(--motion-page-dur)] ${
+        } flex-col rounded-t-card bg-carbon-surface shadow-2xl motion-safe:transition-transform motion-safe:duration-[var(--motion-page-dur)] ${
           entered ? "translate-y-0" : "translate-y-full"
         }`}
       >

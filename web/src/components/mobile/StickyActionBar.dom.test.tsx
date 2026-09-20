@@ -5,9 +5,8 @@
 // "sticky works" is pinned as (a) the sticky/bottom-0 classes present and (b)
 // the fixed-positioning anti-pattern absent (the locked shell discipline),
 // plus the chrome contract it shares with the BottomNav precedent (sidebar
-// surface, safe-area bottom padding) and the one deliberate divergence (no
-// top hairline of its own; the nav directly below carries the shell's edge
-// line).
+// surface, safe-area bottom padding), including the absence of a top
+// hairline: surfaces in this app are told apart by shade.
 // ---------------------------------------------------------------------------
 
 import { render } from "@testing-library/react";
@@ -49,11 +48,8 @@ describe("StickyActionBar", () => {
     );
     const bar = container.firstElementChild as HTMLElement;
     expect(bar.className).toContain("bg-carbon-sidebar");
-    // Deliberately NO top hairline (the component header documents why): the
-    // shell's one edge line lives on the BottomNav sitting directly below,
-    // and a second rule here read as a double border once the page ends
-    // flush against the nav; the surface tone alone separates the bar from
-    // the page it overlays.
+    // No top hairline: surfaces in this app are told apart by shade, and the
+    // bar sits on the page it overlays.
     expect(bar.className).not.toContain("border-t");
     expect(bar.className).not.toContain("border-carbon-border");
     // Safe area: the BottomNav padding recipe, clamped to a 12px floor so a

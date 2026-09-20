@@ -152,6 +152,10 @@
   --safe-area-right: max(env(safe-area-inset-right), 0px);
   --safe-area-bottom: max(env(safe-area-inset-bottom), 0px);
   --safe-area-left: max(env(safe-area-inset-left), 0px);
+  /* What a sticky action bar covers at the bottom of the phone scroller: its
+     padding plus a key-stage control, rounded up. The scroller keeps this
+     much scroll padding so a focused control never rests underneath it. */
+  --sticky-action-h: calc(4.5rem + var(--safe-area-bottom));
 }
 
 /* The one raised surface, from GlimStone. Never nested: one elevation. */
@@ -405,7 +409,7 @@
   margin-inline-start: var(--btn-gap);
 }
 
-/* Coarse pointers reveal at REST. A tap fires before any reveal state can
+/* Coarse pointers reveal at rest. A tap fires before any reveal state can
    exist; hover is a desktop-only state, so on a coarse pointer reactive
    degenerated into permanent icon-only (on a touch device the recovery
    wizard's step-1 CTA rendered as an unlabeled check glyph). Under coarse
@@ -413,7 +417,7 @@
    reveal above keeps working unchanged on fine pointers.
 
    The ceiling is the reveal's own `--reactive-chars` contract; same formula,
-   same 24 fallback, deliberately not re-derived here (see that block's
+   same 24 fallback rather than a second derivation here (see that block's
    comment for why a fixed number clipped and crawled at both ends). No
    padding declaration, on purpose: the reveal restores none either, and the
    resting `padding: 0` stays load-bearing for the glyph's centering.
