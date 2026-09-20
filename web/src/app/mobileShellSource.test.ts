@@ -67,6 +67,7 @@ const BANNED_VIEWPORT_HEIGHTS = ["100vh", "min-h-screen", "h-screen"];
 // which is what makes a plain template literal safe here.)
 const EXPECTED_FOUC_SCRIPT = `    <script>
       (function () {
+        var THEME_COLOR = { dark: "#161616", light: "#f4f4f4" };
         try {
           var stored = localStorage.getItem("bv-theme");
           var resolved =
@@ -76,6 +77,9 @@ const EXPECTED_FOUC_SCRIPT = `    <script>
                 ? "dark"
                 : "light";
           document.documentElement.setAttribute("data-theme", resolved);
+          document
+            .querySelector('meta[name="theme-color"]')
+            ?.setAttribute("content", THEME_COLOR[resolved]);
         } catch (e) {
           document.documentElement.setAttribute("data-theme", "dark");
         }
@@ -88,6 +92,11 @@ const EXPECTED_FOUC_SCRIPT = `    <script>
 const FOUC_REGION = /<script>\n([\s\S]*?)<\/script>/;
 
 describe("safe-area custom properties exist and are env-paired", () => {
+  // Three sides, not four: --safe-area-top was removed in maintainer #244
+  // round 3 (bug B12) because nothing ever consumed it — the phone scroller
+  // is a flat p-4 and the fullHeight sheet's header starts at y=0. A dead
+  // token reads as a live contract; a future top consumer reintroduces the
+  // declaration beside its own padding, and this list, in the same change.
   const DEFINITIONS = [
     ...indexCss.matchAll(/--safe-area-[a-z]+:\s*max\(env\(safe-area-inset-/g),
   ];
@@ -99,10 +108,10 @@ describe("safe-area custom properties exist and are env-paired", () => {
         "The block was removed, renamed, or rewritten in a form this guard no longer " +
         "recognizes; safe areas are half of the viewport contract, so restore it or " +
         "update this guard with it."
-    ).toBeGreaterThanOrEqual(4);
+    ).toBeGreaterThanOrEqual(3);
   });
 
-  it.each(["top", "right", "bottom", "left"])(
+  it.each(["right", "bottom", "left"])(
     "defines --safe-area-%s as max(env(safe-area-inset-%s), 0px)",
     (side) => {
       // The 0px clamp is not decoration: env() can behave as invalid/unset in
@@ -224,27 +233,48 @@ describe("the FOUC script's bytes are guarded", () => {
   });
 });
 
-describe("the static theme-color fallback sits below the FOUC script", () => {
-  const foucClose = indexHtml.indexOf("</script>");
+describe("the theme-color meta sits above the FOUC script", () => {
+  // The order flipped in maintainer #244 round 3 (bug B8): the meta used to
+  // sit ~18 lines BELOW the script, so the script's synchronous theme-color
+  // write addressed a tag that did not exist yet and every first paint kept
+  // the static dark value even in light mode. Above the script the tag
+  // exists when the script runs, so the resolved value lands before first
+  // paint; paint() in lib/theme.ts takes over on every theme application
+  // afterwards.
+  const foucOpen = indexHtml.indexOf("<script>");
   const themeColor = indexHtml.indexOf('<meta name="theme-color"');
 
   it("finds both markers at all (guards against this suite silently matching nothing)", () => {
-    expect(foucClose, "no FOUC script close tag found; see the byte-identity guard above").toBeGreaterThan(-1);
+    expect(foucOpen, "no bare <script> open tag found; see the byte-identity guard above").toBeGreaterThan(-1);
     expect(
       themeColor,
       'no <meta name="theme-color"> found in index.html. The static tag is the ' +
-        "first-paint browser-chrome color before JS runs; paint() in lib/theme.ts " +
-        "mirrors the live theme into it afterwards."
+        "no-JS browser-chrome color; the FOUC script mirrors the resolved theme " +
+        "into it before first paint, and paint() in lib/theme.ts mirrors the " +
+        "live theme into it afterwards."
     ).toBeGreaterThan(-1);
   });
 
-  it("orders the fallback after the script", () => {
+  it("orders the tag before the script, so the script's write can land", () => {
     expect(
       themeColor,
-      "the static theme-color meta sits above the FOUC script's close. It must stay " +
-        "below: the script region is byte-guarded (this suite fails on any edit " +
-        "there), and the fallback's place is after it, beside the viewport meta."
-    ).toBeGreaterThan(foucClose);
+      "the theme-color meta sits below the FOUC script's open tag. It must stay " +
+        "above: the script resolves the theme and mirrors it into this tag " +
+        "synchronously before first paint, and a tag below the script does not " +
+        "exist yet when the script runs (bug B8: light-mode boots painted the " +
+        "static dark value in the browser chrome). The script region itself is " +
+        "byte-guarded; this guard pins only the order."
+    ).toBeLessThan(foucOpen);
+  });
+
+  it("is addressed by the FOUC script's theme-color mirror", () => {
+    expect(
+      indexHtml,
+      "the FOUC script no longer writes the theme-color meta. The static value " +
+        "would then be the only value a no-JS-less browser ever sees: dark chrome " +
+        "on a light boot. Keep the script's mirror (and its THEME_COLOR map in " +
+        "sync with theme.ts's)."
+    ).toContain('meta[name="theme-color"]');
   });
 });
 
@@ -331,13 +361,23 @@ describe("the shell root's viewport discipline", () => {
   });
 
   it("keeps the bv-main id on the scroller, the chrome's stable scroll target", () => {
+    // Anchored on the id attribute inside its real <main> tag context (id
+    // followed by the className attribute, `\s+` spanning the wrapping), not
+    // a bare includes(): Layout's own comments discuss `<main id="bv-main">`
+    // in prose (the tap-on-active block), and the bare scan kept passing on
+    // that dead text even after the tags themselves were renamed (maintainer
+    // #244 round 3, test item T4; guard proven by breaking both tags — the
+    // assert went red — and restoring them). Both chrome branches carry the
+    // id on their own scroller; the count of two is the contract.
+    const tagged = layout.match(/<main\s+id="bv-main"\s+className=/g)?.length ?? 0;
     expect(
-      layout.includes('id="bv-main"'),
-      "Layout.tsx's scroller no longer carries id=\"bv-main\". Both chrome surfaces " +
-        "address the scroller through that id (tap-on-active, the keyboard " +
-        "mechanism) and never query for it any other way; without it the " +
-        "tap-on-active scroll silently no-ops."
-    ).toBe(true);
+      tagged,
+      `Layout.tsx carries id="bv-main" on ${tagged} real <main> tag(s); both ` +
+        "chrome surfaces address the scroller through that id (tap-on-active, " +
+        "the keyboard mechanism) and never query for it any other way, so " +
+        "both branch scrollers must carry it. Without it the tap-on-active " +
+        "scroll silently no-ops. Restore the attribute on the <main> tag(s)."
+    ).toBe(2);
   });
 });
 
@@ -525,9 +565,16 @@ describe("Filled tab; the active bottom-bar slot is a filled accent surface, not
 // independently.
 describe("Reactive at rest; coarse pointers reveal reactive labels at rest, with the motion companion", () => {
   it("is reading the real reactive-label source (self-guard)", () => {
+    // Anchored on the declaration INSIDE the .glim-label-reactive rule (same
+    // `[^}]*` rule-scope discipline as the coarse-pointer guard below), not a
+    // bare includes("max-width: 0"): a prose comment elsewhere in index.css
+    // discusses `max-width: 0` in backticks, and the bare scan kept passing
+    // on that dead text after the real declaration changed (maintainer #244
+    // round 3, test item T4; guard proven by breaking the declaration — the
+    // assert went red — and restoring it).
     expect(
-      indexCss.includes("max-width: 0"),
-      "index.css no longer contains the resting collapse (`max-width: 0` in " +
+      /\.glim-label-reactive\s*\{[^}]*max-width:\s*0\s*;/.test(indexCss),
+      "index.css no longer contains the resting collapse (`max-width: 0;` in " +
         "the .glim-label-reactive rule). The positives below prove nothing " +
         "without it: they assert the coarse reveal exists, which is only " +
         "meaningful against the collapse it must override. The resting rule " +

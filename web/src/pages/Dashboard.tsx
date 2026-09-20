@@ -1236,18 +1236,31 @@ function RunsCard({
           )}
           {loading ? (
             <p className="px-2 py-2 text-sm text-carbon-textMuted">{t("dashboard.checking")}</p>
-          ) : recent.length === 0 ? (
-            <p className="px-2 py-2 text-sm text-carbon-textMuted">{t("dashboard.noRuns")}</p>
           ) : (
-            // Rows separated by shade (soft tiles), never divider lines. The
-            // counter row owns rotation position 0; the run rows follow in
-            // display order, so a row keeps its hue whether or not the
-            // counter row is present above it.
-            <div className="flex flex-col gap-1">
-              {recent.map((run, i) => (
-                <RunRow key={run.id} t={t} run={run} dense hueIndex={i + 1} onTap={() => onOpenRun?.(run)} />
-              ))}
-            </div>
+            <>
+              {failed && (
+                // The load-failure copy, never "No runs yet": an empty list
+                // from a failed read must not impersonate an answer. The
+                // desktop face grew this arm in de5e36ae's discipline; the
+                // phone glance kept the failed read reading as an empty
+                // history (maintainer #244 round 3, bug B1).
+                <p className="px-2 py-2 text-sm text-statusFail">{t("dashboard.loadRunsFailed")}</p>
+              )}
+              {!failed && recent.length === 0 && (
+                <p className="px-2 py-2 text-sm text-carbon-textMuted">{t("dashboard.noRuns")}</p>
+              )}
+              {recent.length > 0 && (
+                // Rows separated by shade (soft tiles), never divider lines.
+                // The counter row owns rotation position 0; the run rows
+                // follow in display order, so a row keeps its hue whether or
+                // not the counter row is present above it.
+                <div className="flex flex-col gap-1">
+                  {recent.map((run, i) => (
+                    <RunRow key={run.id} t={t} run={run} dense hueIndex={i + 1} onTap={() => onOpenRun?.(run)} />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>

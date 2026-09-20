@@ -2516,10 +2516,16 @@ export function SettingsPage() {
            in German and wrapped the seven tabs onto two rows. */
         // The rail's own row width, via the shared token — "gleich groß wie die
         // tabs in der sidebar" is a promise, and a promise needs one number,
-        // not two that happen to agree today. It also gives the longest label
-        // ("Benachrichtigungen") the 16px it was missing, which is why that tab
-        // clipped its own text in reactive mode.
-        segmentWidth="var(--nav-row-w)"
+        // not two that happen to agree today. Below 48rem the token resolves
+        // to its phone arm (index.css --settings-tab-seg-w): the fixed 200px
+        // pin stacked all seven flex-none tabs into seven rows on a 390px
+        // phone, a wall of chrome before any content (maintainer #244 round
+        // 3, bug B7); the phone arm fits one row and bounds the wrap at two
+        // on the narrowest widths, while desktop keeps the pin unchanged. It
+        // also gives the longest label ("Benachrichtigungen") the 16px it was
+        // missing, which is why that tab clipped its own text in reactive
+        // mode.
+        segmentWidth="var(--settings-tab-seg-w)"
       />
       </div>
       </div>
