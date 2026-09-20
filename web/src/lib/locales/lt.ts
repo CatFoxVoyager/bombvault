@@ -703,6 +703,7 @@ const lt: Partial<Translations> = {
   "settings.labels.tabs": "Kortelės",
   "settings.labels.bottombar": "Apatinė juosta",
   "settings.axisBottombarHint": "Taikoma tik telefono išdėstymui.",
+  "settings.axisSidebarHint": "Taikoma tik kompiuterio išdėstymui.",
   "settings.labels.mode.text": "Tekstas",
   "settings.labels.mode.textGlyph": "Tekstas ir simbolis",
   "settings.labels.mode.glyph": "Simbolis",

@@ -703,6 +703,7 @@ const hr: Partial<Translations> = {
   "settings.labels.tabs": "Kartice",
   "settings.labels.bottombar": "Donja traka",
   "settings.axisBottombarHint": "Određuje samo raspored na telefonu.",
+  "settings.axisSidebarHint": "Određuje samo raspored na računalu.",
   "settings.labels.mode.text": "Tekst",
   "settings.labels.mode.textGlyph": "Tekst i simbol",
   "settings.labels.mode.glyph": "Simbol",

@@ -703,6 +703,7 @@ const ms: Partial<Translations> = {
   "settings.labels.tabs": "Tab",
   "settings.labels.bottombar": "Bar bawah",
   "settings.axisBottombarHint": "Hanya mempengaruhi susun atur telefon.",
+  "settings.axisSidebarHint": "Hanya mempengaruhi susun atur desktop.",
   "settings.labels.mode.text": "Teks",
   "settings.labels.mode.textGlyph": "Teks dan simbol",
   "settings.labels.mode.glyph": "Simbol",

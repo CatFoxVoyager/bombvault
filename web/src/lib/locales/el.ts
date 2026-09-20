@@ -250,6 +250,7 @@ const el: Partial<Translations> = {
   "settings.labels.tabs": "Καρτέλες",
   "settings.labels.bottombar": "Κάτω μπάρα",
   "settings.axisBottombarHint": "Ισχύει μόνο για τη διάταξη του τηλεφώνου.",
+  "settings.axisSidebarHint": "Ισχύει μόνο για τη διάταξη υπολογιστή.",
   "settings.labels.mode.text": "Κείμενο",
   "settings.labels.mode.textGlyph": "Κείμενο και σύμβολο",
   "settings.labels.mode.glyph": "Σύμβολο",

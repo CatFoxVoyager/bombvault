@@ -703,6 +703,7 @@ const et: Partial<Translations> = {
   "settings.labels.tabs": "Vahekaardid",
   "settings.labels.bottombar": "Alumine riba",
   "settings.axisBottombarHint": "Mõjutab ainult telefoni paigutust.",
+  "settings.axisSidebarHint": "Mõjutab ainult töölaua paigutust.",
   "settings.labels.mode.text": "Tekst",
   "settings.labels.mode.textGlyph": "Tekst ja sümbol",
   "settings.labels.mode.glyph": "Sümbol",

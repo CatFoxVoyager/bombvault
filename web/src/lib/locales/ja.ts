@@ -250,6 +250,7 @@ const ja: Partial<Translations> = {
   "settings.labels.tabs": "タブ",
   "settings.labels.bottombar": "ボトムバー",
   "settings.axisBottombarHint": "スマートフォンのレイアウトにのみ適用されます。",
+  "settings.axisSidebarHint": "デスクトップのレイアウトにのみ適用されます。",
   "settings.labels.mode.text": "文字",
   "settings.labels.mode.textGlyph": "文字と記号",
   "settings.labels.mode.glyph": "記号",

@@ -703,6 +703,7 @@ const id: Partial<Translations> = {
   "settings.labels.tabs": "Tab",
   "settings.labels.bottombar": "Bilah bawah",
   "settings.axisBottombarHint": "Hanya memengaruhi tata letak ponsel.",
+  "settings.axisSidebarHint": "Hanya memengaruhi tata letak desktop.",
   "settings.labels.mode.text": "Teks",
   "settings.labels.mode.textGlyph": "Teks dan simbol",
   "settings.labels.mode.glyph": "Simbol",

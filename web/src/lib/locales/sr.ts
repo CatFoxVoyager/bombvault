@@ -701,6 +701,7 @@ const sr: Partial<Translations> = {
   "settings.labels.tabs": "Картице",
   "settings.labels.bottombar": "Доња трака",
   "settings.axisBottombarHint": "Односи се само на распоред на телефону.",
+  "settings.axisSidebarHint": "Односи се само на распоред на рачунару.",
   "settings.labels.mode.text": "Текст",
   "settings.labels.mode.textGlyph": "Текст и симбол",
   "settings.labels.mode.glyph": "Симбол",

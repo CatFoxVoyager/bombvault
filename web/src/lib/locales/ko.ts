@@ -250,6 +250,7 @@ const ko: Partial<Translations> = {
   "settings.labels.tabs": "탭",
   "settings.labels.bottombar": "하단 바",
   "settings.axisBottombarHint": "휴대폰 레이아웃에만 적용됩니다.",
+  "settings.axisSidebarHint": "데스크톱 레이아웃에만 적용됩니다.",
   "settings.labels.mode.text": "텍스트",
   "settings.labels.mode.textGlyph": "텍스트와 기호",
   "settings.labels.mode.glyph": "기호",

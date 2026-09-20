@@ -250,6 +250,7 @@ const fr: Partial<Translations> = {
   "settings.labels.tabs": "Onglets",
   "settings.labels.bottombar": "Barre inférieure",
   "settings.axisBottombarHint": "Concerne uniquement la mise en page du téléphone.",
+  "settings.axisSidebarHint": "Concerne uniquement la mise en page du bureau.",
   "settings.labels.mode.text": "Texte",
   "settings.labels.mode.textGlyph": "Texte et symbole",
   "settings.labels.mode.glyph": "Symbole",

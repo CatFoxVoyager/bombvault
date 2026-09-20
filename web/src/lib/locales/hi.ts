@@ -703,6 +703,7 @@ const hi: Partial<Translations> = {
   "settings.labels.tabs": "टैब",
   "settings.labels.bottombar": "बॉटम बार",
   "settings.axisBottombarHint": "केवल फ़ोन लेआउट पर लागू होता है.",
+  "settings.axisSidebarHint": "केवल डेस्कटॉप लेआउट पर लागू होता है.",
   "settings.labels.mode.text": "पाठ",
   "settings.labels.mode.textGlyph": "पाठ और प्रतीक",
   "settings.labels.mode.glyph": "प्रतीक",

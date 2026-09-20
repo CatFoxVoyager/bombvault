@@ -250,6 +250,7 @@ const tr: Partial<Translations> = {
   "settings.labels.tabs": "Sekmeler",
   "settings.labels.bottombar": "Alt çubuk",
   "settings.axisBottombarHint": "Yalnızca telefon düzenini etkiler.",
+  "settings.axisSidebarHint": "Yalnızca masaüstü düzenini etkiler.",
   "settings.labels.mode.text": "Metin",
   "settings.labels.mode.textGlyph": "Metin ve simge",
   "settings.labels.mode.glyph": "Simge",

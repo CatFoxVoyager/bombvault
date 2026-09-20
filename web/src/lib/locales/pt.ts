@@ -247,6 +247,7 @@ const pt: Partial<Translations> = {
   "settings.labels.tabs": "Separadores",
   "settings.labels.bottombar": "Barra inferior",
   "settings.axisBottombarHint": "Afeta apenas o esquema do telefone.",
+  "settings.axisSidebarHint": "Afeta apenas o esquema do computador.",
   "settings.labels.mode.text": "Texto",
   "settings.labels.mode.textGlyph": "Texto e símbolo",
   "settings.labels.mode.glyph": "Símbolo",

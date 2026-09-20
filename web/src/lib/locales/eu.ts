@@ -703,6 +703,7 @@ const eu: Partial<Translations> = {
   "settings.labels.tabs": "Fitxak",
   "settings.labels.bottombar": "Beheko barra",
   "settings.axisBottombarHint": "Telefonoaren diseinuari bakarrik eragiten dio.",
+  "settings.axisSidebarHint": "Mahaigaineko diseinuari bakarrik eragiten dio.",
   "settings.labels.mode.text": "Testua",
   "settings.labels.mode.textGlyph": "Testua eta ikurra",
   "settings.labels.mode.glyph": "Ikurra",

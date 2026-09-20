@@ -250,6 +250,7 @@ const cs: Partial<Translations> = {
   "settings.labels.tabs": "Karty",
   "settings.labels.bottombar": "Spodní panel",
   "settings.axisBottombarHint": "Ovlivňuje pouze rozložení telefonu.",
+  "settings.axisSidebarHint": "Ovlivňuje pouze rozložení na počítači.",
   "settings.labels.mode.text": "Text",
   "settings.labels.mode.textGlyph": "Text a symbol",
   "settings.labels.mode.glyph": "Symbol",

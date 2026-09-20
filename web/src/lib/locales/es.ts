@@ -250,6 +250,7 @@ const es: Partial<Translations> = {
   "settings.labels.tabs": "Pestañas",
   "settings.labels.bottombar": "Barra inferior",
   "settings.axisBottombarHint": "Afecta solo al diseño del teléfono.",
+  "settings.axisSidebarHint": "Afecta solo al diseño de escritorio.",
   "settings.labels.mode.text": "Texto",
   "settings.labels.mode.textGlyph": "Texto y símbolo",
   "settings.labels.mode.glyph": "Símbolo",

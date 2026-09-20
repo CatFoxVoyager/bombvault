@@ -247,6 +247,7 @@ const ro: Partial<Translations> = {
   "settings.labels.tabs": "File",
   "settings.labels.bottombar": "Bară inferioară",
   "settings.axisBottombarHint": "Se aplică doar aspectului de telefon.",
+  "settings.axisSidebarHint": "Se aplică doar aspectului de desktop.",
   "settings.labels.mode.text": "Text",
   "settings.labels.mode.textGlyph": "Text și simbol",
   "settings.labels.mode.glyph": "Simbol",

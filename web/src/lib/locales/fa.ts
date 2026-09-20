@@ -703,6 +703,7 @@ const fa: Partial<Translations> = {
   "settings.labels.tabs": "زبانه‌ها",
   "settings.labels.bottombar": "نوار پایینی",
   "settings.axisBottombarHint": "فقط بر چیدمان گوشی تأثیر می‌گذارد.",
+  "settings.axisSidebarHint": "فقط بر چیدمان دسکتاپ تأثیر می‌گذارد.",
   "settings.labels.mode.text": "متن",
   "settings.labels.mode.textGlyph": "متن و نماد",
   "settings.labels.mode.glyph": "نماد",

@@ -250,6 +250,7 @@ const vi: Partial<Translations> = {
   "settings.labels.tabs": "Thẻ",
   "settings.labels.bottombar": "Thanh dưới",
   "settings.axisBottombarHint": "Chỉ ảnh hưởng đến bố cục điện thoại.",
+  "settings.axisSidebarHint": "Chỉ ảnh hưởng đến bố cục máy tính.",
   "settings.labels.mode.text": "Chữ",
   "settings.labels.mode.textGlyph": "Chữ và biểu tượng",
   "settings.labels.mode.glyph": "Biểu tượng",

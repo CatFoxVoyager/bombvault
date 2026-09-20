@@ -250,6 +250,7 @@ const sv: Partial<Translations> = {
   "settings.labels.tabs": "Flikar",
   "settings.labels.bottombar": "Nedre fält",
   "settings.axisBottombarHint": "Påverkar endast telefonlayouten.",
+  "settings.axisSidebarHint": "Påverkar endast skrivbordslayouten.",
   "settings.labels.mode.text": "Text",
   "settings.labels.mode.textGlyph": "Text och symbol",
   "settings.labels.mode.glyph": "Symbol",

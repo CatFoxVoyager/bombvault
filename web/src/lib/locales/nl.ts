@@ -245,6 +245,7 @@ const nl: Partial<Translations> = {
   "settings.labels.tabs": "Tabbladen",
   "settings.labels.bottombar": "Onderbalk",
   "settings.axisBottombarHint": "Geldt alleen voor de telefoonlay-out.",
+  "settings.axisSidebarHint": "Geldt alleen voor de desktoplay-out.",
   "settings.labels.mode.text": "Tekst",
   "settings.labels.mode.textGlyph": "Tekst en symbool",
   "settings.labels.mode.glyph": "Symbool",

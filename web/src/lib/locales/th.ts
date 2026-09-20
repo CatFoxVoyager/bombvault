@@ -250,6 +250,7 @@ const th: Partial<Translations> = {
   "settings.labels.tabs": "แท็บ",
   "settings.labels.bottombar": "แถบด้านล่าง",
   "settings.axisBottombarHint": "มีผลเฉพาะกับเลย์เอาต์โทรศัพท์เท่านั้น",
+  "settings.axisSidebarHint": "มีผลเฉพาะกับเลย์เอาต์เดสก์ท็อปเท่านั้น",
   "settings.labels.mode.text": "ข้อความ",
   "settings.labels.mode.textGlyph": "ข้อความและสัญลักษณ์",
   "settings.labels.mode.glyph": "สัญลักษณ์",

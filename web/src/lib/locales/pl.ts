@@ -245,6 +245,7 @@ const pl: Partial<Translations> = {
   "settings.labels.tabs": "Karty",
   "settings.labels.bottombar": "Panel dolny",
   "settings.axisBottombarHint": "Dotyczy tylko układu telefonu.",
+  "settings.axisSidebarHint": "Dotyczy tylko układu na komputerze.",
   "settings.labels.mode.text": "Tekst",
   "settings.labels.mode.textGlyph": "Tekst i symbol",
   "settings.labels.mode.glyph": "Symbol",

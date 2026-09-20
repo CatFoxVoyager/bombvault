@@ -248,6 +248,7 @@ const uk: Partial<Translations> = {
   "settings.labels.tabs": "Вкладки",
   "settings.labels.bottombar": "Нижня панель",
   "settings.axisBottombarHint": "Впливає лише на макет телефону.",
+  "settings.axisSidebarHint": "Впливає лише на макет комп'ютера.",
   "settings.labels.mode.text": "Текст",
   "settings.labels.mode.textGlyph": "Текст і символ",
   "settings.labels.mode.glyph": "Символ",

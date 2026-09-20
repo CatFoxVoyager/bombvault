@@ -250,6 +250,7 @@ const da: Partial<Translations> = {
   "settings.labels.tabs": "Faner",
   "settings.labels.bottombar": "Bundpanel",
   "settings.axisBottombarHint": "Påvirker kun telefonlayoutet.",
+  "settings.axisSidebarHint": "Påvirker kun skrivebordslayoutet.",
   "settings.labels.mode.text": "Tekst",
   "settings.labels.mode.textGlyph": "Tekst og symbol",
   "settings.labels.mode.glyph": "Symbol",

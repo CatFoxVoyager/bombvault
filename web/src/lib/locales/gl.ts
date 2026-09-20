@@ -703,6 +703,7 @@ const gl: Partial<Translations> = {
   "settings.labels.tabs": "Lapelas",
   "settings.labels.bottombar": "Barra inferior",
   "settings.axisBottombarHint": "Afecta só ao deseño do teléfono.",
+  "settings.axisSidebarHint": "Afecta só ao deseño de escritorio.",
   "settings.labels.mode.text": "Texto",
   "settings.labels.mode.textGlyph": "Texto e símbolo",
   "settings.labels.mode.glyph": "Símbolo",

@@ -250,6 +250,7 @@ const he: Partial<Translations> = {
   "settings.labels.tabs": "לשוניות",
   "settings.labels.bottombar": "סרגל תחתון",
   "settings.axisBottombarHint": "משפיע על פריסת הטלפון בלבד.",
+  "settings.axisSidebarHint": "משפיע על פריסת שולחן העבודה בלבד.",
   "settings.labels.mode.text": "טקסט",
   "settings.labels.mode.textGlyph": "טקסט וסמל",
   "settings.labels.mode.glyph": "סמל",

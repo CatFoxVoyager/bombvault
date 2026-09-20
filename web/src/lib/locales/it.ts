@@ -250,6 +250,7 @@ const it: Partial<Translations> = {
   "settings.labels.tabs": "Schede",
   "settings.labels.bottombar": "Barra inferiore",
   "settings.axisBottombarHint": "Interessa solo il layout del telefono.",
+  "settings.axisSidebarHint": "Interessa solo il layout desktop.",
   "settings.labels.mode.text": "Testo",
   "settings.labels.mode.textGlyph": "Testo e simbolo",
   "settings.labels.mode.glyph": "Simbolo",

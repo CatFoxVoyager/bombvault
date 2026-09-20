@@ -703,6 +703,7 @@ const bg: Partial<Translations> = {
   "settings.labels.tabs": "Раздели",
   "settings.labels.bottombar": "Долна лента",
   "settings.axisBottombarHint": "Отнася се само за оформлението на телефона.",
+  "settings.axisSidebarHint": "Отнася се само за оформлението на настолния компютър.",
   "settings.labels.mode.text": "Текст",
   "settings.labels.mode.textGlyph": "Текст и символ",
   "settings.labels.mode.glyph": "Символ",

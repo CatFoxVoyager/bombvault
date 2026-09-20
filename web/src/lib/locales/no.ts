@@ -247,6 +247,7 @@ const no: Partial<Translations> = {
   "settings.labels.tabs": "Faner",
   "settings.labels.bottombar": "Bunnfelt",
   "settings.axisBottombarHint": "Påvirker kun telefonlayouten.",
+  "settings.axisSidebarHint": "Påvirker kun skrivebordslayouten.",
   "settings.labels.mode.text": "Tekst",
   "settings.labels.mode.textGlyph": "Tekst og symbol",
   "settings.labels.mode.glyph": "Symbol",

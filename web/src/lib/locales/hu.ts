@@ -250,6 +250,7 @@ const hu: Partial<Translations> = {
   "settings.labels.tabs": "Lapok",
   "settings.labels.bottombar": "Alsó sáv",
   "settings.axisBottombarHint": "Csak a telefon elrendezésére vonatkozik.",
+  "settings.axisSidebarHint": "Csak az asztali elrendezésre vonatkozik.",
   "settings.labels.mode.text": "Szöveg",
   "settings.labels.mode.textGlyph": "Szöveg és szimbólum",
   "settings.labels.mode.glyph": "Szimbólum",

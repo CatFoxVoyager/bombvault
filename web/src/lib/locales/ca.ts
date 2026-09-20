@@ -703,6 +703,7 @@ const ca: Partial<Translations> = {
   "settings.labels.tabs": "Pestanyes",
   "settings.labels.bottombar": "Barra inferior",
   "settings.axisBottombarHint": "Només afecta la disposició del telèfon.",
+  "settings.axisSidebarHint": "Només afecta la disposició d'escriptori.",
   "settings.labels.mode.text": "Text",
   "settings.labels.mode.textGlyph": "Text i símbol",
   "settings.labels.mode.glyph": "Símbol",

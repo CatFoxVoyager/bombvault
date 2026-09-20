@@ -245,6 +245,7 @@ const ru: Partial<Translations> = {
   "settings.labels.tabs": "Вкладки",
   "settings.labels.bottombar": "Нижняя панель",
   "settings.axisBottombarHint": "Влияет только на макет телефона.",
+  "settings.axisSidebarHint": "Влияет только на макет компьютера.",
   "settings.labels.mode.text": "Текст",
   "settings.labels.mode.textGlyph": "Текст и символ",
   "settings.labels.mode.glyph": "Символ",

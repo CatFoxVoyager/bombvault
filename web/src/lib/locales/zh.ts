@@ -250,6 +250,7 @@ const zh: Partial<Translations> = {
   "settings.labels.tabs": "标签页",
   "settings.labels.bottombar": "底栏",
   "settings.axisBottombarHint": "仅影响手机布局。",
+  "settings.axisSidebarHint": "仅影响桌面布局。",
   "settings.labels.mode.text": "文字",
   "settings.labels.mode.textGlyph": "文字和符号",
   "settings.labels.mode.glyph": "符号",

@@ -703,6 +703,7 @@ const sk: Partial<Translations> = {
   "settings.labels.tabs": "Karty",
   "settings.labels.bottombar": "Spodný panel",
   "settings.axisBottombarHint": "Vzťahuje sa iba na rozloženie telefónu.",
+  "settings.axisSidebarHint": "Vzťahuje sa iba na rozloženie na počítači.",
   "settings.labels.mode.text": "Text",
   "settings.labels.mode.textGlyph": "Text a symbol",
   "settings.labels.mode.glyph": "Symbol",

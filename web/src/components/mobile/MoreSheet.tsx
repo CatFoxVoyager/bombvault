@@ -21,12 +21,13 @@
 // className-by-isActive shape the rail's NavItem and the bar's slots use;
 // no parallel active-state bookkeeping.
 //
-// The Simple/Advanced view toggle lives at the bottom of the sheet, next to
-// sign-out, mirroring the desktop footer's neighbourhood (the same rows, in
-// the same order, minus Settings which is a destination row up here). It is
-// the phone's only path to the advanced-only settings cards, and it renders
-// whether or not the sheet has destination rows; permanent content is what
-// lets the bar's More trigger render unconditionally.
+// The Simple/Advanced view toggle sits at the bottom of the sheet next to
+// sign-out, the pair the desktop footer carries, minus Settings which is a
+// destination row up here. The toggle leads while the rail puts sign-out
+// first, because it renders unconditionally: leading with it keeps its
+// palette position fixed whether or not a password is set. It is also the
+// phone's only path to the advanced-only settings cards, and permanent
+// content is what lets the bar's More trigger render unconditionally.
 //
 // Tap-on-active parity with the bar: tapping the already-current row scrolls
 // the scroller back to the top; the mechanism is Layout's

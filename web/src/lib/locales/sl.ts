@@ -701,6 +701,7 @@ const sl: Partial<Translations> = {
   "settings.labels.tabs": "Zavihki",
   "settings.labels.bottombar": "Spodnja vrstica",
   "settings.axisBottombarHint": "Vpliva samo na postavitev telefona.",
+  "settings.axisSidebarHint": "Vpliva samo na namizno postavitev.",
   "settings.labels.mode.text": "Besedilo",
   "settings.labels.mode.textGlyph": "Besedilo in simbol",
   "settings.labels.mode.glyph": "Simbol",

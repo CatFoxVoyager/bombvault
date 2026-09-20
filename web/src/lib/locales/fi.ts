@@ -250,6 +250,7 @@ const fi: Partial<Translations> = {
   "settings.labels.tabs": "Välilehdet",
   "settings.labels.bottombar": "Alapalkki",
   "settings.axisBottombarHint": "Koskee vain puhelinasettelua.",
+  "settings.axisSidebarHint": "Koskee vain työpöytäasettelua.",
   "settings.labels.mode.text": "Teksti",
   "settings.labels.mode.textGlyph": "Teksti ja symboli",
   "settings.labels.mode.glyph": "Symboli",

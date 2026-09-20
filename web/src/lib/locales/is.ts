@@ -703,6 +703,7 @@ const is: Partial<Translations> = {
   "settings.labels.tabs": "Flipar",
   "settings.labels.bottombar": "Neðri stika",
   "settings.axisBottombarHint": "Gildir aðeins um útlit símans.",
+  "settings.axisSidebarHint": "Gildir aðeins um útlit skjáborðsins.",
   "settings.labels.mode.text": "Texti",
   "settings.labels.mode.textGlyph": "Texti og tákn",
   "settings.labels.mode.glyph": "Tákn",

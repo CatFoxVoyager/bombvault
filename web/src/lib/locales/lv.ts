@@ -703,6 +703,7 @@ const lv: Partial<Translations> = {
   "settings.labels.tabs": "Cilnes",
   "settings.labels.bottombar": "Apakšjosla",
   "settings.axisBottombarHint": "Attiecas tikai uz telefona izkārtojumu.",
+  "settings.axisSidebarHint": "Attiecas tikai uz darbvirsmas izkārtojumu.",
   "settings.labels.mode.text": "Teksts",
   "settings.labels.mode.textGlyph": "Teksts un simbols",
   "settings.labels.mode.glyph": "Simbols",

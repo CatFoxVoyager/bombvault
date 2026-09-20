@@ -250,6 +250,7 @@ const ar: Partial<Translations> = {
   "settings.labels.tabs": "علامات التبويب",
   "settings.labels.bottombar": "الشريط السفلي",
   "settings.axisBottombarHint": "يؤثر على تخطيط الهاتف فقط.",
+  "settings.axisSidebarHint": "يؤثر على تخطيط سطح المكتب فقط.",
   "settings.labels.mode.text": "نص",
   "settings.labels.mode.textGlyph": "نص ورمز",
   "settings.labels.mode.glyph": "رمز",
