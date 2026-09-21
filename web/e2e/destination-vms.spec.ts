@@ -1,40 +1,17 @@
-// ---------------------------------------------------------------------------
-// Destination e2e — the /vms mobile block and its desktop guard.
+// The /vms phone block on the real binary in device emulation, and the
+// desktop page beside it. The scenarios: the card list with its summary
+// line, search and the 20/40 load-more window; a card's trigger deep-linking
+// its run into the sheet, which stays closed once dismissed; a stored
+// per-VM override staying off the card, since only Settings shows it and only
+// while the scheduler would run it; the gated-off block showing its hint and
+// the settings link while Discover stays in the header; and the desktop
+// carrying none of the phone chrome but always its Discover.
 //
-// The dom twin proves the single-layout gate's desktop half in jsdom
-// (VMs.test.tsx's "renders ONE layout" describe); this spec proves the PHONE
-// presentation on the real binary in real device emulation, plus the >=48rem
-// desktop guard. Six scenarios:
-//
-//   1. a populated /vms renders the card list with the summary counts line,
-//      the ListToolbar search narrows it, and the 20/20 load-more window
-//      extends to 40 and honestly disappears when exhausted,
-//   2. the card's trigger deep-links the correlated run into the component-
-//      local RunDetailSheet, and a dismissed sheet is never re-opened by
-//      later polls of the same watch (the latch),
-//   3. the schedule row opens the fullHeight CadenceBuilder sheet restricted
-//      to the exact-cadence modes (#166) and the explicit apply PATCHes the
-//      override for the VM's libvirtName,
-//   4. a card whose override is active shows the SERVER-derived next-fire
-//      chip; a default-following card shows the domain badge and no chip,
-//   5. gate-off (vmsEnabled=false) shows the honest outline card + settings
-//      link and NOTHING else — no toolbar, no cards, no Fab,
-//   6. desktop: no mobile chrome anywhere on /vms on either desktop project.
-//
-// Harness honesty — what is mocked and why (the maquette-screens.spec.ts /
-// touch-tree.spec.ts deviation, reused): the e2e webServer is the real
-// bombvault binary over a wiped fresh DB, but the harness has no Docker and
-// no libvirt, so a fresh DB can never hold a VM. The VM, settings,
-// schedule-next and runs domains are therefore fulfilled at the Playwright
-// route layer — the SPA, its fetches, the binary and every route shape are
-// real; only the staged payloads are fake, mirroring the Go JSON shapes
-// field-for-field (api.ts). The display-prefs abort keeps the harness default
-// English labels regardless of worker order (the boot-look cut).
-//
-// Locale pinning: `test.use({ locale: "en-US" })` fixes Intl in the browser
-// so Node-side expectations can mirror the page's own toLocaleString output
-// (same host timezone on both sides) for the schedule chip's next-fire text.
-// ---------------------------------------------------------------------------
+// The harness has no libvirt, so a fresh DB never holds a VM. The VM,
+// settings, schedule and runs responses are staged at the route layer in the
+// Go JSON shapes (api.ts); the SPA, its requests and the binary are real.
+// The display-prefs abort keeps the English labels whatever order the
+// workers boot in.
 import { expect, test, type Page } from "@playwright/test";
 
 // The two device projects from playwright.config.ts; everything else is a
@@ -42,8 +19,8 @@ import { expect, test, type Page } from "@playwright/test";
 const MOBILE_PROJECTS = new Set(["mobile-iphone", "mobile-android"]);
 const DESKTOP_PROJECTS = new Set(["desktop-1280", "desktop-768"]);
 
-// All locale-dependent formatting in this spec is pinned to en-US (see the
-// header note) so Node-side expectations match the browser byte-for-byte.
+// The assertions read English labels and US formatting, so the browser's
+// locale is pinned to match.
 test.use({ locale: "en-US" });
 
 // --- staged VM domain (Go JSON shapes, api.ts) ------------------------------
@@ -153,9 +130,6 @@ function settingsBody(settingsOverrides: Record<string, unknown> = {}) {
       restartHealthWait: true,
       restartHealthTimeoutSec: 120,
       reconcileUnraidUpdateStatus: true,
-      // Off: the setting's shipped default. Tests that exercise an active
-      // per-VM override turn it on explicitly — the default must not
-      // silently make dormant overrides look runnable.
       ...settingsOverrides,
     },
   };
@@ -168,7 +142,7 @@ function settingsBody(settingsOverrides: Record<string, unknown> = {}) {
 async function stageVmsDomain(
   page: Page,
   vms: ReturnType<typeof vmPayload>[],
-  opts: { settings?: Record<string, unknown>; scheduleNext?: unknown[] } = {},
+  opts: { settings?: Record<string, unknown> } = {},
 ) {
   await page.route("**/api/display-prefs*", (route) => route.abort());
   await page.route("**/api/vms", (route) => route.fulfill({ json: { ok: true, vms } }));
@@ -176,7 +150,7 @@ async function stageVmsDomain(
     route.fulfill({ json: settingsBody(opts.settings) }),
   );
   await page.route("**/api/schedule/next", (route) =>
-    route.fulfill({ json: { ok: true, runs: opts.scheduleNext ?? [] } }),
+    route.fulfill({ json: { ok: true, runs: [] } }),
   );
   await page.route(/\/api\/vms\/[^/]+$/, (route) => route.fulfill({ json: { ok: true } }));
   await page.route("**/api/vms/*/backup", (route) =>
@@ -191,9 +165,7 @@ test("mobile /vms: card list, search filter and the 20/40 load-more window", asy
     !MOBILE_PROJECTS.has(testInfo.project.name),
     "mobile-only: the phone card list is this spec's surface",
   );
-  await stageVmsDomain(page, Array.from({ length: 40 }, (_, i) => vmPayload(i)), {
-    scheduleNext: [{ job: "vms", domain: "vms", next: "2026-09-14T03:00:00Z" }],
-  });
+  await stageVmsDomain(page, Array.from({ length: 40 }, (_, i) => vmPayload(i)));
   await page.goto("/vms");
 
   // The summary counts line: derived from the same list payload the desktop
@@ -203,15 +175,15 @@ test("mobile /vms: card list, search filter and the 20/40 load-more window", asy
   const searchBox = page.getByPlaceholder("Search VMs…").filter({ visible: true });
   await expect(searchBox).toBeVisible();
 
-  // The 20-row initial window — "Schedule override" is a per-card surface
-  // with no desktop twin, so its count IS the card count.
-  const scheduleRows = page.getByRole("button", { name: "Schedule override" });
-  await expect(scheduleRows).toHaveCount(20);
+  // Every live card carries exactly one trigger and the desktop is not
+  // mounted at this width, so the triggers count the cards.
+  const cards = page.getByRole("button", { name: "Back up now" }).filter({ visible: true });
+  await expect(cards).toHaveCount(20);
   await expect(page.getByText("vm-39", { exact: true }).filter({ visible: true })).toHaveCount(0);
   const loadMore = page.getByRole("button", { name: "Load more" });
   await expect(loadMore).toBeVisible();
   await loadMore.tap();
-  await expect(scheduleRows).toHaveCount(40);
+  await expect(cards).toHaveCount(40);
   await expect(page.getByText("vm-39", { exact: true }).filter({ visible: true })).toBeVisible();
   // Exhausted: hasMore is the ONLY signal the button may gate on — no rows
   // beyond the window, no button.
@@ -219,11 +191,11 @@ test("mobile /vms: card list, search filter and the 20/40 load-more window", asy
 
   // Search narrows the same windowed list…
   await searchBox.fill("vm-00");
-  await expect(scheduleRows).toHaveCount(1);
+  await expect(cards).toHaveCount(1);
   await expect(loadMore).toHaveCount(0);
   // …and clearing it resets the window (useLoadMore's reset-on-identity).
   await searchBox.fill("");
-  await expect(scheduleRows).toHaveCount(20);
+  await expect(cards).toHaveCount(20);
   await expect(loadMore).toBeVisible();
 });
 
@@ -305,87 +277,32 @@ test("mobile /vms: trigger deep-links the correlated run and a dismissed sheet i
   await expect(page.getByRole("dialog", { name: "Backup · id-00" })).toHaveCount(0);
 });
 
-test("mobile /vms: the schedule row opens the CadenceBuilder sheet and applies the override", async ({
-  page,
-}, testInfo) => {
+test("mobile /vms: a stored override stays off the card", async ({ page }, testInfo) => {
   test.skip(
     !MOBILE_PROJECTS.has(testInfo.project.name),
-    "mobile-only: the per-card schedule sheet is the phone contract",
+    "mobile-only: the phone card is this test's surface",
   );
-  await stageVmsDomain(page, [
-    vmPayload(0, { name: "vm-override", libvirtName: "id-override" }),
-  ]);
-  await page.goto("/vms");
-
-  // The desktop override editor itself, collapsed to one line: a summary
-  // badge and an Edit control — no sheet, no draft, no Done.
-  await expect(page.getByText("Schedule override:")).toBeVisible();
-  await expect(page.getByText("Uses the domain schedule")).toBeVisible();
-
-  const edit = page.getByRole("button", { name: "Edit" });
-  await edit.tap();
-
-  // EXACT_CADENCE_MODES (#166): the backend refuses everyN on per-item VM
-  // overrides, so the builder must not even offer it here.
-  const builder = page.getByRole("tablist", { name: /Schedule override/ });
-  await expect(builder.getByRole("tab", { name: "Off" })).toBeVisible();
-  await expect(builder.getByRole("tab", { name: "Daily" })).toBeVisible();
-  await expect(builder.getByRole("tab", { name: "Weekly" })).toBeVisible();
-  await expect(builder.getByRole("tab", { name: "Cron" })).toBeVisible();
-  await expect(builder.getByRole("tab", { name: "Every N days" })).toHaveCount(0);
-
-  await builder.getByRole("tab", { name: "Daily" }).tap();
-
-  // Saves as you type: the PATCH carries the override keyed by the RAW
-  // libvirt name (never the display name) after the editor's debounce, with
-  // a non-everyN cadence — no Done press anywhere in the flow.
-  const patched = page.waitForRequest(
-    (r) => r.method() === "PATCH" && /\/api\/vms\/id-override$/.test(r.url()),
-  );
-  const body = (await patched).postDataJSON() as { scheduleCadence?: string };
-  expect(typeof body.scheduleCadence).toBe("string");
-  expect(body.scheduleCadence).not.toBe("");
-  expect(body.scheduleCadence).not.toContain("every");
-
-  await expect(page.getByText("Override saved")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Done" })).toHaveCount(0);
-});
-
-test("mobile /vms: the server-derived next-fire chip follows an active override", async ({
-  page,
-}, testInfo) => {
-  test.skip(
-    !MOBILE_PROJECTS.has(testInfo.project.name),
-    "mobile-only: the per-card schedule preview chip is the phone contract",
-  );
+  // The scheduler only runs a per-VM override while per-item schedules are on
+  // and the VM is included, and Settings is where it is edited under exactly
+  // those conditions. A card that showed it would paint a cadence that never
+  // fires as a live schedule, so none of the three cards may carry one.
   await stageVmsDomain(
     page,
     [
-      vmPayload(0, { name: "vm-chip", libvirtName: "id-chip", scheduleCadence: "daily 03:00" }),
-      vmPayload(1, { name: "vm-plain", libvirtName: "id-plain" }),
+      vmPayload(0, { name: "vm-on", libvirtName: "id-on", scheduleCadence: "daily 03:00" }),
+      vmPayload(1, { name: "vm-excluded", libvirtName: "id-excluded", scheduleCadence: "daily 03:00", includeInSchedule: false }),
+      vmPayload(2, { name: "vm-gone", libvirtName: "id-gone", scheduleCadence: "daily 03:00", state: "not-installed" }),
     ],
-    {
-      scheduleNext: [{ job: "vms", domain: "vms", next: "2026-09-14T03:00:00Z" }],
-      settings: { perItemSchedules: true },
-    },
+    { settings: { perItemSchedules: true } },
   );
   await page.goto("/vms");
 
-  // Both cards host the desktop override editor's one-line summary.
-  await expect(page.getByText("Schedule override:")).toHaveCount(2);
-
-  // The accent-soft preview chip renders ONLY on the active override's row,
-  // and its text is the SERVER's next fire (domain-granular ScheduleNext),
-  // formatted — never client cadence math. Node mirrors the browser's
-  // toLocaleString byte-for-byte (en-US + same host timezone).
-  const chip = page
-    .locator("span.rounded-pill.bg-accentSoft.text-accentText")
-    .filter({ visible: true });
-  await expect(chip).toHaveCount(1);
-  await expect(chip).toHaveText(new Date("2026-09-14T03:00:00Z").toLocaleString("en-US"));
-
-  // The default-following card says so and shows no chip.
-  await expect(page.getByText("Uses the domain schedule")).toBeVisible();
+  await expect(page.getByText("vm-on", { exact: true }).filter({ visible: true })).toBeVisible();
+  await expect(page.getByText("vm-gone", { exact: true }).filter({ visible: true })).toBeVisible();
+  await expect(page.getByText("Schedule override:")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Set override" })).toHaveCount(0);
+  // The removed VM only logs a skip when its run comes, so it is not counted.
+  await expect(page.getByText("2 VMs · 1 Scheduled")).toBeVisible();
 });
 
 test("mobile /vms: gate-off shows the honest outline card and nothing else", async ({
@@ -398,20 +315,17 @@ test("mobile /vms: gate-off shows the honest outline card and nothing else", asy
   await stageVmsDomain(page, [vmPayload(0)], { settings: { vmsEnabled: false } });
   await page.goto("/vms");
 
-  // A gated surface shows nothing else: no toolbar, no cards, no Fab, no
-  // trigger rows — the VMs domain's own hint + the settings row that turns
-  // it back on.
+  // The block shows the domain's hint and the settings row that turns it
+  // back on, and no cards. Discover stays in the header: it is the way back
+  // after a lost database and does not depend on the domain being on.
   await expect(
     page.getByText("Back up and restore virtual machines over SSH via libvirt."),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Schedule override" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Load more" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Back up now" }).filter({ visible: true })).toHaveCount(
     0,
   );
-  await expect(page.getByRole("button", { name: "Discover backups" }).filter({ visible: true })).toHaveCount(
-    0,
-  );
+  await expect(page.getByRole("button", { name: "Discover backups" }).filter({ visible: true })).toBeVisible();
   await expect(page.getByText("1 VMs · 1 Scheduled")).toHaveCount(0);
 
   // The gate card's one action: the settings row that turns VMs on. Scoped to
@@ -443,10 +357,24 @@ test("desktop /vms: no mobile chrome on either desktop project", async ({
   await expect(page.getByRole("heading", { level: 1, name: "Virtual Machines" })).toBeVisible();
   await expect(page.getByText("vm-00", { exact: true }).filter({ visible: true })).toBeVisible();
   await expect(page.getByText("vm-39", { exact: true }).filter({ visible: true })).toBeVisible();
-  // NOTHING the mobile block adds exists in the desktop DOM: no per-card
-  // schedule rows, no window chrome, no summary line, no Fab.
-  await expect(page.getByRole("button", { name: "Schedule override" })).toHaveCount(0);
+  // Nothing the phone block adds is in the desktop DOM: no load-more window,
+  // no summary line.
   await expect(page.getByRole("button", { name: "Load more" })).toHaveCount(0);
   await expect(page.getByText("40 VMs · 40 Scheduled")).toHaveCount(0);
-  await expect(page.locator("button.h-13.bg-accent")).toHaveCount(0);
+});
+
+test("desktop /vms: Discover stays in the header while VM backups are off", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    !DESKTOP_PROJECTS.has(testInfo.project.name),
+    "desktop-only: the header on the desktop face",
+  );
+  // A fresh database has VM backups off, and Discover is how a lost
+  // database's VM backups are found again, so it must not depend on the
+  // switch.
+  await stageVmsDomain(page, [vmPayload(0)], { settings: { vmsEnabled: false } });
+  await page.goto("/vms");
+  await expect(page.getByRole("heading", { level: 1, name: "Virtual Machines" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Discover backups" }).filter({ visible: true })).toBeVisible();
 });

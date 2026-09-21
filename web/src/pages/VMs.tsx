@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
-import { listVMs, backupVMNow, restoreVM, listVMSnapshots, setVMInclude, setVMIncludeAll, setVMMethod, deleteSnapshot, deleteBackupsVM, forgetVM, discoverVMs, exportVM, getVmBackupOrder, setVmBackupOrder, setVMRepo, getScheduleNext, setVMScheduleCadence, getSettings } from "../lib/api";
-import type { VM, Snapshot, VmOrder, Run, ScheduleNext } from "../lib/api";
+import { listVMs, backupVMNow, restoreVM, listVMSnapshots, setVMInclude, setVMIncludeAll, setVMMethod, deleteSnapshot, deleteBackupsVM, forgetVM, discoverVMs, exportVM, getVmBackupOrder, setVmBackupOrder, setVMRepo, getSettings } from "../lib/api";
+import type { VM, Snapshot, VmOrder, Run } from "../lib/api";
 import { SourceToggle, type RepoSource } from "../components/SourceToggle";
 import { FilterPopover } from "../components/FilterPopover";
 import { ChipFilter, loadStoredFilterKey } from "../components/ChipFilter";
@@ -44,8 +44,6 @@ import { useLoadMore } from "../lib/useLoadMore";
 import { ListToolbar } from "../components/mobile/ListToolbar";
 import { RunDetailSheet } from "../components/mobile/RunDetailSheet";
 import { MobileSectionLabel } from "../components/mobile/MobileSectionLabel";
-import { scheduleStatus } from "../components/ScheduleBadge";
-import { ItemScheduleOverride } from "../components/ItemScheduleOverride";
 
 type T = ReturnType<typeof useT>["t"];
 
@@ -1393,45 +1391,9 @@ export function VMs() {
   let hueSeq = 0;
   const nextHue = () => hueSeq++;
 
-  // GATE-OFF HONESTY: an unknown gate state must read as "on". A failed
-  // settings fetch renders the real list — whose own error surfaces are
-  // honest — rather than ever claiming the feature is disabled when we
-  // simply don't know. The header's Discover hides while the domain is
-  // off: a disabled domain has nothing to discover.
-  const [gate, setGate] = useState<"unknown" | "on" | "off">("unknown");
-  // Whether the per-item schedule setting is on: a stored per-VM override
-  // only runs when it is AND the VM is included, so the cards read it to
-  // keep a dormant override from painting as protection.
-  const [perItemSchedules, setPerItemSchedules] = useState(false);
-  useEffect(() => {
-    let alive = true;
-    getSettings()
-      .then((r) => {
-        if (alive) {
-          setGate(r.ok && r.settings.vmsEnabled === false ? "off" : "on");
-          setPerItemSchedules(r.ok ? r.settings.perItemSchedules === true : false);
-        }
-      })
-      .catch(() => {
-        if (alive) setGate("on");
-      });
-    return () => {
-      alive = false;
-    };
-  }, []);
-
   return (
-    // PAGE_SHELL (jdp live-review, "Können wir die nicht überall gleich breit
-    // machen?"): was `gap-6 max-w-5xl`, the same off-standard pair Containers
-    // carried — this page is Containers' structural twin and drifted with it.
-    // jdp did not name this page (it has no sidebar entry on a host without
-    // VMs, so he could not have), which is exactly why it gets swept here in
-    // the same pass rather than surfacing as the same complaint a round later.
-    // See lib/pageShell.ts for the measurement table behind 1152px/40px.
-    //   Responsive rhythm: PAGE_SHELL_RESPONSIVE keeps that settled desktop
-    // shell byte-identical at/above 48rem by construction and steps the Card
-    // rhythm down to 24px below it for the phone's card list — the same
-    // switch Containers.tsx made. Exception declared in eslint.config.js.
+    // Same shell as Containers; eslint.config.js carries the
+    // PAGE_SHELL_RESPONSIVE exception.
     <div className={PAGE_SHELL_RESPONSIVE}>
       {/* Page heading + Discover (disaster-recovery) action, at both
           widths — the same header the Containers page renders. */}
@@ -1445,24 +1407,22 @@ export function VMs() {
           </p>
           <div className="mt-2"><OffsiteIndicator domain="vms" /></div>
         </div>
-        {/* A disabled domain has nothing to discover: the header's re-scan
-            hides with the gate, as the mobile outline card takes over. */}
-        {gate !== "off" && (
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              key={shakeDiscover}
-              label={t("containers.discover")}
-              labelKey="containers.discover"
-              hueIndex={BULK_HUE.discover}
-              tone="accent"
-              onClick={() => void handleDiscover()}
-              disabled={discovering}
-              busy={discovering}
-              title={t("vms.discoverHint")}
-              className={shakeDiscover ? "glim-shake" : ""}
-            />
-          </div>
-        )}
+        {/* Discover is the way back after a lost database, so it stays
+            whether or not VM backups are switched on, as on Containers. */}
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            key={shakeDiscover}
+            label={t("containers.discover")}
+            labelKey="containers.discover"
+            hueIndex={BULK_HUE.discover}
+            tone="accent"
+            onClick={() => void handleDiscover()}
+            disabled={discovering}
+            busy={discovering}
+            title={t("vms.discoverHint")}
+            className={shakeDiscover ? "glim-shake" : ""}
+          />
+        </div>
       </div>
 
       {loading && (
@@ -1643,11 +1603,8 @@ export function VMs() {
         </div>
       )}
 
-      {/* The phone face: the card block, mounted ONLY under !isDesktop (not
-          just hidden) so the desktop makes no new requests and its DOM and
-          network traffic stay identical — the block owns every mobile-only
-          fetch (settings gate, schedule next-fire) inside itself. One gate,
-          one face: this replaces the CSS-hidden dual-block pair. */}
+      {/* The phone face is mounted only below 48rem rather than hidden, so
+          the settings read it owns never reaches the desktop. */}
       {!isDesktop && (
         <MobileVMsBlock
           sorted={sorted}
@@ -1665,8 +1622,6 @@ export function VMs() {
           onSortChange={handleSortChange}
           running={running}
           onRefresh={() => void loadVMs()}
-          gate={gate}
-          perItemSchedules={perItemSchedules}
         />
       )}
 
@@ -1681,28 +1636,14 @@ export function VMs() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Mobile VMs block — the VMs page's card presentation below the 48rem
-// breakpoint (the `!isDesktop` gate in VMs() above is the other half of the
-// mount discipline).
+// MobileVMsBlock is the VMs page below 48rem. It is its own component so the
+// one read only the phone needs (whether VM backups are switched on) stays
+// off the desktop. The filter state is the page's own, so the phone toolbar
+// and the desktop popover drive the same predicate.
 //
-// WHY A SEPARATE COMPONENT: the block owns every mobile-only fetch — the
-// destinations gate (getSettings → settings.vmsEnabled) and the next-fire
-// read (getScheduleNext) — and because the desktop never mounts this
-// component, the desktop makes no new requests and its DOM and network
-// traffic stay identical. The FILTER STATE is the page's own: the ListToolbar
-// below binds the same search/schedule/backup/sort state the desktop
-// FilterPopover does, so there is exactly ONE predicate (the memoized
-// filtered/sorted chain, see VMs()) with two presentations and no parallel
-// mobile filter state to drift.
-//
-// DEEP-LINK: each card's VMBackupButton reports its baseline-id-correlated
-// run through onRunCorrelated; THIS component hosts the one RunDetailSheet
-// (component-local) with the Containers.tsx mobile-detail latch verbatim —
-// onRun fires on every poll, so sheetRun always holds the freshest record,
-// and a sheet the user dismissed is never re-opened by later polls of the
-// same watch (the terminal toast still fires from the button).
-// ---------------------------------------------------------------------------
+// It hosts the one RunDetailSheet for its cards. onRun fires on every poll,
+// so the sheet always holds the freshest record, and a sheet the user
+// dismissed stays closed through later polls of the same run.
 function MobileVMsBlock({
   sorted,
   liveCount,
@@ -1719,8 +1660,6 @@ function MobileVMsBlock({
   onSortChange,
   running,
   onRefresh,
-  gate,
-  perItemSchedules,
 }: {
   /** The page's memoized filtered+sorted list — useLoadMore's identity
    *  contract needs a stable array identity across unrelated renders. */
@@ -1744,51 +1683,27 @@ function MobileVMsBlock({
   onSortChange: (k: SortKey) => void;
   running: { active: boolean; phase?: string };
   onRefresh: () => void;
-  /** The destinations-gate state, read once by the page (gate-off honesty:
-   *  unknown reads as on). The gate-off face and the header Discover both
-   *  branch on it. */
-  gate: "unknown" | "on" | "off";
-  /** Whether per-item schedules are on; a stored override outside it is
-   *  dormant and must not read as protection (see MobileVMCard). */
-  perItemSchedules: boolean;
 }) {
   const { t } = useT();
 
-  // The domain-level next-fire read. ScheduleNext is DOMAIN granularity
-  // (backend jobDomainFromName: the "vms" schedule job), and it is
-  // SERVER-derived: no client cadence math anywhere in this block.
-  // scheduleTick is bumped after a card saves an override (the next fire may
-  // have moved).
-  //
-  // THE SINGLE-ROW GUARD (#121): per-item overrides each register their own
-  // cron entry, and both they and the domain job land on the wire IDENTICALLY
-  // labeled (job "backup", domain "vms" — addPerItemEntry vs
-  // jobDomainFromName), with NextRuns sorted soonest-first — so with more
-  // than one vms row a find() hands every override card whichever row fires
-  // soonest: another VM's fire, or the domain job's, a fire that does not
-  // back that VM up at all (an overridden VM rides its own entry, not the
-  // domain run). The wire carries no per-item identity to match on, so the
-  // chip is fed a row only when exactly ONE vms row exists; ambiguity never
-  // renders as a specific — and possibly wrong — fire. Until the backend
-  // gives NextRun an item identity, an override-bearing fleet shows the
-  // cadence label alone.
-  const [scheduleNext, setScheduleNext] = useState<ScheduleNext | null>(null);
-  const [scheduleTick, setScheduleTick] = useState(0);
+  // Whether VM backups are switched on, read here rather than by the page so
+  // the desktop, which never mounts this block, makes no extra request. An
+  // unknown or failed read counts as on: the real list and its own error
+  // surfaces are honest, a claim that the feature is off might not be.
+  const [gate, setGate] = useState<"unknown" | "on" | "off">("unknown");
   useEffect(() => {
     let alive = true;
-    getScheduleNext()
-      .then((rows) => {
-        if (!alive) return;
-        const vmsRows = rows.filter((r) => r.domain === "vms");
-        setScheduleNext(vmsRows.length === 1 ? vmsRows[0] : null);
+    getSettings()
+      .then((r) => {
+        if (alive) setGate(r.ok && r.settings.vmsEnabled === false ? "off" : "on");
       })
       .catch(() => {
-        if (alive) setScheduleNext(null);
+        if (alive) setGate("on");
       });
     return () => {
       alive = false;
     };
-  }, [scheduleTick]);
+  }, []);
 
   // The run-sheet latch — Containers.tsx's mobile detail verbatim.
   const [sheetRun, setSheetRun] = useState<Run | null>(null);
@@ -1798,11 +1713,17 @@ function MobileVMsBlock({
   // a DIFFERENT id is a new fire — the latch's re-arm signal.
   const lastCorrelatedRun = useRef<string | null>(null);
 
-  // The one pagination primitive over the page's own sorted list.
-  const { visible, showMore, hasMore } = useLoadMore(sorted);
+  // Every save, finished backup and takeover reloads the list and hands this
+  // a new array. Keyed on the filter state alone, the window keeps the
+  // reader's place (and the card being edited mounted) through a reload, and
+  // a changed filter still rewinds.
+  const windowKey = [search.trim().toLowerCase(), scheduleFilter, backupFilter, sortKey].join("\u0000");
+  const { visible, showMore, hasMore } = useLoadMore(sorted, 20, windowKey);
   const mobileLive = visible.filter((v) => v.state !== "not-installed");
   const mobileOrphans = visible.filter((v) => v.state === "not-installed");
-  const scheduledCount = sorted.filter((v) => v.includeInSchedule).length;
+  // A removed VM only logs a skip when its run comes, so it does not count as
+  // scheduled, as on the Containers page.
+  const scheduledCount = sorted.filter((v) => v.state !== "not-installed" && v.includeInSchedule).length;
 
   return (
     <div className="flex flex-col gap-4 glim-content-fade">
@@ -1824,9 +1745,9 @@ function MobileVMsBlock({
         // The destinations gate, mobile face: the block says plainly that VM
         // backups are off and links to the settings row that turns them on.
         // A gated surface shows nothing else: no toolbar, no cards.
-        <div>
+        <div className="relative glim-notch-card">
           <MobileSectionLabel t={t} labelKey="settings.vmsEnabled" />
-          <div className="mt-2 flex flex-col gap-2 rounded-card border border-carbon-border bg-carbon-surface p-4">
+          <div className="flex flex-col gap-2 rounded-card bg-carbon-surface p-4 pt-5">
             <p className="text-sm text-carbon-textSub">{t("settings.vmsEnabledHint")}</p>
             <Link
               to="/settings"
@@ -1887,12 +1808,6 @@ function MobileVMsBlock({
               index={i}
               running={running}
               onRefresh={onRefresh}
-              perItemSchedules={perItemSchedules}
-              scheduleNext={scheduleNext}
-              onScheduleChanged={() => {
-                onRefresh();
-                setScheduleTick((n) => n + 1);
-              }}
               onRunCorrelated={(run) => {
                 if (lastCorrelatedRun.current !== run.id) {
                   lastCorrelatedRun.current = run.id;
@@ -1921,12 +1836,6 @@ function MobileVMsBlock({
                   index={liveCount + i}
                   running={running}
                   onRefresh={onRefresh}
-                  perItemSchedules={perItemSchedules}
-                  scheduleNext={scheduleNext}
-                  onScheduleChanged={() => {
-                    onRefresh();
-                    setScheduleTick((n) => n + 1);
-                  }}
                   onRunCorrelated={(run) => {
                     if (lastCorrelatedRun.current !== run.id) {
                       lastCorrelatedRun.current = run.id;
@@ -1971,15 +1880,11 @@ function MobileVMsBlock({
   );
 }
 
-// ---------------------------------------------------------------------------
-// MobileVMCard — one VM as a mobile card. The card is PRESENTATION over the
-// same data and the same controls the desktop VMRow renders: the trigger IS
-// VMBackupButton (its correlated-run callback deep-links the block's sheet),
-// the schedule sheet edits with the SAME CadenceBuilder ItemScheduleOverride
-// renders (restricted to EXACT_CADENCE_MODES — #166: the backend refuses
-// everyN on per-item VM overrides), restore rides RestoreAction untouched,
-// and snapshots browse through the one useLoadMore primitive.
-// ---------------------------------------------------------------------------
+// MobileVMCard is one VM as a phone card, over the same data and controls the
+// desktop VMRow renders. The per-VM schedule override is not on it: that
+// editor lives in Settings, where it only shows while per-item schedules are
+// on and the VM is included, which are the only conditions under which the
+// scheduler runs it.
 function MobileVMCard({
   vm,
   t,
@@ -1987,9 +1892,6 @@ function MobileVMCard({
   running,
   onRefresh,
   onRunCorrelated,
-  scheduleNext,
-  perItemSchedules,
-  onScheduleChanged,
 }: {
   vm: VM;
   t: T;
@@ -1997,15 +1899,6 @@ function MobileVMCard({
   running: { active: boolean; phase?: string };
   onRefresh: () => void;
   onRunCorrelated: (run: Run) => void;
-  /** The vms-domain entry of /api/schedule/next (domain-granular), or null. */
-  scheduleNext: ScheduleNext | null;
-  /** Whether the per-item schedule setting is on. A stored override only
-   *  runs when it is AND the VM is included; outside that it is dormant, and
-   *  this card must never paint a dormant override as protection. */
-  perItemSchedules: boolean;
-  /** An override was saved: the page reloads its list and the block refreshes
-   *  the next-fire read (the server, not this card, decides when things run). */
-  onScheduleChanged: () => void;
 }) {
   const progressMap = useProgress();
   const progress = progressMap[`vm:${vm.libvirtName}`];
@@ -2018,10 +1911,6 @@ function MobileVMCard({
   }
   const aliases = vm.aliases ?? [];
   const takeoverEntry = { name: vm.libvirtName, displayName: vm.name, api: vmTakeover };
-  const scheduleRaw = (vm.scheduleCadence ?? "").trim();
-  // A stored override only RUNS when per-item schedules are on and the VM is
-  // included; otherwise it is dormant and must not read as protection.
-  const scheduleRuns = perItemSchedules && vm.includeInSchedule && scheduleStatus(scheduleRaw) !== "off";
 
   return (
     <div
@@ -2111,28 +2000,6 @@ function MobileVMCard({
       <IncludeToggle name={vm.libvirtName} initial={vm.includeInSchedule} save={setVMInclude} />
 
       {installed && <VMMethodSelect name={vm.libvirtName} initial={vm.method} t={t} />}
-
-      {/* The per-VM override: the desktop editor itself (saves as you type,
-          no draft, no Done), never a sheet with a second save path. The
-          server-derived next fire shows only when the override can actually
-          run — per-item schedules on and the VM included. */}
-      {scheduleRuns && scheduleNext ? (
-        <p className="text-xs text-carbon-textMuted">
-          <span className="rounded-pill bg-accentSoft px-2 py-1 font-semibold text-accentText">
-            {formatTs(new Date(scheduleNext.next).getTime() / 1000)}
-          </span>
-        </p>
-      ) : null}
-      <ItemScheduleOverride
-        name={vm.libvirtName}
-        initial={scheduleRaw}
-        onSave={(cadence) =>
-          setVMScheduleCadence(vm.libvirtName, cadence).then((r) => {
-            if (r.ok) onScheduleChanged();
-            return r;
-          })
-        }
-      />
 
       {/* ContainerRow's disclosure block with a single section. */}
       <div className="flex flex-col gap-2">
