@@ -576,3 +576,49 @@ for (const width of [390, 360, 320]) {
     expect(ragged, `uneven or untappable segments: ${JSON.stringify(ragged)}`).toEqual([]);
   });
 }
+
+// A card's heading is a notch on the card's top edge, on the phone as much as
+// on the desktop. A heading that sits above its card with a gap reads as a
+// label floating between two cards, and the page then carries two heading
+// forms at once. German on purpose: its labels are the longer ones, so a
+// notch that wraps to two lines still has to clear the card's first line.
+for (const width of [390, 320]) {
+  test(`dashboard @ ${width}px: every card heading sits on its card's top edge`, async ({ page }, testInfo) => {
+    test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "mobile-only: the phone blocks render below 48rem");
+    await bootSeededPage(page, "de", width, "/dashboard");
+    await expect(page.locator("h2 > span").filter({ visible: true }).first()).toBeVisible();
+    await settle(page);
+
+    const headings = await page.locator("h2").evaluateAll((els) =>
+      els
+        .map((h) => {
+          const badge = h.querySelector("span");
+          if (!badge || !String(badge.className).includes("min-h-[22px]")) return null;
+          const box = badge.getBoundingClientRect();
+          if (box.width === 0) return null;
+          let card: Element | null = h.nextElementSibling;
+          if (!card || !String(card.className).includes("rounded-card")) card = h.closest(".rounded-card");
+          if (!card) return { label: badge.textContent?.trim(), problem: "no card" };
+          const cardBox = card.getBoundingClientRect();
+          const first = card.firstElementChild?.getBoundingClientRect();
+          return {
+            label: badge.textContent?.trim(),
+            position: getComputedStyle(badge).position,
+            offEdge: Math.round(box.top + box.height / 2 - cardBox.top),
+            overlapsFirstLine: first ? Math.round(box.bottom - first.top) : null,
+          };
+        })
+        .filter((x) => x !== null),
+    );
+
+    expect(headings.length, "the phone dashboard renders its card headings").toBeGreaterThan(2);
+    const wrong = headings.filter(
+      (h) =>
+        "problem" in h ||
+        h.position !== "absolute" ||
+        Math.abs(h.offEdge) > 1 ||
+        (h.overlapsFirstLine !== null && h.overlapsFirstLine > 0),
+    );
+    expect(wrong, `headings off their card's edge: ${JSON.stringify(wrong)}`).toEqual([]);
+  });
+}

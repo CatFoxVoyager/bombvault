@@ -1225,9 +1225,9 @@ function RunsCard({
     // a run (the tap opens the page-hosted RunDetailSheet; no route).
     const recent = runs.slice(0, 4);
     return (
-      <section className="relative flex flex-col gap-2 glim-hue" style={hueVars(hueIndex ?? 0) as CSSProperties}>
+      <section className="relative glim-notch-card glim-hue" style={hueVars(hueIndex ?? 0) as CSSProperties}>
         <MobileSectionLabel t={t} labelKey="dashboard.recentRuns" />
-        <div className="rounded-card bg-carbon-surface p-2">
+        <div className="rounded-card bg-carbon-surface p-2 pt-5">
           {failures.length > 0 && (
             <FailureCounter t={t} count={failures.length} dense hueIndex={0} onOpen={() => setPanelOpen(true)} />
           )}
@@ -1821,9 +1821,9 @@ function StorageCard({
       null
     );
     return (
-      <section className="relative flex flex-col gap-2 glim-hue" style={hueVars(hueIndex ?? 0) as CSSProperties}>
+      <section className="relative glim-notch-card glim-hue" style={hueVars(hueIndex ?? 0) as CSSProperties}>
         <MobileSectionLabel t={t} labelKey="dashboard.storageTitle" />
-        <div className="flex flex-col gap-2 rounded-card bg-carbon-surface p-4">
+        <div className="flex flex-col gap-2 rounded-card bg-carbon-surface p-4 pt-5">
           <div className="flex flex-wrap items-center gap-2">
             <WorstRpoHealthLine t={t} domains={domains} loading={statusLoading} />
           </div>
@@ -2461,9 +2461,9 @@ function NextRunCard({
 
   if (dense) {
     return (
-      <section className="relative flex flex-col gap-2 glim-hue" style={hueVars(hueIndex ?? 0) as CSSProperties}>
+      <section className="relative glim-notch-card glim-hue" style={hueVars(hueIndex ?? 0) as CSSProperties}>
         <MobileSectionLabel t={t} labelKey="dashboard.summaryNextBackup" />
-        <div className="flex items-center gap-2 rounded-card bg-carbon-surface p-4">
+        <div className="flex items-center gap-2 rounded-card bg-carbon-surface p-4 pt-5">
           {loading ? (
             <p className="text-sm text-carbon-textMuted">{t("dashboard.checking")}</p>
           ) : at ? (
