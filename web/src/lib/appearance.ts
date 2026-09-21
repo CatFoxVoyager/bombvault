@@ -172,7 +172,7 @@ export function rainbowAt(i: number): string {
  *
  * They point at the root's `--rb-*` properties rather than holding the
  * colour, so a palette or rotation change lands on the root alone, and disco
- * can glide it there (index.css) instead of stepping every element.
+ * can walk the colours there without re-rendering a single component.
  */
 export function hueVars(i: number): Record<string, string> {
   const n = ((Math.trunc(i) % RAINBOW.length) + RAINBOW.length) % RAINBOW.length;

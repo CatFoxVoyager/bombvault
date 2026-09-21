@@ -746,7 +746,7 @@ const ms: Partial<Translations> = {
   "settings.rainbow": "Mod Pelangi",
   "settings.rainbowHint": "Setiap baris dalam senarai mendapat warnanya sendiri daripada set lapan warna, dan bukannya semua berkongsi satu warna aksen. Ini menjadikan senarai panjang lebih mudah dibezakan sepintas lalu.",
   "settings.disco": "Mod disko",
-  "settings.discoHint": "Setiap baris dan item berwarna beralih perlahan ke warna seterusnya dalam palet, satu warna setiap tiga saat, selagi Mod Pelangi dihidupkan.",
+  "settings.discoHint": "Setiap baris dan item berwarna beralih perlahan ke warna seterusnya dalam palet selagi Mod Pelangi dihidupkan.",
   "settings.rainbowReactive": "Mod reaktif",
   "settings.rainbowReactiveHint": "Apabila dihidupkan, warna baris atau item hanya muncul semasa anda mengarahkan kursor ke atasnya, atau semasa ia berjalan atau dipilih. Jika tidak, ia kekal neutral. Apabila dimatikan, setiap baris dan item berwarna menunjukkan warnanya sepanjang masa.",
   "settings.rainbowRotate": "Putaran warna",

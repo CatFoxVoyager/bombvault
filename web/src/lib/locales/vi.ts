@@ -293,7 +293,7 @@ const vi: Partial<Translations> = {
   "settings.rainbow": "Chế độ cầu vồng",
   "settings.rainbowHint": "Mỗi dòng trong danh sách nhận màu riêng từ một bộ tám màu, thay vì tất cả dùng chung một màu nhấn, giúp các danh sách dài dễ phân biệt chỉ bằng một cái nhìn.",
   "settings.disco": "Chế độ disco",
-  "settings.discoHint": "Mỗi hàng và mục có màu chuyển dần sang màu tiếp theo trong bảng màu, cứ ba giây một màu, miễn là Chế độ cầu vồng đang bật.",
+  "settings.discoHint": "Mỗi hàng và mục có màu chuyển dần sang màu tiếp theo trong bảng màu, miễn là Chế độ cầu vồng đang bật.",
   "settings.rainbowReactive": "Chế độ phản ứng",
   "settings.rainbowReactiveHint": "Khi bật, một hàng hoặc mục chỉ hiện màu của nó khi bạn di chuột qua, hoặc khi nó đang chạy hoặc được chọn, còn lại thì giữ màu trung tính. Khi tắt, mọi hàng và mục có màu sẽ luôn hiện màu của nó.",
   "settings.rainbowRotate": "Luân chuyển màu",
