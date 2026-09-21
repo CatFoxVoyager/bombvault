@@ -293,7 +293,7 @@ const sv: Partial<Translations> = {
   "settings.rainbow": "Regnbågsläge",
   "settings.rainbowHint": "Varje rad i en lista får sin egen färg från en uppsättning på åtta, i stället för att allt delar en enda accentfärg. Det gör långa listor lättare att skilja åt med en blick.",
   "settings.disco": "Discoläge",
-  "settings.discoHint": "Varje färgad rad och varje färgat element glider långsamt över till nästa färg i paletten, en var tredje sekund, så länge regnbågsläget är påslaget.",
+  "settings.discoHint": "Varje färgad rad och varje färgat element glider långsamt över till nästa färg i paletten, så länge regnbågsläget är påslaget.",
   "settings.rainbowReactive": "Reaktivt läge",
   "settings.rainbowReactiveHint": "När aktiverat visar en rad eller ett objekt bara sin färg vid hovring, eller medan den körs eller är markerad, annars förblir den neutral. När avaktiverat visar varje färgad rad och objekt sin färg hela tiden.",
   "settings.rainbowRotate": "Färgrotation",
