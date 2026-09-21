@@ -1626,6 +1626,16 @@ export function VMs() {
           running={running}
           onRefresh={() => void loadVMs()}
           linkCandidates={notInstalledNames}
+          selected={selected}
+          onToggleSelect={toggleSelect}
+          allLiveSelected={allLiveSelected}
+          onToggleSelectAll={toggleSelectAll}
+          onBackupSelected={backupSelected}
+          onRestoreSelected={() => void restoreSelected()}
+          onClearSelection={() => setSelected(new Set())}
+          bulkBusy={bulkBusy}
+          onIncludeAllChanged={() => void loadVMs()}
+          vms={vms}
         />
       )}
 
@@ -1665,6 +1675,16 @@ function MobileVMsBlock({
   running,
   onRefresh,
   linkCandidates,
+  selected,
+  onToggleSelect,
+  allLiveSelected,
+  onToggleSelectAll,
+  onBackupSelected,
+  onRestoreSelected,
+  onClearSelection,
+  bulkBusy,
+  onIncludeAllChanged,
+  vms,
 }: {
   /** The page's memoized filtered+sorted list — useLoadMore's identity
    *  contract needs a stable array identity across unrelated renders. */
@@ -1690,6 +1710,20 @@ function MobileVMsBlock({
   onRefresh: () => void;
   /** The not-installed names the detail's link picker offers. */
   linkCandidates: string[];
+  /** Bulk-selection state over libvirt names, shared with the desktop face. */
+  selected: ReadonlySet<string>;
+  onToggleSelect: (name: string) => void;
+  /** True when every live VM is ticked (the select-all checkbox). */
+  allLiveSelected: boolean;
+  onToggleSelectAll: () => void;
+  onBackupSelected: () => void;
+  onRestoreSelected: () => void;
+  onClearSelection: () => void;
+  bulkBusy: boolean;
+  /** The include-all switch's refresh: the page reloads its list. */
+  onIncludeAllChanged: () => void;
+  /** The full list payload, for the advanced backup order panel. */
+  vms: VM[];
 }) {
   const { t } = useT();
 
@@ -1810,11 +1844,81 @@ function MobileVMsBlock({
               derived from the same list payload the desktop reads, no new
               endpoint, no new key. */}
           {liveCount > 0 && !listChromeHidden && (
-            <p className="text-xs text-carbon-textMuted">
-              {`${liveCount} ${t("nav.vms")}${
-                scheduledCount > 0 ? ` · ${scheduledCount} ${t("filter.scheduled")}` : ""
-              }`}
-            </p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs text-carbon-textMuted">
+                {`${liveCount} ${t("nav.vms")}${
+                  scheduledCount > 0 ? ` · ${scheduledCount} ${t("filter.scheduled")}` : ""
+                }`}
+              </p>
+              <div className="flex items-center gap-3">
+                {/* The select-all and include-all controls main carries at
+                    phone width: one click ticks every live row; the other
+                    includes or excludes every VM. */}
+                <label className="flex items-center gap-2 text-xs text-carbon-textSub cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={allLiveSelected}
+                    onChange={onToggleSelectAll}
+                    className="h-4 w-4 cursor-pointer"
+                    style={{ accentColor: "var(--accent)" }}
+                  />
+                  {t("containers.selectAll")}
+                </label>
+                <ScheduleIncludeAllControl t={t} onChanged={onIncludeAllChanged} />
+              </div>
+            </div>
+          )}
+
+          {/* The advanced backup order panel, at both widths like the desktop
+              face renders it. */}
+          {!loading && !error && (
+            <Advanced>
+              <VMBackupOrderPanel vms={vms} t={t} hueIndex={0} />
+            </Advanced>
+          )}
+
+          {/* The bulk action bar, the desktop header's own: visible while any
+              row is ticked. */}
+          {!loading && selected.size > 0 && (
+            <div className="flex items-center gap-3 flex-wrap rounded-card bg-carbon-surface2 px-3 py-2">
+              <span className="text-xs text-carbon-textSub">
+                {selected.size} {t("containers.selectedCount")}
+              </span>
+              <Button
+                label={t("vms.backupSelected")}
+                labelKey="vms.backupSelected"
+                hueIndex={BULK_HUE.backup}
+                tone="accent"
+                onClick={onBackupSelected}
+                disabled={bulkBusy || running.active}
+              />
+              {/* Bulk restore is advanced-only; bulk backup stays basic. */}
+              <Advanced>
+                <Button
+                  label={t("vms.restoreSelected")}
+                  labelKey="vms.restoreSelected"
+                  hueIndex={BULK_HUE.restore}
+                  tone="accent"
+                  onClick={onRestoreSelected}
+                  disabled={bulkBusy || running.active}
+                />
+              </Advanced>
+              <Button
+                label={t("containers.clearSelection")}
+                labelKey="containers.clearSelection"
+                tone="neutral"
+                onClick={onClearSelection}
+                disabled={bulkBusy}
+              />
+              {bulkBusy && (
+                <span className="text-xs text-carbon-textMuted">{t("containers.working")}</span>
+              )}
+              {!bulkBusy && running.active && (
+                <span className="text-xs text-carbon-textMuted">
+                  {t(busyPhraseKey(running.phase))}
+                </span>
+              )}
+            </div>
           )}
 
           {/* The ONE toolbar: lifted page state, shared chip filters. Rendered
@@ -1850,7 +1954,15 @@ function MobileVMsBlock({
           {!listChromeHidden && (
             <>
               {mobileLive.map((v, i) => (
-                <MobileVMCard key={v.libvirtName} vm={v} t={t} index={i} onOpen={() => openCard(v)} />
+                <MobileVMCard
+                key={v.libvirtName}
+                vm={v}
+                t={t}
+                index={i}
+                selected={selected.has(v.libvirtName)}
+                onToggleSelect={() => onToggleSelect(v.libvirtName)}
+                onOpen={() => openCard(v)}
+              />
               ))}
 
               {mobileOrphans.length > 0 && (
@@ -1864,6 +1976,8 @@ function MobileVMsBlock({
                       vm={v}
                       t={t}
                       index={liveCount + i}
+                      selected={selected.has(v.libvirtName)}
+                      onToggleSelect={() => onToggleSelect(v.libvirtName)}
                       onOpen={() => openCard(v)}
                     />
                   ))}
@@ -1895,7 +2009,21 @@ function MobileVMsBlock({
 // method as its one meta line, the state badge, the accent chevron. Every
 // control lives in the detail the row opens, so the two sibling pages'
 // rows cannot drift apart again.
-function MobileVMCard({ vm, t, index, onOpen }: { vm: VM; t: T; index: number; onOpen: () => void }) {
+function MobileVMCard({
+  vm,
+  t,
+  index,
+  onOpen,
+  selected,
+  onToggleSelect,
+}: {
+  vm: VM;
+  t: T;
+  index: number;
+  onOpen: () => void;
+  selected?: boolean;
+  onToggleSelect?: () => void;
+}) {
   const installed = vm.state !== "not-installed";
   return (
     <MobileListCard
@@ -1912,6 +2040,8 @@ function MobileVMCard({ vm, t, index, onOpen }: { vm: VM; t: T; index: number; o
       }
       hueIndex={index}
       onOpen={onOpen}
+      selected={selected}
+      onToggleSelect={onToggleSelect}
     />
   );
 }
