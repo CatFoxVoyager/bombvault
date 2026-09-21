@@ -33,7 +33,7 @@
 //
 // SCOPE NOTE: the Files, Settings-family and Recovery mobile surfaces carry
 // their own per-page leakage batteries with their own commits (their
-// Fab/ListToolbar/Load-more/chip-strip/wizard needles and the inverse
+// ListToolbar/Load-more/chip-strip/wizard needles and the inverse
 // mobile-direction halves); this file pins the desktop half, and those
 // pages' asserts live beside those pages' phone treatments.
 // ---------------------------------------------------------------------------
@@ -218,18 +218,9 @@ for (const route of CONTAINER_ROUTES) {
   });
 }
 
-// ---------------------------------------------------------------------------
-// The >=48rem leakage pass for /vms: the page this PR gives a phone face
-// (the card list, the per-card schedule sheets, the Fab). Same discipline as
-// the Dashboard and Containers passes above. The needles are the phone
-// face's exact class signatures, each verified to exist ONLY on the mobile
-// side when this pass landed: `button.h-13` is the Fab's 52px stage (the
-// only h-13 button in src/), `div.sticky.top-0.z-10.bg-carbon-sidebar` is
-// the ListToolbar's sticky search strip (no desktop element carries it —
-// the Desktop pass's own 10-route loop proves the sidebar twin separately),
-// and the two role/name queries are the mobile-only surfaces proper (the
-// per-card schedule rows, the load-more window chrome).
-// ---------------------------------------------------------------------------
+// The desktop /vms carries none of the phone face: the ListToolbar's sticky
+// search strip (no desktop element has that class set) and the load-more
+// window are the two surfaces only the phone block renders.
 const VM_ROUTES = ["/vms"];
 
 for (const route of VM_ROUTES) {
@@ -237,14 +228,8 @@ for (const route of VM_ROUTES) {
     test.skip(!DESKTOP_PROJECTS.has(testInfo.project.name), "desktop-only: the >=48rem leakage contract");
     await page.goto(route);
 
-    // The Fab — the phone face's 52px filled primary trigger.
-    await expect(page.locator("button.h-13")).toHaveCount(0);
-    // The ListToolbar's sticky search strip.
     await expect(page.locator("div.sticky.top-0.z-10.bg-carbon-sidebar")).toHaveCount(0);
-    // The mobile-only surfaces proper: the load-more window chrome and the
-    // per-card schedule rows.
     await expect(page.getByText("Load more")).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Schedule override" })).toHaveCount(0);
   });
 }
 

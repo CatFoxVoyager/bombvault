@@ -529,13 +529,6 @@
      it. The wide rail is Tailwind's `w-56`. */
   --rail-narrow:      85px;
 
-  /* The maquette's 18px Fab radius (components/mobile/Fab.tsx). The --mob-
-     prefix is deliberate: a future platform axis re-homes the value under
-     [data-platform] blocks without renaming the consumer. Today exactly one
-     consumer exists (the Fab). Theme-invariant like the shape tokens above,
-     so it lives on this bare :root rather than in a theme block. */
-  --mob-fab-radius:   18px;
-
   --text-heading: 1.25rem;  /* 20px */
   --text-body:    0.875rem; /* 14px */
   --text-dense:   0.75rem;  /* 12px */
