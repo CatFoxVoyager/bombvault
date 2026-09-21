@@ -1,31 +1,21 @@
 import type { TranslationKey, useT } from "../../lib/i18n";
 import { Badge } from "../Badge";
 
-// ---------------------------------------------------------------------------
-// MobileSectionLabel; the one section header of the mobile card language: a
-// filled section Badge sitting between the cards, the same heading treatment
-// every other surface in the app uses. It replaces an earlier 12px letter-
-// spaced all-caps label, which is retired for good: forced capitalisation +
-// letter-spacing is a Latin-script idiom that renders as lie-flat (or worse,
-// mangled) text
-// in the no-case and non-Latin scripts of ar, he, hi, th, zh, ja and ko, and
-// the muted grey read as a caption rather than a heading. The filled Badge is
-// `inFlow` (not the desktop cards' overlapping notch): a phone column's first
-// section sits right under the page header, where a -11px poke above the box
-// would clip; the same measurement that moved the sheet titles in-flow (see
-// BottomSheet's header note). Kept as a shared component so every page block
-// carrying phone-width sections composes the same heading instead of
-// re-authoring a private copy; the same single-registry discipline the nav
-// model applies to destinations, applied to a component: one source of the
-// heading markup, consumers import it back. The Badge carries no hueIndex of
-// its own: the block's `glim-hue` root rebinds --accent for the whole subtree,
-// so the fill inherits the block's position.
-// ---------------------------------------------------------------------------
-
+// MobileSectionLabel is the heading of a phone card: the same notch every
+// card in the app wears, straddling the card's top edge. It is a filled Badge
+// rather than a letter-spaced caps label, since capitals and tracking mean
+// nothing in the no-case scripts of ar, he, hi, th, zh, ja and ko.
+//
+// The notch is positioned against the section it sits in, so that section
+// has to hug its card with no gap, and the card needs about 20px of top
+// padding for the notch's lower half to clear its first line, as the desktop
+// cards have. insetStart lines the notch up with the card's p-4 content edge.
+// The Badge carries no hueIndex: the section's glim-hue rebinds --accent for
+// the whole block, so the fill takes the block's position.
 export function MobileSectionLabel({ t, labelKey }: { t: ReturnType<typeof useT>["t"]; labelKey: TranslationKey }) {
   return (
     <h2 className="flex items-center min-w-0">
-      <Badge tone="heading" size="heading" wrap inFlow className="min-w-0">
+      <Badge tone="heading" size="heading" wrap insetStart={4} className="min-w-0">
         {t(labelKey)}
       </Badge>
     </h2>
