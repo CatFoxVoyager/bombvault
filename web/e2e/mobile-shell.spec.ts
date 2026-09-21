@@ -238,24 +238,18 @@ test("the confirm sheet gives no point between its answers to the firing one", a
   const sheet = page.getByRole("dialog");
   await expect(sheet).toBeVisible();
 
-  // The sheet slides in, and a box read while it still moves does not
-  // describe where the point will land.
-  await sheet.evaluate(
-    (dialog) =>
-      new Promise<void>((done) => {
-        let last = -1;
-        const settle = () => {
-          const top = dialog.getBoundingClientRect().top;
-          if (top === last) {
-            done();
-            return;
-          }
-          last = top;
-          requestAnimationFrame(settle);
-        };
-        requestAnimationFrame(settle);
-      }),
-  );
+  // The sheet slides in and its answers have entrance motion of their own,
+  // and a box read while anything still moves does not describe where the
+  // point will land. Every animation with an end is waited out; the ones
+  // without one (a rainbow, a spinner) would never settle and do not move
+  // these buttons.
+  await sheet.evaluate(async () => {
+    const finite = document.getAnimations().filter((a) => {
+      const end = a.effect?.getComputedTiming().endTime;
+      return typeof end === "number" && Number.isFinite(end);
+    });
+    await Promise.all(finite.map((a) => a.finished.catch(() => undefined)));
+  });
 
   const probe = await sheet.evaluate((dialog) => {
     const buttons = [...dialog.querySelectorAll("button")];
