@@ -1399,7 +1399,7 @@ export function VMs() {
     // PAGE_SHELL_RESPONSIVE exception.
     <div className={PAGE_SHELL_RESPONSIVE}>
       {/* Page heading + Discover (disaster-recovery) action, at both
-          widths — the same header the Containers page renders. */}
+          widths, the same header the Containers page renders. */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-semibold text-carbon-text">
@@ -1439,7 +1439,7 @@ export function VMs() {
           {/* No "Add" action here (unlike Receiver/Fleet/Files): this list is a
               live enumeration of what libvirt/KVM actually reports, not a
               BombVault-managed list to add to. The page's own Discover action
-              (disaster-recovery re-scan — the header button above) is already the
+              (disaster-recovery re-scan, the header button above) is already the
               relevant action for an empty result, so a second button here
               would be redundant. */}
           <EmptyStateIcon icon={IconVM} />
@@ -1686,7 +1686,7 @@ function MobileVMsBlock({
   onIncludeAllChanged,
   vms,
 }: {
-  /** The page's memoized filtered+sorted list — useLoadMore's identity
+  /** The page's memoized filtered+sorted list; useLoadMore's identity
    *  contract needs a stable array identity across unrelated renders. */
   sorted: VM[];
   /** Live (non not-installed) count for the summary line. */
@@ -1810,7 +1810,7 @@ function MobileVMsBlock({
 
       {/* Page-level load failure: the shared error paragraph above carries the
           message; this >=44px tonal row is the mobile recovery affordance.
-          folders.retry ("Try again") is the sanctioned existing label — no
+          folders.retry ("Try again") is the sanctioned existing label; no
           new key needed. */}
       {error && !listChromeHidden && (
         <button
@@ -1840,7 +1840,7 @@ function MobileVMsBlock({
         </div>
       ) : (
         <>
-          {/* Summary counts line — Containers.tsx's mobile list precedent:
+          {/* Summary counts line, the Containers.tsx mobile list precedent:
               derived from the same list payload the desktop reads, no new
               endpoint, no new key. */}
           {liveCount > 0 && !listChromeHidden && (
@@ -1923,7 +1923,7 @@ function MobileVMsBlock({
 
           {/* The ONE toolbar: lifted page state, shared chip filters. Rendered
               once the first load has settled (mirrors the desktop controls
-              row), including when filters currently match nothing — a cleared
+              row), including when filters currently match nothing; a cleared
               search must remain clearable. */}
           {!loading && !error && !listChromeHidden && (
             <ListToolbar search={search} onSearch={onSearch} placeholder="vms.searchPlaceholder">
@@ -1984,7 +1984,7 @@ function MobileVMsBlock({
                 </div>
               )}
 
-              {/* The one load-more affordance, gated on hasMore — no rows beyond
+              {/* The one load-more affordance, gated on hasMore: no rows beyond
                   the window, no button (hasMore is the ONLY signal this may gate
                   on). */}
               {hasMore && (
@@ -2085,7 +2085,7 @@ function MobileVMDetail({
   }
   const aliases = vm.aliases ?? [];
   const takeoverEntry = { name: vm.libvirtName, displayName: vm.name, api: vmTakeover };
-  // The run-sheet latch — the Containers detail's, verbatim.
+  // The run-sheet latch, the Containers detail's, verbatim.
   const [sheetRun, setSheetRun] = useState<Run | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const sheetDismissed = useRef(false);
@@ -2115,7 +2115,7 @@ function MobileVMDetail({
       )}
 
       {/* The desktop card's corner, verbatim: a not-installed entry gets the
-          removal control (#232) instead of a backup trigger — backing up a
+          removal control (#232) instead of a backup trigger; backing up a
           VM that no longer exists only parks a run in flight for hours. */}
       {!installed && (
         <OrphanRemoveButton
@@ -2129,7 +2129,7 @@ function MobileVMDetail({
         />
       )}
 
-      {/* Last-run line — the desktop row's combined line, verbatim keys. */}
+      {/* Last-run line, the desktop row's combined line, verbatim keys. */}
       <p className="text-xs text-carbon-textMuted">
         {`${t("containers.lastBackup")}: ${vm.lastBackup ? formatTs(vm.lastBackup) : t("containers.never")}`}
       </p>
@@ -2174,7 +2174,7 @@ function MobileVMDetail({
 
       {/* The schedule switch, the desktop card's own: without it there is no
           way to schedule or unschedule a VM from a phone at all. It shows on
-          a removed VM too — the entry stays scheduled and every run logs a
+          a removed VM too: the entry stays scheduled and every run logs a
           skip until this switch goes off. */}
       <IncludeToggle name={vm.libvirtName} initial={vm.includeInSchedule} save={setVMInclude} />
 

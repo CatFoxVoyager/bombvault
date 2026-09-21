@@ -12,7 +12,7 @@ export function MobileDetailShell({
   onBack,
   children,
 }: {
-  /** The entry's display name — the heading, and the back row's accessible
+  /** The entry's display name, the heading, and the back row's accessible
    *  name lead ("<title>, Back"). */
   title: string;
   onBack: () => void;

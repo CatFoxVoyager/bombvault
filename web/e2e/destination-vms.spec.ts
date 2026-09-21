@@ -175,9 +175,11 @@ test("mobile /vms: card list, search filter and the 20/40 load-more window", asy
   const searchBox = page.getByPlaceholder("Search VMs…").filter({ visible: true });
   await expect(searchBox).toBeVisible();
 
-  // Every live card carries exactly one trigger and the desktop is not
-  // mounted at this width, so the triggers count the cards.
-  const cards = page.getByRole("button", { name: "Back up now" }).filter({ visible: true });
+  // The rows are the shared list card: a compact row per VM (its accessible
+  // name leads with the VM name), no triggers on it — every control lives in
+  // the detail the row opens. The desktop is not mounted at this width, so
+  // the rows count the window.
+  const cards = page.getByRole("button", { name: /^vm-\d{2}/ }).filter({ visible: true });
   await expect(cards).toHaveCount(20);
   await expect(page.getByText("vm-39", { exact: true }).filter({ visible: true })).toHaveCount(0);
   const loadMore = page.getByRole("button", { name: "Load more" });
@@ -246,6 +248,9 @@ test("mobile /vms: trigger deep-links the correlated run and a dismissed sheet i
   );
 
   await page.goto("/vms");
+  // The row opens the detail; the trigger lives in the detail, as on the
+  // Containers page.
+  await page.getByRole("button", { name: /^vm-\d{2}/ }).filter({ visible: true }).tap();
   const trigger = page.getByRole("button", { name: "Back up now" }).filter({ visible: true });
   await expect(trigger).toBeVisible();
 

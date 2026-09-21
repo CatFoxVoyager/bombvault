@@ -25,7 +25,7 @@ export function MobileListCard({
   selected,
   onToggleSelect,
 }: {
-  /** The entry's display name — also the monogram's letter and the row's
+  /** The entry's display name, also the monogram's letter and the row's
    *  accessible name. */
   title: string;
   /** One muted meta line under the title (a folder count, a method), or
@@ -62,7 +62,7 @@ export function MobileListCard({
         )}
       </span>
       {badge}
-      {/* The affordance arrow reads the card's own hue — the ONE accent
+      {/* The affordance arrow reads the card's own hue, the ONE accent
           reader on the card, so a hued card shows its colour on the control
           that opens the detail. */}
       <svg aria-hidden width="10" height="10" viewBox="0 0 12 12" fill="none" className="shrink-0 text-accentText">
