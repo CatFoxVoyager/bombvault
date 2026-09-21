@@ -129,7 +129,7 @@ describe("the mobile toolbar is the shared ListToolbar", () => {
 describe("the card list paginates through the shared load-more primitive", () => {
   it("windows the card list with useLoadMore", () => {
     expect(
-      /const \{ visible: visibleCards, showMore, hasMore \} = useLoadMore\(mobileCards\);/.test(containers),
+      /const \{ visible: visibleCards, showMore, hasMore \} = useLoadMore\(mobileCards[,)]/.test(containers),
       "Containers.tsx no longer windows its mobile card list through useLoadMore. " +
         "The primitive owns the constant window, the Load-more affordance, the " +
         "honest hasMore and the reset-on-identity contract — a page that " +
