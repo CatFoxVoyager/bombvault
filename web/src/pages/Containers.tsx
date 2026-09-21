@@ -3612,16 +3612,11 @@ function BackupOrderPanel({
                       duplicate native `title`, i.e. the OS balloon
                       IconTipButton.tsx exists to replace. Same tips, same
                       handlers, same disabled chrome. */}
-                  {/* Same 44px touch bleed the row actions and the small-well
-                      segments carry: the
-                      arrow hosts measure 20px, so the invisible ::after
-                      inset-negative pseudo grows the tap area to the floor
-                      without painting anything. */}
                   <IconTipButton
                     tip={t("backupOrder.moveUp")}
                     onClick={() => move(i, -1)}
                     disabled={i === 0 || saveState === "saving"}
-                    className="shrink-0 inline-flex items-center rounded-control p-1 text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text transition-colors disabled:opacity-30 max-md:relative max-md:after:absolute max-md:after:-inset-3 max-md:after:content-['']"
+                    className="shrink-0 inline-flex items-center rounded-control p-1 text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text transition-colors disabled:opacity-30"
                   >
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                       <path fill="currentColor" d="M1.3 8.7 6 3.3 10.7 8.7Z" />
@@ -3631,7 +3626,7 @@ function BackupOrderPanel({
                     tip={t("backupOrder.moveDown")}
                     onClick={() => move(i, 1)}
                     disabled={i === names.length - 1 || saveState === "saving"}
-                    className="shrink-0 inline-flex items-center rounded-control p-1 text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text transition-colors disabled:opacity-30 max-md:relative max-md:after:absolute max-md:after:-inset-3 max-md:after:content-['']"
+                    className="shrink-0 inline-flex items-center rounded-control p-1 text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text transition-colors disabled:opacity-30"
                   >
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                       <path fill="currentColor" d="M1.3 3.3 6 8.7 10.7 3.3Z" />
@@ -3717,7 +3712,11 @@ export function Containers() {
   // column while the list itself is taken off the tree, so the phone shows
   // ONE surface at a time and Back restores the list plus its scroll offset.
   const isDesktop = useIsDesktop();
-  const [openContainer, setOpenContainer] = useState<Container | null>(null);
+  // Only the name is held: the detail reads its container out of the list on
+  // every render, so a refetch reaches it the way it reaches a row. Holding
+  // the object would freeze it at the moment of the tap, and the list is
+  // replaced wholesale on every poll.
+  const [openName, setOpenName] = useState<string | null>(null);
   // Scroll handoff: captured from main#bv-main when a card opens the detail,
   // restored when Back closes it (after the commit that unhides the list, so
   // the full list height exists to scroll back into).
@@ -3727,9 +3726,13 @@ export function Containers() {
   // (cache-invalidated) mounts response so their count line reflects the edit.
   const [cardNonce, setCardNonce] = useState(0);
 
+  // A name missing from the list was deleted or renamed away under the open
+  // detail, and the detail closes with it.
+  const openContainer = openName === null ? null : containers.find((c) => c.name === openName) ?? null;
+
   function openCard(c: Container) {
     listScrollRef.current = document.getElementById("bv-main")?.scrollTop ?? 0;
-    setOpenContainer(c);
+    setOpenName(c.name);
     // After the detail commits, the page reads from the top (the back row is
     // the first thing on screen).
     requestAnimationFrame(() => {
@@ -3738,14 +3741,14 @@ export function Containers() {
   }
 
   function closeDetail() {
-    if (!openContainer) return;
+    if (openName === null) return;
     // The editor session is over: drop this container's cached mounts
     // response so the card list refetches the just-saved selection, then let
     // the post-commit effect below put the scroll position back.
-    cardMountsCache.delete(openContainer.name);
+    cardMountsCache.delete(openName);
     restoreScrollRef.current = true;
     setCardNonce((n) => n + 1);
-    setOpenContainer(null);
+    setOpenName(null);
   }
 
   useEffect(() => {
@@ -3893,7 +3896,12 @@ export function Containers() {
     ],
     [live, orphans, filterKey]
   );
-  const { visible: visibleCards, showMore, hasMore } = useLoadMore(mobileCards);
+  // The array is rebuilt on every poll, which without a key would send the
+  // window back to the first twenty rows every few seconds. The key carries
+  // the filter state alone, so a refetch keeps the reader's place and a
+  // changed filter still rewinds.
+  const cardWindowKey = [query, filterKey, scheduleFilter, backupFilter, sortKey].join("\u0000");
+  const { visible: visibleCards, showMore, hasMore } = useLoadMore(mobileCards, 20, cardWindowKey);
   const visibleLive = useMemo(() => visibleCards.filter((c) => c.installed), [visibleCards]);
   const visibleOrphans = useMemo(() => visibleCards.filter((c) => !c.installed), [visibleCards]);
 
