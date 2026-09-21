@@ -806,6 +806,7 @@ export function VMRow({
           />
         </Advanced>
 
+
         <VMRestorePanel
           name={vm.libvirtName}
           displayName={vm.name}
@@ -1624,6 +1625,7 @@ export function VMs() {
           onSortChange={handleSortChange}
           running={running}
           onRefresh={() => void loadVMs()}
+          linkCandidates={notInstalledNames}
         />
       )}
 
@@ -1662,6 +1664,7 @@ function MobileVMsBlock({
   onSortChange,
   running,
   onRefresh,
+  linkCandidates,
 }: {
   /** The page's memoized filtered+sorted list — useLoadMore's identity
    *  contract needs a stable array identity across unrelated renders. */
@@ -1685,6 +1688,8 @@ function MobileVMsBlock({
   onSortChange: (k: SortKey) => void;
   running: { active: boolean; phase?: string };
   onRefresh: () => void;
+  /** The not-installed names the detail's link picker offers. */
+  linkCandidates: string[];
 }) {
   const { t } = useT();
 
@@ -1759,7 +1764,14 @@ function MobileVMsBlock({
           row controls inside. Renders in the page column above where the
           list sits; the list is off the tree while it is open. */}
       {openVm !== null && (
-        <MobileVMDetail vm={openVm} t={t} running={running} onRefresh={onRefresh} onBack={closeDetail} />
+        <MobileVMDetail
+          vm={openVm}
+          t={t}
+          running={running}
+          onRefresh={onRefresh}
+          onBack={closeDetail}
+          linkCandidates={linkCandidates}
+        />
       )}
 
       {/* Page-level load failure: the shared error paragraph above carries the
@@ -1915,13 +1927,23 @@ function MobileVMDetail({
   running,
   onRefresh,
   onBack,
+  linkCandidates,
 }: {
   vm: VM;
   t: T;
   running: { active: boolean; phase?: string };
   onRefresh: () => void;
   onBack: () => void;
+  /** The not-installed entries this detail can take over by hand. */
+  linkCandidates: string[];
 }) {
+  const { push } = useToast();
+  // Reverted on a failed save, so the picker never shows a destination the
+  // server did not accept.
+  const [repoChoice, setRepoChoice] = useState(vm.repo ?? "");
+  useEffect(() => {
+    setRepoChoice(vm.repo ?? "");
+  }, [vm.repo]);
   const progressMap = useProgress();
   const progress = progressMap[`vm:${vm.libvirtName}`];
   const installed = vm.state !== "not-installed";
@@ -1970,7 +1992,7 @@ function MobileVMDetail({
           hasBackups={vm.lastBackup != null}
           deleteConfirm={t("vms.deleteBackupsConfirm")}
           removeConfirm={t("vms.removeEntryConfirm")}
-          deleteBackups={() => deleteBackupsVM(vm.libvirtName)}
+          deleteBackups={() => deleteBackupsVM(vm.libvirtName, "local")}
           removeEntry={() => forgetVM(vm.libvirtName)}
           onDone={onRefresh}
           t={t}
@@ -1982,22 +2004,41 @@ function MobileVMDetail({
         {`${t("containers.lastBackup")}: ${vm.lastBackup ? formatTs(vm.lastBackup) : t("containers.never")}`}
       </p>
 
+      {/* The start of the actions row is free, so the link picker takes it,
+          as on the desktop row: a card with former names is already linked,
+          even before its first run. */}
+      {installed && vm.lastBackup == null && aliases.length === 0 && linkCandidates.length > 0 && (
+        <LinkEntryPicker candidates={linkCandidates} entry={takeoverEntry} onDone={onRefresh} t={t} />
+      )}
+
       {installed && (
-        <div className="flex justify-end">
-          <VMBackupButton
-            name={vm.libvirtName}
-            t={t}
-            running={running}
-            onBackedUp={onRefresh}
-            onRunCorrelated={(run) => {
-              if (lastCorrelatedRun.current !== run.id) {
-                lastCorrelatedRun.current = run.id;
-                sheetDismissed.current = false; // new fire re-arms the deep-link
-              }
-              setSheetRun(run);
-              if (!sheetDismissed.current) setSheetOpen(true);
-            }}
-          />
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1 text-xs text-carbon-textSub">
+              {t("vm.method")}
+              <InfoBubble tip={t("vm.method.hint")} />
+            </span>
+            <VMMethodSelect name={vm.libvirtName} initial={vm.method} t={t} />
+          </div>
+          <div className="flex items-center gap-1.5">
+            <VMBackupButton
+              name={vm.libvirtName}
+              t={t}
+              running={running}
+              onBackedUp={onRefresh}
+              onRunCorrelated={(run) => {
+                if (lastCorrelatedRun.current !== run.id) {
+                  lastCorrelatedRun.current = run.id;
+                  sheetDismissed.current = false; // new fire re-arms the deep-link
+                }
+                setSheetRun(run);
+                if (!sheetDismissed.current) setSheetOpen(true);
+              }}
+            />
+            <Advanced>
+              <VMExportButton name={vm.libvirtName} t={t} />
+            </Advanced>
+          </div>
         </div>
       )}
 
@@ -2006,8 +2047,6 @@ function MobileVMDetail({
           a removed VM too — the entry stays scheduled and every run logs a
           skip until this switch goes off. */}
       <IncludeToggle name={vm.libvirtName} initial={vm.includeInSchedule} save={setVMInclude} />
-
-      {installed && <VMMethodSelect name={vm.libvirtName} initial={vm.method} t={t} />}
 
       {/* ContainerRow's disclosure block with a single section. */}
       <div className="flex flex-col gap-2">
@@ -2024,6 +2063,27 @@ function MobileVMDetail({
             {`${t("containers.lastBackup")}: ${vm.lastBackup ? formatTs(vm.lastBackup) : t("containers.never")}`}
           </span>
         </div>
+        {/* Where this VM's backups go. Locked once the VM has backups: they
+            stay in the repository they were written to. */}
+        <Advanced>
+          <RepoPicker
+            value={repoChoice}
+            onChange={(next) => {
+              const before = repoChoice;
+              setRepoChoice(next);
+              void setVMRepo(vm.libvirtName, next).then((r) => {
+                if (r.ok) {
+                  push(t("folders.saved"), "success");
+                  return;
+                }
+                push(r.error ?? t("settings.error"), "fail");
+                setRepoChoice(before);
+              });
+            }}
+            locked={vm.lastBackup != null}
+          />
+        </Advanced>
+
         <VMRestorePanel
           name={vm.libvirtName}
           displayName={vm.name}
