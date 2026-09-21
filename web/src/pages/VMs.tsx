@@ -1906,8 +1906,13 @@ function MobileVMsBlock({
 
           {mobileOrphans.length > 0 && (
             <div className="flex flex-col gap-4 pt-2">
-              <MobileSectionLabel t={t} labelKey="containers.notInstalledTitle" />
-              <p className="-mt-2 text-xs text-carbon-textMuted">{t("vms.notInstalledHint")}</p>
+              {/* The SAME shared heading the Containers phone list renders:
+                  the hint rides the badge's (i), not an open paragraph. */}
+              <NotInstalledHeading
+                tip={t("vms.notInstalledHint")}
+                hueIndex={0}
+                t={t}
+              />
               {mobileOrphans.map((v, i) => (
                 <MobileVMCard
                   key={v.libvirtName}
