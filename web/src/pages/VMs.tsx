@@ -46,7 +46,6 @@ import { BottomSheet } from "../components/mobile/BottomSheet";
 import { StickyActionBar } from "../components/mobile/StickyActionBar";
 import { RunDetailSheet } from "../components/mobile/RunDetailSheet";
 import { MobileSectionLabel } from "../components/mobile/MobileSectionLabel";
-import { Fab } from "../components/mobile/Fab";
 import { CadenceBuilder, EXACT_CADENCE_MODES } from "../components/CadenceBuilder";
 import { ScheduleBadge, scheduleStatus, cadenceLabel } from "../components/ScheduleBadge";
 
@@ -1409,10 +1408,8 @@ export function VMs() {
     // rhythm down to 24px below it for the phone's card list — the same
     // switch Containers.tsx made. Exception declared in eslint.config.js.
     <div className={PAGE_SHELL_RESPONSIVE}>
-      {/* Page heading + Discover (disaster-recovery) action. The action is
-          desktop-only: on a phone the Fab inside the mobile block below hosts
-          the same handleDiscover with unchanged semantics, and the surface's
-          ONE accent reservation belongs to it there. */}
+      {/* Page heading + Discover (disaster-recovery) action, at both
+          widths — the same header the Containers page renders. */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-semibold text-carbon-text">
@@ -1423,22 +1420,20 @@ export function VMs() {
           </p>
           <div className="mt-2"><OffsiteIndicator domain="vms" /></div>
         </div>
-        {isDesktop && (
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              key={shakeDiscover}
-              label={t("containers.discover")}
-              labelKey="containers.discover"
-              hueIndex={BULK_HUE.discover}
-              tone="accent"
-              onClick={() => void handleDiscover()}
-              disabled={discovering}
-              busy={discovering}
-              title={t("vms.discoverHint")}
-              className={shakeDiscover ? "glim-shake" : ""}
-            />
-          </div>
-        )}
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            key={shakeDiscover}
+            label={t("containers.discover")}
+            labelKey="containers.discover"
+            hueIndex={BULK_HUE.discover}
+            tone="accent"
+            onClick={() => void handleDiscover()}
+            disabled={discovering}
+            busy={discovering}
+            title={t("vms.discoverHint")}
+            className={shakeDiscover ? "glim-shake" : ""}
+          />
+        </div>
       </div>
 
       {loading && (
@@ -1452,8 +1447,7 @@ export function VMs() {
           {/* No "Add" action here (unlike Receiver/Fleet/Files): this list is a
               live enumeration of what libvirt/KVM actually reports, not a
               BombVault-managed list to add to. The page's own Discover action
-              (disaster-recovery re-scan — the header button above on desktop,
-              the Fab in the mobile block below on a phone) is already the
+              (disaster-recovery re-scan — the header button above) is already the
               relevant action for an empty result, so a second button here
               would be redundant. */}
           <EmptyStateIcon icon={IconVM} />
@@ -1642,8 +1636,6 @@ export function VMs() {
           onSortChange={handleSortChange}
           running={running}
           onRefresh={() => void loadVMs()}
-          onDiscover={() => void handleDiscover()}
-          discovering={discovering}
         />
       )}
 
@@ -1696,8 +1688,6 @@ function MobileVMsBlock({
   onSortChange,
   running,
   onRefresh,
-  onDiscover,
-  discovering,
 }: {
   /** The page's memoized filtered+sorted list — useLoadMore's identity
    *  contract needs a stable array identity across unrelated renders. */
@@ -1721,8 +1711,6 @@ function MobileVMsBlock({
   onSortChange: (k: SortKey) => void;
   running: { active: boolean; phase?: string };
   onRefresh: () => void;
-  onDiscover: () => void;
-  discovering: boolean;
 }) {
   const { t } = useT();
   // GATE-OFF HONESTY: an unknown gate state must read as "on". A failed
@@ -1813,7 +1801,7 @@ function MobileVMsBlock({
       {gate === "off" ? (
         // The destinations gate, mobile face: the block says plainly that VM
         // backups are off and links to the settings row that turns them on.
-        // No toolbar, no cards, no Fab — a gated surface shows nothing else.
+        // A gated surface shows nothing else: no toolbar, no cards.
         <div>
           <MobileSectionLabel t={t} labelKey="settings.vmsEnabled" />
           <div className="mt-2 flex flex-col gap-2 rounded-card border border-carbon-border bg-carbon-surface p-4">
@@ -1936,22 +1924,6 @@ function MobileVMsBlock({
             </button>
           )}
         </>
-      )}
-
-      {/* The surface's ONE accent reservation hosts its ONE primary action —
-          Discover (disaster-recovery re-scan), the desktop page's accent
-          trigger, with unchanged semantics (busy/shake/toast live in the
-          page's handleDiscover). In-flow, never fixed. */}
-      {!error && gate !== "off" && (
-        <div className="flex justify-end pt-1">
-          <Fab
-            label={t("containers.discover")}
-            icon={<IconVM />}
-            onClick={() => {
-              if (!discovering) onDiscover();
-            }}
-          />
-        </div>
       )}
 
       {/* The run sheet, hosted component-locally: one sheet for the whole
