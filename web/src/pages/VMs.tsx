@@ -42,12 +42,10 @@ import { RepoPicker } from "../components/RepoPicker";
 import { useIsDesktop } from "../lib/useMediaQuery";
 import { useLoadMore } from "../lib/useLoadMore";
 import { ListToolbar } from "../components/mobile/ListToolbar";
-import { BottomSheet } from "../components/mobile/BottomSheet";
-import { StickyActionBar } from "../components/mobile/StickyActionBar";
 import { RunDetailSheet } from "../components/mobile/RunDetailSheet";
 import { MobileSectionLabel } from "../components/mobile/MobileSectionLabel";
-import { CadenceBuilder, EXACT_CADENCE_MODES } from "../components/CadenceBuilder";
-import { ScheduleBadge, scheduleStatus, cadenceLabel } from "../components/ScheduleBadge";
+import { scheduleStatus } from "../components/ScheduleBadge";
+import { ItemScheduleOverride } from "../components/ItemScheduleOverride";
 
 type T = ReturnType<typeof useT>["t"];
 
@@ -1395,6 +1393,33 @@ export function VMs() {
   let hueSeq = 0;
   const nextHue = () => hueSeq++;
 
+  // GATE-OFF HONESTY: an unknown gate state must read as "on". A failed
+  // settings fetch renders the real list — whose own error surfaces are
+  // honest — rather than ever claiming the feature is disabled when we
+  // simply don't know. The header's Discover hides while the domain is
+  // off: a disabled domain has nothing to discover.
+  const [gate, setGate] = useState<"unknown" | "on" | "off">("unknown");
+  // Whether the per-item schedule setting is on: a stored per-VM override
+  // only runs when it is AND the VM is included, so the cards read it to
+  // keep a dormant override from painting as protection.
+  const [perItemSchedules, setPerItemSchedules] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    getSettings()
+      .then((r) => {
+        if (alive) {
+          setGate(r.ok && r.settings.vmsEnabled === false ? "off" : "on");
+          setPerItemSchedules(r.ok ? r.settings.perItemSchedules === true : false);
+        }
+      })
+      .catch(() => {
+        if (alive) setGate("on");
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   return (
     // PAGE_SHELL (jdp live-review, "Können wir die nicht überall gleich breit
     // machen?"): was `gap-6 max-w-5xl`, the same off-standard pair Containers
@@ -1420,20 +1445,24 @@ export function VMs() {
           </p>
           <div className="mt-2"><OffsiteIndicator domain="vms" /></div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Button
-            key={shakeDiscover}
-            label={t("containers.discover")}
-            labelKey="containers.discover"
-            hueIndex={BULK_HUE.discover}
-            tone="accent"
-            onClick={() => void handleDiscover()}
-            disabled={discovering}
-            busy={discovering}
-            title={t("vms.discoverHint")}
-            className={shakeDiscover ? "glim-shake" : ""}
-          />
-        </div>
+        {/* A disabled domain has nothing to discover: the header's re-scan
+            hides with the gate, as the mobile outline card takes over. */}
+        {gate !== "off" && (
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              key={shakeDiscover}
+              label={t("containers.discover")}
+              labelKey="containers.discover"
+              hueIndex={BULK_HUE.discover}
+              tone="accent"
+              onClick={() => void handleDiscover()}
+              disabled={discovering}
+              busy={discovering}
+              title={t("vms.discoverHint")}
+              className={shakeDiscover ? "glim-shake" : ""}
+            />
+          </div>
+        )}
       </div>
 
       {loading && (
@@ -1636,6 +1665,8 @@ export function VMs() {
           onSortChange={handleSortChange}
           running={running}
           onRefresh={() => void loadVMs()}
+          gate={gate}
+          perItemSchedules={perItemSchedules}
         />
       )}
 
@@ -1688,6 +1719,8 @@ function MobileVMsBlock({
   onSortChange,
   running,
   onRefresh,
+  gate,
+  perItemSchedules,
 }: {
   /** The page's memoized filtered+sorted list — useLoadMore's identity
    *  contract needs a stable array identity across unrelated renders. */
@@ -1711,26 +1744,15 @@ function MobileVMsBlock({
   onSortChange: (k: SortKey) => void;
   running: { active: boolean; phase?: string };
   onRefresh: () => void;
+  /** The destinations-gate state, read once by the page (gate-off honesty:
+   *  unknown reads as on). The gate-off face and the header Discover both
+   *  branch on it. */
+  gate: "unknown" | "on" | "off";
+  /** Whether per-item schedules are on; a stored override outside it is
+   *  dormant and must not read as protection (see MobileVMCard). */
+  perItemSchedules: boolean;
 }) {
   const { t } = useT();
-  // GATE-OFF HONESTY: an unknown gate state must read as "on". A failed
-  // settings fetch renders the real list — whose own error surfaces are
-  // honest — rather than ever claiming the feature is disabled when we
-  // simply don't know.
-  const [gate, setGate] = useState<"unknown" | "on" | "off">("unknown");
-  useEffect(() => {
-    let alive = true;
-    getSettings()
-      .then((r) => {
-        if (alive) setGate(r.ok && r.settings.vmsEnabled === false ? "off" : "on");
-      })
-      .catch(() => {
-        if (alive) setGate("on");
-      });
-    return () => {
-      alive = false;
-    };
-  }, []);
 
   // The domain-level next-fire read. ScheduleNext is DOMAIN granularity
   // (backend jobDomainFromName: the "vms" schedule job), and it is
@@ -1865,6 +1887,7 @@ function MobileVMsBlock({
               index={i}
               running={running}
               onRefresh={onRefresh}
+              perItemSchedules={perItemSchedules}
               scheduleNext={scheduleNext}
               onScheduleChanged={() => {
                 onRefresh();
@@ -1893,6 +1916,7 @@ function MobileVMsBlock({
                   index={liveCount + i}
                   running={running}
                   onRefresh={onRefresh}
+                  perItemSchedules={perItemSchedules}
                   scheduleNext={scheduleNext}
                   onScheduleChanged={() => {
                     onRefresh();
@@ -1959,6 +1983,7 @@ function MobileVMCard({
   onRefresh,
   onRunCorrelated,
   scheduleNext,
+  perItemSchedules,
   onScheduleChanged,
 }: {
   vm: VM;
@@ -1969,86 +1994,40 @@ function MobileVMCard({
   onRunCorrelated: (run: Run) => void;
   /** The vms-domain entry of /api/schedule/next (domain-granular), or null. */
   scheduleNext: ScheduleNext | null;
+  /** Whether the per-item schedule setting is on. A stored override only
+   *  runs when it is AND the VM is included; outside that it is dormant, and
+   *  this card must never paint a dormant override as protection. */
+  perItemSchedules: boolean;
   /** An override was saved: the page reloads its list and the block refreshes
    *  the next-fire read (the server, not this card, decides when things run). */
   onScheduleChanged: () => void;
 }) {
-  const { push } = useToast();
-  // Schedule sheet state: draft + explicit apply (the sheet owns its Save —
-  // the desktop override editor's 800ms debounce is a form discipline, not a
-  // sheet one), seeded from the stored override on every open.
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [draft, setDraft] = useState("off");
-  const [saving, setSaving] = useState(false);
-  // GlimStone standing rule: a failed save toasts AND shakes its button.
-  const [shakeSave, setShakeSave] = useState(0);
-
+  const progressMap = useProgress();
+  const progress = progressMap[`vm:${vm.libvirtName}`];
+  const installed = vm.state !== "not-installed";
+  // The same one-section disclosure the desktop row keeps (snapshots and
+  // restore live behind it), through the same Set rule ContainerRow uses.
+  const [openSections, setOpenSections] = useState<Set<string>>(() => new Set());
+  function toggleSection(id: string) {
+    setOpenSections((prev) => (prev.has(id) ? new Set() : new Set([id])));
+  }
+  const aliases = vm.aliases ?? [];
+  const takeoverEntry = { name: vm.libvirtName, displayName: vm.name, api: vmTakeover };
   const scheduleRaw = (vm.scheduleCadence ?? "").trim();
-  const scheduleActive = scheduleStatus(scheduleRaw) !== "off";
-
-  // Restore + snapshots disclosures (VMSnapshotRow's showRestore pattern,
-  // lifted to card level for the 44px tonal-row language).
-  const [showRestore, setShowRestore] = useState(false);
-  const [showSnaps, setShowSnaps] = useState(false);
-  const [snaps, setSnaps] = useState<Snapshot[]>([]);
-  const [snapsError, setSnapsError] = useState(false);
-  const snapsLoaded = useRef(false);
-  const { visible: visibleSnaps, showMore: showMoreSnaps, hasMore: hasMoreSnaps } = useLoadMore(snaps);
-
-  function openSheet() {
-    // Seed the draft from the stored override ("" = the domain default = the
-    // builder's "off" mode — ItemScheduleOverride's toStore normalization,
-    // inverted here).
-    setDraft(scheduleRaw !== "" && scheduleRaw !== "off" ? scheduleRaw : "off");
-    setSheetOpen(true);
-  }
-
-  async function applySchedule() {
-    setSaving(true);
-    try {
-      // Same normalization ItemScheduleOverride persists: "off" stores "".
-      const toStore = draft.trim() === "off" ? "" : draft.trim();
-      const res = await setVMScheduleCadence(vm.libvirtName, toStore);
-      if (res.ok) {
-        push(t("schedule.overrideSaved"), "success");
-        setSheetOpen(false);
-        onScheduleChanged();
-      } else {
-        push(res.error ?? t("schedule.updateFailed"), "fail");
-        setShakeSave((n) => n + 1);
-      }
-    } catch (err) {
-      push(err instanceof Error ? err.message : t("schedule.updateFailed"), "fail");
-      setShakeSave((n) => n + 1);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  function toggleSnaps() {
-    const next = !showSnaps;
-    setShowSnaps(next);
-    // Fetch once per mount, on first open — the same lazy pattern the desktop
-    // VMRestorePanel uses for its snapshot list.
-    if (next && !snapsLoaded.current) {
-      snapsLoaded.current = true;
-      listVMSnapshots(vm.libvirtName)
-        .then((r) => {
-          if (r.ok) setSnaps(r.snapshots ?? []);
-          else setSnapsError(true);
-        })
-        .catch(() => setSnapsError(true));
-    }
-  }
+  // A stored override only RUNS when per-item schedules are on and the VM is
+  // included; otherwise it is dormant and must not read as protection.
+  const scheduleRuns = perItemSchedules && vm.includeInSchedule && scheduleStatus(scheduleRaw) !== "off";
 
   return (
     <div
       className="glim-hue glim-content-fade relative flex flex-col gap-2 overflow-hidden rounded-card bg-carbon-surface p-4"
       style={hueVars(index)}
     >
-      {/* Header: monogram + display name + meta + state badge. The identity
+      {/* Header: monogram + display name + state badge. The identity
           discipline mirrors the desktop row: vm.libvirtName is THE identifier
-          (every call below uses it), vm.name is display-only. */}
+          (every call below uses it), vm.name is display-only. A VM no longer
+          defined on the host carries its removal control here, so its card
+          never offers to back it up. */}
       <div className="flex items-center gap-2">
         <span
           aria-hidden
@@ -2058,178 +2037,137 @@ function MobileVMCard({
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-carbon-text">{vm.name}</p>
-          <p className="truncate text-xs text-carbon-textMuted">
-            {vm.method === "live" ? t("vm.method.live") : t("vm.method.graceful")}
-            {" · "}
-            {vm.includeInSchedule ? t("filter.scheduled") : t("filter.notScheduled")}
-          </p>
+          {installed && (
+            <p className="truncate text-xs text-carbon-textMuted">
+              {vm.method === "live" ? t("vm.method.live") : t("vm.method.graceful")}
+            </p>
+          )}
         </div>
         <Badge tone={stateTone(vm.state)}>{stateLabel(t, vm.state)}</Badge>
       </div>
+
+      {/* The takeover pair, as the desktop row renders it. */}
+      {installed && vm.renameFrom && (
+        <RenameTakeoverRow
+          key={vm.renameFrom}
+          from={vm.renameFrom}
+          reason={vm.renameReason ?? ""}
+          entry={takeoverEntry}
+          onDone={onRefresh}
+          t={t}
+        />
+      )}
+      {aliases.length > 0 && (
+        <FormerNames
+          aliases={aliases}
+          conflicts={vm.aliasConflicts ?? []}
+          entry={takeoverEntry}
+          onDone={onRefresh}
+          t={t}
+        />
+      )}
+
+      {/* The desktop card's corner, verbatim: a not-installed entry gets the
+          removal control (#232) instead of a backup trigger — backing up a
+          VM that no longer exists only parks a run in flight for hours. */}
+      {!installed && (
+        <OrphanRemoveButton
+          hasBackups={vm.lastBackup != null}
+          deleteConfirm={t("vms.deleteBackupsConfirm")}
+          removeConfirm={t("vms.removeEntryConfirm")}
+          deleteBackups={() => deleteBackupsVM(vm.libvirtName)}
+          removeEntry={() => forgetVM(vm.libvirtName)}
+          onDone={onRefresh}
+          t={t}
+        />
+      )}
 
       {/* Last-run line — the desktop row's combined line, verbatim keys. */}
       <p className="text-xs text-carbon-textMuted">
         {`${t("containers.lastBackup")}: ${vm.lastBackup ? formatTs(vm.lastBackup) : t("containers.never")}`}
       </p>
 
-      {/* The trigger: the desktop row's own VMBackupButton; a fired run
-          deep-links into the block's sheet through onRunCorrelated. */}
-      <div className="flex justify-end">
-        <VMBackupButton
-          name={vm.libvirtName}
-          t={t}
-          running={running}
-          onBackedUp={onRefresh}
-          onRunCorrelated={onRunCorrelated}
-        />
-      </div>
-
-      {/* Schedule entry row → the per-VM override sheet. Tonal, never accent —
-          the accent reservation on this surface belongs to the backup trigger.
-          The right side shows the SERVER-derived next fire (the accent-soft
-          chip) when the schedule is active, else the off badge; the badge's
-          label grammar is ScheduleBadge's own (cadenceLabel). */}
-      <button
-        type="button"
-        onClick={openSheet}
-        aria-expanded={sheetOpen}
-        className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-2 text-start text-sm text-carbon-text"
-      >
-        <span className="truncate">{t("schedule.overrideTitle")}</span>
-        <span className="flex shrink-0 items-center gap-2">
-          {scheduleActive && scheduleNext ? (
-            <span className="rounded-pill bg-accentSoft px-2 py-1 text-xs font-semibold text-accentText">
-              {formatTs(new Date(scheduleNext.next).getTime() / 1000)}
-            </span>
-          ) : null}
-          <ScheduleBadge
-            status={scheduleStatus(scheduleRaw)}
-            label={scheduleActive ? cadenceLabel(scheduleRaw, t) : t("schedule.overrideUsesDefault")}
-          />
-        </span>
-      </button>
-
-      {/* The schedule sheet, fullHeight: the SAME CadenceBuilder the desktop
-          override editor renders, modes restricted to the exact-cadence set
-          (#166), with an explicit apply/cancel in the StickyActionBar. The
-          bar is the LAST child of the scroll body (its sticky bottom-0 pins
-          it during scroll; the min-h-full wrapper + flex-1 spacer push it to
-          the panel floor when the content is shorter than the sheet). */}
-      <BottomSheet
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-        title={t("schedule.overrideTitle")}
-        fullHeight
-      >
-        <div className="flex min-h-full flex-col">
-          <div className="pt-4">
-            <CadenceBuilder
-              label={t("schedule.overrideTitle")}
-              value={draft}
-              modes={EXACT_CADENCE_MODES}
-              onChange={setDraft}
-            />
-          </div>
-          <div className="min-h-4 flex-1" />
-          <StickyActionBar>
-            <Button
-              label={t("common.cancel")}
-              labelKey="common.cancel"
-              tone="neutral"
-              onClick={() => setSheetOpen(false)}
-              disabled={saving}
-              className="w-full"
-            />
-            <Button
-              key={shakeSave}
-              label={t("common.done")}
-              labelKey="common.done"
-              tone="accent"
-              onClick={() => void applySchedule()}
-              busy={saving}
-              disabled={saving}
-              className={`w-full ${shakeSave ? "glim-shake" : ""}`}
-            />
-          </StickyActionBar>
-        </div>
-      </BottomSheet>
-
-      {/* Restore entry: a tonal disclosure row revealing the shared
-          RestoreAction beneath it. The ENTRY is deliberately not accent — the
-          surface's one accent reservation is the backup trigger;
-          RestoreAction's own internals are the desktop component, inherited
-          verbatim (domain="vm", latest snapshot, modal confirm like Recovery's
-          rows via requireConfirm=false + confirmMessage, no leave-stopped
-          checkbox on a card). */}
-      <button
-        type="button"
-        onClick={() => setShowRestore((s) => !s)}
-        aria-expanded={showRestore}
-        className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-2 text-start text-sm text-carbon-text"
-      >
-        <span className="truncate">{t("snapshots.restore")}</span>
-        <IconRestore />
-      </button>
-      {showRestore && (
-        <div className="ps-4">
-          <RestoreAction
-            domain="vm"
+      {installed && (
+        <div className="flex justify-end">
+          <VMBackupButton
             name={vm.libvirtName}
-            displayName={vm.name}
-            snapshotId="latest"
-            otherActive={running}
-            successMessage={t("restore.completeVM")}
-            requireConfirm={false}
-            confirmMessage={t("vms.restoreSelectedConfirm")}
-            showLeaveStopped={false}
             t={t}
+            running={running}
+            onBackedUp={onRefresh}
+            onRunCorrelated={onRunCorrelated}
           />
         </div>
       )}
 
-      {/* Snapshots entry: tonal disclosure row → the VM's snapshot list,
-          fetched lazily on first open and paginated through the one
-          useLoadMore primitive. */}
-      <button
-        type="button"
-        onClick={toggleSnaps}
-        aria-expanded={showSnaps}
-        className="flex min-h-[2.75rem] w-full items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-2 text-start text-sm text-carbon-text"
-      >
-        <span className="truncate">{t("snapshots.title")}</span>
-        <IconDownload />
-      </button>
-      {showSnaps && (
-        <div className="flex flex-col gap-1">
-          {snapsError && (
-            <p className="text-xs text-statusFail">{t("vms.loadFailed")}</p>
-          )}
-          {!snapsError && snaps.length === 0 && (
-            <p className="text-xs text-carbon-textMuted">{t("flash.none")}</p>
-          )}
-          {visibleSnaps.map((snap) => (
-            <div
-              key={snap.id}
-              className="flex min-h-[2.75rem] items-center justify-between gap-2 rounded-control bg-carbon-surface2 px-4 py-1.5"
-            >
-              <span dir="ltr" className="font-mono text-xs text-carbon-text">
-                {snap.id.slice(0, 8)}
-              </span>
-              <span className="text-xs text-carbon-textMuted">
-                {new Date(snap.time).toLocaleString()}
-              </span>
-            </div>
-          ))}
-          {hasMoreSnaps && (
-            <button
-              type="button"
-              onClick={showMoreSnaps}
-              className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
-            >
-              {t("common.loadMore")}
-            </button>
-          )}
+      {/* The schedule switch, the desktop card's own: without it there is no
+          way to schedule or unschedule a VM from a phone at all. It shows on
+          a removed VM too — the entry stays scheduled and every run logs a
+          skip until this switch goes off. */}
+      <IncludeToggle name={vm.libvirtName} initial={vm.includeInSchedule} save={setVMInclude} />
+
+      {installed && <VMMethodSelect name={vm.libvirtName} initial={vm.method} t={t} />}
+
+      {/* The per-VM override: the desktop editor itself (saves as you type,
+          no draft, no Done), never a sheet with a second save path. The
+          server-derived next fire shows only when the override can actually
+          run — per-item schedules on and the VM included. */}
+      {scheduleRuns && scheduleNext ? (
+        <p className="text-xs text-carbon-textMuted">
+          <span className="rounded-pill bg-accentSoft px-2 py-1 font-semibold text-accentText">
+            {formatTs(new Date(scheduleNext.next).getTime() / 1000)}
+          </span>
+        </p>
+      ) : null}
+      <ItemScheduleOverride
+        name={vm.libvirtName}
+        initial={scheduleRaw}
+        onSave={(cadence) =>
+          setVMScheduleCadence(vm.libvirtName, cadence).then((r) => {
+            if (r.ok) onScheduleChanged();
+            return r;
+          })
+        }
+      />
+
+      {/* ContainerRow's disclosure block with a single section. */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Selector
+            items={[{ id: "backups", label: t("snapshots.title") }]}
+            label={t("containers.sectionsLabel")}
+            select="many"
+            active={openSections}
+            buttonHeight
+            onChange={toggleSection}
+          />
+          <span className="ms-auto shrink-0 text-xs text-carbon-textMuted whitespace-nowrap">
+            {`${t("containers.lastBackup")}: ${vm.lastBackup ? formatTs(vm.lastBackup) : t("containers.never")}`}
+          </span>
         </div>
+        <VMRestorePanel
+          name={vm.libvirtName}
+          displayName={vm.name}
+          t={t}
+          open={openSections.has("backups")}
+        />
+      </div>
+
+      {/* Not during a restore, which has its own cancel in the Backups panel,
+          and only while the run is active, so a finished run leaves no button
+          behind. */}
+      {progress && progress.active && progress.phase !== "restore" && (
+        <div className="flex justify-end">
+          <BackupCancelButton cancelKey={`vm:${vm.libvirtName}`} name={vm.name} t={t} />
+        </div>
+      )}
+
+      {/* Live backup/restore progress, pinned to the card's bottom edge */}
+      {progress && (
+        <ProgressBar
+          percent={progress.percent}
+          active={progress.active}
+          label={progress.phase === "restore" ? t("common.restoring") : t("common.backingUp")}
+        />
       )}
     </div>
   );

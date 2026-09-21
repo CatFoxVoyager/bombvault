@@ -153,8 +153,9 @@ function settingsBody(settingsOverrides: Record<string, unknown> = {}) {
       restartHealthWait: true,
       restartHealthTimeoutSec: 120,
       reconcileUnraidUpdateStatus: true,
-      // On: the per-card schedule sheet's apply path is a scenario here (#121).
-      perItemSchedules: true,
+      // Off: the setting's shipped default. Tests that exercise an active
+      // per-VM override turn it on explicitly — the default must not
+      // silently make dormant overrides look runnable.
       ...settingsOverrides,
     },
   };
@@ -316,37 +317,38 @@ test("mobile /vms: the schedule row opens the CadenceBuilder sheet and applies t
   ]);
   await page.goto("/vms");
 
-  const row = page.getByRole("button", { name: "Schedule override" });
-  await expect(row).toBeVisible();
+  // The desktop override editor itself, collapsed to one line: a summary
+  // badge and an Edit control — no sheet, no draft, no Done.
+  await expect(page.getByText("Schedule override:")).toBeVisible();
+  await expect(page.getByText("Uses the domain schedule")).toBeVisible();
 
-  // fullHeight sheet hosting the SAME CadenceBuilder the desktop override
-  // editor renders.
-  await row.tap();
-  const sheet = page.getByRole("dialog", { name: "Schedule override" });
-  await expect(sheet).toBeVisible();
+  const edit = page.getByRole("button", { name: "Edit" });
+  await edit.tap();
+
   // EXACT_CADENCE_MODES (#166): the backend refuses everyN on per-item VM
   // overrides, so the builder must not even offer it here.
-  await expect(sheet.getByRole("tab", { name: "Off" })).toHaveAttribute("aria-selected", "true");
-  await expect(sheet.getByRole("tab", { name: "Daily" })).toBeVisible();
-  await expect(sheet.getByRole("tab", { name: "Weekly" })).toBeVisible();
-  await expect(sheet.getByRole("tab", { name: "Cron" })).toBeVisible();
-  await expect(sheet.getByRole("tab", { name: "Every N days" })).toHaveCount(0);
+  const builder = page.getByRole("tablist", { name: /Schedule override/ });
+  await expect(builder.getByRole("tab", { name: "Off" })).toBeVisible();
+  await expect(builder.getByRole("tab", { name: "Daily" })).toBeVisible();
+  await expect(builder.getByRole("tab", { name: "Weekly" })).toBeVisible();
+  await expect(builder.getByRole("tab", { name: "Cron" })).toBeVisible();
+  await expect(builder.getByRole("tab", { name: "Every N days" })).toHaveCount(0);
 
-  await sheet.getByRole("tab", { name: "Daily" }).tap();
+  await builder.getByRole("tab", { name: "Daily" }).tap();
 
-  // The sheet owns its explicit apply: the PATCH carries the override keyed by
-  // the RAW libvirt name (never the display name), with a non-everyN cadence.
+  // Saves as you type: the PATCH carries the override keyed by the RAW
+  // libvirt name (never the display name) after the editor's debounce, with
+  // a non-everyN cadence — no Done press anywhere in the flow.
   const patched = page.waitForRequest(
     (r) => r.method() === "PATCH" && /\/api\/vms\/id-override$/.test(r.url()),
   );
-  await sheet.getByRole("button", { name: "Done" }).tap();
   const body = (await patched).postDataJSON() as { scheduleCadence?: string };
   expect(typeof body.scheduleCadence).toBe("string");
   expect(body.scheduleCadence).not.toBe("");
   expect(body.scheduleCadence).not.toContain("every");
 
   await expect(page.getByText("Override saved")).toBeVisible();
-  await expect(sheet).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Done" })).toHaveCount(0);
 });
 
 test("mobile /vms: the server-derived next-fire chip follows an active override", async ({
@@ -362,11 +364,15 @@ test("mobile /vms: the server-derived next-fire chip follows an active override"
       vmPayload(0, { name: "vm-chip", libvirtName: "id-chip", scheduleCadence: "daily 03:00" }),
       vmPayload(1, { name: "vm-plain", libvirtName: "id-plain" }),
     ],
-    { scheduleNext: [{ job: "vms", domain: "vms", next: "2026-09-14T03:00:00Z" }] },
+    {
+      scheduleNext: [{ job: "vms", domain: "vms", next: "2026-09-14T03:00:00Z" }],
+      settings: { perItemSchedules: true },
+    },
   );
   await page.goto("/vms");
 
-  await expect(page.getByRole("button", { name: "Schedule override" })).toHaveCount(2);
+  // Both cards host the desktop override editor's one-line summary.
+  await expect(page.getByText("Schedule override:")).toHaveCount(2);
 
   // The accent-soft preview chip renders ONLY on the active override's row,
   // and its text is the SERVER's next fire (domain-granular ScheduleNext),
