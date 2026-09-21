@@ -42,6 +42,8 @@ import { RepoPicker } from "../components/RepoPicker";
 import { useIsDesktop } from "../lib/useMediaQuery";
 import { useLoadMore } from "../lib/useLoadMore";
 import { ListToolbar } from "../components/mobile/ListToolbar";
+import { MobileListCard } from "../components/mobile/MobileListCard";
+import { MobileDetailShell } from "../components/mobile/MobileDetailShell";
 import { RunDetailSheet } from "../components/mobile/RunDetailSheet";
 import { MobileSectionLabel } from "../components/mobile/MobileSectionLabel";
 
@@ -1705,13 +1707,34 @@ function MobileVMsBlock({
     };
   }, []);
 
-  // The run-sheet latch — Containers.tsx's mobile detail verbatim.
-  const [sheetRun, setSheetRun] = useState<Run | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const sheetDismissed = useRef(false);
-  // The run id the watch last correlated: polls refresh the SAME run, so only
-  // a DIFFERENT id is a new fire — the latch's re-arm signal.
-  const lastCorrelatedRun = useRef<string | null>(null);
+  // The open detail holds the VM's NAME, never the object taken at tap time:
+  // a list reload brings fresh data, and the detail reads the VM out of it.
+  const [openVmName, setOpenVmName] = useState<string | null>(null);
+  const openVm = openVmName === null ? null : sorted.find((v) => v.libvirtName === openVmName) ?? null;
+  const listScrollRef = useRef(0);
+  const restoreScrollRef = useRef(false);
+
+  function openCard(vm: VM) {
+    listScrollRef.current = document.getElementById("bv-main")?.scrollTop ?? 0;
+    setOpenVmName(vm.libvirtName);
+    // After the detail commits, the page reads from the top (the back row is
+    // the first thing on screen).
+    requestAnimationFrame(() => {
+      document.getElementById("bv-main")?.scrollTo(0, 0);
+    });
+  }
+
+  function closeDetail() {
+    if (openVmName === null) return;
+    restoreScrollRef.current = true;
+    setOpenVmName(null);
+  }
+
+  useEffect(() => {
+    if (openVm !== null || !restoreScrollRef.current) return;
+    restoreScrollRef.current = false;
+    document.getElementById("bv-main")?.scrollTo(0, listScrollRef.current);
+  }, [openVm]);
 
   // Every save, finished backup and takeover reloads the list and hands this
   // a new array. Keyed on the filter state alone, the window keeps the
@@ -1724,14 +1747,26 @@ function MobileVMsBlock({
   // A removed VM only logs a skip when its run comes, so it does not count as
   // scheduled, as on the Containers page.
   const scheduledCount = sorted.filter((v) => v.state !== "not-installed" && v.includeInSchedule).length;
+  // While the detail is open the list is off the tree (its scroll position is
+  // saved and restored on Back), so the rows the window kept are the detail's
+  // to render through.
+  const listChromeHidden = openVm !== null;
 
   return (
     <div className="flex flex-col gap-4 glim-content-fade">
+      {/* The locally stacked VM detail, mobile only: the SAME frame the
+          Containers detail renders (shared back row and title), with the
+          row controls inside. Renders in the page column above where the
+          list sits; the list is off the tree while it is open. */}
+      {openVm !== null && (
+        <MobileVMDetail vm={openVm} t={t} running={running} onRefresh={onRefresh} onBack={closeDetail} />
+      )}
+
       {/* Page-level load failure: the shared error paragraph above carries the
           message; this >=44px tonal row is the mobile recovery affordance.
           folders.retry ("Try again") is the sanctioned existing label — no
           new key needed. */}
-      {error && (
+      {error && !listChromeHidden && (
         <button
           type="button"
           onClick={onRetry}
@@ -1762,7 +1797,7 @@ function MobileVMsBlock({
           {/* Summary counts line — Containers.tsx's mobile list precedent:
               derived from the same list payload the desktop reads, no new
               endpoint, no new key. */}
-          {liveCount > 0 && (
+          {liveCount > 0 && !listChromeHidden && (
             <p className="text-xs text-carbon-textMuted">
               {`${liveCount} ${t("nav.vms")}${
                 scheduledCount > 0 ? ` · ${scheduledCount} ${t("filter.scheduled")}` : ""
@@ -1774,7 +1809,7 @@ function MobileVMsBlock({
               once the first load has settled (mirrors the desktop controls
               row), including when filters currently match nothing — a cleared
               search must remain clearable. */}
-          {!loading && !error && (
+          {!loading && !error && !listChromeHidden && (
             <ListToolbar search={search} onSearch={onSearch} placeholder="vms.searchPlaceholder">
               <ChipFilter<ScheduleFilterKey>
                 label={t("filter.schedule")}
@@ -1800,105 +1835,92 @@ function MobileVMsBlock({
             </ListToolbar>
           )}
 
-          {mobileLive.map((v, i) => (
-            <MobileVMCard
-              key={v.libvirtName}
-              vm={v}
-              t={t}
-              index={i}
-              running={running}
-              onRefresh={onRefresh}
-              onRunCorrelated={(run) => {
-                if (lastCorrelatedRun.current !== run.id) {
-                  lastCorrelatedRun.current = run.id;
-                  sheetDismissed.current = false; // new fire re-arms the deep-link
-                }
-                setSheetRun(run);
-                if (!sheetDismissed.current) setSheetOpen(true);
-              }}
-            />
-          ))}
-
-          {mobileOrphans.length > 0 && (
-            <div className="flex flex-col gap-4 pt-2">
-              {/* The SAME shared heading the Containers phone list renders:
-                  the hint rides the badge's (i), not an open paragraph. */}
-              <NotInstalledHeading
-                tip={t("vms.notInstalledHint")}
-                hueIndex={0}
-                t={t}
-              />
-              {mobileOrphans.map((v, i) => (
-                <MobileVMCard
-                  key={v.libvirtName}
-                  vm={v}
-                  t={t}
-                  index={liveCount + i}
-                  running={running}
-                  onRefresh={onRefresh}
-                  onRunCorrelated={(run) => {
-                    if (lastCorrelatedRun.current !== run.id) {
-                      lastCorrelatedRun.current = run.id;
-                      sheetDismissed.current = false;
-                    }
-                    setSheetRun(run);
-                    if (!sheetDismissed.current) setSheetOpen(true);
-                  }}
-                />
+          {!listChromeHidden && (
+            <>
+              {mobileLive.map((v, i) => (
+                <MobileVMCard key={v.libvirtName} vm={v} t={t} index={i} onOpen={() => openCard(v)} />
               ))}
-            </div>
-          )}
 
-          {/* The one load-more affordance, gated on hasMore — no rows beyond
-              the window, no button (hasMore is the ONLY signal this may gate
-              on). */}
-          {hasMore && (
-            <button
-              type="button"
-              onClick={showMore}
-              className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
-            >
-              {t("common.loadMore")}
-            </button>
+              {mobileOrphans.length > 0 && (
+                <div className="flex flex-col gap-4 pt-2">
+                  {/* The SAME shared heading the Containers phone list renders:
+                      the hint rides the badge's (i), not an open paragraph. */}
+                  <NotInstalledHeading tip={t("vms.notInstalledHint")} hueIndex={0} t={t} />
+                  {mobileOrphans.map((v, i) => (
+                    <MobileVMCard
+                      key={v.libvirtName}
+                      vm={v}
+                      t={t}
+                      index={liveCount + i}
+                      onOpen={() => openCard(v)}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* The one load-more affordance, gated on hasMore — no rows beyond
+                  the window, no button (hasMore is the ONLY signal this may gate
+                  on). */}
+              {hasMore && (
+                <button
+                  type="button"
+                  onClick={showMore}
+                  className="min-h-[2.75rem] w-full rounded-control bg-carbon-surface2 px-4 text-sm text-carbon-text"
+                >
+                  {t("common.loadMore")}
+                </button>
+              )}
+            </>
           )}
         </>
-      )}
-
-      {/* The run sheet, hosted component-locally: one sheet for the whole
-          block, fed by the latch above. */}
-      {sheetRun && (
-        <RunDetailSheet
-          run={sheetRun}
-          open={sheetOpen}
-          onClose={() => {
-            sheetDismissed.current = true;
-            setSheetOpen(false);
-          }}
-        />
       )}
     </div>
   );
 }
 
-// MobileVMCard is one VM as a phone card, over the same data and controls the
-// desktop VMRow renders. The per-VM schedule override is not on it: that
-// editor lives in Settings, where it only shows while per-item schedules are
-// on and the VM is included, which are the only conditions under which the
-// scheduler runs it.
-function MobileVMCard({
+// MobileVMCard is one VM as a compact phone row through the SHARED list card
+// (the same row the Containers list renders): monogram, name, the backup
+// method as its one meta line, the state badge, the accent chevron. Every
+// control lives in the detail the row opens, so the two sibling pages'
+// rows cannot drift apart again.
+function MobileVMCard({ vm, t, index, onOpen }: { vm: VM; t: T; index: number; onOpen: () => void }) {
+  const installed = vm.state !== "not-installed";
+  return (
+    <MobileListCard
+      title={vm.name}
+      meta={
+        installed ? (vm.method === "live" ? t("vm.method.live") : t("vm.method.graceful")) : undefined
+      }
+      badge={
+        installed ? (
+          <Badge tone={stateTone(vm.state)}>{stateLabel(t, vm.state)}</Badge>
+        ) : (
+          <Badge tone="neutral">{t("containers.notInstalled")}</Badge>
+        )
+      }
+      hueIndex={index}
+      onOpen={onOpen}
+    />
+  );
+}
+
+// MobileVMDetail is the stacked VM detail: the shared detail shell with the
+// desktop row's controls inside. It hosts the ONE RunDetailSheet for its
+// own deep-linked runs, the way the Containers detail does; onRun fires on
+// every poll, so the sheet always holds the freshest record, and a sheet
+// the user dismissed stays closed through later polls of the same run.
+function MobileVMDetail({
   vm,
   t,
-  index,
   running,
   onRefresh,
-  onRunCorrelated,
+  onBack,
 }: {
   vm: VM;
   t: T;
-  index: number;
   running: { active: boolean; phase?: string };
   onRefresh: () => void;
-  onRunCorrelated: (run: Run) => void;
+  onBack: () => void;
 }) {
   const progressMap = useProgress();
   const progress = progressMap[`vm:${vm.libvirtName}`];
@@ -1911,35 +1933,14 @@ function MobileVMCard({
   }
   const aliases = vm.aliases ?? [];
   const takeoverEntry = { name: vm.libvirtName, displayName: vm.name, api: vmTakeover };
+  // The run-sheet latch — the Containers detail's, verbatim.
+  const [sheetRun, setSheetRun] = useState<Run | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const sheetDismissed = useRef(false);
+  const lastCorrelatedRun = useRef<string | null>(null);
 
   return (
-    <div
-      className="glim-hue glim-content-fade relative flex flex-col gap-2 overflow-hidden rounded-card bg-carbon-surface p-4"
-      style={hueVars(index)}
-    >
-      {/* Header: monogram + display name + state badge. The identity
-          discipline mirrors the desktop row: vm.libvirtName is THE identifier
-          (every call below uses it), vm.name is display-only. A VM no longer
-          defined on the host carries its removal control here, so its card
-          never offers to back it up. */}
-      <div className="flex items-center gap-2">
-        <span
-          aria-hidden
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-carbon-surface2 text-sm font-semibold text-carbon-textSub"
-        >
-          {vm.name.slice(0, 1).toUpperCase()}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-carbon-text">{vm.name}</p>
-          {installed && (
-            <p className="truncate text-xs text-carbon-textMuted">
-              {vm.method === "live" ? t("vm.method.live") : t("vm.method.graceful")}
-            </p>
-          )}
-        </div>
-        <Badge tone={stateTone(vm.state)}>{stateLabel(t, vm.state)}</Badge>
-      </div>
-
+    <MobileDetailShell title={vm.name} onBack={onBack}>
       {/* The takeover pair, as the desktop row renders it. */}
       {installed && vm.renameFrom && (
         <RenameTakeoverRow
@@ -1988,7 +1989,14 @@ function MobileVMCard({
             t={t}
             running={running}
             onBackedUp={onRefresh}
-            onRunCorrelated={onRunCorrelated}
+            onRunCorrelated={(run) => {
+              if (lastCorrelatedRun.current !== run.id) {
+                lastCorrelatedRun.current = run.id;
+                sheetDismissed.current = false; // new fire re-arms the deep-link
+              }
+              setSheetRun(run);
+              if (!sheetDismissed.current) setSheetOpen(true);
+            }}
           />
         </div>
       )}
@@ -2041,6 +2049,20 @@ function MobileVMCard({
           label={progress.phase === "restore" ? t("common.restoring") : t("common.backingUp")}
         />
       )}
-    </div>
+
+      {/* The run sheet, hosted component-locally: opens on the useBackupWatch
+          baseline-id correlation, closes through BottomSheet's three paths,
+          and never re-opens itself after dismissal. */}
+      {sheetRun && (
+        <RunDetailSheet
+          run={sheetRun}
+          open={sheetOpen}
+          onClose={() => {
+            sheetDismissed.current = true;
+            setSheetOpen(false);
+          }}
+        />
+      )}
+    </MobileDetailShell>
   );
 }
