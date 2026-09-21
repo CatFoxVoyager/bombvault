@@ -738,7 +738,7 @@ const sk: Partial<Translations> = {
   "settings.rainbow": "Dúhový režim",
   "settings.rainbowHint": "Každý riadok v zozname dostane vlastnú farbu z ôsmich farieb namiesto toho, aby si všetko delilo jednu zvýrazňujúcu farbu. To uľahčuje rozlíšenie dlhých zoznamov na prvý pohľad.",
   "settings.disco": "Režim disko",
-  "settings.discoHint": "Každý farebný riadok a prvok plynulo prechádza na ďalšiu farbu palety, jednu každé tri sekundy, kým je zapnutý režim dúhy.",
+  "settings.discoHint": "Každý farebný riadok a prvok plynulo prechádza na ďalšiu farbu palety, kým je zapnutý režim dúhy.",
   "settings.rainbowReactive": "Reaktívny režim",
   "settings.rainbowReactiveHint": "Keď je zapnutý, farba riadku alebo položky sa objaví iba počas prechádzania kurzorom nad ňou, alebo počas jej behu či výberu, inak zostáva neutrálna. Keď je vypnutý, každý farebný riadok a položka zobrazuje svoju farbu neustále.",
   "settings.rainbowRotate": "Rotácia farieb",

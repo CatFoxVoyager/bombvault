@@ -282,7 +282,7 @@ const pt: Partial<Translations> = {
   "settings.rainbow": "Modo arco-íris",
   "settings.rainbowHint": "Cada linha de uma lista recebe a sua própria cor de um conjunto de oito, em vez de tudo partilhar uma só cor de destaque. Torna listas longas mais fáceis de distinguir num relance.",
   "settings.disco": "Modo disco",
-  "settings.discoHint": "Cada linha e item colorido desliza suavemente para a cor seguinte da paleta, uma a cada três segundos, enquanto o modo arco-íris estiver ativo.",
+  "settings.discoHint": "Cada linha e item colorido desliza suavemente para a cor seguinte da paleta enquanto o modo arco-íris estiver ativo.",
   "settings.rainbowReactive": "Modo reativo",
   "settings.rainbowReactiveHint": "Quando ativado, uma linha ou item só mostra sua cor ao passar o mouse por cima, ou enquanto está em execução ou selecionado, o resto do tempo fica neutro. Quando desativado, toda linha ou item colorido mostra sua cor o tempo todo.",
   "settings.rainbowRotate": "Rotação de cores",

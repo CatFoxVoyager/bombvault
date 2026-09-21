@@ -280,7 +280,7 @@ const nl: Partial<Translations> = {
   "settings.rainbow": "Regenboogmodus",
   "settings.rainbowHint": "Elke rij in een lijst krijgt zijn eigen kleur uit een set van acht, in plaats van dat alles dezelfde accentkleur deelt. Zo zijn lange lijsten in één oogopslag te onderscheiden.",
   "settings.disco": "Discomodus",
-  "settings.discoHint": "Elke gekleurde rij en elk gekleurd item glijdt langzaam door naar de volgende kleur van het palet, om de drie seconden één, zolang de regenboogmodus aan staat.",
+  "settings.discoHint": "Elke gekleurde rij en elk gekleurd item glijdt langzaam door naar de volgende kleur van het palet, zolang de regenboogmodus aan staat.",
   "settings.rainbowReactive": "Reactieve modus",
   "settings.rainbowReactiveHint": "Indien aan toont een rij of item zijn kleur alleen bij hover, of terwijl het draait of geselecteerd is, anders blijft het neutraal. Indien uit tonen alle gekleurde rijen en items hun kleur voortdurend.",
   "settings.rainbowRotate": "Kleurrotatie",

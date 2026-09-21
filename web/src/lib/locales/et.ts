@@ -738,7 +738,7 @@ const et: Partial<Translations> = {
   "settings.rainbow": "Vikerkaarerežiim",
   "settings.rainbowHint": "Iga loendi rida saab oma värvi kaheksast valikust, selle asemel et kõik jagaks üht aktsendivärvi. Nii on pikki loendeid ühe pilguga lihtsam eristada.",
   "settings.disco": "Disko režiim",
-  "settings.discoHint": "Iga värviline rida ja element liigub sujuvalt paleti järgmisele värvile, üks iga kolme sekundi järel, kuni vikerkaare režiim on sisse lülitatud.",
+  "settings.discoHint": "Iga värviline rida ja element liigub sujuvalt paleti järgmisele värvile, kuni vikerkaare režiim on sisse lülitatud.",
   "settings.rainbowReactive": "Reaktiivne režiim",
   "settings.rainbowReactiveHint": "Kui see on sees, ilmub rea või üksuse värv ainult siis, kui hõljutad seda hiirega või kui see töötab või on valitud. Muidu jääb see neutraalseks. Kui see on väljas, näitavad kõik värvilised read ja üksused oma värvi kogu aeg.",
   "settings.rainbowRotate": "Värvi pööramine",

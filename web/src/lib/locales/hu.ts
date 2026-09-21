@@ -285,7 +285,7 @@ const hu: Partial<Translations> = {
   "settings.rainbow": "Szivárvány mód",
   "settings.rainbowHint": "A lista minden sora saját színt kap egy nyolcból álló készletből, ahelyett hogy minden egy kiemelőszínt osztana meg, így a hosszú listák egy pillantással megkülönböztethetők.",
   "settings.disco": "Diszkó mód",
-  "settings.discoHint": "Minden színes sor és elem lassan átúszik a paletta következő színébe, három másodpercenként egyet, amíg a szivárvány mód be van kapcsolva.",
+  "settings.discoHint": "Minden színes sor és elem lassan átúszik a paletta következő színébe, amíg a szivárvány mód be van kapcsolva.",
   "settings.rainbowReactive": "Reaktív mód",
   "settings.rainbowReactiveHint": "Ha be van kapcsolva, egy sor vagy elem csak rámutatáskor, vagy amíg fut vagy ki van választva mutatja a színét. Egyébként semleges marad. Ha ki van kapcsolva, minden színes sor és elem folyamatosan mutatja a színét.",
   "settings.rainbowRotate": "Színforgatás",

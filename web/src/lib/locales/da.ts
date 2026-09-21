@@ -285,7 +285,7 @@ const da: Partial<Translations> = {
   "settings.rainbow": "Regnbuetilstand",
   "settings.rainbowHint": "Hver række på en liste får sin egen farve fra et sæt på otte, i stedet for at alt deler én accentfarve, hvilket gør lange lister nemmere at skelne på et øjeblik.",
   "settings.disco": "Diskotilstand",
-  "settings.discoHint": "Hver farvet række og hvert farvet element glider langsomt over i næste farve i paletten, én hvert tredje sekund, så længe regnbuetilstand er slået til.",
+  "settings.discoHint": "Hver farvet række og hvert farvet element glider langsomt over i næste farve i paletten, så længe regnbuetilstand er slået til.",
   "settings.rainbowReactive": "Reaktiv tilstand",
   "settings.rainbowReactiveHint": "Når slået til viser en række eller et element kun sin farve ved hover, eller mens det kører eller er valgt. Ellers forbliver den neutral. Når slået fra viser hver farvet række og element sin farve hele tiden.",
   "settings.rainbowRotate": "Farverotation",
