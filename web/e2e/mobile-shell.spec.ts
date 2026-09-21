@@ -240,15 +240,27 @@ test("the confirm sheet gives no point between its answers to the firing one", a
 
   // The sheet slides in and its answers have entrance motion of their own,
   // and a box read while anything still moves does not describe where the
-  // point will land. Every animation with an end is waited out; the ones
-  // without one (a rainbow, a spinner) would never settle and do not move
-  // these buttons.
-  await sheet.evaluate(async () => {
-    const finite = document.getAnimations().filter((a) => {
-      const end = a.effect?.getComputedTiming().endTime;
-      return typeof end === "number" && Number.isFinite(end);
-    });
-    await Promise.all(finite.map((a) => a.finished.catch(() => undefined)));
+  // point will land. WebKit can report the dialog visible before that motion
+  // starts, while getAnimations() has nothing to wait for and the answers
+  // still sit below the screen, so the probe waits until every answer is on
+  // screen and has held still for three frames. Animations without an end (a
+  // rainbow, a spinner) never settle and do not move these buttons.
+  await sheet.evaluate(async (dialog) => {
+    const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+    const moving = () =>
+      document.getAnimations().some((a) => {
+        const end = a.effect?.getComputedTiming().endTime;
+        return a.playState === "running" && typeof end === "number" && Number.isFinite(end);
+      });
+    let last = "";
+    for (let still = 0; still < 3; ) {
+      await frame();
+      const boxes = [...dialog.querySelectorAll("button")].map((b) => b.getBoundingClientRect());
+      const now = JSON.stringify(boxes.map((r) => [r.top, r.bottom]));
+      const onScreen = boxes.every((r) => r.top >= 0 && r.bottom <= innerHeight);
+      still = now === last && onScreen && !moving() ? still + 1 : 0;
+      last = now;
+    }
   });
 
   const probe = await sheet.evaluate((dialog) => {
