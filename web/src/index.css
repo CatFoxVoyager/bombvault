@@ -1422,40 +1422,6 @@ body {
   --color-accentSoft: var(--item-hue-soft);
 }
 
-/* Disco glides the palette on the root: each --rb-N moves to its next colour
-   over one tick (lib/disco.ts sets --disco-step), and every hued element
-   follows, because hueVars() points it at the root. The root has no
-   transition of its own, so nothing on the page loses one. The colours are
-   registered so a transition can interpolate them; applyRainbow sets them
-   before first paint, so the initial value never shows. The inks stay
-   unregistered and flip halfway through a step, where the fill is as near
-   the one colour as the other; a glide from black to white would pass
-   through a grey that reads on neither.
-
-   A colour fade, so it follows the motion engine like the colour wipe:
-   gated on the OS setting, and off at "off", where disco steps. */
-@property --rb-0 { syntax: "<color>"; inherits: true; initial-value: transparent; }
-@property --rb-1 { syntax: "<color>"; inherits: true; initial-value: transparent; }
-@property --rb-2 { syntax: "<color>"; inherits: true; initial-value: transparent; }
-@property --rb-3 { syntax: "<color>"; inherits: true; initial-value: transparent; }
-@property --rb-4 { syntax: "<color>"; inherits: true; initial-value: transparent; }
-@property --rb-5 { syntax: "<color>"; inherits: true; initial-value: transparent; }
-@property --rb-6 { syntax: "<color>"; inherits: true; initial-value: transparent; }
-@property --rb-7 { syntax: "<color>"; inherits: true; initial-value: transparent; }
-@media (prefers-reduced-motion: no-preference) {
-  :root[data-disco="on"][data-rainbow]:not([data-motion="off"]) {
-    transition:
-      --rb-0 var(--disco-step, 3s) linear, --rb-1 var(--disco-step, 3s) linear,
-      --rb-2 var(--disco-step, 3s) linear, --rb-3 var(--disco-step, 3s) linear,
-      --rb-4 var(--disco-step, 3s) linear, --rb-5 var(--disco-step, 3s) linear,
-      --rb-6 var(--disco-step, 3s) linear, --rb-7 var(--disco-step, 3s) linear,
-      --rb-ink-0 var(--disco-step, 3s) linear allow-discrete, --rb-ink-1 var(--disco-step, 3s) linear allow-discrete,
-      --rb-ink-2 var(--disco-step, 3s) linear allow-discrete, --rb-ink-3 var(--disco-step, 3s) linear allow-discrete,
-      --rb-ink-4 var(--disco-step, 3s) linear allow-discrete, --rb-ink-5 var(--disco-step, 3s) linear allow-discrete,
-      --rb-ink-6 var(--disco-step, 3s) linear allow-discrete, --rb-ink-7 var(--disco-step, 3s) linear allow-discrete;
-  }
-}
-
 /* Indeterminate progress: a short accent segment sliding from start to end,
    for ProgressBar.tsx when restic reports no percentage. `left` is physical,
    so [dir="rtl"] swaps the two ends. */

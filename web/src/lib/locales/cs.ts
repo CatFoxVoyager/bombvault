@@ -293,7 +293,7 @@ const cs: Partial<Translations> = {
   "settings.rainbow": "Duhový režim",
   "settings.rainbowHint": "Každý řádek v seznamu dostane vlastní barvu z osmi barevné palety místo toho, aby vše sdílelo jeden akcent. Dlouhé seznamy se tak na první pohled snáze rozliší.",
   "settings.disco": "Režim disko",
-  "settings.discoHint": "Každý barevný řádek a prvek plynule přechází na další barvu palety, jednu každé tři sekundy, dokud je zapnutý režim duhy.",
+  "settings.discoHint": "Každý barevný řádek a prvek plynule přechází na další barvu palety, dokud je zapnutý režim duhy.",
   "settings.rainbowReactive": "Reaktivní režim",
   "settings.rainbowReactiveHint": "Když je zapnuto, řádek nebo prvek zobrazí svou barvu jen při najetí myší, nebo když právě běží či je vybraný, jinak zůstává neutrální. Když je vypnuto, každý barevný řádek a prvek zobrazuje svou barvu neustále.",
   "settings.rainbowRotate": "Rotace barev",
