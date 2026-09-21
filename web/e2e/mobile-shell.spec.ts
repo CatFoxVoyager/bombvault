@@ -224,3 +224,63 @@ test("tapping the already-active bar slot scrolls the scroller back to the top",
     "tapping the active slot must not push a history entry, the bar's contract suppresses the navigation instead of re-navigating to the same path",
   ).toBe(historyDepthBefore);
 });
+
+// A confirm sheet exists so a destructive press has to be aimed. That only
+// holds while the space around Cancel belongs to Cancel: an invisible hit
+// area that reaches past a button hands the near miss below it to whatever
+// paints later, which here is the button that fires. Computed sizes cannot
+// see it, so this hit-tests the real points a thumb lands on.
+test("the confirm sheet gives no point between its answers to the firing one", async ({ page }, testInfo) => {
+  test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "mobile-only: the sheet replaces the dialog below the breakpoint");
+  await bootWithoutServerLook(page);
+
+  await page.getByRole("button", { name: /Backup Everything/i }).click();
+  const sheet = page.getByRole("dialog");
+  await expect(sheet).toBeVisible();
+
+  // The sheet slides in, and a box read while it still moves does not
+  // describe where the point will land.
+  await sheet.evaluate(
+    (dialog) =>
+      new Promise<void>((done) => {
+        let last = -1;
+        const settle = () => {
+          const top = dialog.getBoundingClientRect().top;
+          if (top === last) {
+            done();
+            return;
+          }
+          last = top;
+          requestAnimationFrame(settle);
+        };
+        requestAnimationFrame(settle);
+      }),
+  );
+
+  const probe = await sheet.evaluate((dialog) => {
+    const buttons = [...dialog.querySelectorAll("button")];
+    const owner = (x: number, y: number) => {
+      const hit = document.elementFromPoint(x, y);
+      const button = hit ? hit.closest("button") : null;
+      return button ? buttons.indexOf(button) : -1;
+    };
+    const readings = [];
+    for (let i = 0; i < buttons.length; i++) {
+      const box = buttons[i].getBoundingClientRect();
+      const x = box.left + box.width / 2;
+      // Its own corners answer for it, the points just outside answer for
+      // nobody but never for another button.
+      readings.push({ i, at: "inside", owner: owner(x, box.top + 4) });
+      readings.push({ i, at: "inside", owner: owner(x, box.bottom - 4) });
+      readings.push({ i, at: "above", owner: owner(x, box.top - 4) });
+      readings.push({ i, at: "below", owner: owner(x, box.bottom + 4) });
+    }
+    return { count: buttons.length, readings };
+  });
+
+  expect(probe.count).toBeGreaterThan(1);
+  const stolen = probe.readings.filter((r) => r.owner !== -1 && r.owner !== r.i);
+  expect(stolen, `points outside a button that fire another one: ${JSON.stringify(stolen)}`).toEqual([]);
+  const ownCorners = probe.readings.filter((r) => r.at === "inside");
+  expect(ownCorners.every((r) => r.owner === r.i), "a button's own corners must answer for it").toBe(true);
+});

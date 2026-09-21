@@ -28,12 +28,7 @@ export function Toggle({ checked, onChange, label, hideLabel = false, disabled, 
         onClick={() => onChange(!checked)}
         // No title: the label is always visible next to the switch, so a
         // tooltip would only repeat it.
-        // Below md an invisible ::after bleeds 12px past the track on every
-        // side: the 36x20px visual size is frozen by the design language, but
-        // the 44px touch floor still applies. The pseudo-element is part of
-        // this button, so clicks anywhere in the bleed fire the switch; no
-        // visible pixel changes at any width.
-        className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-pill transition-colors focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring) disabled:opacity-50 max-md:after:absolute max-md:after:-inset-3 max-md:after:content-[''] ${
+        className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-pill transition-colors focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring) disabled:opacity-50 ${
           checked ? "bg-accent" : "bg-carbon-surface3"
         }`}
       >
