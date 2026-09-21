@@ -422,7 +422,7 @@ describe("Selector variant=\"well\" at both scales", () => {
     }
   });
 
-  it("the two scales differ only in pinning (big) and the touch bleed (small)", () => {
+  it("the two scales differ only in pinning", () => {
     render(<Selector items={ITEMS} label="Small" active="a" onChange={() => {}} variant="well" />);
     const smallList = screen.getByRole("tablist").className;
     const smallTab = (screen.getByRole("tab", { name: "Alpha" }) as HTMLElement).className;
@@ -433,32 +433,19 @@ describe("Selector variant=\"well\" at both scales", () => {
 
     expect(bigList).toBe(smallList);
 
-    // The segment differs by TWO sanctioned riders, nothing else: the
-    // pinning classes (big only) and the 44px touch bleed (small only —
-    // the big pickers stay sub-floor by recorded decision, so the bleed
-    // must NOT leak onto them). Both
-    // riders are stripped before the byte-identity compare so the guard
-    // keeps catching any THIRD divergence.
+    // The segment differs by one sanctioned rider, the pinning classes the
+    // big scale carries. They are stripped before the byte-identity compare,
+    // so the guard keeps catching any second divergence.
     const PIN = ["flex-none", "justify-center", "text-center", "h-[var(--badge-md)]"];
-    const BLEED = [
-      "max-md:relative",
-      "max-md:after:absolute",
-      "max-md:after:-inset-3",
-      "max-md:after:content-['']",
-    ];
     const strip = (s: string) =>
       s
         .split(/\s+/)
-        .filter((c) => !PIN.includes(c) && !BLEED.includes(c))
+        .filter((c) => !PIN.includes(c))
         .join(" ");
     expect(strip(bigTab)).toBe(strip(smallTab));
     for (const c of PIN) {
       expect(bigTab.split(/\s+/)).toContain(c);
       expect(smallTab.split(/\s+/)).not.toContain(c);
-    }
-    for (const c of BLEED) {
-      expect(smallTab.split(/\s+/)).toContain(c);
-      expect(bigTab.split(/\s+/)).not.toContain(c);
     }
   });
 
