@@ -5,6 +5,8 @@ import { applyToggle, browseRelToHost, classifyNode, isAtOrUnder, partitionCusto
 import { useIsCoarsePointer, useIsDesktop } from "../lib/useMediaQuery";
 import { SelectionTree } from "../components/SelectionTree";
 import { RunDetailSheet } from "../components/mobile/RunDetailSheet";
+import { MobileListCard } from "../components/mobile/MobileListCard";
+import { MobileDetailShell } from "../components/mobile/MobileDetailShell";
 import { ListToolbar } from "../components/mobile/ListToolbar";
 import { useLoadMore } from "../lib/useLoadMore";
 import { RepoPicker } from "../components/RepoPicker";
@@ -1715,39 +1717,24 @@ function MobileContainerCard({
     };
   }, [container.name, nonce]);
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      style={hueVars(index) as CSSProperties}
-      className="w-full text-start bg-carbon-surface rounded-card p-4 flex items-center gap-3 glim-hue min-h-[2.75rem] glim-content-fade"
-    >
-      <span
-        aria-hidden
-        className="h-10 w-10 shrink-0 rounded-card bg-carbon-surface2 flex items-center justify-center text-sm font-semibold text-carbon-textSub"
-      >
-        {container.name.charAt(0).toUpperCase()}
-      </span>
-      <span className="flex-1 min-w-0 flex flex-col gap-1">
-        <span className="text-sm font-semibold text-carbon-text truncate">{container.name}</span>
-        <span className="text-xs text-carbon-textMuted">
-          {/* folders.previewPaths ("{n} paths") is the sanctioned existing key
-              for this line: the ticked include count IS the mount+custom
-              folder count the editor and the Save bar both derive. */}
-          {ticked === null ? "" : t("folders.previewPaths").replace("{n}", String(ticked))}
-        </span>
-      </span>
-      {container.installed ? (
-        <Badge tone={stateTone(container.state)}>{stateLabel(t, container.state)}</Badge>
-      ) : (
-        <Badge tone="neutral">{t("containers.notInstalled")}</Badge>
-      )}
-      {/* The affordance arrow reads the card's own hue — the ONE accent
-          reader on the card, so a hued card shows its colour on the control
-          that opens the detail. */}
-      <svg aria-hidden width="10" height="10" viewBox="0 0 12 12" fill="none" className="shrink-0 text-accentText">
-        <path fill="currentColor" d="M4 1.3 8.5 6 4 10.7Z" />
-      </svg>
-    </button>
+    <MobileListCard
+      title={container.name}
+      meta={
+        // folders.previewPaths ("{n} paths") is the sanctioned existing key
+        // for this line: the ticked include count IS the mount+custom folder
+        // count the editor derives.
+        ticked === null ? undefined : t("folders.previewPaths").replace("{n}", String(ticked))
+      }
+      badge={
+        container.installed ? (
+          <Badge tone={stateTone(container.state)}>{stateLabel(t, container.state)}</Badge>
+        ) : (
+          <Badge tone="neutral">{t("containers.notInstalled")}</Badge>
+        )
+      }
+      hueIndex={index}
+      onOpen={onOpen}
+    />
   );
 }
 
@@ -1814,27 +1801,8 @@ function MobileContainerDetail({
   const aliases = container.aliases ?? [];
   const takeoverEntry = { name: container.name, displayName: container.name, api: containerTakeover };
   return (
-    <div className="flex flex-col gap-4 glim-content-fade">
-      {/* Back row: chevron + VISIBLE label, never icon-only. The
-          accessible name leads with the container so a screen-reader user
-          coming from the card knows exactly what they are leaving. The
-          chevron is the SnapshotFileTree/SelectionTree presentational
-          triangle, mirrored left. */}
-      <Button
-        label={`${container.name}, ${t("common.back")}`}
-        labelKey={null}
-        tone="subtle"
-        glyph={
-          <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-            <path fill="currentColor" d="M8 1.3 3.5 6 8 10.7Z" />
-          </svg>
-        }
-        onClick={onBack}
-        keepLabel
-        className="-ms-2 min-h-[2.75rem]"
-      />
+    <MobileDetailShell title={container.name} onBack={onBack}>
       <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold text-carbon-text">{container.name}</h2>
         {hostMountRoot && (
           <p dir="ltr" className="text-xs text-carbon-textMuted font-mono break-all text-start">
             {hostMountRoot}
@@ -1997,7 +1965,7 @@ function MobileContainerDetail({
           }}
         />
       )}
-    </div>
+    </MobileDetailShell>
   );
 }
 
