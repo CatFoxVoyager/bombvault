@@ -2076,17 +2076,11 @@ function FreshInstallNudge({
           {t("recovery.freshNudgeCta")} <span className="inline-block rtl:-scale-x-100">→</span>
         </Link>
       </div>
-      {/* The chip variant deliberately leaves out the shared mobile bleed
-          (Button.tsx's "Scoped to the DEFAULT variant only" block): a chip
-          normally rides inside a host pill whose own row carries the touch
-          floor. Here the chip is not in a pill; it is the card's only close
-          control, loose in a flex row; so this call site lays the floor
-          itself by re-passing the bleed classes, with a wider inset than
-          Button.tsx's shared one: the chip's engine box is 18px, and 18 plus
-          2x12 stays under the 44px floor, so each side gets 14px (46 total).
-          An ::after owned by the button is what makes bleed taps register on
-          it; a padded wrapper would just be dead zone. Every class is
-          max-md:-scoped, so nothing applies above 48rem. */}
+      {/* A chip normally rides inside a host pill whose row carries the touch
+          floor. This one is the card's only close control, loose in a flex
+          row, so below 48rem an ::after owned by the button widens its 18px
+          engine box by 14px on each side (46px in total). A padded wrapper
+          would only be dead zone. */}
       <Button
         label={t("common.close")}
         labelKey="common.close"
