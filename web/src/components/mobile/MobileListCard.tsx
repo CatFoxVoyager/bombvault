@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { useT } from "../../lib/i18n";
 import { hueVars } from "../../lib/appearance";
 
-// MobileListCard is the ONE compact row both phone list pages render: the
+// MobileListCard is the compact row both phone list pages render: the
 // monogram, the name, one muted meta line, the state badge and the accent
 // chevron, over the card's own hue. The list card opens a detail; every
 // control lives there, so the two pages' rows cannot grow different blocks.
@@ -10,7 +10,7 @@ import { hueVars } from "../../lib/appearance";
 // `badge` is the entry's state badge, built by the caller (the pages word
 // "not installed" and pick the tone differently). `meta` is one truncated
 // muted line or nothing. The whole row is a button that opens the detail;
-// its accessible name is the title.
+// its accessible name starts with the title.
 //
 // `selected`/`onToggleSelect` put the bulk-selection checkbox to the left of
 // the row, the desktop rows' own slot: the checkbox stops propagation, so a
@@ -62,9 +62,8 @@ export function MobileListCard({
         )}
       </span>
       {badge}
-      {/* The affordance arrow reads the card's own hue, the ONE accent
-          reader on the card, so a hued card shows its colour on the control
-          that opens the detail. */}
+      {/* The affordance arrow is the card's only accent reader, so a hued
+          card shows its colour on the control that opens the detail. */}
       <svg aria-hidden width="10" height="10" viewBox="0 0 12 12" fill="none" className="shrink-0 text-accentText">
         <path fill="currentColor" d="M4 1.3 8.5 6 4 10.7Z" />
       </svg>
@@ -78,7 +77,7 @@ export function MobileListCard({
         checked={!!selected}
         onClick={(e) => e.stopPropagation()}
         onChange={onToggleSelect}
-        aria-label={`${t("common.selectItem").replace("{name}", title)}`}
+        aria-label={t("common.selectItem").replace("{name}", title)}
         className="h-4 w-4 shrink-0 cursor-pointer"
         style={{ accentColor: "var(--accent)" }}
       />

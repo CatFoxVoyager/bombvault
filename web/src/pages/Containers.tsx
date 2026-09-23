@@ -1721,7 +1721,7 @@ function MobileContainerCard({
       title={container.name}
       meta={
         // folders.previewPaths ("{n} paths") is the sanctioned existing key
-        // for this line: the ticked include count IS the mount+custom folder
+        // for this line: the ticked include count is the mount+custom folder
         // count the editor derives.
         ticked === null ? undefined : t("folders.previewPaths").replace("{n}", String(ticked))
       }
@@ -1801,14 +1801,17 @@ function MobileContainerDetail({
   const aliases = container.aliases ?? [];
   const takeoverEntry = { name: container.name, displayName: container.name, api: containerTakeover };
   return (
-    <MobileDetailShell title={container.name} onBack={onBack}>
-      <div className="flex flex-col gap-1">
-        {hostMountRoot && (
+    <MobileDetailShell
+      title={container.name}
+      subtitle={
+        hostMountRoot && (
           <p dir="ltr" className="text-xs text-carbon-textMuted font-mono break-all text-start">
             {hostMountRoot}
           </p>
-        )}
-      </div>
+        )
+      }
+      onBack={onBack}
+    >
       {/* Every control the desktop card carries, in the detail's flow. The
           corner's removal button for a not-installed entry (a deleted entry
           used to open a detail whose only way out was Back) and the self
