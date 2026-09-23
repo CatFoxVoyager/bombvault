@@ -116,6 +116,10 @@ export default [
             "Dashboard.tsx": "PAGE_SHELL_RESPONSIVE",
             "Containers.tsx": "PAGE_SHELL_RESPONSIVE",
             "VMs.tsx": "PAGE_SHELL_RESPONSIVE",
+            // The recovery wizard steps down to the 24px Card rhythm on a
+            // phone; the settled 1152px/40px desktop stays by construction.
+            // See PAGE_SHELL_RESPONSIVE in pageShell.ts.
+            "Recovery.tsx": "PAGE_SHELL_RESPONSIVE",
             // Not a routed page: Layout renders it in place of the app shell
             // while auth is blocked.
             "Login.tsx": null,
