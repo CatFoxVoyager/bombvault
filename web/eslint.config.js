@@ -117,8 +117,6 @@ export default [
             "Containers.tsx": "PAGE_SHELL_RESPONSIVE",
             "VMs.tsx": "PAGE_SHELL_RESPONSIVE",
             "Recovery.tsx": "PAGE_SHELL_RESPONSIVE",
-            // Same switch: the folder-set cards step down to the 24px Card
-            // rhythm on a phone. See PAGE_SHELL_RESPONSIVE in pageShell.ts.
             "Files.tsx": "PAGE_SHELL_RESPONSIVE",
             // Not a routed page: Layout renders it in place of the app shell
             // while auth is blocked.

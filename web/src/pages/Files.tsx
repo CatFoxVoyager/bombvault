@@ -1235,7 +1235,7 @@ export function FileSetRow({
         {/* Action badges in the top-right corner, as on the container card;
             the last backup sits beside the Backups trigger instead. Backup
             comes first, since it is what the card is for. */}
-`        <div className="ms-auto flex items-start gap-1.5 shrink-0 flex-wrap max-md:w-full max-md:justify-end">
+        <div className="ms-auto flex items-start gap-1.5 shrink-0 flex-wrap max-md:w-full max-md:justify-end">
           <FileSetBackupButton set={set} t={t} onBackedUp={onRefresh} running={running} />
           {/* Just the verb: the card already names the set. files.editSet
               stays the dialog heading, where the set has to be named. */}
@@ -1461,7 +1461,7 @@ export function Files() {
           <p className="mt-1 text-sm text-carbon-textSub">{t("files.subtitle")}</p>
           <div className="mt-2"><OffsiteIndicator domain="files" /></div>
         </div>
-`        <div className="flex items-center gap-2 flex-wrap max-md:w-full">
+        <div className="flex items-center gap-2 flex-wrap md:shrink-0 max-md:w-full">
           <Button
             key={shakeDiscover}
             label={t("containers.discover")}
