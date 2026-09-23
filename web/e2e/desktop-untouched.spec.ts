@@ -187,10 +187,6 @@ for (const route of DASHBOARD_ROUTES) {
 // The >=48rem leakage pass for /containers: the page the containers PR gave
 // a phone face (the card list, the stacked detail, the Save bar). Same
 // discipline as the Dashboard pass above.
-//
-// The files.emptyRule needle from the same upstream battery deliberately
-// does NOT travel with this file: its subject matter is the Files page's
-// mobile treatment, which lands with the Files PR.
 // ---------------------------------------------------------------------------
 const CONTAINER_ROUTES = ["/containers"];
 
