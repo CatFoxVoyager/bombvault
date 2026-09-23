@@ -76,6 +76,7 @@ const testMatch = [
   "list-ergonomics-containers.spec.ts",
   "run-detail-visibility.spec.ts",
   "destination-vms.spec.ts",
+  "recovery-phone.spec.ts",
 ];
 
 for (const spec of testMatch) {
