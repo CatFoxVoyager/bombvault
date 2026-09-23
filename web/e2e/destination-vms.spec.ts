@@ -175,10 +175,9 @@ test("mobile /vms: card list, search filter and the 20/40 load-more window", asy
   const searchBox = page.getByPlaceholder("Search VMs…").filter({ visible: true });
   await expect(searchBox).toBeVisible();
 
-  // The rows are the shared list card: a compact row per VM (its accessible
-  // name leads with the VM name), no triggers on it — every control lives in
-  // the detail the row opens. The desktop is not mounted at this width, so
-  // the rows count the window.
+  // One compact row per VM, its accessible name leading with the VM name and
+  // every control in the detail the row opens. The desktop is not mounted at
+  // this width, so the rows count the window.
   const cards = page.getByRole("button", { name: /^vm-\d{2}/ }).filter({ visible: true });
   await expect(cards).toHaveCount(20);
   await expect(page.getByText("vm-39", { exact: true }).filter({ visible: true })).toHaveCount(0);
@@ -308,6 +307,127 @@ test("mobile /vms: a stored override stays off the card", async ({ page }, testI
   await expect(page.getByRole("button", { name: "Set override" })).toHaveCount(0);
   // The removed VM only logs a skip when its run comes, so it is not counted.
   await expect(page.getByText("2 VMs · 1 Scheduled")).toBeVisible();
+});
+
+test("mobile /vms: a removed VM offers no selection", async ({ page }, testInfo) => {
+  test.skip(
+    !MOBILE_PROJECTS.has(testInfo.project.name),
+    "mobile-only: the phone rows are this test's surface",
+  );
+  // A bulk backup of a VM the host no longer defines parks a run for hours,
+  // which is why the desktop gives removed rows no checkbox either.
+  await stageVmsDomain(page, [
+    vmPayload(0),
+    vmPayload(1, { name: "vm-gone", libvirtName: "id-gone", state: "not-installed", lastBackup: 1_700_000_000 }),
+  ]);
+  await page.goto("/vms");
+
+  await expect(page.getByRole("checkbox", { name: "Select vm-00" })).toBeVisible();
+  await expect(page.getByText("vm-gone", { exact: true }).filter({ visible: true })).toBeVisible();
+  await expect(page.getByRole("checkbox", { name: "Select vm-gone" })).toHaveCount(0);
+});
+
+test("mobile /vms: the summary row and its controls fit a 320px phone", async ({ page }, testInfo) => {
+  test.skip(
+    !MOBILE_PROJECTS.has(testInfo.project.name),
+    "mobile-only: the phone summary row is this test's surface",
+  );
+  await page.setViewportSize({ width: 320, height: 800 });
+  await stageVmsDomain(page, [vmPayload(0), vmPayload(1)]);
+  await page.goto("/vms");
+  await expect(page.getByText("2 VMs · 2 Scheduled")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Exclude all/ }).filter({ visible: true })).toBeVisible();
+
+  const overflow = await page.evaluate(() => {
+    const main = document.getElementById("bv-main")!;
+    return main.scrollWidth - main.clientWidth;
+  });
+  expect(overflow).toBe(0);
+});
+
+test("mobile /vms: an open detail hides the list's selection bar", async ({ page }, testInfo) => {
+  test.skip(
+    !MOBILE_PROJECTS.has(testInfo.project.name),
+    "mobile-only: the phone detail is this test's surface",
+  );
+  await stageVmsDomain(page, [vmPayload(0), vmPayload(1)]);
+  await page.goto("/vms");
+
+  await page.getByRole("checkbox", { name: "Select vm-00" }).tap();
+  const bulkBackup = page.getByRole("button", { name: "Back up selected" }).filter({ visible: true });
+  await expect(bulkBackup).toBeVisible();
+
+  await page.getByRole("button", { name: /^vm-01/ }).filter({ visible: true }).tap();
+  await expect(page.getByRole("heading", { level: 2, name: "vm-01" })).toBeVisible();
+  await expect(bulkBackup).toHaveCount(0);
+});
+
+test("mobile /vms: the detail stays open when a backup takes its VM out of the filter", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    !MOBILE_PROJECTS.has(testInfo.project.name),
+    "mobile-only: the phone detail is this test's surface",
+  );
+  // The list shows only VMs that were never backed up, so the first backup
+  // takes this one out of it while its detail is open.
+  await page.addInitScript(() => localStorage.setItem("bv-vms-backup-filter", "neverBackedUp"));
+  await stageVmsDomain(page, [vmPayload(0)]);
+
+  const RUN_ID = "0a1b2c3d4e5f66778899aabbccddeeff";
+  const startedAt = Math.floor(Date.now() / 1000) - 60;
+  let done = false;
+  await page.route("**/api/vms", (route) =>
+    route.fulfill({
+      json: { ok: true, vms: [vmPayload(0, done ? { lastBackup: startedAt + 45 } : {})] },
+    }),
+  );
+  let fired = false;
+  await page.route("**/api/runs", (route) =>
+    route.fulfill({
+      json: {
+        ok: true,
+        runs: fired
+          ? [
+              {
+                id: RUN_ID,
+                targetId: "aaaa0000bbbb1111cccc2222dddd3333",
+                kind: "backup",
+                status: "success",
+                startedAt,
+                finishedAt: startedAt + 45,
+                snapshotId: RUN_ID,
+                bytes: 1_000_000,
+                error: "",
+                acknowledged: false,
+                target: "id-00",
+                domain: "vm",
+              },
+            ]
+          : [],
+      },
+    }),
+  );
+
+  await page.goto("/vms");
+  await page.getByRole("button", { name: /^vm-00/ }).filter({ visible: true }).tap();
+  const heading = page.getByRole("heading", { level: 2, name: "vm-00" });
+  await expect(heading).toBeVisible();
+
+  const posted = page.waitForRequest(
+    (r) => r.method() === "POST" && /\/api\/vms\/id-00\/backup$/.test(r.url()),
+  );
+  await page.getByRole("button", { name: "Back up now" }).filter({ visible: true }).tap();
+  await posted;
+  // The finished run reloads the list, which no longer matches the filter.
+  const reloaded = page.waitForResponse((r) => /\/api\/vms$/.test(r.url()));
+  done = true;
+  fired = true;
+  await reloaded;
+  // The detail shows the reloaded record, so it outlived the reload.
+  await expect(page.getByText(/^Last backup: (?!Never)/).first()).toBeVisible();
+  await expect(heading).toBeVisible();
+  await expect(page.getByText(`Done · ${RUN_ID.slice(0, 8)}`)).toBeVisible();
 });
 
 test("mobile /vms: gate-off shows the honest outline card and nothing else", async ({
