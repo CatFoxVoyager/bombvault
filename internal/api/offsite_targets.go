@@ -10,6 +10,8 @@ import (
 // offsiteConfigDomains lists the domains that can have an off-site target.
 var offsiteConfigDomains = []string{"containers", "vms", "flash", "config", "files", "zfs"}
 
+var invalidOffsiteDomain = "invalid domain: must be one of " + strings.Join(offsiteConfigDomains, ", ")
+
 func validOffsiteDomain(domain string) bool {
 	for _, d := range offsiteConfigDomains {
 		if d == domain {

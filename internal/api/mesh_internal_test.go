@@ -110,6 +110,8 @@ func TestAcceptMeshOffer(t *testing.T) {
 	h.handleAcceptMeshOffer(w, r)
 	if resp := decodeResp(t, w); resp["ok"] != false {
 		t.Fatalf("invalid domain must be rejected: %v", resp)
+	} else if msg, _ := resp["error"].(string); !strings.Contains(msg, "zfs") {
+		t.Fatalf("the error leaves out a domain the offer can go to: %q", msg)
 	}
 
 	w = httptest.NewRecorder()

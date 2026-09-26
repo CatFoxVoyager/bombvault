@@ -89,7 +89,7 @@ func (v offsiteTargetView) toStoreTarget() store.OffsiteTarget {
 // valid. t must come from toStoreTarget.
 func validateOffsiteTargetInput(t store.OffsiteTarget) string {
 	if !validOffsiteDomain(t.Domain) {
-		return "invalid domain: must be one of containers, vms, flash, config, files"
+		return invalidOffsiteDomain
 	}
 	if t.Repo == "" {
 		return "repo must not be empty"
