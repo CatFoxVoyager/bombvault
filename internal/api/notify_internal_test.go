@@ -180,6 +180,55 @@ func TestNotifyBackupNamesTheStallGuard(t *testing.T) {
 	}
 }
 
+// A container stop cancels the backups in flight, and their run rows say
+// cancelled. The message agrees with the row instead of reporting a failure
+// with a context error.
+func TestNotifyBackupReportsAShutdownAsAnInterruption(t *testing.T) {
+	var mu sync.Mutex
+	var hcPaths, messages []string
+	hc := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		hcPaths = append(hcPaths, r.URL.Path)
+		mu.Unlock()
+	}))
+	defer hc.Close()
+	wh := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		mu.Lock()
+		messages = append(messages, string(body))
+		mu.Unlock()
+	}))
+	defer wh.Close()
+	ssh := &fakeHostSSH{}
+	s := unraidNotifyService(t, ssh)
+	if err := s.SetNotifyConfig(notify.Config{
+		On: "always", Unraid: true, HealthchecksURL: hc.URL, WebhookEnabled: true, WebhookURL: wh.URL, WebhookFormat: "generic",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	s.shuttingDown.Store(true)
+	cancel()
+
+	s.notifyBackup(ctx, "container", "plex", "container:plex", false, backup.Summary{},
+		fmt.Errorf("backup: cancelled while stopping the container: %w", ctx.Err()))
+
+	mu.Lock()
+	defer mu.Unlock()
+	if len(hcPaths) != 1 || hcPaths[0] != "/" {
+		t.Errorf("a shutdown ended the Healthchecks run with %v, want the plain end ping", hcPaths)
+	}
+	if len(messages) != 1 || !strings.Contains(messages[0], `Backup of container \"plex\" was stopped because BombVault shut down.`) {
+		t.Fatalf("webhook messages = %v", messages)
+	}
+	if len(ssh.runs) != 1 {
+		t.Fatalf("%d Unraid notifications, want one", len(ssh.runs))
+	}
+	if sent := strings.Join(ssh.runs[0], " "); strings.Contains(sent, "warning") || strings.Contains(sent, "FAILED") {
+		t.Errorf("Unraid notification = %s", sent)
+	}
+}
+
 func TestNotifyBackupUnraidSkippedWithoutSSH(t *testing.T) {
 	s := unraidNotifyService(t, nil)
 	if err := s.SetNotifyConfig(notify.Config{On: "always", Unraid: true}); err != nil {

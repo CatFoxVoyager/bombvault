@@ -17506,11 +17506,15 @@ func (s *Service) notifyBackup(ctx context.Context, domain, name, cancelKey stri
 	// failure, and only those who hear about every backup hear about it.
 	// Healthchecks still gets the end of the run it saw start, since a start
 	// left open turns the check red once its grace time is up.
-	cancelled := !ok && !isStall && s.backupWasCancelled(cancelKey)
+	// A shutdown is labelled the same way, first, as runsAdapter.Finish does.
+	interrupted := !ok && s.IsShuttingDown()
+	cancelled := !ok && !interrupted && !isStall && s.backupWasCancelled(cancelKey)
 	var msg string
 	switch {
 	case ok:
 		msg = fmt.Sprintf("Backup of %s succeeded (snapshot %s, %s).", target, shortID(sum.SnapshotID), humanBytes(sum.Bytes))
+	case interrupted:
+		msg = fmt.Sprintf("Backup of %s was stopped because BombVault shut down.", target)
 	case cancelled:
 		msg = fmt.Sprintf("Backup of %s was cancelled.", target)
 	case isStall:
@@ -17521,18 +17525,20 @@ func (s *Service) notifyBackup(ctx context.Context, domain, name, cancelKey stri
 	if o := runOriginFromContext(ctx); o.Via == "mcp" {
 		msg += " " + s.mcpOriginSentence(o.KeyID)
 	}
-	notify.Send(ctx, c, domain, notify.Event{Title: "BombVault", Message: msg, OK: ok || cancelled})
+	notify.Send(ctx, c, domain, notify.Event{Title: "BombVault", Message: msg, OK: ok || cancelled || interrupted})
 
 	// Unraid native notification (delivered over SSH; notify.Send is HTTP-only).
 	// Honour the same policy: notifyBackup already returned for "never", so send
 	// on "always" or on any failure. In scheduled summary mode, drop the per-item
 	// Unraid push too — ScheduledNotifyResult sends the one aggregate (#56).
-	failed := !ok && !cancelled
+	failed := !ok && !cancelled && !interrupted
 	if s.unraidGate(c.Unraid) && (c.On == "always" || failed) &&
 		(!notify.MessagesSuppressed(ctx) || !c.ScheduledSummary) {
 		level := "normal"
 		subject := "BombVault: backup OK"
 		switch {
+		case interrupted:
+			subject = "BombVault: backup interrupted"
 		case cancelled:
 			subject = "BombVault: backup cancelled"
 		case failed:
