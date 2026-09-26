@@ -587,6 +587,26 @@ func TestBackupZFSItemSnapshotFailureNeverDestroysOrBacksUp(t *testing.T) {
 	}
 }
 
+// The host names the dataset that blocked the snapshot, and the user needs that
+// name to find it; a host path in the same output still goes.
+func TestBackupZFSItemSnapshotFailureKeepsTheBlockingDatasetName(t *testing.T) {
+	f := newZFSFixture()
+	f.snapshotter.snapshotErr = &zfs.CmdError{
+		Code:   "zfs-error",
+		Stderr: "cannot create snapshot '" + zfsTestPlex + "@" + zfsTestSnap + "': dataset is busy, see /mnt/cache/appdata/plex",
+	}
+	if _, err := f.run(t, t.Context()); err == nil {
+		t.Fatal("a failed snapshot must fail the run")
+	}
+	note := f.runs.finishOf(t, "run-1").note
+	if !strings.Contains(note, "'"+zfsTestPlex+"@"+zfsTestSnap+"'") {
+		t.Fatalf("run note = %q, want the blocking dataset named", note)
+	}
+	if strings.Contains(note, "/mnt/") {
+		t.Fatalf("run note = %q, want the host path removed", note)
+	}
+}
+
 func TestBackupZFSItemDestroyUsesUncancelledContext(t *testing.T) {
 	f := newZFSFixture()
 	ctx, cancel := context.WithCancel(t.Context())

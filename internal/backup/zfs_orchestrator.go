@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -399,15 +400,23 @@ func (d ZFSBackupDeps) destroy(ctx context.Context, snap string) {
 
 func memberFailure(m ZFSMemberResult) string { return m.Dataset + " [" + m.Outcome + "]" }
 
+// zfsHostPathRe finds the paths in host output. Only a slash that starts a
+// token begins one, since the slash inside a word belongs to a dataset name
+// such as cache/appdata/plex, which the user needs to see.
+var zfsHostPathRe = regexp.MustCompile(`(^|[\s'"=(,])(?:/[^\s:"']+)+`)
+
 // zfsHostDetail makes what the host wrote fit for a refusal, which passes the
-// run row's scrubber untouched: the host's paths and control characters go.
+// run row's scrubber untouched: the host's paths, credentials and control
+// characters go.
 func zfsHostDetail(err error) string {
-	return scrubRunErr(strings.Map(func(r rune) rune {
+	clean := strings.Map(func(r rune) rune {
 		if r == '\n' || r == '\t' || r >= 0x20 {
 			return r
 		}
 		return -1
-	}, err.Error()))
+	}, err.Error())
+	clean = zfsHostPathRe.ReplaceAllString(clean, "${1}[path]")
+	return runErrCredentialRe.ReplaceAllString(clean, "[redacted]@")
 }
 
 // refusalCode returns the reason code a refusal carries, or fallback when the
