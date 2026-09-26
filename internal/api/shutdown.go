@@ -70,9 +70,13 @@ func (s *Service) endBackupCancel(key string, err *error) {
 	s.unregisterBackupCancel(key)
 }
 
+// IsBackupCancelled reports whether err is the failure of a backup the user
+// cancelled, which a round of several items counts as no failure.
+func IsBackupCancelled(err error) bool { return errors.Is(err, errBackupCancelled) }
+
 // backupEnding is the word a log line uses for a backup that returned err.
 func backupEnding(err error) string {
-	if errors.Is(err, errBackupCancelled) {
+	if IsBackupCancelled(err) {
 		return "cancelled"
 	}
 	return "failed"

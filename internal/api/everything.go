@@ -269,8 +269,8 @@ func (s *Service) everythingRunContainers(ctx context.Context, runID string, set
 		}
 		attempted++
 		if _, err := s.Backup(runCtx, t.ContainerName); err != nil {
-			if errors.Is(err, backup.ErrContainerNotInstalled) {
-				continue // a removed container is a skip and already recorded
+			if errors.Is(err, backup.ErrContainerNotInstalled) || IsBackupCancelled(err) {
+				continue // a removed container is a skip and already recorded; a cancel is no failure
 			}
 			failed++
 			failures = append(failures, schedule.ItemFailure{Name: t.ContainerName, Reason: truncateRunErr(err)})
@@ -315,8 +315,8 @@ func (s *Service) everythingRunVMs(ctx context.Context, runID string, settings s
 		}
 		attempted++
 		if _, err := s.BackupVM(runCtx, v.Name); err != nil {
-			if errors.Is(err, backup.ErrVMNotInstalled) {
-				continue // a VM gone from the host is a skip and already logged
+			if errors.Is(err, backup.ErrVMNotInstalled) || IsBackupCancelled(err) {
+				continue // a VM gone from the host is a skip and already logged; a cancel is no failure
 			}
 			failed++
 			failures = append(failures, schedule.ItemFailure{Name: v.Name, Reason: truncateRunErr(err)})
@@ -359,6 +359,9 @@ func (s *Service) everythingRunFiles(ctx context.Context, runID string, settings
 		}
 		attempted++
 		if _, err := s.BackupFileSet(runCtx, fs.ID); err != nil {
+			if IsBackupCancelled(err) {
+				continue
+			}
 			failed++
 			failures = append(failures, schedule.ItemFailure{Name: fs.Name, Reason: truncateRunErr(err)})
 			log.Printf("api: backup everything: files: backup %q failed: %v", fs.Name, err) //nolint:gosec // G706: name is %q-quoted
@@ -398,6 +401,9 @@ func (s *Service) everythingRunZFS(ctx context.Context, runID string, settings s
 		}
 		attempted++
 		if _, err := s.BackupZFSDataset(runCtx, d.ID); err != nil {
+			if IsBackupCancelled(err) {
+				continue
+			}
 			failed++
 			failures = append(failures, schedule.ItemFailure{Name: d.Dataset, Reason: truncateRunErr(err)})
 			log.Printf("api: backup everything: zfs: backup %q failed: %v", d.Dataset, err) //nolint:gosec // G706: name is %q-quoted
@@ -419,6 +425,9 @@ func (s *Service) everythingRunFlash(ctx context.Context, runID string) Everythi
 		return everythingDomainIdle(domain)
 	}
 	if _, err := s.BackupFlash(WithRunGroup(ctx, runID)); err != nil {
+		if IsBackupCancelled(err) {
+			return everythingDomainIdle(domain)
+		}
 		log.Printf("api: backup everything: flash: backup failed: %v", err)
 		return everythingSingletonFault(domain, err)
 	}
@@ -433,6 +442,9 @@ func (s *Service) everythingRunConfig(ctx context.Context, runID string) Everyth
 		return everythingDomainIdle(domain)
 	}
 	if _, err := s.BackupConfig(WithRunGroup(ctx, runID)); err != nil {
+		if IsBackupCancelled(err) {
+			return everythingDomainIdle(domain)
+		}
 		log.Printf("api: backup everything: config: backup failed: %v", err)
 		return everythingSingletonFault(domain, err)
 	}

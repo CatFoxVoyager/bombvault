@@ -174,6 +174,15 @@ func logSchedulerTimezone() {
 	}
 }
 
+// roundItemErr is an item's error as a scheduled round counts it: a backup the
+// user cancelled is no failure of the round, and its own run says cancelled.
+func roundItemErr(err error) error {
+	if api.IsBackupCancelled(err) {
+		return nil
+	}
+	return err
+}
+
 func run() error {
 	// Send the standard logger to stdout so all runtime logs share ONE stream
 	// with the ASCII banner (printed via fmt to stdout). Otherwise Docker/Unraid
@@ -323,7 +332,7 @@ func run() error {
 			if errors.Is(bErr, backup.ErrContainerNotInstalled) {
 				return nil // container no longer on the host: a skip (already recorded), not a job failure (#57)
 			}
-			return bErr
+			return roundItemErr(bErr)
 		},
 		st.ListTargetsScheduleOrder, // #95: never/least-recently-backed-up first so a slow run can't starve the same tail
 	)
@@ -334,7 +343,7 @@ func run() error {
 			if errors.Is(bErr, backup.ErrVMNotInstalled) {
 				return nil // VM no longer on the host: a skip (already logged), not a job failure
 			}
-			return bErr
+			return roundItemErr(bErr)
 		},
 		st.ListVMTargets,
 	)
@@ -366,14 +375,14 @@ func run() error {
 	scheduler.SetFilesJob(func(id string) error {
 		ctx := api.WithBulkReplicateSuppressed(notify.WithMessagesSuppressed(notify.WithHealthchecksSuppressed(context.Background())))
 		_, bErr := svc.BackupFileSet(ctx, id)
-		return bErr
+		return roundItemErr(bErr)
 	}, st.ListFileSets)
 	// ZFS datasets are scheduled like file sets: one item at a time, with the
 	// per-item pings suppressed in favour of the aggregate one.
 	scheduler.SetZFSJob(func(id string) error {
 		ctx := api.WithBulkReplicateSuppressed(notify.WithMessagesSuppressed(notify.WithHealthchecksSuppressed(context.Background())))
 		_, bErr := svc.BackupZFSDataset(ctx, id)
-		return bErr
+		return roundItemErr(bErr)
 	}, st.ListZFSDatasets)
 	// "Backup Everything": a 6th, independent pseudo-domain that loops over all
 	// five domains internally (internal/api/everything.go's BackupEverything),

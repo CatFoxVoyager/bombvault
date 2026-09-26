@@ -257,3 +257,38 @@ func TestZFSRestartRecoveryLeavesHealthchecksAlone(t *testing.T) {
 		t.Fatalf("the restart notice pinged Healthchecks %d times", hits)
 	}
 }
+
+// An item the user cancelled inside a Backup Everything pass is no failure of
+// the pass: its own run says cancelled, and the round must not ping a failure
+// or list it among the failed items.
+func TestEverythingPassDoesNotCountACancelledItemAsFailed(t *testing.T) {
+	s, st, _, eng := zfsRunFixture(t, zfsTwoDatasetTree())
+	d := zfsSeedItem(t, st, zfsRoot)
+	eng.onBackup = func() { s.CancelBackupRun(zfsDomain+":"+zfsRoot, "") }
+	settings, err := st.GetSettings()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res := s.everythingRunZFS(context.Background(), "", settings)
+
+	if res.Failed != 0 || len(res.Failures) != 0 {
+		t.Fatalf("the cancelled item counts as failed: %+v", res)
+	}
+	if run := zfsLastRun(t, st, d.ID); run.Status != "cancelled" {
+		t.Fatalf("run status = %q, want cancelled", run.Status)
+	}
+}
+
+func TestIsBackupCancelledTellsACancelFromAFailure(t *testing.T) {
+	s, st, _, eng := zfsRunFixture(t, zfsTwoDatasetTree())
+	d := zfsSeedItem(t, st, zfsRoot)
+	eng.onBackup = func() { s.CancelBackupRun(zfsDomain+":"+zfsRoot, "") }
+	_, err := s.BackupZFSDataset(context.Background(), d.ID)
+	if !IsBackupCancelled(err) {
+		t.Fatalf("a cancelled backup's error %v does not read as cancelled", err)
+	}
+	if IsBackupCancelled(errors.New("restic: exit status 1")) {
+		t.Fatal("a plain failure reads as cancelled")
+	}
+}
