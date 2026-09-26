@@ -303,10 +303,10 @@ func run() error {
 	if err := svc.WriteRcloneConfFile(); err != nil {
 		log.Printf("rclone: write config: %v", err) // non-fatal: off-site stays unavailable until fixed
 	}
-	if n, mErr := svc.MoveMeshTargetsOffPrimarySlot(); mErr != nil {
-		log.Printf("offsite: move mesh targets off sort order 0: %v", mErr)
+	if n, mErr := svc.MoveTargetsOffPrimarySlot(); mErr != nil {
+		log.Printf("offsite: move additional targets off sort order 0: %v", mErr)
 	} else if n > 0 {
-		log.Printf("offsite: moved %d mesh target(s) off sort order 0 so a settings save keeps them", n)
+		log.Printf("offsite: moved %d additional target(s) off sort order 0 so a settings save keeps them", n)
 	}
 
 	// Per-domain scheduler; the containers job calls the service's Backup, the

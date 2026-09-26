@@ -95,33 +95,46 @@ func (s *Service) nextOffsiteSortOrder(domain string) (int, error) {
 	return next, nil
 }
 
-// MoveMeshTargetsOffPrimarySlot moves every target accepted from a mesh offer
-// off sort order 0, which a settings save treats as the primary, and returns how
-// many it moved. One on the repo the domain's off-site setting names is that
-// primary and stays.
-func (s *Service) MoveMeshTargetsOffPrimarySlot() (int, error) {
-	offers, err := s.store.ListMeshOffers()
-	if err != nil {
-		return 0, err
-	}
-	accepted := make(map[string]bool, len(offers))
-	for _, o := range offers {
-		if o.Status == "accepted" {
-			accepted[o.Repo] = true
-		}
-	}
+// MoveTargetsOffPrimarySlot runs moveTargetsOffPrimarySlot against the stored
+// settings at startup, before a settings save can take a stray row for the
+// primary.
+func (s *Service) MoveTargetsOffPrimarySlot() (int, error) {
 	settings, err := s.store.GetSettings()
 	if err != nil {
 		return 0, err
 	}
+	return s.moveTargetsOffPrimarySlot(settings)
+}
+
+// moveTargetsOffPrimarySlot moves every target but the primary off sort order
+// 0, which a settings save treats as the primary, and returns how many it
+// moved. The primary is the row on the repo the domain's off-site setting
+// names, or the oldest row at 0 when none is; a domain without the setting has
+// none.
+func (s *Service) moveTargetsOffPrimarySlot(settings store.Settings) (int, error) {
 	moved := 0
 	for _, d := range offsiteConfigDomains {
 		targets, err := s.store.OffsiteTargetsForDomain(d)
 		if err != nil {
 			return moved, err
 		}
+		repo := offsiteRepoFromSettings(d, settings)
+		var slot []store.OffsiteTarget
+		keep := -1
 		for _, t := range targets {
-			if t.SortOrder != 0 || !accepted[t.Repo] || t.Repo == offsiteRepoFromSettings(d, settings) {
+			if t.SortOrder != 0 {
+				continue
+			}
+			if keep < 0 && repo != "" && t.Repo == repo {
+				keep = len(slot)
+			}
+			slot = append(slot, t)
+		}
+		if keep < 0 && repo != "" && len(slot) > 0 {
+			keep = 0
+		}
+		for i, t := range slot {
+			if i == keep {
 				continue
 			}
 			if t.SortOrder, err = s.nextOffsiteSortOrder(d); err != nil {

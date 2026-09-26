@@ -933,3 +933,48 @@ func TestImportOfFileWithoutZFSKeepsTheZFSSetup(t *testing.T) {
 		t.Fatalf("the ZFS off-site destination must survive the import: %+v", targets)
 	}
 }
+
+// A file from an older version can hold an additional target at sort order 0,
+// which a settings save takes for the domain's primary: deleted where the
+// domain has no off-site setting, rewritten onto that setting's repository
+// where it has one. The import keeps both as additional targets.
+func TestImportKeepsAdditionalTargetsLeftOnThePrimarySortOrder(t *testing.T) {
+	src, srcStore := newPortableHandler(t, appKeyA)
+	seedSource(t, src, srcStore)
+	for _, tg := range []store.OffsiteTarget{
+		{ID: "tgt-early", Domain: "containers", Name: "Peer", Repo: "rest:http://peer:8000/containers", Enabled: true, CreatedAt: 500, SortOrder: 0},
+		{ID: "tgt-vms", Domain: "vms", Name: "Peer", Repo: "rest:http://peer:8000/vms", Enabled: true, CreatedAt: 3000, SortOrder: 0},
+	} {
+		if _, err := srcStore.UpsertOffsiteTarget(tg); err != nil {
+			t.Fatal(err)
+		}
+	}
+	body, _ := doExport(t, src, "")
+
+	dst, dstStore := newPortableHandler(t, appKeyB)
+	if env := doImport(t, dst, body, "?apply=true"); env["ok"] != true {
+		t.Fatalf("apply failed: %v", env)
+	}
+
+	want := map[string]string{
+		"tgt-1":     "s3:offsite-containers",
+		"tgt-2":     "s3:offsite-archive",
+		"tgt-early": "rest:http://peer:8000/containers",
+		"tgt-vms":   "rest:http://peer:8000/vms",
+	}
+	targets, err := dstStore.ListOffsiteTargets()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(targets) != len(want) {
+		t.Fatalf("want %d targets, got %+v", len(want), targets)
+	}
+	for _, tg := range targets {
+		if tg.Repo != want[tg.ID] {
+			t.Fatalf("target %s points at %q, want %q", tg.ID, tg.Repo, want[tg.ID])
+		}
+		if primary := tg.ID == "tgt-1"; primary != (tg.SortOrder == 0) {
+			t.Fatalf("target %s sits at sort order %d", tg.ID, tg.SortOrder)
+		}
+	}
+}

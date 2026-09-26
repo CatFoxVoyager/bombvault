@@ -832,6 +832,9 @@ func (h *Handler) applyImport(r *http.Request, exp settingsExport) error {
 	if err != nil {
 		return err
 	}
+	if _, err := h.svc.moveTargetsOffPrimarySlot(s); err != nil {
+		return err
+	}
 	h.svc.syncAllPrimaryOffsiteTargets(s)
 	if h.scheduler != nil {
 		if err := h.scheduler.ReloadWithGates(s, h.dueGates()); err != nil {

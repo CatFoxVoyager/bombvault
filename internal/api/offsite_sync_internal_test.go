@@ -241,3 +241,46 @@ func TestSettingsSaveKeepsThenAdoptsZFSAdditionalTarget(t *testing.T) {
 		t.Fatalf("want the existing zfs row as primary and no duplicate, got %+v", targets)
 	}
 }
+
+// Additional targets the API once created without a sort order sit at 0 next
+// to the primary. The startup repair moves them behind it, mesh or not, so a
+// settings save neither deletes nor rewrites them.
+func TestStartupMovesEveryAdditionalTargetOffThePrimarySortOrder(t *testing.T) {
+	s, st := newSyncTestService(t)
+	settings, err := st.GetSettings()
+	if err != nil {
+		t.Fatal(err)
+	}
+	settings.ContainersOffsite = "s3:primary"
+	if err := st.UpdateSettings(settings); err != nil {
+		t.Fatal(err)
+	}
+	for _, tg := range []store.OffsiteTarget{
+		{ID: "early", Domain: "containers", Name: "Early", Repo: "s3:early", Enabled: true, CreatedAt: 100},
+		{ID: "primary", Domain: "containers", Name: "Primary", Repo: "s3:primary", Enabled: true, CreatedAt: 200},
+		{ID: "lone", Domain: "vms", Name: "Lone", Repo: "s3:lone", Enabled: true, CreatedAt: 300},
+	} {
+		if _, err := st.UpsertOffsiteTarget(tg); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	moved, err := s.MoveTargetsOffPrimarySlot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	s.syncAllPrimaryOffsiteTargets(settings)
+
+	if moved != 2 {
+		t.Fatalf("moved = %d, want 2", moved)
+	}
+	for id, repo := range map[string]string{"early": "s3:early", "primary": "s3:primary", "lone": "s3:lone"} {
+		got, ok, err := st.GetOffsiteTarget(id)
+		if err != nil || !ok {
+			t.Fatalf("target %s is gone (err %v)", id, err)
+		}
+		if got.Repo != repo || (id == "primary") != (got.SortOrder == 0) {
+			t.Fatalf("target %s = %s at sort order %d", id, got.Repo, got.SortOrder)
+		}
+	}
+}

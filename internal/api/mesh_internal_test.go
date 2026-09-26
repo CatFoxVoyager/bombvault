@@ -250,7 +250,7 @@ func TestMeshTargetAtSortOrderZeroMovesBehindThePrimary(t *testing.T) {
 	containersMesh := accept("containers", "rest:http://tower-a:8000/containers")
 	vmsMesh := accept("vms", "rest:http://tower-a:8000/vms")
 
-	moved, err := h.svc.MoveMeshTargetsOffPrimarySlot()
+	moved, err := h.svc.MoveTargetsOffPrimarySlot()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -276,7 +276,7 @@ func TestMeshTargetAtSortOrderZeroMovesBehindThePrimary(t *testing.T) {
 	if moved != 2 {
 		t.Fatalf("moved = %d, want 2", moved)
 	}
-	if again, err := h.svc.MoveMeshTargetsOffPrimarySlot(); err != nil || again != 0 {
+	if again, err := h.svc.MoveTargetsOffPrimarySlot(); err != nil || again != 0 {
 		t.Fatalf("a second run moved %d (err %v), want 0", again, err)
 	}
 }
@@ -300,7 +300,7 @@ func TestZFSMeshTargetAtSortOrderZeroMovesOffIt(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	moved, err := h.svc.MoveMeshTargetsOffPrimarySlot()
+	moved, err := h.svc.MoveTargetsOffPrimarySlot()
 	if err != nil {
 		t.Fatal(err)
 	}
