@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/junkerderprovinz/bombvault/internal/backup"
 	"github.com/junkerderprovinz/bombvault/internal/progress"
 )
 
@@ -16,14 +17,19 @@ import (
 const shutdownGrace = 10 * time.Second
 
 // registerBackupCancel records a running backup's cancel func under its
-// progress key so shutdown and CancelBackupRun can reach it. Pair it with a
-// deferred unregisterBackupCancel.
-func (s *Service) registerBackupCancel(key string, cancel context.CancelFunc) {
+// progress key so shutdown and CancelBackupRun can reach it, and the context it
+// cancels, so CancelBackupRun can tell a backup the stall guard already stopped.
+// Pair it with a deferred unregisterBackupCancel.
+func (s *Service) registerBackupCancel(ctx context.Context, key string, cancel context.CancelFunc) {
 	s.cancelMu.Lock()
 	if s.backupCancels == nil {
 		s.backupCancels = map[string]context.CancelFunc{}
 	}
+	if s.backupCtxs == nil {
+		s.backupCtxs = map[string]context.Context{}
+	}
 	s.backupCancels[key] = cancel
+	s.backupCtxs[key] = ctx
 	s.cancelMu.Unlock()
 }
 
@@ -44,6 +50,7 @@ func (s *Service) bindBackupRun(key, runID string) {
 func (s *Service) unregisterBackupCancel(key string) {
 	s.cancelMu.Lock()
 	delete(s.backupCancels, key)
+	delete(s.backupCtxs, key)
 	delete(s.backupRuns, key)
 	delete(s.cancelledBackups, key)
 	delete(s.committedBackups, key)
@@ -123,11 +130,15 @@ func (s *Service) BackupCommitted(key, runID string) bool {
 // The web interface's button passes none: it means whatever runs there now.
 //
 // A committed backup is refused: its restore point is written, and a cancel
-// could only claim to stop it.
+// could only claim to stop it. So is one the stall guard stopped, which is
+// only unwinding and is recorded as stalled.
 func (s *Service) CancelBackupRun(key, runID string) bool {
 	s.cancelMu.Lock()
 	cancel, ok := s.backupCancels[key]
 	if (runID != "" && s.backupRuns[key] != runID) || s.committedBackups[key] {
+		ok = false
+	}
+	if ok && backup.StalledBy(s.backupCtxs[key]) != nil {
 		ok = false
 	}
 	if ok {

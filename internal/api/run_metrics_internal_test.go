@@ -178,7 +178,7 @@ func TestRunsAdapterFinishWritesMetricsOnlyOnSuccess(t *testing.T) {
 	t.Run("a cancelled backup never reaches the history", func(t *testing.T) {
 		st := newTestStore(t)
 		s := &Service{store: st}
-		s.registerBackupCancel("files:set9", func() {})
+		s.registerBackupCancel(context.Background(), "files:set9", func() {})
 		s.CancelBackupRun("files:set9", "")
 		runID, err := st.StartRun("tg3", "backup")
 		if err != nil {

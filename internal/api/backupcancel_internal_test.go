@@ -34,7 +34,7 @@ func TestCancelBackupRunCancelsAndReportsIt(t *testing.T) {
 	s := &Service{}
 	_, cancel := context.WithCancel(context.Background())
 	done := make(chan struct{})
-	s.registerBackupCancel("files:abc", func() { close(done); cancel() })
+	s.registerBackupCancel(context.Background(), "files:abc", func() { close(done); cancel() })
 
 	if !s.CancelBackupRun("files:abc", "") {
 		t.Fatal("CancelBackupRun on a running key must report true")
@@ -64,7 +64,7 @@ func TestCancelBackupRunIsIdempotentOnAnUnknownKey(t *testing.T) {
 func TestCancelBackupRunRefusesABackupThatWroteItsRestorePoint(t *testing.T) {
 	s := &Service{}
 	cancelled := false
-	s.registerBackupCancel("container:plex", func() {
+	s.registerBackupCancel(context.Background(), "container:plex", func() {
 		cancelled = true
 		s.unregisterBackupCancel("container:plex")
 	})
@@ -99,7 +99,7 @@ func TestCancelBackupRunRefusesABackupThatWroteItsRestorePoint(t *testing.T) {
 func TestACommittedBackupSaysSoOnTheProgressStream(t *testing.T) {
 	prog := progress.NewStore()
 	s := &Service{progress: prog}
-	s.registerBackupCancel("container:plex", func() {})
+	s.registerBackupCancel(context.Background(), "container:plex", func() {})
 	s.commitBackup("container:plex", 1700000000)
 
 	snap := prog.Snapshot()
@@ -116,7 +116,7 @@ func TestUnregisterClearsTheCancellationMark(t *testing.T) {
 	// Otherwise the next backup under the same key would report its own
 	// failure as a cancellation.
 	s := &Service{}
-	s.registerBackupCancel("files:abc", func() {})
+	s.registerBackupCancel(context.Background(), "files:abc", func() {})
 	s.CancelBackupRun("files:abc", "")
 	s.unregisterBackupCancel("files:abc")
 	if s.backupWasCancelled("files:abc") {
@@ -126,14 +126,14 @@ func TestUnregisterClearsTheCancellationMark(t *testing.T) {
 
 func TestOnlyACancelledBackupEndsAsCancelled(t *testing.T) {
 	s := &Service{}
-	s.registerBackupCancel("files:abc", func() {})
+	s.registerBackupCancel(context.Background(), "files:abc", func() {})
 	err := errors.New("repository is locked")
 	s.endBackupCancel("files:abc", &err)
 	if backupEnding(err) != "failed" || err.Error() != "repository is locked" {
 		t.Fatalf("an uncancelled failure ended as %s: %v", backupEnding(err), err)
 	}
 
-	s.registerBackupCancel("files:abc", func() {})
+	s.registerBackupCancel(context.Background(), "files:abc", func() {})
 	s.CancelBackupRun("files:abc", "")
 	err = fmt.Errorf("backup: %w", context.Canceled)
 	s.endBackupCancel("files:abc", &err)
@@ -149,8 +149,8 @@ func TestOnlyACancelledBackupEndsAsCancelled(t *testing.T) {
 // its containers again, and the endpoint is where it learns which one it was.
 func TestBackupCancelEndpointSaysWhyNothingWasCancelled(t *testing.T) {
 	s := &Service{}
-	s.registerBackupCancel("files:docs", func() {})
-	s.registerBackupCancel("container:plex", func() {})
+	s.registerBackupCancel(context.Background(), "files:docs", func() {})
+	s.registerBackupCancel(context.Background(), "container:plex", func() {})
 	s.commitBackup("container:plex", 0)
 	h := &Handler{svc: s}
 
@@ -200,7 +200,7 @@ func TestBackupWasCancelledIgnoresTheEmptyKey(t *testing.T) {
 	// If the empty key could ever match, those runs would start relabelling
 	// themselves the moment any backup anywhere was cancelled.
 	s := &Service{}
-	s.registerBackupCancel("", func() {})
+	s.registerBackupCancel(context.Background(), "", func() {})
 	s.CancelBackupRun("", "")
 	if s.backupWasCancelled("") {
 		t.Fatal("the empty key must never count as cancelled")
@@ -213,7 +213,7 @@ func TestBackupWasCancelledIgnoresTheEmptyKey(t *testing.T) {
 func TestCancelledBackupRecordsCancelledNotFailed(t *testing.T) {
 	st := newTestStore(t)
 	s := &Service{store: st}
-	s.registerBackupCancel("files:set1", func() {})
+	s.registerBackupCancel(context.Background(), "files:set1", func() {})
 	s.CancelBackupRun("files:set1", "")
 
 	runID, err := st.StartRun("set1", "backup")
@@ -275,7 +275,7 @@ func TestASuccessfulBackupIsNeverRelabelled(t *testing.T) {
 	// not turn a finished backup into a cancelled one.
 	st := newTestStore(t)
 	s := &Service{store: st}
-	s.registerBackupCancel("files:set3", func() {})
+	s.registerBackupCancel(context.Background(), "files:set3", func() {})
 	s.CancelBackupRun("files:set3", "")
 
 	runID, err := st.StartRun("set3", "backup")
@@ -308,7 +308,7 @@ func TestFilesCancelKeyMatchesTheProgressKey(t *testing.T) {
 	src := string(raw)
 
 	for _, want := range []string{
-		`s.registerBackupCancel("files:"+set.Name, cancel)`,
+		`s.registerBackupCancel(ctx, "files:"+set.Name, cancel)`,
 		`defer s.endBackupCancel("files:"+set.Name, &retErr)`,
 		`key := "files:" + set.Name`,
 		`cancelKey: "files:" + set.Name`,
@@ -322,7 +322,7 @@ func TestFilesCancelKeyMatchesTheProgressKey(t *testing.T) {
 	}
 	// Keyed by the set id, which the progress stream never uses.
 	for _, forbidden := range []string{
-		`s.registerBackupCancel("files:"+id`,
+		`s.registerBackupCancel(ctx, "files:"+id`,
 		`cancelKey: "files:" + id`,
 	} {
 		if strings.Contains(src, forbidden) {

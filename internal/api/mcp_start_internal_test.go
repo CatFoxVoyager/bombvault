@@ -581,12 +581,12 @@ func TestMCPCancelDerivesTheServiceKey(t *testing.T) {
 		src      string
 		register string
 	}{
-		{"containers", target.ID, "container:plex", service, `s.registerBackupCancel("container:"+name, cancel)`},
-		{"vms", vm.ID, "vm:win11", service, `s.registerBackupCancel("vm:"+name, cancel)`},
-		{"files", sets["docs"].ID, "files:docs", service, `s.registerBackupCancel("files:"+set.Name, cancel)`},
+		{"containers", target.ID, "container:plex", service, `s.registerBackupCancel(ctx, "container:"+name, cancel)`},
+		{"vms", vm.ID, "vm:win11", service, `s.registerBackupCancel(ctx, "vm:"+name, cancel)`},
+		{"files", sets["docs"].ID, "files:docs", service, `s.registerBackupCancel(ctx, "files:"+set.Name, cancel)`},
 		{"zfs", dataset.ID, "zfs:cache/appdata", zfsRun, `key := zfsDomain + ":" + d.Dataset`},
-		{"flash", store.FlashTargetID, "flash", service, `s.registerBackupCancel("flash", cancel)`},
-		{"config", store.ConfigTargetID, "config", service, `s.registerBackupCancel("config", cancel)`},
+		{"flash", store.FlashTargetID, "flash", service, `s.registerBackupCancel(ctx, "flash", cancel)`},
+		{"config", store.ConfigTargetID, "config", service, `s.registerBackupCancel(ctx, "config", cancel)`},
 	} {
 		key, item, ok := h.mcpCancelKey(store.Run{TargetID: c.targetID})
 		if !ok {
@@ -623,7 +623,7 @@ func TestMCPCancelReachesOnlyTheRunItNames(t *testing.T) {
 		t.Fatal(err)
 	}
 	cancelled := false
-	h.svc.registerBackupCancel("files:docs", func() { cancelled = true })
+	h.svc.registerBackupCancel(context.Background(), "files:docs", func() { cancelled = true })
 	h.svc.bindBackupRun("files:docs", next)
 
 	req := &mcp.CallToolRequest{Params: &mcp.CallToolParamsRaw{
@@ -648,7 +648,7 @@ func TestMCPCancelReportsARunThatEndedFirst(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h.svc.registerBackupCancel("files:docs", func() {
+	h.svc.registerBackupCancel(context.Background(), "files:docs", func() {
 		if fErr := repo.FinishRun(runID, "success", "snap1", 1, ""); fErr != nil {
 			t.Error(fErr)
 		}
@@ -698,7 +698,7 @@ func TestMCPCancelRefusesABackupThatWroteItsRestorePoint(t *testing.T) {
 		t.Fatal(err)
 	}
 	cancelled := false
-	h.svc.registerBackupCancel("container:plex", func() { cancelled = true })
+	h.svc.registerBackupCancel(context.Background(), "container:plex", func() { cancelled = true })
 	h.svc.bindBackupRun("container:plex", runID)
 	h.svc.commitBackup("container:plex", 0)
 

@@ -328,7 +328,7 @@ func (s *Service) BackupZFSDataset(ctx context.Context, id string) (_ backup.Sum
 	// The root dataset, not the row id: it is the key the progress stream
 	// publishes under, and the only one a Cancel button ever has in hand.
 	key := zfsDomain + ":" + d.Dataset
-	s.registerBackupCancel(key, cancel)
+	s.registerBackupCancel(ctx, key, cancel)
 	defer s.endBackupCancel(key, &retErr)
 
 	if s.zfs == nil {

@@ -338,6 +338,10 @@ type Service struct {
 	// prefix and quietly cancels a restore.
 	backupCancels map[string]context.CancelFunc
 
+	// backupCtxs is the context each cancel in backupCancels ends. Same guard,
+	// same lifetime.
+	backupCtxs map[string]context.Context
+
 	// cancelledBackups marks the keys a USER cancelled (#200), so the run that
 	// is about to fail with a context error can be recorded as "cancelled"
 	// instead. Same guard, same lifetime as backupCancels: set by
@@ -5321,7 +5325,7 @@ func (s *Service) Backup(ctx context.Context, name string) (_ backup.Summary, re
 	// closing browser tab must not stop a backup, while the process itself
 	// leaving must — otherwise the run is killed anyway, just without anyone
 	// writing down that it happened.
-	s.registerBackupCancel("container:"+name, cancel)
+	s.registerBackupCancel(ctx, "container:"+name, cancel)
 	defer s.endBackupCancel("container:"+name, &retErr)
 	// Never back up our own container: stopping it mid-run is suicide.
 	if self := s.selfContainerName(ctx); self != "" && name == self {
@@ -11707,7 +11711,7 @@ func (s *Service) BackupVM(ctx context.Context, name string) (_ backup.Summary, 
 	// the request's cancellation with a generous hard cap.
 	ctx, cancel := backupHoldCtx(ctx)
 	defer cancel()
-	s.registerBackupCancel("vm:"+name, cancel) // reachable by shutdown ([375])
+	s.registerBackupCancel(ctx, "vm:"+name, cancel) // reachable by shutdown ([375])
 	defer s.endBackupCancel("vm:"+name, &retErr)
 	defer s.lockDomain("vms")() // serialise per repo; blocks maintenance ops meanwhile
 	// Whether this attempt succeeds or not: a backup that failed on a full disk
@@ -12934,7 +12938,7 @@ func (s *Service) BackupFlash(ctx context.Context) (_ backup.Summary, retErr err
 	defer cancel()
 	// [375]: this is one of the two runs jdp's 31.08. log shows cut off within
 	// 30 seconds of the 04:00 schedule.
-	s.registerBackupCancel("flash", cancel)
+	s.registerBackupCancel(ctx, "flash", cancel)
 	defer s.endBackupCancel("flash", &retErr)
 	defer s.lockDomain("flash")() // serialise per repo; blocks maintenance ops meanwhile
 	// Whether this attempt succeeds or not: a backup that failed on a full disk
@@ -13151,7 +13155,7 @@ func (s *Service) BackupFileSet(ctx context.Context, id string) (_ backup.Summar
 	// Moving the registration down costs nothing: what now runs before it is a
 	// settings read and a row lookup, neither of which can hang, and neither of
 	// which is worth cancelling.
-	s.registerBackupCancel("files:"+set.Name, cancel)
+	s.registerBackupCancel(ctx, "files:"+set.Name, cancel)
 	defer s.endBackupCancel("files:"+set.Name, &retErr)
 	// A set without a path cannot be backed up (Discover creates path-less,
 	// disabled sets from fileset: tags alone) — say so instead of letting
@@ -14433,7 +14437,7 @@ func (s *Service) BackupConfig(ctx context.Context) (_ backup.Summary, retErr er
 	// the request's cancellation with a generous hard cap.
 	ctx, cancel := backupHoldCtx(ctx)
 	defer cancel()
-	s.registerBackupCancel("config", cancel) // reachable by shutdown ([375])
+	s.registerBackupCancel(ctx, "config", cancel) // reachable by shutdown ([375])
 	defer s.endBackupCancel("config", &retErr)
 	defer s.lockDomain("config")() // serialise per repo; blocks maintenance ops meanwhile
 	// Whether this attempt succeeds or not: a backup that failed on a full disk

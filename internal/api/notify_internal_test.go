@@ -117,7 +117,7 @@ func TestNotifyBackupReportsACancelAsNoFailure(t *testing.T) {
 				t.Fatal(err)
 			}
 			ctx, cancel := context.WithCancel(context.Background())
-			s.registerBackupCancel("container:plex", cancel)
+			s.registerBackupCancel(context.Background(), "container:plex", cancel)
 			defer s.unregisterBackupCancel("container:plex")
 			if !s.CancelBackupRun("container:plex", "") {
 				t.Fatal("the backup could not be cancelled")

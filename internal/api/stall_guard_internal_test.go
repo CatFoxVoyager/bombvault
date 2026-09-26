@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -170,7 +171,7 @@ func finishStalledRun(t *testing.T, cancelKey, errMsg string, userCancel bool) s
 	st := newTestStore(t)
 	s := &Service{store: st}
 	ctx, stop := context.WithCancelCause(context.Background())
-	s.registerBackupCancel(cancelKey, func() { stop(nil) })
+	s.registerBackupCancel(ctx, cancelKey, func() { stop(nil) })
 	stop(&backup.StalledError{After: time.Hour})
 	if userCancel {
 		s.CancelBackupRun(cancelKey, "")
@@ -211,5 +212,24 @@ func TestStalledBackupStaysStalledWhenCancelledAfterwards(t *testing.T) {
 	got := finishStalledRun(t, "files:docs", "context canceled", true)
 	if got.Status != "failed" || got.Error != store.StalledReason(time.Hour, "") {
 		t.Fatalf("run = %s %q, want failed with the stall reason", got.Status, got.Error)
+	}
+}
+
+// A cancel pressed while a stalled backup unwinds is refused: the run is
+// recorded as stalled, and the caller and the log must not hear that the user
+// stopped it.
+func TestCancelIsRefusedOnceTheStallGuardStoppedTheBackup(t *testing.T) {
+	s := &Service{}
+	ctx, stop := context.WithCancelCause(context.Background())
+	s.registerBackupCancel(ctx, "files:docs", func() { stop(nil) })
+	stop(&backup.StalledError{After: time.Hour})
+
+	if s.CancelBackupRun("files:docs", "") {
+		t.Fatal("the cancel of a stalled backup was accepted")
+	}
+	err := fmt.Errorf("restic backup cancelled: %w", ctx.Err())
+	s.endBackupCancel("files:docs", &err)
+	if IsBackupCancelled(err) {
+		t.Fatalf("the stalled backup's error %v reads as cancelled by the user", err)
 	}
 }
