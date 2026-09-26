@@ -68,14 +68,13 @@ func TestMCPKeyEventsKeepOnlyTheNewestPerKey(t *testing.T) {
 }
 
 // An assistant polling get_activity while a backup runs makes hundreds of
-// reads, and those must not push the start, the cancel and the refusals of
-// that backup out of the log.
+// reads, and those must not push the start and the cancel of that backup out
+// of the log.
 func TestMCPKeyReadsDoNotCrowdOutWhatAKeyDid(t *testing.T) {
 	r := newMCPRepo(t)
 	addMCPKey(t, r, "laptop", "Laptop", true, 1000)
 	recordEvent(t, r, "laptop", store.MCPKeyEvent{At: 2000, Tool: "start_backup", Outcome: "ok"})
 	recordEvent(t, r, "laptop", store.MCPKeyEvent{At: 2001, Tool: "cancel_backup", Outcome: "ok", RunID: "run1"})
-	recordEvent(t, r, "laptop", store.MCPKeyEvent{At: 2002, Tool: "get_status", Outcome: "failed"})
 	polls := store.MCPKeyReadsKept + store.MCPKeyEventsKept
 	for i := range polls {
 		recordEvent(t, r, "laptop", store.MCPKeyEvent{At: 3000 + int64(i), Tool: "get_activity", Outcome: "ok", Routine: true})
@@ -85,14 +84,13 @@ func TestMCPKeyReadsDoNotCrowdOutWhatAKeyDid(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(got) != store.MCPKeyReadsKept+3 {
-		t.Fatalf("%d events kept, want the newest %d reads and the three others", len(got), store.MCPKeyReadsKept)
+	if len(got) != store.MCPKeyReadsKept+2 {
+		t.Fatalf("%d events kept, want the newest %d reads and the two others", len(got), store.MCPKeyReadsKept)
 	}
 	if got[0].At != 3000+int64(polls-1) || got[store.MCPKeyReadsKept-1].At != 3000+int64(polls-store.MCPKeyReadsKept) {
 		t.Fatalf("the reads kept are not the newest: %d..%d", got[store.MCPKeyReadsKept-1].At, got[0].At)
 	}
 	want := []store.MCPKeyEvent{
-		{At: 2002, Tool: "get_status", Outcome: "failed"},
 		{At: 2001, Tool: "cancel_backup", Outcome: "ok", RunID: "run1"},
 		{At: 2000, Tool: "start_backup", Outcome: "ok"},
 	}

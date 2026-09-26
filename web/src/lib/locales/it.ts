@@ -1849,7 +1849,7 @@ const it: Partial<Translations> = {
   "mcp.logEmpty": "Questa chiave non ha ancora chiamato BombVault.",
   "mcp.logEmptyUsed": "Nessuna chiamata registrata nell'ultimo mese.",
   "mcp.logCalls": "Chiamate",
-  "mcp.logKeptHint": "BombVault conserva le chiamate di ogni chiave fino a un mese: gli ultimi 500 avvii, annullamenti, rifiuti ed errori e le ultime 200 letture riuscite. Non salva mai ciò che l'assistente ha inviato, né la chiave stessa.",
+  "mcp.logKeptHint": "BombVault conserva le chiamate di ogni chiave fino a un mese: gli ultimi 500 avvii e annullamenti riusciti e le ultime 200 altre chiamate (letture, rifiuti ed errori). Non salva mai ciò che l'assistente ha inviato, né la chiave stessa.",
   "mcp.logRuns": "Backup avviati",
   "mcp.logShowRun": "Mostra nel registro attività",
   "mcp.logRequest": "Richiesta",

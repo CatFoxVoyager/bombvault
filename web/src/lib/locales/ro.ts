@@ -1852,7 +1852,7 @@ const ro: Partial<Translations> = {
   "mcp.logEmpty": "Această cheie nu a apelat încă BombVault.",
   "mcp.logEmptyUsed": "Niciun apel înregistrat în ultima lună.",
   "mcp.logCalls": "Apeluri",
-  "mcp.logKeptHint": "BombVault păstrează apelurile fiecărei chei până la o lună: cele mai noi 500 de porniri, anulări, refuzuri și erori și cele mai noi 200 de citiri reușite. Nu salvează niciodată ce a trimis asistentul și nici cheia în sine.",
+  "mcp.logKeptHint": "BombVault păstrează apelurile fiecărei chei până la o lună: cele mai noi 500 de porniri și anulări reușite și cele mai noi 200 de alte apeluri (citiri, refuzuri și erori). Nu salvează niciodată ce a trimis asistentul și nici cheia în sine.",
   "mcp.logRuns": "Copii pornite de ea",
   "mcp.logShowRun": "Arată în jurnalul de activitate",
   "mcp.logRequest": "Cerere",

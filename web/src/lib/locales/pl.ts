@@ -1844,7 +1844,7 @@ const pl: Partial<Translations> = {
   "mcp.logEmpty": "Ten klucz jeszcze nie wywołał BombVault.",
   "mcp.logEmptyUsed": "W ostatnim miesiącu nie zarejestrowano żadnych wywołań.",
   "mcp.logCalls": "Wywołania",
-  "mcp.logKeptHint": "BombVault przechowuje wywołania każdego klucza do miesiąca: 500 najnowszych uruchomień, anulowań, odmów i błędów oraz 200 najnowszych udanych odczytów. Nigdy nie zapisuje tego, co wysłał asystent, ani samego klucza.",
+  "mcp.logKeptHint": "BombVault przechowuje wywołania każdego klucza do miesiąca: 500 najnowszych udanych uruchomień i anulowań oraz 200 najnowszych pozostałych wywołań (odczyty, odmowy i błędy). Nigdy nie zapisuje tego, co wysłał asystent, ani samego klucza.",
   "mcp.logRuns": "Uruchomione przez niego kopie",
   "mcp.logShowRun": "Pokaż w dzienniku aktywności",
   "mcp.logRequest": "Żądanie",

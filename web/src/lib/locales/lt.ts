@@ -2073,7 +2073,7 @@ const lt: Partial<Translations> = {
   "mcp.logEmpty": "Šis raktas dar nekvietė BombVault.",
   "mcp.logEmptyUsed": "Per pastarąjį mėnesį neužfiksuota jokių kvietimų.",
   "mcp.logCalls": "Kvietimai",
-  "mcp.logKeptHint": "BombVault saugo kiekvieno rakto kvietimus iki mėnesio: naujausius 500 paleidimų, atšaukimų, atmetimų ir klaidų bei naujausius 200 sėkmingų skaitymų. Niekada nesaugo to, ką atsiuntė asistentas, nei paties rakto.",
+  "mcp.logKeptHint": "BombVault saugo kiekvieno rakto kvietimus iki mėnesio: naujausius 500 sėkmingų paleidimų ir atšaukimų bei naujausius 200 kitų kvietimų (skaitymai, atmetimai ir klaidos). Niekada nesaugo to, ką atsiuntė asistentas, nei paties rakto.",
   "mcp.logRuns": "Jo paleistos kopijos",
   "mcp.logShowRun": "Rodyti veiklos žurnale",
   "mcp.logRequest": "Užklausa",

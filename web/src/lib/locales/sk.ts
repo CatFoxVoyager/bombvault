@@ -2073,7 +2073,7 @@ const sk: Partial<Translations> = {
   "mcp.logEmpty": "Tento kľúč ešte nevolal BombVault.",
   "mcp.logEmptyUsed": "Za posledný mesiac nie sú zaznamenané žiadne volania.",
   "mcp.logCalls": "Volania",
-  "mcp.logKeptHint": "BombVault uchováva volania každého kľúča najviac mesiac: najnovších 500 spustení, zrušení, odmietnutí a chýb a najnovších 200 úspešných čítaní. Nikdy neukladá, čo asistent poslal, ani samotný kľúč.",
+  "mcp.logKeptHint": "BombVault uchováva volania každého kľúča najviac mesiac: najnovších 500 úspešných spustení a zrušení a najnovších 200 ostatných volaní (čítania, odmietnutia a chyby). Nikdy neukladá, čo asistent poslal, ani samotný kľúč.",
   "mcp.logRuns": "Zálohy, ktoré spustil",
   "mcp.logShowRun": "Zobraziť v denníku aktivít",
   "mcp.logRequest": "Požiadavka",

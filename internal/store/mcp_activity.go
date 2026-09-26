@@ -6,8 +6,8 @@ import (
 
 // MCPKeyEvent is one tool call a key made, or one of its requests the endpoint
 // refused before any tool ran, which leaves Tool empty. Outcome is "ok" or the
-// refusal code, and RunID the run a cancel named. Routine marks a read that
-// went through, which is kept under a cap of its own. The arguments of a call
+// refusal code, and RunID the run a cancel named. Routine marks every event but
+// an action that went through; those are kept under a smaller cap of their own. The arguments of a call
 // are never kept, and neither is anything about the key but its id.
 type MCPKeyEvent struct {
 	At      int64  `json:"at"`
@@ -18,10 +18,10 @@ type MCPKeyEvent struct {
 }
 
 // How much of a key's activity is kept: the newest MCPKeyReadsKept routine
-// reads and the newest MCPKeyEventsKept other events of each key, none older
-// than MCPKeyEventsMaxAge seconds. An assistant polling a running backup makes
-// hundreds of reads, and a cap they shared would push the backup's start and
-// cancel out within minutes. Both stay small enough that a looping client costs
+// events and the newest MCPKeyEventsKept other events of each key, none older
+// than MCPKeyEventsMaxAge seconds. An assistant polling a running backup, or
+// retrying a refused call, makes hundreds of calls, and a cap they shared would
+// push the backup's start and cancel out within minutes. Both stay small enough that a looping client costs
 // a fixed number of rows.
 const (
 	MCPKeyEventsKept   = 500

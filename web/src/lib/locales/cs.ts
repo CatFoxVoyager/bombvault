@@ -1847,7 +1847,7 @@ const cs: Partial<Translations> = {
   "mcp.logEmpty": "Tento klíč zatím BombVault nevolal.",
   "mcp.logEmptyUsed": "Za poslední měsíc nejsou zaznamenána žádná volání.",
   "mcp.logCalls": "Volání",
-  "mcp.logKeptHint": "BombVault uchovává volání každého klíče až měsíc: nejnovějších 500 spuštění, zrušení, odmítnutí a chyb a nejnovějších 200 úspěšných čtení. Nikdy neukládá, co asistent poslal, ani samotný klíč.",
+  "mcp.logKeptHint": "BombVault uchovává volání každého klíče až měsíc: nejnovějších 500 úspěšných spuštění a zrušení a nejnovějších 200 ostatních volání (čtení, odmítnutí a chyby). Nikdy neukládá, co asistent poslal, ani samotný klíč.",
   "mcp.logRuns": "Zálohy, které spustil",
   "mcp.logShowRun": "Zobrazit v protokolu aktivit",
   "mcp.logRequest": "Požadavek",

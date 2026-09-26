@@ -1841,7 +1841,7 @@ const ko: Partial<Translations> = {
   "mcp.logEmpty": "이 키는 아직 BombVault를 호출하지 않았습니다.",
   "mcp.logEmptyUsed": "지난 한 달 동안 기록된 호출이 없습니다.",
   "mcp.logCalls": "호출",
-  "mcp.logKeptHint": "BombVault는 각 키의 호출을 최대 한 달 동안 보관합니다. 시작, 취소, 거부, 오류는 최신 500건, 성공한 읽기는 최신 200건까지입니다. 어시스턴트가 보낸 내용과 키 자체는 절대 저장하지 않습니다.",
+  "mcp.logKeptHint": "BombVault는 각 키의 호출을 최대 한 달 동안 보관합니다. 성공한 시작과 취소는 최신 500건, 나머지 호출(읽기, 거부, 오류)은 최신 200건까지입니다. 어시스턴트가 보낸 내용과 키 자체는 절대 저장하지 않습니다.",
   "mcp.logRuns": "이 키가 시작한 백업",
   "mcp.logShowRun": "활동 로그에서 보기",
   "mcp.logRequest": "요청",

@@ -2042,17 +2042,17 @@ CREATE TABLE IF NOT EXISTS mcp_key_calls (
 );`,
 	},
 	{
-		// Reads that went through get a cap of their own, so an assistant
-		// polling a running backup cannot push the backup's start and cancel
-		// out of the key's log. The rows already there are sorted by the tools
-		// that act.
+		// Every call but an action that went through gets a cap of its own, so
+		// an assistant polling a running backup or retrying a refused call
+		// cannot push the backup's start and cancel out of the key's log. The
+		// rows already there are sorted by the tools that act.
 		version:          mcpActivityMigration + 1,
 		name:             "mcp_key_events_routine",
 		alreadySatisfied: columnPresent("mcp_key_events", "routine"),
 		sql: `ALTER TABLE mcp_key_events ADD COLUMN routine INTEGER NOT NULL DEFAULT 0;
 UPDATE mcp_key_events SET routine = 1
-WHERE outcome = 'ok'
-  AND tool NOT IN ('', 'start_backup', 'start_domain_backup', 'start_backup_everything', 'cancel_backup');
+WHERE tool <> ''
+  AND (outcome <> 'ok' OR tool NOT IN ('start_backup', 'start_domain_backup', 'start_backup_everything', 'cancel_backup'));
 CREATE INDEX IF NOT EXISTS idx_mcp_key_events_routine ON mcp_key_events(key_id, routine, id);`,
 	},
 }

@@ -26,7 +26,6 @@ func TestAKeysPollsDoNotPushItsStartOutOfTheLog(t *testing.T) {
 	ctx := mcpStartCaller(id, true)
 
 	h.logMCPCall(ctx, "start_backup", "ok")
-	h.logMCPCall(ctx, "list_runs", "invalid_argument")
 	for range store.MCPKeyEventsKept {
 		h.logMCPCall(ctx, "get_activity", "ok")
 	}
@@ -35,26 +34,56 @@ func TestAKeysPollsDoNotPushItsStartOutOfTheLog(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(events) != store.MCPKeyReadsKept+2 {
-		t.Fatalf("%d events kept, want %d reads and the two others", len(events), store.MCPKeyReadsKept)
+	if len(events) != store.MCPKeyReadsKept+1 {
+		t.Fatalf("%d events kept, want %d reads and the start", len(events), store.MCPKeyReadsKept)
 	}
 	if last := events[len(events)-1]; last.Tool != "start_backup" {
 		t.Fatalf("the oldest event kept is %+v, want the start", last)
 	}
 }
 
-// Every tool that is not a read acts on the server, and its calls are what the
-// log is for.
-func TestOnlyAReadThatWentThroughIsRoutine(t *testing.T) {
+// Every tool that is not a read acts on the server, and the calls of those that
+// went through are what the log is for.
+func TestOnlyAnActionThatWentThroughIsKeptApart(t *testing.T) {
 	h, _, _, _ := newMCPGateHandler(t)
 	for _, def := range h.mcpToolDefs() {
 		read := def.tool.Annotations.ReadOnlyHint
 		if got := mcpRoutineCall(def.tool.Name, "ok"); got != read {
 			t.Errorf("%s ok: routine = %v, want %v", def.tool.Name, got, read)
 		}
-		if mcpRoutineCall(def.tool.Name, "invalid_argument") {
-			t.Errorf("%s: a refused call counts as routine", def.tool.Name)
+		if !mcpRoutineCall(def.tool.Name, "invalid_argument") {
+			t.Errorf("%s: a refused call is kept with the actions", def.tool.Name)
 		}
+	}
+}
+
+// A client retrying a refused start, or polling while the listing is busy,
+// makes hundreds of refused calls, and they must not push out what the key
+// actually did.
+func TestAKeysRefusedCallsDoNotPushItsStartOutOfTheLog(t *testing.T) {
+	h, _, repo, _ := newMCPGateHandler(t)
+	_, id := seedMCPKey(t, h, repo, "Laptop")
+	ctx := mcpStartCaller(id, true)
+
+	h.logMCPRunCall(ctx, "start_backup", "ok", "run1")
+	h.logMCPRunCall(ctx, "cancel_backup", "ok", "run1")
+	for range store.MCPKeyEventsKept {
+		h.logMCPCall(ctx, "start_backup", "rate_limited")
+		h.logMCPCall(ctx, "list_restore_points", "busy")
+	}
+
+	events, err := repo.MCPKeyEvents(id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var kept []string
+	for _, e := range events {
+		if e.Outcome == "ok" {
+			kept = append(kept, e.Tool)
+		}
+	}
+	if len(kept) != 2 {
+		t.Fatalf("the refusals left %v of the start and the cancel", kept)
 	}
 }
 

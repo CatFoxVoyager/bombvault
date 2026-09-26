@@ -1852,7 +1852,7 @@ const hu: Partial<Translations> = {
   "mcp.logEmpty": "Ez a kulcs még nem hívta a BombVaultot.",
   "mcp.logEmptyUsed": "Az elmúlt hónapban nincs rögzített hívás.",
   "mcp.logCalls": "Hívások",
-  "mcp.logKeptHint": "A BombVault minden kulcs hívásait legfeljebb egy hónapig őrzi: a legutóbbi 500 indítást, megszakítást, elutasítást és hibát, valamint a legutóbbi 200 sikeres olvasást. Soha nem tárolja, amit az asszisztens küldött, és magát a kulcsot sem.",
+  "mcp.logKeptHint": "A BombVault minden kulcs hívásait legfeljebb egy hónapig őrzi: a legutóbbi 500 sikeres indítást és megszakítást, valamint a legutóbbi 200 egyéb hívást (olvasások, elutasítások és hibák). Soha nem tárolja, amit az asszisztens küldött, és magát a kulcsot sem.",
   "mcp.logRuns": "Általa indított mentések",
   "mcp.logShowRun": "Megjelenítés a tevékenységnaplóban",
   "mcp.logRequest": "Kérés",

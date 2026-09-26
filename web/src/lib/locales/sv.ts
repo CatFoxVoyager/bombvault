@@ -1849,7 +1849,7 @@ const sv: Partial<Translations> = {
   "mcp.logEmpty": "Den här nyckeln har inte anropat BombVault än.",
   "mcp.logEmptyUsed": "Inga anrop registrerade den senaste månaden.",
   "mcp.logCalls": "Anrop",
-  "mcp.logKeptHint": "BombVault sparar varje nyckels anrop i upp till en månad: de senaste 500 starterna, avbrotten, avvisningarna och felen och de senaste 200 lyckade läsningarna. Det sparar aldrig vad assistenten skickade, eller själva nyckeln.",
+  "mcp.logKeptHint": "BombVault sparar varje nyckels anrop i upp till en månad: de senaste 500 lyckade starterna och avbrotten och de senaste 200 övriga anropen (läsningar, avvisningar och fel). Det sparar aldrig vad assistenten skickade, eller själva nyckeln.",
   "mcp.logRuns": "Säkerhetskopior den startade",
   "mcp.logShowRun": "Visa i aktivitetsloggen",
   "mcp.logRequest": "Begäran",

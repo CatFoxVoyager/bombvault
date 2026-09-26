@@ -434,10 +434,11 @@ var mcpActingTools = map[string]bool{
 	"cancel_backup":           true,
 }
 
-// mcpRoutineCall reports whether a call is a read that went through, which a
-// key's log keeps under a smaller cap of its own.
+// mcpRoutineCall reports whether a call goes under the smaller cap of a key's
+// log: everything but an action that went through, so neither polling nor a
+// client retrying a refused call can push out what the key did.
 func mcpRoutineCall(tool, outcome string) bool {
-	return outcome == "ok" && !mcpActingTools[tool]
+	return outcome != "ok" || !mcpActingTools[tool]
 }
 
 // mcpErrorCodeOf is the code of a tool error built further down, which is
