@@ -1158,6 +1158,7 @@ const hr: Partial<Translations> = {
   "auth.passkeyFailed": "Pristupni ključ nije se mogao stvoriti",
   "auth.passkeyRemoved": "Pristupni ključ uklonjen",
   "auth.passkeyRemoveTitle": "Ukloniti ovaj pristupni ključ?",
+  "auth.passkeyRemove": "Ukloni",
   "auth.passkeyRemoveConfirm": "{name} vas više neće prijaviti. Lozinka i dalje radi.",
   "auth.signInWithPasskey": "Prijava pristupnim ključem",
   "auth.passkeySignInFailed": "Taj pristupni ključ nije prihvaćen",

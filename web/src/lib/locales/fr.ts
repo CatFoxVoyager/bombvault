@@ -440,6 +440,7 @@ const fr: Partial<Translations> = {
   "auth.passkeyFailed": "La clé d'accès n'a pas pu être créée",
   "auth.passkeyRemoved": "Clé d'accès supprimée",
   "auth.passkeyRemoveTitle": "Supprimer cette clé d'accès ?",
+  "auth.passkeyRemove": "Supprimer",
   "auth.passkeyRemoveConfirm": "{name} ne vous connectera plus. Le mot de passe continue de fonctionner.",
   "auth.signInWithPasskey": "Se connecter avec une clé d'accès",
   "auth.passkeySignInFailed": "Cette clé d'accès a été refusée",

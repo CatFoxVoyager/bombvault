@@ -1158,6 +1158,7 @@ const lt: Partial<Translations> = {
   "auth.passkeyFailed": "Prieigos rakto sukurti nepavyko",
   "auth.passkeyRemoved": "Prieigos raktas pašalintas",
   "auth.passkeyRemoveTitle": "Pašalinti šį prieigos raktą?",
+  "auth.passkeyRemove": "Pašalinti",
   "auth.passkeyRemoveConfirm": "{name} jūsų nebeprijungs. Slaptažodis veikia toliau.",
   "auth.signInWithPasskey": "Prisijungti prieigos raktu",
   "auth.passkeySignInFailed": "Šis prieigos raktas nebuvo priimtas",

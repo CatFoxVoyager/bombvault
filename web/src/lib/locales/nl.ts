@@ -434,6 +434,7 @@ const nl: Partial<Translations> = {
   "auth.passkeyFailed": "De passkey kon niet worden aangemaakt",
   "auth.passkeyRemoved": "Passkey verwijderd",
   "auth.passkeyRemoveTitle": "Deze passkey verwijderen?",
+  "auth.passkeyRemove": "Verwijderen",
   "auth.passkeyRemoveConfirm": "{name} meldt je niet meer aan. Het wachtwoord blijft werken.",
   "auth.signInWithPasskey": "Aanmelden met een passkey",
   "auth.passkeySignInFailed": "Die passkey is niet geaccepteerd",

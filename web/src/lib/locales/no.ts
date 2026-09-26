@@ -437,6 +437,7 @@ const no: Partial<Translations> = {
   "auth.passkeyFailed": "Passnøkkelen kunne ikke opprettes",
   "auth.passkeyRemoved": "Passnøkkel fjernet",
   "auth.passkeyRemoveTitle": "Fjerne denne passnøkkelen?",
+  "auth.passkeyRemove": "Fjern",
   "auth.passkeyRemoveConfirm": "{name} logger deg ikke inn lenger. Passordet virker fortsatt.",
   "auth.signInWithPasskey": "Logg inn med passnøkkel",
   "auth.passkeySignInFailed": "Den passnøkkelen ble ikke godtatt",

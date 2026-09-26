@@ -440,6 +440,7 @@ const ar: Partial<Translations> = {
   "auth.passkeyFailed": "تعذّر إنشاء مفتاح المرور",
   "auth.passkeyRemoved": "تمت إزالة مفتاح المرور",
   "auth.passkeyRemoveTitle": "هل تزيل مفتاح المرور هذا؟",
+  "auth.passkeyRemove": "إزالة",
   "auth.passkeyRemoveConfirm": "لن يسجّل {name} دخولك بعد الآن. وتظل كلمة المرور تعمل.",
   "auth.signInWithPasskey": "تسجيل الدخول بمفتاح مرور",
   "auth.passkeySignInFailed": "لم يُقبل مفتاح المرور هذا",

@@ -1158,6 +1158,7 @@ const ca: Partial<Translations> = {
   "auth.passkeyFailed": "No s'ha pogut crear la clau d'accés",
   "auth.passkeyRemoved": "Clau d'accés eliminada",
   "auth.passkeyRemoveTitle": "Vols eliminar aquesta clau d'accés?",
+  "auth.passkeyRemove": "Elimina",
   "auth.passkeyRemoveConfirm": "{name} ja no t'iniciarà la sessió. La contrasenya continua funcionant.",
   "auth.signInWithPasskey": "Inicia la sessió amb una clau d'accés",
   "auth.passkeySignInFailed": "Aquesta clau d'accés no s'ha acceptat",

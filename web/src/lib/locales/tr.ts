@@ -440,6 +440,7 @@ const tr: Partial<Translations> = {
   "auth.passkeyFailed": "Geçiş anahtarı oluşturulamadı",
   "auth.passkeyRemoved": "Geçiş anahtarı kaldırıldı",
   "auth.passkeyRemoveTitle": "Bu geçiş anahtarı kaldırılsın mı?",
+  "auth.passkeyRemove": "Kaldır",
   "auth.passkeyRemoveConfirm": "{name} artık oturum açmanızı sağlamayacak. Parola çalışmaya devam eder.",
   "auth.signInWithPasskey": "Geçiş anahtarıyla oturum aç",
   "auth.passkeySignInFailed": "Bu geçiş anahtarı kabul edilmedi",

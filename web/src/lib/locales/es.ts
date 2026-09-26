@@ -440,6 +440,7 @@ const es: Partial<Translations> = {
   "auth.passkeyFailed": "No se pudo crear la clave de acceso",
   "auth.passkeyRemoved": "Clave de acceso eliminada",
   "auth.passkeyRemoveTitle": "¿Eliminar esta clave de acceso?",
+  "auth.passkeyRemove": "Eliminar",
   "auth.passkeyRemoveConfirm": "{name} ya no te iniciará sesión. La contraseña sigue funcionando.",
   "auth.signInWithPasskey": "Iniciar sesión con una clave de acceso",
   "auth.passkeySignInFailed": "Esa clave de acceso no fue aceptada",

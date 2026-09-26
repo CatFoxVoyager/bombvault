@@ -1158,6 +1158,7 @@ const eu: Partial<Translations> = {
   "auth.passkeyFailed": "Ezin izan da sarbide-gakoa sortu",
   "auth.passkeyRemoved": "Sarbide-gakoa kendu da",
   "auth.passkeyRemoveTitle": "Sarbide-gako hau kendu?",
+  "auth.passkeyRemove": "Kendu",
   "auth.passkeyRemoveConfirm": "{name} gakoak ez zaitu gehiago sartuko. Pasahitzak funtzionatzen jarraitzen du.",
   "auth.signInWithPasskey": "Hasi saioa sarbide-gako batekin",
   "auth.passkeySignInFailed": "Sarbide-gako hori ez da onartu",

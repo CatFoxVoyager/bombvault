@@ -440,6 +440,7 @@ const ja: Partial<Translations> = {
   "auth.passkeyFailed": "パスキーを作成できませんでした",
   "auth.passkeyRemoved": "パスキーを削除しました",
   "auth.passkeyRemoveTitle": "このパスキーを削除しますか？",
+  "auth.passkeyRemove": "削除",
   "auth.passkeyRemoveConfirm": "{name} ではサインインできなくなります。パスワードは引き続き使えます。",
   "auth.signInWithPasskey": "パスキーでサインイン",
   "auth.passkeySignInFailed": "そのパスキーは受け付けられませんでした",

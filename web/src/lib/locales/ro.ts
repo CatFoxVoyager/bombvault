@@ -437,6 +437,7 @@ const ro: Partial<Translations> = {
   "auth.passkeyFailed": "Cheia de acces nu a putut fi creată",
   "auth.passkeyRemoved": "Cheie de acces eliminată",
   "auth.passkeyRemoveTitle": "Elimini această cheie de acces?",
+  "auth.passkeyRemove": "Elimină",
   "auth.passkeyRemoveConfirm": "{name} nu te va mai conecta. Parola funcționează în continuare.",
   "auth.signInWithPasskey": "Conectare cu o cheie de acces",
   "auth.passkeySignInFailed": "Acea cheie de acces nu a fost acceptată",

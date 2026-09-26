@@ -1153,6 +1153,7 @@ const sl: Partial<Translations> = {
   "auth.passkeyFailed": "Ključa za dostop ni bilo mogoče ustvariti",
   "auth.passkeyRemoved": "Ključ za dostop odstranjen",
   "auth.passkeyRemoveTitle": "Odstranim ta ključ za dostop?",
+  "auth.passkeyRemove": "Odstrani",
   "auth.passkeyRemoveConfirm": "{name} vas ne bo več prijavil. Geslo še naprej deluje.",
   "auth.signInWithPasskey": "Prijava s ključem za dostop",
   "auth.passkeySignInFailed": "Ta ključ za dostop ni bil sprejet",

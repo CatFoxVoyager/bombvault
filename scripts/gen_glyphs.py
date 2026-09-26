@@ -237,6 +237,16 @@ ANOMALY_COLUMNS = (
 )
 ANOMALY_BOX = "0 0 14 14"
 
+# Taking a credential away. IconShieldOff already means switching two-factor
+# off, a protection going down, which is not what revoking a key does. So this
+# is IconKey's own drawing on the same grid with a bar across it, and a gap cut
+# around the bar so the two still read apart at 16px. The outline was computed
+# once as a polygon difference and is kept as plain path data.
+KEY_REVOKE = '<path fillRule="evenodd" d="%s" />' % io.open(
+    "../scripts/glyph-paths/key-revoke.txt", encoding="utf-8"
+).read().strip()
+KEY_REVOKE_BOX = "0 0 14 14"
+
 # Glyphs that do not come from the Streamline set. They are emitted after the
 # generated ones and carry their own viewBox instead of going through G's
 # 14-unit grid; the rendered box is 16px either way.
@@ -301,6 +311,7 @@ EXTRA_ACTION = [
     # with GitHub. They are passed as an explicit glyph at the one call site
     # that means them.
     imported("IconGithub", "The project's GitHub repository", "0 0 24 24", (0.0, 0.297, 24.0, 23.406), "github"),
+    ("IconKeyRevoke", "Revoke a key or a passkey", KEY_REVOKE_BOX, KEY_REVOKE),
 ]
 
 ATTRIBUTION = """// %s

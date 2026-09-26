@@ -1158,6 +1158,7 @@ const gl: Partial<Translations> = {
   "auth.passkeyFailed": "Non se puido crear a chave de acceso",
   "auth.passkeyRemoved": "Chave de acceso eliminada",
   "auth.passkeyRemoveTitle": "Queres eliminar esta chave de acceso?",
+  "auth.passkeyRemove": "Eliminar",
   "auth.passkeyRemoveConfirm": "{name} xa non che iniciará sesión. O contrasinal segue a funcionar.",
   "auth.signInWithPasskey": "Iniciar sesión cunha chave de acceso",
   "auth.passkeySignInFailed": "Esa chave de acceso non foi aceptada",

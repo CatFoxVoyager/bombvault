@@ -440,6 +440,7 @@ const he: Partial<Translations> = {
   "auth.passkeyFailed": "לא ניתן היה ליצור מפתח גישה",
   "auth.passkeyRemoved": "מפתח הגישה הוסר",
   "auth.passkeyRemoveTitle": "להסיר את מפתח הגישה הזה?",
+  "auth.passkeyRemove": "הסרה",
   "auth.passkeyRemoveConfirm": "{name} כבר לא יכניס אותך. הסיסמה ממשיכה לעבוד.",
   "auth.signInWithPasskey": "כניסה עם מפתח גישה",
   "auth.passkeySignInFailed": "מפתח הגישה הזה לא התקבל",

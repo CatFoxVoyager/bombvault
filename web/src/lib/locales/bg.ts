@@ -1158,6 +1158,7 @@ const bg: Partial<Translations> = {
   "auth.passkeyFailed": "Ключът за достъп не можа да бъде създаден",
   "auth.passkeyRemoved": "Ключът за достъп е премахнат",
   "auth.passkeyRemoveTitle": "Да се премахне ли този ключ за достъп?",
+  "auth.passkeyRemove": "Премахни",
   "auth.passkeyRemoveConfirm": "{name} вече няма да ви вписва. Паролата продължава да работи.",
   "auth.signInWithPasskey": "Вход с ключ за достъп",
   "auth.passkeySignInFailed": "Този ключ за достъп не беше приет",

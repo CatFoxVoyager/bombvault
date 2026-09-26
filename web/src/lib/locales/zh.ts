@@ -440,6 +440,7 @@ const zh: Partial<Translations> = {
   "auth.passkeyFailed": "无法创建通行密钥",
   "auth.passkeyRemoved": "已移除通行密钥",
   "auth.passkeyRemoveTitle": "移除此通行密钥？",
+  "auth.passkeyRemove": "移除",
   "auth.passkeyRemoveConfirm": "{name} 将不再为你登录。密码仍然有效。",
   "auth.signInWithPasskey": "用通行密钥登录",
   "auth.passkeySignInFailed": "该通行密钥未被接受",

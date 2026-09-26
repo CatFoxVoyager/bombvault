@@ -440,6 +440,7 @@ const ko: Partial<Translations> = {
   "auth.passkeyFailed": "패스키를 만들지 못했습니다",
   "auth.passkeyRemoved": "패스키를 삭제했습니다",
   "auth.passkeyRemoveTitle": "이 패스키를 삭제할까요?",
+  "auth.passkeyRemove": "제거",
   "auth.passkeyRemoveConfirm": "{name}(으)로는 더 이상 로그인되지 않습니다. 비밀번호는 계속 작동합니다.",
   "auth.signInWithPasskey": "패스키로 로그인",
   "auth.passkeySignInFailed": "그 패스키는 받아들여지지 않았습니다",

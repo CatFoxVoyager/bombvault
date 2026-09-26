@@ -440,6 +440,7 @@ const hu: Partial<Translations> = {
   "auth.passkeyFailed": "A hozzáférési kulcsot nem sikerült létrehozni",
   "auth.passkeyRemoved": "Hozzáférési kulcs eltávolítva",
   "auth.passkeyRemoveTitle": "Eltávolítod ezt a hozzáférési kulcsot?",
+  "auth.passkeyRemove": "Eltávolítás",
   "auth.passkeyRemoveConfirm": "A(z) {name} ezután nem léptet be. A jelszó továbbra is működik.",
   "auth.signInWithPasskey": "Belépés hozzáférési kulccsal",
   "auth.passkeySignInFailed": "Ezt a hozzáférési kulcsot nem fogadta el a rendszer",

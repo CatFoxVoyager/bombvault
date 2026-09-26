@@ -25,6 +25,7 @@ import {
   IconForward,
   IconInfo,
   IconKey,
+  IconKeyRevoke,
   IconLink,
   IconMail,
   IconPlay,
@@ -109,9 +110,10 @@ const RULES: Rule[] = [
   [/signIn|logIn\b/i, () => <IconSignIn />],
   [/logout|signOut/i, () => <IconSignOut />],
   [/twoFactorEnable|totpEnable/i, () => <IconShieldOn />],
-  // Revoking withdraws what a credential was allowed to do, which is the
-  // shield going down rather than the row being deleted.
-  [/twoFactorDisable|totpDisable|revoke/i, () => <IconShieldOff />],
+  [/twoFactorDisable|totpDisable/i, () => <IconShieldOff />],
+  // Revoking takes one credential away, which is neither the row being
+  // deleted nor the second factor going off.
+  [/revoke|passkeyRemove$/i, () => <IconKeyRevoke />],
   [/compare|diff\b/i, () => <IconCompare />],
   [/credential|password|secret|token|key\b/i, () => <IconKey />],
 

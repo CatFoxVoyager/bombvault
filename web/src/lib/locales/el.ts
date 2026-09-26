@@ -440,6 +440,7 @@ const el: Partial<Translations> = {
   "auth.passkeyFailed": "Δεν ήταν δυνατή η δημιουργία του κλειδιού πρόσβασης",
   "auth.passkeyRemoved": "Το κλειδί πρόσβασης αφαιρέθηκε",
   "auth.passkeyRemoveTitle": "Να αφαιρεθεί αυτό το κλειδί πρόσβασης;",
+  "auth.passkeyRemove": "Αφαίρεση",
   "auth.passkeyRemoveConfirm": "Το {name} δεν θα σας συνδέει πια. Ο κωδικός εξακολουθεί να λειτουργεί.",
   "auth.signInWithPasskey": "Σύνδεση με κλειδί πρόσβασης",
   "auth.passkeySignInFailed": "Αυτό το κλειδί πρόσβασης δεν έγινε δεκτό",

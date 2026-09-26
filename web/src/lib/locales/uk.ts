@@ -437,6 +437,7 @@ const uk: Partial<Translations> = {
   "auth.passkeyFailed": "Не вдалося створити ключ доступу",
   "auth.passkeyRemoved": "Ключ доступу видалено",
   "auth.passkeyRemoveTitle": "Видалити цей ключ доступу?",
+  "auth.passkeyRemove": "Видалити",
   "auth.passkeyRemoveConfirm": "{name} більше не виконуватиме вхід. Пароль працює далі.",
   "auth.signInWithPasskey": "Увійти за ключем доступу",
   "auth.passkeySignInFailed": "Цей ключ доступу не прийнято",

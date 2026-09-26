@@ -1158,6 +1158,7 @@ const sk: Partial<Translations> = {
   "auth.passkeyFailed": "Prístupový kľúč sa nepodarilo vytvoriť",
   "auth.passkeyRemoved": "Prístupový kľúč odobraný",
   "auth.passkeyRemoveTitle": "Odobrať tento prístupový kľúč?",
+  "auth.passkeyRemove": "Odstrániť",
   "auth.passkeyRemoveConfirm": "{name} vás už neprihlási. Heslo funguje ďalej.",
   "auth.signInWithPasskey": "Prihlásiť sa prístupovým kľúčom",
   "auth.passkeySignInFailed": "Tento prístupový kľúč nebol prijatý",

@@ -1158,6 +1158,7 @@ const fa: Partial<Translations> = {
   "auth.passkeyFailed": "ساختن کلید عبور ممکن نشد",
   "auth.passkeyRemoved": "کلید عبور برداشته شد",
   "auth.passkeyRemoveTitle": "این کلید عبور برداشته شود؟",
+  "auth.passkeyRemove": "حذف",
   "auth.passkeyRemoveConfirm": "{name} دیگر شما را وارد نمی‌کند. گذرواژه همچنان کار می‌کند.",
   "auth.signInWithPasskey": "ورود با کلید عبور",
   "auth.passkeySignInFailed": "این کلید عبور پذیرفته نشد",

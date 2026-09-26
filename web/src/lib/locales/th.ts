@@ -440,6 +440,7 @@ const th: Partial<Translations> = {
   "auth.passkeyFailed": "สร้างพาสคีย์ไม่สำเร็จ",
   "auth.passkeyRemoved": "ลบพาสคีย์แล้ว",
   "auth.passkeyRemoveTitle": "ลบพาสคีย์นี้หรือไม่",
+  "auth.passkeyRemove": "ลบ",
   "auth.passkeyRemoveConfirm": "{name} จะไม่ลงชื่อเข้าใช้ให้คุณอีก รหัสผ่านยังใช้ได้",
   "auth.signInWithPasskey": "ลงชื่อเข้าใช้ด้วยพาสคีย์",
   "auth.passkeySignInFailed": "พาสคีย์นั้นไม่ได้รับการยอมรับ",

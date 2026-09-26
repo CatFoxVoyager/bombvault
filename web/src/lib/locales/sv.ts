@@ -440,6 +440,7 @@ const sv: Partial<Translations> = {
   "auth.passkeyFailed": "Nyckeln kunde inte skapas",
   "auth.passkeyRemoved": "Nyckel borttagen",
   "auth.passkeyRemoveTitle": "Ta bort den här nyckeln?",
+  "auth.passkeyRemove": "Ta bort",
   "auth.passkeyRemoveConfirm": "{name} loggar inte in dig längre. Lösenordet fungerar fortfarande.",
   "auth.signInWithPasskey": "Logga in med en nyckel",
   "auth.passkeySignInFailed": "Den nyckeln godtogs inte",

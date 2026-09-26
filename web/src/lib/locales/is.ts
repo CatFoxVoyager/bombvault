@@ -1158,6 +1158,7 @@ const is: Partial<Translations> = {
   "auth.passkeyFailed": "Ekki tókst að búa til aðgangslykil",
   "auth.passkeyRemoved": "Aðgangslykill fjarlægður",
   "auth.passkeyRemoveTitle": "Fjarlægja þennan aðgangslykil?",
+  "auth.passkeyRemove": "Fjarlægja",
   "auth.passkeyRemoveConfirm": "{name} skráir þig ekki lengur inn. Lykilorðið virkar áfram.",
   "auth.signInWithPasskey": "Skrá inn með aðgangslykli",
   "auth.passkeySignInFailed": "Þessi aðgangslykill var ekki samþykktur",

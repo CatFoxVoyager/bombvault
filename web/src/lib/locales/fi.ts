@@ -440,6 +440,7 @@ const fi: Partial<Translations> = {
   "auth.passkeyFailed": "Pääsyavainta ei voitu luoda",
   "auth.passkeyRemoved": "Pääsyavain poistettu",
   "auth.passkeyRemoveTitle": "Poistetaanko tämä pääsyavain?",
+  "auth.passkeyRemove": "Poista",
   "auth.passkeyRemoveConfirm": "{name} ei enää kirjaa sinua sisään. Salasana toimii edelleen.",
   "auth.signInWithPasskey": "Kirjaudu pääsyavaimella",
   "auth.passkeySignInFailed": "Pääsyavainta ei hyväksytty",

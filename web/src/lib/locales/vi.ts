@@ -440,6 +440,7 @@ const vi: Partial<Translations> = {
   "auth.passkeyFailed": "Không thể tạo khóa truy cập",
   "auth.passkeyRemoved": "Đã gỡ khóa truy cập",
   "auth.passkeyRemoveTitle": "Gỡ khóa truy cập này?",
+  "auth.passkeyRemove": "Xóa",
   "auth.passkeyRemoveConfirm": "{name} sẽ không đăng nhập cho bạn nữa. Mật khẩu vẫn hoạt động.",
   "auth.signInWithPasskey": "Đăng nhập bằng khóa truy cập",
   "auth.passkeySignInFailed": "Khóa truy cập đó không được chấp nhận",

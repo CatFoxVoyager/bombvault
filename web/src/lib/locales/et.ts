@@ -1158,6 +1158,7 @@ const et: Partial<Translations> = {
   "auth.passkeyFailed": "Pääsuvõtit ei õnnestunud luua",
   "auth.passkeyRemoved": "Pääsuvõti eemaldatud",
   "auth.passkeyRemoveTitle": "Kas eemaldada see pääsuvõti?",
+  "auth.passkeyRemove": "Eemalda",
   "auth.passkeyRemoveConfirm": "{name} ei logi sind enam sisse. Parool töötab edasi.",
   "auth.signInWithPasskey": "Logi sisse pääsuvõtmega",
   "auth.passkeySignInFailed": "Seda pääsuvõtit ei võetud vastu",

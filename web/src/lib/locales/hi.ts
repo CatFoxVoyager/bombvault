@@ -1158,6 +1158,7 @@ const hi: Partial<Translations> = {
   "auth.passkeyFailed": "पासकी नहीं बनाई जा सकी",
   "auth.passkeyRemoved": "पासकी हटाई गई",
   "auth.passkeyRemoveTitle": "क्या यह पासकी हटानी है?",
+  "auth.passkeyRemove": "हटाएँ",
   "auth.passkeyRemoveConfirm": "{name} अब आपको साइन इन नहीं कराएगी। पासवर्ड पहले जैसा काम करता रहेगा।",
   "auth.signInWithPasskey": "पासकी से साइन इन करें",
   "auth.passkeySignInFailed": "वह पासकी स्वीकार नहीं की गई",

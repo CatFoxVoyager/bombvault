@@ -1158,6 +1158,7 @@ const id: Partial<Translations> = {
   "auth.passkeyFailed": "Kunci sandi tidak dapat dibuat",
   "auth.passkeyRemoved": "Kunci sandi dihapus",
   "auth.passkeyRemoveTitle": "Hapus kunci sandi ini?",
+  "auth.passkeyRemove": "Hapus",
   "auth.passkeyRemoveConfirm": "{name} tidak akan memasukkan Anda lagi. Kata sandi tetap berfungsi.",
   "auth.signInWithPasskey": "Masuk dengan kunci sandi",
   "auth.passkeySignInFailed": "Kunci sandi itu tidak diterima",

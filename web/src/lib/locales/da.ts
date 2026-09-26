@@ -440,6 +440,7 @@ const da: Partial<Translations> = {
   "auth.passkeyFailed": "Adgangsnøglen kunne ikke oprettes",
   "auth.passkeyRemoved": "Adgangsnøgle fjernet",
   "auth.passkeyRemoveTitle": "Fjern denne adgangsnøgle?",
+  "auth.passkeyRemove": "Fjern",
   "auth.passkeyRemoveConfirm": "{name} logger dig ikke ind længere. Adgangskoden virker stadig.",
   "auth.signInWithPasskey": "Log ind med en adgangsnøgle",
   "auth.passkeySignInFailed": "Den adgangsnøgle blev ikke accepteret",

@@ -1158,6 +1158,7 @@ const ms: Partial<Translations> = {
   "auth.passkeyFailed": "Kunci laluan tidak dapat dicipta",
   "auth.passkeyRemoved": "Kunci laluan dibuang",
   "auth.passkeyRemoveTitle": "Buang kunci laluan ini?",
+  "auth.passkeyRemove": "Alih keluar",
   "auth.passkeyRemoveConfirm": "{name} tidak akan log masuk anda lagi. Kata laluan masih berfungsi.",
   "auth.signInWithPasskey": "Log masuk dengan kunci laluan",
   "auth.passkeySignInFailed": "Kunci laluan itu tidak diterima",

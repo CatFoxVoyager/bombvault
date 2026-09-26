@@ -1158,6 +1158,7 @@ const lv: Partial<Translations> = {
   "auth.passkeyFailed": "Piekļuves atslēgu neizdevās izveidot",
   "auth.passkeyRemoved": "Piekļuves atslēga noņemta",
   "auth.passkeyRemoveTitle": "Noņemt šo piekļuves atslēgu?",
+  "auth.passkeyRemove": "Noņemt",
   "auth.passkeyRemoveConfirm": "{name} vairs tevi nepieteiks. Parole darbojas joprojām.",
   "auth.signInWithPasskey": "Pieteikties ar piekļuves atslēgu",
   "auth.passkeySignInFailed": "Šī piekļuves atslēga netika pieņemta",
