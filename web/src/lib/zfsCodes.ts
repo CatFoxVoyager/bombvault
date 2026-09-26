@@ -61,6 +61,7 @@ export const ZFS_CODE_KEY = {
   "snapshot-loop": "zfs.code.snapshot-loop",
   "backup-failed": "zfs.code.backup-failed",
   "not-reached": "zfs.code.not-reached",
+  stalled: "zfs.code.stalled",
   gone: "zfs.code.gone",
   "read-only-mount": "zfs.code.read-only-mount",
   "destination-not-mounted": "zfs.code.destination-not-mounted",
@@ -99,6 +100,7 @@ export const ZFS_FIX_KEY: Partial<Record<ZFSReasonCode, TranslationKey>> = {
   "snapshot-loop": "zfs.fix.propagation-missing",
   "read-only-mount": "zfs.fix.read-only-mount",
   "destination-not-mounted": "zfs.fix.destination-not-mounted",
+  stalled: "zfs.fix.stalled",
 };
 
 /** Member codes whose sentence already says the dataset is skipped, so no

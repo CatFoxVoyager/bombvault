@@ -1508,6 +1508,8 @@ const zh: Partial<Translations> = {
   "zfs.code.snapshot-loop": "快照没有到达 BombVault，因为 Host Data 路径不把新挂载传进来。",
   "zfs.code.backup-failed": "这个数据集的备份失败了。",
   "zfs.code.not-reached": "没有备份，这轮在这个数据集之前就结束了。",
+  "zfs.code.stalled": "没有备份，停滞守护在读取这个数据集时停止了这轮运行。",
+  "zfs.fix.stalled": "停滞守护会停止连续数小时没有进展的备份。请在服务器上检查这个数据集是否仍可读取，然后重新运行备份。",
   "zfs.code.gone": "已经不在服务器上了。它的备份仍然可以恢复。",
   "zfs.code.read-only-mount": "BombVault 只能读这个数据集（Access Mode Read Only），所以不能往里恢复。",
   "zfs.code.destination-not-mounted": "目标文件夹不在已挂载的池或共享上。恢复到那里会把服务器的内存塞满。",

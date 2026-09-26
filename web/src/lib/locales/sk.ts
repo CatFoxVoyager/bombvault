@@ -1721,6 +1721,8 @@ const sk: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Snímok sa k BombVaultu nedostal, lebo cesta Host Data nepúšťa nové pripojenia.",
   "zfs.code.backup-failed": "Záloha tejto dátovej sady zlyhala.",
   "zfs.code.not-reached": "Nezazálohované, beh skončil pred touto dátovou sadou.",
+  "zfs.code.stalled": "Nezazálohované, strážca zaseknutia zastavil beh pri čítaní tejto dátovej sady.",
+  "zfs.fix.stalled": "Strážca zaseknutia zastaví zálohu, ktorá celé hodiny nepostupuje. Na serveri over, či sa táto dátová sada dá ešte čítať, a potom zálohu spusti znova.",
   "zfs.code.gone": "Na serveri už nie je. Jej zálohy sa dajú ďalej obnoviť.",
   "zfs.code.read-only-mount": "BombVault vie túto dátovú sadu len čítať (Access Mode Read Only), takže do nej nemôže obnovovať.",
   "zfs.code.destination-not-mounted": "Cieľový priečinok nie je na pripojenom poole ani zdieľaní. Obnova tam by zaplnila pamäť servera.",

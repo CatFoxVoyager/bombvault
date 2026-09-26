@@ -1514,6 +1514,8 @@ const cs: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Snímek se k BombVaultu nedostal, protože cesta Host Data nepropouští nová připojení.",
   "zfs.code.backup-failed": "Záloha této datové sady selhala.",
   "zfs.code.not-reached": "Nezazálohováno, běh skončil před touto datovou sadou.",
+  "zfs.code.stalled": "Nezazálohováno, hlídač zaseknutí zastavil běh při čtení této datové sady.",
+  "zfs.fix.stalled": "Hlídač zaseknutí zastaví zálohu, která celé hodiny nepostupuje. Na serveru ověř, zda lze tuto datovou sadu ještě číst, a pak zálohu spusť znovu.",
   "zfs.code.gone": "Na serveru už není. Její zálohy jdou dál obnovit.",
   "zfs.code.read-only-mount": "BombVault umí tuto datovou sadu jen číst (Access Mode Read Only), takže do ní nemůže obnovovat.",
   "zfs.code.destination-not-mounted": "Cílová složka není na připojeném poolu ani sdílení. Obnova tam by zaplnila paměť serveru.",

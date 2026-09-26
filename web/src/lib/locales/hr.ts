@@ -1721,6 +1721,8 @@ const hr: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Snimka nije stigla do BombVaulta jer putanja Host Data ne propušta nova montiranja.",
   "zfs.code.backup-failed": "Kopiranje ovog skupa podataka nije uspjelo.",
   "zfs.code.not-reached": "Bez kopije, izvođenje je završilo prije ovog skupa podataka.",
+  "zfs.code.stalled": "Bez kopije, čuvar zastoja zaustavio je izvođenje dok je čitao ovaj skup podataka.",
+  "zfs.fix.stalled": "Čuvar zastoja zaustavlja sigurnosnu kopiju koja satima ne napreduje. Na poslužitelju provjeri može li se ovaj skup podataka još čitati, a zatim ponovno pokreni kopiju.",
   "zfs.code.gone": "Više ga nema na poslužitelju. Njegove kopije i dalje se mogu vratiti.",
   "zfs.code.read-only-mount": "BombVault ovaj skup podataka može samo čitati (Access Mode Read Only), pa u njega ne može vraćati.",
   "zfs.code.destination-not-mounted": "Odredišna mapa nije na montiranom bazenu ni dijeljenju. Vraćanje ondje napunilo bi memoriju poslužitelja.",

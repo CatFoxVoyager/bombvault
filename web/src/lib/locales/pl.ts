@@ -1511,6 +1511,8 @@ const pl: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Migawka nie dotarła do BombVaulta, bo ścieżka Host Data nie przepuszcza nowych montowań.",
   "zfs.code.backup-failed": "Kopia tego zbioru danych zawiodła.",
   "zfs.code.not-reached": "Bez kopii, przebieg skończył się przed tym zbiorem danych.",
+  "zfs.code.stalled": "Bez kopii, strażnik zastoju zatrzymał przebieg podczas odczytu tego zbioru danych.",
+  "zfs.fix.stalled": "Strażnik zastoju zatrzymuje kopię, która godzinami nie posuwa się naprzód. Sprawdź na serwerze, czy ten zbiór danych nadal da się odczytać, a potem uruchom kopię ponownie.",
   "zfs.code.gone": "Nie ma go już na serwerze. Jego kopie nadal można odtworzyć.",
   "zfs.code.read-only-mount": "BombVault może ten zbiór danych tylko czytać (Access Mode Read Only), więc nie odtworzy do niego.",
   "zfs.code.destination-not-mounted": "Folder docelowy nie leży na zamontowanej puli ani na udziale. Odtwarzanie tam zapełniłoby pamięć serwera.",

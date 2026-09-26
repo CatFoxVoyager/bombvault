@@ -474,7 +474,7 @@ func zfsMemberChanges(previous []store.ZFSMember, members []zfsMember) []string 
 // a run did to a member the preflight could read is no skip.
 func zfsSkipCode(outcome string) string {
 	switch outcome {
-	case outcomeBackedUp, "empty", "backup-failed", "snapshot-not-visible", "snapshot-loop", "not-reached":
+	case outcomeBackedUp, "empty", "backup-failed", "snapshot-not-visible", "snapshot-loop", "not-reached", "stalled":
 		return ""
 	}
 	return outcome

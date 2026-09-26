@@ -1721,6 +1721,8 @@ const eu: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Argazkia ez da BombVault-era iritsi, Host Data bideak muntaia berriak ez dituelako pasatzen.",
   "zfs.code.backup-failed": "Datu multzo honen kopiak huts egin du.",
   "zfs.code.not-reached": "Kopiarik gabe, exekuzioa datu multzo honen aurretik amaitu da.",
+  "zfs.code.stalled": "Kopiarik gabe, geldialdien zaindariak exekuzioa gelditu du datu multzo hau irakurtzen ari zela.",
+  "zfs.fix.stalled": "Geldialdien zaindariak orduetan aurrera egiten ez duen babeskopia gelditzen du. Egiaztatu zerbitzarian datu multzo hau oraindik irakur daitekeen, eta abiarazi babeskopia berriro.",
   "zfs.code.gone": "Jada ez dago zerbitzarian. Haren kopiak berreskuragarri jarraitzen dute.",
   "zfs.code.read-only-mount": "BombVault-ek datu multzo hau irakurri baino ezin du (Access Mode Read Only), beraz ezin du bertan berrezarri.",
   "zfs.code.destination-not-mounted": "Helburuko karpeta ez dago muntatutako pool edo partekatze batean. Hara berrezartzeak zerbitzariaren memoria beteko luke.",

@@ -1516,6 +1516,8 @@ const fi: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Tilannevedos ei yltänyt BombVaultiin, koska Host Data -polku ei päästä uusia liitoksia läpi.",
   "zfs.code.backup-failed": "Tämän tietojoukon varmuuskopiointi epäonnistui.",
   "zfs.code.not-reached": "Ei varmuuskopioitu, ajo päättyi ennen tätä tietojoukkoa.",
+  "zfs.code.stalled": "Ei varmuuskopioitu, pysähtymisvahti keskeytti ajon tämän tietojoukon lukemisen aikana.",
+  "zfs.fix.stalled": "Pysähtymisvahti keskeyttää varmuuskopioinnin, joka ei etene tuntikausiin. Tarkista palvelimelta, voiko tätä tietojoukkoa yhä lukea, ja aja varmuuskopiointi sitten uudelleen.",
   "zfs.code.gone": "Ei ole enää palvelimella. Sen varmuuskopiot ovat yhä palautettavissa.",
   "zfs.code.read-only-mount": "BombVault voi vain lukea tätä tietojoukkoa (Access Mode Read Only), joten se ei voi palauttaa sen sisälle.",
   "zfs.code.destination-not-mounted": "Kohdekansio ei ole liitetyllä altaalla tai jaolla. Palautus sinne täyttäisi palvelimen muistin.",

@@ -1721,6 +1721,8 @@ const et: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Hetktõmmis ei jõudnud BombVaultini, sest Host Data tee ei lase uusi haakepunkte läbi.",
   "zfs.code.backup-failed": "Selle andmestiku varundus ebaõnnestus.",
   "zfs.code.not-reached": "Varundamata, käivitus lõppes enne seda andmestikku.",
+  "zfs.code.stalled": "Varundamata, seisakuvalvur peatas käivituse selle andmestiku lugemise ajal.",
+  "zfs.fix.stalled": "Seisakuvalvur peatab varunduse, mis tunde ei edene. Kontrolli serveris, kas seda andmestikku saab veel lugeda, ja käivita varundus uuesti.",
   "zfs.code.gone": "Pole enam serveris. Selle varukoopiad on endiselt taastatavad.",
   "zfs.code.read-only-mount": "BombVault saab seda andmestikku ainult lugeda (Access Mode Read Only), seega ei saa ta sinna taastada.",
   "zfs.code.destination-not-mounted": "Sihtkaust ei ole haagitud kogumis ega jagatises. Sinna taastamine täidaks serveri mälu.",

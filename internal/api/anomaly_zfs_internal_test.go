@@ -90,9 +90,14 @@ func TestZFSSkippedDatasetCollapsesLikeAMissingOne(t *testing.T) {
 	res := evaluateItem(datasetInput(datasetRuns(excluded, itemRuns(start, "fp", "fp", "fp", "fp"))))
 	noFindingFor(t, res.Findings, metricSourceBytesShrink)
 
-	failed := memberRows(start, 40<<30, "backed-up", "backed-up", "backed-up", "backup-failed")
-	res = evaluateItem(datasetInput(datasetRuns(failed, itemRuns(start, "fp", "fp", "fp", "fp"))))
-	noFindingFor(t, res.Findings, metricSourceBytesShrink)
+	// A run that could not read the dataset measured nothing about it.
+	for _, code := range []string{"backup-failed", "snapshot-not-visible", "snapshot-loop", "not-reached", "stalled"} {
+		t.Run(code, func(t *testing.T) {
+			failed := memberRows(start, 40<<30, "backed-up", "backed-up", "backed-up", code)
+			res := evaluateItem(datasetInput(datasetRuns(failed, itemRuns(start, "fp", "fp", "fp", "fp"))))
+			noFindingFor(t, res.Findings, metricSourceBytesShrink)
+		})
+	}
 }
 
 // A dataset that stays unreadable is one loss, not a new one every night: the

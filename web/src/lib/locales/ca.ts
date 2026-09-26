@@ -1721,6 +1721,8 @@ const ca: Partial<Translations> = {
   "zfs.code.snapshot-loop": "La instantània no ha arribat a BombVault perquè el camí Host Data no deixa passar els muntatges nous.",
   "zfs.code.backup-failed": "La còpia d'aquest conjunt de dades ha fallat.",
   "zfs.code.not-reached": "Sense còpia, l'execució ha acabat abans d'aquest conjunt de dades.",
+  "zfs.code.stalled": "Sense còpia, el vigilant de bloquejos ha aturat l'execució mentre llegia aquest conjunt de dades.",
+  "zfs.fix.stalled": "El vigilant de bloquejos atura una còpia que passa hores sense avançar. Comprova al servidor si aquest conjunt de dades encara es pot llegir i torna a executar la còpia.",
   "zfs.code.gone": "Ja no és al servidor. Les seves còpies continuen sent restaurables.",
   "zfs.code.read-only-mount": "BombVault només pot llegir aquest conjunt de dades (Access Mode Read Only), així que no hi pot restaurar.",
   "zfs.code.destination-not-mounted": "La carpeta de destinació no és en cap pool ni compartició muntada. Restaurar-hi ompliria la memòria del servidor.",

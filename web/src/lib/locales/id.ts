@@ -1721,6 +1721,8 @@ const id: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Snapshot tidak sampai ke BombVault karena jalur Host Data tidak meneruskan pemasangan baru.",
   "zfs.code.backup-failed": "Pencadangan set data ini gagal.",
   "zfs.code.not-reached": "Tidak dicadangkan, jalannya berakhir sebelum set data ini.",
+  "zfs.code.stalled": "Tidak dicadangkan, penjaga macet menghentikan jalannya saat membaca set data ini.",
+  "zfs.fix.stalled": "Penjaga macet menghentikan cadangan yang berjam-jam tidak maju. Periksa di server apakah set data ini masih bisa dibaca, lalu jalankan cadangan lagi.",
   "zfs.code.gone": "Sudah tidak ada di server. Cadangannya tetap bisa dipulihkan.",
   "zfs.code.read-only-mount": "BombVault hanya bisa membaca set data ini (Access Mode Read Only), jadi tidak bisa memulihkan ke dalamnya.",
   "zfs.code.destination-not-mounted": "Folder tujuan tidak berada di pool atau berbagi yang terpasang. Memulihkan ke sana akan memenuhi memori server.",

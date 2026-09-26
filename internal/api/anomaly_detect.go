@@ -942,7 +942,7 @@ func datasetSample(row store.SeriesRun, previous *store.SeriesRun) store.SeriesR
 	case zfsOutcomeEmpty:
 		row.Status, row.ResticMS = "success", nil
 		return row
-	case "excluded", "backup-failed", "snapshot-not-visible", "snapshot-loop", "not-reached":
+	case "excluded", "backup-failed", "snapshot-not-visible", "snapshot-loop", "not-reached", "stalled":
 		row.Status = "skipped"
 		return row
 	}

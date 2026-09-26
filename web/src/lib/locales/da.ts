@@ -1516,6 +1516,8 @@ const da: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Snapshottet nåede ikke frem til BombVault, fordi Host Data-stien ikke sender nye monteringer videre.",
   "zfs.code.backup-failed": "Sikkerhedskopien af dette datasæt fejlede.",
   "zfs.code.not-reached": "Ikke sikkerhedskopieret, kørslen sluttede før dette datasæt.",
+  "zfs.code.stalled": "Ikke sikkerhedskopieret, stopvagten stoppede kørslen, mens den læste dette datasæt.",
+  "zfs.fix.stalled": "Stopvagten stopper en sikkerhedskopi, der ikke kommer videre i timevis. Tjek på serveren, om datasættet stadig kan læses, og kør så sikkerhedskopien igen.",
   "zfs.code.gone": "Findes ikke længere på serveren. Sikkerhedskopierne kan stadig gendannes.",
   "zfs.code.read-only-mount": "BombVault kan kun læse dette datasæt (Access Mode Read Only) og kan derfor ikke gendanne ind i det.",
   "zfs.code.destination-not-mounted": "Målmappen ligger ikke på en monteret pulje eller deling. En gendannelse dertil ville fylde serverens hukommelse.",

@@ -1516,6 +1516,8 @@ const no: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Øyeblikksbildet nådde ikke BombVault fordi Host Data-stien ikke slipper gjennom nye monteringer.",
   "zfs.code.backup-failed": "Sikkerhetskopien av dette datasettet mislyktes.",
   "zfs.code.not-reached": "Ikke sikkerhetskopiert, kjøringen tok slutt før dette datasettet.",
+  "zfs.code.stalled": "Ikke sikkerhetskopiert, stoppvakten stoppet kjøringen mens den leste dette datasettet.",
+  "zfs.fix.stalled": "Stoppvakten stopper en sikkerhetskopi som ikke kommer videre på flere timer. Sjekk på serveren om datasettet fortsatt kan leses, og kjør så sikkerhetskopien på nytt.",
   "zfs.code.gone": "Finnes ikke lenger på serveren. Sikkerhetskopiene kan fortsatt gjenopprettes.",
   "zfs.code.read-only-mount": "BombVault kan bare lese dette datasettet (Access Mode Read Only) og kan derfor ikke gjenopprette inn i det.",
   "zfs.code.destination-not-mounted": "Målmappen ligger ikke på en montert pool eller deling. En gjenoppretting dit ville fylle minnet til serveren.",

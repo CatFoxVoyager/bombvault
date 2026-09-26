@@ -1513,6 +1513,8 @@ const nl: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Het snapshot bereikte BombVault niet omdat het Host Data-pad nieuwe mounts niet doorgeeft.",
   "zfs.code.backup-failed": "De back-up van deze dataset is mislukt.",
   "zfs.code.not-reached": "Niet geback-upt, de run eindigde voor deze dataset.",
+  "zfs.code.stalled": "Niet geback-upt, de vastloopbewaking stopte de run tijdens het lezen van deze dataset.",
+  "zfs.fix.stalled": "De vastloopbewaking stopt een back-up die urenlang niet opschiet. Controleer op de server of deze dataset nog te lezen is en start de back-up daarna opnieuw.",
   "zfs.code.gone": "Staat niet meer op de server. De back-ups blijven terug te zetten.",
   "zfs.code.read-only-mount": "BombVault kan deze dataset alleen lezen (Access Mode Read Only) en kan er dus niet in terugzetten.",
   "zfs.code.destination-not-mounted": "De doelmap staat niet op een gemounte pool of share. Daar terugzetten zou het geheugen van de server vullen.",

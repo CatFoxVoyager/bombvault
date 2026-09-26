@@ -1508,6 +1508,8 @@ const ko: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Host Data 경로가 새 마운트를 넘겨주지 않아 스냅샷이 BombVault까지 오지 못했습니다.",
   "zfs.code.backup-failed": "이 데이터세트의 백업이 실패했습니다.",
   "zfs.code.not-reached": "백업되지 않았습니다. 이 데이터세트에 닿기 전에 실행이 끝났습니다.",
+  "zfs.code.stalled": "백업되지 않았습니다. 이 데이터세트를 읽는 중에 정체 감시가 실행을 중지했습니다.",
+  "zfs.fix.stalled": "정체 감시는 몇 시간 동안 진행이 없는 백업을 중지합니다. 서버에서 이 데이터세트를 아직 읽을 수 있는지 확인한 뒤 백업을 다시 실행하세요.",
   "zfs.code.gone": "서버에 더는 없습니다. 백업은 그대로 복원할 수 있습니다.",
   "zfs.code.read-only-mount": "BombVault는 이 데이터세트를 읽기만 할 수 있어서 (Access Mode Read Only) 그 안으로 복원할 수 없습니다.",
   "zfs.code.destination-not-mounted": "대상 폴더가 마운트된 풀이나 공유 위에 있지 않습니다. 거기로 복원하면 서버 메모리가 찹니다.",

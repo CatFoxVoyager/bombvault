@@ -1508,6 +1508,8 @@ const ja: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Host Data のパスが新しいマウントを通さないため、スナップショットが BombVault に届きませんでした。",
   "zfs.code.backup-failed": "このデータセットのバックアップに失敗しました。",
   "zfs.code.not-reached": "バックアップされていません。このデータセットの前に実行が終わりました。",
+  "zfs.code.stalled": "バックアップされていません。このデータセットの読み取り中に停止検知が実行を止めました。",
+  "zfs.fix.stalled": "停止検知は、何時間も進まないバックアップを止めます。このデータセットがまだ読み取れるかサーバーで確認してから、バックアップをもう一度実行してください。",
   "zfs.code.gone": "もうサーバーにありません。バックアップは引き続き復元できます。",
   "zfs.code.read-only-mount": "BombVault はこのデータセットを読むことしかできません (Access Mode Read Only)。そのため中へ復元できません。",
   "zfs.code.destination-not-mounted": "復元先のフォルダーがマウント済みのプールや共有の上にありません。そこへ復元するとサーバーのメモリーがいっぱいになります。",

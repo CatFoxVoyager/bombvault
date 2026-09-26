@@ -1721,6 +1721,8 @@ const lt: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Momentinė kopija nepasiekė BombVault, nes Host Data kelias nepraleidžia naujų prijungimų.",
   "zfs.code.backup-failed": "Šio duomenų rinkinio kopijavimas nepavyko.",
   "zfs.code.not-reached": "Nenukopijuota, vykdymas baigėsi prieš šį rinkinį.",
+  "zfs.code.stalled": "Nenukopijuota, strigimo sargas sustabdė vykdymą skaitant šį rinkinį.",
+  "zfs.fix.stalled": "Strigimo sargas sustabdo atsarginę kopiją, kuri valandų valandas nejuda į priekį. Serveryje patikrink, ar šį rinkinį dar galima perskaityti, tada paleisk kopijavimą iš naujo.",
   "zfs.code.gone": "Serveryje jo nebėra. Jo kopijos vis dar atkuriamos.",
   "zfs.code.read-only-mount": "BombVault šį rinkinį gali tik skaityti (Access Mode Read Only), todėl į jį atkurti negali.",
   "zfs.code.destination-not-mounted": "Paskirties aplankas nėra prijungtame telkinyje ar bendrinyje. Atkūrimas ten užpildytų serverio atmintį.",

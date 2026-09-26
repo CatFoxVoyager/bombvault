@@ -1516,6 +1516,8 @@ const tr: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Anlık görüntü BombVault'a ulaşmadı, çünkü Host Data yolu yeni bağlamaları geçirmiyor.",
   "zfs.code.backup-failed": "Bu veri kümesinin yedeği başarısız oldu.",
   "zfs.code.not-reached": "Yedeklenmedi, çalıştırma bu veri kümesinden önce bitti.",
+  "zfs.code.stalled": "Yedeklenmedi, takılma bekçisi bu veri kümesini okurken çalıştırmayı durdurdu.",
+  "zfs.fix.stalled": "Takılma bekçisi saatlerce ilerlemeyen bir yedeklemeyi durdurur. Bu veri kümesinin hâlâ okunup okunamadığını sunucuda kontrol et, ardından yedeklemeyi yeniden çalıştır.",
   "zfs.code.gone": "Artık sunucuda değil. Yedekleri hâlâ geri yüklenebilir.",
   "zfs.code.read-only-mount": "BombVault bu veri kümesini yalnızca okuyabiliyor (Access Mode Read Only), bu yüzden içine geri yükleyemez.",
   "zfs.code.destination-not-mounted": "Hedef klasör bağlı bir havuzda ya da paylaşımda değil. Oraya geri yükleme sunucunun belleğini doldururdu.",

@@ -1508,6 +1508,8 @@ const vi: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Ảnh chụp không tới được BombVault vì đường dẫn Host Data không cho các điểm gắn mới đi qua.",
   "zfs.code.backup-failed": "Sao lưu tập dữ liệu này thất bại.",
   "zfs.code.not-reached": "Chưa sao lưu, lượt chạy kết thúc trước tập dữ liệu này.",
+  "zfs.code.stalled": "Chưa sao lưu, trình canh treo đã dừng lượt chạy khi đang đọc tập dữ liệu này.",
+  "zfs.fix.stalled": "Trình canh treo dừng một bản sao lưu không tiến triển trong nhiều giờ. Hãy kiểm tra trên máy chủ xem tập dữ liệu này còn đọc được không, rồi chạy lại bản sao lưu.",
   "zfs.code.gone": "Không còn trên máy chủ. Các bản sao của nó vẫn khôi phục được.",
   "zfs.code.read-only-mount": "BombVault chỉ đọc được tập dữ liệu này (Access Mode Read Only), nên không khôi phục vào đó được.",
   "zfs.code.destination-not-mounted": "Thư mục đích không nằm trên pool hay chia sẻ đã gắn. Khôi phục vào đó sẽ làm đầy bộ nhớ máy chủ.",

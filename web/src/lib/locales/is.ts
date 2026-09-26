@@ -1721,6 +1721,8 @@ const is: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Skyndimyndin barst ekki til BombVault því slóðin Host Data hleypir nýjum tengingum ekki í gegn.",
   "zfs.code.backup-failed": "Afritun þessa gagnasafns brást.",
   "zfs.code.not-reached": "Ekki afritað, keyrslan endaði á undan þessu gagnasafni.",
+  "zfs.code.stalled": "Ekki afritað, stöðvunarvörðurinn stöðvaði keyrsluna meðan hún las þetta gagnasafn.",
+  "zfs.fix.stalled": "Stöðvunarvörðurinn stöðvar afritun sem kemst ekkert áfram tímunum saman. Athugaðu á þjóninum hvort enn er hægt að lesa þetta gagnasafn og keyrðu afritunina svo aftur.",
   "zfs.code.gone": "Er ekki lengur á þjóninum. Afritin eru enn endurheimtanleg.",
   "zfs.code.read-only-mount": "BombVault getur aðeins lesið þetta gagnasafn (Access Mode Read Only) og getur því ekki endurheimt inn í það.",
   "zfs.code.destination-not-mounted": "Áfangamappan er ekki á tengdu diskasafni eða deilingu. Endurheimt þangað myndi fylla minni þjónsins.",

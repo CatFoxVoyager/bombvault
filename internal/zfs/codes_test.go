@@ -30,7 +30,7 @@ func TestAllCodesAreUniqueKebabCase(t *testing.T) {
 		"container-unknown", "container-is-self", "hook-container-missing", "leftover-snapshots",
 		"zvol", "canmount-off", "legacy-mount", "no-mountpoint", "not-mounted",
 		"key-not-loaded", "snapdir-disabled", "not-visible", "shfs-only",
-		"snapshot-not-visible", "snapshot-loop", "backup-failed", "not-reached", "gone",
+		"snapshot-not-visible", "snapshot-loop", "backup-failed", "not-reached", "stalled", "gone",
 		"read-only-mount", "destination-not-mounted", "not-enough-space",
 		"safety-snapshot-failed", "safety-name-too-long",
 	}

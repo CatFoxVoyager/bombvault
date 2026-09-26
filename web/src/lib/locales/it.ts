@@ -1516,6 +1516,8 @@ const it: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Lo snapshot non è arrivato a BombVault perché il percorso Host Data non trasmette i nuovi mount.",
   "zfs.code.backup-failed": "Il backup di questo dataset è fallito.",
   "zfs.code.not-reached": "Non salvato, l'esecuzione è finita prima di questo dataset.",
+  "zfs.code.stalled": "Non salvato, il controllo blocchi ha interrotto l'esecuzione durante la lettura di questo dataset.",
+  "zfs.fix.stalled": "Il controllo blocchi interrompe un backup che non avanza per ore. Verifica sul server che questo dataset sia ancora leggibile, poi esegui di nuovo il backup.",
   "zfs.code.gone": "Non è più sul server. I suoi backup restano ripristinabili.",
   "zfs.code.read-only-mount": "BombVault può solo leggere questo dataset (Access Mode Read Only), quindi non può ripristinarvi dentro.",
   "zfs.code.destination-not-mounted": "La cartella di destinazione non è su un pool o una condivisione montata. Un ripristino lì riempirebbe la memoria del server.",

@@ -1721,6 +1721,8 @@ const ms: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Syot kilat tidak sampai ke BombVault kerana laluan Host Data tidak menyalurkan lekapan baharu.",
   "zfs.code.backup-failed": "Sandaran set data ini gagal.",
   "zfs.code.not-reached": "Tidak disandarkan, larian berakhir sebelum set data ini.",
+  "zfs.code.stalled": "Tidak disandarkan, pengawal tersekat menghentikan larian semasa membaca set data ini.",
+  "zfs.fix.stalled": "Pengawal tersekat menghentikan sandaran yang tidak bergerak selama berjam-jam. Semak pada pelayan sama ada set data ini masih boleh dibaca, kemudian jalankan sandaran sekali lagi.",
   "zfs.code.gone": "Sudah tiada pada pelayan. Sandarannya masih boleh dipulihkan.",
   "zfs.code.read-only-mount": "BombVault hanya boleh membaca set data ini (Access Mode Read Only), jadi ia tidak boleh memulihkan ke dalamnya.",
   "zfs.code.destination-not-mounted": "Folder destinasi bukan pada kolam atau perkongsian yang dilekapkan. Memulihkan ke sana akan memenuhi memori pelayan.",

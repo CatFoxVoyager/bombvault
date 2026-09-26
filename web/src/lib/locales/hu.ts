@@ -1519,6 +1519,8 @@ const hu: Partial<Translations> = {
   "zfs.code.snapshot-loop": "A pillanatkép nem jutott el a BombVaultig, mert a Host Data útvonal nem engedi át az új csatolásokat.",
   "zfs.code.backup-failed": "Ennek az adatkészletnek a mentése elhasalt.",
   "zfs.code.not-reached": "Nincs mentve, a futás ez előtt az adatkészlet előtt ért véget.",
+  "zfs.code.stalled": "Nincs mentve, a leállásfigyelő leállította a futást, miközben ezt az adatkészletet olvasta.",
+  "zfs.fix.stalled": "A leállásfigyelő leállítja azt a mentést, amely órákig nem halad. Ellenőrizd a szerveren, hogy ez az adatkészlet még olvasható-e, majd futtasd újra a mentést.",
   "zfs.code.gone": "Már nincs a kiszolgálón. A mentései továbbra is visszaállíthatók.",
   "zfs.code.read-only-mount": "A BombVault ezt az adatkészletet csak olvasni tudja (Access Mode Read Only), ezért nem tud beleállítani vissza.",
   "zfs.code.destination-not-mounted": "A célmappa nem csatolt poolon vagy megosztáson van. Az oda való visszaállítás megtöltené a kiszolgáló memóriáját.",

@@ -444,6 +444,47 @@ describe("ZFS page", () => {
     expect(await screen.findByText(en["runReason.cancelled"])).toBeTruthy();
   });
 
+  it("names the dataset a stalled run hung on and says what to check", async () => {
+    items = [item({ lastRunStatus: "failed" })];
+    runs = [
+      {
+        id: "r6",
+        targetId: "z1",
+        kind: "backup",
+        status: "failed",
+        startedAt: 1_700_000_000,
+        finishedAt: 1_700_007_200,
+        snapshotId: "",
+        bytes: 0,
+        error: "stopped by the stall guard after 2 hours without progress while reading cache/appdata",
+        acknowledged: false,
+        target: "cache/appdata",
+        domain: "zfs",
+      },
+    ];
+    runDetail = {
+      ok: true,
+      windowSeconds: -1,
+      members: [
+        {
+          dataset: "cache/appdata",
+          outcome: "stalled",
+          resticSnapshot: "",
+          isNew: false,
+          bytesAdded: 0,
+          filesNew: 0,
+          filesChanged: 0,
+          filesUnmodified: 0,
+          durationMs: 0,
+        },
+      ],
+    };
+    await renderWithItems();
+    fireEvent.click(await screen.findByRole("button", { name: /→/ }));
+    expect(await screen.findByText(en["zfs.code.stalled"])).toBeTruthy();
+    expect(screen.getByLabelText(en["zfs.fix.stalled"])).toBeTruthy();
+  });
+
   it("says how many safety snapshots a removed item left behind", async () => {
     items = [item({ safetyCount: 2 })];
     deleteResult = { ok: true, safetyRemaining: 2 };

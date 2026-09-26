@@ -1721,6 +1721,8 @@ const lv: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Momentuzņēmums nesasniedza BombVault, jo Host Data ceļš nelaiž cauri jaunus montējumus.",
   "zfs.code.backup-failed": "Šīs datu kopas dublēšana neizdevās.",
   "zfs.code.not-reached": "Nav dublēts, izpilde beidzās pirms šīs datu kopas.",
+  "zfs.code.stalled": "Nav dublēts, iestrēgšanas sargs apturēja izpildi, lasot šo datu kopu.",
+  "zfs.fix.stalled": "Iestrēgšanas sargs aptur dublēšanu, kas stundām ilgi nevirzās uz priekšu. Serverī pārbaudi, vai šo datu kopu vēl var nolasīt, un tad palaid dublēšanu vēlreiz.",
   "zfs.code.gone": "Serverī vairs nav. Tās dublējumi joprojām ir atjaunojami.",
   "zfs.code.read-only-mount": "BombVault šo datu kopu var tikai lasīt (Access Mode Read Only), tāpēc tajā nevar atjaunot.",
   "zfs.code.destination-not-mounted": "Mērķa mape nav uz montēta krājuma vai koplietojuma. Atjaunošana turp piepildītu servera atmiņu.",

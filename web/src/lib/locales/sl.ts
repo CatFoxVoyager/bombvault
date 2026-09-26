@@ -1705,6 +1705,8 @@ const sl: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Posnetek ni prišel do BombVaulta, ker pot Host Data ne prepušča novih priklopov.",
   "zfs.code.backup-failed": "Kopija te zbirke podatkov je spodletela.",
   "zfs.code.not-reached": "Brez kopije, izvajanje se je končalo pred to zbirko podatkov.",
+  "zfs.code.stalled": "Brez kopije, varuh zastojev je ustavil izvajanje med branjem te zbirke podatkov.",
+  "zfs.fix.stalled": "Varuh zastojev ustavi varnostno kopiranje, ki ure in ure ne napreduje. Na strežniku preveri, ali je to zbirko podatkov še mogoče brati, nato znova zaženi kopiranje.",
   "zfs.code.gone": "Na strežniku je ni več. Njene kopije je še vedno mogoče obnoviti.",
   "zfs.code.read-only-mount": "BombVault to zbirko podatkov lahko samo bere (Access Mode Read Only), zato vanjo ne more obnavljati.",
   "zfs.code.destination-not-mounted": "Ciljna mapa ni na priklopljenem bazenu ali deljeni mapi. Obnova tja bi napolnila pomnilnik strežnika.",

@@ -1721,6 +1721,8 @@ const gl: Partial<Translations> = {
   "zfs.code.snapshot-loop": "A instantánea non chegou a BombVault porque a ruta Host Data non deixa pasar as montaxes novas.",
   "zfs.code.backup-failed": "A copia deste conxunto de datos fallou.",
   "zfs.code.not-reached": "Sen copia, a execución rematou antes deste conxunto de datos.",
+  "zfs.code.stalled": "Sen copia, o vixiante de bloqueos detivo a execución mentres lía este conxunto de datos.",
+  "zfs.fix.stalled": "O vixiante de bloqueos detén unha copia que pasa horas sen avanzar. Comproba no servidor se este conxunto de datos aínda se pode ler e volve executar a copia.",
   "zfs.code.gone": "Xa non está no servidor. As súas copias seguen sendo restaurables.",
   "zfs.code.read-only-mount": "BombVault só pode ler este conxunto de datos (Access Mode Read Only), así que non pode restaurar nel.",
   "zfs.code.destination-not-mounted": "O cartafol de destino non está nun pool nin nunha compartición montada. Restaurar aí encheríalle a memoria ao servidor.",

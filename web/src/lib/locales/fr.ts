@@ -1516,6 +1516,8 @@ const fr: Partial<Translations> = {
   "zfs.code.snapshot-loop": "L'instantané n'a pas atteint BombVault car le chemin Host Data ne transmet pas les nouveaux montages.",
   "zfs.code.backup-failed": "La sauvegarde de ce jeu de données a échoué.",
   "zfs.code.not-reached": "Non sauvegardé, l'exécution s'est terminée avant ce jeu de données.",
+  "zfs.code.stalled": "Non sauvegardé, le garde-fou anti-blocage a arrêté l'exécution pendant la lecture de ce jeu de données.",
+  "zfs.fix.stalled": "Le garde-fou anti-blocage arrête une sauvegarde qui n'avance plus pendant des heures. Vérifiez sur le serveur que ce jeu de données peut encore être lu, puis relancez la sauvegarde.",
   "zfs.code.gone": "N'est plus sur le serveur. Ses sauvegardes restent restaurables.",
   "zfs.code.read-only-mount": "BombVault ne peut que lire ce jeu de données (Access Mode Read Only), il ne peut donc pas y restaurer.",
   "zfs.code.destination-not-mounted": "Le dossier de destination n'est pas sur un pool ou un partage monté. Une restauration là-bas remplirait la mémoire du serveur.",

@@ -1519,6 +1519,8 @@ const ro: Partial<Translations> = {
   "zfs.code.snapshot-loop": "Instantaneul nu a ajuns la BombVault pentru că traseul Host Data nu lasă să treacă montările noi.",
   "zfs.code.backup-failed": "Copia acestui set de date a eșuat.",
   "zfs.code.not-reached": "Nesalvat, rularea s-a încheiat înainte de acest set de date.",
+  "zfs.code.stalled": "Nesalvat, paznicul de blocaje a oprit rularea în timp ce citea acest set de date.",
+  "zfs.fix.stalled": "Paznicul de blocaje oprește o copie de rezervă care nu avansează ore întregi. Verifică pe server dacă acest set de date mai poate fi citit, apoi rulează din nou copia.",
   "zfs.code.gone": "Nu mai este pe server. Copiile lui rămân restaurabile.",
   "zfs.code.read-only-mount": "BombVault poate doar citi acest set de date (Access Mode Read Only), deci nu poate restaura în el.",
   "zfs.code.destination-not-mounted": "Dosarul destinație nu este pe un pool sau pe o partajare montată. O restaurare acolo ar umple memoria serverului.",

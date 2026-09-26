@@ -164,6 +164,7 @@ const (
 	outcomeBackedUp        = "backed-up"
 	outcomeEmpty           = "empty"
 	codeNotReached         = "not-reached"
+	codeStalled            = "stalled"
 	codeBackupFailed       = "backup-failed"
 	codeSnapshotNotVisible = "snapshot-not-visible"
 )
@@ -299,7 +300,7 @@ func (d ZFSBackupDeps) backupMembers(ctx context.Context, runID, snap string) (s
 		res, read := d.backupMember(ctx, m, snap, split[m.RelPath])
 		res.DurationMS = d.Clock().Sub(start).Milliseconds()
 		d.addMember(runID, res)
-		if res.Outcome == codeNotReached {
+		if res.Outcome == codeStalled {
 			interrupted = m.Dataset
 		}
 
@@ -361,9 +362,13 @@ func (d ZFSBackupDeps) backupMember(ctx context.Context, m ZFSMemberPlan, snap s
 	if err != nil {
 		log.Printf("zfs backup: reading %s failed: %v", m.Dataset, err)
 		res.Outcome = codeBackupFailed
-		// A cancel or the stall guard ended the run, not a fault of this dataset.
+		// A cancel ended the run, not a fault of this dataset. The stall guard
+		// names the dataset it hung on.
 		if ctx.Err() != nil {
 			res.Outcome = codeNotReached
+			if StalledBy(ctx) != nil {
+				res.Outcome = codeStalled
+			}
 		}
 		return res, Summary{}
 	}

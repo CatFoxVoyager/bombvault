@@ -173,6 +173,7 @@ function ZFSRunDetailView({ run, item, t }: { run: Run; item: ZFSDatasetView; t:
       )}
       {(detail.members ?? []).map((m) => {
         const memberKey = zfsMemberKey(m.outcome);
+        const fixKey = memberKey ? null : zfsFixKey(m.outcome);
         return (
           <p key={m.dataset} className="flex items-center gap-2 text-caption text-carbon-textSub">
             <span dir="ltr" className="font-mono text-start">{m.dataset}</span>
@@ -188,6 +189,7 @@ function ZFSRunDetailView({ run, item, t }: { run: Run; item: ZFSDatasetView; t:
                     hostMountpoint: item.members.find((known) => known.dataset === m.dataset)?.hostMountpoint,
                   })}
             </span>
+            {fixKey && <InfoBubble tip={tLtr(t, fixKey)} />}
             {m.bytesAdded > 0 && <span className="text-carbon-textMuted">{humanBytes(m.bytesAdded)}</span>}
           </p>
         );

@@ -49,6 +49,7 @@ var AllCodes = []string{
 	"snapshot-loop",
 	"backup-failed",
 	"not-reached",
+	"stalled",
 	"gone",
 
 	// Restore

@@ -668,10 +668,11 @@ func TestBackupZFSItemStallNamesTheDatasetItWasReading(t *testing.T) {
 	if got := f.recorder.member(t, zfsTestRoot).Outcome; got != "backed-up" {
 		t.Fatalf("the dataset read before the stall is %q, want backed-up", got)
 	}
-	for _, dataset := range []string{zfsTestPlex, zfsTestDB} {
-		if got := f.recorder.member(t, dataset).Outcome; got != "not-reached" {
-			t.Fatalf("%s outcome = %q, want not-reached", dataset, got)
-		}
+	if got := f.recorder.member(t, zfsTestPlex).Outcome; got != "stalled" {
+		t.Fatalf("the dataset the run hung on is %q, want stalled", got)
+	}
+	if got := f.recorder.member(t, zfsTestDB).Outcome; got != "not-reached" {
+		t.Fatalf("the dataset after the stall is %q, want not-reached", got)
 	}
 }
 
