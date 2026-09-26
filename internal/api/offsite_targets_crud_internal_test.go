@@ -232,3 +232,24 @@ func TestUpdateOffsiteTargetMissing(t *testing.T) {
 		t.Fatalf("status = %d, want 404", rec.Code)
 	}
 }
+
+// The primary belongs to the off-site setting of its domain. Moved to another
+// domain it would sit next to that domain's primary and leave its own domain
+// without one.
+func TestUpdateOffsiteTargetKeepsThePrimaryInItsDomain(t *testing.T) {
+	h, st := newCRUDHandler(t)
+	primary, err := st.UpsertOffsiteTarget(store.OffsiteTarget{Domain: "containers", Name: "Primary", Repo: "s3:c", Enabled: true, SortOrder: 0})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if env := putOffsiteTarget(t, h, primary.ID, `{"domain":"vms","name":"Primary","repo":"s3:c","enabled":true}`); env["ok"] == true {
+		t.Fatalf("the primary moved to another domain: %v", env)
+	}
+	got, _, err := st.GetOffsiteTarget(primary.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Domain != "containers" || got.SortOrder != 0 {
+		t.Fatalf("a refused update changed the primary: %+v", got)
+	}
+}

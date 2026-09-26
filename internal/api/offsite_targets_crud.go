@@ -236,6 +236,10 @@ func (h *Handler) handleUpdateOffsiteTarget(w http.ResponseWriter, r *http.Reque
 		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": "sortOrder must be 1 or higher: 0 is the primary target, and the off-site setting in Settings manages it"})
 		return
 	}
+	if existing.SortOrder == 0 && t.Domain != existing.Domain {
+		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": "the primary target stays in its domain: change the off-site setting in Settings instead"})
+		return
+	}
 	// Checked only when the request moves the target, as in
 	// rejectSettingsPathOnNamedRepo, so a row the settings import left on a
 	// colliding location can still be edited rather than only deleted.
