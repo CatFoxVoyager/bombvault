@@ -181,13 +181,14 @@ func (s *Service) recordZFSRefusal(ctx context.Context, d store.ZFSDataset, ref 
 
 // notifyZFSUnsuppressed sends a message that has to reach the user although the
 // run it belongs to is part of a scheduled summary. notify.Send applies the
-// policy itself.
+// policy itself. These messages are not a run's outcome, so they leave the
+// Healthchecks check to the run.
 func (s *Service) notifyZFSUnsuppressed(ev notify.Event) {
 	c, err := s.NotifyConfig()
 	if err != nil {
 		return
 	}
-	notify.Send(context.Background(), c, zfsDomain, ev)
+	notify.Send(notify.WithHealthchecksSuppressed(context.Background()), c, zfsDomain, ev)
 }
 
 // applyRetentionTags ages every member of a tree under its own identity tag and
