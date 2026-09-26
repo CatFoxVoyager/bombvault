@@ -65,6 +65,26 @@ describe("plural forms in the tables", () => {
     expect(labelled).toContain("errorPanel.count");
     expect(labelled).toContain("settings.dbDumpsOffConfirm");
     expect(labelled).toContain("dbdump.importStops");
+    for (const key of [
+      "recovery.zfsFound",
+      "zfs.discovered",
+      "zfs.notInItem",
+      "zfs.unusedZvols",
+      "zfs.code.leftover-snapshots",
+      "zfs.membersSummary",
+      "zfs.skippedCount",
+      "zfs.excludesCount",
+      "zfs.excludeMatches",
+      "zfs.leftovers",
+      "zfs.sweepRemaining",
+      "zfs.safety.title",
+      "zfs.deleteKeptSafety",
+      "zfs.add.unusedZvols",
+      "zfs.add.hiddenLegacy",
+      "zfs.add.truncated",
+    ]) {
+      expect(labelled).toContain(key);
+    }
   });
 
   it.each(Object.entries(locales))("locale %s offers only categories it uses", (code, table) => {

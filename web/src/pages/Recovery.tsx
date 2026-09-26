@@ -2101,7 +2101,7 @@ export default function Recovery() {
                 <> {t("recovery.filesFound").replace("{f}", String(discovered.files))}</>
               )}
               {discovered.zfs > 0 && (
-                <> {t("recovery.zfsFound").replace("{n}", String(discovered.zfs))}</>
+                <> {t("recovery.zfsFound", discovered.zfs)}</>
               )}
             </span>
           )}

@@ -18,7 +18,7 @@ export interface ZFSCodeVars {
   leftoverCount?: number;
 }
 
-type Translate = (key: TranslationKey) => string;
+type Translate = (key: TranslationKey, n?: number) => string;
 
 export const ZFS_CODE_KEY = {
   ok: "zfs.code.ok",
@@ -161,7 +161,10 @@ export function zfsCodeSentence(t: Translate, code: string, vars: ZFSCodeVars = 
   // A run can name a dataset that has left the tree, and its mountpoint went
   // with it.
   if (code === "not-visible" && !vars.hostMountpoint) return tLtr(t, "zfs.notVisibleNoPath");
-  let text = tLtr(t, ZFS_CODE_KEY[code]);
+  // A sentence built around {n} takes the plural form its count needs.
+  const countField = ZFS_CODE_VARS[code]?.n;
+  const count = countField === undefined ? undefined : Number(vars[countField] ?? 0);
+  let text = tLtr((key) => t(key, count), ZFS_CODE_KEY[code]);
   for (const [placeholder, field] of Object.entries(ZFS_CODE_VARS[code] ?? {})) {
     const value = vars[field];
     const filled = Array.isArray(value) ? value.join(", ") : String(value ?? "");

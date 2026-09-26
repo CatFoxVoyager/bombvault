@@ -372,7 +372,7 @@ export function ZFSDatasetTree({
         {node.legacy > 0 && (
           <div role="presentation" style={{ paddingInlineStart: (node.depth + 1) * 16 }}>
             <p className="text-caption text-carbon-textMuted">
-              {t("zfs.add.hiddenLegacy").replace("{n}", String(node.legacy))}
+              {t("zfs.add.hiddenLegacy", node.legacy)}
             </p>
           </div>
         )}

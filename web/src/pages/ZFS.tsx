@@ -90,7 +90,7 @@ export function ZFS() {
         push(t("common.discoverSkipped").replace("{list}", res.skipped.join(", ")), "warn");
       }
       if (res.ok) {
-        push(t("zfs.discovered").replace("{n}", String(res.discovered ?? 0)), "success");
+        push(t("zfs.discovered", res.discovered ?? 0), "success");
       } else {
         push(res.error ?? t("common.discoverFailed"), "fail");
         setShakeDiscover((n) => n + 1);
@@ -220,7 +220,7 @@ export function ZFS() {
 
       {notInItem > 0 && (
         <p className="flex items-center gap-2 text-xs text-carbon-textMuted">
-          {t("zfs.notInItem").replace("{n}", String(notInItem))}
+          {t("zfs.notInItem", notInItem)}
           <Button
             label={t("zfs.addDatasets")}
             labelKey="zfs.addDatasets"
@@ -231,7 +231,7 @@ export function ZFS() {
       )}
       {unusedZvols > 0 && (
         <p className="flex items-center gap-1.5 text-xs text-carbon-textMuted">
-          {t("zfs.unusedZvols").replace("{n}", String(unusedZvols))}
+          {t("zfs.unusedZvols", unusedZvols)}
           <InfoBubble tip={t("zfs.unusedZvolsHint")} />
         </p>
       )}

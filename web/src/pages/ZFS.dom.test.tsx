@@ -6,7 +6,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { AdvancedProvider } from "../lib/advanced";
-import { I18nProvider, en } from "../lib/i18n";
+import { I18nProvider, countText, en } from "../lib/i18n";
 import { ToastProvider } from "../lib/toast";
 import type {
   Run,
@@ -190,7 +190,7 @@ describe("ZFS page", () => {
     expect(screen.getByRole("button", { name: en["containers.backupNow"] })).toBeTruthy();
     expect(screen.getByRole("button", { name: en["common.edit"] })).toBeTruthy();
     expect(screen.getByRole("button", { name: en["common.delete"] })).toBeTruthy();
-    expect(screen.getByText(en["zfs.membersSummary"].replace("{n}", "1"))).toBeTruthy();
+    expect(screen.getByText(countText(en["zfs.membersSummary"], "en", 1))).toBeTruthy();
   });
 
   it("uses no native select anywhere", async () => {
@@ -283,8 +283,8 @@ describe("ZFS page", () => {
       }),
     ];
     await renderWithItems();
-    expect(screen.getByText(en["zfs.skippedCount"].replace("{n}", "1"))).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: en["zfs.membersSummary"].replace("{n}", "3") }));
+    expect(screen.getByText(countText(en["zfs.skippedCount"], "en", 1))).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: countText(en["zfs.membersSummary"], "en", 3) }));
     expect(screen.getByText(en["zfs.member.new"])).toBeTruthy();
     expect(screen.getByText(en["zfs.code.key-not-loaded"])).toBeTruthy();
   });
@@ -492,7 +492,7 @@ describe("ZFS page", () => {
     fireEvent.click(screen.getByRole("button", { name: en["common.delete"] }));
     fireEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: en["common.delete"] }));
     await waitFor(() => expect(calls).toContain("delete:z1:false"));
-    expect(await screen.findByText(en["zfs.deleteKeptSafety"].replace("{n}", "2"))).toBeTruthy();
+    expect(await screen.findByText(countText(en["zfs.deleteKeptSafety"], "en", 2))).toBeTruthy();
   });
 
   it("names the containers an interrupted snapshot left stopped", async () => {
@@ -505,7 +505,7 @@ describe("ZFS page", () => {
   it("sweeps the leftover snapshots from its own banner", async () => {
     items = [item({ leftoverCount: 3 })];
     await renderWithItems();
-    expect(screen.getByText(en["zfs.leftovers"].replace("{n}", "3"))).toBeTruthy();
+    expect(screen.getByText(countText(en["zfs.leftovers"], "en", 3))).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: en["zfs.removeLeftovers"] }));
     await waitFor(() => expect(calls).toContain("sweep:z1"));
   });
@@ -521,9 +521,9 @@ describe("ZFS page", () => {
       },
     ];
     await renderWithItems();
-    fireEvent.click(screen.getByRole("button", { name: en["zfs.safety.title"].replace("{n}", "1") }));
+    fireEvent.click(screen.getByRole("button", { name: countText(en["zfs.safety.title"], "en", 1) }));
     await waitFor(() => expect(calls).toContain("safety:z1"));
-    const list = await screen.findByRole("list", { name: en["zfs.safety.title"].replace("{n}", "1") });
+    const list = await screen.findByRole("list", { name: countText(en["zfs.safety.title"], "en", 1) });
     expect(within(list).getByText(/bombvault-prerestore-20260101120000/)).toBeTruthy();
     fireEvent.click(within(list).getByRole("button", { name: en["common.delete"] }));
     fireEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: en["common.delete"] }));
@@ -544,12 +544,12 @@ describe("ZFS page", () => {
     ];
     await renderWithItems();
     expect(screen.getByText(en["zfs.safety.old"])).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: en["zfs.safety.title"].replace("{n}", "1") }));
-    const list = await screen.findByRole("list", { name: en["zfs.safety.title"].replace("{n}", "1") });
+    fireEvent.click(screen.getByRole("button", { name: countText(en["zfs.safety.title"], "en", 1) }));
+    const list = await screen.findByRole("list", { name: countText(en["zfs.safety.title"], "en", 1) });
     fireEvent.click(within(list).getByRole("button", { name: en["common.delete"] }));
     fireEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: en["common.delete"] }));
     await waitFor(() => expect(screen.queryByText(en["zfs.safety.old"])).toBeNull());
-    expect(screen.queryByText(en["zfs.safety.title"].replace("{n}", "1"))).toBeNull();
+    expect(screen.queryByText(countText(en["zfs.safety.title"], "en", 1))).toBeNull();
   });
 
   it("offers to remove an item whose root is gone", async () => {
@@ -569,15 +569,15 @@ describe("ZFS page", () => {
   it("counts the volumes no VM uses and says what becomes of them", async () => {
     hostCounts = { notInItem: 4, unusedZvols: 2 };
     await renderWithItems();
-    expect(await screen.findByText(en["zfs.notInItem"].replace("{n}", "4"))).toBeTruthy();
-    expect(screen.getByText(en["zfs.unusedZvols"].replace("{n}", "2"))).toBeTruthy();
+    expect(await screen.findByText(countText(en["zfs.notInItem"], "en", 4))).toBeTruthy();
+    expect(screen.getByText(countText(en["zfs.unusedZvols"], "en", 2))).toBeTruthy();
     expect(screen.getByLabelText(en["zfs.unusedZvolsHint"])).toBeTruthy();
   });
 
   it("leaves the volume line out when every volume belongs to a VM", async () => {
     hostCounts = { notInItem: 4, unusedZvols: 0 };
     await renderWithItems();
-    await screen.findByText(en["zfs.notInItem"].replace("{n}", "4"));
+    await screen.findByText(countText(en["zfs.notInItem"], "en", 4));
     expect(screen.queryByText(/Volumes not used by any VM/)).toBeNull();
   });
 
@@ -651,7 +651,7 @@ describe("ZFS page", () => {
   it("offers the add dialog next to the count of datasets in no item", async () => {
     hostCounts = { notInItem: 3, unusedZvols: 0 };
     await renderWithItems();
-    const note = (await screen.findByText(en["zfs.notInItem"].replace("{n}", "3"))).closest("p");
+    const note = (await screen.findByText(countText(en["zfs.notInItem"], "en", 3))).closest("p");
     fireEvent.click(within(note as HTMLElement).getByRole("button", { name: en["zfs.addDatasets"] }));
     expect(await screen.findByRole("dialog", { name: en["zfs.add.title"] })).toBeTruthy();
   });

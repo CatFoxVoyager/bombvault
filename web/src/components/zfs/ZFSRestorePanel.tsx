@@ -255,7 +255,7 @@ export function ZFSRestorePanel({
 
   const pointOptions = points.map((p) => ({
     value: p.stamp,
-    label: `${new Date(p.time * 1000).toLocaleString()} · ${t("zfs.membersSummary").replace("{n}", String(p.members.length))}`,
+    label: `${new Date(p.time * 1000).toLocaleString()} · ${t("zfs.membersSummary", p.members.length)}`,
   }));
 
   const datasetOptions = [

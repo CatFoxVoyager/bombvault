@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { en } from "./i18n";
+import { countText, en } from "./i18n";
 import {
   ZFS_CODE_KEY,
   ZFS_CODE_VARS,
@@ -66,6 +66,16 @@ describe("every placeholder has a source", () => {
       "/mnt/cache/appdata",
     );
     expect(zfsCodeSentence(t, "name-too-long", { max: 255, names: ["a", "b"] })).toContain("a, b");
+  });
+
+  it("takes the plural form its count needs", () => {
+    const t = (key: string, n?: number) => countText(en[key as keyof typeof en], "en", n);
+    expect(zfsCodeSentence(t, "leftover-snapshots", { leftoverCount: 1 })).toBe(
+      "1 leftover BombVault snapshot on the server",
+    );
+    expect(zfsCodeSentence(t, "leftover-snapshots", { leftoverCount: 3 })).toBe(
+      "3 leftover BombVault snapshots on the server",
+    );
   });
 
   it("names a code it does not know instead of dropping it", () => {

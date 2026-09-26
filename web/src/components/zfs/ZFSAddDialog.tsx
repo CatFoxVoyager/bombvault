@@ -237,7 +237,7 @@ export function ZFSAddDialog({ onClose, onAdded }: { onClose: () => void; onAdde
                       className="w-64 max-w-full rounded-control bg-carbon-surface2 px-3 py-1.5 text-sm text-carbon-text glim-field-focus"
                     />
                     <span className="text-xs text-carbon-textMuted">
-                      {t("zfs.add.selected").replace("{n}", String(selected.size))}
+                      {t("zfs.add.selected", selected.size)}
                     </span>
                   </div>
 
@@ -254,13 +254,13 @@ export function ZFSAddDialog({ onClose, onAdded }: { onClose: () => void; onAdde
 
                   {host.unusedZvols > 0 && (
                     <p className="flex items-center gap-1.5 text-xs text-carbon-textMuted">
-                      {t("zfs.add.unusedZvols").replace("{n}", String(host.unusedZvols))}
+                      {t("zfs.add.unusedZvols", host.unusedZvols)}
                       <InfoBubble tip={t("zfs.unusedZvolsHint")} />
                     </p>
                   )}
                   {host.truncated && (
                     <p className="text-xs text-carbon-textMuted">
-                      {t("zfs.add.truncated").replace("{n}", String(entries.length))}
+                      {t("zfs.add.truncated", entries.length)}
                     </p>
                   )}
 

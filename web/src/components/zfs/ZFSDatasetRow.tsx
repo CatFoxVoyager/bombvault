@@ -212,7 +212,7 @@ function ZFSSafetySection({ item, t, onRefresh }: { item: ZFSDatasetView; t: T; 
   const [open, setOpen] = useState(false);
   const [snapshots, setSnapshots] = useState<ZFSSafetySnapshot[]>([]);
 
-  const title = t("zfs.safety.title").replace("{n}", String(item.safetyCount));
+  const title = t("zfs.safety.title", item.safetyCount);
 
   function load() {
     listZFSSafetySnapshots(item.id)
@@ -354,7 +354,7 @@ function ZFSExcludesEditor({ item, t, onSaved }: { item: ZFSDatasetView; t: T; o
         <p key={row.pattern} className="text-caption text-carbon-textMuted">
           <span dir="ltr" className="font-mono text-start">{row.pattern}</span>
           {": "}
-          {t("zfs.excludesCount").replace("{n}", String(row.matches))}
+          {t("zfs.excludeMatches", row.matches)}
           {row.sample.length > 0 && ` (${row.sample.join(", ")})`}
         </p>
       ))}
@@ -727,10 +727,10 @@ export function ZFSDatasetRow({
       return;
     }
     if (res.safetyRemaining) {
-      push(t("zfs.deleteKeptSafety").replace("{n}", String(res.safetyRemaining)), "warn");
+      push(t("zfs.deleteKeptSafety", res.safetyRemaining), "warn");
     }
     if (res.leftoversRemaining) {
-      push(t("zfs.sweepRemaining").replace("{n}", String(res.leftoversRemaining)), "warn");
+      push(t("zfs.sweepRemaining", res.leftoversRemaining), "warn");
     }
     onRefresh();
   }
@@ -741,7 +741,7 @@ export function ZFSDatasetRow({
       const res = await sweepZFSDataset(item.id);
       const remaining = res.remaining ?? 0;
       if (res.ok && remaining === 0) push(t("zfs.sweepDone"), "success");
-      else push(t("zfs.sweepRemaining").replace("{n}", String(remaining)), "warn");
+      else push(t("zfs.sweepRemaining", remaining), "warn");
       onRefresh();
     } catch (err) {
       push(failText(t, err), "fail");
@@ -767,7 +767,7 @@ export function ZFSDatasetRow({
             <ItemAnomalyBadge item={anomaly} enabled={anomalyEnabled} t={t} />
             {item.excludes.length > 0 && (
               <Badge tone="neutral" wrap>
-                {t("zfs.excludesCount").replace("{n}", String(item.excludes.length))}
+                {t("zfs.excludesCount", item.excludes.length)}
               </Badge>
             )}
             {runFailed && (
@@ -870,7 +870,7 @@ export function ZFSDatasetRow({
 
       {item.leftoverCount > 0 && (
         <p className="flex items-center gap-1.5 text-xs text-statusWarn">
-          {t("zfs.leftovers").replace("{n}", String(item.leftoverCount))}
+          {t("zfs.leftovers", item.leftoverCount)}
           <InfoBubble tip={t("zfs.leftoversHint")} />
           <Button
             label={t("zfs.removeLeftovers")}
@@ -885,7 +885,7 @@ export function ZFSDatasetRow({
 
       {skipped.length > 0 && (
         <p className="flex items-center gap-1.5 text-xs text-statusWarn">
-          {t("zfs.skippedCount").replace("{n}", String(skipped.length))}
+          {t("zfs.skippedCount", skipped.length)}
           <InfoBubble tip={skipped.map((m) => m.dataset).join(", ")} />
         </p>
       )}
@@ -898,7 +898,7 @@ export function ZFSDatasetRow({
           className="flex items-center gap-1.5 self-start text-xs text-carbon-textSub hover:text-carbon-text"
         >
           <IconDisclosure open={membersOpen} />
-          {t("zfs.membersSummary").replace("{n}", String(item.members.length))}
+          {t("zfs.membersSummary", item.members.length)}
         </button>
         {membersOpen && (
           <ZFSMemberList members={item.members} root={item.dataset} t={t} series={series} targetId={item.id} />

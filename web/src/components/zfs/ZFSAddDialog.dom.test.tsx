@@ -5,7 +5,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { AdvancedProvider } from "../../lib/advanced";
-import { I18nProvider, en } from "../../lib/i18n";
+import { I18nProvider, countText, en } from "../../lib/i18n";
 import { ToastProvider } from "../../lib/toast";
 import type { ZFSCreateItem, ZFSCreateResult, ZFSHostDataset, ZFSHostResult } from "../../lib/api";
 
@@ -200,7 +200,7 @@ describe("ZFS add dialog", () => {
       ),
     ).toBeTruthy();
     fireEvent.click(within(dialog).getByRole("button", { name: en["zfs.add.asItem"] }));
-    expect(await screen.findByText(en["zfs.add.selected"].replace("{n}", "1"))).toBeTruthy();
+    expect(await screen.findByText(countText(en["zfs.add.selected"], "en", 1))).toBeTruthy();
   });
 
   it("offers no switch for a volume and says what becomes of it", async () => {
@@ -218,7 +218,7 @@ describe("ZFS add dialog", () => {
     expect(within(volume as HTMLElement).queryByRole("switch")).toBeNull();
     expect(within(volume as HTMLElement).getByText(en["zfs.add.vmVolume"])).toBeTruthy();
     expect(screen.getByText(en["zfs.add.unusedZvol"])).toBeTruthy();
-    expect(screen.getByText(en["zfs.add.unusedZvols"].replace("{n}", "1"))).toBeTruthy();
+    expect(screen.getByText(countText(en["zfs.add.unusedZvols"], "en", 1))).toBeTruthy();
     expect(screen.getByLabelText(en["zfs.unusedZvolsHint"])).toBeTruthy();
   });
 
@@ -232,7 +232,7 @@ describe("ZFS add dialog", () => {
       { hiddenLegacy: 2 },
     );
     await openDialog();
-    expect(screen.getByText(en["zfs.add.hiddenLegacy"].replace("{n}", "2"))).toBeTruthy();
+    expect(screen.getByText(countText(en["zfs.add.hiddenLegacy"], "en", 2))).toBeTruthy();
     expect(screen.queryByText("l1")).toBeNull();
   });
 

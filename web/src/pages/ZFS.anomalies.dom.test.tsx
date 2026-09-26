@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { AdvancedProvider } from "../lib/advanced";
-import { I18nProvider, en } from "../lib/i18n";
+import { I18nProvider, countText, en } from "../lib/i18n";
 import { isolateLtr } from "../lib/ltrFragments";
 import { ToastProvider } from "../lib/toast";
 import { AnomalyProvider } from "../lib/useAnomalies";
@@ -166,7 +166,7 @@ describe("ZFS page anomalies", () => {
     const itemBadge = await screen.findByRole("link", { name: badgeLabel(ROOT, 1) });
     expect(itemBadge.getAttribute("href")).toBe("/anomalies?scope=item:z1#findings");
 
-    fireEvent.click(screen.getByRole("button", { name: en["zfs.membersSummary"].replace("{n}", "2") }));
+    fireEvent.click(screen.getByRole("button", { name: countText(en["zfs.membersSummary"], "en", 2) }));
     const childLine = screen.getByRole("link", { name: badgeLabel(CHILD, 1) }).closest("li") as HTMLElement;
     expect(within(childLine).getByText(en["anomaly.retentionPaused"])).toBeTruthy();
     expect(screen.queryByRole("link", { name: badgeLabel(ROOT, 0) })).toBeNull();
