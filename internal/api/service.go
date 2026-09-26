@@ -4236,11 +4236,6 @@ func (s *Service) ReplicateOffsiteAfterBulk(ctx context.Context, domain string) 
 // it is already off site, and one restic process cannot hold two clouds'
 // credentials at once.
 func (s *Service) replicateOffsite(ctx context.Context, domain string, settings store.Settings, mode restic.Mode, localRepo string) {
-	// A cancelled or stalled run copies nothing: the copy would fail at once
-	// and be recorded as a failed off-site run of its own.
-	if ctx.Err() != nil {
-		return
-	}
 	if bulkReplicateSuppressed(ctx) {
 		return // scheduled multi-item run: replicated once after the whole loop (#95)
 	}
@@ -4259,6 +4254,20 @@ func (s *Service) replicateOffsite(ctx context.Context, domain string, settings 
 	if alreadyOffSite(ref) {
 		log.Printf("api: offsite %s: this item's repository is remote and is already off site; not copied again", domain) //nolint:gosec // G706: domain is a fixed literal
 		return
+	}
+	// The local backup is written by now. A cancel, the stall guard or the hour
+	// cap that ended its context during the retention must not cost the fresh
+	// snapshot its copy, so the copy gets a hold of its own that only the
+	// process stop ends early.
+	if ctx.Err() != nil {
+		if s.IsShuttingDown() {
+			log.Printf("api: offsite %s: not copied, BombVault is shutting down; the next copy catches up", domain) //nolint:gosec // G706: domain is a fixed literal
+			return
+		}
+		held, cancel := backupHoldCtx(ctx)
+		defer cancel()
+		defer context.AfterFunc(s.StopContext(), cancel)()
+		ctx = held
 	}
 	// The skip list of the WHOLE domain, even though this hook copies exactly one
 	// repository. It is not this hook's report - it never surfaces one, it only
