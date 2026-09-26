@@ -2639,6 +2639,44 @@ func (h *Handler) rejectSettingsPathOnNamedRepo(v settingsView, cur store.Settin
 	return ""
 }
 
+// applyOffsiteSettings writes the form's off-site fields onto cur. The GET hands
+// out locations with any embedded credential replaced by the redaction marker,
+// so a location that still carries it keeps the stored one; writing it back
+// would destroy the stored password on the next unrelated save.
+func applyOffsiteSettings(cur *store.Settings, v settingsView) {
+	keepLocation := func(incoming, stored string) string {
+		if locationRedacted(incoming) {
+			return stored
+		}
+		return incoming
+	}
+	cur.ContainersOffsite = keepLocation(v.ContainersOffsite, cur.ContainersOffsite)
+	cur.VMsOffsite = keepLocation(v.VMsOffsite, cur.VMsOffsite)
+	cur.FlashOffsite = keepLocation(v.FlashOffsite, cur.FlashOffsite)
+	cur.ConfigOffsite = keepLocation(v.ConfigOffsite, cur.ConfigOffsite)
+	cur.FilesOffsite = keepLocation(v.FilesOffsite, cur.FilesOffsite)
+	cur.ZFSOffsite = keepLocation(v.ZFSOffsite, cur.ZFSOffsite)
+	cur.ContainersOffsiteSchedule = v.ContainersOffsiteSchedule
+	cur.VMsOffsiteSchedule = v.VMsOffsiteSchedule
+	cur.FlashOffsiteSchedule = v.FlashOffsiteSchedule
+	cur.ConfigOffsiteSchedule = v.ConfigOffsiteSchedule
+	cur.FilesOffsiteSchedule = v.FilesOffsiteSchedule
+	cur.ZFSOffsiteSchedule = v.ZFSOffsiteSchedule
+	cur.OffsiteRetentionKeepLast = max(0, v.OffsiteRetentionKeepLast)
+	cur.OffsiteRetentionKeepDaily = max(0, v.OffsiteRetentionKeepDaily)
+	cur.OffsiteRetentionKeepWeekly = max(0, v.OffsiteRetentionKeepWeekly)
+	cur.OffsiteRetentionKeepMonthly = max(0, v.OffsiteRetentionKeepMonthly)
+	cur.OffsiteLimitUpload = max(0, v.OffsiteLimitUpload)
+	cur.OffsiteLimitDownload = max(0, v.OffsiteLimitDownload)
+	cur.ContainersOffsiteImmutable = v.ContainersOffsiteImmutable
+	cur.VMsOffsiteImmutable = v.VMsOffsiteImmutable
+	cur.FlashOffsiteImmutable = v.FlashOffsiteImmutable
+	cur.ConfigOffsiteImmutable = v.ConfigOffsiteImmutable
+	cur.FilesOffsiteImmutable = v.FilesOffsiteImmutable
+	cur.ZFSOffsiteImmutable = v.ZFSOffsiteImmutable
+	cur.OffsiteGrowthBudgetGB = max(0, v.OffsiteGrowthBudgetGB)
+}
+
 // rejectInvalidSettingsPaths validates every repo location a settings row
 // carries: the restore folder is always local, a remote backend (rclone:/s3:/
 // rest:/sftp:/b2:) is accepted verbatim, an unprefixed remote-looking value is
@@ -2780,6 +2818,17 @@ func (h *Handler) handlePutSettings(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": msg})
 		return
 	}
+	next := cur
+	applyOffsiteSettings(&next, v)
+	adoptMsg, adoptErr := h.svc.rejectAdoptionOverOwnSettings(next)
+	if adoptErr != nil {
+		writeJSON(w, http.StatusOK, failEnvelope(adoptErr))
+		return
+	}
+	if adoptMsg != "" {
+		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": adoptMsg})
+		return
+	}
 
 	// Validate each cadence parses (backup schedules + off-site + drills +
 	// tamper-test schedules).
@@ -2876,30 +2925,7 @@ func (h *Handler) handlePutSettings(w http.ResponseWriter, r *http.Request) {
 		cur.FilesPath = v.FilesPath
 		cur.ZFSPath = v.ZFSPath
 		cur.RestoreFolder = v.RestoreFolder
-		// keepLocation: the GET now hands out these locations with any embedded
-		// credential replaced by the redaction marker, so every client's
-		// baseline carries the redacted form. Writing that back verbatim would
-		// destroy the stored password on the next unrelated save. A location
-		// that still carries the marker therefore keeps the stored one, exactly
-		// as the settings IMPORT already resolves a redacted location.
-		keepLocation := func(incoming, stored string) string {
-			if locationRedacted(incoming) {
-				return stored
-			}
-			return incoming
-		}
-		cur.ContainersOffsite = keepLocation(v.ContainersOffsite, cur.ContainersOffsite)
-		cur.VMsOffsite = keepLocation(v.VMsOffsite, cur.VMsOffsite)
-		cur.FlashOffsite = keepLocation(v.FlashOffsite, cur.FlashOffsite)
-		cur.ConfigOffsite = keepLocation(v.ConfigOffsite, cur.ConfigOffsite)
-		cur.FilesOffsite = keepLocation(v.FilesOffsite, cur.FilesOffsite)
-		cur.ZFSOffsite = keepLocation(v.ZFSOffsite, cur.ZFSOffsite)
-		cur.ContainersOffsiteSchedule = v.ContainersOffsiteSchedule
-		cur.VMsOffsiteSchedule = v.VMsOffsiteSchedule
-		cur.FlashOffsiteSchedule = v.FlashOffsiteSchedule
-		cur.ConfigOffsiteSchedule = v.ConfigOffsiteSchedule
-		cur.FilesOffsiteSchedule = v.FilesOffsiteSchedule
-		cur.ZFSOffsiteSchedule = v.ZFSOffsiteSchedule
+		applyOffsiteSettings(cur, v)
 		cur.ContainersSchedule = v.ContainersSchedule
 		cur.VMsSchedule = v.VMsSchedule
 		cur.FlashSchedule = v.FlashSchedule
@@ -2914,12 +2940,6 @@ func (h *Handler) handlePutSettings(w http.ResponseWriter, r *http.Request) {
 		cur.RetentionKeepDaily = max(0, v.RetentionKeepDaily)
 		cur.RetentionKeepWeekly = max(0, v.RetentionKeepWeekly)
 		cur.RetentionKeepMonthly = max(0, v.RetentionKeepMonthly)
-		cur.OffsiteRetentionKeepLast = max(0, v.OffsiteRetentionKeepLast)
-		cur.OffsiteRetentionKeepDaily = max(0, v.OffsiteRetentionKeepDaily)
-		cur.OffsiteRetentionKeepWeekly = max(0, v.OffsiteRetentionKeepWeekly)
-		cur.OffsiteRetentionKeepMonthly = max(0, v.OffsiteRetentionKeepMonthly)
-		cur.OffsiteLimitUpload = max(0, v.OffsiteLimitUpload)
-		cur.OffsiteLimitDownload = max(0, v.OffsiteLimitDownload)
 		// Clamped to the machine's own thread count: a number above it is not a
 		// cap at all, and a negative one is meaningless. 0 stays 0 (= every core).
 		cur.BackupCores = min(max(0, v.BackupCores), runtime.NumCPU())
@@ -2929,13 +2949,6 @@ func (h *Handler) handlePutSettings(w http.ResponseWriter, r *http.Request) {
 		cur.DrillsSubsetPct = max(1, min(100, v.DrillsSubsetPct))
 		cur.OffsiteDrillsEnabled = v.OffsiteDrillsEnabled
 		cur.RecoveryKitAck = v.RecoveryKitAck
-		cur.ContainersOffsiteImmutable = v.ContainersOffsiteImmutable
-		cur.VMsOffsiteImmutable = v.VMsOffsiteImmutable
-		cur.FlashOffsiteImmutable = v.FlashOffsiteImmutable
-		cur.ConfigOffsiteImmutable = v.ConfigOffsiteImmutable
-		cur.FilesOffsiteImmutable = v.FilesOffsiteImmutable
-		cur.ZFSOffsiteImmutable = v.ZFSOffsiteImmutable
-		cur.OffsiteGrowthBudgetGB = max(0, v.OffsiteGrowthBudgetGB)
 		cur.TamperTestSchedule = v.TamperTestSchedule
 		cur.DRDrillTarget = strings.TrimSpace(v.DRDrillTarget)
 		cur.DRDrillTargetVM = strings.TrimSpace(v.DRDrillTargetVM)

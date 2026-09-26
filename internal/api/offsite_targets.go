@@ -1,7 +1,9 @@
 package api
 
 import (
+	"fmt"
 	"log"
+	"slices"
 	"strings"
 
 	"github.com/junkerderprovinz/bombvault/internal/store"
@@ -79,6 +81,41 @@ func (s *Service) syncPrimaryOffsiteTarget(domain string, settings store.Setting
 	}
 	_, err = s.store.UpsertOffsiteTarget(t)
 	return err
+}
+
+// rejectAdoptionOverOwnSettings refuses off-site settings under which
+// syncPrimaryOffsiteTarget would take over an additional target as a domain's
+// primary and replace settings the user gave that target, such as its
+// append-only flag. It returns a user-facing sentence, or "".
+func (s *Service) rejectAdoptionOverOwnSettings(settings store.Settings) (string, error) {
+	for _, d := range offsiteConfigDomains {
+		repo := offsiteRepoFromSettings(d, settings)
+		if repo == "" {
+			continue
+		}
+		targets, err := s.store.OffsiteTargetsForDomain(d)
+		if err != nil {
+			return "", err
+		}
+		if slices.ContainsFunc(targets, func(t store.OffsiteTarget) bool { return t.SortOrder == 0 }) {
+			continue
+		}
+		i := slices.IndexFunc(targets, func(t store.OffsiteTarget) bool { return t.Repo == repo })
+		if i < 0 || sameOffsitePolicy(targets[i], settingsOffsiteTarget(d, settings, repo)) {
+			continue
+		}
+		return fmt.Sprintf("the %s off-site repository is the additional target %q, which has settings of its own: remove that target or give it the off-site settings first", d, targets[i].Name), nil
+	}
+	return "", nil
+}
+
+// sameOffsitePolicy reports whether a and b replicate, age and limit the same way.
+func sameOffsitePolicy(a, b store.OffsiteTarget) bool {
+	return a.Immutable == b.Immutable && a.Schedule == b.Schedule &&
+		a.RetentionKeepLast == b.RetentionKeepLast && a.RetentionKeepDaily == b.RetentionKeepDaily &&
+		a.RetentionKeepWeekly == b.RetentionKeepWeekly && a.RetentionKeepMonthly == b.RetentionKeepMonthly &&
+		a.LimitUpload == b.LimitUpload && a.LimitDownload == b.LimitDownload &&
+		a.GrowthBudgetGB == b.GrowthBudgetGB
 }
 
 // nextOffsiteSortOrder returns a sort order after every target of domain, so a
