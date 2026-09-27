@@ -342,6 +342,14 @@ describe("a client's setup dialog", () => {
     }
   });
 
+  it("says in the key step why no key can be made here", async () => {
+    vi.stubGlobal("location", new URL("https://backup.example.com/settings"));
+    await renderCard(payload({ authEnabled: false, hostAllowsKeys: false }));
+
+    await openClient("Cursor", en["mcp.kindEditor"]);
+    expect(dialogText()).toContain(en["mcp.needsPasswordForHost"].replace("{host}", "backup.example.com"));
+  });
+
   it("hands an unused new key back to the card when it closes", async () => {
     await renderCard(payload());
     listMcpKeys.mockRejectedValueOnce(new Error("503"));

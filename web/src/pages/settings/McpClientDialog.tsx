@@ -29,7 +29,8 @@ export interface McpClientDialogProps {
   keys: McpKeyView[];
   /** The address, endpoint and certificate state the snippets are written for. */
   snippetBase: Omit<McpSnippetInput, "key">;
-  canMint: boolean;
+  /** Why this address may not create a key; undefined when it may. */
+  mintRefused?: string;
   /** Why no further key can be made, while the active keys are at the limit. */
   limitNote?: string;
   /** The (i) of the permission switch, with the server's limits filled in. */
@@ -62,7 +63,7 @@ export function McpClientDialog({
   client,
   keys,
   snippetBase,
-  canMint,
+  mintRefused,
   limitNote,
   allowStartHint,
   onCreate,
@@ -72,6 +73,7 @@ export function McpClientDialog({
   t,
 }: McpClientDialogProps) {
   const other = client.id === OTHER_CLIENT.id;
+  const canMint = mintRefused === undefined;
   const name = other ? t("mcp.otherClient") : client.name;
   const cardRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<"new" | "pick">(
@@ -247,6 +249,11 @@ export function McpClientDialog({
       if (usable.length > 0) items.push({ id: "pick", label: t("mcp.existingKey") });
       content = (
         <>
+          {items.length === 0 && (
+            <p className="rounded-card bg-statusWarnBgSoft px-3 py-2.5 text-sm leading-relaxed text-carbon-text">
+              {mintRefused}
+            </p>
+          )}
           {items.length > 1 && (
             <Selector
               items={items}

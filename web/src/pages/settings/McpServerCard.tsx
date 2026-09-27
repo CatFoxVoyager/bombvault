@@ -662,7 +662,7 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
           client={dialog}
           keys={keys}
           snippetBase={snippetBase}
-          canMint={canMint}
+          mintRefused={canMint ? undefined : t("mcp.needsPasswordForHost").replace("{host}", host)}
           limitNote={keys.length >= limit ? t("mcp.limitReached", limit) : undefined}
           allowStartHint={t("mcp.allowStartHint")
             .replace("{n}", String(data.startsPerHour))
