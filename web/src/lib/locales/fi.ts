@@ -1865,6 +1865,7 @@ const fi: Partial<Translations> = {
   "oauth.asks": "{name} pyytää pääsyä tämän BombVaultin MCP-palvelimeen.",
   "oauth.reads": "Se voi silloin lukea varmuuskopioiden tilan: mikä on suojattu, milloin kukin kohde on viimeksi varmuuskopioitu, miten ajot sujuivat ja mitä niiden lokit kertovat. Palautukset, poistot ja asetukset pysyvät tässä verkkokäyttöliittymässä.",
   "oauth.unverified": "BombVault ei tunne tätä asiakasta, ja yllä olevan nimen se on valinnut itse. Salli se vain, jos aloitit tämän kirjautumisen itse juuri äsken.",
+  "oauth.startedHere": "Salli se vain, jos aloitit tämän kirjautumisen itse juuri äsken. Jonkun toisen lähettämä linkki voisi yhdistää hänen {name}-tilinsä BombVaultiisi.",
   "oauth.loopback": "Tämä asiakas palaa ohjelmaan omalla tietokoneellasi, ja mikä tahansa siellä oleva ohjelma voisi esiintyä sinä. Salli se vain, jos aloitit tämän kirjautumisen itse juuri äsken.",
   "oauth.allowStartHint": "Kun tämä on päällä, asiakas voi myös käynnistää varmuuskopioita ja perua käynnistämänsä, samoin rajoin kuin avain. Varmuuskopio pysäyttää käynnissä olevat kontit, kunnes se valmistuu. Voit muuttaa tätä myöhemmin sen ruudussa kohdassa Asetukset, MCP-palvelin.",
   "oauth.accept": "Salli",

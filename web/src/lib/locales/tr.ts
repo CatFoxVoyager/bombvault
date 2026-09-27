@@ -1865,6 +1865,7 @@ const tr: Partial<Translations> = {
   "oauth.asks": "{name}, bu BombVault'un MCP sunucusuna erişim istiyor.",
   "oauth.reads": "Yedeklerin durumunu okuyabilecek: neyin korunduğunu, her ögenin en son ne zaman yedeklendiğini, çalıştırmaların nasıl geçtiğini ve günlüklerinde ne yazdığını. Geri yüklemeler, silmeler ve ayarlar bu web arayüzünde kalır.",
   "oauth.unverified": "BombVault bu istemciyi tanımıyor ve yukarıdaki adı istemci kendisi seçti. Yalnızca bu oturum açmayı az önce kendin başlattıysan izin ver.",
+  "oauth.startedHere": "Yalnızca bu oturum açmayı az önce kendin başlattıysan izin ver. Başka birinin gönderdiği bir bağlantı, onun {name} hesabını senin BombVault'una bağlayabilir.",
   "oauth.loopback": "Bu istemci kendi bilgisayarındaki bir programa geri döner ve oradaki herhangi bir program kendini o gibi gösterebilir. Yalnızca bu oturum açmayı az önce kendin başlattıysan izin ver.",
   "oauth.allowStartHint": "Bu açıkken istemci ayrıca yedekleme başlatabilir ve kendi başlattıklarını iptal edebilir, bir anahtarla aynı sınırlar içinde. Yedekleme bitene kadar çalışan konteynerleri durdurur. Bunu daha sonra Ayarlar, MCP sunucusu altında onun kutucuğundan değiştirebilirsin.",
   "oauth.accept": "İzin ver",

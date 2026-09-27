@@ -1868,6 +1868,7 @@ const hu: Partial<Translations> = {
   "oauth.asks": "A(z) {name} hozzáférést kér ennek a BombVaultnak az MCP-szerveréhez.",
   "oauth.reads": "Olvashatja a mentések állapotát: mi védett, mikor mentették utoljára az egyes elemeket, hogyan zajlottak a futások és mit mondanak a naplóik. A visszaállítás, a törlés és a beállítások ebben a webes felületben maradnak.",
   "oauth.unverified": "A BombVault nem ismeri ezt a klienst, és a fenti nevet ő maga választotta. Csak akkor engedélyezd, ha ezt a bejelentkezést az imént te magad indítottad.",
+  "oauth.startedHere": "Csak akkor engedélyezd, ha ezt a bejelentkezést az imént te magad indítottad. Egy másvalakitől kapott link az ő {name}-fiókját kapcsolhatja a BombVaultodhoz.",
   "oauth.loopback": "Ez a kliens egy programhoz tér vissza a saját gépeden, és bármelyik ottani program kiadhatja magát érte. Csak akkor engedélyezd, ha ezt a bejelentkezést az imént te magad indítottad.",
   "oauth.allowStartHint": "Ha ez be van kapcsolva, a kliens mentéseket is indíthat, és megszakíthatja az általa indítottakat, ugyanazokkal a korlátokkal, mint egy kulcs. A mentés leállítja a futó konténereket, amíg el nem készül. Később megváltoztathatod a csempéjén a Beállítások, MCP-szerver alatt.",
   "oauth.accept": "Engedélyezés",

@@ -1865,6 +1865,7 @@ const fr: Partial<Translations> = {
   "oauth.asks": "{name} demande l'accès au serveur MCP de ce BombVault.",
   "oauth.reads": "Il pourra lire l'état des sauvegardes : ce qui est protégé, quand chaque élément a été sauvegardé pour la dernière fois, comment se sont passées les exécutions et ce que disent leurs journaux. Les restaurations, les suppressions et les réglages restent dans cette interface web.",
   "oauth.unverified": "BombVault ne connaît pas ce client, et c'est lui qui a choisi le nom ci-dessus. Ne l'autorise que si tu viens de lancer cette connexion toi-même.",
+  "oauth.startedHere": "Ne l'autorise que si tu viens de lancer cette connexion toi-même. Un lien envoyé par quelqu'un d'autre pourrait relier son compte {name} à ton BombVault.",
   "oauth.loopback": "Ce client revient vers un programme de ton propre ordinateur, et n'importe quel programme sur celui-ci pourrait se faire passer pour lui. Ne l'autorise que si tu viens de lancer cette connexion toi-même.",
   "oauth.allowStartHint": "Activé, le client peut aussi lancer des sauvegardes et annuler celles qu'il a lancées, avec les mêmes limites qu'une clé. Une sauvegarde arrête les conteneurs en marche jusqu'à ce qu'elle soit terminée. Tu peux changer cela plus tard sur sa tuile, sous Réglages, Serveur MCP.",
   "oauth.accept": "Autoriser",

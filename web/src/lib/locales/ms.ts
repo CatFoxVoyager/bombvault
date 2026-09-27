@@ -2089,6 +2089,7 @@ const ms: Partial<Translations> = {
   "oauth.asks": "{name} meminta akses ke pelayan MCP BombVault ini.",
   "oauth.reads": "Ia akan dapat membaca status sandaran: apa yang dilindungi, bila setiap item terakhir disandarkan, bagaimana setiap larian berjalan dan apa yang dikatakan lognya. Pemulihan, pemadaman dan tetapan kekal dalam antara muka web ini.",
   "oauth.unverified": "BombVault tidak mengenali klien ini, dan nama di atas dipilihnya sendiri. Benarkan hanya jika anda sendiri baru sahaja memulakan log masuk ini.",
+  "oauth.startedHere": "Benarkan hanya jika anda sendiri baru sahaja memulakan log masuk ini. Pautan yang dihantar oleh orang lain boleh menyambungkan akaun {name} miliknya kepada BombVault anda.",
   "oauth.loopback": "Klien ini kembali ke program pada komputer anda sendiri, dan mana-mana program di sana boleh menyamar sebagai klien ini. Benarkan hanya jika anda sendiri baru sahaja memulakan log masuk ini.",
   "oauth.allowStartHint": "Apabila ini dihidupkan, klien juga boleh memulakan sandaran dan membatalkan yang dimulakannya, dengan had yang sama seperti kunci. Sandaran menghentikan kontena yang sedang berjalan sehingga selesai. Anda boleh mengubahnya kemudian pada jubinnya di Tetapan, Pelayan MCP.",
   "oauth.accept": "Benarkan",

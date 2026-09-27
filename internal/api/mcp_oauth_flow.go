@@ -68,7 +68,7 @@ func (h *Handler) handleOAuthRegister(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, uri := range body.RedirectURIs {
 		if !validRedirectURI(uri) {
-			oauthError(w, http.StatusBadRequest, "invalid_redirect_uri", "a redirect URI must use https, or http to a loopback address, and carry no fragment")
+			oauthError(w, http.StatusBadRequest, "invalid_redirect_uri", "a redirect URI must use https, or http to a loopback address, name its host in ASCII (punycode for an international name) and carry no fragment")
 			return
 		}
 	}

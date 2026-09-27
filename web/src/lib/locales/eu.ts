@@ -2089,6 +2089,7 @@ const eu: Partial<Translations> = {
   "oauth.asks": "{name}(e)k BombVault honen MCP zerbitzarirako sarbidea eskatzen du.",
   "oauth.reads": "Babeskopien egoera irakurri ahal izango du: zer dagoen babestuta, elementu bakoitza noiz kopiatu zen azkenekoz, exekuzioak nola joan ziren eta haien egunkariek zer dioten. Leheneratzeak, ezabaketak eta ezarpenak web interfaze honetan geratzen dira.",
   "oauth.unverified": "BombVaultek ez du bezero hau ezagutzen, eta goiko izena berak aukeratu du. Baimendu soilik saio-hasiera hau zuk zeuk hasi berri baduzu.",
+  "oauth.startedHere": "Baimendu soilik saio-hasiera hau zuk zeuk hasi berri baduzu. Beste norbaitek bidalitako esteka batek haren {name} kontua zure BombVaultera konekta lezake.",
   "oauth.loopback": "Bezero hau zure ordenagailuko programa batera itzultzen da, eta bertako edozein programak itxuraz haren burua egin lezake. Baimendu soilik saio-hasiera hau zuk zeuk hasi berri baduzu.",
   "oauth.allowStartHint": "Hau aktibatuta, bezeroak babeskopiak ere abiarazi ditzake eta berak abiarazitakoak bertan behera utzi, gako baten muga berberekin. Babeskopia batek martxan dauden edukiontziak gelditzen ditu amaitu arte. Geroago alda dezakezu bere lauzan, Ezarpenak, MCP zerbitzaria atalean.",
   "oauth.accept": "Baimendu",

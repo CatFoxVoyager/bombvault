@@ -1857,6 +1857,7 @@ const vi: Partial<Translations> = {
   "oauth.asks": "{name} xin quyền truy cập máy chủ MCP của BombVault này.",
   "oauth.reads": "Nó sẽ đọc được trạng thái sao lưu: những gì được bảo vệ, mỗi mục được sao lưu lần cuối khi nào, các lần chạy diễn ra thế nào và nhật ký của chúng ghi gì. Khôi phục, xóa và cài đặt vẫn nằm trong giao diện web này.",
   "oauth.unverified": "BombVault không biết ứng dụng khách này, và tên ở trên do nó tự chọn. Chỉ cho phép nếu bạn vừa tự bắt đầu lần đăng nhập này.",
+  "oauth.startedHere": "Chỉ cho phép nếu bạn vừa tự bắt đầu lần đăng nhập này. Một liên kết do người khác gửi có thể kết nối tài khoản {name} của họ với BombVault của bạn.",
   "oauth.loopback": "Ứng dụng khách này quay về một chương trình trên chính máy tính của bạn, và bất kỳ chương trình nào ở đó cũng có thể giả làm nó. Chỉ cho phép nếu bạn vừa tự bắt đầu lần đăng nhập này.",
   "oauth.allowStartHint": "Khi bật, ứng dụng khách còn có thể bắt đầu sao lưu và hủy các bản sao lưu nó đã bắt đầu, với cùng giới hạn như một khóa. Một bản sao lưu sẽ dừng các container đang chạy cho đến khi xong. Bạn có thể đổi điều này sau trên ô của nó trong Cài đặt, Máy chủ MCP.",
   "oauth.accept": "Cho phép",

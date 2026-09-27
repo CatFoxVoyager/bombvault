@@ -1865,6 +1865,7 @@ const da: Partial<Translations> = {
   "oauth.asks": "{name} beder om adgang til MCP-serveren i denne BombVault.",
   "oauth.reads": "Den kan så læse backupstatus: hvad der er beskyttet, hvornår hvert element sidst blev taget backup af, hvordan kørslerne gik, og hvad deres logs siger. Gendannelser, sletninger og indstillinger bliver i denne webgrænseflade.",
   "oauth.unverified": "BombVault kender ikke denne klient, og navnet ovenfor har den selv valgt. Giv kun adgang, hvis du lige selv har startet dette login.",
+  "oauth.startedHere": "Giv kun adgang, hvis du lige selv har startet dette login. Et link, som en anden har sendt dig, kan forbinde vedkommendes {name}-konto med dit BombVault.",
   "oauth.loopback": "Denne klient vender tilbage til et program på din egen computer, og ethvert program der kunne udgive sig for at være den. Giv kun adgang, hvis du lige selv har startet dette login.",
   "oauth.allowStartHint": "Når dette er slået til, kan klienten også starte backups og annullere dem, den har startet, med de samme grænser som en nøgle. En backup stopper kørende containere, indtil den er færdig. Du kan ændre det senere på dens flise under Indstillinger, MCP-server.",
   "oauth.accept": "Tillad",

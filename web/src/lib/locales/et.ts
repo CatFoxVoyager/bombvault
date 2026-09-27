@@ -2089,6 +2089,7 @@ const et: Partial<Translations> = {
   "oauth.asks": "{name} palub juurdepääsu selle BombVaulti MCP-serverile.",
   "oauth.reads": "See saab siis lugeda varunduse olekut: mis on kaitstud, millal iga üksust viimati varundati, kuidas käivitused läksid ja mida nende logid ütlevad. Taastamised, kustutamised ja seaded jäävad sellesse veebiliidesesse.",
   "oauth.unverified": "BombVault ei tunne seda klienti ja ülaloleva nime valis ta ise. Luba see ainult siis, kui alustasid selle sisselogimise just äsja ise.",
+  "oauth.startedHere": "Luba see ainult siis, kui alustasid selle sisselogimise just äsja ise. Kellegi teise saadetud link võib ühendada tema konto teenuses {name} sinu BombVaultiga.",
   "oauth.loopback": "See klient naaseb programmi juurde sinu enda arvutis ja iga programm seal võiks end tema pähe esitleda. Luba see ainult siis, kui alustasid selle sisselogimise just äsja ise.",
   "oauth.allowStartHint": "Kui see on sees, saab klient ka varundusi käivitada ja enda käivitatuid tühistada, samade piirangutega nagu võti. Varundus peatab töötavad konteinerid, kuni see lõpeb. Saad seda hiljem muuta tema paanil jaotises Seaded, MCP-server.",
   "oauth.accept": "Luba",

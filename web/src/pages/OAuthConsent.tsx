@@ -149,9 +149,10 @@ export function OAuthConsent() {
               <span className="glim-client-mark glim-client-mark-lg" aria-hidden="true">
                 <ClientMark client={known ?? OTHER_CLIENT} />
               </span>
+              {/* Nothing here is cut short: a lookalike host differs in the part an ellipsis would hide. */}
               <span className="flex min-w-0 flex-col">
-                <span className="truncate text-sm font-semibold text-carbon-text">{name}</span>
-                <span dir="ltr" className="truncate text-start text-xs text-carbon-textSub">
+                <span className="break-words text-sm font-semibold text-carbon-text">{name}</span>
+                <span dir="ltr" className="break-all text-start text-xs text-carbon-textSub">
                   {client.redirectHost}
                 </span>
               </span>
@@ -160,7 +161,9 @@ export function OAuthConsent() {
             <div className="flex flex-col gap-3 text-sm leading-relaxed text-carbon-text">
               <p>{t("oauth.asks").replace("{name}", name)}</p>
               <p className="text-carbon-textSub">{t("oauth.reads")}</p>
-              {!known && <p className="text-carbon-textSub">{t("oauth.unverified")}</p>}
+              <p className="text-carbon-textSub">
+                {known ? t("oauth.startedHere").replace("{name}", known.name) : t("oauth.unverified")}
+              </p>
               {client.loopback && (
                 <p className="rounded-card bg-statusWarnBgSoft px-3 py-2.5 text-carbon-text">{t("oauth.loopback")}</p>
               )}

@@ -1857,6 +1857,7 @@ const zh: Partial<Translations> = {
   "oauth.asks": "{name} 请求访问此 BombVault 的 MCP 服务器。",
   "oauth.reads": "它将能读取备份状态：哪些内容受保护、每个项目最近一次备份的时间、各次运行的结果以及它们的日志内容。恢复、删除和设置仍留在这个网页界面中。",
   "oauth.unverified": "BombVault 不认识这个客户端，上面的名称是它自己起的。只有在你刚刚亲自发起这次登录时才允许。",
+  "oauth.startedHere": "只有在你刚刚亲自发起这次登录时才允许。别人发来的链接可能会把他的 {name} 账号连接到你的 BombVault。",
   "oauth.loopback": "这个客户端会返回你自己电脑上的一个程序，那里的任何程序都可能冒充它。只有在你刚刚亲自发起这次登录时才允许。",
   "oauth.allowStartHint": "开启后，客户端还可以启动备份并取消它启动的备份，限制与密钥相同。备份会停止正在运行的容器，直到完成。之后可在设置、MCP 服务器中它的卡片上更改。",
   "oauth.accept": "允许",

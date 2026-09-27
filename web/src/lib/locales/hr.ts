@@ -2089,6 +2089,7 @@ const hr: Partial<Translations> = {
   "oauth.asks": "{name} traži pristup MCP poslužitelju ovog BombVaulta.",
   "oauth.reads": "Moći će čitati stanje sigurnosnih kopija: što je zaštićeno, kada je svaka stavka zadnji put kopirana, kako su prošla pokretanja i što kažu njihovi zapisnici. Vraćanja, brisanja i postavke ostaju u ovom web sučelju.",
   "oauth.unverified": "BombVault ne poznaje ovog klijenta, a ime iznad izabrao je sam. Dopusti ga samo ako si ovu prijavu upravo sam pokrenuo.",
+  "oauth.startedHere": "Dopusti ga samo ako si ovu prijavu upravo sam pokrenuo. Poveznica koju ti je poslao netko drugi mogla bi njegov račun na {name} povezati s tvojim BombVaultom.",
   "oauth.loopback": "Ovaj se klijent vraća programu na tvom vlastitom računalu, a svaki program ondje mogao bi se predstaviti kao on. Dopusti ga samo ako si ovu prijavu upravo sam pokrenuo.",
   "oauth.allowStartHint": "Kad je ovo uključeno, klijent može i pokretati sigurnosne kopije i otkazati one koje je pokrenuo, s istim ograničenjima kao ključ. Sigurnosna kopija zaustavlja pokrenute kontejnere dok ne završi. To možeš kasnije promijeniti na njegovoj pločici pod Postavke, MCP poslužitelj.",
   "oauth.accept": "Dopusti",

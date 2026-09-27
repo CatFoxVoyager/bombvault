@@ -369,6 +369,45 @@ func TestRegistrationIsLimitedPerAddress(t *testing.T) {
 	}
 }
 
+func TestOnlyTheVendorsOwnCallbackMarksAClientAsKnown(t *testing.T) {
+	e := newOAuthEnv(t)
+	for uri, want := range map[string]string{
+		chatgptReturn: "chatgpt",
+		"https://claude.ai/api/mcp/auth_callback": "claudeai",
+		"https://claude.ai/share/anything":        "",
+		"https://chatgpt.com/g/some-gpt":          "",
+	} {
+		client := e.publicClient(t, "Claude", uri)
+		c, _ := e.consent(t, authorizeQuery(client, uri))["client"].(map[string]any)
+		if c["known"] != want {
+			t.Errorf("a client returning to %s is shown as known=%v, want %q", uri, c["known"], want)
+		}
+	}
+}
+
+func TestARedirectHostMustBeWrittenInASCII(t *testing.T) {
+	e := newOAuthEnv(t)
+	for uri, ok := range map[string]bool{
+		"https://cl\u0430ude.ai/api/mcp/auth_callback": false,
+		"https://cl%61ude.ai/api/mcp/auth_callback":    false,
+		"https://xn--clude-9ve.ai/cb":                  true,
+	} {
+		w, m := e.register(t, fmt.Sprintf(`{"redirect_uris":[%q],"token_endpoint_auth_method":"none"}`, uri), "")
+		if ok != (w.Code == http.StatusCreated) {
+			t.Errorf("%s: %d %v", uri, w.Code, m)
+		}
+	}
+}
+
+func TestAClientNameLosesInvisibleAndDirectionCharacters(t *testing.T) {
+	e := newOAuthEnv(t)
+	client := e.publicClient(t, "Chat\u200dGPT\u202e\u2066", chatgptReturn)
+	c, _ := e.consent(t, authorizeQuery(client, chatgptReturn))["client"].(map[string]any)
+	if c["name"] != "ChatGPT" {
+		t.Fatalf("the consent page shows the name as %+q", c["name"])
+	}
+}
+
 func TestRegistrationIsLimitedPerIPv6Network(t *testing.T) {
 	e := newOAuthEnv(t)
 	body := `{"redirect_uris":["https://chatgpt.com/cb"],"token_endpoint_auth_method":"none"}`

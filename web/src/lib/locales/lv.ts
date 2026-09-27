@@ -2089,6 +2089,7 @@ const lv: Partial<Translations> = {
   "oauth.asks": "{name} lūdz piekļuvi šī BombVault MCP serverim.",
   "oauth.reads": "Tas varēs lasīt dublējumu stāvokli: kas ir aizsargāts, kad katrs vienums pēdējo reizi dublēts, kā gāja izpildes un ko saka to žurnāli. Atjaunošana, dzēšana un iestatījumi paliek šajā tīmekļa saskarnē.",
   "oauth.unverified": "BombVault nepazīst šo klientu, un augstāk redzamo nosaukumu tas izvēlējās pats. Atļauj to tikai tad, ja šo pieteikšanos tikko sāki pats.",
+  "oauth.startedHere": "Atļauj to tikai tad, ja šo pieteikšanos tikko sāki pats. Kāda cita atsūtīta saite varētu savienot viņa {name} kontu ar tavu BombVault.",
   "oauth.loopback": "Šis klients atgriežas pie programmas tavā datorā, un jebkura programma tur varētu uzdoties par to. Atļauj to tikai tad, ja šo pieteikšanos tikko sāki pats.",
   "oauth.allowStartHint": "Ja tas ir ieslēgts, klients var arī sākt dublēšanu un atcelt paša sāktās, ar tādiem pašiem ierobežojumiem kā atslēgai. Dublēšana aptur strādājošos konteinerus, līdz tā beidzas. To vari mainīt vēlāk tā flīzē sadaļā Iestatījumi, MCP serveris.",
   "oauth.accept": "Atļaut",

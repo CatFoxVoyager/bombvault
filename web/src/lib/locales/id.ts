@@ -2089,6 +2089,7 @@ const id: Partial<Translations> = {
   "oauth.asks": "{name} meminta akses ke server MCP BombVault ini.",
   "oauth.reads": "Ia akan bisa membaca status cadangan: apa yang terlindungi, kapan tiap item terakhir dicadangkan, bagaimana jalannya setiap eksekusi, dan apa isi lognya. Pemulihan, penghapusan, dan pengaturan tetap di antarmuka web ini.",
   "oauth.unverified": "BombVault tidak mengenal klien ini, dan nama di atas dipilihnya sendiri. Izinkan hanya jika kamu sendiri baru saja memulai login ini.",
+  "oauth.startedHere": "Izinkan hanya jika kamu sendiri baru saja memulai login ini. Tautan yang dikirim orang lain bisa menghubungkan akun {name} miliknya ke BombVault-mu.",
   "oauth.loopback": "Klien ini kembali ke sebuah program di komputermu sendiri, dan program apa pun di sana bisa menyamar sebagai klien ini. Izinkan hanya jika kamu sendiri baru saja memulai login ini.",
   "oauth.allowStartHint": "Jika ini aktif, klien juga bisa memulai pencadangan dan membatalkan yang ia mulai, dengan batas yang sama seperti kunci. Pencadangan menghentikan kontainer yang berjalan sampai selesai. Kamu bisa mengubahnya nanti di ubinnya pada Pengaturan, Server MCP.",
   "oauth.accept": "Izinkan",

@@ -1865,6 +1865,7 @@ const sv: Partial<Translations> = {
   "oauth.asks": "{name} ber om åtkomst till MCP-servern i denna BombVault.",
   "oauth.reads": "Den kan då läsa säkerhetskopieringens status: vad som är skyddat, när varje objekt senast säkerhetskopierades, hur körningarna gick och vad deras loggar säger. Återställningar, borttagningar och inställningar stannar i detta webbgränssnitt.",
   "oauth.unverified": "BombVault känner inte till den här klienten, och namnet ovan har den valt själv. Tillåt den bara om du precis själv startade den här inloggningen.",
+  "oauth.startedHere": "Tillåt den bara om du precis själv startade den här inloggningen. En länk som någon annan skickat dig kan koppla deras {name}-konto till ditt BombVault.",
   "oauth.loopback": "Den här klienten återvänder till ett program på din egen dator, och vilket program som helst där kan utge sig för att vara den. Tillåt den bara om du precis själv startade den här inloggningen.",
   "oauth.allowStartHint": "När detta är på kan klienten också starta säkerhetskopieringar och avbryta dem den startade, med samma gränser som en nyckel. En säkerhetskopiering stoppar körande containrar tills den är klar. Du kan ändra det senare på dess ruta under Inställningar, MCP-server.",
   "oauth.accept": "Tillåt",

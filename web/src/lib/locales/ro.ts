@@ -1868,6 +1868,7 @@ const ro: Partial<Translations> = {
   "oauth.asks": "{name} cere acces la serverul MCP al acestui BombVault.",
   "oauth.reads": "Va putea citi starea copiilor: ce este protejat, când a fost copiat ultima dată fiecare element, cum au decurs rulările și ce spun jurnalele lor. Restaurările, ștergerile și setările rămân în această interfață web.",
   "oauth.unverified": "BombVault nu cunoaște acest client, iar numele de mai sus și l-a ales singur. Permite-l doar dacă tocmai ai pornit tu această autentificare.",
+  "oauth.startedHere": "Permite-l doar dacă tocmai ai pornit tu această autentificare. Un link trimis de altcineva i-ar putea conecta contul {name} la BombVault-ul tău.",
   "oauth.loopback": "Acest client se întoarce la un program de pe propriul tău calculator, iar orice program de acolo s-ar putea da drept el. Permite-l doar dacă tocmai ai pornit tu această autentificare.",
   "oauth.allowStartHint": "Cu această opțiune activă, clientul poate și porni copii și anula copiile pornite de el, cu aceleași limite ca o cheie. O copie oprește containerele pornite până se termină. Poți schimba asta mai târziu pe placa sa, la Setări, Server MCP.",
   "oauth.accept": "Permite",

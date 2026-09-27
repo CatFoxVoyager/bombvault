@@ -2089,6 +2089,7 @@ const ca: Partial<Translations> = {
   "oauth.asks": "{name} demana accés al servidor MCP d'aquest BombVault.",
   "oauth.reads": "Podrà llegir l'estat de les còpies: què està protegit, quan es va copiar cada element per última vegada, com van anar les execucions i què diuen els seus registres. Les restauracions, les supressions i la configuració es queden en aquesta interfície web.",
   "oauth.unverified": "El BombVault no coneix aquest client, i el nom de dalt l'ha triat ell mateix. Permet-lo només si acabes d'iniciar tu mateix aquest accés.",
+  "oauth.startedHere": "Permet-lo només si acabes d'iniciar tu mateix aquest accés. Un enllaç que t'hagi enviat una altra persona podria connectar el seu compte de {name} al teu BombVault.",
   "oauth.loopback": "Aquest client torna a un programa del teu propi ordinador, i qualsevol programa d'allà podria fer-se passar per ell. Permet-lo només si acabes d'iniciar tu mateix aquest accés.",
   "oauth.allowStartHint": "Amb això activat, el client també pot iniciar còpies i cancel·lar les que ha iniciat, amb els mateixos límits que una clau. Una còpia atura els contenidors en marxa fins que acaba. Ho pots canviar més tard a la seva rajola, a Configuració, Servidor MCP.",
   "oauth.accept": "Permet",

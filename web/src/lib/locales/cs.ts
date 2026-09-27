@@ -1863,6 +1863,7 @@ const cs: Partial<Translations> = {
   "oauth.asks": "{name} žádá o přístup k MCP serveru tohoto BombVault.",
   "oauth.reads": "Bude moci číst stav záloh: co je chráněno, kdy byla každá položka naposledy zálohována, jak proběhly běhy a co říkají jejich logy. Obnovení, mazání a nastavení zůstávají v tomto webovém rozhraní.",
   "oauth.unverified": "BombVault tohoto klienta nezná a jméno výše si zvolil sám. Povol ho jen tehdy, pokud jsi toto přihlášení právě sám spustil.",
+  "oauth.startedHere": "Povol ho jen tehdy, pokud jsi toto přihlášení právě sám spustil. Odkaz, který ti poslal někdo jiný, by mohl s tvým BombVault propojit jeho účet {name}.",
   "oauth.loopback": "Tento klient se vrací k programu na tvém vlastním počítači a jakýkoli program tam by se za něj mohl vydávat. Povol ho jen tehdy, pokud jsi toto přihlášení právě sám spustil.",
   "oauth.allowStartHint": "Když je tohle zapnuté, může klient také spouštět zálohy a rušit ty, které spustil, se stejnými limity jako klíč. Záloha zastaví běžící kontejnery, dokud neskončí. Později to můžeš změnit na jeho dlaždici v Nastavení, MCP server.",
   "oauth.accept": "Povolit",

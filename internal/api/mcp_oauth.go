@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -113,31 +114,25 @@ func registrationKey(addr string) string {
 
 // oauthKnownClients are the clients the card and the consent page show with
 // their own mark. A client counts as one of them only when every redirect URI
-// it registered points at that vendor, because a name is whatever the caller
-// of the registration endpoint typed.
+// it registered is the vendor's own callback, because a name is whatever the
+// caller of the registration endpoint typed, and a vendor's domain also
+// serves pages its users write.
 var oauthKnownClients = []struct {
-	id    string
-	name  string
-	hosts []string
+	id        string
+	name      string
+	callbacks []string
 }{
-	{"chatgpt", "ChatGPT", []string{"chatgpt.com", "chat.openai.com"}},
-	{"claudeai", "Claude", []string{"claude.ai", "claude.com"}},
+	{"chatgpt", "ChatGPT", []string{"https://chatgpt.com/connector_platform_oauth_redirect"}},
+	{"claudeai", "Claude", []string{"https://claude.ai/api/mcp/auth_callback", "https://claude.com/api/mcp/auth_callback"}},
 }
 
 func knownOAuthClient(uris []string) string {
 	found := ""
-	for _, raw := range uris {
-		u, err := url.Parse(raw)
-		if err != nil || u.Scheme != "https" {
-			return ""
-		}
-		host := strings.ToLower(u.Hostname())
+	for _, uri := range uris {
 		id := ""
 		for _, k := range oauthKnownClients {
-			for _, h := range k.hosts {
-				if host == h {
-					id = k.id
-				}
+			if slices.Contains(k.callbacks, uri) {
+				id = k.id
 			}
 		}
 		if id == "" || (found != "" && found != id) {
@@ -216,13 +211,16 @@ func sameResource(given, want string) bool {
 
 // validRedirectURI reports whether a client may register uri: https with a
 // host, or plain http to a loopback address for a client on the user's own
-// machine, never with a fragment or credentials.
+// machine, never with a fragment or credentials. The host has to be plain
+// ASCII, punycode for an international name, so the consent page never shows
+// a lookalike of a familiar one.
 func validRedirectURI(uri string) bool {
 	if len(uri) > 512 || strings.Contains(uri, "#") {
 		return false
 	}
 	u, err := url.Parse(uri)
-	if err != nil || u.Opaque != "" || u.User != nil || u.Host == "" || u.Hostname() == "" {
+	if err != nil || u.Opaque != "" || u.User != nil || u.Host == "" || u.Hostname() == "" ||
+		strings.IndexFunc(u.Host, func(r rune) bool { return r > unicode.MaxASCII || r == '%' }) >= 0 {
 		return false
 	}
 	switch u.Scheme {
@@ -265,10 +263,11 @@ func loopbackMatch(registered, given string) bool {
 }
 
 // cleanClientName keeps what a client calls itself to 64 printable characters,
-// because the consent page and the tile show it.
+// because the consent page and the tile show it. Format characters go too:
+// they include the ones that reorder text or join letters invisibly.
 func cleanClientName(s string) string {
 	s = strings.Map(func(r rune) rune {
-		if unicode.IsControl(r) || r == utf8.RuneError {
+		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) || r == utf8.RuneError {
 			return -1
 		}
 		return r

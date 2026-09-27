@@ -2073,6 +2073,7 @@ const sl: Partial<Translations> = {
   "oauth.asks": "{name} prosi za dostop do strežnika MCP tega BombVault.",
   "oauth.reads": "Lahko bo bral stanje varnostnih kopij: kaj je zaščiteno, kdaj je bil vsak element nazadnje kopiran, kako so potekali zagoni in kaj pravijo njihovi dnevniki. Obnovitve, brisanja in nastavitve ostanejo v tem spletnem vmesniku.",
   "oauth.unverified": "BombVault tega odjemalca ne pozna, ime zgoraj pa si je izbral sam. Dovoli ga le, če si to prijavo pravkar začel sam.",
+  "oauth.startedHere": "Dovoli ga le, če si to prijavo pravkar začel sam. Povezava, ki ti jo je poslal nekdo drug, bi lahko njegov račun {name} povezala s tvojim BombVaultom.",
   "oauth.loopback": "Ta odjemalec se vrne k programu na tvojem lastnem računalniku, in vsak program tam bi se lahko izdajal zanj. Dovoli ga le, če si to prijavo pravkar začel sam.",
   "oauth.allowStartHint": "Ko je to vklopljeno, lahko odjemalec tudi zažene varnostne kopije in prekliče tiste, ki jih je zagnal, z enakimi omejitvami kot ključ. Varnostna kopija ustavi delujoče vsebnike, dokler ne konča. To lahko pozneje spremeniš na njegovi ploščici pod Nastavitve, strežnik MCP.",
   "oauth.accept": "Dovoli",

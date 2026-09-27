@@ -2089,6 +2089,7 @@ const lt: Partial<Translations> = {
   "oauth.asks": "{name} prašo prieigos prie šio BombVault MCP serverio.",
   "oauth.reads": "Jis galės skaityti atsarginių kopijų būseną: kas apsaugota, kada kiekvienas elementas paskutinį kartą nukopijuotas, kaip sekėsi paleidimams ir ką sako jų žurnalai. Atkūrimai, trynimai ir nustatymai lieka šioje žiniatinklio sąsajoje.",
   "oauth.unverified": "BombVault nepažįsta šio kliento, o viršuje esantį pavadinimą jis pasirinko pats. Leisk tik tada, jei šį prisijungimą ką tik pradėjai pats.",
+  "oauth.startedHere": "Leisk tik tada, jei šį prisijungimą ką tik pradėjai pats. Kito žmogaus atsiųsta nuoroda galėtų prie tavo BombVault prijungti jo {name} paskyrą.",
   "oauth.loopback": "Šis klientas grįžta į programą tavo paties kompiuteryje, ir bet kuri programa ten galėtų apsimesti juo. Leisk tik tada, jei šį prisijungimą ką tik pradėjai pats.",
   "oauth.allowStartHint": "Kai tai įjungta, klientas taip pat gali paleisti atsargines kopijas ir atšaukti savo paleistas, su tokiais pat apribojimais kaip raktas. Atsarginė kopija sustabdo veikiančius konteinerius, kol baigiasi. Tai gali pakeisti vėliau jo plytelėje skiltyje Nustatymai, MCP serveris.",
   "oauth.accept": "Leisti",

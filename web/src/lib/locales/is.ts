@@ -2089,6 +2089,7 @@ const is: Partial<Translations> = {
   "oauth.asks": "{name} biður um aðgang að MCP-þjóni þessa BombVault.",
   "oauth.reads": "Það getur þá lesið stöðu afritanna: hvað er varið, hvenær hvert atriði var síðast afritað, hvernig keyrslurnar gengu og hvað annálar þeirra segja. Endurheimtur, eyðingar og stillingar verða áfram í þessu vefviðmóti.",
   "oauth.unverified": "BombVault þekkir ekki þennan biðlara og nafnið hér að ofan valdi hann sjálfur. Leyfðu hann aðeins ef þú hófst þessa innskráningu sjálfur rétt í þessu.",
+  "oauth.startedHere": "Leyfðu hann aðeins ef þú hófst þessa innskráningu sjálfur rétt í þessu. Tengill sem einhver annar sendi þér gæti tengt {name}-aðgang hans við BombVault-ið þitt.",
   "oauth.loopback": "Þessi biðlari snýr aftur til forrits á þinni eigin tölvu og hvaða forrit sem er þar gæti þóst vera hann. Leyfðu hann aðeins ef þú hófst þessa innskráningu sjálfur rétt í þessu.",
   "oauth.allowStartHint": "Ef kveikt er á þessu getur biðlarinn líka ræst afritun og hætt við afritanir sem hann ræsti, með sömu takmörkum og lykill. Afritun stöðvar keyrandi gáma þar til henni lýkur. Þú getur breytt þessu seinna á reit hans undir Stillingar, MCP-þjónn.",
   "oauth.accept": "Leyfa",

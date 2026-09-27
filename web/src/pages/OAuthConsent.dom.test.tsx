@@ -66,6 +66,7 @@ describe("the OAuth consent page", () => {
     expect(getOAuthConsent).toHaveBeenCalledWith("?client_id=bvc_1&state=s");
     expect(screen.getByText(en["oauth.returnsTo"].replace("{host}", "chatgpt.com"))).toBeTruthy();
     expect(screen.queryByText(en["oauth.unverified"])).toBeNull();
+    expect(screen.getByText("chatgpt.com").className).not.toContain("truncate");
     const toggle = screen.getByRole("switch", { name: en["mcp.allowStart"] });
     expect(toggle.getAttribute("aria-checked")).toBe("false");
   });
@@ -96,6 +97,12 @@ describe("the OAuth consent page", () => {
     fireEvent.click(await screen.findByRole("button", { name: en["oauth.decline"] }));
     await waitFor(() => expect(answerOAuthConsent).toHaveBeenCalledWith("ticket-1", false, false));
     expect(assign).toHaveBeenCalledWith("https://chatgpt.com/cb?error=access_denied");
+  });
+
+  it("warns about a link from someone else even for a client it knows", async () => {
+    getOAuthConsent.mockResolvedValue(info());
+    render(<OAuthConsent />);
+    await screen.findByText(en["oauth.startedHere"].replace("{name}", "ChatGPT"));
   });
 
   it("warns about a client it does not know and about a loopback return", async () => {

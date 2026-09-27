@@ -1862,6 +1862,7 @@ const nl: Partial<Translations> = {
   "oauth.asks": "{name} vraagt toegang tot de MCP-server van deze BombVault.",
   "oauth.reads": "Het kan dan de back-upstatus lezen: wat beschermd is, wanneer elk item voor het laatst is geback-upt, hoe de runs verliepen en wat hun logs zeggen. Herstellen, verwijderen en instellingen blijven in deze webinterface.",
   "oauth.unverified": "BombVault kent deze client niet, en de naam hierboven heeft hij zelf gekozen. Sta hem alleen toe als je deze aanmelding zojuist zelf hebt gestart.",
+  "oauth.startedHere": "Sta hem alleen toe als je deze aanmelding zojuist zelf hebt gestart. Een link die iemand anders je stuurde, kan zijn {name}-account aan jouw BombVault koppelen.",
   "oauth.loopback": "Deze client keert terug naar een programma op je eigen computer, en elk programma daar zou zich als hem kunnen voordoen. Sta hem alleen toe als je deze aanmelding zojuist zelf hebt gestart.",
   "oauth.allowStartHint": "Staat dit aan, dan kan de client ook back-ups starten en de back-ups die hij startte annuleren, met dezelfde grenzen als een sleutel. Een back-up stopt draaiende containers tot hij klaar is. Je kunt dit later wijzigen op zijn tegel onder Instellingen, MCP-server.",
   "oauth.accept": "Toestaan",
