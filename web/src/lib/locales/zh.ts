@@ -1840,7 +1840,7 @@ const zh: Partial<Translations> = {
   "mcp.certEnv": "BombVault 使用自己的证书。如果 {app} 拒绝它，请把环境变量 {var} 设为下载文件的路径，然后重新启动 {app}。",
   "mcp.certEnvTip": "在你设置用户环境变量的地方设置它：Windows 在 设置、系统、关于、高级系统设置、环境变量 中；macOS 和 Linux 在你的 shell 配置文件中；容器则在其设置中，并把文件挂载进去。每当 BombVault 签发新证书时，都要重新下载。",
   "mcp.certSystem": "BombVault 使用自己的证书。如果 {app} 拒绝它，请把下载的文件添加到系统的受信任证书中，然后重新启动 {app}。",
-  "mcp.certSystemTip": "在 Windows 上，打开文件并依次选择 安装证书、当前用户、将所有的证书都放入下列存储、受信任的根证书颁发机构。在 macOS 上，用钥匙串访问把它加入登录钥匙串，并设为始终信任。在 Linux 上，以 .crt 扩展名复制到 /usr/local/share/ca-certificates，然后运行 update-ca-certificates。",
+  "mcp.certSystemTip": "在 Windows 上，把文件重命名为 bombvault-cert.crt，打开它并依次选择 安装证书、当前用户、将所有的证书都放入下列存储、受信任的根证书颁发机构。也可以带上文件路径运行 certutil -user -addstore Root。在 macOS 上，用钥匙串访问把它加入登录钥匙串，并设为始终信任。在 Linux 上，以 .crt 扩展名复制到 /usr/local/share/ca-certificates，然后运行 update-ca-certificates。",
   "mcp.certOwnList": "BombVault 使用自己的证书，而 {app} 按照自己的证书列表检查证书，这个列表无法添加内容。如果它拒绝 BombVault 的证书，请通过带有公开受信任证书的反向代理访问 BombVault。",
   "mcp.certOther": "BombVault 使用自己的证书。让客户端指向下载的文件，或把它添加到系统的受信任证书中。",
   "mcp.certOtherTip": "基于 Node.js 的客户端从 NODE_EXTRA_CA_CERTS 读取文件。大多数其他客户端使用系统信任的证书。绝不要关闭证书检查。",

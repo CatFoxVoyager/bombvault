@@ -1840,7 +1840,7 @@ const ja: Partial<Translations> = {
   "mcp.certEnv": "BombVault は独自の証明書を使います。{app} が拒否する場合は、環境変数 {var} にダウンロードしたファイルのパスを設定し、{app} を再起動してください。",
   "mcp.certEnvTip": "ユーザー環境変数を設定する場所で設定してください。Windows では 設定、システム、バージョン情報、システムの詳細設定、環境変数 で、macOS と Linux ではシェルのプロファイルで、コンテナーではその設定で、ファイルをマウントしたうえで設定します。BombVault が新しい証明書を発行したら、そのたびにダウンロードし直してください。",
   "mcp.certSystem": "BombVault は独自の証明書を使います。{app} が拒否する場合は、ダウンロードしたファイルをシステムの信頼された証明書に追加し、{app} を再起動してください。",
-  "mcp.certSystemTip": "Windows ではファイルを開き、証明書のインストール、現在のユーザー、証明書をすべて次のストアに配置する、信頼されたルート証明機関 を選びます。macOS ではキーチェーンアクセスでログインキーチェーンに追加し、常に信頼 に設定します。Linux では拡張子 .crt を付けて /usr/local/share/ca-certificates にコピーし、update-ca-certificates を実行します。",
+  "mcp.certSystemTip": "Windows ではファイル名を bombvault-cert.crt に変えてから開き、証明書のインストール、現在のユーザー、証明書をすべて次のストアに配置する、信頼されたルート証明機関 を選びます。または、ファイルのパスを付けて certutil -user -addstore Root を実行します。macOS ではキーチェーンアクセスでログインキーチェーンに追加し、常に信頼 に設定します。Linux では拡張子 .crt を付けて /usr/local/share/ca-certificates にコピーし、update-ca-certificates を実行します。",
   "mcp.certOwnList": "BombVault は独自の証明書を使いますが、{app} は追加できない独自のリストで証明書を確認します。BombVault の証明書が拒否される場合は、公的に信頼された証明書を持つリバースプロキシ経由で BombVault に接続してください。",
   "mcp.certOther": "BombVault は独自の証明書を使います。クライアントにダウンロードしたファイルを指定するか、システムの信頼された証明書に追加してください。",
   "mcp.certOtherTip": "Node.js 上のクライアントは NODE_EXTRA_CA_CERTS からファイルを読み込みます。ほとんどのほかのクライアントはシステムが信頼する証明書を使います。証明書の確認は決して無効にしないでください。",

@@ -1840,7 +1840,7 @@ const ko: Partial<Translations> = {
   "mcp.certEnv": "BombVault는 자체 인증서를 사용합니다. {app}이(가) 거부하면 환경 변수 {var}을(를) 내려받은 파일의 경로로 설정하고 {app}을(를) 다시 시작하세요.",
   "mcp.certEnvTip": "사용자 환경 변수를 설정하는 곳에서 설정하세요. Windows에서는 설정, 시스템, 정보, 고급 시스템 설정, 환경 변수에서, macOS와 Linux에서는 셸 프로필에서, 컨테이너에서는 파일을 마운트한 뒤 그 설정에서 설정합니다. BombVault가 새 인증서를 발급할 때마다 다시 내려받으세요.",
   "mcp.certSystem": "BombVault는 자체 인증서를 사용합니다. {app}이(가) 거부하면 내려받은 파일을 시스템의 신뢰할 수 있는 인증서에 추가하고 {app}을(를) 다시 시작하세요.",
-  "mcp.certSystemTip": "Windows에서는 파일을 열고 인증서 설치, 현재 사용자, 모든 인증서를 다음 저장소에 저장, 신뢰할 수 있는 루트 인증 기관을 차례로 고르세요. macOS에서는 키체인 접근에서 로그인 키체인에 추가하고 항상 신뢰로 설정하세요. Linux에서는 확장자 .crt로 /usr/local/share/ca-certificates에 복사하고 update-ca-certificates를 실행하세요.",
+  "mcp.certSystemTip": "Windows에서는 파일 이름을 bombvault-cert.crt로 바꾼 뒤 열고 인증서 설치, 현재 사용자, 모든 인증서를 다음 저장소에 저장, 신뢰할 수 있는 루트 인증 기관을 차례로 고르세요. 또는 파일 경로를 붙여 certutil -user -addstore Root를 실행하세요. macOS에서는 키체인 접근에서 로그인 키체인에 추가하고 항상 신뢰로 설정하세요. Linux에서는 확장자 .crt로 /usr/local/share/ca-certificates에 복사하고 update-ca-certificates를 실행하세요.",
   "mcp.certOwnList": "BombVault는 자체 인증서를 사용하지만 {app}은(는) 추가할 수 없는 자체 목록으로 인증서를 확인합니다. BombVault 인증서를 거부하면 공개적으로 신뢰되는 인증서를 갖춘 리버스 프록시를 거쳐 BombVault에 접근하세요.",
   "mcp.certOther": "BombVault는 자체 인증서를 사용합니다. 클라이언트에 내려받은 파일을 지정하거나 시스템의 신뢰할 수 있는 인증서에 추가하세요.",
   "mcp.certOtherTip": "Node.js 기반 클라이언트는 NODE_EXTRA_CA_CERTS에서 파일을 가져옵니다. 대부분의 다른 클라이언트는 시스템이 신뢰하는 인증서를 사용합니다. 인증서 확인은 절대 끄지 마세요.",
