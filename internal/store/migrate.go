@@ -2064,6 +2064,14 @@ CREATE INDEX IF NOT EXISTS idx_mcp_key_events_routine ON mcp_key_events(key_id, 
 		alreadySatisfied: columnPresent("mcp_keys", "client"),
 		sql:              `ALTER TABLE mcp_keys ADD COLUMN client TEXT NOT NULL DEFAULT '';`,
 	},
+	{
+		// The gate's own refusals name no tool, so mcp_key_events_routine left
+		// them under the cap of the starts and cancels, which a looping client
+		// then filled. They count as routine like every other refusal.
+		version: mcpActivityMigration + 3,
+		name:    "mcp_key_events_gate_refusals_routine",
+		sql:     `UPDATE mcp_key_events SET routine = 1 WHERE tool = '' AND outcome <> 'ok';`,
+	},
 }
 
 // dbDumpMigrationBase numbers the three database-dump columns from one place,

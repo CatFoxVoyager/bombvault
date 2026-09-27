@@ -335,7 +335,8 @@ func (h *Handler) touchMCPKey(k store.MCPKey, addr string, now time.Time) {
 
 // recordMCPRefusal puts a request the gate turned away into the key's log, at
 // most once per mcpTouchEvery for each key and reason, so a client looping on a
-// refusal does not keep the database busy writing about it.
+// refusal does not keep the database busy writing about it. Like a refused tool
+// call it goes under the routine cap, where it cannot push out a start.
 func (h *Handler) recordMCPRefusal(keyID, outcome string, now time.Time) {
 	mark := keyID + "|" + outcome
 	h.mcp.touchMu.Lock()
@@ -345,7 +346,7 @@ func (h *Handler) recordMCPRefusal(keyID, outcome string, now time.Time) {
 	}
 	h.mcp.touchMu.Unlock()
 	if !recent {
-		h.recordMCPEvent(keyID, store.MCPKeyEvent{At: now.Unix(), Outcome: outcome})
+		h.recordMCPEvent(keyID, store.MCPKeyEvent{At: now.Unix(), Outcome: outcome, Routine: true})
 	}
 }
 

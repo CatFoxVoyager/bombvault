@@ -87,6 +87,35 @@ func TestAKeysRefusedCallsDoNotPushItsStartOutOfTheLog(t *testing.T) {
 	}
 }
 
+// The gate turns a looping client away before any tool runs, and a month of
+// those refusals must not push out the backup the key started.
+func TestAKeysGateRefusalsDoNotPushItsStartOutOfTheLog(t *testing.T) {
+	h, router, repo, _ := newMCPGateHandler(t)
+	key, id := seedMCPKey(t, h, repo, "Laptop")
+	h.mcp.calls = newSlidingWindow(time.Minute, 1)
+	base := time.Date(2026, 9, 23, 10, 0, 0, 0, time.UTC)
+	h.mcp.now = func() time.Time { return base }
+	h.logMCPRunCall(mcpStartCaller(id, true), "start_backup", "ok", "run1")
+
+	for i := range store.MCPKeyEventsKept {
+		h.mcp.now = func() time.Time { return base.Add(time.Duration(i+1) * 61 * time.Second) }
+		if w := mcpInternalPost(router, key, `[`+mcpInternalInitialize+`]`, ""); w.Code != http.StatusBadRequest {
+			t.Fatalf("batch: status = %d, want 400", w.Code)
+		}
+		if w := mcpInternalPost(router, key, mcpInternalInitialize, ""); w.Code != http.StatusTooManyRequests {
+			t.Fatalf("over the budget: status = %d, want 429", w.Code)
+		}
+	}
+
+	events, err := repo.MCPKeyEvents(id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if last := events[len(events)-1]; last.Tool != "start_backup" {
+		t.Fatalf("the oldest event kept is %+v, want the start", last)
+	}
+}
+
 // A key's log on the settings card names every outcome in a sentence of its
 // own, and a code the card does not know shows up raw. So every code the tools
 // and the gate can log has to be in McpKeyLog.tsx.
