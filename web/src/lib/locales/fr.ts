@@ -1876,7 +1876,7 @@ const fr: Partial<Translations> = {
   "oauth.errorOff": "La connexion par OAuth n'est pas activée sur ce BombVault. Elle s'active sous Réglages, Serveur MCP.",
   "oauth.errorUnknownClient": "Ce client n'est pas enregistré ici, ou son enregistrement a expiré. Relance la connexion depuis le client.",
   "oauth.errorBadRedirect": "Cette demande indique une adresse de retour que le client n'a jamais enregistrée, donc BombVault ne t'y envoie pas.",
-  "oauth.errorInvalid": "Le client a demandé quelque chose que BombVault ne prend pas en charge. Tu es renvoyé vers lui avec une erreur.",
+  "oauth.errorInvalid": "Le client a demandé quelque chose que BombVault ne prend pas en charge, la connexion s'arrête donc ici.",
   "oauth.errorExpired": "Cette page a expiré. Relance la connexion depuis le client.",
   "oauth.errorBusy": "Trop de connexions sont en attente. Réessaie dans une minute.",
   "oauth.errorFailed": "La demande n'a pas pu être vérifiée. Recharge la page pour réessayer.",

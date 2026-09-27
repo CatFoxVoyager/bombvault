@@ -116,14 +116,17 @@ describe("the OAuth consent page", () => {
     expect(screen.queryByRole("button", { name: en["oauth.accept"] })).toBeNull();
   });
 
-  it("returns an unsupported request to the client the way the server says", async () => {
+  it("shows an unsupported request and stays on the page, whatever address comes with it", async () => {
     getOAuthConsent.mockResolvedValue({
       ok: false,
       code: "oauth-invalid-request",
-      redirect: "https://chatgpt.com/cb?error=invalid_request&state=s",
+      error: "x",
+      redirect: "https://attacker.example/fake-login?error=invalid_request",
     });
     render(<OAuthConsent />);
-    await waitFor(() => expect(assign).toHaveBeenCalledWith("https://chatgpt.com/cb?error=invalid_request&state=s"));
+    await screen.findByText(en["oauth.errorInvalid"]);
+    expect(assign).not.toHaveBeenCalled();
+    expect(screen.queryByText(en["oauth.returning"].replace("{host}", "attacker.example"))).toBeNull();
   });
 
   it("keeps Allow disabled while the grant limit is reached", async () => {

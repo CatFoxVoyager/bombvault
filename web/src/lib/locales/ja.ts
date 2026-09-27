@@ -1868,7 +1868,7 @@ const ja: Partial<Translations> = {
   "oauth.errorOff": "この BombVault では OAuth によるサインインがオンになっていません。設定、MCP サーバーでオンにできます。",
   "oauth.errorUnknownClient": "このクライアントはここに登録されていないか、登録の期限が切れています。クライアントからサインインをやり直してください。",
   "oauth.errorBadRedirect": "このリクエストは、クライアントが登録したことのない戻り先アドレスを指定しているため、BombVault はそこへ送りません。",
-  "oauth.errorInvalid": "クライアントが BombVault の対応していないことを求めました。エラーとともにクライアントへ戻ります。",
+  "oauth.errorInvalid": "クライアントが BombVault の対応していないことを求めたため、サインインはここで終わります。",
   "oauth.errorExpired": "このページは期限切れです。クライアントからサインインをやり直してください。",
   "oauth.errorBusy": "待機中のサインインが多すぎます。1 分後にもう一度お試しください。",
   "oauth.errorFailed": "リクエストを確認できませんでした。ページを再読み込みしてもう一度お試しください。",

@@ -2100,7 +2100,7 @@ const ca: Partial<Translations> = {
   "oauth.errorOff": "L'inici de sessió amb OAuth no està activat en aquest BombVault. S'activa a Configuració, Servidor MCP.",
   "oauth.errorUnknownClient": "Aquest client no està registrat aquí, o el seu registre ha caducat. Torna a iniciar l'accés des del client.",
   "oauth.errorBadRedirect": "Aquesta sol·licitud indica una adreça de retorn que el client no ha registrat mai, així que el BombVault no t'hi envia.",
-  "oauth.errorInvalid": "El client ha demanat una cosa que el BombVault no admet. Se't torna a ell amb un error.",
+  "oauth.errorInvalid": "El client ha demanat una cosa que el BombVault no admet, així que l'accés s'atura aquí.",
   "oauth.errorExpired": "Aquesta pàgina ha caducat. Torna a iniciar l'accés des del client.",
   "oauth.errorBusy": "Hi ha massa accessos esperant. Torna-ho a provar d'aquí a un minut.",
   "oauth.errorFailed": "No s'ha pogut comprovar la sol·licitud. Torna a carregar la pàgina per tornar-ho a provar.",

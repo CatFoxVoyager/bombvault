@@ -540,8 +540,7 @@ func TestATokenForAnotherResourceIsRefused(t *testing.T) {
 	client := e.publicClient(t, "ChatGPT", chatgptReturn)
 
 	m := e.consent(t, authorizeQuery(client, chatgptReturn, "resource", "https://other.example/mcp"))
-	back := mustURL(t, m["redirect"])
-	if m["ok"] != false || back.Query().Get("error") != "invalid_target" || back.Query().Get("iss") != oauthIssuer {
+	if m["ok"] != false || m["code"] != "oauth-invalid-request" || !strings.Contains(str(m, "error"), oauthResource) {
 		t.Fatalf("authorizing another resource gave %v", m)
 	}
 
@@ -619,14 +618,34 @@ func TestAuthorizeRequiresPKCEWithS256(t *testing.T) {
 		"no method":    authorizeQuery(client, chatgptReturn, "code_challenge_method", ""),
 		"token flow":   authorizeQuery(client, chatgptReturn, "response_type", "token"),
 	} {
-		m := e.consent(t, q)
-		back := mustURL(t, m["redirect"])
-		if m["ok"] != false || back.Query().Get("error") == "" || back.Query().Get("state") != "st-123" {
+		if m := e.consent(t, q); m["ok"] != false || m["code"] != "oauth-invalid-request" || m["ticket"] != nil {
 			t.Errorf("%s: %v", name, m)
 		}
 	}
 	if m := e.consent(t, authorizeQuery("bvc_unknown", chatgptReturn)); m["code"] != "oauth-unknown-client" || m["redirect"] != nil {
 		t.Errorf("an unknown client gave %v", m)
+	}
+}
+
+// Anybody can register a client with any https return address, so a request
+// the server refuses must not send the operator there: the sign-in page would
+// be a redirector that works right after the operator logged in.
+func TestARefusedAuthorizationRequestStaysOnTheSignInPage(t *testing.T) {
+	e := newOAuthEnv(t)
+	trap := "https://attacker.example/fake-login"
+	client := e.publicClient(t, "Anything", trap)
+	for name, q := range map[string]url.Values{
+		"token flow":     authorizeQuery(client, trap, "response_type", "token"),
+		"no challenge":   authorizeQuery(client, trap, "code_challenge", ""),
+		"other resource": authorizeQuery(client, trap, "resource", "https://other.example/mcp"),
+	} {
+		m := e.consent(t, q)
+		if m["ok"] != false || m["code"] != "oauth-invalid-request" {
+			t.Errorf("%s: %v", name, m)
+		}
+		if _, sent := m["redirect"]; sent {
+			t.Errorf("%s: the refusal carries a redirect to the client: %v", name, m["redirect"])
+		}
 	}
 }
 

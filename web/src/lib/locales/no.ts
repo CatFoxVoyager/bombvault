@@ -1876,7 +1876,7 @@ const no: Partial<Translations> = {
   "oauth.errorOff": "Pålogging via OAuth er ikke slått på i denne BombVault. Den slås på under Innstillinger, MCP-server.",
   "oauth.errorUnknownClient": "Denne klienten er ikke registrert her, eller registreringen har utløpt. Start påloggingen på nytt fra klienten.",
   "oauth.errorBadRedirect": "Denne forespørselen oppgir en returadresse som klienten aldri har registrert, så BombVault sender deg ikke dit.",
-  "oauth.errorInvalid": "Klienten ba om noe BombVault ikke støtter. Du sendes tilbake til den med en feil.",
+  "oauth.errorInvalid": "Klienten ba om noe BombVault ikke støtter, så påloggingen stopper her.",
   "oauth.errorExpired": "Denne siden har utløpt. Start påloggingen på nytt fra klienten.",
   "oauth.errorBusy": "For mange pålogginger venter. Prøv igjen om et minutt.",
   "oauth.errorFailed": "Forespørselen kunne ikke kontrolleres. Last inn siden på nytt for å prøve igjen.",

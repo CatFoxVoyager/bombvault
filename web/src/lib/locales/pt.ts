@@ -1876,7 +1876,7 @@ const pt: Partial<Translations> = {
   "oauth.errorOff": "A autenticação por OAuth não está ligada neste BombVault. Liga-se em Definições, Servidor MCP.",
   "oauth.errorUnknownClient": "Este cliente não está registado aqui, ou o registo expirou. Volta a iniciar a autenticação a partir do cliente.",
   "oauth.errorBadRedirect": "Este pedido indica um endereço de regresso que o cliente nunca registou, por isso o BombVault não te envia para lá.",
-  "oauth.errorInvalid": "O cliente pediu algo que o BombVault não suporta. És enviado de volta para ele com um erro.",
+  "oauth.errorInvalid": "O cliente pediu algo que o BombVault não suporta, por isso a autenticação termina aqui.",
   "oauth.errorExpired": "Esta página expirou. Volta a iniciar a autenticação a partir do cliente.",
   "oauth.errorBusy": "Há demasiadas autenticações à espera. Tenta de novo daqui a um minuto.",
   "oauth.errorFailed": "Não foi possível verificar o pedido. Recarrega a página para tentar de novo.",

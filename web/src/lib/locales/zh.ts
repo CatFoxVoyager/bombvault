@@ -1868,7 +1868,7 @@ const zh: Partial<Translations> = {
   "oauth.errorOff": "此 BombVault 未开启 OAuth 登录。可在设置、MCP 服务器中开启。",
   "oauth.errorUnknownClient": "此客户端未在这里注册，或注册已过期。请从客户端重新开始登录。",
   "oauth.errorBadRedirect": "此请求指定了一个客户端从未注册过的返回地址，因此 BombVault 不会把你送到那里。",
-  "oauth.errorInvalid": "客户端请求了 BombVault 不支持的内容。你将带着错误返回客户端。",
+  "oauth.errorInvalid": "客户端请求了 BombVault 不支持的内容，因此登录到此为止。",
   "oauth.errorExpired": "此页面已过期。请从客户端重新开始登录。",
   "oauth.errorBusy": "等待中的登录太多。请一分钟后再试。",
   "oauth.errorFailed": "无法检查该请求。请重新加载页面后再试。",

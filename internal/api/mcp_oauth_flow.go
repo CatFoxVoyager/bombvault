@@ -252,10 +252,10 @@ func (h *Handler) activeGrantsExcept(client string) (int, error) {
 }
 
 // handleOAuthConsentInfo checks an authorization request for the consent page
-// and hands it a ticket to answer with. A request with an unknown client or a
-// redirect URI the client did not register is shown to the operator and never
-// followed; every later fault goes back to the client as RFC 6749 section
-// 4.1.2.1 wants.
+// and hands it a ticket to answer with. Every fault is shown to the operator
+// and none goes back to the client: anybody can register a client with any
+// https return address, and sending a refusal there would make the sign-in
+// page an open redirector (RFC 9700 section 4.11.2).
 func (h *Handler) handleOAuthConsentInfo(w http.ResponseWriter, r *http.Request) {
 	issuer, on := h.oauthIssuer()
 	if !on {
@@ -283,24 +283,18 @@ func (h *Handler) handleOAuthConsentInfo(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	state := q.Get("state")
-	refuse := func(code, description string) {
-		writeJSON(w, http.StatusOK, map[string]any{
-			"ok":       false,
-			"code":     "oauth-invalid-request",
-			"error":    description,
-			"redirect": authorizationResponse(redirect, issuer, state, url.Values{"error": {code}, "error_description": {description}}),
-		})
+	refuse := func(description string) {
+		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "code": "oauth-invalid-request", "error": description})
 	}
 	switch {
 	case q.Get("response_type") != "code":
-		refuse("unsupported_response_type", "only the authorization code flow is supported")
+		refuse("only the authorization code flow is supported")
 		return
 	case q.Get("code_challenge_method") != "S256" || !validChallenge(q.Get("code_challenge")):
-		refuse("invalid_request", "a PKCE code challenge with the S256 method is required")
+		refuse("a PKCE code challenge with the S256 method is required")
 		return
 	case q.Get("resource") != "" && !sameResource(q.Get("resource"), oauthResource(issuer)):
-		refuse("invalid_target", "this server issues tokens for "+oauthResource(issuer)+" only")
+		refuse("this server issues tokens for " + oauthResource(issuer) + " only")
 		return
 	}
 
@@ -315,7 +309,7 @@ func (h *Handler) handleOAuthConsentInfo(w http.ResponseWriter, r *http.Request)
 		Redirect:  redirect,
 		Challenge: q.Get("code_challenge"),
 		Resource:  oauthResource(issuer),
-		State:     state,
+		State:     q.Get("state"),
 		Expires:   h.mcp.now().Add(oauthConsentTTL).Unix(),
 	})
 	w.Header().Set("Cache-Control", "no-store")

@@ -4772,9 +4772,6 @@ export interface OAuthConsentInfo extends OkEnvelope {
   ticket?: string;
   limitReached?: boolean;
   grantLimit?: number;
-  /** Where the client is sent with an error, for a request that names a
-   *  valid client and return address but asks for something unsupported. */
-  redirect?: string;
 }
 
 /** GET /api/oauth/authorize with the query the client sent to /oauth/authorize. */

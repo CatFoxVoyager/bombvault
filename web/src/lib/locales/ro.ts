@@ -1879,7 +1879,7 @@ const ro: Partial<Translations> = {
   "oauth.errorOff": "Autentificarea prin OAuth nu este activată pe acest BombVault. Se activează la Setări, Server MCP.",
   "oauth.errorUnknownClient": "Acest client nu este înregistrat aici, sau înregistrarea lui a expirat. Pornește din nou autentificarea din client.",
   "oauth.errorBadRedirect": "Această cerere indică o adresă de întoarcere pe care clientul nu a înregistrat-o niciodată, așa că BombVault nu te trimite acolo.",
-  "oauth.errorInvalid": "Clientul a cerut ceva ce BombVault nu acceptă. Ești trimis înapoi la el cu o eroare.",
+  "oauth.errorInvalid": "Clientul a cerut ceva ce BombVault nu acceptă, așa că autentificarea se oprește aici.",
   "oauth.errorExpired": "Această pagină a expirat. Pornește din nou autentificarea din client.",
   "oauth.errorBusy": "Sunt prea multe autentificări în așteptare. Încearcă din nou peste un minut.",
   "oauth.errorFailed": "Cererea nu a putut fi verificată. Reîncarcă pagina ca să încerci din nou.",

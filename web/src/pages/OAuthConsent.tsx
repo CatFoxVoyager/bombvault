@@ -34,9 +34,9 @@ type Gate = "loading" | "pass" | "blocked";
  * through OAuth. It needs a real session, so an operator who is not signed in
  * sees the login form first, second factor included. The page shows who asks,
  * where the answer goes and what the client may do, and nothing leaves it until
- * the operator presses Allow or Deny. A request the server would not honour
- * never turns into a redirect, except the ones RFC 6749 says go back to the
- * client, which the server has already built.
+ * the operator presses Allow or Deny. A request the server refuses stays here
+ * as a message: its return address is whatever the client registered, which
+ * can be anybody's.
  */
 export function OAuthConsent() {
   const { t } = useT();
@@ -73,7 +73,6 @@ export function OAuthConsent() {
           return;
         }
         setProblem(REFUSAL[res.code ?? ""] ?? "oauth.errorFailed");
-        if (res.redirect) leave(res.redirect);
       })
       .catch(() => {
         if (live) setProblem("oauth.errorFailed");
@@ -81,7 +80,7 @@ export function OAuthConsent() {
     return () => {
       live = false;
     };
-  }, [gate, leave]);
+  }, [gate]);
 
   async function answer(allow: boolean) {
     if (!info?.ticket) return;

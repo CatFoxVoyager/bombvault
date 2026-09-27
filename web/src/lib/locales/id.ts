@@ -2100,7 +2100,7 @@ const id: Partial<Translations> = {
   "oauth.errorOff": "Login lewat OAuth tidak aktif di BombVault ini. Ia bisa diaktifkan di Pengaturan, Server MCP.",
   "oauth.errorUnknownClient": "Klien ini tidak terdaftar di sini, atau pendaftarannya sudah kedaluwarsa. Mulai login lagi dari klien.",
   "oauth.errorBadRedirect": "Permintaan ini menyebut alamat kembali yang tidak pernah didaftarkan klien, jadi BombVault tidak mengirimmu ke sana.",
-  "oauth.errorInvalid": "Klien meminta sesuatu yang tidak didukung BombVault. Kamu dikirim kembali ke klien dengan sebuah galat.",
+  "oauth.errorInvalid": "Klien meminta sesuatu yang tidak didukung BombVault, jadi login berhenti di sini.",
   "oauth.errorExpired": "Halaman ini sudah kedaluwarsa. Mulai login lagi dari klien.",
   "oauth.errorBusy": "Terlalu banyak login yang menunggu. Coba lagi semenit lagi.",
   "oauth.errorFailed": "Permintaan tidak dapat diperiksa. Muat ulang halaman untuk mencoba lagi.",

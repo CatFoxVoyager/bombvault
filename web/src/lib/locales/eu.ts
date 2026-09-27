@@ -2100,7 +2100,7 @@ const eu: Partial<Translations> = {
   "oauth.errorOff": "OAuth bidezko saio-hasiera ez dago aktibatuta BombVault honetan. Ezarpenak, MCP zerbitzaria atalean aktibatzen da.",
   "oauth.errorUnknownClient": "Bezero hau ez dago hemen erregistratuta, edo haren erregistroa iraungi da. Hasi berriro saioa bezerotik.",
   "oauth.errorBadRedirect": "Eskaera honek bezeroak inoiz erregistratu ez duen itzulera-helbide bat aipatzen du, beraz BombVaultek ez zaitu hara bidaltzen.",
-  "oauth.errorInvalid": "Bezeroak BombVaultek onartzen ez duen zerbait eskatu du. Errore batekin itzultzen zaitugu harengana.",
+  "oauth.errorInvalid": "Bezeroak BombVaultek onartzen ez duen zerbait eskatu du, beraz saio-hasiera hemen gelditzen da.",
   "oauth.errorExpired": "Orri hau iraungi da. Hasi berriro saioa bezerotik.",
   "oauth.errorBusy": "Saio-hasiera gehiegi daude zain. Saiatu berriro minutu bat barru.",
   "oauth.errorFailed": "Ezin izan da eskaera egiaztatu. Kargatu berriro orria berriz saiatzeko.",

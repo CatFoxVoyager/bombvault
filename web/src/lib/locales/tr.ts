@@ -1876,7 +1876,7 @@ const tr: Partial<Translations> = {
   "oauth.errorOff": "Bu BombVault'ta OAuth ile oturum açma açık değil. Ayarlar, MCP sunucusu altında açılır.",
   "oauth.errorUnknownClient": "Bu istemci burada kayıtlı değil ya da kaydının süresi doldu. Oturum açmayı istemciden yeniden başlat.",
   "oauth.errorBadRedirect": "Bu istek, istemcinin hiç kaydetmediği bir dönüş adresi belirtiyor, bu yüzden BombVault seni oraya göndermez.",
-  "oauth.errorInvalid": "İstemci, BombVault'un desteklemediği bir şey istedi. Bir hatayla ona geri gönderiliyorsun.",
+  "oauth.errorInvalid": "İstemci, BombVault'un desteklemediği bir şey istedi, bu yüzden oturum açma burada duruyor.",
   "oauth.errorExpired": "Bu sayfanın süresi doldu. Oturum açmayı istemciden yeniden başlat.",
   "oauth.errorBusy": "Bekleyen çok fazla oturum açma var. Bir dakika sonra yeniden dene.",
   "oauth.errorFailed": "İstek denetlenemedi. Yeniden denemek için sayfayı yenile.",

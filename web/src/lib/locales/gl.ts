@@ -2100,7 +2100,7 @@ const gl: Partial<Translations> = {
   "oauth.errorOff": "O inicio de sesión con OAuth non está activado neste BombVault. Actívase en Axustes, Servidor MCP.",
   "oauth.errorUnknownClient": "Este cliente non está rexistrado aquí, ou o seu rexistro caducou. Volve iniciar o acceso desde o cliente.",
   "oauth.errorBadRedirect": "Esta solicitude indica un enderezo de volta que o cliente nunca rexistrou, así que BombVault non te envía alí.",
-  "oauth.errorInvalid": "O cliente pediu algo que BombVault non admite. Devólveseche a el cun erro.",
+  "oauth.errorInvalid": "O cliente pediu algo que BombVault non admite, así que o acceso detense aquí.",
   "oauth.errorExpired": "Esta páxina caducou. Volve iniciar o acceso desde o cliente.",
   "oauth.errorBusy": "Hai demasiados accesos agardando. Téntao de novo dentro dun minuto.",
   "oauth.errorFailed": "Non se puido comprobar a solicitude. Recarga a páxina para tentalo de novo.",

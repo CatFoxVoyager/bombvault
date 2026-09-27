@@ -1876,7 +1876,7 @@ const he: Partial<Translations> = {
   "oauth.errorOff": "התחברות דרך OAuth לא מופעלת ב-BombVault הזה. מפעילים אותה תחת הגדרות, שרת MCP.",
   "oauth.errorUnknownClient": "הלקוח הזה לא רשום כאן, או שהרישום שלו פג. התחל את ההתחברות מחדש מהלקוח.",
   "oauth.errorBadRedirect": "הבקשה הזו מציינת כתובת חזרה שהלקוח מעולם לא רשם, ולכן BombVault לא שולח אותך לשם.",
-  "oauth.errorInvalid": "הלקוח ביקש משהו ש-BombVault לא תומך בו. אתה מוחזר אליו עם שגיאה.",
+  "oauth.errorInvalid": "הלקוח ביקש משהו ש-BombVault לא תומך בו, ולכן ההתחברות נעצרת כאן.",
   "oauth.errorExpired": "תוקף הדף הזה פג. התחל את ההתחברות מחדש מהלקוח.",
   "oauth.errorBusy": "יותר מדי התחברויות ממתינות. נסה שוב בעוד דקה.",
   "oauth.errorFailed": "לא ניתן היה לבדוק את הבקשה. טען מחדש את הדף כדי לנסות שוב.",

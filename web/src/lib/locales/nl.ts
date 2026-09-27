@@ -1873,7 +1873,7 @@ const nl: Partial<Translations> = {
   "oauth.errorOff": "Aanmelden via OAuth staat niet aan op deze BombVault. Je zet het aan onder Instellingen, MCP-server.",
   "oauth.errorUnknownClient": "Deze client is hier niet geregistreerd, of zijn registratie is verlopen. Start de aanmelding opnieuw vanuit de client.",
   "oauth.errorBadRedirect": "Dit verzoek noemt een terugkeeradres dat de client nooit heeft geregistreerd, dus BombVault stuurt je daar niet heen.",
-  "oauth.errorInvalid": "De client vroeg iets wat BombVault niet ondersteunt. Je wordt met een foutmelding naar hem teruggestuurd.",
+  "oauth.errorInvalid": "De client vroeg iets wat BombVault niet ondersteunt, dus de aanmelding stopt hier.",
   "oauth.errorExpired": "Deze pagina is verlopen. Start de aanmelding opnieuw vanuit de client.",
   "oauth.errorBusy": "Er wachten te veel aanmeldingen. Probeer het over een minuut opnieuw.",
   "oauth.errorFailed": "Het verzoek kon niet worden gecontroleerd. Laad de pagina opnieuw om het nog eens te proberen.",

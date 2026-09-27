@@ -2100,7 +2100,7 @@ const hr: Partial<Translations> = {
   "oauth.errorOff": "Prijava putem OAutha nije uključena na ovom BombVaultu. Uključuje se pod Postavke, MCP poslužitelj.",
   "oauth.errorUnknownClient": "Ovaj klijent ovdje nije registriran ili je njegova registracija istekla. Ponovno pokreni prijavu iz klijenta.",
   "oauth.errorBadRedirect": "Ovaj zahtjev navodi povratnu adresu koju klijent nikad nije registrirao, pa te BombVault ondje ne šalje.",
-  "oauth.errorInvalid": "Klijent je tražio nešto što BombVault ne podržava. Vraćen si mu s pogreškom.",
+  "oauth.errorInvalid": "Klijent je tražio nešto što BombVault ne podržava, pa prijava ovdje staje.",
   "oauth.errorExpired": "Ova je stranica istekla. Ponovno pokreni prijavu iz klijenta.",
   "oauth.errorBusy": "Čeka previše prijava. Pokušaj ponovno za minutu.",
   "oauth.errorFailed": "Zahtjev nije bilo moguće provjeriti. Ponovno učitaj stranicu i pokušaj opet.",

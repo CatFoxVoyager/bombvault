@@ -1879,7 +1879,7 @@ const hu: Partial<Translations> = {
   "oauth.errorOff": "Az OAuth-bejelentkezés ebben a BombVaultban nincs bekapcsolva. A Beállítások, MCP-szerver alatt kapcsolható be.",
   "oauth.errorUnknownClient": "Ez a kliens nincs itt regisztrálva, vagy a regisztrációja lejárt. Indítsd újra a bejelentkezést a kliensből.",
   "oauth.errorBadRedirect": "Ez a kérés olyan visszatérési címet ad meg, amelyet a kliens soha nem regisztrált, ezért a BombVault nem küld oda.",
-  "oauth.errorInvalid": "A kliens olyasmit kért, amit a BombVault nem támogat. Hibaüzenettel visszaküldünk hozzá.",
+  "oauth.errorInvalid": "A kliens olyasmit kért, amit a BombVault nem támogat, ezért a bejelentkezés itt véget ér.",
   "oauth.errorExpired": "Ez az oldal lejárt. Indítsd újra a bejelentkezést a kliensből.",
   "oauth.errorBusy": "Túl sok bejelentkezés várakozik. Próbáld újra egy perc múlva.",
   "oauth.errorFailed": "A kérést nem sikerült ellenőrizni. Töltsd újra az oldalt, és próbáld újra.",

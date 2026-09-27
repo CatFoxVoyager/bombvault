@@ -2100,7 +2100,7 @@ const et: Partial<Translations> = {
   "oauth.errorOff": "OAuthiga sisselogimine pole selles BombVaultis sisse lülitatud. Selle saab sisse lülitada jaotises Seaded, MCP-server.",
   "oauth.errorUnknownClient": "See klient pole siin registreeritud või tema registreering on aegunud. Alusta sisselogimist kliendist uuesti.",
   "oauth.errorBadRedirect": "See päring nimetab tagasipöördumisaadressi, mida klient pole kunagi registreerinud, seega BombVault sind sinna ei saada.",
-  "oauth.errorInvalid": "Klient küsis midagi, mida BombVault ei toeta. Sind saadetakse tema juurde tagasi veaga.",
+  "oauth.errorInvalid": "Klient küsis midagi, mida BombVault ei toeta, seega sisselogimine lõpeb siin.",
   "oauth.errorExpired": "See leht on aegunud. Alusta sisselogimist kliendist uuesti.",
   "oauth.errorBusy": "Liiga palju sisselogimisi ootab. Proovi minuti pärast uuesti.",
   "oauth.errorFailed": "Päringut ei õnnestunud kontrollida. Laadi leht uuesti, et uuesti proovida.",

@@ -1868,7 +1868,7 @@ const vi: Partial<Translations> = {
   "oauth.errorOff": "Đăng nhập qua OAuth chưa được bật trên BombVault này. Có thể bật trong Cài đặt, Máy chủ MCP.",
   "oauth.errorUnknownClient": "Ứng dụng khách này chưa đăng ký ở đây, hoặc đăng ký của nó đã hết hạn. Bắt đầu đăng nhập lại từ ứng dụng khách.",
   "oauth.errorBadRedirect": "Yêu cầu này nêu một địa chỉ quay về mà ứng dụng khách chưa từng đăng ký, nên BombVault không đưa bạn tới đó.",
-  "oauth.errorInvalid": "Ứng dụng khách yêu cầu điều mà BombVault không hỗ trợ. Bạn được đưa trở lại nó kèm một lỗi.",
+  "oauth.errorInvalid": "Ứng dụng khách yêu cầu điều mà BombVault không hỗ trợ, nên việc đăng nhập dừng lại ở đây.",
   "oauth.errorExpired": "Trang này đã hết hạn. Bắt đầu đăng nhập lại từ ứng dụng khách.",
   "oauth.errorBusy": "Có quá nhiều lượt đăng nhập đang chờ. Hãy thử lại sau một phút.",
   "oauth.errorFailed": "Không kiểm tra được yêu cầu. Tải lại trang để thử lần nữa.",

@@ -2100,7 +2100,7 @@ const ms: Partial<Translations> = {
   "oauth.errorOff": "Log masuk melalui OAuth tidak dihidupkan pada BombVault ini. Ia boleh dihidupkan di Tetapan, Pelayan MCP.",
   "oauth.errorUnknownClient": "Klien ini tidak berdaftar di sini, atau pendaftarannya telah tamat tempoh. Mulakan log masuk semula daripada klien.",
   "oauth.errorBadRedirect": "Permintaan ini menyebut alamat kembali yang tidak pernah didaftarkan oleh klien, jadi BombVault tidak menghantar anda ke sana.",
-  "oauth.errorInvalid": "Klien meminta sesuatu yang tidak disokong BombVault. Anda dihantar kembali kepadanya dengan ralat.",
+  "oauth.errorInvalid": "Klien meminta sesuatu yang tidak disokong BombVault, jadi log masuk berhenti di sini.",
   "oauth.errorExpired": "Halaman ini telah tamat tempoh. Mulakan log masuk semula daripada klien.",
   "oauth.errorBusy": "Terlalu banyak log masuk sedang menunggu. Cuba lagi dalam seminit.",
   "oauth.errorFailed": "Permintaan tidak dapat disemak. Muat semula halaman untuk mencuba lagi.",
