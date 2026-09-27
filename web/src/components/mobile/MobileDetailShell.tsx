@@ -10,6 +10,7 @@ import { Button } from "../Button";
 export function MobileDetailShell({
   title,
   subtitle,
+  badges,
   onBack,
   children,
 }: {
@@ -18,6 +19,8 @@ export function MobileDetailShell({
   title: string;
   /** One line that belongs to the heading, such as a mount path. */
   subtitle?: ReactNode;
+  /** Marks that sit beside the heading, such as the entry's state. */
+  badges?: ReactNode;
   onBack: () => void;
   children: ReactNode;
 }) {
@@ -38,7 +41,10 @@ export function MobileDetailShell({
         className="-ms-2 min-h-[2.75rem]"
       />
       <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold text-carbon-text">{title}</h2>
+        <div className="flex items-center gap-2 flex-wrap">
+          <h2 className="text-lg font-semibold text-carbon-text min-w-0 wrap-break-word">{title}</h2>
+          {badges}
+        </div>
         {subtitle}
       </div>
       {children}

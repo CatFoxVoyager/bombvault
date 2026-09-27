@@ -12,8 +12,9 @@ import { useT } from "../../lib/i18n";
 import type { TranslationKey } from "../../lib/i18n";
 import { humanBytes } from "../../lib/forecast";
 import { formatClockTime, formatDuration, formatTs } from "../../lib/reltime";
-import { isOwnReason, runReason } from "../../lib/runReason";
-import { runKindLabel, runTargetText, statusLabel, statusTone } from "../../lib/runDisplay";
+import { isOwnReason, isWarningNote, RunReasonText } from "../../lib/runReason";
+import { runTargetText, statusLabel, statusTone } from "../../lib/runDisplay";
+import { runKindLabel } from "../../lib/runKind";
 import { buildLogLines, formatLogDate } from "../../lib/activityLog";
 import type { LogLine, ResolveName } from "../../lib/activityLog";
 import { useProgress } from "../../lib/progress";
@@ -644,16 +645,21 @@ export function RunDetailSheet({ run, open, onClose }: RunDetailSheetProps) {
           </span>
         </div>
 
-        {/* Failed path; the backend's already-scrubbed reason verbatim
-            (runReason translates only BombVault's own sentences; untranslated
-            restic text stays dir="ltr" on any page language, the
-            lib/runReason direction contract). */}
+        {/* The backend's already-scrubbed note: why a run failed or was
+            skipped, or what a successful one has to add. Untranslated restic
+            text stays dir="ltr" on any page language. */}
         {run.error !== "" && (
           <p
-            className="rounded-card bg-statusFailBgSoft px-4 py-2 text-xs text-statusFail leading-relaxed wrap-break-word"
+            className={`rounded-card px-4 py-2 text-xs leading-relaxed wrap-break-word ${
+              run.status === "failed"
+                ? "bg-statusFailBgSoft text-statusFail"
+                : run.status === "success" && isWarningNote(run.error)
+                  ? "bg-statusWarnBgSoft text-statusWarn"
+                  : "bg-carbon-surface2 text-carbon-textMuted"
+            }`}
             dir={isOwnReason(run.error) ? undefined : "ltr"}
           >
-            {runReason(run.error, t)}
+            <RunReasonText reason={run.error} t={t} />
           </p>
         )}
 

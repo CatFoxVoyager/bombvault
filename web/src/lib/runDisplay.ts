@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------
 // Run display; the shared run-presentation helpers.
 //
-// Six helpers: the run kind and target labels (runDomainLabel, runKindLabel,
-// isDomainOpRunKind, runTargetText) and the status chip pair (statusTone,
-// statusLabel).
+// Five helpers: the run target labels (runDomainLabel, isDomainOpRunKind,
+// runTargetText) and the status chip pair (statusTone, statusLabel). The kind
+// label lives in lib/runKind.ts.
 //
 // Why a lib at all: the RunDetailSheet renders the same
 // kind/target title and the same status Badge the dashboard's RunsCard
@@ -55,36 +55,10 @@ export function runDomainLabel(t: ReturnType<typeof useT>["t"], domain: string):
       return t("activityLog.domainConfig");
     case "files":
       return t("activityLog.domainFiles");
+    case "zfs":
+      return t("activityLog.domainZFS");
     default:
       return domain;
-  }
-}
-
-export function runKindLabel(t: ReturnType<typeof useT>["t"], kind: string): string {
-  switch (kind) {
-    case "backup":
-      return t("run.kindBackup");
-    case "restore":
-      return t("run.kindRestore");
-    case "update":
-      return t("run.kindUpdate");
-    case "prune":
-      return t("activityLog.typePrune");
-    case "verify":
-      return t("activityLog.typeVerify");
-    case "offsite":
-      return t("activityLog.typeOffsite");
-    case "drill":
-      return t("activityLog.jobDrill");
-    case "drdrill":
-      return t("run.kindDRDrill");
-    case "tamper":
-      return t("activityLog.jobTamper");
-    case "export":
-      return t("run.kindExport");
-    default:
-      // An unknown future kind shows its raw literal rather than a wrong label.
-      return kind;
   }
 }
 

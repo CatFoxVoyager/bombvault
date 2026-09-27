@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { listVMs, backupVMNow, restoreVM, listVMSnapshots, setVMInclude, setVMIncludeAll, setVMMethod, deleteSnapshot, deleteBackupsVM, forgetVM, discoverVMs, exportVM, getVmBackupOrder, setVmBackupOrder, setVMRepo, getSettings } from "../lib/api";
-import type { VM, Snapshot, VmOrder, Run } from "../lib/api";
+import type { AnomalyItem, VM, Snapshot, VmOrder, Run } from "../lib/api";
 import { SourceToggle, type RepoSource } from "../components/SourceToggle";
 import { FilterPopover } from "../components/FilterPopover";
 import { ChipFilter, loadStoredFilterKey } from "../components/ChipFilter";
@@ -16,6 +16,7 @@ import { BackupCancelButton } from "../components/BackupCancelButton";
 import { ProgressBar } from "../components/ProgressBar";
 import { RestoreAction } from "../components/restore/RestoreAction";
 import { RecentRunsList } from "../components/RecentRunsList";
+import { MissingRestorePoint, restorePointOf } from "../components/restore/MissingRestorePoint";
 import { EmptyStateIcon } from "../components/EmptyStateIcon";
 import { IconVM, IconRestore, IconTrash, IconBackupNow, IconDownload, IconPower, IconLive } from "../components/Sidebar";
 import { InfoBubble } from "../components/InfoBubble";
@@ -46,6 +47,11 @@ import { MobileListCard } from "../components/mobile/MobileListCard";
 import { MobileDetailShell } from "../components/mobile/MobileDetailShell";
 import { RunDetailSheet } from "../components/mobile/RunDetailSheet";
 import { MobileSectionLabel } from "../components/mobile/MobileSectionLabel";
+import { ItemAnomalyBadge } from "../components/ItemAnomalyBadge";
+import { ItemAnomalySettings } from "../components/ItemAnomalySettings";
+import { findingSnapshotId } from "../lib/anomalies";
+import { useAnomalyItems, useAnomalySummary, useOpenAnomalies } from "../lib/useAnomalies";
+import { useRestoreRequest, type RestoreRequest } from "../lib/restoreRequest";
 
 type T = ReturnType<typeof useT>["t"];
 
@@ -357,6 +363,8 @@ function VMSnapshotRow({
   vmName,
   vmDisplayName,
   source,
+  flagged,
+  preselected,
   onDeleted,
   t,
 }: {
@@ -366,6 +374,10 @@ function VMSnapshotRow({
   /** Display name for the cancel-confirm text; falls back to vmName. */
   vmDisplayName?: string;
   source: RepoSource;
+  /** An open data-loss finding was raised on this snapshot. */
+  flagged: boolean;
+  /** A finding's restore link asked for this snapshot. */
+  preselected: boolean;
   onDeleted: () => void;
   t: T;
 }) {
@@ -380,7 +392,7 @@ function VMSnapshotRow({
   const { push } = useToast();
   const [shake, setShake] = useState(0);
   // Collapsed by default so the list stays compact.
-  const [showRestore, setShowRestore] = useState(false);
+  const [showRestore, setShowRestore] = useState(preselected);
   const { confirm, confirmDialog } = useConfirm();
 
   async function handleDelete() {
@@ -412,6 +424,11 @@ function VMSnapshotRow({
         <span className="text-carbon-textMuted text-xs flex-1">
           {new Date(snap.time).toLocaleString()}
         </span>
+        {flagged && (
+          <Badge tone="fail" size="small">
+            {t("anomaly.snapshotFlagged")}
+          </Badge>
+        )}
         {snap.tags && snap.tags.length > 0 && (
           <span className="text-carbon-textMuted text-xs hidden sm:block">
             {snap.tags.join(", ")}
@@ -465,6 +482,8 @@ function VMRestorePanel({
   displayName,
   t,
   open,
+  preselect = "",
+  preselectAt = 0,
 }: {
   /** Raw libvirt name. Every call in this panel uses it, never displayName. */
   name: string;
@@ -475,10 +494,15 @@ function VMRestorePanel({
   /** Owned by VMRow's `openSections`, as components/RestorePanel.tsx takes
    *  `open` from ContainerRow, so both cards share one disclosure. */
   open: boolean;
+  /** The snapshot a finding's restore link asked for. */
+  preselect?: string;
+  /** When that snapshot was taken, in Unix seconds. */
+  preselectAt?: number;
 }) {
   const [source, setSource] = useState<RepoSource>("local");
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
-  const [loading, setLoading] = useState(false);
+  // Before the first answer an empty list would report a linked backup as gone.
+  const [loading, setLoading] = useState(true);
   // A failed list load replaces the list, so it stays inline rather than in a
   // toast.
   const [error, setError] = useState<string | null>(null);
@@ -488,6 +512,7 @@ function VMRestorePanel({
   const { push } = useToast();
   const { confirm, confirmDialog } = useConfirm();
   const [shakeDeleteAll, setShakeDeleteAll] = useState(0);
+  const { flagged } = useOpenAnomalies();
 
   useEffect(() => {
     if (!open) return;
@@ -580,6 +605,14 @@ function VMRestorePanel({
           {error && (
             <p className="py-3 text-xs text-statusFail">{error}</p>
           )}
+          {!loading && !error && (
+            <MissingRestorePoint
+              requested={preselect}
+              requestedAt={preselectAt}
+              points={snapshots.map(restorePointOf)}
+              t={t}
+            />
+          )}
           {!loading && !error && snapshots.length === 0 && (
             <p className="py-3 text-xs text-carbon-textMuted">{t("snapshots.none")}</p>
           )}
@@ -591,6 +624,8 @@ function VMRestorePanel({
                 vmName={name}
                 vmDisplayName={displayName}
                 source={source}
+                flagged={flagged.has(findingSnapshotId(snap))}
+                preselected={findingSnapshotId(snap) === preselect}
                 onDeleted={() => setReloadTick((n) => n + 1)}
                 t={t}
               />
@@ -611,6 +646,9 @@ export function VMRow({
   onToggleSelect,
   linkCandidates = [],
   index,
+  anomaly,
+  anomalyEnabled = false,
+  restoreRequest,
 }: {
   vm: VM;
   t: T;
@@ -621,6 +659,11 @@ export function VMRow({
   linkCandidates?: string[];
   /** Position in the rendered list, which sets the palette position. */
   index: number;
+  anomaly?: AnomalyItem;
+  anomalyEnabled?: boolean;
+  /** A finding's restore link for this VM: the card opens its backups and
+   *  comes into view. */
+  restoreRequest?: RestoreRequest;
 }) {
   const installed = vm.state !== "not-installed";
   const progressMap = useProgress();
@@ -633,7 +676,14 @@ export function VMRow({
 
   // The same shape as ContainerRow's `openSections`, although VMs have only one
   // section, so the two cards keep one disclosure control.
-  const [openSections, setOpenSections] = useState<Set<string>>(() => new Set());
+  const [openSections, setOpenSections] = useState<Set<string>>(
+    () => new Set(restoreRequest ? ["backups"] : [])
+  );
+  const cardRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    // jsdom has no scrollIntoView.
+    if (restoreRequest) cardRef.current?.scrollIntoView?.({ block: "start" });
+  }, [restoreRequest]);
   const { push } = useToast();
   // Reverted on a failed save, so the picker never shows a destination the
   // server did not accept.
@@ -657,6 +707,7 @@ export function VMRow({
 
   return (
     <div
+      ref={cardRef}
       style={{ ...hueVars(index), "--row-i": String(index) } as CSSProperties}
       // glim-active while this VM's own backup or restore runs, so reactive
       // mode shows the hue without hover, as on ContainerRow.
@@ -683,6 +734,7 @@ export function VMRow({
             <span className="font-semibold text-carbon-text text-sm min-w-0 truncate">
               {vm.name}
             </span>
+            <ItemAnomalyBadge item={anomaly} enabled={anomalyEnabled} t={t} />
             {installed ? (
               <Badge tone={stateTone(vm.state)}>{stateLabel(t, vm.state)}</Badge>
             ) : (
@@ -804,6 +856,7 @@ export function VMRow({
             }}
             locked={vm.lastBackup != null}
           />
+          <ItemAnomalySettings item={anomaly} enabled={anomalyEnabled} t={t} />
         </Advanced>
 
         <VMRestorePanel
@@ -811,6 +864,8 @@ export function VMRow({
           displayName={vm.name}
           t={t}
           open={openSections.has("backups")}
+          preselect={restoreRequest?.snapshot}
+          preselectAt={restoreRequest?.at}
         />
       </div>
 
@@ -878,7 +933,7 @@ function ScheduleIncludeAllControl({
         tone="accent"
         onClick={() => void run(true)}
         disabled={busy}
-        className={`inline-flex items-center rounded-control bg-accent px-3 py-1 text-xs font-medium text-accentContrast hover:opacity-90 transition-opacity disabled:opacity-50${
+        className={`inline-flex items-center rounded-pill bg-accent px-3 py-1 text-xs font-medium text-accentContrast hover:opacity-90 transition-opacity disabled:opacity-50${
           shakeInclude ? " glim-shake" : ""
         }`}
       />
@@ -889,7 +944,7 @@ function ScheduleIncludeAllControl({
         tone="subtle"
         onClick={() => void run(false)}
         disabled={busy}
-        className={`inline-flex items-center rounded-control px-3 py-1 text-xs font-medium text-carbon-textSub hover:text-carbon-text transition-colors disabled:opacity-50${
+        className={`inline-flex items-center rounded-pill px-3 py-1 text-xs font-medium text-carbon-textSub hover:text-carbon-text transition-colors disabled:opacity-50${
           shakeExclude ? " glim-shake" : ""
         }`}
       />
@@ -1196,7 +1251,7 @@ function VMBackupOrderPanel({
                     tip={t("backupOrder.moveUp")}
                     onClick={() => move(i, -1)}
                     disabled={i === 0 || saveState === "saving"}
-                    className="shrink-0 inline-flex items-center rounded-control p-1 text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text transition-colors disabled:opacity-30"
+                    className="shrink-0 inline-flex items-center rounded-pill p-1 text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text transition-colors disabled:opacity-30"
                   >
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                       <path fill="currentColor" d="M1.3 8.7 6 3.3 10.7 8.7Z" />
@@ -1206,7 +1261,7 @@ function VMBackupOrderPanel({
                     tip={t("backupOrder.moveDown")}
                     onClick={() => move(i, 1)}
                     disabled={i === names.length - 1 || saveState === "saving"}
-                    className="shrink-0 inline-flex items-center rounded-control p-1 text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text transition-colors disabled:opacity-30"
+                    className="shrink-0 inline-flex items-center rounded-pill p-1 text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text transition-colors disabled:opacity-30"
                   >
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                       <path fill="currentColor" d="M1.3 3.3 6 8.7 10.7 3.3Z" />
@@ -1223,7 +1278,7 @@ function VMBackupOrderPanel({
                 tone="subtle"
                 onClick={clearOrder}
                 disabled={saveState === "saving"}
-                className={`inline-flex items-center rounded-control px-3 py-1.5 text-xs font-medium text-carbon-textSub hover:text-carbon-text transition-colors disabled:opacity-50${
+                className={`inline-flex items-center rounded-pill px-3 py-1.5 text-xs font-medium text-carbon-textSub hover:text-carbon-text transition-colors disabled:opacity-50${
                   shakeReset ? " glim-shake" : ""
                 }`}
               />
@@ -1256,13 +1311,13 @@ export function VMs() {
   // desktop face and the phone face is exercised by the Playwright harness
   // (web/e2e/destination-vms.spec.ts).
   const isDesktop = useIsDesktop();
-  // Advanced-mode flag read directly (not just via the <Advanced> wrapper
-  // below): VMBackupOrderPanel's own hueIndex must only be resolved via
-  // `nextHue()` when the panel will ACTUALLY render — see this function's
-  // own `nextHue()` comment below for why a JSX child's props (including a
-  // `hueIndex={nextHue()}` expression) evaluate eagerly as part of building
-  // the <Advanced> element, regardless of whether <Advanced> itself goes on
-  // to render null.
+  const anomalies = useAnomalyItems();
+  const anomalyEnabled = useAnomalySummary().summary?.enabled ?? false;
+  const restoreRequest = useRestoreRequest();
+  // Read directly rather than relying on <Advanced>: the order panel's
+  // hueIndex={nextHue()} is evaluated when the element is built, even if
+  // <Advanced> then renders nothing, so nextHue() may only run when the panel
+  // will render.
   const { advanced } = useAdvanced();
   const { confirm, confirmDialog } = useConfirm();
   const { push } = useToast();
@@ -1618,6 +1673,9 @@ export function VMs() {
               onToggleSelect={() => toggleSelect(v.libvirtName)}
               linkCandidates={notInstalledNames}
               index={i}
+              anomaly={anomalies.find("vm", v.libvirtName)}
+              anomalyEnabled={anomalyEnabled}
+              restoreRequest={restoreRequest.item === v.libvirtName ? restoreRequest : undefined}
             />
           ))}
         </div>
@@ -1632,7 +1690,16 @@ export function VMs() {
           {/* Continues the live list's colour sequence, so the first orphan
               does not repeat the first live row's colour. */}
           {orphans.map((v, i) => (
-            <VMRow key={v.libvirtName} vm={v} t={t} onRefresh={() => void loadVMs()} index={live.length + i} />
+            <VMRow
+              key={v.libvirtName}
+              vm={v}
+              t={t}
+              onRefresh={() => void loadVMs()}
+              index={live.length + i}
+              anomaly={anomalies.find("vm", v.libvirtName)}
+              anomalyEnabled={anomalyEnabled}
+              restoreRequest={restoreRequest.item === v.libvirtName ? restoreRequest : undefined}
+            />
           ))}
         </div>
       )}

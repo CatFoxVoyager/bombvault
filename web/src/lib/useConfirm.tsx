@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ConfirmSheet } from "../components/mobile/ConfirmSheet";
@@ -25,6 +25,8 @@ export interface ConfirmOptions {
    *  glyph ("Delete") rather than a bare "Confirm". */
   confirmKey?: TranslationKey;
   cancelLabel?: string;
+  /** A switch the action needs an answer to, shown under the question. */
+  extra?: ReactNode;
 }
 
 interface PendingConfirm extends ConfirmOptions {
@@ -34,7 +36,7 @@ interface PendingConfirm extends ConfirmOptions {
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-function focusableElements(root: HTMLElement): HTMLElement[] {
+export function focusableElements(root: HTMLElement): HTMLElement[] {
   return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
 }
 
@@ -70,6 +72,9 @@ export function useConfirm() {
     triggerRef.current = null;
     if (trigger && document.contains(trigger)) trigger.focus();
   }, []);
+
+  // For a caller whose question stopped making sense while the dialog was open.
+  const dismiss = useCallback(() => settle(false), [settle]);
 
   useEffect(() => {
     if (!pending) return;
@@ -125,6 +130,7 @@ export function useConfirm() {
             confirmLabel={t(pending.confirmKey ?? "common.confirm")}
             confirmLabelKey={pending.confirmKey ?? "common.confirm"}
             cancelLabel={pending.cancelLabel ?? t("common.cancel")}
+            extra={pending.extra}
             onConfirm={() => settle(true)}
             onCancel={() => settle(false)}
           />
@@ -135,6 +141,7 @@ export function useConfirm() {
             confirmLabel={t(pending.confirmKey ?? "common.confirm")}
             confirmLabelKey={pending.confirmKey ?? "common.confirm"}
             cancelLabel={pending.cancelLabel ?? t("common.cancel")}
+            extra={pending.extra}
             onConfirm={() => settle(true)}
             onCancel={() => settle(false)}
           />
@@ -143,5 +150,5 @@ export function useConfirm() {
       )
     : null;
 
-  return { confirm, confirmDialog };
+  return { confirm, confirmDialog, dismiss };
 }
