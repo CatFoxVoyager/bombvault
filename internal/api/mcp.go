@@ -85,7 +85,7 @@ func mcpCallerFrom(ctx context.Context) (mcpCaller, bool) {
 }
 
 // mcpState is what the endpoint keeps between requests. NewHandler creates it,
-// and Router() creates one for the zero-value Handlers the route-registration
+// and mountMCP creates one for the zero-value Handlers the route-registration
 // tests build. It is never shared between Handlers.
 type mcpState struct {
 	http  http.Handler
@@ -143,9 +143,9 @@ func newMCPState() *mcpState {
 	}
 }
 
-// buildMCPHTTP constructs the server and the transport in front of it. Router()
-// calls it, so a bad tool registration fails every router test in CI instead of
-// panicking at boot.
+// buildMCPHTTP constructs the server and the transport in front of it.
+// mountMCP calls it, so a bad tool registration fails every router test in CI
+// instead of panicking at boot.
 func (h *Handler) buildMCPHTTP() http.Handler {
 	srv := h.newMCPServer()
 

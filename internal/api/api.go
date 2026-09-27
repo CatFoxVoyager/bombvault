@@ -72,7 +72,7 @@ type Handler struct {
 	loginSweepCalls int
 
 	// mcp holds the MCP endpoint's transport, its per-key budget and the
-	// counters /metrics reports. Router() creates one when NewHandler did not.
+	// counters /metrics reports. mountMCP creates one when NewHandler did not.
 	mcp *mcpState
 }
 
@@ -126,13 +126,9 @@ func (h *Handler) SetProgress(p *progress.Store) { h.progress = p }
 func (h *Handler) Router() http.Handler {
 	mux := http.NewServeMux()
 
-	if h.mcp == nil {
-		h.mcp = newMCPState()
+	if mcpShipped {
+		h.mountMCP(mux)
 	}
-	h.mcp.http = h.buildMCPHTTP()
-	// Outside /api like /metrics, allow-listed in authGate and gated inside
-	// serveMCP on its own keys: no key means 404, never open.
-	mux.HandleFunc(mcpEndpointPath, h.serveMCP)
 
 	// Public / auth endpoints — also allow-listed inside authGate.
 	mux.HandleFunc("GET /api/health", h.handleHealth)
@@ -464,19 +460,6 @@ func (h *Handler) Router() http.Handler {
 	mux.HandleFunc("PUT /api/fleet/peers/{id}", h.handleUpdateFleetPeer)
 	mux.HandleFunc("DELETE /api/fleet/peers/{id}", h.handleDeleteFleetPeer)
 	mux.HandleFunc("POST /api/fleet/peers/{id}/poll", h.handleFleetPeerPoll)
-
-	// MCP server: the keys an assistant authenticates with. Create and rotate
-	// hand the key out once and never again, so these routes stay
-	// session-protected like every other /api route.
-	mux.HandleFunc("GET /api/mcp/keys", h.handleListMCPKeys)
-	mux.HandleFunc("POST /api/mcp/keys", h.handleCreateMCPKey)
-	mux.HandleFunc("PATCH /api/mcp/keys/{id}", h.handleUpdateMCPKey)
-	mux.HandleFunc("POST /api/mcp/keys/{id}/rotate", h.handleRotateMCPKey)
-	mux.HandleFunc("POST /api/mcp/keys/{id}/revoke", h.handleRevokeMCPKey)
-	mux.HandleFunc("DELETE /api/mcp/keys/{id}", h.handlePurgeMCPKey)
-	mux.HandleFunc("GET /api/mcp/keys/{id}/activity", h.handleMCPKeyActivity)
-	mux.HandleFunc("GET /api/mcp/certificate", h.handleMCPCertificate)
-	mux.HandleFunc("POST /api/mcp/certificate/names", h.handleAddMCPCertificateName)
 
 	// Mesh off-site (v8.0.0): review offers this box has RECEIVED from peers
 	// (accept turns one into a normal named credential set + off-site target,

@@ -545,7 +545,9 @@ func (h *Handler) handleMetrics(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "metrics error", http.StatusInternalServerError)
 		return
 	}
-	body += h.mcpMetrics()
+	if mcpShipped {
+		body += h.mcpMetrics()
+	}
 	w.Header().Set("Content-Type", metricsContentType)
 	w.WriteHeader(http.StatusOK)
 	if _, wErr := w.Write([]byte(body)); wErr != nil {

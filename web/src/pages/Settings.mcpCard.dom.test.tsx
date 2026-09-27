@@ -7,6 +7,14 @@ import { I18nProvider, en } from "../lib/i18n";
 import { ToastProvider } from "../lib/toast";
 import type { Settings } from "../lib/api";
 
+// The card's own tests run it switched on; the last case switches it off.
+const mcp = vi.hoisted(() => ({ shipped: true }));
+vi.mock("../lib/mcpSwitch", () => ({
+  get mcpShipped() {
+    return mcp.shipped;
+  },
+}));
+
 const settingsOnServer = {
   encryptionEnabled: true,
   containersEnabled: true,
@@ -79,7 +87,10 @@ async function renderTab(tab: string) {
 }
 
 beforeEach(stubBrowser);
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  mcp.shipped = true;
+});
 
 describe("the MCP card on the settings page", () => {
   it("renders on the System tab", async () => {
@@ -93,5 +104,13 @@ describe("the MCP card on the settings page", () => {
     await renderTab("general");
 
     expect(screen.queryByText(en["mcp.title"])).toBeNull();
+  });
+
+  it("is nowhere while the server is switched off", async () => {
+    mcp.shipped = false;
+    await renderTab("system");
+
+    expect(screen.queryByText(en["mcp.title"])).toBeNull();
+    expect(screen.queryByText(en["mcp.statusOff"])).toBeNull();
   });
 });
