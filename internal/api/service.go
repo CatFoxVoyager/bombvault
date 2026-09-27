@@ -17328,7 +17328,8 @@ func (s *Service) RecoveryKit() (string, error) {
 	}
 	w("\n")
 	if mcpShipped {
-		w("Restoring this backup revokes every MCP key; create new keys under\n")
+		w("Restoring this backup revokes every MCP key and every OAuth sign-in; create\n")
+		w("new keys and let cloud assistants sign in again under\n")
 		w("Settings > System > MCP server afterwards.\n\n")
 	}
 

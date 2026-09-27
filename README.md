@@ -275,6 +275,7 @@ The closest counterpart is [**Vault**](https://github.com/ruaan-deysel/vault) by
 - **What an assistant can read:** backup status per domain, coverage, the protected items with their last backup and what a backup of them stops, run history, restore points including database dumps and ZFS datasets, current activity, repository growth and the open anomalies.
 - **What it can start:** a backup of one item, of one domain or Backup Everything, and it can cancel the backups its own key started. No other tool writes anything.
 - **A button per client:** 28 clients on your computer, among them Claude Code, Cursor, VS Code, Gemini CLI, LM Studio and n8n, and Grok and Le Chat in the cloud. Each button opens a setup that makes the key, shows the configuration in that client's own format without putting the key on a command line, and turns green on the client's first call. Anything else that speaks Streamable HTTP connects through **Other client**.
+- **Cloud assistants sign in:** ChatGPT and Claude on claude.ai cannot take a key, so they sign in through OAuth. You switch it on with the public https address BombVault is reachable at, the assistant sends you to a BombVault page, and you sign in with your login password and allow it. Each one then gets a tile like a key, with the same limits and its own start switch, which is off until you turn it on.
 - **Keys and limits:** one key per client, created under **Settings → System → MCP server**, shown once and stored as a fingerprint, with read-only keys for clients you trust less. 12 starts per hour per key, 15 minutes between starts of the same item, 4 per item a day, and a retention guard that keeps assistant backups from pushing your own restore points out of a "keep last N" policy.
 - **You see what it did:** every run it starts, and the prune and off-site copy that follow, reads "via MCP" with the key's name in the Activity log, the error panel and the backup notification. **Log** on each key's tile in the MCP card shows what that key did over the last 30 days: the backups it started, each linked to its run, and its calls with their outcome, including why a call was refused. Every key change sends a notification too.
 - **Works on a plain Unraid install:** the default self-signed certificate names only `localhost`, so the MCP card adds the address you use to it with one click and hands you the certificate file for the client. A reverse proxy or Tailscale works as well.
@@ -370,11 +371,12 @@ TLS-terminating proxy if confidentiality matters. And the VM-backup SSH connecti
 host key on first connect (TOFU) and pins it thereafter — fine on a trusted LAN, but verify the
 host's key out-of-band if your container↔host path isn't trusted.
 
-The MCP endpoint `/mcp` is off until a key exists (it answers 404), and it asks every client for
-its key even with the login password off. No address is exempt, not even `localhost`, and it has no
-restore or delete tools. Keys are shown once and stored as fingerprints, restoring a configuration
-backup revokes all of them, and backups an assistant starts can never fill a "keep last N"
-retention window on their own.
+The MCP endpoint `/mcp` is off until a key exists or sign-in through OAuth is switched on (it
+answers 404), and it asks every client for its key or token even with the login password off.
+Sign-in through OAuth is only offered while a login password is set. No address is exempt, not
+even `localhost`, and it has no restore or delete tools. Keys and tokens are stored as
+fingerprints, restoring a configuration backup revokes all of them, and backups an assistant
+starts can never fill a "keep last N" retention window on their own.
 
 Backups are encrypted by restic when encryption is enabled (Settings; on by default), with the
 key derived from `APP_KEY`.
