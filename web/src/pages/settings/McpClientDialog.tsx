@@ -134,8 +134,11 @@ export function McpClientDialog({
     else setShake((n) => n + 1);
   }
 
-  const input: McpSnippetInput = { ...snippetBase, key: created?.key ?? KEY_PLACEHOLDER };
-  const snippet = snippetFor(client, input);
+  const snippet = snippetFor(client, { ...snippetBase, key: created?.key ?? KEY_PLACEHOLDER });
+  // Hiding the key field hides the key in the configuration below it too; Copy
+  // still takes the real one.
+  const shownSnippet =
+    created && !keyVisible ? snippetFor(client, { ...snippetBase, key: "•".repeat(created.key.length) }) : snippet;
   const warning = client.group === "cloud" && (
     <div className="flex flex-col gap-1 rounded-card bg-statusWarnBgSoft px-3 py-2.5 text-sm leading-relaxed text-carbon-text">
       <strong className="font-semibold text-statusWarn">{t("mcp.cloudWarningTitle")}</strong>
@@ -356,7 +359,7 @@ export function McpClientDialog({
             dir="ltr"
             className="overflow-x-auto whitespace-pre-wrap rounded-control bg-carbon-surface2 px-3 py-2 text-start font-mono text-xs leading-relaxed text-carbon-text [overflow-wrap:anywhere]"
           >
-            <code>{snippet}</code>
+            <code>{shownSnippet}</code>
           </pre>
         )}
         {snippet !== undefined && (

@@ -103,6 +103,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  Reflect.deleteProperty(navigator, "clipboard");
 });
 
 /** The client button of the picker, by the name and kind it announces, once
@@ -284,6 +285,23 @@ describe("a client's setup dialog", () => {
         .replace("{app}", "JetBrains")
         .replace("{ui}", "Settings, Tools, AI Assistant, Model Context Protocol (MCP), Add")
     );
+  });
+
+  it("masks the key in the configuration while the key field is hidden, and still copies the real one", async () => {
+    await renderCard(payload(), payload({ keys: [key({ label: "Zed", client: "zed" })] }));
+    createMcpKey.mockResolvedValue({ ok: true, key: "bvmcp_abcdef123456", item: key({ label: "Zed", client: "zed" }) });
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+
+    const dialog = await openClient("Zed", en["mcp.kindEditor"]);
+    fireEvent.click(within(dialog).getByRole("button", { name: en["mcp.createKey"] }));
+    await waitFor(() => expect(within(dialog).getByDisplayValue("bvmcp_abcdef123456")).toBeTruthy());
+
+    fireEvent.click(within(dialog).getByRole("button", { name: en["common.hideValue"] }));
+    expect(within(dialog).getByText(/context_servers/).textContent).not.toContain("bvmcp_abcdef123456");
+    fireEvent.click(within(dialog).getByRole("button", { name: en["mcp.copyConfig"] }));
+    await waitFor(() => expect(writeText).toHaveBeenCalled());
+    expect(writeText.mock.calls[0][0]).toContain("Bearer bvmcp_abcdef123456");
   });
 
   it("hands an unused new key back to the card when it closes", async () => {
