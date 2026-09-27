@@ -1734,6 +1734,9 @@ export function VMs() {
           bulkBusy={bulkBusy}
           onIncludeAllChanged={() => void loadVMs()}
           vms={vms}
+          anomalyOf={(name) => anomalies.find("vm", name)}
+          anomalyEnabled={anomalyEnabled}
+          restoreRequest={restoreRequest}
         />
       )}
 
@@ -1783,6 +1786,9 @@ function MobileVMsBlock({
   bulkBusy,
   onIncludeAllChanged,
   vms,
+  anomalyOf,
+  anomalyEnabled,
+  restoreRequest,
 }: {
   /** The page's memoized filtered+sorted list; useLoadMore's identity
    *  contract needs a stable array identity across unrelated renders. */
@@ -1822,6 +1828,10 @@ function MobileVMsBlock({
   onIncludeAllChanged: () => void;
   /** The full list payload, for the advanced backup order panel. */
   vms: VM[];
+  anomalyOf: (libvirtName: string) => AnomalyItem | undefined;
+  anomalyEnabled: boolean;
+  /** A link from another page asking to restore one of the VMs. */
+  restoreRequest: RestoreRequest;
 }) {
   const { t } = useT();
 
@@ -1847,7 +1857,11 @@ function MobileVMsBlock({
   // The open detail holds the VM's name, not the object taken at tap time, and
   // reads the VM out of the unfiltered list: a reload brings fresh data, and a
   // change made in the detail can take the VM out of the current filter.
-  const [openVmName, setOpenVmName] = useState<string | null>(null);
+  // A restore link from another page opens its VM, as the desktop opens that
+  // row's Backups.
+  const [openVmName, setOpenVmName] = useState<string | null>(() =>
+    restoreRequest.item !== "" ? restoreRequest.item : null
+  );
   const openVm = openVmName === null ? null : vms.find((v) => v.libvirtName === openVmName) ?? null;
   const listScrollRef = useRef(0);
   const restoreScrollRef = useRef(false);
@@ -1902,6 +1916,9 @@ function MobileVMsBlock({
           onRefresh={onRefresh}
           onBack={closeDetail}
           linkCandidates={linkCandidates}
+          anomaly={anomalyOf(openVm.libvirtName)}
+          anomalyEnabled={anomalyEnabled}
+          restoreRequest={restoreRequest.item === openVm.libvirtName ? restoreRequest : undefined}
         />
       )}
 
@@ -2107,6 +2124,9 @@ function MobileVMDetail({
   onRefresh,
   onBack,
   linkCandidates,
+  anomaly,
+  anomalyEnabled,
+  restoreRequest,
 }: {
   vm: VM;
   t: T;
@@ -2115,6 +2135,9 @@ function MobileVMDetail({
   onBack: () => void;
   /** The not-installed entries this detail can take over by hand. */
   linkCandidates: string[];
+  anomaly?: AnomalyItem;
+  anomalyEnabled: boolean;
+  restoreRequest?: RestoreRequest;
 }) {
   const { push } = useToast();
   // Reverted on a failed save, so the picker never shows a destination the
@@ -2128,7 +2151,9 @@ function MobileVMDetail({
   const installed = vm.state !== "not-installed";
   // The same one-section disclosure the desktop row keeps (snapshots and
   // restore live behind it), through the same Set rule ContainerRow uses.
-  const [openSections, setOpenSections] = useState<Set<string>>(() => new Set());
+  const [openSections, setOpenSections] = useState<Set<string>>(
+    () => new Set(restoreRequest ? ["backups"] : [])
+  );
   function toggleSection(id: string) {
     setOpenSections((prev) => (prev.has(id) ? new Set() : new Set([id])));
   }
@@ -2141,7 +2166,20 @@ function MobileVMDetail({
   const lastCorrelatedRun = useRef<string | null>(null);
 
   return (
-    <MobileDetailShell title={vm.name} onBack={onBack}>
+    <MobileDetailShell
+      title={vm.name}
+      badges={
+        <>
+          <ItemAnomalyBadge item={anomaly} enabled={anomalyEnabled} t={t} />
+          {installed ? (
+            <Badge tone={stateTone(vm.state)}>{stateLabel(t, vm.state)}</Badge>
+          ) : (
+            <Badge tone="neutral">{t("containers.notInstalled")}</Badge>
+          )}
+        </>
+      }
+      onBack={onBack}
+    >
       {/* The takeover pair, as the desktop row renders it. */}
       {installed && vm.renameFrom && (
         <RenameTakeoverRow
@@ -2177,11 +2215,6 @@ function MobileVMDetail({
           t={t}
         />
       )}
-
-      {/* Last-run line, the desktop row's combined line, verbatim keys. */}
-      <p className="text-xs text-carbon-textMuted">
-        {`${t("containers.lastBackup")}: ${vm.lastBackup ? formatTs(vm.lastBackup) : t("containers.never")}`}
-      </p>
 
       {/* The start of the actions row is free, so the link picker takes it,
           as on the desktop row: a card with former names is already linked,
@@ -2261,6 +2294,7 @@ function MobileVMDetail({
             }}
             locked={vm.lastBackup != null}
           />
+          <ItemAnomalySettings item={anomaly} enabled={anomalyEnabled} t={t} />
         </Advanced>
 
         <VMRestorePanel
@@ -2268,6 +2302,8 @@ function MobileVMDetail({
           displayName={vm.name}
           t={t}
           open={openSections.has("backups")}
+          preselect={restoreRequest?.snapshot}
+          preselectAt={restoreRequest?.at}
         />
       </div>
 

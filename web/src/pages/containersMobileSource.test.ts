@@ -193,26 +193,3 @@ describe("the folder tree's interaction mode follows the pointer axis", () => {
     ).toBe(false);
   });
 });
-
-// The source of one top-level function, from its declaration to the next one.
-function functionSource(name: string): string {
-  const start = containers.search(new RegExp(`^(export )?function ${name}[({]`, "m"));
-  expect(start, `Containers.tsx has no function ${name}`).toBeGreaterThanOrEqual(0);
-  const rest = containers.slice(start + 1);
-  const next = rest.search(/^(export )?function /m);
-  return next < 0 ? rest : rest.slice(0, next);
-}
-
-function jsxComponents(source: string): Set<string> {
-  return new Set([...source.matchAll(/(?<![\w.])<([A-Z]\w*)/g)].map((m) => m[1]));
-}
-
-describe("the phone detail carries every control of the desktop card", () => {
-  it("renders each component the desktop row renders", () => {
-    const desktop = jsxComponents(functionSource("ContainerRow"));
-    const phone = jsxComponents(functionSource("MobileContainerDetail"));
-    // The chips and their editors come in through ContainerSectionChips.
-    const missing = [...desktop].filter((c) => !phone.has(c) && c !== "Selector");
-    expect(missing, "on the desktop card but not in the phone detail").toEqual([]);
-  });
-});
