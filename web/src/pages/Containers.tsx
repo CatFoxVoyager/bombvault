@@ -1717,6 +1717,7 @@ function MobileContainerDetail({
   linkCandidates,
   anomaly,
   anomalyEnabled,
+  restoreRequest,
 }: {
   container: Container;
   t: T;
@@ -1732,6 +1733,8 @@ function MobileContainerDetail({
   linkCandidates: string[];
   anomaly?: AnomalyItem;
   anomalyEnabled: boolean;
+  /** A link from another page asking to restore this container. */
+  restoreRequest?: RestoreRequest;
 }) {
   // The host mount root for the detail's mono meta line — served by the same
   // already-cached mounts response the cards use (React escaping
@@ -1768,7 +1771,9 @@ function MobileContainerDetail({
   const lastCorrelatedRun = useRef<string | null>(null);
   // Same one-section-at-a-time chips rule as the desktop row, through the
   // same shared block.
-  const [openSections, setOpenSections] = useState<Set<string>>(() => new Set());
+  const [openSections, setOpenSections] = useState<Set<string>>(
+    () => new Set(restoreRequest ? ["backups"] : [])
+  );
   function toggleSection(id: string) {
     setOpenSections((prev) => (prev.has(id) ? new Set() : new Set([id])));
   }
@@ -1893,6 +1898,8 @@ function MobileContainerDetail({
           t={t}
           lastBackup={container.lastBackup}
           repo={container.repo ?? ""}
+          anomaly={anomaly}
+          anomalyEnabled={anomalyEnabled}
           treeViewportClassName="h-auto"
         />
       </Advanced>
@@ -1932,6 +1939,9 @@ function MobileContainerDetail({
         </Advanced>
         <RestorePanel
           name={container.name}
+          preselect={restoreRequest && !restoreRequest.dump ? restoreRequest.snapshot : ""}
+          preselectDump={restoreRequest?.dump ? restoreRequest.snapshot : ""}
+          preselectAt={restoreRequest?.at}
           aliases={aliases}
           t={t}
           installed={installed}
@@ -3790,7 +3800,11 @@ export function Containers() {
   // every render, so a refetch reaches it the way it reaches a row. Holding
   // the object would freeze it at the moment of the tap, and the list is
   // replaced wholesale on every poll.
-  const [openName, setOpenName] = useState<string | null>(null);
+  // A restore link from another page opens its container's detail, as the
+  // desktop opens that row's Backups.
+  const [openName, setOpenName] = useState<string | null>(() =>
+    !isDesktop && restoreRequest.item !== "" ? restoreRequest.item : null
+  );
   // Scroll handoff: captured from main#bv-main when a card opens the detail,
   // restored when Back closes it (after the commit that unhides the list, so
   // the full list height exists to scroll back into).
@@ -4263,6 +4277,7 @@ export function Containers() {
           linkCandidates={notInstalledNames}
           anomaly={anomalies.find("container", openContainer.name)}
           anomalyEnabled={anomalyEnabled}
+          restoreRequest={restoreRequest.item === openContainer.name ? restoreRequest : undefined}
         />
       )}
 
