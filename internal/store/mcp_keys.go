@@ -10,8 +10,15 @@ import (
 // once at creation and never stored: Digest is its peppered HMAC, Hint its last
 // four characters and Check a value derived from the id alone, which tells a
 // changed APP_KEY from a wrong key.
+//
+// A client that signed in through OAuth is an MCPKey of Kind MCPKindOAuth. It
+// has no digest and no hint; OAuthClient names the registered client and
+// Resource the audience its tokens were issued for.
 type MCPKey struct {
 	ID              string
+	Kind            string
+	OAuthClient     string
+	Resource        string
 	Label           string
 	Client          string
 	Digest          string
@@ -30,6 +37,12 @@ type MCPKey struct {
 // the point; a list that grows past this is a sign nobody is retiring them.
 const MCPKeyLimit = 10
 
+// The two kinds of row in mcp_keys.
+const (
+	MCPKindKey   = "key"
+	MCPKindOAuth = "oauth"
+)
+
 var (
 	ErrMCPKeyNotFound   = errors.New("mcp key not found")
 	ErrMCPKeyLimit      = errors.New("mcp key limit reached")
@@ -38,11 +51,11 @@ var (
 	ErrMCPKeyActive     = errors.New("mcp key is still active")
 )
 
-const mcpKeyCols = `id, label, client, key_digest, key_hint, key_check, can_start_backups, created_at, rotated_at, last_used_at, last_used_from, revoked_at, revoked_reason` //nolint:gosec // G101: a SQL column list; the digest column holds an HMAC, not a key
+const mcpKeyCols = `id, kind, oauth_client, resource, label, client, key_digest, key_hint, key_check, can_start_backups, created_at, rotated_at, last_used_at, last_used_from, revoked_at, revoked_reason` //nolint:gosec // G101: a SQL column list; the digest column holds an HMAC, not a key
 
 func scanMCPKey(s scanner) (MCPKey, error) {
 	var k MCPKey
-	err := s.Scan(&k.ID, &k.Label, &k.Client, &k.Digest, &k.Hint, &k.Check, &k.CanStartBackups,
+	err := s.Scan(&k.ID, &k.Kind, &k.OAuthClient, &k.Resource, &k.Label, &k.Client, &k.Digest, &k.Hint, &k.Check, &k.CanStartBackups,
 		&k.CreatedAt, &k.RotatedAt, &k.LastUsedAt, &k.LastUsedFrom, &k.RevokedAt, &k.RevokedReason)
 	if err != nil {
 		return MCPKey{}, err
@@ -51,10 +64,10 @@ func scanMCPKey(s scanner) (MCPKey, error) {
 }
 
 // ActiveMCPKeys returns the keys a request can still authenticate with, oldest
-// first.
+// first. OAuth grants authenticate through their tokens and are not among them.
 func (r *Repo) ActiveMCPKeys() ([]MCPKey, error) {
 	rows, err := r.db.Query(`SELECT ` + mcpKeyCols + ` FROM mcp_keys
-		WHERE revoked_at = 0 AND key_digest != ''
+		WHERE kind = 'key' AND revoked_at = 0 AND key_digest != ''
 		ORDER BY created_at, id`)
 	if err != nil {
 		return nil, fmt.Errorf("ActiveMCPKeys: %w", err)
@@ -140,7 +153,7 @@ func (r *Repo) CreateMCPKey(id, label, client, digest, hint, check string, canSt
 	defer tx.Rollback() //nolint:errcheck // rollback after a successful commit is a no-op
 
 	var active int
-	if err := tx.QueryRow(`SELECT count(*) FROM mcp_keys WHERE revoked_at = 0 AND key_digest != ''`).Scan(&active); err != nil {
+	if err := tx.QueryRow(`SELECT count(*) FROM mcp_keys WHERE kind = 'key' AND revoked_at = 0 AND key_digest != ''`).Scan(&active); err != nil {
 		return MCPKey{}, fmt.Errorf("CreateMCPKey count: %w", err)
 	}
 	if active >= MCPKeyLimit {
@@ -175,10 +188,11 @@ func mcpLabelTaken(tx *sql.Tx, label, exceptID string) (bool, error) {
 
 // RotateMCPKey gives an active key new secret material and keeps its id, label,
 // permission and creation time, so everything that references it stays valid.
+// An OAuth grant has no key to replace; its client signs in again instead.
 func (r *Repo) RotateMCPKey(id, digest, hint, check string, now int64) (MCPKey, error) {
 	res, err := r.db.Exec(`UPDATE mcp_keys
 		SET key_digest = ?, key_hint = ?, key_check = ?, rotated_at = ?
-		WHERE id = ? AND revoked_at = 0`, digest, hint, check, now, id)
+		WHERE id = ? AND revoked_at = 0 AND kind = 'key'`, digest, hint, check, now, id)
 	if err != nil {
 		return MCPKey{}, fmt.Errorf("RotateMCPKey: %w", err)
 	}
@@ -228,29 +242,68 @@ func (r *Repo) UpdateMCPKey(id string, label *string, canStart *bool) (MCPKey, e
 }
 
 // RevokeMCPKey empties a key's digest and keeps the row, so the Activity log can
-// still name the client behind an old run. A revoked key never comes back.
+// still name the client behind an old run. A revoked key never comes back, and
+// a revoked grant's tokens go in the same step, so none of them works again.
 func (r *Repo) RevokeMCPKey(id, reason string, now int64) error {
-	res, err := r.db.Exec(`UPDATE mcp_keys
-		SET key_digest = '', revoked_at = ?, revoked_reason = ?
-		WHERE id = ? AND revoked_at = 0`, now, reason, id)
+	tx, err := r.db.Begin()
 	if err != nil {
 		return fmt.Errorf("RevokeMCPKey: %w", err)
 	}
-	if n, _ := res.RowsAffected(); n == 0 {
+	defer tx.Rollback() //nolint:errcheck // rollback after a successful commit is a no-op
+
+	found, err := revokeMCPKeyTx(tx, id, reason, now)
+	if err != nil {
+		return fmt.Errorf("RevokeMCPKey: %w", err)
+	}
+	if !found {
 		return ErrMCPKeyNotFound
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("RevokeMCPKey commit: %w", err)
 	}
 	return nil
 }
 
-// RevokeAllMCPKeys revokes every active key and returns how many there were.
+// revokeMCPKeyTx revokes one active row and drops its tokens, and reports
+// whether there was such a row.
+func revokeMCPKeyTx(tx *sql.Tx, id, reason string, now int64) (bool, error) {
+	res, err := tx.Exec(`UPDATE mcp_keys
+		SET key_digest = '', revoked_at = ?, revoked_reason = ?
+		WHERE id = ? AND revoked_at = 0`, now, reason, id)
+	if err != nil {
+		return false, err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return false, nil
+	}
+	if _, err := tx.Exec(`DELETE FROM mcp_oauth_tokens WHERE grant_id = ?`, id); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// RevokeAllMCPKeys revokes every active key and grant, drops every token, and
+// returns how many rows it revoked.
 func (r *Repo) RevokeAllMCPKeys(reason string, now int64) (int64, error) {
-	res, err := r.db.Exec(`UPDATE mcp_keys
+	tx, err := r.db.Begin()
+	if err != nil {
+		return 0, fmt.Errorf("RevokeAllMCPKeys: %w", err)
+	}
+	defer tx.Rollback() //nolint:errcheck // rollback after a successful commit is a no-op
+
+	res, err := tx.Exec(`UPDATE mcp_keys
 		SET key_digest = '', revoked_at = ?, revoked_reason = ?
 		WHERE revoked_at = 0`, now, reason)
 	if err != nil {
 		return 0, fmt.Errorf("RevokeAllMCPKeys: %w", err)
 	}
 	n, _ := res.RowsAffected()
+	if _, err := tx.Exec(`DELETE FROM mcp_oauth_tokens`); err != nil {
+		return 0, fmt.Errorf("RevokeAllMCPKeys tokens: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, fmt.Errorf("RevokeAllMCPKeys commit: %w", err)
+	}
 	return n, nil
 }
 
@@ -285,6 +338,7 @@ func (r *Repo) PurgeMCPKey(id string) error {
 	for _, q := range []string{
 		`DELETE FROM mcp_key_events WHERE key_id = ?`,
 		`DELETE FROM mcp_key_calls WHERE key_id = ?`,
+		`DELETE FROM mcp_oauth_tokens WHERE grant_id = ?`,
 		`DELETE FROM mcp_keys WHERE id = ?`,
 	} {
 		if _, err := tx.Exec(q, id); err != nil {

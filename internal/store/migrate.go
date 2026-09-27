@@ -2072,6 +2072,53 @@ CREATE INDEX IF NOT EXISTS idx_mcp_key_events_routine ON mcp_key_events(key_id, 
 		name:    "mcp_key_events_gate_refusals_routine",
 		sql:     `UPDATE mcp_key_events SET routine = 1 WHERE tool = '' AND outcome <> 'ok';`,
 	},
+	{
+		// A client that signed in through OAuth is a row of mcp_keys like a key,
+		// so its tile, log, start switch and runs work the same way. It carries
+		// no key digest; its tokens live in mcp_oauth_tokens. oauth_client names
+		// the registered client and resource the audience its tokens are for.
+		version:          mcpOAuthMigration,
+		name:             "mcp_keys_oauth",
+		alreadySatisfied: columnPresent("mcp_keys", "kind"),
+		sql: `ALTER TABLE mcp_keys ADD COLUMN kind TEXT NOT NULL DEFAULT 'key';
+ALTER TABLE mcp_keys ADD COLUMN oauth_client TEXT NOT NULL DEFAULT '';
+ALTER TABLE mcp_keys ADD COLUMN resource TEXT NOT NULL DEFAULT '';`,
+	},
+	{
+		// The authorization server behind the MCP endpoint: its one settings row,
+		// the clients that registered themselves, and the tokens it issued. Only
+		// HMAC digests of secrets are stored. A spent refresh token stays until it
+		// expires, so presenting it again can be recognised as theft.
+		version: mcpOAuthMigration + 1,
+		name:    "mcp_oauth",
+		sql: `CREATE TABLE IF NOT EXISTS mcp_oauth_settings (
+  id         INTEGER PRIMARY KEY CHECK (id = 1),
+  enabled    INTEGER NOT NULL DEFAULT 0,
+  issuer     TEXT    NOT NULL DEFAULT '',
+  updated_at INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS mcp_oauth_clients (
+  id            TEXT    PRIMARY KEY,
+  name          TEXT    NOT NULL DEFAULT '',
+  redirect_uris TEXT    NOT NULL DEFAULT '[]',
+  auth_method   TEXT    NOT NULL DEFAULT 'none',
+  secret_digest TEXT    NOT NULL DEFAULT '',
+  known         TEXT    NOT NULL DEFAULT '',
+  created_at    INTEGER NOT NULL DEFAULT 0,
+  created_from  TEXT    NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_mcp_oauth_clients_created ON mcp_oauth_clients(created_at);
+CREATE TABLE IF NOT EXISTS mcp_oauth_tokens (
+  digest     TEXT    PRIMARY KEY,
+  grant_id   TEXT    NOT NULL,
+  kind       TEXT    NOT NULL,
+  created_at INTEGER NOT NULL DEFAULT 0,
+  expires_at INTEGER NOT NULL DEFAULT 0,
+  spent_at   INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_mcp_oauth_tokens_grant ON mcp_oauth_tokens(grant_id, kind);
+CREATE INDEX IF NOT EXISTS idx_mcp_oauth_tokens_expires ON mcp_oauth_tokens(expires_at);`,
+	},
 }
 
 // dbDumpMigrationBase numbers the three database-dump columns from one place,
@@ -2104,6 +2151,9 @@ const zfsRecoveryMigration = zfsMemberMetricsMigration + 1
 // mcpActivityMigration numbers the per-key activity record. It skips the two
 // numbers zfsRecoveryMigration explains.
 const mcpActivityMigration = 148
+
+// mcpOAuthMigration numbers the OAuth sign-in of the MCP endpoint.
+const mcpOAuthMigration = mcpActivityMigration + 4
 
 // Migrate applies any pending forward-only migrations to db.
 // It is idempotent: already-applied migrations are skipped.
