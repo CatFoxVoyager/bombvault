@@ -2056,6 +2056,7 @@ const ms: Partial<Translations> = {
   "mcp.setupWhere": "Lokasi fail",
   "mcp.setupNeedsNode": "Ia memerlukan Node.js, kerana mcp-remote menyambungkan {app} kepada BombVault.",
   "mcp.keyFileLine": "Simpan kunci dalam fail teks sebagai baris X-API-Key: <key> dan letakkan laluan fail itu dalam konfigurasi. {app} hanya menyimpan laluannya, jadi kunci tidak muncul di sana mahupun dalam senarai proses.",
+  "mcp.keyFileJsonTip": "Dalam fail JSON ini, tulis laluan dengan garis condong biasa, contohnya C:/Users/sam/bombvault-key.txt, kerana satu garis condong ke belakang bukan JSON yang sah. Pastikan laluan fail kunci tiada ruang: pada Windows, {app} menghantar laluan yang ada ruang kepada npx dalam dua bahagian.",
   "mcp.keyEnv": "{app} membaca kunci daripada pemboleh ubah persekitaran {var}.",
   "mcp.keyEnvTip": "Tetapkannya sekali sebagai pemboleh ubah persekitaran pengguna: dalam Windows di Tetapan, Sistem, Perihal, Tetapan sistem lanjutan, Pemboleh Ubah Persekitaran; dalam macOS dan Linux dalam profil shell anda. Kemudian mulakan semula {app}. Menaipnya dengan setx atau export pada gesaan akan meninggalkan kunci dalam sejarah shell anda.",
   "mcp.keyEnvUnsure": "Jika {app} menghantar nama pemboleh ubah dan bukannya kunci, tulis kunci ke dalam fail di tempatnya dan simpan fail itu untuk diri anda sendiri.",

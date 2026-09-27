@@ -2056,6 +2056,7 @@ const is: Partial<Translations> = {
   "mcp.setupWhere": "Hvar skráin er",
   "mcp.setupNeedsNode": "Til þess þarf Node.js, því mcp-remote tengir {app} við BombVault.",
   "mcp.keyFileLine": "Vistaðu lykilinn í textaskrá sem línuna X-API-Key: <key> og settu slóð þeirrar skrár í stillingarnar. {app} geymir aðeins slóðina, svo lykillinn birtist hvorki þar né í ferlalistanum.",
+  "mcp.keyFileJsonTip": "Skrifaðu slóðir í þessari JSON-skrá með venjulegum skástrikum, til dæmis C:/Users/sam/bombvault-key.txt, því stakt öfugt skástrik er ekki gilt JSON. Hafðu slóð lykilskrárinnar án bila: á Windows sendir {app} slóð með bili til npx í tveimur hlutum.",
   "mcp.keyEnv": "{app} les lykilinn úr umhverfisbreytunni {var}.",
   "mcp.keyEnvTip": "Stilltu hana einu sinni sem umhverfisbreytu notanda: í Windows undir Stillingar, Kerfi, Um, Ítarlegar kerfisstillingar, Umhverfisbreytur; í macOS og Linux í skeljarprófílnum þínum. Ræstu síðan {app} aftur. Ef þú slærð hana inn með setx eða export í skipanalínu verður lykillinn eftir í skeljarsögunni.",
   "mcp.keyEnvUnsure": "Ef {app} sendir nafn breytunnar í stað lykilsins skaltu skrifa lykilinn í skrána í staðinn og halda þeirri skrá fyrir þig.",

@@ -1835,6 +1835,7 @@ const hu: Partial<Translations> = {
   "mcp.setupWhere": "Hol van a fájl",
   "mcp.setupNeedsNode": "Node.js kell hozzá, mert az mcp-remote köti össze a(z) {app} alkalmazást a BombVaulttal.",
   "mcp.keyFileLine": "Mentsd a kulcsot egy szövegfájlba X-API-Key: <key> sorként, és a fájl útvonalát írd a konfigurációba. A(z) {app} csak az útvonalat tárolja, így a kulcs sem ott, sem a folyamatlistában nem jelenik meg.",
+  "mcp.keyFileJsonTip": "Ebben a JSON-fájlban normál perjellel írd az útvonalakat, például C:/Users/sam/bombvault-key.txt, mert egy magában álló fordított perjel nem érvényes JSON. A kulcsfájl útvonalában ne legyen szóköz: Windowson a(z) {app} a szóközt tartalmazó útvonalat két darabban adja át az npx-nek.",
   "mcp.keyEnv": "A(z) {app} a(z) {var} környezeti változóból olvassa a kulcsot.",
   "mcp.keyEnvTip": "Állítsd be egyszer felhasználói környezeti változóként: Windowson a Gépház, Rendszer, Névjegy, Speciális rendszerbeállítások, Környezeti változók alatt; macOS-en és Linuxon a shelled profiljában. Utána indítsd újra a(z) {app} alkalmazást. Ha setx-szel vagy exporttal írnád be egy parancssorba, a kulcs a shell előzményeiben maradna.",
   "mcp.keyEnvUnsure": "Ha a(z) {app} a változó nevét küldi a kulcs helyett, írd a kulcsot a fájlba a helyére, és azt a fájlt tartsd meg magadnak.",

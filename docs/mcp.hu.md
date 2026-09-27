@@ -68,7 +68,7 @@ A párbeszédablak minden parancssortól távol tartja a kulcsot. Ahol a kliens 
 | AnythingLLM | konfigurációs fájl | a konfigurációs fájl |
 | Antigravity | konfigurációs fájl | környezeti változó |
 | Claude Code | parancs | kulcsfájl |
-| Claude Desktop | konfigurációs fájl | a konfigurációs fájl |
+| Claude Desktop | konfigurációs fájl | kulcsfájl |
 | Cline | konfigurációs fájl | a konfigurációs fájl |
 | Codex CLI | konfigurációs fájl | környezeti változó |
 | Continue | konfigurációs fájl | `~/.continue/.env` |
@@ -144,16 +144,15 @@ Node.js nélkül, és csak olyan tanúsítvány mögött, amelyben a számítóg
 
 ### Claude Desktop {#claude-desktop}
 
-A Claude Desktop az `mcp-remote` programon keresztül éri el a BombVaultot, amelyhez Node.js kell azon a számítógépen. Nyisd meg a konfigurációs fájlt a Claude Desktopban a **Settings, Developer, Edit Config** útvonalon. Windowson a `%APPDATA%\Claude\claude_desktop_config.json`, macOS-en a `~/Library/Application Support/Claude/claude_desktop_config.json` helyen van. Add hozzá a kártya bejegyzését a `"mcpServers"` részen belül, a már ott lévő kiszolgálók mellé, és indítsd újra a Claude Desktopot:
+A Claude Desktop az `mcp-remote` programon keresztül éri el a BombVaultot, amelyhez Node.js kell azon a számítógépen. Először mentsd a kulcsot egy külön szövegfájlba, egyetlen sorként, ahogy a [Claude Code](#claude-code) résznél áll. Nyisd meg a konfigurációs fájlt a Claude Desktopban a **Settings, Developer, Edit Config** útvonalon. Windowson a `%APPDATA%\Claude\claude_desktop_config.json`, macOS-en a `~/Library/Application Support/Claude/claude_desktop_config.json` helyen van. Add hozzá a kártya bejegyzését a `"mcpServers"` részen belül, a már ott lévő kiszolgálók mellé, és indítsd újra a Claude Desktopot:
 
 ```json
 {
   "mcpServers": {
     "bombvault": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://192.168.1.10:3443/mcp", "--header", "X-API-Key:${BOMBVAULT_MCP_KEY}"],
+      "args": ["-y", "mcp-remote@latest", "https://192.168.1.10:3443/mcp", "--header-file", "<path of the file with your key>"],
       "env": {
-        "BOMBVAULT_MCP_KEY": "<your key>",
         "NODE_EXTRA_CA_CERTS": "<path of the downloaded bombvault-cert.pem>"
       }
     }
@@ -163,7 +162,8 @@ A Claude Desktop az `mcp-remote` programon keresztül éri el a BombVaultot, ame
 
 - A `NODE_EXTRA_CA_CERTS` csak a BombVault saját tanúsítványa miatt van ott. Olyan tanúsítvány mögött, amelyben a számítógéped már megbízik, hagyd el.
 - A `--allow-http` csak egyszerű `http://` címnél kerül bele.
-- A fejléc `X-API-Key:${BOMBVAULT_MCP_KEY}` alakban áll, szóköz nélkül a kettőspont után, a kulccsal az `env` részben. Egyes rendszereken az `mcp-remote` az első szóköznél kettévágja a `--header` értékét, és egy szóköz után írt kulcs elveszne.
+- Windowson normál perjellel írd az útvonalakat, például `C:/Users/sam/bombvault-key.txt`, mert egy magában álló fordított perjel nem érvényes JSON. A kulcsfájl útvonalában ne legyen szóköz: a Claude Desktop Windowson a szóközt tartalmazó útvonalat két darabban adja át az `npx`-nek.
+- A konfiguráció csak a kulcsfájlt nevezi meg, így a kulcs sem benne, sem a folyamatlistában nem jelenik meg. A fájlt olyan helyen tartsd, ahol csak te olvashatod.
 
 ### Kliensek a felhőben {#cloud-clients}
 

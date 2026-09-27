@@ -1832,6 +1832,7 @@ const fi: Partial<Translations> = {
   "mcp.setupWhere": "Missä tiedosto on",
   "mcp.setupNeedsNode": "Tarvitaan Node.js, koska mcp-remote yhdistää ohjelman {app} BombVaultiin.",
   "mcp.keyFileLine": "Tallenna avain tekstitiedostoon rivinä X-API-Key: <key> ja laita tiedoston polku määritykseen. {app} säilyttää vain polun, joten avain ei näy siellä eikä prosessiluettelossa.",
+  "mcp.keyFileJsonTip": "Kirjoita tämän JSON-tiedoston polut tavallisilla kauttaviivoilla, esimerkiksi C:/Users/sam/bombvault-key.txt, sillä yksittäinen kenoviiva ei ole kelvollista JSONia. Pidä avaintiedoston polku vapaana välilyönneistä: Windowsissa {app} antaa välilyönnin sisältävän polun npx:lle kahtena palana.",
   "mcp.keyEnv": "{app} lukee avaimen ympäristömuuttujasta {var}.",
   "mcp.keyEnvTip": "Aseta se kerran käyttäjän ympäristömuuttujaksi: Windowsissa kohdassa Asetukset, Järjestelmä, Tietoja, Järjestelmän lisäasetukset, Ympäristömuuttujat; macOS:ssä ja Linuxissa kuoresi profiilissa. Käynnistä sitten {app} uudelleen. Jos kirjoitat sen komennolla setx tai export kehotteeseen, avain jää kuoren historiaan.",
   "mcp.keyEnvUnsure": "Jos {app} lähettää muuttujan nimen avaimen sijaan, kirjoita avain tiedostoon sen paikalle ja pidä tiedosto itselläsi.",

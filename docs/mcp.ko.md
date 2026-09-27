@@ -68,7 +68,7 @@ BombVault는 키마다 기록을 최대 30일 동안 보관합니다. 성공한 
 | AnythingLLM | 구성 파일 | 구성 파일 |
 | Antigravity | 구성 파일 | 환경 변수 |
 | Claude Code | 명령 | 키 파일 |
-| Claude Desktop | 구성 파일 | 구성 파일 |
+| Claude Desktop | 구성 파일 | 키 파일 |
 | Cline | 구성 파일 | 구성 파일 |
 | Codex CLI | 구성 파일 | 환경 변수 |
 | Continue | 구성 파일 | `~/.continue/.env` |
@@ -144,16 +144,15 @@ Node.js가 없어도 Claude Code는 직접 연결할 수 있지만, 컴퓨터가
 
 ### Claude Desktop {#claude-desktop}
 
-Claude Desktop은 `mcp-remote`를 통해 BombVault에 연결하며, 그 컴퓨터에 Node.js가 필요합니다. Claude Desktop의 **Settings, Developer, Edit Config**에서 설정 파일을 엽니다. 위치는 Windows에서는 `%APPDATA%\Claude\claude_desktop_config.json`, macOS에서는 `~/Library/Application Support/Claude/claude_desktop_config.json`입니다. 카드의 항목을 `"mcpServers"` 안, 이미 있는 서버들 옆에 추가하고 Claude Desktop을 다시 시작합니다:
+Claude Desktop은 `mcp-remote`를 통해 BombVault에 연결하며, 그 컴퓨터에 Node.js가 필요합니다. 먼저 [Claude Code](#claude-code)에서 설명한 대로 키를 별도의 텍스트 파일에 한 줄로 저장합니다. Claude Desktop의 **Settings, Developer, Edit Config**에서 설정 파일을 엽니다. 위치는 Windows에서는 `%APPDATA%\Claude\claude_desktop_config.json`, macOS에서는 `~/Library/Application Support/Claude/claude_desktop_config.json`입니다. 카드의 항목을 `"mcpServers"` 안, 이미 있는 서버들 옆에 추가하고 Claude Desktop을 다시 시작합니다:
 
 ```json
 {
   "mcpServers": {
     "bombvault": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://192.168.1.10:3443/mcp", "--header", "X-API-Key:${BOMBVAULT_MCP_KEY}"],
+      "args": ["-y", "mcp-remote@latest", "https://192.168.1.10:3443/mcp", "--header-file", "<path of the file with your key>"],
       "env": {
-        "BOMBVAULT_MCP_KEY": "<your key>",
         "NODE_EXTRA_CA_CERTS": "<path of the downloaded bombvault-cert.pem>"
       }
     }
@@ -163,7 +162,8 @@ Claude Desktop은 `mcp-remote`를 통해 BombVault에 연결하며, 그 컴퓨�
 
 - `NODE_EXTRA_CA_CERTS`는 BombVault 자체 인증서 때문에만 있습니다. 컴퓨터가 이미 신뢰하는 인증서 뒤에서는 빼세요.
 - `--allow-http`는 일반 `http://` 주소일 때만 붙습니다.
-- 헤더는 콜론 뒤에 공백 없이, 키는 `env`에 두고 `X-API-Key:${BOMBVAULT_MCP_KEY}`로 씁니다. 일부 시스템에서 `mcp-remote`는 `--header` 값을 첫 공백에서 나누므로, 공백 뒤에 쓴 키는 사라집니다.
+- Windows에서는 `C:/Users/sam/bombvault-key.txt`처럼 경로를 슬래시로 쓰세요. 백슬래시 하나는 올바른 JSON이 아닙니다. 키 파일 경로에는 공백을 넣지 마세요. Windows의 Claude Desktop은 공백이 있는 경로를 두 조각으로 나눠 `npx`에 넘깁니다.
+- 구성에는 키 파일만 적히므로 키는 구성에도 프로세스 목록에도 나타나지 않습니다. 파일은 본인만 읽을 수 있는 곳에 두세요.
 
 ### 클라우드의 클라이언트 {#cloud-clients}
 

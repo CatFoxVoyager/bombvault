@@ -1827,6 +1827,7 @@ const pl: Partial<Translations> = {
   "mcp.setupWhere": "Gdzie leży plik",
   "mcp.setupNeedsNode": "Potrzebny jest Node.js, bo mcp-remote łączy {app} z BombVault.",
   "mcp.keyFileLine": "Zapisz klucz w pliku tekstowym jako wiersz X-API-Key: <key> i wpisz ścieżkę tego pliku do konfiguracji. {app} zachowuje tylko ścieżkę, więc klucz nie pojawia się ani tam, ani na liście procesów.",
+  "mcp.keyFileJsonTip": "W tym pliku JSON zapisuj ścieżki zwykłymi ukośnikami, na przykład C:/Users/sam/bombvault-key.txt, bo pojedynczy ukośnik wsteczny nie jest poprawnym JSON-em. Ścieżka pliku z kluczem nie może zawierać spacji: w Windows {app} przekazuje ścieżkę ze spacją do npx w dwóch kawałkach.",
   "mcp.keyEnv": "{app} czyta klucz ze zmiennej środowiskowej {var}.",
   "mcp.keyEnvTip": "Ustaw ją raz jako zmienną środowiskową użytkownika: w Windows w Ustawienia, System, Informacje, Zaawansowane ustawienia systemu, Zmienne środowiskowe; w macOS i Linuksie w profilu swojej powłoki. Potem uruchom {app} ponownie. Wpisanie jej przez setx lub export w wierszu poleceń zostawiłoby klucz w historii powłoki.",
   "mcp.keyEnvUnsure": "Jeśli {app} wysyła nazwę zmiennej zamiast klucza, wpisz klucz do pliku w jej miejsce i trzymaj ten plik tylko dla siebie.",

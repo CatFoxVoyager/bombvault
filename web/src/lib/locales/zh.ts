@@ -1824,6 +1824,7 @@ const zh: Partial<Translations> = {
   "mcp.setupWhere": "文件位置",
   "mcp.setupNeedsNode": "需要 Node.js，因为 mcp-remote 负责把 {app} 连接到 BombVault。",
   "mcp.keyFileLine": "把密钥以 X-API-Key: <key> 这一行保存到文本文件中，并把该文件的路径填进配置。{app} 只保存路径，所以密钥既不会出现在配置里，也不会出现在进程列表中。",
+  "mcp.keyFileJsonTip": "在这个 JSON 文件里，路径请用正斜杠书写，例如 C:/Users/sam/bombvault-key.txt，因为单个反斜杠不是有效的 JSON。密钥文件的路径不要包含空格：在 Windows 上，{app} 会把带空格的路径拆成两段传给 npx。",
   "mcp.keyEnv": "{app} 从环境变量 {var} 读取密钥。",
   "mcp.keyEnvTip": "把它设置为用户环境变量，只需一次：Windows 在 设置、系统、关于、高级系统设置、环境变量 中；macOS 和 Linux 在你的 shell 配置文件中。然后重新启动 {app}。如果在命令行用 setx 或 export 输入，密钥会留在 shell 历史中。",
   "mcp.keyEnvUnsure": "如果 {app} 发送的是变量名而不是密钥，就把密钥直接写进文件中的相应位置，并且只让你自己保管这个文件。",

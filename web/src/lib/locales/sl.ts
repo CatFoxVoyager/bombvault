@@ -2040,6 +2040,7 @@ const sl: Partial<Translations> = {
   "mcp.setupWhere": "Kje je datoteka",
   "mcp.setupNeedsNode": "Potreben je Node.js, ker mcp-remote poveže {app} z BombVault.",
   "mcp.keyFileLine": "Ključ shrani v besedilno datoteko kot vrstico X-API-Key: <key> in pot do te datoteke vpiši v konfiguracijo. {app} si zapomni samo pot, zato se ključ ne pokaže ne tam ne na seznamu procesov.",
+  "mcp.keyFileJsonTip": "V tej datoteki JSON piši poti z navadnimi poševnicami, na primer C:/Users/sam/bombvault-key.txt, ker ena sama leva poševnica ni veljaven JSON. Pot do datoteke s ključem naj bo brez presledkov: v sistemu Windows {app} pot s presledkom preda programu npx v dveh kosih.",
   "mcp.keyEnv": "{app} prebere ključ iz spremenljivke okolja {var}.",
   "mcp.keyEnvTip": "Enkrat jo nastavi kot uporabniško spremenljivko okolja: v Windows v Nastavitve, Sistem, Vizitka, Dodatne sistemske nastavitve, Spremenljivke okolja; v macOS in Linuxu v profilu svoje lupine. Nato {app} znova zaženi. Če bi jo vpisal z setx ali export v ukazni vrstici, bi ključ ostal v zgodovini lupine.",
   "mcp.keyEnvUnsure": "Če {app} pošlje ime spremenljivke namesto ključa, vpiši ključ v datoteko na njeno mesto in to datoteko obdrži zase.",

@@ -1830,6 +1830,7 @@ const es: Partial<Translations> = {
   "mcp.setupWhere": "Dónde está el archivo",
   "mcp.setupNeedsNode": "Necesita Node.js, porque mcp-remote conecta {app} con BombVault.",
   "mcp.keyFileLine": "Guarda la clave en un archivo de texto como la línea X-API-Key: <key> y pon la ruta de ese archivo en la configuración. {app} solo guarda la ruta, así que la clave no aparece ni ahí ni en la lista de procesos.",
+  "mcp.keyFileJsonTip": "En este archivo JSON, escribe las rutas con barras normales, como C:/Users/sam/bombvault-key.txt, porque una barra invertida sola no es JSON válido. Deja la ruta del archivo de la clave sin espacios: en Windows, {app} pasa a npx una ruta con un espacio en dos trozos.",
   "mcp.keyEnv": "{app} lee la clave de la variable de entorno {var}.",
   "mcp.keyEnvTip": "Defínela una vez como variable de entorno de usuario: en Windows en Configuración, Sistema, Información, Configuración avanzada del sistema, Variables de entorno; en macOS y Linux en el perfil de tu shell. Después reinicia {app}. Escribirla con setx o export en una consola dejaría la clave en el historial de tu shell.",
   "mcp.keyEnvUnsure": "Si {app} envía el nombre de la variable en lugar de la clave, escribe la clave en el archivo en su lugar y guarda ese archivo solo para ti.",

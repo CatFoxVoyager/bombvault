@@ -2056,6 +2056,7 @@ const et: Partial<Translations> = {
   "mcp.setupWhere": "Kus fail asub",
   "mcp.setupNeedsNode": "Selleks on vaja Node.js-i, sest mcp-remote ühendab rakenduse {app} BombVaultiga.",
   "mcp.keyFileLine": "Salvesta võti tekstifaili reana X-API-Key: <key> ja pane selle faili tee konfiguratsiooni. {app} hoiab alles ainult tee, nii et võti ei ilmu ei sinna ega protsesside loendisse.",
+  "mcp.keyFileJsonTip": "Kirjuta selles JSON-failis teed tavaliste kaldkriipsudega, näiteks C:/Users/sam/bombvault-key.txt, sest üksik kurakaldkriips ei ole kehtiv JSON. Hoia võtmefaili tee tühikuteta: Windowsis annab {app} tühikuga tee npx-ile edasi kahe tükina.",
   "mcp.keyEnv": "{app} loeb võtme keskkonnamuutujast {var}.",
   "mcp.keyEnvTip": "Määra see üks kord kasutaja keskkonnamuutujaks: Windowsis kohas Sätted, Süsteem, Teave, Täpsemad süsteemisätted, Keskkonnamuutujad; macOS-is ja Linuxis oma kesta profiilis. Seejärel käivita {app} uuesti. Kui sisestad selle käsuga setx või export käsureale, jääb võti kesta ajalukku.",
   "mcp.keyEnvUnsure": "Kui {app} saadab võtme asemel muutuja nime, kirjuta võti faili selle asemele ja hoia see fail endale.",

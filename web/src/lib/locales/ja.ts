@@ -1824,6 +1824,7 @@ const ja: Partial<Translations> = {
   "mcp.setupWhere": "ファイルの場所",
   "mcp.setupNeedsNode": "mcp-remote が {app} と BombVault をつなぐため、Node.js が必要です。",
   "mcp.keyFileLine": "キーをテキストファイルに X-API-Key: <key> という行で保存し、そのファイルのパスを設定に入れてください。{app} はパスだけを保持するので、キーは設定にもプロセス一覧にも現れません。",
+  "mcp.keyFileJsonTip": "この JSON ファイルでは、パスを C:/Users/sam/bombvault-key.txt のようにスラッシュで書いてください。バックスラッシュ 1 つは JSON として無効です。キーファイルのパスには空白を入れないでください。Windows の {app} は、空白を含むパスを 2 つに分けて npx に渡します。",
   "mcp.keyEnv": "{app} は環境変数 {var} からキーを読み取ります。",
   "mcp.keyEnvTip": "ユーザー環境変数として一度設定してください。Windows では 設定、システム、バージョン情報、システムの詳細設定、環境変数 で、macOS と Linux ではシェルのプロファイルで設定します。その後 {app} を再起動してください。プロンプトで setx や export を使って入力すると、キーがシェルの履歴に残ります。",
   "mcp.keyEnvUnsure": "{app} がキーの代わりに変数名を送る場合は、その位置にキーを直接書き込み、そのファイルは自分だけで管理してください。",

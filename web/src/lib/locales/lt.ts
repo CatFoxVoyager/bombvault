@@ -2056,6 +2056,7 @@ const lt: Partial<Translations> = {
   "mcp.setupWhere": "Kur yra failas",
   "mcp.setupNeedsNode": "Reikia Node.js, nes mcp-remote sujungia {app} su BombVault.",
   "mcp.keyFileLine": "Išsaugok raktą tekstiniame faile kaip eilutę X-API-Key: <key> ir to failo kelią įrašyk į konfigūraciją. {app} išsaugo tik kelią, todėl raktas nepasirodo nei ten, nei procesų sąraše.",
+  "mcp.keyFileJsonTip": "Šiame JSON faile kelius rašyk įprastais pasviraisiais brūkšniais, pavyzdžiui, C:/Users/sam/bombvault-key.txt, nes vienas atvirkštinis pasvirasis brūkšnys nėra galiojantis JSON. Rakto failo kelyje neturi būti tarpų: sistemoje Windows {app} kelią su tarpu perduoda npx dviem dalimis.",
   "mcp.keyEnv": "{app} skaito raktą iš aplinkos kintamojo {var}.",
   "mcp.keyEnvTip": "Nustatyk jį vieną kartą kaip naudotojo aplinkos kintamąjį: Windows skiltyje Parametrai, Sistema, Apie, Išplėstiniai sistemos parametrai, Aplinkos kintamieji; macOS ir Linux savo apvalkalo profilyje. Tada iš naujo paleisk {app}. Jei įvestum jį su setx ar export komandų eilutėje, raktas liktų apvalkalo istorijoje.",
   "mcp.keyEnvUnsure": "Jei {app} vietoj rakto siunčia kintamojo pavadinimą, įrašyk raktą į failą jo vietoje ir tą failą laikyk tik sau.",

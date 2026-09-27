@@ -1824,6 +1824,7 @@ const ko: Partial<Translations> = {
   "mcp.setupWhere": "파일 위치",
   "mcp.setupNeedsNode": "mcp-remote가 {app}을(를) BombVault에 연결하므로 Node.js가 필요합니다.",
   "mcp.keyFileLine": "키를 텍스트 파일에 X-API-Key: <key> 줄로 저장하고 그 파일의 경로를 구성에 넣으세요. {app}은(는) 경로만 보관하므로 키는 구성에도 프로세스 목록에도 나타나지 않습니다.",
+  "mcp.keyFileJsonTip": "이 JSON 파일에서는 C:/Users/sam/bombvault-key.txt처럼 경로를 슬래시로 쓰세요. 백슬래시 하나는 올바른 JSON이 아닙니다. 키 파일 경로에는 공백을 넣지 마세요. Windows에서 {app}은(는) 공백이 있는 경로를 두 조각으로 나눠 npx에 넘깁니다.",
   "mcp.keyEnv": "{app}은(는) 환경 변수 {var}에서 키를 읽습니다.",
   "mcp.keyEnvTip": "사용자 환경 변수로 한 번 설정하세요. Windows에서는 설정, 시스템, 정보, 고급 시스템 설정, 환경 변수에서, macOS와 Linux에서는 셸 프로필에서 설정합니다. 그런 다음 {app}을(를) 다시 시작하세요. 프롬프트에서 setx나 export로 입력하면 키가 셸 기록에 남습니다.",
   "mcp.keyEnvUnsure": "{app}이(가) 키 대신 변수 이름을 보낸다면, 그 자리에 키를 직접 적고 그 파일은 혼자만 관리하세요.",

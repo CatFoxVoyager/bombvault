@@ -68,7 +68,7 @@ BombVault は各キーの記録を最長 30 日間保持します。成功した
 | AnythingLLM | 設定ファイル | 設定ファイル |
 | Antigravity | 設定ファイル | 環境変数 |
 | Claude Code | コマンド | キーファイル |
-| Claude Desktop | 設定ファイル | 設定ファイル |
+| Claude Desktop | 設定ファイル | キーファイル |
 | Cline | 設定ファイル | 設定ファイル |
 | Codex CLI | 設定ファイル | 環境変数 |
 | Continue | 設定ファイル | `~/.continue/.env` |
@@ -144,16 +144,15 @@ Node.js がなくても、コンピューターが信頼する証明書の背後
 
 ### Claude Desktop {#claude-desktop}
 
-Claude Desktop は `mcp-remote` を通して BombVault に接続し、そのコンピューターには Node.js が必要です。Claude Desktop の **Settings, Developer, Edit Config** から設定ファイルを開きます。場所は Windows では `%APPDATA%\Claude\claude_desktop_config.json`、macOS では `~/Library/Application Support/Claude/claude_desktop_config.json` です。カードのエントリを `"mcpServers"` の中、既存のサーバーの隣に追加し、Claude Desktop を再起動します:
+Claude Desktop は `mcp-remote` を通して BombVault に接続し、そのコンピューターには Node.js が必要です。まず、[Claude Code](#claude-code) の説明と同じように、キーを専用のテキストファイルに 1 行で保存します。Claude Desktop の **Settings, Developer, Edit Config** から設定ファイルを開きます。場所は Windows では `%APPDATA%\Claude\claude_desktop_config.json`、macOS では `~/Library/Application Support/Claude/claude_desktop_config.json` です。カードのエントリを `"mcpServers"` の中、既存のサーバーの隣に追加し、Claude Desktop を再起動します:
 
 ```json
 {
   "mcpServers": {
     "bombvault": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://192.168.1.10:3443/mcp", "--header", "X-API-Key:${BOMBVAULT_MCP_KEY}"],
+      "args": ["-y", "mcp-remote@latest", "https://192.168.1.10:3443/mcp", "--header-file", "<path of the file with your key>"],
       "env": {
-        "BOMBVAULT_MCP_KEY": "<your key>",
         "NODE_EXTRA_CA_CERTS": "<path of the downloaded bombvault-cert.pem>"
       }
     }
@@ -163,7 +162,8 @@ Claude Desktop は `mcp-remote` を通して BombVault に接続し、そのコ�
 
 - `NODE_EXTRA_CA_CERTS` は BombVault 自身の証明書のためだけにあります。コンピューターがすでに信頼している証明書の背後では削除してください。
 - `--allow-http` はプレーンな `http://` アドレスのときだけ付きます。
-- ヘッダーはコロンの後に空白を入れず、キーを `env` に置いて `X-API-Key:${BOMBVAULT_MCP_KEY}` と書きます。一部のシステムでは `mcp-remote` が `--header` の値を最初の空白で分割するため、空白の後に書いたキーは失われてしまいます。
+- Windows ではパスを `C:/Users/sam/bombvault-key.txt` のようにスラッシュで書いてください。バックスラッシュ 1 つは JSON として無効です。キーファイルのパスには空白を入れないでください。Windows の Claude Desktop は、空白を含むパスを 2 つに分けて `npx` に渡します。
+- 設定に書かれるのはキーファイルだけなので、キーは設定にもプロセス一覧にも現れません。ファイルは自分だけが読める場所に置いてください。
 
 ### クラウドのクライアント {#cloud-clients}
 

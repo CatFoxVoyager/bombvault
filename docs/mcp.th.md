@@ -68,7 +68,7 @@ BombVault เก็บรายการของแต่ละคีย์ไ�
 | AnythingLLM | ไฟล์การกำหนดค่า | ไฟล์การกำหนดค่า |
 | Antigravity | ไฟล์การกำหนดค่า | ตัวแปรสภาพแวดล้อม |
 | Claude Code | คำสั่ง | ไฟล์คีย์ |
-| Claude Desktop | ไฟล์การกำหนดค่า | ไฟล์การกำหนดค่า |
+| Claude Desktop | ไฟล์การกำหนดค่า | ไฟล์คีย์ |
 | Cline | ไฟล์การกำหนดค่า | ไฟล์การกำหนดค่า |
 | Codex CLI | ไฟล์การกำหนดค่า | ตัวแปรสภาพแวดล้อม |
 | Continue | ไฟล์การกำหนดค่า | `~/.continue/.env` |
@@ -144,16 +144,15 @@ Claude Code เชื่อมต่อเองได้โดยไม่ต�
 
 ### Claude Desktop {#claude-desktop}
 
-Claude Desktop เชื่อมต่อกับ BombVault ผ่าน `mcp-remote` ซึ่งต้องมี Node.js บนคอมพิวเตอร์เครื่องนั้น เปิดไฟล์การตั้งค่าใน Claude Desktop ผ่าน **Settings, Developer, Edit Config** ไฟล์อยู่ที่ `%APPDATA%\Claude\claude_desktop_config.json` บน Windows และที่ `~/Library/Application Support/Claude/claude_desktop_config.json` บน macOS เพิ่มรายการจากการ์ดไว้ใน `"mcpServers"` ข้างเซิร์ฟเวอร์ที่มีอยู่แล้ว จากนั้นรีสตาร์ต Claude Desktop:
+Claude Desktop เชื่อมต่อกับ BombVault ผ่าน `mcp-remote` ซึ่งต้องมี Node.js บนคอมพิวเตอร์เครื่องนั้น ก่อนอื่นให้บันทึกคีย์ลงในไฟล์ข้อความแยกต่างหากเป็นบรรทัดเดียว ตามที่อธิบายไว้สำหรับ [Claude Code](#claude-code) เปิดไฟล์การตั้งค่าใน Claude Desktop ผ่าน **Settings, Developer, Edit Config** ไฟล์อยู่ที่ `%APPDATA%\Claude\claude_desktop_config.json` บน Windows และที่ `~/Library/Application Support/Claude/claude_desktop_config.json` บน macOS เพิ่มรายการจากการ์ดไว้ใน `"mcpServers"` ข้างเซิร์ฟเวอร์ที่มีอยู่แล้ว จากนั้นรีสตาร์ต Claude Desktop:
 
 ```json
 {
   "mcpServers": {
     "bombvault": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://192.168.1.10:3443/mcp", "--header", "X-API-Key:${BOMBVAULT_MCP_KEY}"],
+      "args": ["-y", "mcp-remote@latest", "https://192.168.1.10:3443/mcp", "--header-file", "<path of the file with your key>"],
       "env": {
-        "BOMBVAULT_MCP_KEY": "<your key>",
         "NODE_EXTRA_CA_CERTS": "<path of the downloaded bombvault-cert.pem>"
       }
     }
@@ -163,7 +162,8 @@ Claude Desktop เชื่อมต่อกับ BombVault ผ่าน `mcp-
 
 - `NODE_EXTRA_CA_CERTS` มีไว้สำหรับใบรับรองของ BombVault เองเท่านั้น หากอยู่หลังใบรับรองที่คอมพิวเตอร์ของคุณเชื่อถืออยู่แล้ว ให้เอาออก
 - `--allow-http` จะเพิ่มเฉพาะที่อยู่ `http://` ธรรมดาเท่านั้น
-- ส่วนหัวเขียนเป็น `X-API-Key:${BOMBVAULT_MCP_KEY}` โดยไม่มีช่องว่างหลังเครื่องหมายทวิภาค และคีย์อยู่ใน `env` บางระบบ `mcp-remote` จะตัดค่าของ `--header` ที่ช่องว่างแรก คีย์ที่เขียนหลังช่องว่างจึงหายไป
+- บน Windows ให้เขียนพาธด้วยเครื่องหมายทับปกติ เช่น `C:/Users/sam/bombvault-key.txt` เพราะแบ็กสแลชตัวเดียวไม่ใช่ JSON ที่ถูกต้อง และอย่าให้พาธของไฟล์คีย์มีช่องว่าง เพราะ Claude Desktop บน Windows จะส่งพาธที่มีช่องว่างให้ `npx` เป็นสองส่วน
+- การตั้งค่าระบุเพียงไฟล์คีย์ คีย์จึงไม่ปรากฏทั้งในการตั้งค่าและในรายการโปรเซส เก็บไฟล์ไว้ในที่ที่มีเพียงคุณอ่านได้
 
 ### ไคลเอนต์บนคลาวด์ {#cloud-clients}
 

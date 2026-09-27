@@ -1835,6 +1835,7 @@ const ro: Partial<Translations> = {
   "mcp.setupWhere": "Unde se află fișierul",
   "mcp.setupNeedsNode": "Are nevoie de Node.js, pentru că mcp-remote conectează {app} la BombVault.",
   "mcp.keyFileLine": "Salvează cheia într-un fișier text ca linia X-API-Key: <key> și pune calea acelui fișier în configurație. {app} păstrează doar calea, așa că cheia nu apare nici acolo, nici în lista de procese.",
+  "mcp.keyFileJsonTip": "În acest fișier JSON, scrie căile cu bare oblice normale, de exemplu C:/Users/sam/bombvault-key.txt, pentru că o singură bară oblică inversă nu este JSON valid. Păstrează calea fișierului cu cheia fără spații: pe Windows, {app} îi transmite lui npx o cale cu spațiu în două bucăți.",
   "mcp.keyEnv": "{app} citește cheia din variabila de mediu {var}.",
   "mcp.keyEnvTip": "Setează-o o dată ca variabilă de mediu a utilizatorului: în Windows la Setări, Sistem, Despre, Setări complexe de sistem, Variabile de mediu; în macOS și Linux în profilul shell-ului tău. Apoi repornește {app}. Dacă o tastezi cu setx sau export într-un prompt, cheia rămâne în istoricul shell-ului.",
   "mcp.keyEnvUnsure": "Dacă {app} trimite numele variabilei în loc de cheie, scrie cheia în fișier în locul ei și păstrează acel fișier doar pentru tine.",

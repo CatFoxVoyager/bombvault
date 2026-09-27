@@ -2056,6 +2056,7 @@ const eu: Partial<Translations> = {
   "mcp.setupWhere": "Non dagoen fitxategia",
   "mcp.setupNeedsNode": "Node.js behar du, mcp-remotek konektatzen baitu {app} BombVaultekin.",
   "mcp.keyFileLine": "Gorde gakoa testu-fitxategi batean X-API-Key: <key> lerro gisa, eta jarri fitxategi horren bidea konfigurazioan. {app} aplikazioak bidea bakarrik gordetzen du, beraz gakoa ez da agertzen ez han ez prozesuen zerrendan.",
+  "mcp.keyFileJsonTip": "JSON fitxategi honetan, idatzi bideak barra arruntekin, adibidez C:/Users/sam/bombvault-key.txt, alderantzizko barra bakarra ez baita JSON baliozkoa. Gako-fitxategiaren bidean ez jarri zuriunerik: Windowsen, {app} aplikazioak zuriunea duen bidea bi zatitan pasatzen dio npx-i.",
   "mcp.keyEnv": "{app} aplikazioak {var} ingurune-aldagaitik irakurtzen du gakoa.",
   "mcp.keyEnvTip": "Ezarri behin erabiltzailearen ingurune-aldagai gisa: Windowsen Ezarpenak, Sistema, Honi buruz, Sistemaren ezarpen aurreratuak, Ingurune-aldagaiak atalean; macOS eta Linuxen zure shell-aren profilean. Gero berrabiarazi {app}. setx edo export erabiliz idatziko bazenu gonbita batean, gakoa shell-aren historian geratuko litzateke.",
   "mcp.keyEnvUnsure": "{app} aplikazioak gakoaren ordez aldagaiaren izena bidaltzen badu, idatzi gakoa fitxategian haren lekuan eta gorde fitxategi hori zeuretzat.",

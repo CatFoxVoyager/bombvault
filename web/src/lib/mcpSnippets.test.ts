@@ -32,7 +32,7 @@ const plain: McpSnippetInput = { ...trusted, origin: "http://tower:3443" };
 const CLIENTS = Object.keys(SNIPPETS) as McpSnippetClient[];
 
 interface DesktopConfig {
-  mcpServers: { bombvault: { command: string; args: string[]; env: Record<string, string> } };
+  mcpServers: { bombvault: { command: string; args: string[]; env?: Record<string, string> } };
 }
 
 function desktopEntry(input: McpSnippetInput): DesktopConfig["mcpServers"]["bombvault"] {
@@ -78,6 +78,7 @@ function commandLine(client: McpSnippetClient, snippet: string): string[] {
 const READS_THE_KEY_ELSEWHERE: McpSnippetClient[] = [
   "antigravity",
   "claude-code",
+  "claude-desktop",
   "codex",
   "continue",
   "copilot",
@@ -183,19 +184,24 @@ describe("the Claude snippets", () => {
     expect(entry.command).toBe("npx");
     expect(entry.args).toEqual([
       "-y",
-      "mcp-remote",
+      "mcp-remote@latest",
       "https://backup.example.com/mcp",
-      "--header",
-      "X-API-Key:${BOMBVAULT_MCP_KEY}",
+      "--header-file",
+      KEY_FILE_PLACEHOLDER,
     ]);
-    expect(entry.env).toEqual({ BOMBVAULT_MCP_KEY: KEY });
+    expect(entry.env).toBeUndefined();
 
-    expect(desktopEntry(own).env).toEqual({
-      BOMBVAULT_MCP_KEY: KEY,
-      NODE_EXTRA_CA_CERTS: CERT_PATH_PLACEHOLDER,
-    });
+    expect(desktopEntry(own).env).toEqual({ NODE_EXTRA_CA_CERTS: CERT_PATH_PLACEHOLDER });
     expect(desktopEntry(plain).args).toContain("--allow-http");
     expect(desktopEntry(trusted).args).not.toContain("--allow-http");
+  });
+
+  // Whether Claude Desktop fills in a ${VAR} in the arguments is not
+  // documented, and if it does the key lands on mcp-remote's command line.
+  it("leaves no variable in the Claude Desktop configuration for Claude Desktop to fill in", () => {
+    for (const input of [trusted, own, plain]) {
+      expect(claudeDesktopSnippet(input)).not.toContain("${");
+    }
   });
 
   it("gives Perplexity the same key file as Claude Code", () => {

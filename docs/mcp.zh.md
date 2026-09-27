@@ -68,7 +68,7 @@ BombVault 为每个密钥保留最长 30 天的记录：最新的 500 次成功�
 | AnythingLLM | 配置文件 | 配置文件 |
 | Antigravity | 配置文件 | 环境变量 |
 | Claude Code | 命令 | 密钥文件 |
-| Claude Desktop | 配置文件 | 配置文件 |
+| Claude Desktop | 配置文件 | 密钥文件 |
 | Cline | 配置文件 | 配置文件 |
 | Codex CLI | 配置文件 | 环境变量 |
 | Continue | 配置文件 | `~/.continue/.env` |
@@ -144,16 +144,15 @@ claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downl
 
 ### Claude Desktop {#claude-desktop}
 
-Claude Desktop 通过 `mcp-remote` 连接 BombVault，这需要该电脑上装有 Node.js。在 Claude Desktop 中通过 **Settings, Developer, Edit Config** 打开配置文件。它在 Windows 上位于 `%APPDATA%\Claude\claude_desktop_config.json`，在 macOS 上位于 `~/Library/Application Support/Claude/claude_desktop_config.json`。把卡片中的条目加到 `"mcpServers"` 里，放在已有服务器旁边，然后重启 Claude Desktop：
+Claude Desktop 通过 `mcp-remote` 连接 BombVault，这需要该电脑上装有 Node.js。先按 [Claude Code](#claude-code) 一节的说明，把密钥单独保存到一个文本文件中，只占一行。在 Claude Desktop 中通过 **Settings, Developer, Edit Config** 打开配置文件。它在 Windows 上位于 `%APPDATA%\Claude\claude_desktop_config.json`，在 macOS 上位于 `~/Library/Application Support/Claude/claude_desktop_config.json`。把卡片中的条目加到 `"mcpServers"` 里，放在已有服务器旁边，然后重启 Claude Desktop：
 
 ```json
 {
   "mcpServers": {
     "bombvault": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://192.168.1.10:3443/mcp", "--header", "X-API-Key:${BOMBVAULT_MCP_KEY}"],
+      "args": ["-y", "mcp-remote@latest", "https://192.168.1.10:3443/mcp", "--header-file", "<path of the file with your key>"],
       "env": {
-        "BOMBVAULT_MCP_KEY": "<your key>",
         "NODE_EXTRA_CA_CERTS": "<path of the downloaded bombvault-cert.pem>"
       }
     }
@@ -163,7 +162,8 @@ Claude Desktop 通过 `mcp-remote` 连接 BombVault，这需要该电脑上装�
 
 - `NODE_EXTRA_CA_CERTS` 只为 BombVault 自己的证书而设。如果证书已被你的电脑信任，请去掉它。
 - 只有纯 `http://` 地址才会加上 `--allow-http`。
-- 请求头写作 `X-API-Key:${BOMBVAULT_MCP_KEY}`，冒号后不加空格，密钥放在 `env` 中。在某些系统上，`mcp-remote` 会在第一个空格处拆开 `--header` 的值，写在空格之后的密钥就会丢失。
+- 在 Windows 上，路径请用正斜杠书写，例如 `C:/Users/sam/bombvault-key.txt`，因为单个反斜杠不是有效的 JSON。密钥文件的路径不要包含空格：Windows 上的 Claude Desktop 会把带空格的路径拆成两段传给 `npx`。
+- 配置里只写了密钥文件，所以密钥既不会出现在配置中，也不会出现在进程列表中。把这个文件放在只有你能读取的位置。
 
 ### 云端客户端 {#cloud-clients}
 

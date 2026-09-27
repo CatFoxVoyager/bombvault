@@ -1830,6 +1830,7 @@ const cs: Partial<Translations> = {
   "mcp.setupWhere": "Kde soubor leží",
   "mcp.setupNeedsNode": "Potřebuje to Node.js, protože mcp-remote propojuje {app} s BombVault.",
   "mcp.keyFileLine": "Ulož klíč do textového souboru jako řádek X-API-Key: <key> a cestu k tomu souboru dej do konfigurace. {app} si pamatuje jen cestu, takže se klíč neobjeví ani tam, ani v seznamu procesů.",
+  "mcp.keyFileJsonTip": "V tomto souboru JSON piš cesty s obyčejnými lomítky, třeba C:/Users/sam/bombvault-key.txt, protože samotné zpětné lomítko není platný JSON. Cesta k souboru s klíčem nesmí obsahovat mezery: ve Windows předá {app} cestu s mezerou programu npx ve dvou kusech.",
   "mcp.keyEnv": "{app} čte klíč z proměnné prostředí {var}.",
   "mcp.keyEnvTip": "Nastav ji jednou jako uživatelskou proměnnou prostředí: ve Windows v Nastavení, Systém, O systému, Upřesnit nastavení systému, Proměnné prostředí; v macOS a Linuxu v profilu svého shellu. Pak {app} spusť znovu. Kdybys ji zadal přes setx nebo export v příkazovém řádku, zůstal by klíč v historii shellu.",
   "mcp.keyEnvUnsure": "Pokud {app} posílá místo klíče název proměnné, napiš klíč do souboru na její místo a ten soubor si nech pro sebe.",

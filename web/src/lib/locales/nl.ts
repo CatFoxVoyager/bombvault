@@ -1829,6 +1829,7 @@ const nl: Partial<Translations> = {
   "mcp.setupWhere": "Waar het bestand staat",
   "mcp.setupNeedsNode": "Hiervoor is Node.js nodig, omdat mcp-remote {app} met BombVault verbindt.",
   "mcp.keyFileLine": "Bewaar de sleutel in een tekstbestand als de regel X-API-Key: <key> en zet het pad van dat bestand in de configuratie. {app} houdt alleen het pad bij, dus de sleutel verschijnt daar niet en ook niet in de proceslijst.",
+  "mcp.keyFileJsonTip": "Schrijf paden in dit JSON-bestand met gewone schuine strepen, zoals C:/Users/sam/bombvault-key.txt, want een losse backslash is geen geldige JSON. Houd het pad van het sleutelbestand vrij van spaties: op Windows geeft {app} een pad met een spatie in twee stukken door aan npx.",
   "mcp.keyEnv": "{app} leest de sleutel uit de omgevingsvariabele {var}.",
   "mcp.keyEnvTip": "Stel haar één keer in als gebruikersomgevingsvariabele: in Windows onder Instellingen, Systeem, Info, Geavanceerde systeeminstellingen, Omgevingsvariabelen; in macOS en Linux in je shellprofiel. Start {app} daarna opnieuw. Met setx of export op een opdrachtregel zou de sleutel in je shellgeschiedenis blijven staan.",
   "mcp.keyEnvUnsure": "Als {app} de naam van de variabele stuurt in plaats van de sleutel, schrijf de sleutel dan op die plek in het bestand en houd dat bestand voor jezelf.",

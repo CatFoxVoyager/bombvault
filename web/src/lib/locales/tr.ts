@@ -1832,6 +1832,7 @@ const tr: Partial<Translations> = {
   "mcp.setupWhere": "Dosyanın yeri",
   "mcp.setupNeedsNode": "Node.js gerekir, çünkü {app} ile BombVault arasını mcp-remote bağlar.",
   "mcp.keyFileLine": "Anahtarı bir metin dosyasına X-API-Key: <key> satırı olarak kaydet ve o dosyanın yolunu yapılandırmaya yaz. {app} yalnızca yolu saklar, böylece anahtar ne orada ne de işlem listesinde görünür.",
+  "mcp.keyFileJsonTip": "Bu JSON dosyasında yolları düz eğik çizgiyle yaz, örneğin C:/Users/sam/bombvault-key.txt, çünkü tek bir ters eğik çizgi geçerli JSON değildir. Anahtar dosyasının yolunda boşluk olmasın: Windows'ta {app}, boşluk içeren bir yolu npx'e iki parça hâlinde verir.",
   "mcp.keyEnv": "{app} anahtarı {var} ortam değişkeninden okur.",
   "mcp.keyEnvTip": "Onu bir kez kullanıcı ortam değişkeni olarak ayarla: Windows'ta Ayarlar, Sistem, Hakkında, Gelişmiş sistem ayarları, Ortam Değişkenleri altında; macOS ve Linux'ta kabuk profilinde. Sonra {app} uygulamasını yeniden başlat. Bir komut satırında setx ya da export ile yazarsan anahtar kabuk geçmişinde kalır.",
   "mcp.keyEnvUnsure": "{app} anahtar yerine değişkenin adını gönderirse anahtarı dosyada onun yerine yaz ve o dosyayı kendine sakla.",

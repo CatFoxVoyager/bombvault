@@ -2056,6 +2056,7 @@ const hr: Partial<Translations> = {
   "mcp.setupWhere": "Gdje je datoteka",
   "mcp.setupNeedsNode": "Treba mu Node.js, jer mcp-remote povezuje {app} s BombVaultom.",
   "mcp.keyFileLine": "Spremi ključ u tekstnu datoteku kao redak X-API-Key: <key> i putanju te datoteke upiši u konfiguraciju. {app} pamti samo putanju, pa se ključ ne pojavljuje ni tamo ni na popisu procesa.",
+  "mcp.keyFileJsonTip": "U ovoj JSON datoteci piši putanje običnim kosim crtama, npr. C:/Users/sam/bombvault-key.txt, jer jedna obrnuta kosa crta nije valjan JSON. Putanja datoteke s ključem neka bude bez razmaka: na Windowsima {app} predaje putanju s razmakom programu npx u dva dijela.",
   "mcp.keyEnv": "{app} čita ključ iz varijable okruženja {var}.",
   "mcp.keyEnvTip": "Postavi je jednom kao korisničku varijablu okruženja: u Windowsima pod Postavke, Sustav, O sustavu, Dodatne postavke sustava, Varijable okruženja; u macOS-u i Linuxu u profilu svoje ljuske. Zatim ponovno pokreni {app}. Kad bi je upisao sa setx ili export u naredbenom retku, ključ bi ostao u povijesti ljuske.",
   "mcp.keyEnvUnsure": "Ako {app} pošalje ime varijable umjesto ključa, upiši ključ u datoteku na njezino mjesto i tu datoteku zadrži za sebe.",

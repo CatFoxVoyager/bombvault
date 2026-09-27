@@ -172,7 +172,7 @@ export const LOCAL_CLIENTS: McpClient[] = [
       },
       ui: "Settings, Developer, Edit Config",
     },
-    key: { kind: "inFile" },
+    key: { kind: "keyFile" },
     cert: { kind: "placeholder" },
     node: true,
   },

@@ -1832,6 +1832,7 @@ const sv: Partial<Translations> = {
   "mcp.setupWhere": "Var filen ligger",
   "mcp.setupNeedsNode": "Det krävs Node.js, eftersom mcp-remote ansluter {app} till BombVault.",
   "mcp.keyFileLine": "Spara nyckeln i en textfil som raden X-API-Key: <key> och lägg in sökvägen till den filen i konfigurationen. {app} sparar bara sökvägen, så nyckeln syns varken där eller i processlistan.",
+  "mcp.keyFileJsonTip": "Skriv sökvägar i den här JSON-filen med vanliga snedstreck, till exempel C:/Users/sam/bombvault-key.txt, eftersom ett ensamt omvänt snedstreck inte är giltig JSON. Håll nyckelfilens sökväg fri från mellanslag: på Windows skickar {app} en sökväg med mellanslag till npx i två delar.",
   "mcp.keyEnv": "{app} läser nyckeln från miljövariabeln {var}.",
   "mcp.keyEnvTip": "Ange den en gång som användarmiljövariabel: i Windows under Inställningar, System, Om, Avancerade systeminställningar, Miljövariabler; i macOS och Linux i din skalprofil. Starta sedan om {app}. Skriver du den med setx eller export i en prompt blir nyckeln kvar i skalhistoriken.",
   "mcp.keyEnvUnsure": "Om {app} skickar variabelns namn i stället för nyckeln, skriv in nyckeln i filen på dess plats och behåll den filen för dig själv.",

@@ -243,6 +243,23 @@ describe("a client's setup dialog", () => {
     expect(dialogText()).toContain(en["mcp.keyInFile"].replace("{app}", "Zed"));
   });
 
+  it("points Claude Desktop at a key file and says how to write its path in JSON", async () => {
+    await renderCard(payload(), payload({ keys: [key({ label: "Claude Desktop", client: "claude-desktop" })] }));
+    createMcpKey.mockResolvedValue({
+      ok: true,
+      key: "bvmcp_abcdef123456",
+      item: key({ label: "Claude Desktop", client: "claude-desktop" }),
+    });
+
+    const dialog = await openClient("Claude Desktop", en["mcp.kindDesktop"]);
+    fireEvent.click(within(dialog).getByRole("button", { name: en["mcp.createKey"] }));
+    await waitFor(() => expect(within(dialog).getByDisplayValue("bvmcp_abcdef123456")).toBeTruthy());
+
+    expect(within(dialog).getByText(/--header-file/).textContent).not.toContain("bvmcp_abcdef123456");
+    expect(dialogText()).toContain(en["mcp.keyFileLine"].replace("{app}", "Claude Desktop"));
+    expect(within(dialog).getByLabelText(en["mcp.keyFileJsonTip"].replace("{app}", "Claude Desktop"))).toBeTruthy();
+  });
+
   it("hands an unused new key back to the card when it closes", async () => {
     await renderCard(payload());
     listMcpKeys.mockRejectedValueOnce(new Error("503"));

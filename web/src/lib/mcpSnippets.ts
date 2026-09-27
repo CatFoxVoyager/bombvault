@@ -3,10 +3,9 @@
 // client parses literally, so translating any of it would break the connection.
 //
 // A key never goes on a command line, where the process list and the shell
-// history would keep it. Where a client can take the key from an environment
-// variable or a secret prompt, its snippet references BOMBVAULT_MCP_KEY or the
-// prompt instead; where it cannot, the key sits in the snippet and the dialog
-// says so.
+// history would keep it. Where a client can take the key from a file, an
+// environment variable or a secret prompt, its snippet names that instead;
+// where it cannot, the key sits in the snippet and the dialog says so.
 
 export interface McpSnippetInput {
   /** Scheme, host and port of the address the operator opened BombVault at. */
@@ -65,18 +64,17 @@ export function claudeCodeSnippet(i: McpSnippetInput): string {
 }
 
 /**
- * claudeDesktopSnippet returns claude_desktop_config.json's server entry. The
- * key travels in `env` and the header argument only references it, because
- * mcp-remote splits a `--header` value on the first space and would drop a key
- * written after one.
+ * claudeDesktopSnippet returns claude_desktop_config.json's server entry. It
+ * names a key file as the Claude Code command does, so the JSON holds no key
+ * and nothing Claude Desktop might expand can put one on mcp-remote's command
+ * line.
  */
 export function claudeDesktopSnippet(i: McpSnippetInput): string {
-  const args = ["-y", "mcp-remote", mcpUrl(i), "--header", `X-API-Key:\${${KEY_VARIABLE}}`];
+  const args = ["-y", "mcp-remote@latest", mcpUrl(i), "--header-file", KEY_FILE_PLACEHOLDER];
   if (plainHttp(i)) args.push("--allow-http");
 
-  const env: Record<string, string> = { [KEY_VARIABLE]: i.key };
-  if (i.selfSigned) env.NODE_EXTRA_CA_CERTS = CERT_PATH_PLACEHOLDER;
-  return json({ mcpServers: { bombvault: { command: "npx", args, env } } });
+  const env = i.selfSigned ? { env: { NODE_EXTRA_CA_CERTS: CERT_PATH_PLACEHOLDER } } : {};
+  return json({ mcpServers: { bombvault: { command: "npx", args, ...env } } });
 }
 
 /** genericSnippet lists the fields any Streamable HTTP client asks for, with

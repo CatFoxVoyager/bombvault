@@ -68,7 +68,7 @@ Okno trzyma klucz z dala od każdego wiersza poleceń. Gdy klient potrafi odczyt
 | AnythingLLM | plik konfiguracyjny | plik konfiguracyjny |
 | Antigravity | plik konfiguracyjny | zmienna środowiskowa |
 | Claude Code | polecenie | plik klucza |
-| Claude Desktop | plik konfiguracyjny | plik konfiguracyjny |
+| Claude Desktop | plik konfiguracyjny | plik klucza |
 | Cline | plik konfiguracyjny | plik konfiguracyjny |
 | Codex CLI | plik konfiguracyjny | zmienna środowiskowa |
 | Continue | plik konfiguracyjny | `~/.continue/.env` |
@@ -144,16 +144,15 @@ Ustaw `BOMBVAULT_MCP_KEY` tam, gdzie startuje Claude Code, na przykład w `"env"
 
 ### Claude Desktop {#claude-desktop}
 
-Claude Desktop łączy się z BombVault przez `mcp-remote`, który wymaga Node.js na tym komputerze. Otwórz plik konfiguracji w Claude Desktop przez **Settings, Developer, Edit Config**. W Windows leży w `%APPDATA%\Claude\claude_desktop_config.json`, w macOS w `~/Library/Application Support/Claude/claude_desktop_config.json`. Dodaj wpis z karty wewnątrz `"mcpServers"`, obok serwerów, które już tam są, i uruchom ponownie Claude Desktop:
+Claude Desktop łączy się z BombVault przez `mcp-remote`, który wymaga Node.js na tym komputerze. Najpierw zapisz klucz w osobnym pliku tekstowym, w jednym wierszu, jak opisano przy [Claude Code](#claude-code). Otwórz plik konfiguracji w Claude Desktop przez **Settings, Developer, Edit Config**. W Windows leży w `%APPDATA%\Claude\claude_desktop_config.json`, w macOS w `~/Library/Application Support/Claude/claude_desktop_config.json`. Dodaj wpis z karty wewnątrz `"mcpServers"`, obok serwerów, które już tam są, i uruchom ponownie Claude Desktop:
 
 ```json
 {
   "mcpServers": {
     "bombvault": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://192.168.1.10:3443/mcp", "--header", "X-API-Key:${BOMBVAULT_MCP_KEY}"],
+      "args": ["-y", "mcp-remote@latest", "https://192.168.1.10:3443/mcp", "--header-file", "<path of the file with your key>"],
       "env": {
-        "BOMBVAULT_MCP_KEY": "<your key>",
         "NODE_EXTRA_CA_CERTS": "<path of the downloaded bombvault-cert.pem>"
       }
     }
@@ -163,7 +162,8 @@ Claude Desktop łączy się z BombVault przez `mcp-remote`, który wymaga Node.j
 
 - `NODE_EXTRA_CA_CERTS` jest tylko dla własnego certyfikatu BombVault. Za certyfikatem, któremu twój komputer już ufa, usuń go.
 - `--allow-http` dochodzi tylko przy zwykłym adresie `http://`.
-- Nagłówek zapisuje się jako `X-API-Key:${BOMBVAULT_MCP_KEY}`, bez spacji po dwukropku i z kluczem w `env`. Na niektórych systemach `mcp-remote` dzieli wartość `--header` na pierwszej spacji, a klucz zapisany po spacji by przepadł.
+- W Windows zapisuj ścieżki zwykłymi ukośnikami, na przykład `C:/Users/sam/bombvault-key.txt`, bo pojedynczy ukośnik wsteczny nie jest poprawnym JSON-em. Ścieżka pliku z kluczem nie może zawierać spacji: Claude Desktop w Windows przekazuje ścieżkę ze spacją do `npx` w dwóch kawałkach.
+- Konfiguracja wskazuje tylko plik z kluczem, więc klucz nie pojawia się ani w niej, ani na liście procesów. Trzymaj plik tam, gdzie tylko ty możesz go odczytać.
 
 ### Klienci w chmurze {#cloud-clients}
 

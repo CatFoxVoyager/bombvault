@@ -68,7 +68,7 @@ Okno drží klíč mimo každý příkazový řádek. Kde klient umí klíč č�
 | AnythingLLM | konfigurační soubor | konfigurační soubor |
 | Antigravity | konfigurační soubor | proměnná prostředí |
 | Claude Code | příkaz | soubor s klíčem |
-| Claude Desktop | konfigurační soubor | konfigurační soubor |
+| Claude Desktop | konfigurační soubor | soubor s klíčem |
 | Cline | konfigurační soubor | konfigurační soubor |
 | Codex CLI | konfigurační soubor | proměnná prostředí |
 | Continue | konfigurační soubor | `~/.continue/.env` |
@@ -144,16 +144,15 @@ Proměnnou `BOMBVAULT_MCP_KEY` nastavte tam, kde se Claude Code spouští, např
 
 ### Claude Desktop {#claude-desktop}
 
-Claude Desktop se k BombVaultu dostane přes `mcp-remote`, který na daném počítači potřebuje Node.js. Konfigurační soubor otevřete v Claude Desktop přes **Settings, Developer, Edit Config**. Ve Windows je v `%APPDATA%\Claude\claude_desktop_config.json`, v macOS v `~/Library/Application Support/Claude/claude_desktop_config.json`. Položku z karty přidejte do `"mcpServers"` vedle serverů, které tam už jsou, a Claude Desktop restartujte:
+Claude Desktop se k BombVaultu dostane přes `mcp-remote`, který na daném počítači potřebuje Node.js. Nejdřív uložte klíč do samostatného textového souboru jako jediný řádek, jak je popsáno u [Claude Code](#claude-code). Konfigurační soubor otevřete v Claude Desktop přes **Settings, Developer, Edit Config**. Ve Windows je v `%APPDATA%\Claude\claude_desktop_config.json`, v macOS v `~/Library/Application Support/Claude/claude_desktop_config.json`. Položku z karty přidejte do `"mcpServers"` vedle serverů, které tam už jsou, a Claude Desktop restartujte:
 
 ```json
 {
   "mcpServers": {
     "bombvault": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://192.168.1.10:3443/mcp", "--header", "X-API-Key:${BOMBVAULT_MCP_KEY}"],
+      "args": ["-y", "mcp-remote@latest", "https://192.168.1.10:3443/mcp", "--header-file", "<path of the file with your key>"],
       "env": {
-        "BOMBVAULT_MCP_KEY": "<your key>",
         "NODE_EXTRA_CA_CERTS": "<path of the downloaded bombvault-cert.pem>"
       }
     }
@@ -163,7 +162,8 @@ Claude Desktop se k BombVaultu dostane přes `mcp-remote`, který na daném poč
 
 - `NODE_EXTRA_CA_CERTS` je tam jen kvůli vlastnímu certifikátu BombVaultu. Za certifikátem, kterému váš počítač už důvěřuje, ho vynechte.
 - `--allow-http` se přidává jen u prosté adresy `http://`.
-- Hlavička se píše `X-API-Key:${BOMBVAULT_MCP_KEY}`, bez mezery za dvojtečkou a s klíčem v `env`. Na některých systémech `mcp-remote` rozdělí hodnotu `--header` na první mezeře a klíč napsaný za mezerou by se ztratil.
+- Ve Windows pište cesty s obyčejnými lomítky, například `C:/Users/sam/bombvault-key.txt`, protože samotné zpětné lomítko není platný JSON. Cesta k souboru s klíčem nesmí obsahovat mezery: Claude Desktop ve Windows předá cestu s mezerou programu `npx` ve dvou kusech.
+- Konfigurace uvádí jen soubor s klíčem, takže se klíč neobjeví ani v ní, ani v seznamu procesů. Soubor mějte tam, kde ho můžete číst jen vy.
 
 ### Klienti v cloudu {#cloud-clients}
 

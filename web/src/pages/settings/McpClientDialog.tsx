@@ -403,6 +403,7 @@ export function McpClientDialog({
     switch (key.kind) {
       case "keyFile":
         line = fill("mcp.keyFileLine", app);
+        if (client.setup.kind === "file") tip = fill("mcp.keyFileJsonTip", app);
         break;
       case "env":
         line = [...rich("mcp.keyEnv", { ...app, var: KEY_VARIABLE }), key.unsure ? ` ${fill("mcp.keyEnvUnsure", app)}` : ""];

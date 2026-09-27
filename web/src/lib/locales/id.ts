@@ -2056,6 +2056,7 @@ const id: Partial<Translations> = {
   "mcp.setupWhere": "Letak berkasnya",
   "mcp.setupNeedsNode": "Perlu Node.js, karena mcp-remote menghubungkan {app} dengan BombVault.",
   "mcp.keyFileLine": "Simpan kunci di berkas teks sebagai baris X-API-Key: <key> lalu masukkan jalur berkas itu ke konfigurasi. {app} hanya menyimpan jalurnya, jadi kunci tidak muncul di sana maupun di daftar proses.",
+  "mcp.keyFileJsonTip": "Di berkas JSON ini, tulis jalur dengan garis miring biasa, misalnya C:/Users/sam/bombvault-key.txt, karena satu garis miring terbalik bukan JSON yang valid. Jaga jalur berkas kunci tanpa spasi: di Windows, {app} meneruskan jalur berspasi ke npx dalam dua potong.",
   "mcp.keyEnv": "{app} membaca kunci dari variabel lingkungan {var}.",
   "mcp.keyEnvTip": "Atur sekali sebagai variabel lingkungan pengguna: di Windows pada Pengaturan, Sistem, Tentang, Pengaturan sistem lanjutan, Variabel Lingkungan; di macOS dan Linux di profil shell-mu. Lalu mulai ulang {app}. Mengetiknya dengan setx atau export di prompt akan meninggalkan kunci di riwayat shell.",
   "mcp.keyEnvUnsure": "Jika {app} mengirim nama variabel alih-alih kunci, tulis kunci ke dalam berkas di tempatnya dan simpan berkas itu untuk dirimu sendiri.",

@@ -68,7 +68,7 @@
 | AnythingLLM | αρχείο ρυθμίσεων | το αρχείο ρυθμίσεων |
 | Antigravity | αρχείο ρυθμίσεων | μεταβλητή περιβάλλοντος |
 | Claude Code | εντολή | αρχείο κλειδιού |
-| Claude Desktop | αρχείο ρυθμίσεων | το αρχείο ρυθμίσεων |
+| Claude Desktop | αρχείο ρυθμίσεων | αρχείο κλειδιού |
 | Cline | αρχείο ρυθμίσεων | το αρχείο ρυθμίσεων |
 | Codex CLI | αρχείο ρυθμίσεων | μεταβλητή περιβάλλοντος |
 | Continue | αρχείο ρυθμίσεων | `~/.continue/.env` |
@@ -144,16 +144,15 @@ claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downl
 
 ### Claude Desktop {#claude-desktop}
 
-Το Claude Desktop φτάνει στο BombVault μέσω του `mcp-remote`, που χρειάζεται Node.js σε εκείνον τον υπολογιστή. Άνοιξε το αρχείο ρυθμίσεων στο Claude Desktop από **Settings, Developer, Edit Config**. Βρίσκεται στο `%APPDATA%\Claude\claude_desktop_config.json` στα Windows και στο `~/Library/Application Support/Claude/claude_desktop_config.json` στο macOS. Πρόσθεσε την καταχώριση της κάρτας μέσα στο `"mcpServers"`, δίπλα στους διακομιστές που ήδη υπάρχουν, και ξαναξεκίνα το Claude Desktop:
+Το Claude Desktop φτάνει στο BombVault μέσω του `mcp-remote`, που χρειάζεται Node.js σε εκείνον τον υπολογιστή. Αποθήκευσε πρώτα το κλειδί σε δικό του αρχείο κειμένου, σε μία γραμμή, όπως περιγράφεται για το [Claude Code](#claude-code). Άνοιξε το αρχείο ρυθμίσεων στο Claude Desktop από **Settings, Developer, Edit Config**. Βρίσκεται στο `%APPDATA%\Claude\claude_desktop_config.json` στα Windows και στο `~/Library/Application Support/Claude/claude_desktop_config.json` στο macOS. Πρόσθεσε την καταχώριση της κάρτας μέσα στο `"mcpServers"`, δίπλα στους διακομιστές που ήδη υπάρχουν, και ξαναξεκίνα το Claude Desktop:
 
 ```json
 {
   "mcpServers": {
     "bombvault": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://192.168.1.10:3443/mcp", "--header", "X-API-Key:${BOMBVAULT_MCP_KEY}"],
+      "args": ["-y", "mcp-remote@latest", "https://192.168.1.10:3443/mcp", "--header-file", "<path of the file with your key>"],
       "env": {
-        "BOMBVAULT_MCP_KEY": "<your key>",
         "NODE_EXTRA_CA_CERTS": "<path of the downloaded bombvault-cert.pem>"
       }
     }
@@ -163,7 +162,8 @@ claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downl
 
 - Το `NODE_EXTRA_CA_CERTS` υπάρχει μόνο για το δικό πιστοποιητικό του BombVault. Πίσω από πιστοποιητικό που ο υπολογιστής σου ήδη εμπιστεύεται, βγάλ' το.
 - Το `--allow-http` μπαίνει μόνο για απλή διεύθυνση `http://`.
-- Η κεφαλίδα γράφεται `X-API-Key:${BOMBVAULT_MCP_KEY}`, χωρίς κενό μετά την άνω κάτω τελεία και με το κλειδί στο `env`. Σε ορισμένα συστήματα το `mcp-remote` κόβει μια τιμή `--header` στο πρώτο κενό, και ένα κλειδί γραμμένο μετά από κενό θα χανόταν.
+- Στα Windows γράψε τις διαδρομές με κανονικές καθέτους, για παράδειγμα `C:/Users/sam/bombvault-key.txt`, γιατί μια μονή ανάποδη κάθετος δεν είναι έγκυρο JSON. Κράτα τη διαδρομή του αρχείου κλειδιού χωρίς κενά: το Claude Desktop στα Windows δίνει στο `npx` μια διαδρομή με κενό σε δύο κομμάτια.
+- Η ρύθμιση αναφέρει μόνο το αρχείο κλειδιού, οπότε το κλειδί δεν εμφανίζεται ούτε σε αυτήν ούτε στη λίστα διεργασιών. Κράτα το αρχείο κάπου όπου μόνο εσύ μπορείς να το διαβάσεις.
 
 ### Πελάτες στο cloud {#cloud-clients}
 

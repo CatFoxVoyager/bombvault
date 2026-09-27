@@ -2056,6 +2056,7 @@ const lv: Partial<Translations> = {
   "mcp.setupWhere": "Kur atrodas fails",
   "mcp.setupNeedsNode": "Vajag Node.js, jo mcp-remote savieno {app} ar BombVault.",
   "mcp.keyFileLine": "Saglabā atslēgu teksta failā kā rindu X-API-Key: <key> un šī faila ceļu ieliec konfigurācijā. {app} glabā tikai ceļu, tāpēc atslēga neparādās ne tur, ne procesu sarakstā.",
+  "mcp.keyFileJsonTip": "Šajā JSON failā raksti ceļus ar parastajām slīpsvītrām, piemēram, C:/Users/sam/bombvault-key.txt, jo viena atpakaļvērstā slīpsvītra nav derīgs JSON. Atslēgas faila ceļā nedrīkst būt atstarpju: sistēmā Windows {app} ceļu ar atstarpi nodod npx divās daļās.",
   "mcp.keyEnv": "{app} nolasa atslēgu no vides mainīgā {var}.",
   "mcp.keyEnvTip": "Iestati to vienreiz kā lietotāja vides mainīgo: Windows sadaļā Iestatījumi, Sistēma, Par, Papildu sistēmas iestatījumi, Vides mainīgie; macOS un Linux sava čaulas profilā. Pēc tam restartē {app}. Ja to ierakstītu ar setx vai export komandrindā, atslēga paliktu čaulas vēsturē.",
   "mcp.keyEnvUnsure": "Ja {app} atslēgas vietā sūta mainīgā nosaukumu, ieraksti atslēgu failā tā vietā un šo failu glabā tikai sev.",

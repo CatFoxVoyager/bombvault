@@ -1824,6 +1824,7 @@ const vi: Partial<Translations> = {
   "mcp.setupWhere": "Vị trí của tệp",
   "mcp.setupNeedsNode": "Cần có Node.js, vì mcp-remote kết nối {app} với BombVault.",
   "mcp.keyFileLine": "Lưu khóa vào một tệp văn bản dưới dạng dòng X-API-Key: <key> và đưa đường dẫn của tệp đó vào cấu hình. {app} chỉ giữ đường dẫn, nên khóa không xuất hiện ở đó cũng như trong danh sách tiến trình.",
+  "mcp.keyFileJsonTip": "Trong tệp JSON này, hãy viết đường dẫn bằng dấu gạch chéo xuôi, ví dụ C:/Users/sam/bombvault-key.txt, vì một dấu gạch chéo ngược đơn lẻ không phải JSON hợp lệ. Giữ đường dẫn tệp khóa không có dấu cách: trên Windows, {app} chuyển đường dẫn có dấu cách cho npx thành hai mảnh.",
   "mcp.keyEnv": "{app} đọc khóa từ biến môi trường {var}.",
   "mcp.keyEnvTip": "Đặt nó một lần làm biến môi trường người dùng: trên Windows ở Cài đặt, Hệ thống, Giới thiệu, Cài đặt hệ thống nâng cao, Biến môi trường; trên macOS và Linux trong hồ sơ shell của bạn. Sau đó khởi động lại {app}. Gõ nó bằng setx hoặc export tại dấu nhắc sẽ để lại khóa trong lịch sử shell.",
   "mcp.keyEnvUnsure": "Nếu {app} gửi tên biến thay vì khóa, hãy ghi khóa vào tệp ở chỗ đó và giữ tệp ấy cho riêng bạn.",

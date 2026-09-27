@@ -2056,6 +2056,7 @@ const ca: Partial<Translations> = {
   "mcp.setupWhere": "On és el fitxer",
   "mcp.setupNeedsNode": "Cal el Node.js, perquè el mcp-remote connecta {app} amb el BombVault.",
   "mcp.keyFileLine": "Desa la clau en un fitxer de text com la línia X-API-Key: <key> i posa el camí d'aquest fitxer a la configuració. {app} només es queda el camí, així que la clau no apareix ni allà ni a la llista de processos.",
+  "mcp.keyFileJsonTip": "En aquest fitxer JSON, escriu els camins amb barres normals, com ara C:/Users/sam/bombvault-key.txt, perquè una barra inversa sola no és JSON vàlid. Mantén el camí del fitxer de la clau sense espais: al Windows, {app} passa a npx un camí amb un espai en dos trossos.",
   "mcp.keyEnv": "{app} llegeix la clau de la variable d'entorn {var}.",
   "mcp.keyEnvTip": "Defineix-la una vegada com a variable d'entorn d'usuari: al Windows a Configuració, Sistema, Quant a, Configuració avançada del sistema, Variables d'entorn; al macOS i al Linux al perfil del teu shell. Després reinicia {app}. Escriure-la amb setx o export en una consola deixaria la clau a l'historial del shell.",
   "mcp.keyEnvUnsure": "Si {app} envia el nom de la variable en lloc de la clau, escriu la clau al fitxer al seu lloc i guarda aquest fitxer només per a tu.",

@@ -68,7 +68,7 @@ Pencere anahtarı her komut satırından uzak tutar. İstemci anahtarı bir orta
 | AnythingLLM | yapılandırma dosyası | yapılandırma dosyası |
 | Antigravity | yapılandırma dosyası | ortam değişkeni |
 | Claude Code | komut | anahtar dosyası |
-| Claude Desktop | yapılandırma dosyası | yapılandırma dosyası |
+| Claude Desktop | yapılandırma dosyası | anahtar dosyası |
 | Cline | yapılandırma dosyası | yapılandırma dosyası |
 | Codex CLI | yapılandırma dosyası | ortam değişkeni |
 | Continue | yapılandırma dosyası | `~/.continue/.env` |
@@ -144,16 +144,15 @@ Node.js olmadan ve yalnızca bilgisayarınızın güvendiği bir sertifikayla Cl
 
 ### Claude Desktop {#claude-desktop}
 
-Claude Desktop BombVault'a, o bilgisayarda Node.js gerektiren `mcp-remote` üzerinden ulaşır. Yapılandırma dosyasını Claude Desktop'ta **Settings, Developer, Edit Config** yoluyla açın. Dosya Windows'ta `%APPDATA%\Claude\claude_desktop_config.json`, macOS'ta `~/Library/Application Support/Claude/claude_desktop_config.json` konumundadır. Karttaki girdiyi `"mcpServers"` içine, orada zaten bulunan sunucuların yanına ekleyin ve Claude Desktop'u yeniden başlatın:
+Claude Desktop BombVault'a, o bilgisayarda Node.js gerektiren `mcp-remote` üzerinden ulaşır. Önce anahtarı, [Claude Code](#claude-code) için anlatıldığı gibi, tek satır olarak ayrı bir metin dosyasına kaydedin. Yapılandırma dosyasını Claude Desktop'ta **Settings, Developer, Edit Config** yoluyla açın. Dosya Windows'ta `%APPDATA%\Claude\claude_desktop_config.json`, macOS'ta `~/Library/Application Support/Claude/claude_desktop_config.json` konumundadır. Karttaki girdiyi `"mcpServers"` içine, orada zaten bulunan sunucuların yanına ekleyin ve Claude Desktop'u yeniden başlatın:
 
 ```json
 {
   "mcpServers": {
     "bombvault": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://192.168.1.10:3443/mcp", "--header", "X-API-Key:${BOMBVAULT_MCP_KEY}"],
+      "args": ["-y", "mcp-remote@latest", "https://192.168.1.10:3443/mcp", "--header-file", "<path of the file with your key>"],
       "env": {
-        "BOMBVAULT_MCP_KEY": "<your key>",
         "NODE_EXTRA_CA_CERTS": "<path of the downloaded bombvault-cert.pem>"
       }
     }
@@ -163,7 +162,8 @@ Claude Desktop BombVault'a, o bilgisayarda Node.js gerektiren `mcp-remote` üzer
 
 - `NODE_EXTRA_CA_CERTS` yalnızca BombVault'un kendi sertifikası için oradadır. Bilgisayarınızın zaten güvendiği bir sertifikanın arkasında onu çıkarın.
 - `--allow-http` yalnızca düz bir `http://` adresi için eklenir.
-- Başlık, iki noktadan sonra boşluk olmadan ve anahtar `env` içinde olacak şekilde `X-API-Key:${BOMBVAULT_MCP_KEY}` olarak yazılır. Bazı sistemlerde `mcp-remote` bir `--header` değerini ilk boşlukta böler ve boşluktan sonra yazılan bir anahtar kaybolur.
+- Windows'ta yolları düz eğik çizgiyle yazın, örneğin `C:/Users/sam/bombvault-key.txt`, çünkü tek bir ters eğik çizgi geçerli JSON değildir. Anahtar dosyasının yolunda boşluk olmasın: Windows'taki Claude Desktop, boşluk içeren bir yolu `npx`'e iki parça hâlinde verir.
+- Yapılandırma yalnızca anahtar dosyasını anar; böylece anahtar ne onda ne de süreç listesinde görünür. Dosyayı yalnızca sizin okuyabileceğiniz bir yerde tutun.
 
 ### Buluttaki istemciler {#cloud-clients}
 

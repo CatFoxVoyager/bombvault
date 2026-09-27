@@ -68,7 +68,7 @@
 | AnythingLLM | ملف الإعدادات | ملف الإعدادات |
 | Antigravity | ملف الإعدادات | متغير بيئة |
 | Claude Code | أمر | ملف المفتاح |
-| Claude Desktop | ملف الإعدادات | ملف الإعدادات |
+| Claude Desktop | ملف الإعدادات | ملف المفتاح |
 | Cline | ملف الإعدادات | ملف الإعدادات |
 | Codex CLI | ملف الإعدادات | متغير بيئة |
 | Continue | ملف الإعدادات | `~/.continue/.env` |
@@ -144,16 +144,15 @@ claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downl
 
 ### Claude Desktop {#claude-desktop}
 
-يصل Claude Desktop إلى BombVault عبر `mcp-remote` الذي يحتاج إلى Node.js على ذلك الحاسوب. افتح ملف الإعدادات في Claude Desktop من **Settings, Developer, Edit Config**. يوجد في `%APPDATA%\Claude\claude_desktop_config.json` على Windows وفي `~/Library/Application Support/Claude/claude_desktop_config.json` على macOS. أضف مدخل البطاقة داخل `"mcpServers"` بجانب الخوادم الموجودة فيه، ثم أعد تشغيل Claude Desktop:
+يصل Claude Desktop إلى BombVault عبر `mcp-remote` الذي يحتاج إلى Node.js على ذلك الحاسوب. احفظ المفتاح أولا في ملف نصي خاص به، في سطر واحد، كما هو موضح لـ [Claude Code](#claude-code). افتح ملف الإعدادات في Claude Desktop من **Settings, Developer, Edit Config**. يوجد في `%APPDATA%\Claude\claude_desktop_config.json` على Windows وفي `~/Library/Application Support/Claude/claude_desktop_config.json` على macOS. أضف مدخل البطاقة داخل `"mcpServers"` بجانب الخوادم الموجودة فيه، ثم أعد تشغيل Claude Desktop:
 
 ```json
 {
   "mcpServers": {
     "bombvault": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://192.168.1.10:3443/mcp", "--header", "X-API-Key:${BOMBVAULT_MCP_KEY}"],
+      "args": ["-y", "mcp-remote@latest", "https://192.168.1.10:3443/mcp", "--header-file", "<path of the file with your key>"],
       "env": {
-        "BOMBVAULT_MCP_KEY": "<your key>",
         "NODE_EXTRA_CA_CERTS": "<path of the downloaded bombvault-cert.pem>"
       }
     }
@@ -163,7 +162,8 @@ claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downl
 
 - `NODE_EXTRA_CA_CERTS` موجود فقط لشهادة BombVault الخاصة. احذفه خلف شهادة يثق بها حاسوبك أصلًا.
 - يضاف `--allow-http` فقط لعنوان `http://` عادي.
-- يُكتب الترويس `X-API-Key:${BOMBVAULT_MCP_KEY}` دون مسافة بعد النقطتين، والمفتاح في `env`. على بعض الأنظمة يقسم `mcp-remote` قيمة `--header` عند أول مسافة، فيضيع المفتاح المكتوب بعد مسافة.
+- على Windows اكتب المسارات بشرطات مائلة للأمام، مثل `C:/Users/sam/bombvault-key.txt`، لأن الشرطة المائلة العكسية المفردة ليست JSON صالحا. اجعل مسار ملف المفتاح خاليا من المسافات: على Windows يمرر Claude Desktop المسار الذي فيه مسافة إلى `npx` على جزأين.
+- لا تذكر الإعدادات إلا ملف المفتاح، فلا يظهر المفتاح فيها ولا في قائمة العمليات. احفظ الملف حيث لا يستطيع أحد غيرك قراءته.
 
 ### العملاء في السحابة {#cloud-clients}
 

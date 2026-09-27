@@ -68,7 +68,7 @@ Hộp thoại giữ khóa khỏi mọi dòng lệnh. Khi máy khách đọc đư
 | AnythingLLM | tệp cấu hình | tệp cấu hình |
 | Antigravity | tệp cấu hình | biến môi trường |
 | Claude Code | lệnh | tệp khóa |
-| Claude Desktop | tệp cấu hình | tệp cấu hình |
+| Claude Desktop | tệp cấu hình | tệp khóa |
 | Cline | tệp cấu hình | tệp cấu hình |
 | Codex CLI | tệp cấu hình | biến môi trường |
 | Continue | tệp cấu hình | `~/.continue/.env` |
@@ -144,16 +144,15 @@ Khi không có Node.js, và chỉ với chứng chỉ mà máy tính của bạn
 
 ### Claude Desktop {#claude-desktop}
 
-Claude Desktop kết nối tới BombVault qua `mcp-remote`, vốn cần Node.js trên máy tính đó. Mở tệp cấu hình trong Claude Desktop qua **Settings, Developer, Edit Config**. Tệp nằm ở `%APPDATA%\Claude\claude_desktop_config.json` trên Windows và ở `~/Library/Application Support/Claude/claude_desktop_config.json` trên macOS. Thêm mục từ thẻ vào bên trong `"mcpServers"`, cạnh các máy chủ đã có, rồi khởi động lại Claude Desktop:
+Claude Desktop kết nối tới BombVault qua `mcp-remote`, vốn cần Node.js trên máy tính đó. Trước tiên, hãy lưu khóa vào một tệp văn bản riêng, trên một dòng, như mô tả cho [Claude Code](#claude-code). Mở tệp cấu hình trong Claude Desktop qua **Settings, Developer, Edit Config**. Tệp nằm ở `%APPDATA%\Claude\claude_desktop_config.json` trên Windows và ở `~/Library/Application Support/Claude/claude_desktop_config.json` trên macOS. Thêm mục từ thẻ vào bên trong `"mcpServers"`, cạnh các máy chủ đã có, rồi khởi động lại Claude Desktop:
 
 ```json
 {
   "mcpServers": {
     "bombvault": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://192.168.1.10:3443/mcp", "--header", "X-API-Key:${BOMBVAULT_MCP_KEY}"],
+      "args": ["-y", "mcp-remote@latest", "https://192.168.1.10:3443/mcp", "--header-file", "<path of the file with your key>"],
       "env": {
-        "BOMBVAULT_MCP_KEY": "<your key>",
         "NODE_EXTRA_CA_CERTS": "<path of the downloaded bombvault-cert.pem>"
       }
     }
@@ -163,7 +162,8 @@ Claude Desktop kết nối tới BombVault qua `mcp-remote`, vốn cần Node.js
 
 - `NODE_EXTRA_CA_CERTS` chỉ có mặt vì chứng chỉ riêng của BombVault. Sau một chứng chỉ mà máy tính của bạn đã tin cậy, hãy bỏ nó đi.
 - `--allow-http` chỉ được thêm cho địa chỉ `http://` thông thường.
-- Header được viết là `X-API-Key:${BOMBVAULT_MCP_KEY}`, không có khoảng trắng sau dấu hai chấm và khóa nằm trong `env`. Trên một số hệ thống, `mcp-remote` tách giá trị của `--header` tại khoảng trắng đầu tiên, và khóa viết sau khoảng trắng sẽ bị mất.
+- Trên Windows, hãy viết đường dẫn bằng dấu gạch chéo xuôi, ví dụ `C:/Users/sam/bombvault-key.txt`, vì một dấu gạch chéo ngược đơn lẻ không phải JSON hợp lệ. Giữ đường dẫn tệp khóa không có dấu cách: Claude Desktop trên Windows chuyển đường dẫn có dấu cách cho `npx` thành hai mảnh.
+- Cấu hình chỉ nêu tệp khóa, nên khóa không xuất hiện trong cấu hình cũng như trong danh sách tiến trình. Hãy để tệp ở nơi chỉ bạn đọc được.
 
 ### Máy khách trên đám mây {#cloud-clients}
 
