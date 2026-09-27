@@ -41,11 +41,11 @@ function json(value: unknown): string {
 
 /**
  * mcpRemoteCommand starts mcp-remote with the key read from a file, so neither
- * the command nor the process list shows it. A
- * `${VAR}` in the arguments would not keep it out: Claude Code fills it from
- * its own environment before it starts the server. `@latest` keeps an older
- * global mcp-remote without `--header-file` from being picked, and the path is
- * quoted because the operator fills it in by hand and a space would split it.
+ * the command nor the process list shows it. A `${VAR}` in the arguments would
+ * not keep it out: Claude Code fills it from its own environment before it
+ * starts the server. `@latest` keeps an older global mcp-remote without
+ * `--header-file` from being picked, and the path is quoted because the
+ * operator fills it in by hand and a space would split it.
  */
 function mcpRemoteCommand(i: McpSnippetInput): string {
   const http = plainHttp(i) ? " --allow-http" : "";
@@ -212,7 +212,12 @@ export const SNIPPETS = {
         },
       },
     }),
-  perplexity: (i: McpSnippetInput) => form([["Server Name", "bombvault"], ["Command", mcpRemoteCommand(i)]]),
+  // The Mac app reads no shell profile, so the certificate goes into the
+  // command itself.
+  perplexity: (i: McpSnippetInput) => {
+    const cert = i.selfSigned ? `env "NODE_EXTRA_CA_CERTS=${CERT_PATH_PLACEHOLDER}" ` : "";
+    return form([["Server Name", "bombvault"], ["Command", cert + mcpRemoteCommand(i)]]);
+  },
   qwen: (i: McpSnippetInput) =>
     json({ mcpServers: { bombvault: { httpUrl: mcpUrl(i), headers: bearerFrom(`\${${KEY_VARIABLE}}`) } } }),
   roo: (i: McpSnippetInput) =>

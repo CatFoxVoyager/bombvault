@@ -271,6 +271,8 @@ const NOT_A_PATH: Record<string, string> = {
     "the Linux certificate folder in an InfoBubble tip, which takes a string and not nodes; ar, he and fa carry a left-to-right mark before it",
   "mcp.cloudWarning":
     "the endpoint path in an InfoBubble tip and a dialog sentence, both plain strings; ar, he and fa carry a left-to-right mark before it",
+  "mcp.keyEnvTip":
+    "a home-folder file in a shell command inside an InfoBubble tip, which takes a string; ar, he and fa carry left-to-right marks around the file and the command",
   "folders.customPlaceholder": "orphaned key, rendered nowhere (see i18n.orphans.test.ts's ratchet)",
   "anomaly.learning": "a fraction, not a path: {n}/{needed} counts the backups the detector has learned from",
 };

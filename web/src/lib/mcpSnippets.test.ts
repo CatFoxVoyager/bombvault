@@ -210,6 +210,15 @@ describe("the Claude snippets", () => {
     expect(words[words.indexOf("--header-file") + 1]).toBe(KEY_FILE_PLACEHOLDER);
     expect(words).toContain("--allow-http");
   });
+
+  // The Mac app does not read the shell profile, so a variable set there would
+  // never reach mcp-remote.
+  it("sets the certificate in Perplexity's own command", () => {
+    const command = (input: McpSnippetInput) => /^Command: (.*)$/m.exec(SNIPPETS.perplexity(input))?.[1] ?? "";
+    const words = shellWords(command(own).replace(CERT_PATH_PLACEHOLDER, "/Users/sam/My Downloads/bombvault-cert.pem"));
+    expect(words.slice(0, 3)).toEqual(["env", "NODE_EXTRA_CA_CERTS=/Users/sam/My Downloads/bombvault-cert.pem", "npx"]);
+    expect(command(trusted)).toMatch(/^npx /);
+  });
 });
 
 describe("Warp", () => {

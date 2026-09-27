@@ -386,7 +386,7 @@ export const LOCAL_CLIENTS: McpClient[] = [
     tile: "glim-tile-perplexity",
     setup: { kind: "form", ui: "Settings, Connectors, Add Connector, MCP Connector" },
     key: { kind: "keyFile" },
-    cert: NODE_CERT,
+    cert: { kind: "placeholder" },
     note: "mcp.notePerplexity",
     node: true,
   },

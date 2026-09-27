@@ -421,6 +421,33 @@ describe("the certificate of this address", () => {
     expect(dialogText()).toContain(en["mcp.certSystem"].replaceAll("{app}", "Zed"));
   });
 
+  it("puts the certificate into Perplexity's command, since the Mac app reads no shell profile", async () => {
+    vi.stubGlobal("location", new URL("https://192.168.1.10:3443/settings"));
+    await renderCard(payload({ certificate: { ...selfIssued, names: ["localhost", "192.168.1.10"] } }));
+
+    await openClient("Perplexity", en["mcp.kindDesktop"]);
+    expect(within(screen.getByRole("dialog")).getByText(/^Server Name/).textContent).toContain(
+      'Command: env "NODE_EXTRA_CA_CERTS='
+    );
+    expect(dialogText()).toContain(en["mcp.certPlaceholder"]);
+  });
+
+  it("tells a Dock app on macOS to take a variable from launchctl", async () => {
+    vi.stubGlobal("location", new URL("https://192.168.1.10:3443/settings"));
+    await renderCard(payload({ certificate: { ...selfIssued, names: ["localhost", "192.168.1.10"] } }));
+
+    await openClient("AnythingLLM", en["mcp.kindLocalModels"]);
+    const certTip = en["mcp.certEnvTip"].replaceAll("{var}", "NODE_EXTRA_CA_CERTS");
+    expect(certTip).toContain("launchctl setenv NODE_EXTRA_CA_CERTS");
+    expect(screen.getByLabelText(certTip)).toBeTruthy();
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: en["common.close"] }));
+
+    await openClient("Goose", en["mcp.kindDesktop"]);
+    const keyTip = en["mcp.keyEnvTip"].replaceAll("{app}", "Goose").replaceAll("{var}", "BOMBVAULT_MCP_KEY");
+    expect(keyTip).toContain("launchctl setenv BOMBVAULT_MCP_KEY");
+    expect(screen.getByLabelText(keyTip)).toBeTruthy();
+  });
+
   it("matches an IPv6 address without its brackets", async () => {
     vi.stubGlobal("location", new URL("https://[fd00::10]:3443/settings"));
     await renderCard(payload({ keys: [key()], certificate: selfIssued }));

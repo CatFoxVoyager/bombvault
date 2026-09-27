@@ -408,7 +408,7 @@ export function McpClientDialog({
         break;
       case "env":
         line = [...rich("mcp.keyEnv", { ...app, var: KEY_VARIABLE }), key.unsure ? ` ${fill("mcp.keyEnvUnsure", app)}` : ""];
-        tip = fill("mcp.keyEnvTip", app);
+        tip = fill("mcp.keyEnvTip", { ...app, var: KEY_VARIABLE });
         break;
       case "prompt":
         line = fill("mcp.keyPrompt", app);
@@ -447,7 +447,7 @@ export function McpClientDialog({
         break;
       case "env":
         line = rich("mcp.certEnv", { ...app, var: cert.variable });
-        tip = t("mcp.certEnvTip");
+        tip = fill("mcp.certEnvTip", { var: cert.variable });
         break;
       case "system":
         line = fill("mcp.certSystem", app);
