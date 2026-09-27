@@ -120,9 +120,9 @@ BombVault 自身の証明書を使う場合 ([TLS と証明書](#tls) を参照)
 claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
 ```
 
-接続は Claude Code の中で `/mcp` を使って確認できます。`--scope user` を付けると、BombVault をすべてのプロジェクトで使えます。Claude Code が保存するのはキーファイルのパスだけなので、キーはコマンドにもシェルの履歴にも、プロセス一覧にも、`claude mcp list` にも現れません。ファイルは自分だけが読める場所で、コミットするフォルダーの外に置いてください。`@latest` を付けると `npx` が最新の `mcp-remote` を取得します。付けないとグローバルにインストールされた古いものが使われ、それは `--header-file` に対応していません。
+接続は Claude Code の中で `/mcp` を使って確認できます。`--scope user` を付けると、BombVault をすべてのプロジェクトで使えます。Claude Code が保存するのはキーファイルのパスだけなので、キーはコマンドにもシェルの履歴にも、プロセス一覧にも現れません。ファイルは自分だけが読める場所で、コミットするフォルダーの外に置いてください。`@latest` を付けると `npx` が最新の `mcp-remote` を取得します。付けないとグローバルにインストールされた古いものが使われ、それは `--header-file` に対応していません。
 
-Claude Code 用の `mcp-remote` の引数に `${BOMBVAULT_MCP_KEY}` を書かないでください。Claude Code は `mcp-remote` を起動する前に、こうした参照を自分の環境の値で置き換えます。そのためキーがそのプロセスのコマンドラインに載り、コンピューター上のほかのプログラムやユーザーから読めてしまい、`claude mcp list` にも表示されます。
+Claude Code 用の `mcp-remote` の引数に `${BOMBVAULT_MCP_KEY}` を書かないでください。Claude Code は `mcp-remote` を起動する前に、こうした参照を自分の環境の値で置き換えます。そのためキーがそのプロセスのコマンドラインに載り、コンピューター上のほかのプログラムやユーザーから読めてしまいます。
 
 Node.js がなくても、コンピューターが信頼する証明書の背後に限っては、Claude Code は自分で接続できます。プロジェクトのフォルダーに `.mcp.json` を置きます:
 

@@ -120,9 +120,9 @@ Com o certificado próprio do BombVault (ver [TLS e certificados](#tls)), o coma
 claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
 ```
 
-Verifique a ligação com `/mcp` dentro do Claude Code. `--scope user` torna o BombVault disponível em todos os seus projetos. O Claude Code guarda só o caminho do ficheiro da chave, por isso a chave não aparece no comando nem no histórico da shell, nem na lista de processos, nem em `claude mcp list`. Guarde o ficheiro onde mais ninguém o possa ler, e fora de qualquer pasta de que faça commit. `@latest` faz o `npx` ir buscar um `mcp-remote` atual; caso contrário seria usado um mais antigo instalado globalmente, que não conhece `--header-file`.
+Verifique a ligação com `/mcp` dentro do Claude Code. `--scope user` torna o BombVault disponível em todos os seus projetos. O Claude Code guarda só o caminho do ficheiro da chave, por isso a chave não aparece no comando nem no histórico da shell, nem na lista de processos. Guarde o ficheiro onde mais ninguém o possa ler, e fora de qualquer pasta de que faça commit. `@latest` faz o `npx` ir buscar um `mcp-remote` atual; caso contrário seria usado um mais antigo instalado globalmente, que não conhece `--header-file`.
 
-Não escreva `${BOMBVAULT_MCP_KEY}` nos argumentos do `mcp-remote` para o Claude Code. O Claude Code substitui essa referência a partir do seu próprio ambiente antes de iniciar o `mcp-remote`, por isso a chave acaba na linha de comandos desse processo, onde outros programas e utilizadores do computador a podem ler, e `claude mcp list` mostra-a.
+Não escreva `${BOMBVAULT_MCP_KEY}` nos argumentos do `mcp-remote` para o Claude Code. O Claude Code substitui essa referência a partir do seu próprio ambiente antes de iniciar o `mcp-remote`, por isso a chave acaba na linha de comandos desse processo, onde outros programas e utilizadores do computador a podem ler.
 
 Sem Node.js, e só atrás de um certificado em que o seu computador confia, o Claude Code consegue ligar-se sozinho. Coloque um `.mcp.json` na pasta do projeto:
 

@@ -120,9 +120,9 @@ claude mcp add bombvault --scope user -- npx -y mcp-remote@latest https://bombva
 claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
 ```
 
-在 Claude Code 中用 `/mcp` 检查连接。`--scope user` 让 BombVault 在你的所有项目中都可用。Claude Code 只保存密钥文件的路径，所以密钥既不会出现在命令和 shell 历史记录中，也不会出现在进程列表或 `claude mcp list` 中。把这个文件放在只有你能读取的位置，并且不要放在任何会提交的文件夹里。`@latest` 让 `npx` 获取最新的 `mcp-remote`；否则会改用全局安装的旧版本，而旧版本不支持 `--header-file`。
+在 Claude Code 中用 `/mcp` 检查连接。`--scope user` 让 BombVault 在你的所有项目中都可用。Claude Code 只保存密钥文件的路径，所以密钥既不会出现在命令和 shell 历史记录中，也不会出现在进程列表中。把这个文件放在只有你能读取的位置，并且不要放在任何会提交的文件夹里。`@latest` 让 `npx` 获取最新的 `mcp-remote`；否则会改用全局安装的旧版本，而旧版本不支持 `--header-file`。
 
-不要把 `${BOMBVAULT_MCP_KEY}` 写进 Claude Code 的 `mcp-remote` 参数里。Claude Code 在启动 `mcp-remote` 之前，会用自己环境中的值替换这类引用，于是密钥会出现在该进程的命令行上，电脑上的其他程序和用户都能读到它，`claude mcp list` 也会把它打印出来。
+不要把 `${BOMBVAULT_MCP_KEY}` 写进 Claude Code 的 `mcp-remote` 参数里。Claude Code 在启动 `mcp-remote` 之前，会用自己环境中的值替换这类引用，于是密钥会出现在该进程的命令行上，电脑上的其他程序和用户都能读到它。
 
 没有 Node.js 时，Claude Code 也能自己连接，但仅限于使用你的电脑信任的证书。在项目文件夹中放一个 `.mcp.json`：
 

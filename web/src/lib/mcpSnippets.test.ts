@@ -161,7 +161,7 @@ describe("the Claude snippets", () => {
 
   // Claude Code fills a ${VAR} in a server's arguments from its own
   // environment before it starts the server, which would put the key on the
-  // process's command line and into `claude mcp list`.
+  // process's command line.
   it("leaves no variable in the Claude Code command for Claude Code to fill in", () => {
     for (const input of [trusted, own, plain]) {
       expect(claudeCodeSnippet(input)).not.toContain("${");

@@ -120,9 +120,9 @@ claude mcp add bombvault --scope user -- npx -y mcp-remote@latest https://bombva
 claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
 ```
 
-تحقق من الاتصال بالأمر `/mcp` داخل Claude Code. يجعل `--scope user` خادم BombVault متاحًا في كل مشاريعك. لا يحفظ Claude Code إلا مسار ملف المفتاح، فلا يظهر المفتاح في الأمر ولا في سجل الصدفة، ولا في قائمة العمليات، ولا في `claude mcp list`. احفظ الملف حيث لا يستطيع أحد غيرك قراءته، وخارج أي مجلد تعمل له commit. يجعل `@latest` الأداة `npx` تجلب نسخة حديثة من `mcp-remote`؛ وبدونه تُستخدم نسخة أقدم مثبتة على مستوى النظام، وهي لا تدعم `--header-file`.
+تحقق من الاتصال بالأمر `/mcp` داخل Claude Code. يجعل `--scope user` خادم BombVault متاحًا في كل مشاريعك. لا يحفظ Claude Code إلا مسار ملف المفتاح، فلا يظهر المفتاح في الأمر ولا في سجل الصدفة، ولا في قائمة العمليات. احفظ الملف حيث لا يستطيع أحد غيرك قراءته، وخارج أي مجلد تعمل له commit. يجعل `@latest` الأداة `npx` تجلب نسخة حديثة من `mcp-remote`؛ وبدونه تُستخدم نسخة أقدم مثبتة على مستوى النظام، وهي لا تدعم `--header-file`.
 
-لا تكتب `${BOMBVAULT_MCP_KEY}` في وسائط `mcp-remote` الخاصة بـ Claude Code. يستبدل Claude Code مثل هذا المرجع بقيمته من بيئته قبل أن يشغّل `mcp-remote`، فيصل المفتاح إلى سطر أوامر تلك العملية، حيث تستطيع برامج أخرى ومستخدمون آخرون على الحاسوب قراءته، ويطبعه `claude mcp list`.
+لا تكتب `${BOMBVAULT_MCP_KEY}` في وسائط `mcp-remote` الخاصة بـ Claude Code. يستبدل Claude Code مثل هذا المرجع بقيمته من بيئته قبل أن يشغّل `mcp-remote`، فيصل المفتاح إلى سطر أوامر تلك العملية، حيث تستطيع برامج أخرى ومستخدمون آخرون على الحاسوب قراءته.
 
 من دون Node.js، وخلف شهادة يثق بها حاسوبك فقط، يستطيع Claude Code الاتصال بنفسه. ضع ملف `.mcp.json` في مجلد المشروع:
 

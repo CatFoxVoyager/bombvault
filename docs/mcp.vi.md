@@ -120,9 +120,9 @@ Với chứng chỉ riêng của BombVault (xem [TLS và chứng chỉ](#tls)), 
 claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
 ```
 
-Kiểm tra kết nối bằng `/mcp` bên trong Claude Code. `--scope user` giúp BombVault dùng được trong mọi dự án của bạn. Claude Code chỉ giữ đường dẫn của tệp khóa, nên khóa không xuất hiện trong lệnh và lịch sử shell, trong danh sách tiến trình, hay trong `claude mcp list`. Hãy để tệp ở nơi chỉ bạn đọc được, và bên ngoài mọi thư mục mà bạn commit. `@latest` khiến `npx` tải một `mcp-remote` mới; nếu không có nó, một bản cũ hơn đã cài toàn cục sẽ được dùng thay vào đó, và bản này không hỗ trợ `--header-file`.
+Kiểm tra kết nối bằng `/mcp` bên trong Claude Code. `--scope user` giúp BombVault dùng được trong mọi dự án của bạn. Claude Code chỉ giữ đường dẫn của tệp khóa, nên khóa không xuất hiện trong lệnh và lịch sử shell, hay trong danh sách tiến trình. Hãy để tệp ở nơi chỉ bạn đọc được, và bên ngoài mọi thư mục mà bạn commit. `@latest` khiến `npx` tải một `mcp-remote` mới; nếu không có nó, một bản cũ hơn đã cài toàn cục sẽ được dùng thay vào đó, và bản này không hỗ trợ `--header-file`.
 
-Đừng viết `${BOMBVAULT_MCP_KEY}` vào các đối số của `mcp-remote` cho Claude Code. Claude Code thay tham chiếu như vậy bằng giá trị từ môi trường của chính nó trước khi khởi động `mcp-remote`, nên khóa nằm trên dòng lệnh của tiến trình đó, nơi các chương trình và người dùng khác trên máy tính có thể đọc được, và `claude mcp list` sẽ in nó ra.
+Đừng viết `${BOMBVAULT_MCP_KEY}` vào các đối số của `mcp-remote` cho Claude Code. Claude Code thay tham chiếu như vậy bằng giá trị từ môi trường của chính nó trước khi khởi động `mcp-remote`, nên khóa nằm trên dòng lệnh của tiến trình đó, nơi các chương trình và người dùng khác trên máy tính có thể đọc được.
 
 Khi không có Node.js, và chỉ với chứng chỉ mà máy tính của bạn tin cậy, Claude Code có thể tự kết nối. Hãy đặt một tệp `.mcp.json` trong thư mục dự án:
 

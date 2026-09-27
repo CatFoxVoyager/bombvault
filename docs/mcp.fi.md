@@ -120,9 +120,9 @@ BombVaultin omalla varmenteella (katso [TLS ja varmenteet](#tls)) komento ohjaa 
 claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
 ```
 
-Tarkista yhteys komennolla `/mcp` Claude Coden sisällä. `--scope user` tuo BombVaultin käyttöön kaikissa projekteissasi. Claude Code tallentaa vain avaintiedoston polun, joten avain ei näy komennossa eikä komentotulkkisi historiassa, ei prosessiluettelossa eikä `claude mcp list` -komennon tulosteessa. Pidä tiedosto paikassa, jossa vain sinä voit lukea sen, ja minkään commitoitavan kansion ulkopuolella. `@latest` saa `npx`:n hakemaan ajantasaisen `mcp-remote`n; muuten käytettäisiin vanhempaa, globaalisti asennettua versiota, joka ei tunne valitsinta `--header-file`.
+Tarkista yhteys komennolla `/mcp` Claude Coden sisällä. `--scope user` tuo BombVaultin käyttöön kaikissa projekteissasi. Claude Code tallentaa vain avaintiedoston polun, joten avain ei näy komennossa eikä komentotulkkisi historiassa, eikä prosessiluettelossa. Pidä tiedosto paikassa, jossa vain sinä voit lukea sen, ja minkään commitoitavan kansion ulkopuolella. `@latest` saa `npx`:n hakemaan ajantasaisen `mcp-remote`n; muuten käytettäisiin vanhempaa, globaalisti asennettua versiota, joka ei tunne valitsinta `--header-file`.
 
-Älä kirjoita viittausta `${BOMBVAULT_MCP_KEY}` Claude Coden `mcp-remote`-argumentteihin. Claude Code täyttää tällaisen viittauksen omasta ympäristöstään ennen kuin se käynnistää `mcp-remote`n, joten avain päätyy sen prosessin komentoriville, josta tietokoneen muut ohjelmat ja käyttäjät voivat lukea sen, ja `claude mcp list` tulostaa sen.
+Älä kirjoita viittausta `${BOMBVAULT_MCP_KEY}` Claude Coden `mcp-remote`-argumentteihin. Claude Code täyttää tällaisen viittauksen omasta ympäristöstään ennen kuin se käynnistää `mcp-remote`n, joten avain päätyy sen prosessin komentoriville, josta tietokoneen muut ohjelmat ja käyttäjät voivat lukea sen.
 
 Ilman Node.js:ää ja vain varmenteella, johon tietokoneesi luottaa, Claude Code voi muodostaa yhteyden itse. Laita projektikansioon `.mcp.json`:
 

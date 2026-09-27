@@ -120,9 +120,9 @@ A BombVault saját tanúsítványával (lásd [TLS és tanúsítványok](#tls)) 
 claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
 ```
 
-A kapcsolatot a Claude Code-ban a `/mcp` paranccsal ellenőrizheted. A `--scope user` az összes projektedben elérhetővé teszi a BombVaultot. A Claude Code csak a kulcsfájl elérési útját tárolja, így a kulcs nem jelenik meg sem a parancsban és a shell előzményeiben, sem a folyamatlistában, sem a `claude mcp list` kimenetében. A fájlt olyan helyen tartsd, ahol csak te olvashatod, és minden olyan mappán kívül, amelyet commitolsz. Az `@latest` miatt az `npx` friss `mcp-remote` programot tölt le; különben egy régebbi, globálisan telepített változatot használna, amely nem ismeri a `--header-file` kapcsolót.
+A kapcsolatot a Claude Code-ban a `/mcp` paranccsal ellenőrizheted. A `--scope user` az összes projektedben elérhetővé teszi a BombVaultot. A Claude Code csak a kulcsfájl elérési útját tárolja, így a kulcs nem jelenik meg sem a parancsban és a shell előzményeiben, sem a folyamatlistában. A fájlt olyan helyen tartsd, ahol csak te olvashatod, és minden olyan mappán kívül, amelyet commitolsz. Az `@latest` miatt az `npx` friss `mcp-remote` programot tölt le; különben egy régebbi, globálisan telepített változatot használna, amely nem ismeri a `--header-file` kapcsolót.
 
-Ne írd a `${BOMBVAULT_MCP_KEY}` hivatkozást a Claude Code `mcp-remote` argumentumai közé. A Claude Code az ilyen hivatkozást a saját környezetéből tölti ki, mielőtt elindítja az `mcp-remote` programot, így a kulcs annak a folyamatnak a parancssorába kerül, ahol a számítógép más programjai és felhasználói is olvashatják, és a `claude mcp list` is kiírja.
+Ne írd a `${BOMBVAULT_MCP_KEY}` hivatkozást a Claude Code `mcp-remote` argumentumai közé. A Claude Code az ilyen hivatkozást a saját környezetéből tölti ki, mielőtt elindítja az `mcp-remote` programot, így a kulcs annak a folyamatnak a parancssorába kerül, ahol a számítógép más programjai és felhasználói is olvashatják.
 
 Node.js nélkül, és csak olyan tanúsítvány mögött, amelyben a számítógéped megbízik, a Claude Code önállóan is tud kapcsolódni. Tegyél egy `.mcp.json` fájlt a projekt mappájába:
 

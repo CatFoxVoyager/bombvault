@@ -120,9 +120,9 @@ Med BombVaults eget certifikat (se [TLS og certifikater](#tls)) peger kommandoen
 claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
 ```
 
-Tjek forbindelsen med `/mcp` inde i Claude Code. `--scope user` gør BombVault tilgængelig i alle dine projekter. Claude Code gemmer kun stien til nøglefilen, så nøglen hverken dukker op i kommandoen og din shell-historik, i proceslisten eller i `claude mcp list`. Læg filen et sted, hvor kun du kan læse den, og uden for enhver mappe, du committer. `@latest` får `npx` til at hente en aktuel `mcp-remote`; ellers ville en ældre, globalt installeret version blive brugt, og den kender ikke `--header-file`.
+Tjek forbindelsen med `/mcp` inde i Claude Code. `--scope user` gør BombVault tilgængelig i alle dine projekter. Claude Code gemmer kun stien til nøglefilen, så nøglen hverken dukker op i kommandoen og din shell-historik eller i proceslisten. Læg filen et sted, hvor kun du kan læse den, og uden for enhver mappe, du committer. `@latest` får `npx` til at hente en aktuel `mcp-remote`; ellers ville en ældre, globalt installeret version blive brugt, og den kender ikke `--header-file`.
 
-Skriv ikke `${BOMBVAULT_MCP_KEY}` ind i argumenterne til `mcp-remote` for Claude Code. Claude Code udfylder sådan en reference fra sit eget miljø, før den starter `mcp-remote`, så nøglen havner på processens kommandolinje, hvor andre programmer og brugere på computeren kan læse den, og `claude mcp list` viser den.
+Skriv ikke `${BOMBVAULT_MCP_KEY}` ind i argumenterne til `mcp-remote` for Claude Code. Claude Code udfylder sådan en reference fra sit eget miljø, før den starter `mcp-remote`, så nøglen havner på processens kommandolinje, hvor andre programmer og brugere på computeren kan læse den.
 
 Uden Node.js, og kun bag et certifikat, din computer stoler på, kan Claude Code selv oprette forbindelsen. Læg en `.mcp.json` i projektmappen:
 

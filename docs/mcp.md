@@ -120,9 +120,9 @@ With BombVault's own certificate (see [TLS and certificates](#tls)) the command 
 claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
 ```
 
-Check the connection with `/mcp` inside Claude Code. `--scope user` makes BombVault available in all your projects. Claude Code keeps only the path of the key file, so the key shows up neither in the command and your shell history, nor in the process list, nor in `claude mcp list`. Keep the file where only you can read it, and outside any folder you commit. `@latest` makes `npx` fetch a current `mcp-remote`; an older one installed globally would be used instead, and it does not know `--header-file`.
+Check the connection with `/mcp` inside Claude Code. `--scope user` makes BombVault available in all your projects. Claude Code keeps only the path of the key file, so the key shows up neither in the command and your shell history nor in the process list. Keep the file where only you can read it, and outside any folder you commit. `@latest` makes `npx` fetch a current `mcp-remote`; an older one installed globally would be used instead, and it does not know `--header-file`.
 
-Do not write `${BOMBVAULT_MCP_KEY}` into the `mcp-remote` arguments for Claude Code. Claude Code fills such a reference in from its own environment before it starts `mcp-remote`, so the key ends up on the command line of that process, where other programs and users of the computer can read it, and `claude mcp list` prints it.
+Do not write `${BOMBVAULT_MCP_KEY}` into the `mcp-remote` arguments for Claude Code. Claude Code fills such a reference in from its own environment before it starts `mcp-remote`, so the key ends up on the command line of that process, where other programs and users of the computer can read it.
 
 Without Node.js, and only behind a certificate your computer trusts, Claude Code can connect by itself. Put a `.mcp.json` into the project folder:
 

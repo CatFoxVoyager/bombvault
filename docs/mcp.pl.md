@@ -120,9 +120,9 @@ Z własnym certyfikatem BombVault (zobacz [TLS i certyfikaty](#tls)) polecenie d
 claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
 ```
 
-Sprawdź połączenie poleceniem `/mcp` w Claude Code. `--scope user` udostępnia BombVault we wszystkich twoich projektach. Claude Code zapamiętuje tylko ścieżkę pliku z kluczem, więc klucz nie pojawia się ani w poleceniu i historii powłoki, ani na liście procesów, ani w `claude mcp list`. Trzymaj plik tam, gdzie tylko ty możesz go odczytać, i poza każdym folderem, który commitujesz. `@latest` sprawia, że `npx` pobiera aktualny `mcp-remote`; inaczej zostałby użyty starszy, zainstalowany globalnie, a ten nie zna `--header-file`.
+Sprawdź połączenie poleceniem `/mcp` w Claude Code. `--scope user` udostępnia BombVault we wszystkich twoich projektach. Claude Code zapamiętuje tylko ścieżkę pliku z kluczem, więc klucz nie pojawia się ani w poleceniu i historii powłoki, ani na liście procesów. Trzymaj plik tam, gdzie tylko ty możesz go odczytać, i poza każdym folderem, który commitujesz. `@latest` sprawia, że `npx` pobiera aktualny `mcp-remote`; inaczej zostałby użyty starszy, zainstalowany globalnie, a ten nie zna `--header-file`.
 
-Nie wpisuj `${BOMBVAULT_MCP_KEY}` do argumentów `mcp-remote` dla Claude Code. Claude Code podstawia takie odwołanie ze swojego środowiska, zanim uruchomi `mcp-remote`, więc klucz trafia do wiersza poleceń tego procesu, gdzie mogą go odczytać inne programy i użytkownicy komputera, a `claude mcp list` go wypisuje.
+Nie wpisuj `${BOMBVAULT_MCP_KEY}` do argumentów `mcp-remote` dla Claude Code. Claude Code podstawia takie odwołanie ze swojego środowiska, zanim uruchomi `mcp-remote`, więc klucz trafia do wiersza poleceń tego procesu, gdzie mogą go odczytać inne programy i użytkownicy komputera.
 
 Bez Node.js Claude Code może połączyć się sam, ale tylko za certyfikatem, któremu ufa twój komputer. Umieść plik `.mcp.json` w folderze projektu:
 

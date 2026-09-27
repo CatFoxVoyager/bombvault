@@ -120,9 +120,9 @@ claude mcp add bombvault --scope user -- npx -y mcp-remote@latest https://bombva
 claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
 ```
 
-בדוק את החיבור עם `/mcp` בתוך Claude Code. ‏`--scope user` הופך את BombVault לזמין בכל הפרויקטים שלך. ‏Claude Code שומר רק את הנתיב של קובץ המפתח, כך שהמפתח לא מופיע בפקודה ובהיסטוריה של המעטפת, לא ברשימת התהליכים ולא ב-`claude mcp list`. שמור את הקובץ במקום שרק אתה יכול לקרוא אותו, ומחוץ לכל תיקייה שאתה מבצע לה commit. ‏`@latest` גורם ל-`npx` להביא `mcp-remote` עדכני; בלעדיו תשמש במקומו גרסה ישנה יותר שמותקנת גלובלית, והיא לא מכירה את `--header-file`.
+בדוק את החיבור עם `/mcp` בתוך Claude Code. ‏`--scope user` הופך את BombVault לזמין בכל הפרויקטים שלך. ‏Claude Code שומר רק את הנתיב של קובץ המפתח, כך שהמפתח לא מופיע בפקודה ובהיסטוריה של המעטפת, ולא ברשימת התהליכים. שמור את הקובץ במקום שרק אתה יכול לקרוא אותו, ומחוץ לכל תיקייה שאתה מבצע לה commit. ‏`@latest` גורם ל-`npx` להביא `mcp-remote` עדכני; בלעדיו תשמש במקומו גרסה ישנה יותר שמותקנת גלובלית, והיא לא מכירה את `--header-file`.
 
-אל תכתוב את `${BOMBVAULT_MCP_KEY}` בארגומנטים של `mcp-remote` עבור Claude Code. ‏Claude Code מציב הפניה כזו מהסביבה שלו לפני שהוא מפעיל את `mcp-remote`, כך שהמפתח מגיע לשורת הפקודה של התהליך הזה, ושם תוכנות אחרות ומשתמשים אחרים במחשב יכולים לקרוא אותו, ו-`claude mcp list` מדפיס אותו.
+אל תכתוב את `${BOMBVAULT_MCP_KEY}` בארגומנטים של `mcp-remote` עבור Claude Code. ‏Claude Code מציב הפניה כזו מהסביבה שלו לפני שהוא מפעיל את `mcp-remote`, כך שהמפתח מגיע לשורת הפקודה של התהליך הזה, ושם תוכנות אחרות ומשתמשים אחרים במחשב יכולים לקרוא אותו.
 
 בלי Node.js, ורק מאחורי תעודה שהמחשב שלך סומך עליה, Claude Code יכול להתחבר בעצמו. שים קובץ `.mcp.json` בתיקיית הפרויקט:
 

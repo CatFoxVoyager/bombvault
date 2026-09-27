@@ -120,9 +120,9 @@ BombVault 자체 인증서를 쓰는 경우([TLS와 인증서](#tls) 참고) 명
 claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
 ```
 
-연결은 Claude Code 안에서 `/mcp`로 확인합니다. `--scope user`를 쓰면 모든 프로젝트에서 BombVault를 쓸 수 있습니다. Claude Code는 키 파일의 경로만 저장하므로, 키는 명령과 셸 기록에도, 프로세스 목록에도, `claude mcp list`에도 나타나지 않습니다. 파일은 본인만 읽을 수 있는 곳, 그리고 커밋하는 폴더 바깥에 두세요. `@latest`는 `npx`가 최신 `mcp-remote`를 가져오게 합니다. 이것이 없으면 전역으로 설치된 오래된 버전이 대신 쓰이는데, 그 버전은 `--header-file`을 지원하지 않습니다.
+연결은 Claude Code 안에서 `/mcp`로 확인합니다. `--scope user`를 쓰면 모든 프로젝트에서 BombVault를 쓸 수 있습니다. Claude Code는 키 파일의 경로만 저장하므로, 키는 명령과 셸 기록에도, 프로세스 목록에도 나타나지 않습니다. 파일은 본인만 읽을 수 있는 곳, 그리고 커밋하는 폴더 바깥에 두세요. `@latest`는 `npx`가 최신 `mcp-remote`를 가져오게 합니다. 이것이 없으면 전역으로 설치된 오래된 버전이 대신 쓰이는데, 그 버전은 `--header-file`을 지원하지 않습니다.
 
-Claude Code용 `mcp-remote` 인수에 `${BOMBVAULT_MCP_KEY}`를 쓰지 마세요. Claude Code는 `mcp-remote`를 시작하기 전에 이런 참조를 자기 환경의 값으로 바꾸므로, 키가 그 프로세스의 명령줄에 들어갑니다. 그러면 컴퓨터의 다른 프로그램과 사용자가 키를 읽을 수 있고, `claude mcp list`도 키를 출력합니다.
+Claude Code용 `mcp-remote` 인수에 `${BOMBVAULT_MCP_KEY}`를 쓰지 마세요. Claude Code는 `mcp-remote`를 시작하기 전에 이런 참조를 자기 환경의 값으로 바꾸므로, 키가 그 프로세스의 명령줄에 들어갑니다. 그러면 컴퓨터의 다른 프로그램과 사용자가 키를 읽을 수 있습니다.
 
 Node.js가 없어도 Claude Code는 직접 연결할 수 있지만, 컴퓨터가 신뢰하는 인증서 뒤에서만 가능합니다. 프로젝트 폴더에 `.mcp.json`을 두세요:
 

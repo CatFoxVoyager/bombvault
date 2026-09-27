@@ -42,7 +42,7 @@ function json(value: unknown): string {
 
 /**
  * mcpRemoteCommand starts mcp-remote with the key read from a file, so neither
- * the command, the process list nor the client's own server list shows it. A
+ * the command nor the process list shows it. A
  * `${VAR}` in the arguments would not keep it out: Claude Code fills it from
  * its own environment before it starts the server. `@latest` keeps an older
  * global mcp-remote without `--header-file` from being picked, and the path is

@@ -120,9 +120,9 @@ BombVault'un kendi sertifikasıyla (bkz. [TLS ve sertifikalar](#tls)) komut ayr�
 claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
 ```
 
-Bağlantıyı Claude Code içinde `/mcp` ile kontrol edin. `--scope user` BombVault'u tüm projelerinizde kullanılabilir yapar. Claude Code yalnızca anahtar dosyasının yolunu saklar; böylece anahtar ne komutta ve kabuk geçmişinizde, ne süreç listesinde ne de `claude mcp list` çıktısında görünür. Dosyayı yalnızca sizin okuyabileceğiniz bir yerde ve commit ettiğiniz klasörlerin dışında tutun. `@latest`, `npx`'in güncel bir `mcp-remote` indirmesini sağlar; aksi halde global olarak kurulmuş daha eski bir sürüm kullanılır ve o sürüm `--header-file` seçeneğini tanımaz.
+Bağlantıyı Claude Code içinde `/mcp` ile kontrol edin. `--scope user` BombVault'u tüm projelerinizde kullanılabilir yapar. Claude Code yalnızca anahtar dosyasının yolunu saklar; böylece anahtar ne komutta ve kabuk geçmişinizde, ne de süreç listesinde görünür. Dosyayı yalnızca sizin okuyabileceğiniz bir yerde ve commit ettiğiniz klasörlerin dışında tutun. `@latest`, `npx`'in güncel bir `mcp-remote` indirmesini sağlar; aksi halde global olarak kurulmuş daha eski bir sürüm kullanılır ve o sürüm `--header-file` seçeneğini tanımaz.
 
-Claude Code için `mcp-remote` argümanlarına `${BOMBVAULT_MCP_KEY}` yazmayın. Claude Code böyle bir başvuruyu `mcp-remote`'u başlatmadan önce kendi ortamından doldurur; böylece anahtar o sürecin komut satırına düşer, orada bilgisayardaki diğer programlar ve kullanıcılar onu okuyabilir ve `claude mcp list` onu yazdırır.
+Claude Code için `mcp-remote` argümanlarına `${BOMBVAULT_MCP_KEY}` yazmayın. Claude Code böyle bir başvuruyu `mcp-remote`'u başlatmadan önce kendi ortamından doldurur; böylece anahtar o sürecin komut satırına düşer, orada bilgisayardaki diğer programlar ve kullanıcılar onu okuyabilir.
 
 Node.js olmadan ve yalnızca bilgisayarınızın güvendiği bir sertifikayla Claude Code kendi başına bağlanabilir. Proje klasörüne bir `.mcp.json` koyun:
 

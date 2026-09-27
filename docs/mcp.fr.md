@@ -120,9 +120,9 @@ Avec le certificat propre à BombVault (voir [TLS et certificats](#tls)), la com
 claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
 ```
 
-Vérifiez la connexion avec `/mcp` dans Claude Code. `--scope user` rend BombVault disponible dans tous vos projets. Claude Code ne garde que le chemin du fichier de clé, si bien que la clé n'apparaît ni dans la commande et l'historique de votre shell, ni dans la liste des processus, ni dans `claude mcp list`. Rangez le fichier à un endroit que vous seul pouvez lire, et en dehors de tout dossier que vous committez. `@latest` fait télécharger par `npx` un `mcp-remote` récent ; sans cela, une version plus ancienne installée globalement serait utilisée, et elle ne connaît pas `--header-file`.
+Vérifiez la connexion avec `/mcp` dans Claude Code. `--scope user` rend BombVault disponible dans tous vos projets. Claude Code ne garde que le chemin du fichier de clé, si bien que la clé n'apparaît ni dans la commande et l'historique de votre shell, ni dans la liste des processus. Rangez le fichier à un endroit que vous seul pouvez lire, et en dehors de tout dossier que vous committez. `@latest` fait télécharger par `npx` un `mcp-remote` récent ; sans cela, une version plus ancienne installée globalement serait utilisée, et elle ne connaît pas `--header-file`.
 
-N'écrivez pas `${BOMBVAULT_MCP_KEY}` dans les arguments de `mcp-remote` pour Claude Code. Claude Code remplace une telle référence à partir de son propre environnement avant de lancer `mcp-remote` : la clé se retrouve alors sur la ligne de commande de ce processus, où d'autres programmes et utilisateurs de l'ordinateur peuvent la lire, et `claude mcp list` l'affiche.
+N'écrivez pas `${BOMBVAULT_MCP_KEY}` dans les arguments de `mcp-remote` pour Claude Code. Claude Code remplace une telle référence à partir de son propre environnement avant de lancer `mcp-remote` : la clé se retrouve alors sur la ligne de commande de ce processus, où d'autres programmes et utilisateurs de l'ordinateur peuvent la lire.
 
 Sans Node.js, et uniquement derrière un certificat auquel votre ordinateur fait confiance, Claude Code peut se connecter tout seul. Placez un fichier `.mcp.json` dans le dossier du projet :
 

@@ -120,9 +120,9 @@ S vlastním certifikátem BombVaultu (viz [TLS a certifikáty](#tls)) příkaz n
 claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
 ```
 
-Připojení ověříte příkazem `/mcp` v Claude Code. `--scope user` zpřístupní BombVault ve všech vašich projektech. Claude Code si pamatuje jen cestu k souboru s klíčem, takže se klíč neobjeví v příkazu ani v historii shellu, v seznamu procesů ani v `claude mcp list`. Soubor mějte tam, kde ho můžete číst jen vy, a mimo každou složku, kterou commitujete. Díky `@latest` si `npx` stáhne aktuální `mcp-remote`; jinak by se použil starší, globálně nainstalovaný, který `--header-file` nezná.
+Připojení ověříte příkazem `/mcp` v Claude Code. `--scope user` zpřístupní BombVault ve všech vašich projektech. Claude Code si pamatuje jen cestu k souboru s klíčem, takže se klíč neobjeví v příkazu ani v historii shellu, ani v seznamu procesů. Soubor mějte tam, kde ho můžete číst jen vy, a mimo každou složku, kterou commitujete. Díky `@latest` si `npx` stáhne aktuální `mcp-remote`; jinak by se použil starší, globálně nainstalovaný, který `--header-file` nezná.
 
-Nepište `${BOMBVAULT_MCP_KEY}` do argumentů `mcp-remote` pro Claude Code. Claude Code takový odkaz dosadí ze svého vlastního prostředí ještě před spuštěním `mcp-remote`, takže klíč skončí v příkazovém řádku tohoto procesu, kde ho mohou číst jiné programy a uživatelé počítače, a `claude mcp list` ho vypíše.
+Nepište `${BOMBVAULT_MCP_KEY}` do argumentů `mcp-remote` pro Claude Code. Claude Code takový odkaz dosadí ze svého vlastního prostředí ještě před spuštěním `mcp-remote`, takže klíč skončí v příkazovém řádku tohoto procesu, kde ho mohou číst jiné programy a uživatelé počítače.
 
 Bez Node.js se Claude Code umí připojit sám, ale jen za certifikátem, kterému váš počítač důvěřuje. Do složky projektu dejte soubor `.mcp.json`:
 

@@ -120,9 +120,9 @@ Med BombVaults eget sertifikat (se [TLS og sertifikater](#tls)) peker kommandoen
 claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
 ```
 
-Sjekk tilkoblingen med `/mcp` inne i Claude Code. `--scope user` gjør BombVault tilgjengelig i alle prosjektene dine. Claude Code lagrer bare stien til nøkkelfilen, så nøkkelen dukker verken opp i kommandoen og skallhistorikken din, i prosesslisten eller i `claude mcp list`. Legg filen der bare du kan lese den, og utenfor alle mapper du committer. `@latest` får `npx` til å hente en oppdatert `mcp-remote`; ellers ville en eldre, globalt installert versjon blitt brukt, og den kjenner ikke `--header-file`.
+Sjekk tilkoblingen med `/mcp` inne i Claude Code. `--scope user` gjør BombVault tilgjengelig i alle prosjektene dine. Claude Code lagrer bare stien til nøkkelfilen, så nøkkelen dukker verken opp i kommandoen og skallhistorikken din eller i prosesslisten. Legg filen der bare du kan lese den, og utenfor alle mapper du committer. `@latest` får `npx` til å hente en oppdatert `mcp-remote`; ellers ville en eldre, globalt installert versjon blitt brukt, og den kjenner ikke `--header-file`.
 
-Ikke skriv `${BOMBVAULT_MCP_KEY}` inn i argumentene til `mcp-remote` for Claude Code. Claude Code fyller inn en slik referanse fra sitt eget miljø før den starter `mcp-remote`, så nøkkelen havner på kommandolinjen til den prosessen, der andre programmer og brukere på datamaskinen kan lese den, og `claude mcp list` skriver den ut.
+Ikke skriv `${BOMBVAULT_MCP_KEY}` inn i argumentene til `mcp-remote` for Claude Code. Claude Code fyller inn en slik referanse fra sitt eget miljø før den starter `mcp-remote`, så nøkkelen havner på kommandolinjen til den prosessen, der andre programmer og brukere på datamaskinen kan lese den.
 
 Uten Node.js, og bare bak et sertifikat datamaskinen din stoler på, kan Claude Code koble til på egen hånd. Legg en `.mcp.json` i prosjektmappen:
 

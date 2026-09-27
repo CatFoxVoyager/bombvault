@@ -120,9 +120,9 @@ Med BombVaults eget certifikat (se [TLS och certifikat](#tls)) pekar kommandot d
 claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
 ```
 
-Kontrollera anslutningen med `/mcp` i Claude Code. `--scope user` gör BombVault tillgängligt i alla dina projekt. Claude Code sparar bara sökvägen till nyckelfilen, så nyckeln syns varken i kommandot och din skalhistorik, i processlistan eller i `claude mcp list`. Lägg filen där bara du kan läsa den och utanför alla mappar som du checkar in. `@latest` får `npx` att hämta en aktuell `mcp-remote`; annars skulle en äldre, globalt installerad version användas, och den känner inte till `--header-file`.
+Kontrollera anslutningen med `/mcp` i Claude Code. `--scope user` gör BombVault tillgängligt i alla dina projekt. Claude Code sparar bara sökvägen till nyckelfilen, så nyckeln syns varken i kommandot och din skalhistorik eller i processlistan. Lägg filen där bara du kan läsa den och utanför alla mappar som du checkar in. `@latest` får `npx` att hämta en aktuell `mcp-remote`; annars skulle en äldre, globalt installerad version användas, och den känner inte till `--header-file`.
 
-Skriv inte `${BOMBVAULT_MCP_KEY}` i argumenten till `mcp-remote` för Claude Code. Claude Code fyller i en sådan referens från sin egen miljö innan den startar `mcp-remote`, så nyckeln hamnar på den processens kommandorad, där andra program och användare på datorn kan läsa den, och `claude mcp list` skriver ut den.
+Skriv inte `${BOMBVAULT_MCP_KEY}` i argumenten till `mcp-remote` för Claude Code. Claude Code fyller i en sådan referens från sin egen miljö innan den startar `mcp-remote`, så nyckeln hamnar på den processens kommandorad, där andra program och användare på datorn kan läsa den.
 
 Utan Node.js, och bara bakom ett certifikat som din dator litar på, kan Claude Code ansluta på egen hand. Lägg en `.mcp.json` i projektmappen:
 
