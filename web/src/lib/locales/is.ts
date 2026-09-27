@@ -2098,7 +2098,7 @@ const is: Partial<Translations> = {
   "oauth.limitReached": "BombVault er þegar með eins marga innskráða biðlara og það leyfir. Afturkallaðu einn undir Stillingar, MCP-þjónn og hefðu síðan innskráninguna aftur.",
   "oauth.unnamedClient": "Nafnlaus biðlari",
   "oauth.errorOff": "Innskráning með OAuth er ekki virk í þessu BombVault. Hún er virkjuð undir Stillingar, MCP-þjónn.",
-  "oauth.errorUnknownClient": "Þessi biðlari er ekki skráður hér eða skráning hans er útrunnin. Hefðu innskráninguna aftur úr biðlaranum.",
+  "oauth.errorUnknownClient": "Þessi biðlari er ekki skráður hér eða skráning hans er útrunnin. Fjarlægðu BombVault úr biðlaranum og bættu því við aftur.",
   "oauth.errorBadRedirect": "Þessi beiðni tilgreinir skilaslóð sem biðlarinn skráði aldrei, svo BombVault sendir þig ekki þangað.",
   "oauth.errorInvalid": "Biðlarinn bað um eitthvað sem BombVault styður ekki, svo innskráningin stöðvast hér.",
   "oauth.errorExpired": "Þessi síða er útrunnin. Hefðu innskráninguna aftur úr biðlaranum.",

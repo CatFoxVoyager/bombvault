@@ -1866,7 +1866,7 @@ const zh: Partial<Translations> = {
   "oauth.limitReached": "BombVault 已达到允许的已登录客户端数量上限。请在设置、MCP 服务器中吊销一个，然后重新开始登录。",
   "oauth.unnamedClient": "未命名的客户端",
   "oauth.errorOff": "此 BombVault 未开启 OAuth 登录。可在设置、MCP 服务器中开启。",
-  "oauth.errorUnknownClient": "此客户端未在这里注册，或注册已过期。请从客户端重新开始登录。",
+  "oauth.errorUnknownClient": "此客户端未在这里注册，或注册已过期。请从客户端中移除 BombVault，然后重新添加。",
   "oauth.errorBadRedirect": "此请求指定了一个客户端从未注册过的返回地址，因此 BombVault 不会把你送到那里。",
   "oauth.errorInvalid": "客户端请求了 BombVault 不支持的内容，因此登录到此为止。",
   "oauth.errorExpired": "此页面已过期。请从客户端重新开始登录。",

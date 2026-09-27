@@ -2098,7 +2098,7 @@ const eu: Partial<Translations> = {
   "oauth.limitReached": "BombVaultek onartzen dituen adina bezero ditu dagoeneko saioa hasita. Baliogabetu bat Ezarpenak, MCP zerbitzaria atalean, eta hasi berriro saioa.",
   "oauth.unnamedClient": "Izenik gabeko bezero bat",
   "oauth.errorOff": "OAuth bidezko saio-hasiera ez dago aktibatuta BombVault honetan. Ezarpenak, MCP zerbitzaria atalean aktibatzen da.",
-  "oauth.errorUnknownClient": "Bezero hau ez dago hemen erregistratuta, edo haren erregistroa iraungi da. Hasi berriro saioa bezerotik.",
+  "oauth.errorUnknownClient": "Bezero hau ez dago hemen erregistratuta, edo haren erregistroa iraungi da. Kendu BombVault bezerotik eta gehitu berriro.",
   "oauth.errorBadRedirect": "Eskaera honek bezeroak inoiz erregistratu ez duen itzulera-helbide bat aipatzen du, beraz BombVaultek ez zaitu hara bidaltzen.",
   "oauth.errorInvalid": "Bezeroak BombVaultek onartzen ez duen zerbait eskatu du, beraz saio-hasiera hemen gelditzen da.",
   "oauth.errorExpired": "Orri hau iraungi da. Hasi berriro saioa bezerotik.",

@@ -42,7 +42,7 @@ func (h *Handler) handleOAuthRegister(w http.ResponseWriter, r *http.Request) {
 	}
 	now := h.mcp.now()
 	addr := h.loginClientKey(r)
-	if ok, retry := h.mcp.oauth.registrations.allow(addr, now); !ok {
+	if ok, retry := h.mcp.oauth.registrations.allow(registrationKey(addr), now); !ok {
 		w.Header().Set("Retry-After", retryAfterSeconds(retry))
 		oauthError(w, http.StatusTooManyRequests, "invalid_request", "too many registrations from this address, try again later")
 		return

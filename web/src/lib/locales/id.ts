@@ -2098,7 +2098,7 @@ const id: Partial<Translations> = {
   "oauth.limitReached": "BombVault sudah punya klien masuk sebanyak yang diizinkannya. Cabut satu di Pengaturan, Server MCP, lalu mulai login lagi.",
   "oauth.unnamedClient": "Klien tanpa nama",
   "oauth.errorOff": "Login lewat OAuth tidak aktif di BombVault ini. Ia bisa diaktifkan di Pengaturan, Server MCP.",
-  "oauth.errorUnknownClient": "Klien ini tidak terdaftar di sini, atau pendaftarannya sudah kedaluwarsa. Mulai login lagi dari klien.",
+  "oauth.errorUnknownClient": "Klien ini tidak terdaftar di sini, atau pendaftarannya sudah kedaluwarsa. Hapus BombVault dari klien lalu tambahkan lagi.",
   "oauth.errorBadRedirect": "Permintaan ini menyebut alamat kembali yang tidak pernah didaftarkan klien, jadi BombVault tidak mengirimmu ke sana.",
   "oauth.errorInvalid": "Klien meminta sesuatu yang tidak didukung BombVault, jadi login berhenti di sini.",
   "oauth.errorExpired": "Halaman ini sudah kedaluwarsa. Mulai login lagi dari klien.",

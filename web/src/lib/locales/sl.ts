@@ -2082,7 +2082,7 @@ const sl: Partial<Translations> = {
   "oauth.limitReached": "BombVault ima že toliko prijavljenih odjemalcev, kot jih dovoli. Prekliči enega pod Nastavitve, strežnik MCP, nato znova začni prijavo.",
   "oauth.unnamedClient": "Odjemalec brez imena",
   "oauth.errorOff": "Prijava prek OAuth v tem BombVault ni vklopljena. Vklopiš jo pod Nastavitve, strežnik MCP.",
-  "oauth.errorUnknownClient": "Ta odjemalec tukaj ni registriran ali pa je njegova registracija potekla. Prijavo znova začni v odjemalcu.",
+  "oauth.errorUnknownClient": "Ta odjemalec tukaj ni registriran ali pa je njegova registracija potekla. Odstrani BombVault iz odjemalca in ga znova dodaj.",
   "oauth.errorBadRedirect": "Ta zahteva navaja povratni naslov, ki ga odjemalec ni nikoli registriral, zato te BombVault tja ne pošlje.",
   "oauth.errorInvalid": "Odjemalec je zahteval nekaj, česar BombVault ne podpira, zato se prijava tu ustavi.",
   "oauth.errorExpired": "Ta stran je potekla. Prijavo znova začni v odjemalcu.",

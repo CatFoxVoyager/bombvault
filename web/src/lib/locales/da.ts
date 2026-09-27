@@ -1874,7 +1874,7 @@ const da: Partial<Translations> = {
   "oauth.limitReached": "BombVault har allerede så mange indloggede klienter, som den tillader. Tilbagekald en under Indstillinger, MCP-server, og start så login igen.",
   "oauth.unnamedClient": "En klient uden navn",
   "oauth.errorOff": "Login via OAuth er ikke slået til i denne BombVault. Det slås til under Indstillinger, MCP-server.",
-  "oauth.errorUnknownClient": "Denne klient er ikke registreret her, eller dens registrering er udløbet. Start login igen fra klienten.",
+  "oauth.errorUnknownClient": "Denne klient er ikke registreret her, eller dens registrering er udløbet. Fjern BombVault fra klienten, og tilføj den igen.",
   "oauth.errorBadRedirect": "Denne anmodning angiver en returadresse, som klienten aldrig har registreret, så BombVault sender dig ikke derhen.",
   "oauth.errorInvalid": "Klienten bad om noget, BombVault ikke understøtter, så login stopper her.",
   "oauth.errorExpired": "Denne side er udløbet. Start login igen fra klienten.",

@@ -1877,7 +1877,7 @@ const hu: Partial<Translations> = {
   "oauth.limitReached": "A BombVaultnak már annyi bejelentkezett kliense van, amennyit megenged. Vonj vissza egyet a Beállítások, MCP-szerver alatt, aztán indítsd újra a bejelentkezést.",
   "oauth.unnamedClient": "Név nélküli kliens",
   "oauth.errorOff": "Az OAuth-bejelentkezés ebben a BombVaultban nincs bekapcsolva. A Beállítások, MCP-szerver alatt kapcsolható be.",
-  "oauth.errorUnknownClient": "Ez a kliens nincs itt regisztrálva, vagy a regisztrációja lejárt. Indítsd újra a bejelentkezést a kliensből.",
+  "oauth.errorUnknownClient": "Ez a kliens nincs itt regisztrálva, vagy a regisztrációja lejárt. Távolítsd el a BombVaultot a kliensből, és add hozzá újra.",
   "oauth.errorBadRedirect": "Ez a kérés olyan visszatérési címet ad meg, amelyet a kliens soha nem regisztrált, ezért a BombVault nem küld oda.",
   "oauth.errorInvalid": "A kliens olyasmit kért, amit a BombVault nem támogat, ezért a bejelentkezés itt véget ér.",
   "oauth.errorExpired": "Ez az oldal lejárt. Indítsd újra a bejelentkezést a kliensből.",

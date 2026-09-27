@@ -1874,7 +1874,7 @@ const fi: Partial<Translations> = {
   "oauth.limitReached": "BombVaultissa on jo niin monta kirjautunutta asiakasta kuin se sallii. Mitätöi yksi kohdassa Asetukset, MCP-palvelin ja aloita kirjautuminen sitten uudelleen.",
   "oauth.unnamedClient": "Nimetön asiakas",
   "oauth.errorOff": "OAuth-kirjautuminen ei ole päällä tässä BombVaultissa. Sen saa päälle kohdassa Asetukset, MCP-palvelin.",
-  "oauth.errorUnknownClient": "Tätä asiakasta ei ole rekisteröity tänne, tai sen rekisteröinti on vanhentunut. Aloita kirjautuminen uudelleen asiakkaasta.",
+  "oauth.errorUnknownClient": "Tätä asiakasta ei ole rekisteröity tänne, tai sen rekisteröinti on vanhentunut. Poista BombVault asiakkaasta ja lisää se uudelleen.",
   "oauth.errorBadRedirect": "Tämä pyyntö nimeää paluuosoitteen, jota asiakas ei ole koskaan rekisteröinyt, joten BombVault ei lähetä sinua sinne.",
   "oauth.errorInvalid": "Asiakas pyysi jotain, mitä BombVault ei tue, joten kirjautuminen päättyy tähän.",
   "oauth.errorExpired": "Tämä sivu on vanhentunut. Aloita kirjautuminen uudelleen asiakkaasta.",

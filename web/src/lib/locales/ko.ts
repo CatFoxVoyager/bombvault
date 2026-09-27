@@ -1866,7 +1866,7 @@ const ko: Partial<Translations> = {
   "oauth.limitReached": "BombVault에 허용된 수만큼 클라이언트가 이미 로그인해 있습니다. 설정, MCP 서버에서 하나를 취소한 뒤 로그인을 다시 시작하세요.",
   "oauth.unnamedClient": "이름 없는 클라이언트",
   "oauth.errorOff": "이 BombVault에서는 OAuth 로그인이 켜져 있지 않습니다. 설정, MCP 서버에서 켤 수 있습니다.",
-  "oauth.errorUnknownClient": "이 클라이언트는 여기에 등록되어 있지 않거나 등록이 만료되었습니다. 클라이언트에서 로그인을 다시 시작하세요.",
+  "oauth.errorUnknownClient": "이 클라이언트는 여기에 등록되어 있지 않거나 등록이 만료되었습니다. 클라이언트에서 BombVault를 제거한 뒤 다시 추가하세요.",
   "oauth.errorBadRedirect": "이 요청은 클라이언트가 등록한 적 없는 돌아갈 주소를 지정하므로 BombVault는 그곳으로 보내지 않습니다.",
   "oauth.errorInvalid": "클라이언트가 BombVault에서 지원하지 않는 것을 요청했으므로 로그인이 여기서 중단됩니다.",
   "oauth.errorExpired": "이 페이지는 만료되었습니다. 클라이언트에서 로그인을 다시 시작하세요.",

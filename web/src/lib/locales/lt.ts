@@ -2098,7 +2098,7 @@ const lt: Partial<Translations> = {
   "oauth.limitReached": "BombVault jau turi tiek prisijungusių klientų, kiek leidžia. Panaikink vieną skiltyje Nustatymai, MCP serveris, tada pradėk prisijungimą iš naujo.",
   "oauth.unnamedClient": "Klientas be pavadinimo",
   "oauth.errorOff": "Prisijungimas per OAuth šiame BombVault neįjungtas. Jį galima įjungti skiltyje Nustatymai, MCP serveris.",
-  "oauth.errorUnknownClient": "Šis klientas čia neužregistruotas, arba jo registracija baigėsi. Pradėk prisijungimą iš naujo kliente.",
+  "oauth.errorUnknownClient": "Šis klientas čia neužregistruotas, arba jo registracija baigėsi. Pašalink BombVault iš kliento ir pridėk jį iš naujo.",
   "oauth.errorBadRedirect": "Ši užklausa nurodo grįžimo adresą, kurio klientas niekada neužregistravo, todėl BombVault tavęs ten nesiunčia.",
   "oauth.errorInvalid": "Klientas paprašė to, ko BombVault nepalaiko, todėl prisijungimas čia sustoja.",
   "oauth.errorExpired": "Šis puslapis nebegalioja. Pradėk prisijungimą iš naujo kliente.",

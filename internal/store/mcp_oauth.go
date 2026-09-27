@@ -59,6 +59,13 @@ const (
 	OAuthUnusedClientTTL   = 24 * 60 * 60
 	MCPGrantLimit          = 10
 
+	// OAuthPendingClientGrace keeps a new client from being evicted at the
+	// limit for long enough to finish the sign-in it registered for. Past
+	// OAuthUnusedClientCeiling unused clients even those go, so a flood still
+	// costs a fixed number of rows.
+	OAuthPendingClientGrace  = 10 * 60
+	OAuthUnusedClientCeiling = 1000
+
 	// OAuthSpentRefreshKept is how many rotated-out refresh tokens of a grant
 	// are remembered to recognise one presented again.
 	OAuthSpentRefreshKept = 20
@@ -100,9 +107,8 @@ func (r *Repo) SetMCPOAuthSettings(s MCPOAuthSettings, now int64) error {
 const unusedClient = `NOT EXISTS (SELECT 1 FROM mcp_keys k WHERE k.oauth_client = mcp_oauth_clients.id)`
 
 // CreateOAuthClient stores a registration. Unused clients past their day go
-// first, and at the cap the oldest unused ones make room, so a flood of
-// registrations costs a fixed number of rows and never pushes out a client
-// somebody signed in with.
+// first, and at the limit the oldest unused ones past their grace make room.
+// A client somebody signed in with is never pushed out.
 func (r *Repo) CreateOAuthClient(c OAuthClient, now int64) error {
 	uris, err := json.Marshal(c.RedirectURIs)
 	if err != nil {
@@ -118,15 +124,11 @@ func (r *Repo) CreateOAuthClient(c OAuthClient, now int64) error {
 		now-OAuthUnusedClientTTL); err != nil {
 		return fmt.Errorf("CreateOAuthClient prune: %w", err)
 	}
-	var unused int
-	if err := tx.QueryRow(`SELECT count(*) FROM mcp_oauth_clients WHERE ` + unusedClient).Scan(&unused); err != nil {
-		return fmt.Errorf("CreateOAuthClient count: %w", err)
+	if err := evictUnusedClients(tx, OAuthUnusedClientLimit, now-OAuthPendingClientGrace); err != nil {
+		return fmt.Errorf("CreateOAuthClient evict: %w", err)
 	}
-	if over := unused - OAuthUnusedClientLimit + 1; over > 0 {
-		if _, err := tx.Exec(`DELETE FROM mcp_oauth_clients WHERE id IN (
-			SELECT id FROM mcp_oauth_clients WHERE `+unusedClient+` ORDER BY created_at, id LIMIT ?)`, over); err != nil {
-			return fmt.Errorf("CreateOAuthClient evict: %w", err)
-		}
+	if err := evictUnusedClients(tx, OAuthUnusedClientCeiling, now); err != nil {
+		return fmt.Errorf("CreateOAuthClient evict: %w", err)
 	}
 	if _, err := tx.Exec(`INSERT INTO mcp_oauth_clients
 		(id, name, redirect_uris, auth_method, secret_digest, known, created_at, created_from)
@@ -138,6 +140,23 @@ func (r *Repo) CreateOAuthClient(c OAuthClient, now int64) error {
 		return fmt.Errorf("CreateOAuthClient commit: %w", err)
 	}
 	return nil
+}
+
+// evictUnusedClients deletes the oldest unused clients registered at or before
+// createdBy until one more fits under limit, or none of them are left.
+func evictUnusedClients(tx *sql.Tx, limit int, createdBy int64) error {
+	var unused int
+	if err := tx.QueryRow(`SELECT count(*) FROM mcp_oauth_clients WHERE ` + unusedClient).Scan(&unused); err != nil {
+		return err
+	}
+	over := unused - limit + 1
+	if over <= 0 {
+		return nil
+	}
+	_, err := tx.Exec(`DELETE FROM mcp_oauth_clients WHERE id IN (
+		SELECT id FROM mcp_oauth_clients WHERE created_at <= ? AND `+unusedClient+` ORDER BY created_at, id LIMIT ?)`,
+		createdBy, over)
+	return err
 }
 
 // GetOAuthClient returns one registered client.

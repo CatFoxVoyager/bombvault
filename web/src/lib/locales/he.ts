@@ -1874,7 +1874,7 @@ const he: Partial<Translations> = {
   "oauth.limitReached": "ל-BombVault כבר יש כמה לקוחות מחוברים שהוא מתיר. בטל אחד תחת הגדרות, שרת MCP, ואז התחל את ההתחברות מחדש.",
   "oauth.unnamedClient": "לקוח ללא שם",
   "oauth.errorOff": "התחברות דרך OAuth לא מופעלת ב-BombVault הזה. מפעילים אותה תחת הגדרות, שרת MCP.",
-  "oauth.errorUnknownClient": "הלקוח הזה לא רשום כאן, או שהרישום שלו פג. התחל את ההתחברות מחדש מהלקוח.",
+  "oauth.errorUnknownClient": "הלקוח הזה לא רשום כאן, או שהרישום שלו פג. הסר את BombVault מהלקוח והוסף אותו מחדש.",
   "oauth.errorBadRedirect": "הבקשה הזו מציינת כתובת חזרה שהלקוח מעולם לא רשם, ולכן BombVault לא שולח אותך לשם.",
   "oauth.errorInvalid": "הלקוח ביקש משהו ש-BombVault לא תומך בו, ולכן ההתחברות נעצרת כאן.",
   "oauth.errorExpired": "תוקף הדף הזה פג. התחל את ההתחברות מחדש מהלקוח.",

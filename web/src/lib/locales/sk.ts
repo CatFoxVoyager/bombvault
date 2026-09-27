@@ -2098,7 +2098,7 @@ const sk: Partial<Translations> = {
   "oauth.limitReached": "BombVault už má toľko prihlásených klientov, koľko povoľuje. Zruš jedného v Nastaveniach, MCP server a potom spusti prihlásenie znova.",
   "oauth.unnamedClient": "Klient bez mena",
   "oauth.errorOff": "Prihlásenie cez OAuth nie je v tomto BombVault zapnuté. Zapína sa v Nastaveniach, MCP server.",
-  "oauth.errorUnknownClient": "Tento klient tu nie je registrovaný, alebo jeho registrácia vypršala. Spusti prihlásenie znova z klienta.",
+  "oauth.errorUnknownClient": "Tento klient tu nie je registrovaný, alebo jeho registrácia vypršala. Odober BombVault z klienta a pridaj ho znova.",
   "oauth.errorBadRedirect": "Táto požiadavka uvádza návratovú adresu, ktorú klient nikdy nezaregistroval, takže ťa tam BombVault nepošle.",
   "oauth.errorInvalid": "Klient požiadal o niečo, čo BombVault nepodporuje, takže prihlásenie tu končí.",
   "oauth.errorExpired": "Platnosť tejto stránky vypršala. Spusti prihlásenie znova z klienta.",

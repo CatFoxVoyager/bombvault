@@ -158,19 +158,36 @@ func TestPendingCodesAreCapped(t *testing.T) {
 	}
 }
 
-func TestTheRegistrationLimitForgetsAddressesItNoLongerNeeds(t *testing.T) {
+func TestTheRegistrationLimitMakesRoomForANewAddress(t *testing.T) {
 	w := newSlidingWindow(time.Hour, 1)
 	w.maxKeys = 2
 	now := time.Unix(1000, 0)
-	for _, addr := range []string{"a", "b"} {
-		if ok, _ := w.allow(addr, now); !ok {
+	for i, addr := range []string{"a", "b"} {
+		if ok, _ := w.allow(addr, now.Add(time.Duration(i)*time.Minute)); !ok {
 			t.Fatalf("%s refused", addr)
 		}
 	}
-	if ok, _ := w.allow("c", now); ok {
-		t.Fatal("a third address fit while two were in their window")
+	if ok, _ := w.allow("c", now.Add(2*time.Minute)); !ok {
+		t.Fatal("a new address was refused because others filled the table")
 	}
-	if ok, _ := w.allow("c", now.Add(time.Hour)); !ok {
-		t.Fatal("a new address was refused after the others left their window")
+	if len(w.hits) != 2 {
+		t.Fatalf("the table holds %d addresses, want 2", len(w.hits))
+	}
+	if ok, _ := w.allow("b", now.Add(3*time.Minute)); ok {
+		t.Fatal("the address with the newest hit was the one forgotten")
+	}
+}
+
+func TestRegistrationsCountPerIPv6Network(t *testing.T) {
+	for addr, want := range map[string]string{
+		"203.0.113.7":           "203.0.113.7",
+		"2001:db8:1:2:3:4:5:6":  "2001:db8:1:2::/64",
+		"2001:db8:1:2:ffff::1":  "2001:db8:1:2::/64",
+		"::ffff:198.51.100.4":   "198.51.100.4",
+		"not an address at all": "not an address at all",
+	} {
+		if got := registrationKey(addr); got != want {
+			t.Errorf("registrationKey(%q) = %q, want %q", addr, got, want)
+		}
 	}
 }

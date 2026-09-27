@@ -1877,7 +1877,7 @@ const ar: Partial<Translations> = {
   "oauth.limitReached": "لدى BombVault بالفعل أقصى عدد يسمح به من العملاء المسجلين. أبطل واحدًا ضمن الإعدادات، خادم MCP، ثم ابدأ تسجيل الدخول من جديد.",
   "oauth.unnamedClient": "عميل بلا اسم",
   "oauth.errorOff": "تسجيل الدخول عبر OAuth غير مفعّل في BombVault هذا. يُفعَّل ضمن الإعدادات، خادم MCP.",
-  "oauth.errorUnknownClient": "هذا العميل غير مسجل هنا، أو انتهت صلاحية تسجيله. ابدأ تسجيل الدخول من جديد من العميل.",
+  "oauth.errorUnknownClient": "هذا العميل غير مسجل هنا، أو انتهت صلاحية تسجيله. أزل BombVault من العميل ثم أضفه من جديد.",
   "oauth.errorBadRedirect": "يذكر هذا الطلب عنوان رجوع لم يسجله العميل قط، لذلك لن يرسلك BombVault إليه.",
   "oauth.errorInvalid": "طلب العميل شيئًا لا يدعمه BombVault، لذلك يتوقف تسجيل الدخول هنا.",
   "oauth.errorExpired": "انتهت صلاحية هذه الصفحة. ابدأ تسجيل الدخول من جديد من العميل.",

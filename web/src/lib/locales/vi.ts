@@ -1866,7 +1866,7 @@ const vi: Partial<Translations> = {
   "oauth.limitReached": "BombVault đã có số ứng dụng khách đăng nhập tối đa mà nó cho phép. Thu hồi một cái trong Cài đặt, Máy chủ MCP, rồi bắt đầu đăng nhập lại.",
   "oauth.unnamedClient": "Một ứng dụng khách không tên",
   "oauth.errorOff": "Đăng nhập qua OAuth chưa được bật trên BombVault này. Có thể bật trong Cài đặt, Máy chủ MCP.",
-  "oauth.errorUnknownClient": "Ứng dụng khách này chưa đăng ký ở đây, hoặc đăng ký của nó đã hết hạn. Bắt đầu đăng nhập lại từ ứng dụng khách.",
+  "oauth.errorUnknownClient": "Ứng dụng khách này chưa đăng ký ở đây, hoặc đăng ký của nó đã hết hạn. Hãy gỡ BombVault khỏi ứng dụng khách rồi thêm lại.",
   "oauth.errorBadRedirect": "Yêu cầu này nêu một địa chỉ quay về mà ứng dụng khách chưa từng đăng ký, nên BombVault không đưa bạn tới đó.",
   "oauth.errorInvalid": "Ứng dụng khách yêu cầu điều mà BombVault không hỗ trợ, nên việc đăng nhập dừng lại ở đây.",
   "oauth.errorExpired": "Trang này đã hết hạn. Bắt đầu đăng nhập lại từ ứng dụng khách.",

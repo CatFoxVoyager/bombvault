@@ -43,8 +43,8 @@ const (
 	// about a stuck client, not about an attacker.
 	oauthPendingMax = 64
 
-	// Registration needs no credentials. Per address it is held to a few an
-	// hour; the store caps the clients nobody signed in with.
+	// Registration needs no credentials. Per address, or per /64 for IPv6, it
+	// is held to a few an hour; the store caps the clients nobody signed in with.
 	oauthRegistrationsPerHour = 10
 	oauthRegistrationAddrs    = 4096
 
@@ -55,7 +55,7 @@ var (
 	errMCPOAuthNeedsPassword = errors.New("set a login password before switching on sign-in through OAuth")
 	errMCPOAuthIssuer        = errors.New("the public address must be an https address without a path, such as https://backup.example.com")
 	errOAuthOff              = errors.New("sign-in through OAuth is not switched on")
-	errOAuthUnknownClient    = errors.New("this client is not registered here")
+	errOAuthUnknownClient    = errors.New("this client is not registered here, remove BombVault from the client and add it again")
 	errOAuthBadRedirect      = errors.New("the return address of this request is not one the client registered")
 	errOAuthConsentExpired   = errors.New("this page has expired, start the sign-in again from the client")
 	errOAuthBusy             = errors.New("too many sign-ins are waiting, try again in a minute")
@@ -96,6 +96,19 @@ func newOAuthState() *oauthState {
 		tickets:       map[string]int64{},
 		registrations: reg,
 	}
+}
+
+// registrationKey is the bucket a registration from addr counts in. An IPv6
+// host usually gets a whole /64, so its addresses share one bucket.
+func registrationKey(addr string) string {
+	ip := net.ParseIP(addr)
+	if ip == nil {
+		return addr
+	}
+	if v4 := ip.To4(); v4 != nil {
+		return v4.String()
+	}
+	return (&net.IPNet{IP: ip.Mask(net.CIDRMask(64, 128)), Mask: net.CIDRMask(64, 128)}).String()
 }
 
 // oauthKnownClients are the clients the card and the consent page show with

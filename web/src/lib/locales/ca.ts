@@ -2098,7 +2098,7 @@ const ca: Partial<Translations> = {
   "oauth.limitReached": "El BombVault ja té tants clients connectats com permet. Revoca'n un a Configuració, Servidor MCP i torna a iniciar l'accés.",
   "oauth.unnamedClient": "Un client sense nom",
   "oauth.errorOff": "L'inici de sessió amb OAuth no està activat en aquest BombVault. S'activa a Configuració, Servidor MCP.",
-  "oauth.errorUnknownClient": "Aquest client no està registrat aquí, o el seu registre ha caducat. Torna a iniciar l'accés des del client.",
+  "oauth.errorUnknownClient": "Aquest client no està registrat aquí, o el seu registre ha caducat. Treu el BombVault del client i torna'l a afegir.",
   "oauth.errorBadRedirect": "Aquesta sol·licitud indica una adreça de retorn que el client no ha registrat mai, així que el BombVault no t'hi envia.",
   "oauth.errorInvalid": "El client ha demanat una cosa que el BombVault no admet, així que l'accés s'atura aquí.",
   "oauth.errorExpired": "Aquesta pàgina ha caducat. Torna a iniciar l'accés des del client.",

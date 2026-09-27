@@ -369,6 +369,37 @@ func TestRegistrationIsLimitedPerAddress(t *testing.T) {
 	}
 }
 
+func TestRegistrationIsLimitedPerIPv6Network(t *testing.T) {
+	e := newOAuthEnv(t)
+	body := `{"redirect_uris":["https://chatgpt.com/cb"],"token_endpoint_auth_method":"none"}`
+	for i := 0; i < 10; i++ {
+		if w, m := e.register(t, body, fmt.Sprintf("[2001:db8::%x]:4000", i+1)); w.Code != http.StatusCreated {
+			t.Fatalf("registration %d: %d %v", i+1, w.Code, m)
+		}
+	}
+	if w, _ := e.register(t, body, "[2001:db8::ff]:4000"); w.Code != http.StatusTooManyRequests {
+		t.Fatalf("another address of the same /64 gave %d, want 429", w.Code)
+	}
+	if w, _ := e.register(t, body, "[2001:db8:0:1::1]:4000"); w.Code != http.StatusCreated {
+		t.Fatalf("another network was refused too: %d", w.Code)
+	}
+}
+
+func TestManyAddressesCannotShutRegistration(t *testing.T) {
+	e := newOAuthEnv(t)
+	body := `{"redirect_uris":["https://x.example/cb"],"token_endpoint_auth_method":"none"}`
+	for i := 0; i < 4096; i++ {
+		addr := fmt.Sprintf("10.%d.%d.%d:1234", i>>16&0xff, i>>8&0xff, i&0xff)
+		if w, m := e.register(t, body, addr); w.Code != http.StatusCreated {
+			t.Fatalf("registration from address %d: %d %v", i, w.Code, m)
+		}
+	}
+	w, m := e.register(t, `{"redirect_uris":["`+chatgptReturn+`"],"token_endpoint_auth_method":"none"}`, "20.0.0.1:443")
+	if w.Code != http.StatusCreated {
+		t.Fatalf("a registration after 4096 other addresses: %d %v", w.Code, m)
+	}
+}
+
 func TestTheFullCodeFlowWithPKCE(t *testing.T) {
 	e := newOAuthEnv(t)
 	client := e.publicClient(t, "Some name", chatgptReturn)

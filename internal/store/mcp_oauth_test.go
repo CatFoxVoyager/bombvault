@@ -132,6 +132,39 @@ func TestRegistrationSpamEvictsTheOldestUnusedClient(t *testing.T) {
 	}
 }
 
+func TestAClientStillSigningInSurvivesARegistrationFlood(t *testing.T) {
+	r := newMCPRepo(t)
+	addOAuthClient(t, r, "chatgpt", 1000)
+	for i := 0; i < store.OAuthUnusedClientLimit; i++ {
+		addOAuthClient(t, r, fmt.Sprintf("spam%03d", i), 1001)
+	}
+	if _, err := r.GetOAuthClient("chatgpt"); err != nil {
+		t.Fatalf("a client registered a second before the flood was evicted: %v", err)
+	}
+	addOAuthClient(t, r, "later", 1000+store.OAuthPendingClientGrace+1)
+	if _, err := r.GetOAuthClient("chatgpt"); !errors.Is(err, store.ErrOAuthClientNotFound) {
+		t.Fatalf("an unused client past its grace kept its place at the cap: %v", err)
+	}
+}
+
+func TestAFloodPastTheCeilingEvictsEvenNewClients(t *testing.T) {
+	r := newMCPRepo(t)
+	for i := 0; i < store.OAuthUnusedClientCeiling; i++ {
+		addOAuthClient(t, r, fmt.Sprintf("spam%04d", i), int64(1000+i/100))
+	}
+	addOAuthClient(t, r, "latest", 1100)
+	n, err := r.OAuthClientCount()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != store.OAuthUnusedClientCeiling {
+		t.Fatalf("%d clients stored, want the ceiling", n)
+	}
+	if _, err := r.GetOAuthClient("spam0000"); !errors.Is(err, store.ErrOAuthClientNotFound) {
+		t.Fatalf("the oldest client survived the ceiling: %v", err)
+	}
+}
+
 func TestUnusedClientsExpireAndClientsWithAGrantStay(t *testing.T) {
 	r := newMCPRepo(t)
 	addOAuthClient(t, r, "idle", 100)

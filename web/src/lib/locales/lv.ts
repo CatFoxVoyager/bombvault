@@ -2098,7 +2098,7 @@ const lv: Partial<Translations> = {
   "oauth.limitReached": "BombVault jau ir tik daudz pieteiktu klientu, cik tas atļauj. Atsauc vienu sadaļā Iestatījumi, MCP serveris un tad sāc pieteikšanos no jauna.",
   "oauth.unnamedClient": "Klients bez nosaukuma",
   "oauth.errorOff": "Pieteikšanās ar OAuth šajā BombVault nav ieslēgta. To var ieslēgt sadaļā Iestatījumi, MCP serveris.",
-  "oauth.errorUnknownClient": "Šis klients šeit nav reģistrēts, vai tā reģistrācija ir beigusies. Sāc pieteikšanos no jauna klientā.",
+  "oauth.errorUnknownClient": "Šis klients šeit nav reģistrēts, vai tā reģistrācija ir beigusies. Noņem BombVault no klienta un pievieno to vēlreiz.",
   "oauth.errorBadRedirect": "Šis pieprasījums norāda atgriešanās adresi, ko klients nekad nav reģistrējis, tāpēc BombVault tevi tur nesūta.",
   "oauth.errorInvalid": "Klients prasīja kaut ko, ko BombVault neatbalsta, tāpēc pieteikšanās šeit apstājas.",
   "oauth.errorExpired": "Šī lapa ir novecojusi. Sāc pieteikšanos no jauna klientā.",

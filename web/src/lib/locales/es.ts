@@ -1872,7 +1872,7 @@ const es: Partial<Translations> = {
   "oauth.limitReached": "BombVault ya tiene tantos clientes conectados como admite. Revoca uno en Ajustes, Servidor MCP y vuelve a iniciar el acceso.",
   "oauth.unnamedClient": "Un cliente sin nombre",
   "oauth.errorOff": "El inicio de sesión con OAuth no está activado en este BombVault. Se activa en Ajustes, Servidor MCP.",
-  "oauth.errorUnknownClient": "Este cliente no está registrado aquí, o su registro ha caducado. Vuelve a iniciar el acceso desde el cliente.",
+  "oauth.errorUnknownClient": "Este cliente no está registrado aquí, o su registro ha caducado. Quita BombVault del cliente y vuelve a añadirlo.",
   "oauth.errorBadRedirect": "Esta solicitud indica una dirección de vuelta que el cliente nunca registró, así que BombVault no te envía allí.",
   "oauth.errorInvalid": "El cliente pidió algo que BombVault no admite, así que el acceso se detiene aquí.",
   "oauth.errorExpired": "Esta página ha caducado. Vuelve a iniciar el acceso desde el cliente.",

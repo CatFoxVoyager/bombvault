@@ -1869,7 +1869,7 @@ const pl: Partial<Translations> = {
   "oauth.limitReached": "BombVault ma już tylu zalogowanych klientów, ilu dopuszcza. Unieważnij jednego w Ustawieniach, Serwer MCP, a potem rozpocznij logowanie od nowa.",
   "oauth.unnamedClient": "Klient bez nazwy",
   "oauth.errorOff": "Logowanie przez OAuth nie jest włączone w tym BombVault. Włącza się je w Ustawieniach, Serwer MCP.",
-  "oauth.errorUnknownClient": "Ten klient nie jest tu zarejestrowany albo jego rejestracja wygasła. Rozpocznij logowanie od nowa w kliencie.",
+  "oauth.errorUnknownClient": "Ten klient nie jest tu zarejestrowany albo jego rejestracja wygasła. Usuń BombVault z klienta i dodaj go ponownie.",
   "oauth.errorBadRedirect": "To żądanie podaje adres powrotu, którego klient nigdy nie zarejestrował, więc BombVault cię tam nie wyśle.",
   "oauth.errorInvalid": "Klient poprosił o coś, czego BombVault nie obsługuje, więc logowanie kończy się tutaj.",
   "oauth.errorExpired": "Ta strona wygasła. Rozpocznij logowanie od nowa w kliencie.",

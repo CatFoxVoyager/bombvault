@@ -23,18 +23,24 @@ func newSlidingWindow(window time.Duration, max int) *slidingWindow {
 
 // allow records a hit and reports whether it fit in the window. When it did
 // not, the second value is how long until the oldest hit falls out. With
-// maxKeys set, a key it has not seen is refused while that many others still
-// have hits in their window.
+// maxKeys set and that many keys in their window, a new key pushes out the
+// one whose last hit is oldest: refusing it instead would let anybody with
+// enough addresses shut the door for everyone else.
 func (s *slidingWindow) allow(key string, now time.Time) (bool, time.Duration) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	kept := s.pruneLocked(key, now)
 	if len(kept) == 0 && s.maxKeys > 0 && len(s.hits) >= s.maxKeys {
+		var stalest string
+		var last time.Time
 		for k := range s.hits {
-			s.pruneLocked(k, now)
+			hits := s.pruneLocked(k, now)
+			if len(hits) > 0 && (last.IsZero() || hits[len(hits)-1].Before(last)) {
+				stalest, last = k, hits[len(hits)-1]
+			}
 		}
 		if len(s.hits) >= s.maxKeys {
-			return false, s.window
+			delete(s.hits, stalest)
 		}
 	}
 	if len(kept) >= s.max {
