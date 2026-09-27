@@ -4694,6 +4694,9 @@ export function forgetAnomalyExpectation(
 export interface McpKeyView {
   id: string;
   label: string;
+  /** The id in the card's client list of the client the key was made for,
+   *  "" for none. */
+  client: string;
   hint: string;
   canStartBackups: boolean;
   createdAt: number;
@@ -4769,10 +4772,14 @@ export function getMcpKeyActivity(id: string): Promise<McpKeyActivity> {
   return fetchJSON(`/api/mcp/keys/${encodeURIComponent(id)}/activity`);
 }
 
-export function createMcpKey(label: string, canStartBackups: boolean): Promise<McpKeySecretResponse> {
+export function createMcpKey(
+  label: string,
+  canStartBackups: boolean,
+  client: string
+): Promise<McpKeySecretResponse> {
   return fetchJSON("/api/mcp/keys", {
     method: "POST",
-    body: JSON.stringify({ label, canStartBackups }),
+    body: JSON.stringify({ label, canStartBackups, client }),
   });
 }
 

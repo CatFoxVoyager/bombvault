@@ -28,7 +28,7 @@ export const KEY_VARIABLE = "BOMBVAULT_MCP_KEY";
 
 /** mcpUrl joins the origin and the endpoint path without doubling the slash
  *  between them. */
-export function mcpUrl(i: McpSnippetInput): string {
+export function mcpUrl(i: Pick<McpSnippetInput, "origin" | "endpointPath">): string {
   return i.origin.replace(/\/+$/, "") + "/" + i.endpointPath.replace(/^\/+/, "");
 }
 

@@ -5,7 +5,7 @@ import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { IconDisclosure } from "../../components/IconDisclosure";
 import { InfoBubble } from "../../components/InfoBubble";
 import { RevealInput } from "../../components/RevealInput";
-import { HUE_OFFSET, Selector } from "../../components/Selector";
+import { ReadmeButton } from "../../components/ReadmeButton";
 import { Toggle } from "../../components/Toggle";
 import {
   MCP_CERTIFICATE_URL,
@@ -23,18 +23,14 @@ import {
 } from "../../lib/api";
 import { copyText } from "../../lib/clipboard";
 import { useT, type TranslationKey } from "../../lib/i18n";
-import {
-  KEY_PLACEHOLDER,
-  claudeCodeSnippet,
-  claudeDesktopSnippet,
-  genericSnippet,
-  mcpUrl,
-  type McpSnippetInput,
-} from "../../lib/mcpSnippets";
+import { CLOUD_CLIENTS, KIND_LABEL, LOCAL_CLIENTS, OTHER_CLIENT, clientById, type McpClient } from "../../lib/mcpClients";
+import { mcpUrl, type McpSnippetInput } from "../../lib/mcpSnippets";
 import { formatTs, relativeTime } from "../../lib/reltime";
 import { useToast } from "../../lib/toast";
+import { McpClientDialog, type FreshKey } from "./McpClientDialog";
+import { ClientMark } from "./McpClientMark";
 import { keyLogId, McpKeyLog } from "./McpKeyLog";
-import { Card, LOGIN_PASSWORD_FIELD, ToggleRow } from "./shared";
+import { Card, LOGIN_PASSWORD_FIELD } from "./shared";
 
 // McpServerCard is where an MCP key comes from, and the only place it is ever
 // visible: the server keeps a hash, so a key that is not copied out of the
@@ -45,16 +41,6 @@ import { Card, LOGIN_PASSWORD_FIELD, ToggleRow } from "./shared";
 // a key would be handed to the wrong party: a web interface without a login
 // password, and a page opened under a public-looking host name, where the
 // server refuses to mint one at all.
-
-/** The clients the snippets are written for. "other" is any client that speaks
- *  Streamable HTTP and sends a header. */
-type ClientId = "code" | "desktop" | "other";
-
-const SNIPPET_HINT: Record<ClientId, TranslationKey> = {
-  code: "mcp.snippetClaudeCodeHint",
-  desktop: "mcp.snippetDesktopHint",
-  other: "mcp.snippetOtherHint",
-};
 
 /** The refusals of mcp_keys.go that the card answers with a sentence of its
  *  own rather than with the server's English one. */
@@ -103,12 +89,9 @@ function LogButton({
   );
 }
 
-/** A key handed out by create or rotate, with the row it belongs to. */
-interface FreshKey {
-  key: string;
-  id: string;
-  hint: string;
-}
+/** How often the card asks for the key list while a setup dialog waits for
+ *  the client's first call. */
+const FIRST_CALL_POLL_MS = 3000;
 
 export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; passwordSet?: boolean }) {
   const { t } = useT();
@@ -118,10 +101,7 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
   const [busy, setBusy] = useState(false);
   const [fresh, setFresh] = useState<FreshKey | null>(null);
   const [keyVisible, setKeyVisible] = useState(true);
-  const [adding, setAdding] = useState(false);
-  const [label, setLabel] = useState("");
-  const [allowStart, setAllowStart] = useState(true);
-  const [client, setClient] = useState<ClientId>("code");
+  const [dialog, setDialog] = useState<McpClient | null>(null);
   const [renaming, setRenaming] = useState("");
   const [draft, setDraft] = useState("");
   const [revokedOpen, setRevokedOpen] = useState(false);
@@ -159,6 +139,14 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
   useEffect(() => {
     void reload();
   }, [reload, passwordSet]);
+
+  // An open setup dialog waits for the client's first call, which shows as a
+  // change in the key's last use.
+  useEffect(() => {
+    if (dialog === null) return;
+    const timer = window.setInterval(() => void reload(), FIRST_CALL_POLL_MS);
+    return () => window.clearInterval(timer);
+  }, [dialog, reload]);
 
   const origin = window.location.origin;
   // An IPv6 hostname keeps its brackets, the certificate names do not.
@@ -223,13 +211,10 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
     if (res.key && res.item) setFresh({ key: res.key, id: res.item.id, hint: res.item.hint });
   }
 
-  async function create() {
-    const res = await act("create", () => createMcpKey(label.trim(), allowStart), t("mcp.created"));
-    if (!res) return;
-    showFresh(res);
-    setAdding(false);
-    setLabel("");
-    setAllowStart(true);
+  async function create(client: McpClient, label: string, canStart: boolean): Promise<FreshKey | null> {
+    const id = client.id === OTHER_CLIENT.id ? "" : client.id;
+    const res = await act("create", () => createMcpKey(label, canStart, id), t("mcp.created"));
+    return res?.key && res.item ? { key: res.key, id: res.item.id, hint: res.item.hint } : null;
   }
 
   async function rotate(item: McpKeyView) {
@@ -276,12 +261,6 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
     push(t("common.saveFailed"), "fail");
   }
 
-  /** What to do with a client's snippet, for the (i) beside the client strip. */
-  function clientHint(id: ClientId): string {
-    const extra = id === "other" && ownCertificate ? t("mcp.snippetOtherCert") : "";
-    return [t(SNIPPET_HINT[id]), extra].filter(Boolean).join(" ");
-  }
-
   function downloadCertificate() {
     const a = document.createElement("a");
     a.href = MCP_CERTIFICATE_URL;
@@ -296,18 +275,25 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
     push(ok ? t("common.copied") : t("vm.ssh.copyFailed"), ok ? "success" : "fail");
   }
 
-  const snippetInput: McpSnippetInput = {
+  const snippetBase: Omit<McpSnippetInput, "key"> = {
     origin,
     endpointPath: data?.endpointPath ?? "/mcp",
-    key: fresh?.key ?? KEY_PLACEHOLDER,
     selfSigned: ownCertificate,
   };
-  const snippet =
-    client === "code"
-      ? claudeCodeSnippet(snippetInput)
-      : client === "desktop"
-        ? claudeDesktopSnippet(snippetInput)
-        : genericSnippet(snippetInput);
+  const endpoint = mcpUrl(snippetBase);
+
+  function clientButton(c: McpClient) {
+    const name = c === OTHER_CLIENT ? t("mcp.otherClient") : c.name;
+    return (
+      <ReadmeButton
+        key={c.id}
+        tile={c.tile}
+        className={c.lift ? "glim-mark-lift" : undefined}
+        parts={[{ name, sub: c.kind ? t(KIND_LABEL[c.kind]) : undefined, onClick: () => setDialog(c) }]}
+        mark={<ClientMark client={c} />}
+      />
+    );
+  }
 
   // The newest restore-revoked key still matters as long as no key was created
   // after it: once one was, the operator has clearly seen the notice.
@@ -395,40 +381,37 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
             <p className="text-sm text-statusWarn">{t("mcp.appKeyChanged")}</p>
           )}
 
-          {keys.length > 0 && (
-            <div className="flex flex-col gap-1.5">
-              <span className="flex items-center gap-1.5 text-xs text-carbon-textSub">
-                {t("mcp.endpointLabel")}
-                <InfoBubble tip={t("mcp.endpointHint")} />
-              </span>
-              <div className="flex flex-wrap items-center gap-2">
-                <input
-                  readOnly
-                  value={mcpUrl(snippetInput)}
-                  aria-label={t("mcp.endpointLabel")}
-                  dir="ltr"
-                  className="w-80 max-w-full rounded-control bg-carbon-surface2 px-3 py-1.5 font-mono text-sm text-carbon-text glim-field-focus"
-                />
+          <div className="flex flex-col gap-1.5">
+            <span className="flex items-center gap-1.5 text-xs text-carbon-textSub">
+              {t("mcp.endpointLabel")}
+              <InfoBubble tip={t("mcp.endpointHint")} />
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                readOnly
+                value={endpoint}
+                aria-label={t("mcp.endpointLabel")}
+                dir="ltr"
+                className="min-w-0 max-w-96 flex-[1_1_18rem] rounded-control bg-carbon-surface2 px-3 py-1.5 text-start font-mono text-sm text-carbon-text glim-field-focus"
+              />
+              <Button
+                label={t("common.copy")}
+                labelKey="common.copy"
+                tone="subtle"
+                onClick={() => void copy(endpoint)}
+                hueIndex={hueIndex}
+              />
+              {ownCertificate && (
                 <Button
-                  label={t("common.copy")}
-                  labelKey="common.copy"
-                  variant="icon"
+                  label={t("mcp.certDownload")}
+                  labelKey="mcp.certDownload"
                   tone="subtle"
-                  onClick={() => void copy(mcpUrl(snippetInput))}
+                  onClick={downloadCertificate}
                   hueIndex={hueIndex}
                 />
-                {ownCertificate && (
-                  <Button
-                    label={t("mcp.certDownload")}
-                    labelKey="mcp.certDownload"
-                    tone="neutral"
-                    onClick={downloadCertificate}
-                    hueIndex={hueIndex}
-                  />
-                )}
-              </div>
+              )}
             </div>
-          )}
+          </div>
         </>
       )}
 
@@ -472,39 +455,28 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
 
       {data !== null && !failed && (
         <>
-          {keys.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <span className="flex items-center gap-1.5 text-xs text-carbon-textSub">
-                {t("mcp.snippetsLabel")}
-                <InfoBubble tip={`${t("mcp.tlsHint")} ${t("mcp.privacyHint")}`} />
-              </span>
-              <div className="flex flex-wrap items-center gap-2">
-                <Selector
-                  items={[
-                    { id: "code", label: "Claude Code" },
-                    { id: "desktop", label: "Claude Desktop" },
-                    { id: "other", label: t("mcp.snippetOther") },
-                  ]}
-                  label={t("mcp.snippetsLabel")}
-                  active={client}
-                  onChange={(id) => setClient(id as ClientId)}
-                  hueOffset={HUE_OFFSET.mcpClient}
-                />
-                <InfoBubble tip={clientHint(client)} />
+          <div className="flex flex-col gap-2.5">
+            <span className="flex items-center gap-1.5 text-xs text-carbon-textSub">
+              {t("mcp.snippetsLabel")}
+              <InfoBubble tip={t("mcp.connectHint")} />
+            </span>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <span className="text-[length:var(--text-caption)] font-medium uppercase tracking-[0.06em] text-carbon-textMuted">
+                  {t("mcp.groupLocal")}
+                </span>
+                <div className="glim-readme-btn-rows">{LOCAL_CLIENTS.map(clientButton)}</div>
               </div>
-              <pre className="overflow-x-auto rounded-control bg-carbon-surface2 px-3 py-2 text-xs text-carbon-text">
-                <code>{snippet}</code>
-              </pre>
-              <Button
-                label={t("mcp.copySnippet")}
-                labelKey="common.copy"
-                tone="subtle"
-                onClick={() => void copy(snippet)}
-                className="self-start"
-                hueIndex={hueIndex}
-              />
+              <div className="flex flex-col gap-2">
+                <span className="flex items-center gap-1.5 text-[length:var(--text-caption)] font-medium uppercase tracking-[0.06em] text-carbon-textMuted">
+                  {t("mcp.groupCloud")}
+                  <InfoBubble tip={t("mcp.cloudWarning")} />
+                </span>
+                <div className="glim-readme-btn-rows">{CLOUD_CLIENTS.map(clientButton)}</div>
+              </div>
+              <div className="glim-readme-btn-rows">{clientButton(OTHER_CLIENT)}</div>
             </div>
-          )}
+          </div>
 
           {keys.length > 0 && (
             <ul className="flex flex-col gap-3 rounded-card bg-carbon-surface2 p-3">
@@ -533,6 +505,9 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
                           />
                         ) : (
                           <>
+                            <span className="glim-client-mark" aria-hidden="true">
+                              <ClientMark client={clientById(k.client)} forKey />
+                            </span>
                             <span className="truncate text-sm text-carbon-text">{k.label}</span>
                             <Button
                               label={t("common.edit")}
@@ -619,70 +594,6 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
             </ul>
           )}
 
-          {canMint && !adding && (
-            <Button
-              label={t("mcp.newKey")}
-              labelKey="mcp.newKey"
-              tone="accent"
-              onClick={() => setAdding(true)}
-              disabled={busy || keys.length >= limit}
-              hint={keys.length >= limit ? t("mcp.limitReached", limit) : undefined}
-              className="self-start"
-              hueIndex={hueIndex}
-            />
-          )}
-
-          {adding && (
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="bv-mcp-label" className="text-xs text-carbon-textSub">
-                  {t("mcp.labelLabel")}
-                </label>
-                <input
-                  id="bv-mcp-label"
-                  value={label}
-                  maxLength={64}
-                  onChange={(e) => setLabel(e.target.value)}
-                  placeholder={t("mcp.labelPlaceholder")}
-                  className={`w-64 rounded-control bg-carbon-surface2 px-3 py-1.5 text-sm text-carbon-text glim-field-focus${
-                    shake.create ? " glim-shake" : ""
-                  }`}
-                />
-              </div>
-              <ToggleRow
-                label={t("mcp.allowStart")}
-                hint={t("mcp.allowStartHint")
-                  .replace("{n}", String(data.startsPerHour))
-                  .replace("{minutes}", String(data.cooldownMinutes))
-                  .replace("{perDay}", String(data.itemStartsPerDay))}
-                checked={allowStart}
-                onChange={setAllowStart}
-                hueIndex={hueIndex}
-              />
-              <div className="flex items-center gap-3">
-                <Button
-                  label={t("common.cancel")}
-                  labelKey="common.cancel"
-                  tone="neutral"
-                  onClick={() => {
-                    setAdding(false);
-                    setLabel("");
-                  }}
-                  hueIndex={hueIndex}
-                />
-                <Button
-                  label={t("mcp.createKey")}
-                  labelKey="mcp.createKey"
-                  tone="accent"
-                  onClick={() => void create()}
-                  disabled={busy}
-                  busy={busy}
-                  hueIndex={hueIndex}
-                />
-              </div>
-            </div>
-          )}
-
           {revoked.length > 0 && (
             <div className="flex flex-col gap-2">
               <button
@@ -737,6 +648,32 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
             </div>
           )}
         </>
+      )}
+
+      {dialog !== null && data !== null && (
+        <McpClientDialog
+          key={dialog.id}
+          client={dialog}
+          keys={keys}
+          snippetBase={snippetBase}
+          canMint={canMint}
+          limitNote={keys.length >= limit ? t("mcp.limitReached", limit) : undefined}
+          allowStartHint={t("mcp.allowStartHint")
+            .replace("{n}", String(data.startsPerHour))
+            .replace("{minutes}", String(data.cooldownMinutes))
+            .replace("{perDay}", String(data.itemStartsPerDay))}
+          onCreate={(label, canStart) => create(dialog, label, canStart)}
+          onCopy={(text) => void copy(text)}
+          onDownloadCertificate={downloadCertificate}
+          onClose={(unused) => {
+            setDialog(null);
+            if (unused) {
+              setKeyVisible(true);
+              setFresh(unused);
+            }
+          }}
+          t={t}
+        />
       )}
 
       {pending?.kind === "certificate" && (

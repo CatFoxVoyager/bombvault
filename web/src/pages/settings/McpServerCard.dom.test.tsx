@@ -9,6 +9,7 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { countText, en } from "../../lib/i18n";
 import type { McpKeyView, McpKeysResponse } from "../../lib/api";
+import { CLIENT_MARKS } from "../../lib/mcpClientMarks";
 
 const listMcpKeys = vi.fn();
 const createMcpKey = vi.fn();
@@ -53,6 +54,7 @@ function key(over: Partial<McpKeyView> = {}): McpKeyView {
     lastUsedFrom: "",
     revokedAt: 0,
     revokedReason: "",
+    client: "",
     inUse: false,
     unusable: "",
     callsToday: 0,
@@ -103,6 +105,20 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+/** The client button of the picker, by the name and kind it announces. */
+function clientButton(name: string, kind?: string): HTMLElement {
+  return screen.getByRole("button", { name: kind ? `${name} ${kind}` : name });
+}
+
+function openClient(name: string, kind?: string): HTMLElement {
+  fireEvent.click(clientButton(name, kind));
+  return screen.getByRole("dialog");
+}
+
+function dialogText(): string {
+  return screen.getByRole("dialog").textContent ?? "";
+}
+
 describe("the MCP card without a key", () => {
   it("shows off state and the open-interface warning", async () => {
     await renderCard(payload({ authEnabled: false }));
@@ -110,8 +126,8 @@ describe("the MCP card without a key", () => {
     await waitFor(() => expect(screen.getByText(en["mcp.statusOff"])).toBeTruthy());
     expect(screen.getByText(en["mcp.noPasswordWarning"])).toBeTruthy();
     expect(screen.getByRole("button", { name: en["mcp.setPassword"] })).toBeTruthy();
-    expect(screen.getByRole("button", { name: en["mcp.newKey"] })).toBeTruthy();
-    expect(screen.queryByText(en["mcp.snippetsLabel"])).toBeNull();
+    expect(clientButton("Claude Code", en["mcp.kindTerminal"])).toBeTruthy();
+    expect(screen.queryAllByRole("listitem")).toHaveLength(0);
   });
 
   it("hides key creation for a public host without a password", async () => {
@@ -123,8 +139,10 @@ describe("the MCP card without a key", () => {
         screen.getByText(en["mcp.needsPasswordForHost"].replace("{host}", "backup.example.com"))
       ).toBeTruthy()
     );
-    expect(screen.queryByRole("button", { name: en["mcp.newKey"] })).toBeNull();
     expect(screen.queryByRole("button", { name: en["mcp.rotate"] })).toBeNull();
+    const dialog = openClient("Cursor", en["mcp.kindEditor"]);
+    expect(within(dialog).queryByRole("button", { name: en["mcp.createKey"] })).toBeNull();
+    expect(within(dialog).getByRole("button", { name: /office laptop/ })).toBeTruthy();
   });
 
   it("offers key creation once a login password is set on this page", async () => {
@@ -137,105 +155,45 @@ describe("the MCP card without a key", () => {
     listMcpKeys.mockResolvedValue(payload());
     view.rerender(<McpServerCard hueIndex={0} passwordSet />);
 
-    await waitFor(() => expect(screen.getByRole("button", { name: en["mcp.newKey"] })).toBeTruthy());
-    expect(screen.queryByText(en["mcp.noPasswordWarning"])).toBeNull();
+    await waitFor(() => expect(screen.queryByText(en["mcp.noPasswordWarning"])).toBeNull());
+    const dialog = openClient("Cursor", en["mcp.kindEditor"]);
+    expect(within(dialog).getByRole("button", { name: en["mcp.createKey"] })).toBeTruthy();
   });
 });
 
-describe("minting a key", () => {
-  it("creates a key and shows it exactly once", async () => {
-    await renderCard(payload(), payload({ keys: [key({ label: "laptop" })] }));
-    createMcpKey.mockResolvedValue({ ok: true, key: "bvmcp_abcdef123456", item: key({ label: "laptop" }) });
-
-    fireEvent.click(screen.getByRole("button", { name: en["mcp.newKey"] }));
-    fireEvent.change(screen.getByLabelText(en["mcp.labelLabel"]), { target: { value: "laptop" } });
-    fireEvent.click(screen.getByRole("button", { name: en["mcp.createKey"] }));
-
-    await waitFor(() => expect(createMcpKey).toHaveBeenCalledWith("laptop", true));
-    await waitFor(() => expect(screen.getByText(en["mcp.newKeyTitle"])).toBeTruthy());
-    expect(screen.getByText(en["mcp.newKeyTitle"]).querySelector("[aria-label]")?.getAttribute("aria-label")).toBe(
-      en["mcp.showOnce"]
-    );
-    expect(screen.getByDisplayValue("bvmcp_abcdef123456")).toBeTruthy();
-    expect(screen.getByRole("button", { name: en["mcp.copyKey"] })).toBeTruthy();
-    // The Claude Code command reads the key from a file, so only the field holds it.
-    expect(screen.getByText(/claude mcp add/).textContent).not.toContain("bvmcp_abcdef123456");
-    fireEvent.click(screen.getByRole("tab", { name: "Claude Desktop" }));
-    await waitFor(() => expect(screen.getByText(/mcp-remote/).textContent).toContain("bvmcp_abcdef123456"));
-
-    fireEvent.click(screen.getByRole("button", { name: en["mcp.dismissKey"] }));
-    await waitFor(() => expect(screen.queryByText(en["mcp.newKeyTitle"])).toBeNull());
-    expect(cardText()).not.toContain("bvmcp_abcdef123456");
-    expect(cardText()).toContain("<your key>");
-  });
-
-  it("keeps a new key on screen when the list cannot be reloaded", async () => {
+describe("the client picker", () => {
+  it("lists the clients on this computer, then the cloud ones, then Other client", async () => {
     await renderCard(payload());
-    listMcpKeys.mockRejectedValueOnce(new Error("503"));
-    createMcpKey.mockResolvedValue({ ok: true, key: "bvmcp_abcdef123456", item: key({ label: "laptop" }) });
+    await screen.findByText(en["mcp.groupLocal"]);
 
-    fireEvent.click(screen.getByRole("button", { name: en["mcp.newKey"] }));
-    fireEvent.change(screen.getByLabelText(en["mcp.labelLabel"]), { target: { value: "laptop" } });
-    fireEvent.click(screen.getByRole("button", { name: en["mcp.createKey"] }));
-
-    await waitFor(() => expect(screen.getByText(en["mcp.loadFailed"])).toBeTruthy());
-    expect(screen.getByDisplayValue("bvmcp_abcdef123456")).toBeTruthy();
-    expect(screen.getByRole("button", { name: en["mcp.copyKey"] })).toBeTruthy();
-  });
-
-  it("takes a new key off screen once the list shows it revoked", async () => {
-    await renderCard(
-      payload({ keys: [key()] }),
-      payload({ keys: [key({ hint: "9999", rotatedAt: 1_700_000_100 })] }),
-      payload({ revoked: [key({ hint: "9999", revokedAt: 1_700_000_200, revokedReason: "user" })] })
+    const names = screen
+      .getAllByRole("button")
+      .filter((b) => b.classList.contains("glim-readme-btn"))
+      .map((b) => b.getAttribute("aria-label"));
+    expect(names).toHaveLength(28 + 4 + 1);
+    expect(names.slice(0, 3)).toEqual([
+      `AnythingLLM ${en["mcp.kindLocalModels"]}`,
+      `Antigravity ${en["mcp.kindEditor"]}`,
+      `Claude Code ${en["mcp.kindTerminal"]}`,
+    ]);
+    expect(names.slice(28, 32)).toEqual(
+      ["ChatGPT", "Claude", "Grok", "Le Chat"].map((n) => `${n} ${en["mcp.kindWebChat"]}`)
     );
-    rotateMcpKey.mockResolvedValue({ ok: true, key: "bvmcp_rotated9999", item: key({ hint: "9999" }) });
-    revokeMcpKey.mockResolvedValue({ ok: true });
-
-    fireEvent.click(screen.getByRole("button", { name: en["mcp.rotate"] }));
-    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: en["mcp.rotate"] }));
-    await waitFor(() => expect(screen.getByDisplayValue("bvmcp_rotated9999")).toBeTruthy());
-
-    fireEvent.click(screen.getByRole("button", { name: en["mcp.revoke"] }));
-    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: en["mcp.revoke"] }));
-
-    await waitFor(() => expect(revokeMcpKey).toHaveBeenCalledWith("k1"));
-    await waitFor(() => expect(screen.queryByText(en["mcp.newKeyTitle"])).toBeNull());
-    expect(cardText()).not.toContain("bvmcp_rotated9999");
+    expect(names[32]).toBe(en["mcp.otherClient"]);
   });
 
-  it("keeps the connect section while a key is active", async () => {
-    await renderCard(payload({ keys: [key()] }));
-
-    await waitFor(() => expect(screen.getByText(en["mcp.snippetsLabel"])).toBeTruthy());
-    const clients = screen.getAllByRole("tab").map((el) => el.textContent);
-    expect(clients).toEqual(["Claude Code", "Claude Desktop", en["mcp.snippetOther"]]);
-    expect(cardText()).toContain("--header-file");
-
-    fireEvent.click(screen.getByRole("tab", { name: "Claude Desktop" }));
-    await waitFor(() => expect(cardText()).toContain("mcp-remote"));
-  });
-
-  it("explains the connect section through one (i) on its label and one beside the clients", async () => {
+  it("explains the picker through one (i) on its label and one on the cloud group", async () => {
     await renderCard(payload({ keys: [key()] }));
 
     const label = await screen.findByText(en["mcp.snippetsLabel"]);
     const bubbles = label.querySelectorAll("[aria-label]");
     expect(bubbles).toHaveLength(1);
-    expect(bubbles[0].getAttribute("aria-label")).toBe(`${en["mcp.tlsHint"]} ${en["mcp.privacyHint"]}`);
+    expect(bubbles[0].getAttribute("aria-label")).toBe(en["mcp.connectHint"]);
 
-    const beside = () => screen.getByRole("tablist").parentElement!.querySelectorAll(":scope > span[aria-label]");
-    for (const [name, hint] of [
-      ["Claude Code", en["mcp.snippetClaudeCodeHint"]],
-      ["Claude Desktop", en["mcp.snippetDesktopHint"]],
-      [en["mcp.snippetOther"], en["mcp.snippetOtherHint"]],
-    ]) {
-      fireEvent.click(screen.getByRole("tab", { name }));
-      await waitFor(() => expect(beside()[0]?.getAttribute("aria-label")).toContain(hint));
-      expect(beside()).toHaveLength(1);
-      // Nothing explains itself in grey under the snippet.
-      expect(document.querySelector("pre ~ p")).toBeNull();
-    }
+    const cloud = screen.getByText(en["mcp.groupCloud"]);
+    expect([...cloud.querySelectorAll("[aria-label]")].map((b) => b.getAttribute("aria-label"))).toEqual([
+      en["mcp.cloudWarning"],
+    ]);
   });
 
   it("shows the endpoint of this address", async () => {
@@ -247,6 +205,117 @@ describe("minting a key", () => {
     expect(field.readOnly).toBe(true);
     expect(field.value).toBe("https://tower.local:3443/mcp");
     expect(field.parentElement?.contains(screen.getByRole("button", { name: en["common.copy"] }))).toBe(true);
+  });
+});
+
+describe("a client's setup dialog", () => {
+  it("creates a key named after the client and shows it exactly once", async () => {
+    await renderCard(payload(), payload({ keys: [key({ label: "Claude Code", client: "claude-code" })] }));
+    createMcpKey.mockResolvedValue({
+      ok: true,
+      key: "bvmcp_abcdef123456",
+      item: key({ label: "Claude Code", client: "claude-code" }),
+    });
+
+    const dialog = openClient("Claude Code", en["mcp.kindTerminal"]);
+    expect((within(dialog).getByLabelText(en["mcp.labelLabel"]) as HTMLInputElement).value).toBe("Claude Code");
+    fireEvent.click(within(dialog).getByRole("button", { name: en["mcp.createKey"] }));
+
+    await waitFor(() => expect(createMcpKey).toHaveBeenCalledWith("Claude Code", false, "claude-code"));
+    await waitFor(() => expect(within(dialog).getByDisplayValue("bvmcp_abcdef123456")).toBeTruthy());
+    expect(within(dialog).getByText(en["mcp.showOnce"])).toBeTruthy();
+    // The Claude Code command reads the key from a file, so only the field holds it.
+    expect(within(dialog).getByText(/claude mcp add/).textContent).not.toContain("bvmcp_abcdef123456");
+  });
+
+  it("writes the new key into the configuration of a client that has to hold it", async () => {
+    await renderCard(payload(), payload({ keys: [key({ label: "Zed", client: "zed" })] }));
+    createMcpKey.mockResolvedValue({ ok: true, key: "bvmcp_abcdef123456", item: key({ label: "Zed", client: "zed" }) });
+
+    const dialog = openClient("Zed", en["mcp.kindEditor"]);
+    expect(dialogText()).toContain("<your key>");
+    fireEvent.click(within(dialog).getByRole("button", { name: en["mcp.createKey"] }));
+
+    await waitFor(() =>
+      expect(within(dialog).getByText(/context_servers/).textContent).toContain("bvmcp_abcdef123456")
+    );
+    expect(dialogText()).toContain(en["mcp.keyInFile"].replace("{app}", "Zed"));
+  });
+
+  it("hands an unused new key back to the card when it closes", async () => {
+    await renderCard(payload());
+    listMcpKeys.mockRejectedValueOnce(new Error("503"));
+    createMcpKey.mockResolvedValue({ ok: true, key: "bvmcp_abcdef123456", item: key({ label: "laptop" }) });
+
+    const dialog = openClient(en["mcp.otherClient"]);
+    fireEvent.change(within(dialog).getByLabelText(en["mcp.labelLabel"]), { target: { value: "laptop" } });
+    fireEvent.click(within(dialog).getByRole("button", { name: en["mcp.createKey"] }));
+    await waitFor(() => expect(createMcpKey).toHaveBeenCalledWith("laptop", false, ""));
+    await waitFor(() => expect(within(dialog).getByDisplayValue("bvmcp_abcdef123456")).toBeTruthy());
+
+    fireEvent.click(within(dialog).getByRole("button", { name: en["common.close"] }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByDisplayValue("bvmcp_abcdef123456")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: en["mcp.dismissKey"] }));
+    await waitFor(() => expect(screen.queryByText(en["mcp.newKeyTitle"])).toBeNull());
+    expect(cardText()).not.toContain("bvmcp_abcdef123456");
+  });
+
+  it("turns green once the chosen key is used, and stops asking once it closes", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const used = key({ label: "Cursor", client: "cursor", lastUsedAt: 1_700_000_500 });
+      await renderCard(payload({ keys: [used] }));
+      await screen.findByRole("listitem");
+
+      const dialog = openClient("Cursor", en["mcp.kindEditor"]);
+      fireEvent.click(within(dialog).getByRole("tab", { name: en["mcp.existingKey"] }));
+      fireEvent.click(within(dialog).getByRole("button", { name: /^Cursor/ }));
+      expect(dialogText()).toContain(en["mcp.waitLine"].replace("{app}", "Cursor"));
+
+      const calls = listMcpKeys.mock.calls.length;
+      listMcpKeys.mockResolvedValue(
+        payload({ keys: [{ ...used, lastUsedAt: 1_700_000_900, lastUsedFrom: "192.168.10.16" }] })
+      );
+      await vi.advanceTimersByTimeAsync(3100);
+      expect(listMcpKeys.mock.calls.length).toBeGreaterThan(calls);
+      await waitFor(() => expect(within(dialog).getByText(en["mcp.connectedTitle"])).toBeTruthy());
+      expect(dialogText()).toContain("192.168.10.16");
+
+      fireEvent.click(within(dialog).getByRole("button", { name: en["common.done"] }));
+      const after = listMcpKeys.mock.calls.length;
+      await vi.advanceTimersByTimeAsync(10_000);
+      expect(listMcpKeys.mock.calls.length).toBe(after);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("puts the internet warning first in a cloud client's dialog", async () => {
+    await renderCard(payload());
+    const dialog = openClient("Le Chat", en["mcp.kindWebChat"]);
+    expect(within(dialog).getByText(en["mcp.cloudWarningTitle"])).toBeTruthy();
+    expect(dialogText().indexOf(en["mcp.cloudWarningTitle"])).toBeLessThan(dialogText().indexOf(en["mcp.kindWebChat"]));
+    expect(within(dialog).getByText(/Custom Connector/)).toBeTruthy();
+  });
+
+  it("gives ChatGPT and Claude on the web a note instead of a setup", async () => {
+    await renderCard(payload());
+    let dialog = openClient("ChatGPT", en["mcp.kindWebChat"]);
+    expect(dialogText()).toContain(en["mcp.noteOauth"].replaceAll("{app}", "ChatGPT"));
+    expect(within(dialog).queryByRole("button", { name: en["mcp.createKey"] })).toBeNull();
+    fireEvent.click(within(dialog).getByRole("button", { name: en["common.close"] }));
+
+    dialog = openClient("Claude", en["mcp.kindWebChat"]);
+    expect(dialogText()).toContain(en["mcp.noteClaudeAi"]);
+    expect(within(dialog).queryByRole("button", { name: en["mcp.createKey"] })).toBeNull();
+  });
+
+  it("closes on Escape", async () => {
+    await renderCard(payload());
+    openClient("Cursor", en["mcp.kindEditor"]);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 });
 
@@ -291,10 +360,21 @@ describe("the certificate of this address", () => {
     click.mockRestore();
     expect(saved).toEqual(["/api/mcp/certificate true"]);
     expect(cardText()).not.toContain(en["mcp.certNotForThisAddress"].replace("{host}", "192.168.1.10"));
-    expect(cardText()).toContain("NODE_EXTRA_CA_CERTS");
+    openClient("Claude Code", en["mcp.kindTerminal"]);
+    expect(dialogText()).toContain("NODE_EXTRA_CA_CERTS");
+    expect(dialogText()).toContain(en["mcp.certPlaceholder"]);
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: en["common.close"] }));
 
-    fireEvent.click(screen.getByRole("tab", { name: en["mcp.snippetOther"] }));
-    await waitFor(() => expect(screen.getByLabelText(new RegExp(en["mcp.snippetOtherCert"]))).toBeTruthy());
+    openClient(en["mcp.otherClient"]);
+    expect(screen.getByLabelText(en["mcp.certOtherTip"])).toBeTruthy();
+  });
+
+  it("words a certificate step the client's documentation leaves open as a condition", async () => {
+    vi.stubGlobal("location", new URL("https://192.168.1.10:3443/settings"));
+    await renderCard(payload({ certificate: { ...selfIssued, names: ["localhost", "192.168.1.10"] } }));
+
+    openClient("Zed", en["mcp.kindEditor"]);
+    expect(dialogText()).toContain(en["mcp.certSystem"].replaceAll("{app}", "Zed"));
   });
 
   it("matches an IPv6 address without its brackets", async () => {
@@ -312,7 +392,8 @@ describe("the certificate of this address", () => {
 
     await renderCard(payload({ keys: [key()], certificate: { ...selfIssued, names: ["localhost", "fd00::10"] } }));
     await waitFor(() => expect(screen.getByText(en["mcp.certDownload"])).toBeTruthy());
-    expect(cardText()).toContain("NODE_EXTRA_CA_CERTS");
+    openClient("Claude Code", en["mcp.kindTerminal"]);
+    expect(dialogText()).toContain("NODE_EXTRA_CA_CERTS");
   });
 
   it("does not offer a certificate name the server would refuse", async () => {
@@ -372,7 +453,8 @@ describe("the certificate of this address", () => {
 
     await waitFor(() => expect(screen.getByText(en["mcp.snippetsLabel"])).toBeTruthy());
     expect(screen.queryByRole("button", { name: en["mcp.certAddAddress"] })).toBeNull();
-    expect(cardText()).not.toContain("NODE_EXTRA_CA_CERTS");
+    openClient("Claude Code", en["mcp.kindTerminal"]);
+    expect(dialogText()).not.toContain("NODE_EXTRA_CA_CERTS");
   });
 
   it("says nothing about certificates over plain HTTP", async () => {
@@ -477,7 +559,7 @@ describe("a key list", () => {
     await waitFor(() => expect(purgeMcpKey).toHaveBeenCalledWith("r2"));
   });
 
-  it("shows the restore notice and says in the new key button why it is off", async () => {
+  it("shows the restore notice and says in the dialog why no key can be added", async () => {
     const many = Array.from({ length: 10 }, (_, i) => key({ id: `k${i}`, label: `key ${i}` }));
     await renderCard(
       payload({
@@ -487,11 +569,12 @@ describe("a key list", () => {
     );
 
     await waitFor(() => expect(screen.getByText(en["mcp.restoreRevokedNotice"])).toBeTruthy());
-    const button = screen.getByRole("button", { name: en["mcp.newKey"] });
+    const dialog = openClient("Cursor", en["mcp.kindEditor"]);
+    fireEvent.click(within(dialog).getByRole("tab", { name: en["mcp.newKey"] }));
+    const button = within(dialog).getByRole("button", { name: en["mcp.createKey"] });
     expect(button.hasAttribute("disabled")).toBe(true);
-    const reason = screen.getByLabelText(countText(en["mcp.limitReached"], "en", 10).replace("{n}", "10"));
+    const reason = within(dialog).getByLabelText(countText(en["mcp.limitReached"], "en", 10).replace("{n}", "10"));
     expect(button.parentElement?.contains(reason)).toBe(true);
-    expect(screen.queryByText(countText(en["mcp.limitReached"], "en", 10).replace("{n}", "10"))).toBeNull();
   });
 
   it("takes the start budget and the last use from the server", async () => {
@@ -507,7 +590,8 @@ describe("a key list", () => {
     await waitFor(() => expect(cardText()).toContain(en["mcp.keyLastUsedNoAddr"].split("{when}")[0]));
     expect(cardText()).not.toContain(en["mcp.keyNeverUsed"]);
 
-    fireEvent.click(screen.getByRole("button", { name: en["mcp.newKey"] }));
+    openClient("Cursor", en["mcp.kindEditor"]);
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("tab", { name: en["mcp.newKey"] }));
     const hint = en["mcp.allowStartHint"]
       .replace("{n}", "7")
       .replace("{minutes}", "20")
@@ -522,6 +606,26 @@ describe("a key's tile", () => {
     if (!tile) throw new Error(`no tile for ${label}`);
     return tile;
   }
+
+  it("shows the mark of the client a key was made for, and the key glyph for none", async () => {
+    await renderCard(
+      payload({
+        keys: [
+          key({ id: "k1", label: "laptop", client: "cursor" }),
+          key({ id: "k2", label: "nightly report" }),
+          key({ id: "k3", label: "gone", client: "a-client-since-dropped" }),
+        ],
+      })
+    );
+    await screen.findByText("laptop");
+
+    const mark = (label: string) => tileOf(label).querySelector(".glim-client-mark")!;
+    const cursorPath = / d="([^"]+)"/.exec(CLIENT_MARKS.cursor.rest)![1];
+    expect(mark("laptop").querySelector("path")?.getAttribute("d")).toBe(cursorPath);
+    expect(mark("nightly report").innerHTML).not.toContain(cursorPath);
+    expect(mark("nightly report").innerHTML).toBe(mark("gone").innerHTML);
+    expect(mark("laptop").getAttribute("aria-hidden")).toBe("true");
+  });
 
   it("shows the permission, the hint and today's calls", async () => {
     await renderCard(
@@ -661,9 +765,9 @@ describe("a refusal from the server", () => {
   async function createWith(answer: Record<string, unknown>) {
     await renderCard(payload());
     createMcpKey.mockResolvedValue(answer);
-    fireEvent.click(screen.getByRole("button", { name: en["mcp.newKey"] }));
-    fireEvent.change(screen.getByLabelText(en["mcp.labelLabel"]), { target: { value: "laptop" } });
-    fireEvent.click(screen.getByRole("button", { name: en["mcp.createKey"] }));
+    const dialog = openClient(en["mcp.otherClient"]);
+    fireEvent.change(within(dialog).getByLabelText(en["mcp.labelLabel"]), { target: { value: "laptop" } });
+    fireEvent.click(within(dialog).getByRole("button", { name: en["mcp.createKey"] }));
     await waitFor(() => expect(createMcpKey).toHaveBeenCalled());
   }
 
@@ -741,6 +845,6 @@ describe("a refusal from the server", () => {
     render(<McpServerCard hueIndex={0} />, { wrapper: MemoryRouter });
 
     await waitFor(() => expect(screen.getByText(en["mcp.loadFailed"])).toBeTruthy());
-    expect(screen.queryByRole("button", { name: en["mcp.newKey"] })).toBeNull();
+    expect(screen.queryByRole("button", { name: en["mcp.otherClient"] })).toBeNull();
   });
 });
