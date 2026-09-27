@@ -239,7 +239,11 @@ describe("minting a key", () => {
     vi.stubGlobal("location", new URL("https://tower.local:3443/settings"));
     await renderCard(payload({ keys: [key()] }));
 
-    await waitFor(() => expect(cardText()).toContain("https://tower.local:3443/mcp"));
+    const field = (await screen.findByLabelText(en["mcp.endpointLabel"])) as HTMLInputElement;
+    expect(field.tagName).toBe("INPUT");
+    expect(field.readOnly).toBe(true);
+    expect(field.value).toBe("https://tower.local:3443/mcp");
+    expect(field.parentElement?.contains(screen.getByRole("button", { name: en["common.copy"] }))).toBe(true);
   });
 });
 
@@ -274,8 +278,15 @@ describe("the certificate of this address", () => {
       })
     );
 
-    await waitFor(() => expect(screen.getByText(en["mcp.certDownload"])).toBeTruthy());
-    expect(screen.getByText(en["mcp.certDownload"]).getAttribute("href")).toBe("/api/mcp/certificate");
+    const download = await screen.findByRole("button", { name: en["mcp.certDownload"] });
+    expect(download.querySelector(".glim-btn-glyph svg")).not.toBeNull();
+    const saved: string[] = [];
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {
+      saved.push(`${this.getAttribute("href")} ${this.hasAttribute("download")}`);
+    });
+    fireEvent.click(download);
+    click.mockRestore();
+    expect(saved).toEqual(["/api/mcp/certificate true"]);
     expect(cardText()).not.toContain(en["mcp.certNotForThisAddress"].replace("{host}", "192.168.1.10"));
     expect(cardText()).toContain("NODE_EXTRA_CA_CERTS");
 

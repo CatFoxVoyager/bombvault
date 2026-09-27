@@ -287,6 +287,15 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
     return [t(SNIPPET_HINT[id]), extra].filter(Boolean).join(" ");
   }
 
+  function downloadCertificate() {
+    const a = document.createElement("a");
+    a.href = MCP_CERTIFICATE_URL;
+    a.download = "";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
   async function copy(text: string) {
     const ok = await copyText(text);
     push(ok ? t("common.copied") : t("vm.ssh.copyFailed"), ok ? "success" : "fail");
@@ -398,9 +407,13 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
                 <InfoBubble tip={t("mcp.endpointHint")} />
               </span>
               <div className="flex flex-wrap items-center gap-2">
-                <code className="rounded-control bg-carbon-surface2 px-2 py-1 text-xs break-all text-carbon-text">
-                  {mcpUrl(snippetInput)}
-                </code>
+                <input
+                  readOnly
+                  value={mcpUrl(snippetInput)}
+                  aria-label={t("mcp.endpointLabel")}
+                  dir="ltr"
+                  className="w-80 max-w-full rounded-control bg-carbon-surface2 px-3 py-1.5 font-mono text-sm text-carbon-text glim-field-focus"
+                />
                 <Button
                   label={t("common.copy")}
                   labelKey="common.copy"
@@ -410,13 +423,13 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
                   hueIndex={hueIndex}
                 />
                 {ownCertificate && (
-                  <a
-                    href={MCP_CERTIFICATE_URL}
-                    download
-                    className="rounded-control bg-carbon-surface3 px-3 py-1.5 text-sm text-carbon-text hover:bg-carbon-hoverRaised glim-field-focus"
-                  >
-                    {t("mcp.certDownload")}
-                  </a>
+                  <Button
+                    label={t("mcp.certDownload")}
+                    labelKey="mcp.certDownload"
+                    tone="neutral"
+                    onClick={downloadCertificate}
+                    hueIndex={hueIndex}
+                  />
                 )}
               </div>
             </div>
