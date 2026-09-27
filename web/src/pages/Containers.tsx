@@ -1727,6 +1727,9 @@ function MobileContainerDetail({
   onBack,
   onDeleted,
   installedContainers,
+  linkCandidates,
+  anomaly,
+  anomalyEnabled,
 }: {
   container: Container;
   t: T;
@@ -1738,6 +1741,10 @@ function MobileContainerDetail({
   /** The full installed set, straight through to StopContainersEditor's
    *  picker — the same array the desktop row gets. */
   installedContainers: Container[];
+  /** Not-installed entries this one can take over, as on the desktop row. */
+  linkCandidates: string[];
+  anomaly?: AnomalyItem;
+  anomalyEnabled: boolean;
 }) {
   // The host mount root for the detail's mono meta line — served by the same
   // already-cached mounts response the cards use (React escaping
@@ -1803,7 +1810,15 @@ function MobileContainerDetail({
         className="-ms-2 min-h-[2.75rem]"
       />
       <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold text-carbon-text">{container.name}</h2>
+        <div className="flex items-center gap-2 flex-wrap">
+          <h2 className="text-lg font-semibold text-carbon-text min-w-0 wrap-break-word">{container.name}</h2>
+          <ItemAnomalyBadge item={anomaly} enabled={anomalyEnabled} t={t} />
+          {installed ? (
+            <Badge tone={stateTone(container.state)}>{stateLabel(t, container.state)}</Badge>
+          ) : (
+            <Badge tone="neutral">{t("containers.notInstalled")}</Badge>
+          )}
+        </div>
         {hostMountRoot && (
           <p dir="ltr" className="text-xs text-carbon-textMuted font-mono break-all text-start">
             {hostMountRoot}
@@ -1845,11 +1860,15 @@ function MobileContainerDetail({
           t={t}
         />
       )}
+      {installed && !self && container.lastBackup == null && aliases.length === 0 && linkCandidates.length > 0 && (
+        <LinkEntryPicker candidates={linkCandidates} entry={takeoverEntry} onDone={onDeleted} t={t} />
+      )}
       {installed && !self && (
         <BackupButton
           name={container.name}
           t={t}
           running={running}
+          progress={progress}
           onRunCorrelated={(run) => {
             if (lastCorrelatedRun.current !== run.id) {
               lastCorrelatedRun.current = run.id;
@@ -1860,6 +1879,11 @@ function MobileContainerDetail({
           }}
         />
       )}
+      {installed && !self && (
+        <Advanced>
+          <ExportButton name={container.name} t={t} />
+        </Advanced>
+      )}
       {/* The schedule block: the include switch, then the update-after row.
           A not-installed entry keeps the switch too, same as the desktop
           card: it stays scheduled and every run records a skip for it, and
@@ -1867,6 +1891,9 @@ function MobileContainerDetail({
       {installed && (
         <div className="flex flex-col gap-2">
           <IncludeToggle name={container.name} initial={container.includeInSchedule} />
+          {/* Outside Advanced: the dump is on by default and changes what a
+              backup does. */}
+          <DatabaseDumpRow container={container} t={t} />
           <Advanced when={installed}>
             <UpdateAfterBackupRow
               name={container.name}
@@ -4260,6 +4287,9 @@ export function Containers() {
             void loadContainers();
           }}
           installedContainers={installedContainers}
+          linkCandidates={notInstalledNames}
+          anomaly={anomalies.find("container", openContainer.name)}
+          anomalyEnabled={anomalyEnabled}
         />
       )}
 
