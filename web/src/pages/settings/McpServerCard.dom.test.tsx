@@ -304,6 +304,44 @@ describe("a client's setup dialog", () => {
     expect(writeText.mock.calls[0][0]).toContain("Bearer bvmcp_abcdef123456");
   });
 
+  it("keeps a created key on the card when the dialog closes before the server answers", async () => {
+    await renderCard(payload());
+    let answer: (v: unknown) => void = () => {};
+    createMcpKey.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+
+    const dialog = await openClient(en["mcp.otherClient"]);
+    fireEvent.change(within(dialog).getByLabelText(en["mcp.labelLabel"]), { target: { value: "laptop" } });
+    fireEvent.click(within(dialog).getByRole("button", { name: en["mcp.createKey"] }));
+    await waitFor(() => expect(createMcpKey).toHaveBeenCalled());
+    fireEvent.click(within(dialog).getByRole("button", { name: en["common.close"] }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+
+    answer({ ok: true, key: "bvmcp_abcdef123456", item: key({ label: "laptop" }) });
+    await waitFor(() => expect(screen.getByDisplayValue("bvmcp_abcdef123456")).toBeTruthy());
+  });
+
+  it("drops a created key from the card once a call has used it", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const made = key({ label: "laptop" });
+      await renderCard(payload(), payload({ keys: [made] }));
+      createMcpKey.mockResolvedValue({ ok: true, key: "bvmcp_abcdef123456", item: made });
+
+      const dialog = await openClient(en["mcp.otherClient"]);
+      fireEvent.change(within(dialog).getByLabelText(en["mcp.labelLabel"]), { target: { value: "laptop" } });
+      fireEvent.click(within(dialog).getByRole("button", { name: en["mcp.createKey"] }));
+      await waitFor(() => expect(within(dialog).getByDisplayValue("bvmcp_abcdef123456")).toBeTruthy());
+
+      listMcpKeys.mockResolvedValue(payload({ keys: [{ ...made, lastUsedAt: 1_700_000_900 }] }));
+      await vi.advanceTimersByTimeAsync(3100);
+      await waitFor(() => expect(within(dialog).getByText(en["mcp.connectedTitle"])).toBeTruthy());
+      fireEvent.click(within(dialog).getByRole("button", { name: en["common.done"] }));
+      expect(screen.queryByDisplayValue("bvmcp_abcdef123456")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("hands an unused new key back to the card when it closes", async () => {
     await renderCard(payload());
     listMcpKeys.mockRejectedValueOnce(new Error("503"));

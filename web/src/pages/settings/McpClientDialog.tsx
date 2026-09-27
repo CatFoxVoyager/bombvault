@@ -38,9 +38,9 @@ export interface McpClientDialogProps {
   onCreate: (label: string, canStartBackups: boolean) => Promise<FreshKey | null>;
   onCopy: (text: string) => void;
   onDownloadCertificate: () => void;
-  /** Hands back a key made here that no call has used yet, so the card can
-   *  keep it on screen: the server holds no copy of it. */
-  onClose: (unused: FreshKey | null) => void;
+  /** Names the key made here once a call has used it, so the card can stop
+   *  showing it. */
+  onClose: (usedKey: string | null) => void;
   t: T;
 }
 
@@ -91,7 +91,7 @@ export function McpClientDialog({
   const connected = chosen !== undefined && chosen.lastUsedAt > since;
 
   const closeRef = useRef(() => onClose(null));
-  closeRef.current = () => onClose(created && !connected ? created : null);
+  closeRef.current = () => onClose(created && connected ? created.id : null);
 
   useEffect(() => {
     const trigger = document.activeElement;

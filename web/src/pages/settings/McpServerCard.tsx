@@ -211,10 +211,16 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
     if (res.key && res.item) setFresh({ key: res.key, id: res.item.id, hint: res.item.hint });
   }
 
+  // The card takes the key the moment the server answers, so it survives a
+  // dialog closed while the call ran.
   async function create(client: McpClient, label: string, canStart: boolean): Promise<FreshKey | null> {
     const id = client.id === OTHER_CLIENT.id ? "" : client.id;
     const res = await act("create", () => createMcpKey(label, canStart, id), t("mcp.created"));
-    return res?.key && res.item ? { key: res.key, id: res.item.id, hint: res.item.hint } : null;
+    if (!res?.key || !res.item) return null;
+    const made = { key: res.key, id: res.item.id, hint: res.item.hint };
+    setKeyVisible(true);
+    setFresh(made);
+    return made;
   }
 
   async function rotate(item: McpKeyView) {
@@ -416,8 +422,8 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
       )}
 
       {/* Outside the load gate: the server keeps no copy of this key, so a
-          failed reload must not hide it. */}
-      {fresh !== null && (
+          failed reload must not hide it. The open setup dialog shows it itself. */}
+      {fresh !== null && dialog === null && (
         <div className="flex flex-col gap-2 rounded-card bg-carbon-surface2 px-3 py-2.5">
           <p className="flex items-center gap-1.5 text-sm font-medium text-carbon-text">
             {t("mcp.newKeyTitle")}
@@ -665,12 +671,9 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
           onCreate={(label, canStart) => create(dialog, label, canStart)}
           onCopy={(text) => void copy(text)}
           onDownloadCertificate={downloadCertificate}
-          onClose={(unused) => {
+          onClose={(used) => {
             setDialog(null);
-            if (unused) {
-              setKeyVisible(true);
-              setFresh(unused);
-            }
+            if (used) setFresh((f) => (f?.id === used ? null : f));
           }}
           t={t}
         />
