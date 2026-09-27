@@ -153,6 +153,9 @@ describe("minting a key", () => {
 
     await waitFor(() => expect(createMcpKey).toHaveBeenCalledWith("laptop", true));
     await waitFor(() => expect(screen.getByText(en["mcp.newKeyTitle"])).toBeTruthy());
+    expect(screen.getByText(en["mcp.newKeyTitle"]).querySelector("[aria-label]")?.getAttribute("aria-label")).toBe(
+      en["mcp.showOnce"]
+    );
     expect(screen.getByDisplayValue("bvmcp_abcdef123456")).toBeTruthy();
     expect(screen.getByRole("button", { name: en["mcp.copyKey"] })).toBeTruthy();
     expect(cardText()).toContain("bvmcp_abcdef123456");
@@ -205,11 +208,31 @@ describe("minting a key", () => {
     const clients = screen.getAllByRole("tab").map((el) => el.textContent);
     expect(clients).toEqual(["Claude Code", "Claude Desktop", en["mcp.snippetOther"]]);
     expect(cardText()).toContain("<your key>");
-    expect(screen.getByText(en["mcp.snippetShellHistory"])).toBeTruthy();
 
     fireEvent.click(screen.getByRole("tab", { name: "Claude Desktop" }));
     await waitFor(() => expect(cardText()).toContain("mcp-remote"));
-    expect(screen.queryByText(en["mcp.snippetShellHistory"])).toBeNull();
+  });
+
+  it("explains the connect section through one (i) on its label and one beside the clients", async () => {
+    await renderCard(payload({ keys: [key()] }));
+
+    const label = await screen.findByText(en["mcp.snippetsLabel"]);
+    const bubbles = label.querySelectorAll("[aria-label]");
+    expect(bubbles).toHaveLength(1);
+    expect(bubbles[0].getAttribute("aria-label")).toBe(`${en["mcp.tlsHint"]} ${en["mcp.privacyHint"]}`);
+
+    const beside = () => screen.getByRole("tablist").parentElement!.querySelectorAll(":scope > span[aria-label]");
+    for (const [name, hint] of [
+      ["Claude Code", en["mcp.snippetClaudeCodeHint"]],
+      ["Claude Desktop", en["mcp.snippetDesktopHint"]],
+      [en["mcp.snippetOther"], en["mcp.snippetOtherHint"]],
+    ]) {
+      fireEvent.click(screen.getByRole("tab", { name }));
+      await waitFor(() => expect(beside()[0]?.getAttribute("aria-label")).toContain(hint));
+      expect(beside()).toHaveLength(1);
+      // Nothing explains itself in grey under the snippet.
+      expect(document.querySelector("pre ~ p")).toBeNull();
+    }
   });
 
   it("shows the endpoint of this address", async () => {
@@ -257,7 +280,7 @@ describe("the certificate of this address", () => {
     expect(cardText()).toContain("NODE_EXTRA_CA_CERTS");
 
     fireEvent.click(screen.getByRole("tab", { name: en["mcp.snippetOther"] }));
-    await waitFor(() => expect(screen.getByText(en["mcp.snippetOtherCert"])).toBeTruthy());
+    await waitFor(() => expect(screen.getByLabelText(new RegExp(en["mcp.snippetOtherCert"]))).toBeTruthy());
   });
 
   it("matches an IPv6 address without its brackets", async () => {
@@ -426,8 +449,13 @@ describe("a key list", () => {
     const rows = screen.getAllByRole("listitem");
     const inUse = rows.find((r) => r.textContent?.includes("old laptop"))!;
     const free = rows.find((r) => r.textContent?.includes("old desktop"))!;
-    expect(within(inUse).getByRole("button", { name: en["common.delete"] }).hasAttribute("disabled")).toBe(true);
-    expect(within(inUse).getByLabelText(en["mcp.inUseTip"])).toBeTruthy();
+    const blocked = within(inUse).getByRole("button", { name: en["common.delete"] });
+    expect(blocked.hasAttribute("disabled")).toBe(true);
+    // The reason rides on the button, yet outside the <button>, which takes no
+    // hover or focus while disabled.
+    const reason = within(inUse).getByLabelText(en["mcp.inUseTip"]);
+    expect(blocked.contains(reason)).toBe(false);
+    expect(blocked.parentElement?.contains(reason)).toBe(true);
     expect(within(free).queryByLabelText(en["mcp.inUseTip"])).toBeNull();
 
     fireEvent.click(within(free).getByRole("button", { name: en["common.delete"] }));
@@ -435,7 +463,7 @@ describe("a key list", () => {
     await waitFor(() => expect(purgeMcpKey).toHaveBeenCalledWith("r2"));
   });
 
-  it("shows the restore notice and the limit line", async () => {
+  it("shows the restore notice and says in the new key button why it is off", async () => {
     const many = Array.from({ length: 10 }, (_, i) => key({ id: `k${i}`, label: `key ${i}` }));
     await renderCard(
       payload({
@@ -445,8 +473,11 @@ describe("a key list", () => {
     );
 
     await waitFor(() => expect(screen.getByText(en["mcp.restoreRevokedNotice"])).toBeTruthy());
-    expect(screen.getByText(countText(en["mcp.limitReached"], "en", 10).replace("{n}", "10"))).toBeTruthy();
-    expect(screen.queryByRole("button", { name: en["mcp.newKey"] })).toBeNull();
+    const button = screen.getByRole("button", { name: en["mcp.newKey"] });
+    expect(button.hasAttribute("disabled")).toBe(true);
+    const reason = screen.getByLabelText(countText(en["mcp.limitReached"], "en", 10).replace("{n}", "10"));
+    expect(button.parentElement?.contains(reason)).toBe(true);
+    expect(screen.queryByText(countText(en["mcp.limitReached"], "en", 10).replace("{n}", "10"))).toBeNull();
   });
 
   it("takes the start budget and the last use from the server", async () => {

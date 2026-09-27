@@ -276,6 +276,17 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
     push(t("common.saveFailed"), "fail");
   }
 
+  /** What to do with a client's snippet, for the (i) beside the client strip. */
+  function clientHint(id: ClientId): string {
+    const extra =
+      id === "code"
+        ? t("mcp.snippetShellHistory")
+        : id === "other" && ownCertificate
+          ? t("mcp.snippetOtherCert")
+          : "";
+    return [t(SNIPPET_HINT[id]), extra].filter(Boolean).join(" ");
+  }
+
   async function copy(text: string) {
     const ok = await copyText(text);
     push(ok ? t("common.copied") : t("vm.ssh.copyFailed"), ok ? "success" : "fail");
@@ -417,8 +428,10 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
           failed reload must not hide it. */}
       {fresh !== null && (
         <div className="flex flex-col gap-2 rounded-card bg-carbon-surface2 px-3 py-2.5">
-          <p className="text-sm font-medium text-carbon-text">{t("mcp.newKeyTitle")}</p>
-          <p className="text-sm text-carbon-textSub">{t("mcp.showOnce")}</p>
+          <p className="flex items-center gap-1.5 text-sm font-medium text-carbon-text">
+            {t("mcp.newKeyTitle")}
+            <InfoBubble tip={t("mcp.showOnce")} />
+          </p>
           <RevealInput
             visible={keyVisible}
             onToggleVisible={() => setKeyVisible((v) => !v)}
@@ -455,8 +468,7 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
             <div className="flex flex-col gap-2">
               <span className="flex items-center gap-1.5 text-xs text-carbon-textSub">
                 {t("mcp.snippetsLabel")}
-                <InfoBubble tip={t("mcp.tlsHint")} />
-                <InfoBubble tip={t("mcp.privacyHint")} />
+                <InfoBubble tip={`${t("mcp.tlsHint")} ${t("mcp.privacyHint")}`} />
               </span>
               <div className="flex flex-wrap items-center gap-2">
                 <Selector
@@ -470,17 +482,11 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
                   onChange={(id) => setClient(id as ClientId)}
                   hueOffset={HUE_OFFSET.mcpClient}
                 />
-                <InfoBubble tip={t(SNIPPET_HINT[client])} />
+                <InfoBubble tip={clientHint(client)} />
               </div>
               <pre className="overflow-x-auto rounded-control bg-carbon-surface2 px-3 py-2 text-xs text-carbon-text">
                 <code>{snippet}</code>
               </pre>
-              {client === "code" && (
-                <p className="text-xs text-carbon-textSub">{t("mcp.snippetShellHistory")}</p>
-              )}
-              {client === "other" && ownCertificate && (
-                <p className="text-xs text-carbon-textSub">{t("mcp.snippetOtherCert")}</p>
-              )}
               <Button
                 label={t("mcp.copySnippet")}
                 labelKey="common.copy"
@@ -605,17 +611,14 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
             </ul>
           )}
 
-          {canMint && keys.length >= limit && (
-            <p className="text-sm text-carbon-textSub">{t("mcp.limitReached", limit)}</p>
-          )}
-
-          {canMint && keys.length < limit && !adding && (
+          {canMint && !adding && (
             <Button
               label={t("mcp.newKey")}
               labelKey="mcp.newKey"
               tone="accent"
               onClick={() => setAdding(true)}
-              disabled={busy}
+              disabled={busy || keys.length >= limit}
+              hint={keys.length >= limit ? t("mcp.limitReached", limit) : undefined}
               className="self-start"
               hueIndex={hueIndex}
             />
@@ -706,19 +709,16 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
                         </div>
                         <div className="flex shrink-0 flex-wrap items-center gap-2">
                           <LogButton keyId={k.id} open={logOpen.has(k.id)} onClick={() => toggleLog(k.id)} t={t} />
-                          {/* A disabled button shows no tooltip, so the reason sits beside it. */}
-                          <span className="flex items-center gap-1.5">
-                            {k.inUse && <InfoBubble tip={t("mcp.inUseTip")} />}
-                            <Button
-                              label={t("common.delete")}
-                              labelKey="common.delete"
-                              tone="neutral"
-                              onClick={() => setPending({ kind: "purge", item: k })}
-                              disabled={busy || k.inUse}
-                              className={shake[`purge:${k.id}`] ? "glim-shake" : ""}
-                              hueIndex={hueIndex}
-                            />
-                          </span>
+                          <Button
+                            label={t("common.delete")}
+                            labelKey="common.delete"
+                            tone="neutral"
+                            onClick={() => setPending({ kind: "purge", item: k })}
+                            disabled={busy || k.inUse}
+                            hint={k.inUse ? t("mcp.inUseTip") : undefined}
+                            className={shake[`purge:${k.id}`] ? "glim-shake" : ""}
+                            hueIndex={hueIndex}
+                          />
                         </div>
                       </div>
                       {logOpen.has(k.id) && <McpKeyLog keyId={k.id} used={k.lastUsedAt > 0} t={t} />}
