@@ -126,6 +126,38 @@ func TestSPAWellKnownIsNotFound(t *testing.T) {
 	}
 }
 
+func TestSPAHandsTheOAuthEndpointsToTheAPIAndKeepsTheConsentPage(t *testing.T) {
+	apiMux := http.NewServeMux()
+	apiMux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("api"))
+	})
+	h := api.NewSPAHandler(testSPAFS(), apiMux)
+
+	for _, path := range []string{
+		"/.well-known/oauth-protected-resource/mcp",
+		"/.well-known/oauth-authorization-server",
+		"/oauth/register",
+		"/oauth/token",
+		"/oauth/revoke",
+	} {
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, httptest.NewRequest(http.MethodPost, path, nil))
+		if w.Body.String() != "api" {
+			t.Errorf("%s did not reach the API router: %d %q", path, w.Code, w.Body.String())
+		}
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/oauth/authorize?client_id=x", nil))
+	if w.Body.String() != "<html>spa-root</html>" {
+		t.Fatalf("the consent page is not the shell: %q", w.Body.String())
+	}
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/.well-known/openid-configuration", nil))
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("openid-configuration: %d, want 404", w.Code)
+	}
+}
+
 func TestSPAUnknownAPIRouteDoesNotFallBack(t *testing.T) {
 	apiMux := http.NewServeMux()
 	apiMux.HandleFunc("GET /api/health", func(w http.ResponseWriter, _ *http.Request) {})

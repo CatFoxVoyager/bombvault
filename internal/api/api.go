@@ -134,6 +134,19 @@ func (h *Handler) Router() http.Handler {
 	// serveMCP on its own keys: no key means 404, never open.
 	mux.HandleFunc(mcpEndpointPath, h.serveMCP)
 
+	// The authorization server of the MCP endpoint. Its metadata, registration,
+	// token and revocation endpoints are reached by clients that carry no
+	// session, so they are allow-listed in authGate and answer 404 while OAuth
+	// is not offered. The consent data and the answer need the operator's
+	// session like every other /api route.
+	mux.HandleFunc("GET "+oauthResourceMeta, h.handleOAuthProtectedResource)
+	mux.HandleFunc("GET "+oauthServerMetaPath, h.handleOAuthServerMetadata)
+	mux.HandleFunc("POST "+oauthRegisterPath, h.handleOAuthRegister)
+	mux.HandleFunc("POST "+oauthTokenPath, h.handleOAuthToken)
+	mux.HandleFunc("POST "+oauthRevokePath, h.handleOAuthRevoke)
+	mux.HandleFunc("GET /api/oauth/authorize", h.handleOAuthConsentInfo)
+	mux.HandleFunc("POST /api/oauth/authorize", h.handleOAuthConsent)
+
 	// Public / auth endpoints — also allow-listed inside authGate.
 	mux.HandleFunc("GET /api/health", h.handleHealth)
 	mux.HandleFunc("GET /api/auth", h.handleAuthStatus)
@@ -477,6 +490,7 @@ func (h *Handler) Router() http.Handler {
 	mux.HandleFunc("GET /api/mcp/keys/{id}/activity", h.handleMCPKeyActivity)
 	mux.HandleFunc("GET /api/mcp/certificate", h.handleMCPCertificate)
 	mux.HandleFunc("POST /api/mcp/certificate/names", h.handleAddMCPCertificateName)
+	mux.HandleFunc("PUT /api/mcp/oauth", h.handleSetMCPOAuth)
 
 	// Mesh off-site (v8.0.0): review offers this box has RECEIVED from peers
 	// (accept turns one into a normal named credential set + off-site target,

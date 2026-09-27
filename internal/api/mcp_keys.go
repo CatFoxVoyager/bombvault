@@ -26,6 +26,7 @@ import (
 // out once at creation and is not in here; the hint is what tells two apart.
 type mcpKeyView struct {
 	ID              string `json:"id"`
+	ViaOAuth        bool   `json:"viaOAuth"`
 	Label           string `json:"label"`
 	Client          string `json:"client"`
 	Hint            string `json:"hint"`
@@ -171,6 +172,7 @@ func servedOwnCertificate(r *http.Request) bool {
 func (h *Handler) mcpKeyViewOf(k store.MCPKey, inUse bool, callsToday int) mcpKeyView {
 	return mcpKeyView{
 		ID:              k.ID,
+		ViaOAuth:        k.Kind == store.MCPKindOAuth,
 		Label:           k.Label,
 		Client:          k.Client,
 		Hint:            k.Hint,
@@ -224,6 +226,16 @@ func mcpCallsSince(r *http.Request, now time.Time) int64 {
 }
 
 func (h *Handler) handleListMCPKeys(w http.ResponseWriter, r *http.Request) {
+	// A grant whose refresh token ran out is shown as expired rather than as
+	// active until the next sign-in happens to prune it.
+	if err := h.store.PruneOAuth(h.mcp.now().Unix()); err != nil {
+		log.Printf("api: mcp: oauth: prune: %v", err)
+	}
+	oauth, err := h.mcpOAuthView()
+	if err != nil {
+		writeJSON(w, http.StatusOK, failEnvelope(err))
+		return
+	}
 	rows, err := h.store.ListMCPKeys()
 	if err != nil {
 		writeJSON(w, http.StatusOK, failEnvelope(err))
@@ -265,6 +277,7 @@ func (h *Handler) handleListMCPKeys(w http.ResponseWriter, r *http.Request) {
 		"itemStartsPerDay": mcpItemStartsPerDay,
 		"keys":             active,
 		"revoked":          revoked,
+		"oauth":            oauth,
 	}))
 }
 
@@ -493,12 +506,16 @@ func (h *Handler) handleAddMCPCertificateName(w http.ResponseWriter, r *http.Req
 // connection would otherwise hold that key back for the notifier's whole
 // budget and leave an unusable row behind if the client gave up first.
 func (h *Handler) recordMCPKeyChange(r *http.Request, k store.MCPKey, logged, event string) {
-	log.Printf("api: mcp: key %s ...%s %s", k.ID, k.Hint, logged)
+	if k.Kind == store.MCPKindOAuth {
+		log.Printf("api: mcp: grant %s of client %s %s", k.ID, k.OAuthClient, logged)
+	} else {
+		log.Printf("api: mcp: key %s ...%s %s", k.ID, k.Hint, logged)
+	}
 	if event == "" {
 		return
 	}
 	ctx, addr := context.WithoutCancel(r.Context()), h.loginClientKey(r)
-	h.svc.notifyMCPKeyChange(ctx, event, k.Label, k.Hint, addr)
+	h.svc.notifyMCPKeyChange(ctx, event, k, addr)
 }
 
 // newMCPKeyID returns a 32 hex character id. The caller mints it because the

@@ -45,6 +45,9 @@ type diagManifest struct {
 // is the operator's own word for one of their machines and the hint identifies
 // the key itself, so neither belongs in a file written to be attached to a bug
 // report, and neither does the log itself.
+//
+// For OAuth it says whether sign-in is on and how many clients hold a grant,
+// never the public address it runs under or what the clients are called.
 type diagMCP struct {
 	ActiveKeys         int   `json:"activeKeys"`
 	KeysAllowedToStart int   `json:"keysAllowedToStart"`
@@ -52,6 +55,9 @@ type diagMCP struct {
 	LastUsedAt         int64 `json:"lastUsedAt"`
 	ActivityEvents     int   `json:"activityEvents"`
 	ActivityRefusals   int   `json:"activityRefusals"`
+	OAuthOn            bool  `json:"oauthOn"`
+	ActiveGrants       int   `json:"activeGrants"`
+	RegisteredClients  int   `json:"registeredClients"`
 }
 
 // mcpDiagnostics counts the keys for the manifest.
@@ -65,11 +71,19 @@ func (h *Handler) mcpDiagnostics() (diagMCP, error) {
 	if err != nil {
 		return diagMCP{}, err
 	}
+	_, d.OAuthOn = h.oauthIssuer()
+	if d.RegisteredClients, err = h.store.OAuthClientCount(); err != nil {
+		return diagMCP{}, err
+	}
 	for _, k := range rows {
 		if k.LastUsedAt > d.LastUsedAt {
 			d.LastUsedAt = k.LastUsedAt
 		}
 		if k.RevokedAt != 0 {
+			continue
+		}
+		if k.Kind == store.MCPKindOAuth {
+			d.ActiveGrants++
 			continue
 		}
 		d.ActiveKeys++

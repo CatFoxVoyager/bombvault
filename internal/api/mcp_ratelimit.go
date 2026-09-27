@@ -5,14 +5,16 @@ import (
 	"time"
 )
 
-// slidingWindow counts hits per key over a rolling window. The keys are MCP key
-// ids, so the map is bounded by the number of keys used in this process, and a
-// key whose window has run empty drops out of it.
+// slidingWindow counts hits per key over a rolling window. For MCP key ids the
+// map is bounded by the number of keys used in this process, and a key whose
+// window has run empty drops out of it. Keyed by client address, maxKeys bounds
+// it instead.
 type slidingWindow struct {
-	mu     sync.Mutex
-	window time.Duration
-	max    int
-	hits   map[string][]time.Time
+	mu      sync.Mutex
+	window  time.Duration
+	max     int
+	maxKeys int
+	hits    map[string][]time.Time
 }
 
 func newSlidingWindow(window time.Duration, max int) *slidingWindow {
@@ -20,11 +22,21 @@ func newSlidingWindow(window time.Duration, max int) *slidingWindow {
 }
 
 // allow records a hit and reports whether it fit in the window. When it did
-// not, the second value is how long until the oldest hit falls out.
+// not, the second value is how long until the oldest hit falls out. With
+// maxKeys set, a key it has not seen is refused while that many others still
+// have hits in their window.
 func (s *slidingWindow) allow(key string, now time.Time) (bool, time.Duration) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	kept := s.pruneLocked(key, now)
+	if len(kept) == 0 && s.maxKeys > 0 && len(s.hits) >= s.maxKeys {
+		for k := range s.hits {
+			s.pruneLocked(k, now)
+		}
+		if len(s.hits) >= s.maxKeys {
+			return false, s.window
+		}
+	}
 	if len(kept) >= s.max {
 		return false, s.window - now.Sub(kept[0])
 	}

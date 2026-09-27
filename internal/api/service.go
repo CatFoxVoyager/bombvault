@@ -2089,14 +2089,22 @@ func (s *Service) notifyRetentionFailed(ctx context.Context, tag, detail string)
 // The settings are read before it returns and the sending happens in the
 // background, so a change is judged by the configuration in force when it was
 // made and the caller does not wait on a slow endpoint.
-func (s *Service) notifyMCPKeyChange(ctx context.Context, event, label, hint, addr string) {
+//
+// A client that signed in through OAuth is reported the same way, by the name
+// it has on its tile.
+func (s *Service) notifyMCPKeyChange(ctx context.Context, event string, k store.MCPKey, addr string) {
 	c, err := s.NotifyConfig()
 	if err != nil || c.On == "" || c.On == "never" {
 		return
 	}
 	title := "BombVault: MCP key " + event
 	msg := fmt.Sprintf("The MCP key %q (ending in %s) was %s from %s. If this was not you, revoke it under Settings > System > MCP server.",
-		label, hint, event, addr)
+		k.Label, k.Hint, event, addr)
+	if k.Kind == store.MCPKindOAuth {
+		title = "BombVault: MCP client " + event
+		msg = fmt.Sprintf("The MCP client %q, signed in through OAuth, was %s from %s. If this was not you, revoke its access under Settings > System > MCP server.",
+			k.Label, event, addr)
+	}
 	go func() {
 		notify.Send(notify.WithHealthchecksSuppressed(ctx), c, "mcp", notify.Event{Title: title, Message: msg, OK: false})
 		if s.unraidGate(c.Unraid) {

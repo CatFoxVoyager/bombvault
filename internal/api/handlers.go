@@ -5052,7 +5052,8 @@ func authGatePublicPath(path string) bool {
 		"/widget", "/api/widget/data",
 		"/api/fleet/status", "/api/fleet/mesh-offer",
 		"/api/auth/passkeys", "/api/auth/passkey/login/begin", "/api/auth/passkey/login/finish",
-		mcpEndpointPath:
+		mcpEndpointPath,
+		oauthResourceMeta, oauthServerMetaPath, oauthRegisterPath, oauthTokenPath, oauthRevokePath:
 		return true
 	}
 	return false

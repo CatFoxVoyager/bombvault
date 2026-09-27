@@ -118,6 +118,8 @@ type mcpState struct {
 	requests  map[string]uint64
 	toolCalls map[mcpToolOutcome]uint64
 
+	oauth *oauthState
+
 	// now is time.Now; internal tests replace it with a fixed clock.
 	now func() time.Time
 }
@@ -139,6 +141,7 @@ func newMCPState() *mcpState {
 		authLog:   map[string]int64{},
 		requests:  map[string]uint64{},
 		toolCalls: map[mcpToolOutcome]uint64{},
+		oauth:     newOAuthState(),
 		now:       time.Now,
 	}
 }
@@ -176,8 +179,9 @@ func (h *Handler) buildMCPHTTP() http.Handler {
 }
 
 // serveMCP is the gate in front of the transport: feature switch, origin,
-// address throttle, key, per-key budget and batch shape, in that order. Every
-// outcome is counted for /metrics.
+// address throttle, key or access token, per-key budget and batch shape, in
+// that order. Every outcome is counted for /metrics. A grant goes through it as
+// the key it is stored as.
 func (h *Handler) serveMCP(w http.ResponseWriter, r *http.Request) {
 	keys, err := h.store.ActiveMCPKeys()
 	if err != nil {
@@ -186,7 +190,8 @@ func (h *Handler) serveMCP(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"error": "mcp unavailable"})
 		return
 	}
-	if len(keys) == 0 {
+	issuer, oauthOn := h.oauthIssuer()
+	if len(keys) == 0 && !oauthOn {
 		h.countMCPRequest("not_found")
 		http.NotFound(w, r)
 		return
@@ -206,19 +211,27 @@ func (h *Handler) serveMCP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	challenge := mcpChallenge(issuer, oauthOn)
 	presented, present, conflict := presentedMCPKey(r)
 	if !present {
 		h.countMCPRequest("no_key")
-		w.Header().Set("WWW-Authenticate", mcpAuthRealm)
+		w.Header().Set("WWW-Authenticate", challenge)
 		writeJSON(w, http.StatusUnauthorized, map[string]any{"error": "an MCP key is required"})
 		return
 	}
-	k, match := matchMCPKey(secret.HashMCPKey(h.cfg.AppKey, presented), keys)
+	now := h.mcp.now()
+	var k store.MCPKey
+	var match bool
+	if oauthOn && strings.HasPrefix(presented, secret.OAuthAccessPrefix) {
+		k, match = h.oauthGrantFor(presented, issuer, now)
+	} else {
+		k, match = matchMCPKey(secret.HashMCPKey(h.cfg.AppKey, presented), keys)
+	}
 	if conflict || !match {
 		h.recordLoginFail(bucket)
 		h.logMCPAuthFailure(addr, conflict)
 		h.countMCPRequest("invalid_key")
-		w.Header().Set("WWW-Authenticate", mcpAuthRealm+`, error="invalid_token"`)
+		w.Header().Set("WWW-Authenticate", challenge+`, error="invalid_token"`)
 		writeJSON(w, http.StatusUnauthorized, map[string]any{"error": "the MCP key is not valid"})
 		return
 	}
@@ -226,7 +239,6 @@ func (h *Handler) serveMCP(w http.ResponseWriter, r *http.Request) {
 	// A success leaves the failure bucket where it is. Behind a shared proxy
 	// address an assistant polling legitimately would otherwise reset a
 	// guesser's count with every call, and the throttle would never engage.
-	now := h.mcp.now()
 	if allowed, retry := h.mcp.calls.allow(k.ID, now); !allowed {
 		h.countMCPRequest("rate_limited")
 		h.recordMCPRefusal(k.ID, "rate_limited", now)
