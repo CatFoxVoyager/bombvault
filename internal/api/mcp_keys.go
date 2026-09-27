@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -26,6 +27,7 @@ import (
 type mcpKeyView struct {
 	ID              string `json:"id"`
 	Label           string `json:"label"`
+	Client          string `json:"client"`
 	Hint            string `json:"hint"`
 	CanStartBackups bool   `json:"canStartBackups"`
 	CreatedAt       int64  `json:"createdAt"`
@@ -41,6 +43,7 @@ type mcpKeyView struct {
 
 var (
 	errMCPKeyLabel         = errors.New("a key needs a name of 1 to 64 characters")
+	errMCPKeyClient        = errors.New("a client id is 1 to 32 lower-case letters, digits and dashes")
 	errMCPKeyNeedsPassword = errors.New("set a login password before creating a key or adding a certificate name from this address")
 )
 
@@ -85,6 +88,10 @@ func normalizeMCPKeyLabel(s string) (string, bool) {
 	}
 	return s, true
 }
+
+// mcpClientID is the shape of an id in the card's client list. The server does
+// not keep that list; it only stores the id for the key's tile.
+var mcpClientID = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,31}$`)
 
 // mcpKeyIDParam reads the {id} path value and answers 400 itself when it is not
 // the 32-hex shape every row in the table carries.
@@ -165,6 +172,7 @@ func (h *Handler) mcpKeyViewOf(k store.MCPKey, inUse bool, callsToday int) mcpKe
 	return mcpKeyView{
 		ID:              k.ID,
 		Label:           k.Label,
+		Client:          k.Client,
 		Hint:            k.Hint,
 		CanStartBackups: k.CanStartBackups,
 		CreatedAt:       k.CreatedAt,
@@ -263,9 +271,14 @@ func (h *Handler) handleListMCPKeys(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) handleCreateMCPKey(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Label           string `json:"label"`
+		Client          string `json:"client"`
 		CanStartBackups *bool  `json:"canStartBackups"`
 	}
 	if !decodeBody(w, r, &body) {
+		return
+	}
+	if body.Client != "" && !mcpClientID.MatchString(body.Client) {
+		writeJSON(w, http.StatusOK, failEnvelope(errMCPKeyClient))
 		return
 	}
 	if !h.mcpKeysAllowedFrom(r) {
@@ -285,7 +298,7 @@ func (h *Handler) handleCreateMCPKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := newMCPKeyID()
-	row, err := h.store.CreateMCPKey(id, label,
+	row, err := h.store.CreateMCPKey(id, label, body.Client,
 		secret.HashMCPKey(h.cfg.AppKey, key), secret.MCPKeyHint(key), secret.MCPKeyCheck(h.cfg.AppKey, id),
 		canStart, time.Now().Unix())
 	if err != nil {

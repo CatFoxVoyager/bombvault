@@ -301,3 +301,26 @@ func TestMigrateCreatesMCPKeys(t *testing.T) {
 		t.Fatalf("migrate over the existing table: %v", err)
 	}
 }
+
+func TestMigrateAddsMCPKeyClient(t *testing.T) {
+	db := store.OpenMem(t)
+	if err := store.Migrate(db); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+	if _, err := db.Exec(`INSERT INTO mcp_keys (id, label) VALUES ('old', 'Made before clients')`); err != nil {
+		t.Fatalf("insert: %v", err)
+	}
+	var client string
+	if err := db.QueryRow(`SELECT client FROM mcp_keys WHERE id = 'old'`).Scan(&client); err != nil {
+		t.Fatalf("read client: %v", err)
+	}
+	if client != "" {
+		t.Fatalf("a key without a client reads %q, want empty", client)
+	}
+	if _, err := db.Exec(`DELETE FROM schema_migrations WHERE name = 'mcp_keys_client'`); err != nil {
+		t.Fatalf("forget the migration: %v", err)
+	}
+	if err := store.Migrate(db); err != nil {
+		t.Fatalf("migrate over the existing column: %v", err)
+	}
+}

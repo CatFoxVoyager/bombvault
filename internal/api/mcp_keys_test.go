@@ -61,6 +61,36 @@ func TestMCPKeyCreateShowsKeyOnce(t *testing.T) {
 	}
 }
 
+func TestMCPKeyCreateRemembersTheClient(t *testing.T) {
+	st := newMemStore(t)
+	h, _ := newMCPKeyRouter(t, st, mcpAppKey)
+
+	_, m := doMCPKey(t, h, http.MethodPost, "/api/mcp/keys", `{"label":"Cursor","client":"cursor"}`)
+	item, _ := m["item"].(map[string]any)
+	if m["ok"] != true || item["client"] != "cursor" {
+		t.Fatalf("create: %v, want the item to name client cursor", m)
+	}
+	createMCPKey(t, h, "Nightly report", false)
+
+	_, list := doMCPKey(t, h, http.MethodGet, "/api/mcp/keys", "")
+	keys, _ := list["keys"].([]any)
+	clients := map[string]any{}
+	for _, k := range keys {
+		row, _ := k.(map[string]any)
+		clients[row["label"].(string)] = row["client"]
+	}
+	if clients["Cursor"] != "cursor" || clients["Nightly report"] != "" {
+		t.Fatalf("listed clients = %v, want cursor and an empty one", clients)
+	}
+
+	for _, bad := range []string{"Cursor", "claude code", strings.Repeat("a", 33), "../x"} {
+		_, m := doMCPKey(t, h, http.MethodPost, "/api/mcp/keys", fmt.Sprintf(`{"label":%q,"client":%q}`, "Key "+bad, bad))
+		if m["ok"] != false {
+			t.Fatalf("client %q was taken: %v", bad, m)
+		}
+	}
+}
+
 func TestMCPKeyCreateValidationCodes(t *testing.T) {
 	st := newMemStore(t)
 	h, _ := newMCPKeyRouter(t, st, mcpAppKey)

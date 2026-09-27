@@ -21,7 +21,7 @@ func newMCPRepo(t *testing.T) *store.Repo {
 // so a test can tell one row's secret material from another's.
 func addMCPKey(t *testing.T, r *store.Repo, id, label string, canStart bool, now int64) store.MCPKey {
 	t.Helper()
-	key, err := r.CreateMCPKey(id, label, "digest-"+id, "h"+id, "check-"+id, canStart, now)
+	key, err := r.CreateMCPKey(id, label, "", "digest-"+id, "h"+id, "check-"+id, canStart, now)
 	if err != nil {
 		t.Fatalf("CreateMCPKey(%s): %v", id, err)
 	}
@@ -33,7 +33,7 @@ func TestCreateMCPKeyEnforcesLimitAndActiveLabel(t *testing.T) {
 	for i := 0; i < store.MCPKeyLimit; i++ {
 		addMCPKey(t, r, fmt.Sprintf("id%02d", i), fmt.Sprintf("client %d", i), true, 1000+int64(i))
 	}
-	_, err := r.CreateMCPKey("one-too-many", "eleven", "digest-x", "hx", "check-x", true, 2000)
+	_, err := r.CreateMCPKey("one-too-many", "eleven", "", "digest-x", "hx", "check-x", true, 2000)
 	if !errors.Is(err, store.ErrMCPKeyLimit) {
 		t.Fatalf("the eleventh create gave %v, want ErrMCPKeyLimit", err)
 	}
@@ -47,15 +47,49 @@ func TestCreateMCPKeyEnforcesLimitAndActiveLabel(t *testing.T) {
 
 	r = newMCPRepo(t)
 	addMCPKey(t, r, "laptop", "Laptop", true, 1000)
-	_, err = r.CreateMCPKey("second", "laptop", "digest-second", "hs", "check-second", true, 1100)
+	_, err = r.CreateMCPKey("second", "laptop", "", "digest-second", "hs", "check-second", true, 1100)
 	if !errors.Is(err, store.ErrMCPKeyLabelTaken) {
 		t.Fatalf("a label differing only in case gave %v, want ErrMCPKeyLabelTaken", err)
 	}
 	if err := r.RevokeMCPKey("laptop", "user", 1200); err != nil {
 		t.Fatalf("RevokeMCPKey: %v", err)
 	}
-	if _, err := r.CreateMCPKey("second", "laptop", "digest-second", "hs", "check-second", true, 1300); err != nil {
+	if _, err := r.CreateMCPKey("second", "laptop", "", "digest-second", "hs", "check-second", true, 1300); err != nil {
 		t.Fatalf("a revoked key must release its label, got %v", err)
+	}
+}
+
+func TestMCPKeyRemembersItsClient(t *testing.T) {
+	r := newMCPRepo(t)
+	if _, err := r.CreateMCPKey("editor", "Cursor", "cursor", "digest-editor", "hed", "check-editor", false, 1000); err != nil {
+		t.Fatalf("CreateMCPKey: %v", err)
+	}
+	addMCPKey(t, r, "nightly", "Nightly report", false, 1100)
+
+	got, err := r.GetMCPKey("editor")
+	if err != nil {
+		t.Fatalf("GetMCPKey: %v", err)
+	}
+	if got.Client != "cursor" {
+		t.Fatalf("Client = %q, want cursor", got.Client)
+	}
+	rotated, err := r.RotateMCPKey("editor", "digest-new", "hnew", "check-new", 2000)
+	if err != nil {
+		t.Fatalf("RotateMCPKey: %v", err)
+	}
+	if rotated.Client != "cursor" {
+		t.Fatalf("a replaced key names client %q, want cursor", rotated.Client)
+	}
+	list, err := r.ListMCPKeys()
+	if err != nil {
+		t.Fatalf("ListMCPKeys: %v", err)
+	}
+	clients := map[string]string{}
+	for _, k := range list {
+		clients[k.ID] = k.Client
+	}
+	if clients["editor"] != "cursor" || clients["nightly"] != "" {
+		t.Fatalf("listed clients = %v, want cursor for editor and none for nightly", clients)
 	}
 }
 

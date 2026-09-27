@@ -2055,6 +2055,15 @@ WHERE tool <> ''
   AND (outcome <> 'ok' OR tool NOT IN ('start_backup', 'start_domain_backup', 'start_backup_everything', 'cancel_backup'));
 CREATE INDEX IF NOT EXISTS idx_mcp_key_events_routine ON mcp_key_events(key_id, routine, id);`,
 	},
+	{
+		// The client a key was created for, by its id in the card's client
+		// list, so the key's tile can show that client's mark. '' is a key made
+		// before the list existed or through Other client.
+		version:          mcpActivityMigration + 2,
+		name:             "mcp_keys_client",
+		alreadySatisfied: columnPresent("mcp_keys", "client"),
+		sql:              `ALTER TABLE mcp_keys ADD COLUMN client TEXT NOT NULL DEFAULT '';`,
+	},
 }
 
 // dbDumpMigrationBase numbers the three database-dump columns from one place,

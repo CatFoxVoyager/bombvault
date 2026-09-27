@@ -13,6 +13,7 @@ import (
 type MCPKey struct {
 	ID              string
 	Label           string
+	Client          string
 	Digest          string
 	Hint            string
 	Check           string
@@ -37,11 +38,11 @@ var (
 	ErrMCPKeyActive     = errors.New("mcp key is still active")
 )
 
-const mcpKeyCols = `id, label, key_digest, key_hint, key_check, can_start_backups, created_at, rotated_at, last_used_at, last_used_from, revoked_at, revoked_reason` //nolint:gosec // G101: a SQL column list; the digest column holds an HMAC, not a key
+const mcpKeyCols = `id, label, client, key_digest, key_hint, key_check, can_start_backups, created_at, rotated_at, last_used_at, last_used_from, revoked_at, revoked_reason` //nolint:gosec // G101: a SQL column list; the digest column holds an HMAC, not a key
 
 func scanMCPKey(s scanner) (MCPKey, error) {
 	var k MCPKey
-	err := s.Scan(&k.ID, &k.Label, &k.Digest, &k.Hint, &k.Check, &k.CanStartBackups,
+	err := s.Scan(&k.ID, &k.Label, &k.Client, &k.Digest, &k.Hint, &k.Check, &k.CanStartBackups,
 		&k.CreatedAt, &k.RotatedAt, &k.LastUsedAt, &k.LastUsedFrom, &k.RevokedAt, &k.RevokedReason)
 	if err != nil {
 		return MCPKey{}, err
@@ -131,7 +132,7 @@ func (r *Repo) GetMCPKey(id string) (MCPKey, error) {
 // value is derived from it before the row exists. Limit and label are settled
 // inside the transaction that writes the row, so two creates at once cannot
 // both find room.
-func (r *Repo) CreateMCPKey(id, label, digest, hint, check string, canStart bool, now int64) (MCPKey, error) {
+func (r *Repo) CreateMCPKey(id, label, client, digest, hint, check string, canStart bool, now int64) (MCPKey, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return MCPKey{}, fmt.Errorf("CreateMCPKey: %w", err)
@@ -152,8 +153,8 @@ func (r *Repo) CreateMCPKey(id, label, digest, hint, check string, canStart bool
 	if taken {
 		return MCPKey{}, ErrMCPKeyLabelTaken
 	}
-	_, err = tx.Exec(`INSERT INTO mcp_keys (id, label, key_digest, key_hint, key_check, can_start_backups, created_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?)`, id, label, digest, hint, check, canStart, now)
+	_, err = tx.Exec(`INSERT INTO mcp_keys (id, label, client, key_digest, key_hint, key_check, can_start_backups, created_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, id, label, client, digest, hint, check, canStart, now)
 	if err != nil {
 		return MCPKey{}, fmt.Errorf("CreateMCPKey: %w", err)
 	}
