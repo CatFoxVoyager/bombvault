@@ -554,7 +554,7 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
                         </Badge>
                       </span>
                     </div>
-                    <div className="flex shrink-0 flex-wrap items-start gap-2">
+                    <div className="flex min-w-0 flex-wrap items-start gap-2">
                       <LogButton keyId={k.id} open={logOpen.has(k.id)} onClick={() => toggleLog(k.id)} t={t} />
                       <Button
                         label={t("mcp.revoke")}
@@ -626,7 +626,7 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
                               : t("mcp.keyLastUsedNoAddr").replace("{when}", relativeTime(t, k.lastUsedAt))}
                           </span>
                         </div>
-                        <div className="flex shrink-0 flex-wrap items-center gap-2">
+                        <div className="flex min-w-0 flex-wrap items-center gap-2">
                           <LogButton keyId={k.id} open={logOpen.has(k.id)} onClick={() => toggleLog(k.id)} t={t} />
                           <Button
                             label={t("common.delete")}
