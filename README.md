@@ -131,7 +131,7 @@ The closest counterpart is [**Vault**](https://github.com/ruaan-deysel/vault) by
 | Web UI usable on a phone | ❌ in progress | ✅ per its README | ❓ | ✅ | ❓ | ❓ |
 | Track record | ⚠️ since 2026, one maintainer | ⚠️ since 2026, one maintainer | ⚠️ since 2023, feature-frozen | ✅ since 2008 | ✅ since 2019 | ✅ since 2015 |
 
-✅ yes · ⚠️ partly · ❌ no · ❓ not found in code or docs. "In progress" means the work is under way but not in a release yet. Checked on 25 September 2026 against BombVault v8.13.0 and the current code and docs of the others.
+✅ yes · ⚠️ partly · ❌ no · ❓ not found in code or docs. "In progress" means the work is under way but not in a release yet. Checked on 25 September 2026 against BombVault v9.0.0 and the current code and docs of the others.
 
 <br>
 
