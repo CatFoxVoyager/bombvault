@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
 import { Button } from "../Button";
 import { IconCancel } from "../glyphs";
 import { BottomSheet } from "./BottomSheet";
@@ -38,6 +38,8 @@ export interface ConfirmSheetProps {
    *  trigger's glyph, exactly as ConfirmDialog does. */
   confirmLabelKey?: string;
   cancelLabel: string;
+  /** The same slot ConfirmDialog has under the message. */
+  extra?: ReactNode;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -48,6 +50,7 @@ export function ConfirmSheet({
   confirmLabel,
   confirmLabelKey,
   cancelLabel,
+  extra,
   onConfirm,
   onCancel,
 }: ConfirmSheetProps) {
@@ -92,6 +95,7 @@ export function ConfirmSheet({
           it; the block owns only its vertical breathing room. */}
       <div className="py-4">
         <p id={messageId} className="text-sm leading-relaxed text-carbon-textSub wrap-break-word">{message}</p>
+        {extra !== undefined && <div className="mt-4">{extra}</div>}
       </div>
     </BottomSheet>
   );

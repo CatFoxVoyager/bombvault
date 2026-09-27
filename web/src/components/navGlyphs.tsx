@@ -282,6 +282,38 @@ export function IconCloud() {
   );
 }
 
+/** A database. */
+export function IconDatabase() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 14 14"
+      fill="currentColor"
+      className="shrink-0"
+      aria-hidden="true"
+    >
+      <ellipse cx="7" cy="3.3" rx="5.4" ry="1.8" /><path d="M1.6 5.7Q7 9.3 12.4 5.7L12.4 7.7Q7 11.3 1.6 7.7Z" /><path d="M1.6 8.7Q7 12.3 12.4 8.7L12.4 10.7Q7 14.3 1.6 10.7Z" />
+    </svg>
+  );
+}
+
+/** ZFS datasets. */
+export function IconZFS() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 14 14"
+      fill="currentColor"
+      className="shrink-0"
+      aria-hidden="true"
+    >
+      <ellipse cx="7" cy="2.6" rx="5.4" ry="1.8" /><ellipse cx="7" cy="7" rx="5.4" ry="1.8" /><ellipse cx="7" cy="11.4" rx="5.4" ry="1.8" />
+    </svg>
+  );
+}
+
 /** Add. */
 export function IconAdd() {
   return (
@@ -415,6 +447,22 @@ export function IconEllipsis() {
       aria-hidden="true"
     >
       <circle cx="2.5" cy="7" r="1.1" /><circle cx="7" cy="7" r="1.1" /><circle cx="11.5" cy="7" r="1.1" />
+    </svg>
+  );
+}
+
+/** Anomalies, a backup that does not fit its history. */
+export function IconAnomalies() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 14 14"
+      fill="currentColor"
+      className="shrink-0"
+      aria-hidden="true"
+    >
+      <rect x="1.4" y="8.6" width="2.2" height="4" rx="1.1" /><rect x="4.4" y="7.4" width="2.2" height="5.2" rx="1.1" /><rect x="7.4" y="1.4" width="2.2" height="11.2" rx="1.1" /><rect x="10.4" y="8" width="2.2" height="4.6" rx="1.1" />
     </svg>
   );
 }
