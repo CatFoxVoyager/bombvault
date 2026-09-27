@@ -589,14 +589,20 @@ func TestRefreshRotatesAndAReusedTokenRevokesTheGrant(t *testing.T) {
 		t.Fatalf("the refreshed access token: %d", got)
 	}
 
+	next := url.Values{"grant_type": {"refresh_token"}, "client_id": {client}, "refresh_token": {str(second, "refresh_token")}}
+	w, third := e.token(t, next, "", "")
+	if w.Code != http.StatusOK {
+		t.Fatalf("the second refresh: %d %v", w.Code, third)
+	}
+
 	if w, m := e.token(t, refresh, "", ""); w.Code != http.StatusBadRequest || m["error"] != "invalid_grant" {
 		t.Fatalf("reusing the first refresh token: %d %v", w.Code, m)
 	}
-	if got := mcpStatus(t, e.h, str(second, "access_token")); got != http.StatusUnauthorized {
+	if got := mcpStatus(t, e.h, str(third, "access_token")); got != http.StatusUnauthorized {
 		t.Fatalf("the grant survived a reused refresh token: %d", got)
 	}
-	next := url.Values{"grant_type": {"refresh_token"}, "client_id": {client}, "refresh_token": {str(second, "refresh_token")}}
-	if w, m := e.token(t, next, "", ""); w.Code != http.StatusBadRequest || m["error"] != "invalid_grant" {
+	last := url.Values{"grant_type": {"refresh_token"}, "client_id": {client}, "refresh_token": {str(third, "refresh_token")}}
+	if w, m := e.token(t, last, "", ""); w.Code != http.StatusBadRequest || m["error"] != "invalid_grant" {
 		t.Fatalf("the newest refresh token after reuse: %d %v", w.Code, m)
 	}
 	revoked := mcpKeyRows(t, mcpKeyListAs(t, e), "revoked")
@@ -666,6 +672,31 @@ func TestStaleAccessTokensDoNotCountAsFailedAttempts(t *testing.T) {
 	}
 	if got := mcpStatus(t, e.h, key); got != http.StatusOK {
 		t.Fatalf("a key after five stale access tokens from its address: %d", got)
+	}
+}
+
+// A client whose refresh answer got lost on the way sends the same request
+// again. That is no sign of a stolen token.
+func TestARetriedRefreshKeepsTheGrant(t *testing.T) {
+	e := newOAuthEnv(t)
+	client, tok := e.signIn(t, false)
+	form := url.Values{"grant_type": {"refresh_token"}, "client_id": {client}, "refresh_token": {str(tok, "refresh_token")}}
+	if w, m := e.token(t, form, "", ""); w.Code != http.StatusOK {
+		t.Fatalf("refresh: %d %v", w.Code, m)
+	}
+	w, retry := e.token(t, form, "", "")
+	if w.Code != http.StatusOK {
+		t.Fatalf("the retried refresh: %d %v", w.Code, retry)
+	}
+	if got := mcpStatus(t, e.h, str(retry, "access_token")); got != http.StatusOK {
+		t.Fatalf("the retry's access token: %d", got)
+	}
+	next := url.Values{"grant_type": {"refresh_token"}, "client_id": {client}, "refresh_token": {str(retry, "refresh_token")}}
+	if w, m := e.token(t, next, "", ""); w.Code != http.StatusOK {
+		t.Fatalf("the retry's refresh token: %d %v", w.Code, m)
+	}
+	if revoked := mcpKeyRows(t, mcpKeyListAs(t, e), "revoked"); len(revoked) != 0 {
+		t.Fatalf("a retry revoked the grant: %v", revoked)
 	}
 }
 

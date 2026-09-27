@@ -330,6 +330,51 @@ func TestAReusedRefreshTokenRevokesTheGrant(t *testing.T) {
 	}
 }
 
+func TestARefreshRetriedRightAwayGetsNewTokensAndKeepsTheGrant(t *testing.T) {
+	r := newMCPRepo(t)
+	addOAuthClient(t, r, "c1", 10)
+	addSignedIn(t, r, "g1", "c1", "a1", "r1", 100)
+	if _, err := r.RotateOAuthRefresh("r1", "c1", "a2", "r2", 200+3600, 200+86400, 200); err != nil {
+		t.Fatal(err)
+	}
+	retry := int64(200 + store.OAuthRefreshRetryWindow)
+	if _, err := r.RotateOAuthRefresh("r1", "c1", "a3", "r3", retry+3600, retry+86400, retry); err != nil {
+		t.Fatalf("a retry within the window gave %v", err)
+	}
+	if _, err := r.OAuthAccessGrant("a3", retry); err != nil {
+		t.Fatalf("the retry's access token does not work: %v", err)
+	}
+	if _, err := r.RotateOAuthRefresh("r3", "c1", "a4", "r4", 0, retry+86400, retry+60); err != nil {
+		t.Fatalf("the retry's refresh token does not work: %v", err)
+	}
+}
+
+func TestARefreshRetriedTooLateOrOutOfOrderRevokesTheGrant(t *testing.T) {
+	for name, steps := range map[string][][2]string{
+		"too late":     {{"r1", "r2"}, {"r1", "late"}},
+		"out of order": {{"r1", "r2"}, {"r2", "r3"}, {"r1", "old"}},
+	} {
+		r := newMCPRepo(t)
+		addOAuthClient(t, r, "c1", 10)
+		addSignedIn(t, r, "g1", "c1", "a1", "r1", 100)
+		now := int64(200)
+		var err error
+		for i, s := range steps {
+			if s[1] == "late" {
+				now += store.OAuthRefreshRetryWindow + 1
+			}
+			_, err = r.RotateOAuthRefresh(s[0], "c1", "a-"+s[1], s[1], now+3600, now+86400, now)
+			if i < len(steps)-1 && err != nil {
+				t.Fatalf("%s: step %d: %v", name, i, err)
+			}
+			now++
+		}
+		if !errors.Is(err, store.ErrOAuthRefreshReused) {
+			t.Errorf("%s: gave %v, want the grant revoked", name, err)
+		}
+	}
+}
+
 func TestARefreshTokenWorksOnlyForItsOwnClient(t *testing.T) {
 	r := newMCPRepo(t)
 	addOAuthClient(t, r, "c1", 10)

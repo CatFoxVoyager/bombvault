@@ -69,6 +69,10 @@ const (
 	// OAuthSpentRefreshKept is how many rotated-out refresh tokens of a grant
 	// are remembered to recognise one presented again.
 	OAuthSpentRefreshKept = 20
+
+	// OAuthRefreshRetryWindow is how many seconds the refresh token spent last
+	// may come back as a retry, from a client whose answer got lost on the way.
+	OAuthRefreshRetryWindow = 30
 )
 
 var (
@@ -300,11 +304,11 @@ func (r *Repo) OAuthAccessGrant(digest string, now int64) (MCPKey, error) {
 }
 
 // RotateOAuthRefresh trades a live refresh token of clientID for a new access
-// and refresh token. The old one is kept as spent; presented again it revokes
-// the grant and answers ErrOAuthRefreshReused with the grant, because either
-// the client or somebody who copied the token is using an old one. Of the
-// grant's access tokens the newest stays beside the new one, so a request
-// already on its way when the client refreshed still gets through.
+// and refresh token. A spent one presented again revokes the grant and answers
+// ErrOAuthRefreshReused with it, because somebody may hold a copy, unless it
+// is the one spent last and back within OAuthRefreshRetryWindow: that is a
+// client whose answer got lost. The newest access token stays beside the new
+// one, so a request already on its way still gets through.
 func (r *Repo) RotateOAuthRefresh(oldDigest, clientID, access, refresh string, accessExp, refreshExp, now int64) (MCPKey, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -330,13 +334,21 @@ func (r *Repo) RotateOAuthRefresh(oldDigest, clientID, access, refresh string, a
 		return MCPKey{}, fmt.Errorf("RotateOAuthRefresh grant: %w", err)
 	}
 	if spent != 0 {
-		if _, err := revokeMCPKeyTx(tx, grantID, "refresh-reuse", now); err != nil {
-			return MCPKey{}, fmt.Errorf("RotateOAuthRefresh revoke: %w", err)
+		var last string
+		err := tx.QueryRow(`SELECT digest FROM mcp_oauth_tokens WHERE grant_id = ? AND kind = 'refresh' AND spent_at != 0
+			ORDER BY spent_at DESC, rowid DESC LIMIT 1`, grantID).Scan(&last)
+		if err != nil {
+			return MCPKey{}, fmt.Errorf("RotateOAuthRefresh: %w", err)
 		}
-		if err := tx.Commit(); err != nil {
-			return MCPKey{}, fmt.Errorf("RotateOAuthRefresh commit: %w", err)
+		if last != oldDigest || now-spent > OAuthRefreshRetryWindow {
+			if _, err := revokeMCPKeyTx(tx, grantID, "refresh-reuse", now); err != nil {
+				return MCPKey{}, fmt.Errorf("RotateOAuthRefresh revoke: %w", err)
+			}
+			if err := tx.Commit(); err != nil {
+				return MCPKey{}, fmt.Errorf("RotateOAuthRefresh commit: %w", err)
+			}
+			return grant, ErrOAuthRefreshReused
 		}
-		return grant, ErrOAuthRefreshReused
 	}
 	if expires <= now {
 		return MCPKey{}, ErrOAuthTokenNotFound
@@ -345,7 +357,9 @@ func (r *Repo) RotateOAuthRefresh(oldDigest, clientID, access, refresh string, a
 		q    string
 		args []any
 	}{
-		{`UPDATE mcp_oauth_tokens SET spent_at = ? WHERE digest = ?`, []any{now, oldDigest}},
+		// A grant has one live refresh token: the one presented, or on a retry
+		// the one the lost answer carried.
+		{`UPDATE mcp_oauth_tokens SET spent_at = ? WHERE grant_id = ? AND kind = 'refresh' AND spent_at = 0`, []any{now, grantID}},
 		{`DELETE FROM mcp_oauth_tokens WHERE grant_id = ? AND kind = 'access' AND digest NOT IN (
 			SELECT digest FROM mcp_oauth_tokens WHERE grant_id = ? AND kind = 'access'
 			ORDER BY created_at DESC, rowid DESC LIMIT 1)`, []any{grantID, grantID}},
