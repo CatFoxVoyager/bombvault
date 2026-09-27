@@ -61,15 +61,29 @@
 
 ### Claude Code {#claude-code}
 
-شغّل أمر البطاقة مرة واحدة في طرفية. مع شهادة يثق بها حاسوبك يبدو هكذا:
+يصل Claude Code إلى BombVault عبر `mcp-remote` الذي يحتاج إلى Node.js على ذلك الحاسوب. احفظ المفتاح أولًا في ملف نصي خاص به، في سطر واحد:
 
-```bash
-claude mcp add --transport http bombvault --scope user https://bombvault.example.com/mcp --header "Authorization: Bearer <your key>"
+```text
+X-API-Key: <your key>
 ```
 
-تحقق من الاتصال بالأمر `/mcp` داخل Claude Code. يحفظ `--scope user` المفتاح في إعدادات المستخدم لديك لا في ملف مشروع.
+ثم شغّل أمر البطاقة مرة واحدة في طرفية بعد أن تضع فيه مسار ذلك الملف. خلف شهادة يثق بها حاسوبك يبدو هكذا:
 
-يحتوي الأمر على المفتاح، وقد تحفظه الصدفة في سجلها. لتفادي ذلك ضع ملف `.mcp.json` في مجلد المشروع واحفظ المفتاح في متغير بيئة. يستبدل Claude Code القيمة `${BOMBVAULT_MCP_KEY}` عند قراءة الملف:
+```bash
+claude mcp add bombvault --scope user -- npx -y mcp-remote@latest https://bombvault.example.com/mcp --header-file "<path of the file with your key>"
+```
+
+مع شهادة BombVault الخاصة (انظر [TLS والشهادات](#tls)) يوجّه الأمر أيضًا Node.js إلى الشهادة التي نزّلتها:
+
+```bash
+claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
+```
+
+تحقق من الاتصال بالأمر `/mcp` داخل Claude Code. يجعل `--scope user` خادم BombVault متاحًا في كل مشاريعك. لا يحفظ Claude Code إلا مسار ملف المفتاح، فلا يظهر المفتاح في الأمر ولا في سجل الصدفة، ولا في قائمة العمليات، ولا في `claude mcp list`. احفظ الملف حيث لا يستطيع أحد غيرك قراءته، وخارج أي مجلد تعمل له commit. يجعل `@latest` الأداة `npx` تجلب نسخة حديثة من `mcp-remote`؛ وبدونه تُستخدم نسخة أقدم مثبتة على مستوى النظام، وهي لا تدعم `--header-file`.
+
+لا تكتب `${BOMBVAULT_MCP_KEY}` في وسائط `mcp-remote` الخاصة بـ Claude Code. يستبدل Claude Code مثل هذا المرجع بقيمته من بيئته قبل أن يشغّل `mcp-remote`، فيصل المفتاح إلى سطر أوامر تلك العملية، حيث تستطيع برامج أخرى ومستخدمون آخرون على الحاسوب قراءته، ويطبعه `claude mcp list`.
+
+من دون Node.js، وخلف شهادة يثق بها حاسوبك فقط، يستطيع Claude Code الاتصال بنفسه. ضع ملف `.mcp.json` في مجلد المشروع:
 
 ```json
 {
@@ -85,15 +99,7 @@ claude mcp add --transport http bombvault --scope user https://bombvault.example
 }
 ```
 
-عيّن `BOMBVAULT_MCP_KEY` حيث يبدأ Claude Code، مثلًا في ملف تعريف الصدفة، عبر محرر نصوص لا بكتابته في سطر الأوامر. لا تقم أبدًا بعمل commit لملف `.mcp.json` مكتوب فيه المفتاح.
-
-مع شهادة BombVault الخاصة (انظر [TLS والشهادات](#tls)) يشغّل أمر البطاقة بدلًا من ذلك `mcp-remote` ويوجّه Node.js إلى الشهادة التي نزّلتها:
-
-```bash
-claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -e "BOMBVAULT_MCP_KEY=<your key>" -- npx -y mcp-remote https://192.168.1.10:3443/mcp --header 'X-API-Key:${BOMBVAULT_MCP_KEY}'
-```
-
-تمنع علامات الاقتباس المفردة الصدفة من توسيع المتغير؛ فهذا يتولاه `mcp-remote` بنفسه. والصيغة نفسها تعمل في `.mcp.json`: استخدم مدخل Claude Desktop أدناه واحذف `BOMBVAULT_MCP_KEY` من قسم `env` فيه، فيأتي المفتاح من بيئتك.
+عيّن `BOMBVAULT_MCP_KEY` حيث يبدأ Claude Code، مثلًا تحت `"env"` في `~/.claude/settings.json` أو في ملف تعريف الصدفة، عبر محرر نصوص لا بكتابته في سطر الأوامر. هنا يكون المرجع آمنًا، لأن Claude Code لا يشغّل عملية ثانية يصل إليها المفتاح. ولا تعمل شهادة BombVault الخاصة بهذه الطريقة: فالاتصال الذي يجريه Claude Code بنفسه يرفضها حتى مع تعيين `NODE_EXTRA_CA_CERTS`. لا تقم أبدًا بعمل commit لملف `.mcp.json` مكتوب فيه المفتاح.
 
 ### Claude Desktop {#claude-desktop}
 
@@ -172,7 +178,7 @@ location /mcp {
 - يُكتب كل استدعاء لأداة في سجل الحاوية مع معرّف المفتاح وآخر أربعة أحرف منه (ولا يُكتب اسمه أبدًا) ويُحسب في `/metrics` (`bombvault_mcp_requests_total` و`bombvault_mcp_tool_calls_total` و`bombvault_mcp_active_keys`).
 - استعادة نسخة احتياطية من الإعدادات تبطل جميع المفاتيح، لأن قاعدة البيانات المستعادة قد تحتوي على مفاتيح أبطلتها بعد حفظها. أنشئ مفاتيح جديدة بعد ذلك.
 - يتوقف المفتاح عن العمل حين يتغير `APP_KEY` (إعادة تثبيت أو استعادة إلى حاوية أخرى). تكتشف البطاقة ذلك وتعلّم المفتاح، ويمنحه **استبدال المفتاح** سرًا صالحًا من جديد.
-- عامل المفتاح ككلمة مرور. يحفظه Claude Code وClaude Desktop نصًا صريحًا في إعداداتهما. وعلى حاسوب تثق به أقل، فضّل مفتاحًا للقراءة فقط.
+- عامل المفتاح ككلمة مرور. يقرؤه Claude Code من ملف المفتاح ويحفظه Claude Desktop في إعداداته، وفي الحالتين نصًا صريحًا. وعلى حاسوب تثق به أقل، فضّل مفتاحًا للقراءة فقط.
 
 ## ما الذي يغادر الجهاز {#privacy}
 

@@ -61,15 +61,29 @@ Kart, onu açtığınız adres için hazır parçacıklar gösterir: istemcinizi
 
 ### Claude Code {#claude-code}
 
-Karttaki komutu bir terminalde bir kez çalıştırın. Bilgisayarınızın güvendiği bir sertifikayla şöyle görünür:
+Claude Code BombVault'a, o bilgisayarda Node.js gerektiren `mcp-remote` üzerinden ulaşır. Önce anahtarı ayrı bir metin dosyasına tek satır olarak kaydedin:
 
-```bash
-claude mcp add --transport http bombvault --scope user https://bombvault.example.com/mcp --header "Authorization: Bearer <your key>"
+```text
+X-API-Key: <your key>
 ```
 
-Bağlantıyı Claude Code içinde `/mcp` ile kontrol edin. `--scope user` anahtarı bir proje dosyasına değil, kullanıcı yapılandırmanıza kaydeder.
+Ardından karttaki komutu, o dosyanın yolunu doldurarak bir terminalde bir kez çalıştırın. Bilgisayarınızın güvendiği bir sertifikayla şöyle görünür:
 
-Komut anahtarı içerir ve kabuğunuz onu geçmişinde saklayabilir. Bunu önlemek için proje klasörüne bir `.mcp.json` koyun ve anahtarı bir ortam değişkeninde tutun. Claude Code dosyayı okurken `${BOMBVAULT_MCP_KEY}` değerini yerine koyar:
+```bash
+claude mcp add bombvault --scope user -- npx -y mcp-remote@latest https://bombvault.example.com/mcp --header-file "<path of the file with your key>"
+```
+
+BombVault'un kendi sertifikasıyla (bkz. [TLS ve sertifikalar](#tls)) komut ayrıca Node.js'i indirilen sertifikaya yönlendirir:
+
+```bash
+claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
+```
+
+Bağlantıyı Claude Code içinde `/mcp` ile kontrol edin. `--scope user` BombVault'u tüm projelerinizde kullanılabilir yapar. Claude Code yalnızca anahtar dosyasının yolunu saklar; böylece anahtar ne komutta ve kabuk geçmişinizde, ne süreç listesinde ne de `claude mcp list` çıktısında görünür. Dosyayı yalnızca sizin okuyabileceğiniz bir yerde ve commit ettiğiniz klasörlerin dışında tutun. `@latest`, `npx`'in güncel bir `mcp-remote` indirmesini sağlar; aksi halde global olarak kurulmuş daha eski bir sürüm kullanılır ve o sürüm `--header-file` seçeneğini tanımaz.
+
+Claude Code için `mcp-remote` argümanlarına `${BOMBVAULT_MCP_KEY}` yazmayın. Claude Code böyle bir başvuruyu `mcp-remote`'u başlatmadan önce kendi ortamından doldurur; böylece anahtar o sürecin komut satırına düşer, orada bilgisayardaki diğer programlar ve kullanıcılar onu okuyabilir ve `claude mcp list` onu yazdırır.
+
+Node.js olmadan ve yalnızca bilgisayarınızın güvendiği bir sertifikayla Claude Code kendi başına bağlanabilir. Proje klasörüne bir `.mcp.json` koyun:
 
 ```json
 {
@@ -85,15 +99,7 @@ Komut anahtarı içerir ve kabuğunuz onu geçmişinde saklayabilir. Bunu önlem
 }
 ```
 
-`BOMBVAULT_MCP_KEY` değişkenini Claude Code'un başladığı yerde ayarlayın, örneğin kabuk profilinizde; bunu istem satırına yazarak değil, bir metin düzenleyicide yapın. Anahtarın açıkça yazıldığı bir `.mcp.json` dosyasını asla commit etmeyin.
-
-BombVault'un kendi sertifikasıyla (bkz. [TLS ve sertifikalar](#tls)) karttaki komut bunun yerine `mcp-remote` çalıştırır ve Node.js'i indirilen sertifikaya yönlendirir:
-
-```bash
-claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -e "BOMBVAULT_MCP_KEY=<your key>" -- npx -y mcp-remote https://192.168.1.10:3443/mcp --header 'X-API-Key:${BOMBVAULT_MCP_KEY}'
-```
-
-Tek tırnaklar kabuğun değişkeni açmasını engeller; bunu `mcp-remote` kendisi yapar. Aynı biçim `.mcp.json` içinde de çalışır: aşağıdaki Claude Desktop girdisini kullanın ve `BOMBVAULT_MCP_KEY` değişkenini onun `env` bölümünden çıkarın, anahtar o zaman ortamınızdan gelir.
+`BOMBVAULT_MCP_KEY` değişkenini Claude Code'un başladığı yerde ayarlayın, örneğin `~/.claude/settings.json` içindeki `"env"` altında ya da kabuk profilinizde; bunu istem satırına yazarak değil, bir metin düzenleyicide yapın. Burada başvuru güvenlidir, çünkü Claude Code anahtarın içine düşebileceği ikinci bir süreç başlatmaz. BombVault'un kendi sertifikası bu yolla çalışmaz: Claude Code'un kendi bağlantısı, `NODE_EXTRA_CA_CERTS` ayarlı olsa bile onu reddeder. Anahtarın açıkça yazıldığı bir `.mcp.json` dosyasını asla commit etmeyin.
 
 ### Claude Desktop {#claude-desktop}
 
@@ -172,7 +178,7 @@ Bir vekil sunucunun arkasında her istek vekil sunucunun adresini taşır. Yanl�
 - Her araç çağrısı, anahtarın kimliği ve son dört karakteriyle (adıyla asla) kapsayıcı günlüğüne yazılır ve `/metrics` içinde sayılır (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Bir yapılandırma yedeğini geri yüklemek tüm anahtarları iptal eder, çünkü geri yüklenen veritabanı, kaydedildikten sonra iptal ettiğiniz anahtarları içerebilir. Ardından yeni anahtarlar oluşturun.
 - `APP_KEY` değiştiğinde (yeniden kurulum ya da başka bir kapsayıcıya geri yükleme) bir anahtar çalışmayı bırakır. Kart bunu fark eder ve anahtarı işaretler; **Anahtarı değiştir** ona yeniden geçerli bir gizli değer verir.
-- Bir anahtara parola gibi davranın. Claude Code ve Claude Desktop onu yapılandırmalarında düz metin olarak saklar. Daha az güvendiğiniz bir bilgisayarda yalnızca okuyabilen bir anahtarı tercih edin.
+- Bir anahtara parola gibi davranın. Claude Code onu anahtar dosyasından okur, Claude Desktop ise yapılandırmasında saklar; ikisinde de düz metin olarak durur. Daha az güvendiğiniz bir bilgisayarda yalnızca okuyabilen bir anahtarı tercih edin.
 
 ## Makineden ne çıkar {#privacy}
 

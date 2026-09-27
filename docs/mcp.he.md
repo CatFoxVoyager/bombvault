@@ -61,15 +61,29 @@ BombVault שומר את הרשומות של כל מפתח עד 30 יום: 500 ה
 
 ### Claude Code {#claude-code}
 
-הרץ את הפקודה מהכרטיס פעם אחת במסוף. עם תעודה שהמחשב שלך סומך עליה היא נראית כך:
+‏Claude Code מגיע ל-BombVault דרך `mcp-remote`, שצריך Node.js במחשב הזה. קודם שמור את המפתח בקובץ טקסט נפרד, בשורה אחת:
 
-```bash
-claude mcp add --transport http bombvault --scope user https://bombvault.example.com/mcp --header "Authorization: Bearer <your key>"
+```text
+X-API-Key: <your key>
 ```
 
-בדוק את החיבור עם `/mcp` בתוך Claude Code. ‏`--scope user` שומר את המפתח בהגדרות המשתמש שלך ולא בקובץ פרויקט.
+אחר כך הרץ את הפקודה מהכרטיס פעם אחת במסוף, אחרי שהכנסת בה את הנתיב של הקובץ הזה. מאחורי תעודה שהמחשב שלך סומך עליה היא נראית כך:
 
-הפקודה מכילה את המפתח, והמעטפת שלך עלולה לשמור אותה בהיסטוריה. כדי להימנע מכך, שים קובץ `.mcp.json` בתיקיית הפרויקט ושמור את המפתח במשתנה סביבה. ‏Claude Code מציב את `${BOMBVAULT_MCP_KEY}` כשהוא קורא את הקובץ:
+```bash
+claude mcp add bombvault --scope user -- npx -y mcp-remote@latest https://bombvault.example.com/mcp --header-file "<path of the file with your key>"
+```
+
+עם התעודה של BombVault עצמו (ראה [TLS ותעודות](#tls)) הפקודה גם מפנה את Node.js לתעודה שהורדת:
+
+```bash
+claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
+```
+
+בדוק את החיבור עם `/mcp` בתוך Claude Code. ‏`--scope user` הופך את BombVault לזמין בכל הפרויקטים שלך. ‏Claude Code שומר רק את הנתיב של קובץ המפתח, כך שהמפתח לא מופיע בפקודה ובהיסטוריה של המעטפת, לא ברשימת התהליכים ולא ב-`claude mcp list`. שמור את הקובץ במקום שרק אתה יכול לקרוא אותו, ומחוץ לכל תיקייה שאתה מבצע לה commit. ‏`@latest` גורם ל-`npx` להביא `mcp-remote` עדכני; בלעדיו תשמש במקומו גרסה ישנה יותר שמותקנת גלובלית, והיא לא מכירה את `--header-file`.
+
+אל תכתוב את `${BOMBVAULT_MCP_KEY}` בארגומנטים של `mcp-remote` עבור Claude Code. ‏Claude Code מציב הפניה כזו מהסביבה שלו לפני שהוא מפעיל את `mcp-remote`, כך שהמפתח מגיע לשורת הפקודה של התהליך הזה, ושם תוכנות אחרות ומשתמשים אחרים במחשב יכולים לקרוא אותו, ו-`claude mcp list` מדפיס אותו.
+
+בלי Node.js, ורק מאחורי תעודה שהמחשב שלך סומך עליה, Claude Code יכול להתחבר בעצמו. שים קובץ `.mcp.json` בתיקיית הפרויקט:
 
 ```json
 {
@@ -85,15 +99,7 @@ claude mcp add --transport http bombvault --scope user https://bombvault.example
 }
 ```
 
-הגדר את `BOMBVAULT_MCP_KEY` במקום שבו Claude Code מופעל, למשל בפרופיל המעטפת, דרך עורך טקסט ולא בהקלדה בשורת הפקודה. לעולם אל תבצע commit לקובץ `.mcp.json` שהמפתח כתוב בו.
-
-עם התעודה של BombVault עצמו (ראה [TLS ותעודות](#tls)) הפקודה מהכרטיס מריצה במקום זאת את `mcp-remote` ומפנה את Node.js לתעודה שהורדת:
-
-```bash
-claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -e "BOMBVAULT_MCP_KEY=<your key>" -- npx -y mcp-remote https://192.168.1.10:3443/mcp --header 'X-API-Key:${BOMBVAULT_MCP_KEY}'
-```
-
-המירכאות הבודדות מונעות מהמעטפת להרחיב את המשתנה; את זה `mcp-remote` עושה בעצמו. אותה צורה עובדת ב-`.mcp.json`: השתמש ברשומה של Claude Desktop שלהלן והסר את `BOMBVAULT_MCP_KEY` מה-`env` שלה, וכך המפתח מגיע מהסביבה שלך.
+הגדר את `BOMBVAULT_MCP_KEY` במקום שבו Claude Code מופעל, למשל תחת `"env"` ב-`~/.claude/settings.json` או בפרופיל המעטפת, דרך עורך טקסט ולא בהקלדה בשורת הפקודה. כאן ההפניה בטוחה, כי Claude Code לא מפעיל תהליך שני שהמפתח היה מגיע אליו. עם התעודה של BombVault עצמו זה לא עובד: החיבור ש-Claude Code יוצר בעצמו דוחה אותה גם כש-`NODE_EXTRA_CA_CERTS` מוגדר. לעולם אל תבצע commit לקובץ `.mcp.json` שהמפתח כתוב בו.
 
 ### Claude Desktop {#claude-desktop}
 
@@ -172,7 +178,7 @@ location /mcp {
 - כל קריאה לכלי נכתבת ביומן הקונטיינר עם מזהה המפתח וארבעת התווים האחרונים שלו (אף פעם לא עם השם) ונספרת ב-`/metrics` ‏(`bombvault_mcp_requests_total`, ‏`bombvault_mcp_tool_calls_total`, ‏`bombvault_mcp_active_keys`).
 - שחזור גיבוי של ההגדרות מבטל את כל המפתחות, כי מסד הנתונים המשוחזר עלול להכיל מפתחות שביטלת אחרי שנשמר. צור מפתחות חדשים אחר כך.
 - מפתח מפסיק לעבוד כש-`APP_KEY` משתנה (התקנה מחדש או שחזור לקונטיינר אחר). הכרטיס מזהה זאת ומסמן את המפתח, ו**החלף מפתח** נותן לו שוב סוד תקף.
-- התייחס למפתח כמו לסיסמה. ‏Claude Code ו-Claude Desktop שומרים אותו כטקסט גלוי בהגדרות שלהם. במחשב שאתה סומך עליו פחות, עדיף מפתח לקריאה בלבד.
+- התייחס למפתח כמו לסיסמה. ‏Claude Code קורא אותו מקובץ המפתח ו-Claude Desktop שומר אותו בהגדרות שלו, בשני המקרים כטקסט גלוי. במחשב שאתה סומך עליו פחות, עדיף מפתח לקריאה בלבד.
 
 ## מה יוצא מהמכונה {#privacy}
 

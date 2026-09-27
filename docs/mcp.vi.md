@@ -61,15 +61,29 @@ Thẻ hiển thị sẵn các đoạn mã cho địa chỉ bạn dùng để m�
 
 ### Claude Code {#claude-code}
 
-Chạy lệnh trong thẻ một lần trong terminal. Với chứng chỉ mà máy tính của bạn tin cậy, lệnh trông như sau:
+Claude Code kết nối tới BombVault qua `mcp-remote`, vốn cần Node.js trên máy tính đó. Trước tiên, hãy lưu khóa vào một tệp văn bản riêng, trên một dòng duy nhất:
 
-```bash
-claude mcp add --transport http bombvault --scope user https://bombvault.example.com/mcp --header "Authorization: Bearer <your key>"
+```text
+X-API-Key: <your key>
 ```
 
-Kiểm tra kết nối bằng `/mcp` bên trong Claude Code. `--scope user` lưu khóa trong cấu hình người dùng của bạn chứ không phải trong tệp dự án.
+Sau đó điền đường dẫn của tệp này vào lệnh trong thẻ và chạy lệnh một lần trong terminal. Với chứng chỉ mà máy tính của bạn tin cậy, lệnh trông như sau:
 
-Lệnh này chứa khóa, và shell của bạn có thể lưu nó trong lịch sử. Để tránh điều đó, hãy đặt một tệp `.mcp.json` trong thư mục dự án và giữ khóa trong một biến môi trường. Claude Code thay `${BOMBVAULT_MCP_KEY}` bằng giá trị khi đọc tệp:
+```bash
+claude mcp add bombvault --scope user -- npx -y mcp-remote@latest https://bombvault.example.com/mcp --header-file "<path of the file with your key>"
+```
+
+Với chứng chỉ riêng của BombVault (xem [TLS và chứng chỉ](#tls)), lệnh còn chỉ cho Node.js tới chứng chỉ đã tải về:
+
+```bash
+claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
+```
+
+Kiểm tra kết nối bằng `/mcp` bên trong Claude Code. `--scope user` giúp BombVault dùng được trong mọi dự án của bạn. Claude Code chỉ giữ đường dẫn của tệp khóa, nên khóa không xuất hiện trong lệnh và lịch sử shell, trong danh sách tiến trình, hay trong `claude mcp list`. Hãy để tệp ở nơi chỉ bạn đọc được, và bên ngoài mọi thư mục mà bạn commit. `@latest` khiến `npx` tải một `mcp-remote` mới; nếu không có nó, một bản cũ hơn đã cài toàn cục sẽ được dùng thay vào đó, và bản này không hỗ trợ `--header-file`.
+
+Đừng viết `${BOMBVAULT_MCP_KEY}` vào các đối số của `mcp-remote` cho Claude Code. Claude Code thay tham chiếu như vậy bằng giá trị từ môi trường của chính nó trước khi khởi động `mcp-remote`, nên khóa nằm trên dòng lệnh của tiến trình đó, nơi các chương trình và người dùng khác trên máy tính có thể đọc được, và `claude mcp list` sẽ in nó ra.
+
+Khi không có Node.js, và chỉ với chứng chỉ mà máy tính của bạn tin cậy, Claude Code có thể tự kết nối. Hãy đặt một tệp `.mcp.json` trong thư mục dự án:
 
 ```json
 {
@@ -85,15 +99,7 @@ Lệnh này chứa khóa, và shell của bạn có thể lưu nó trong lịch 
 }
 ```
 
-Đặt `BOMBVAULT_MCP_KEY` ở nơi Claude Code khởi động, ví dụ trong profile của shell, bằng trình soạn thảo văn bản chứ không gõ ở dấu nhắc lệnh. Đừng bao giờ commit một tệp `.mcp.json` có ghi khóa bên trong.
-
-Với chứng chỉ riêng của BombVault (xem [TLS và chứng chỉ](#tls)), lệnh trong thẻ sẽ chạy `mcp-remote` thay vào đó và chỉ cho Node.js tới chứng chỉ đã tải về:
-
-```bash
-claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -e "BOMBVAULT_MCP_KEY=<your key>" -- npx -y mcp-remote https://192.168.1.10:3443/mcp --header 'X-API-Key:${BOMBVAULT_MCP_KEY}'
-```
-
-Dấu nháy đơn ngăn shell khai triển biến; việc đó do chính `mcp-remote` làm. Dạng này cũng dùng được trong `.mcp.json`: dùng mục của Claude Desktop bên dưới và bỏ `BOMBVAULT_MCP_KEY` khỏi `env` của nó, khi đó khóa lấy từ môi trường của bạn.
+Đặt `BOMBVAULT_MCP_KEY` ở nơi Claude Code khởi động, ví dụ dưới `"env"` trong `~/.claude/settings.json` hoặc trong profile của shell, bằng trình soạn thảo văn bản chứ không gõ ở dấu nhắc lệnh. Ở đây tham chiếu là an toàn, vì Claude Code không khởi động tiến trình thứ hai nào nhận khóa. Chứng chỉ riêng của BombVault không dùng được theo cách này: kết nối do chính Claude Code tạo từ chối chứng chỉ đó ngay cả khi đã đặt `NODE_EXTRA_CA_CERTS`. Đừng bao giờ commit một tệp `.mcp.json` có ghi khóa bên trong.
 
 ### Claude Desktop {#claude-desktop}
 
@@ -172,7 +178,7 @@ Sau một proxy, mọi yêu cầu đều mang địa chỉ của proxy. Khi đó
 - Mọi lệnh gọi công cụ được ghi vào nhật ký container cùng id của khóa và bốn ký tự cuối (không bao giờ ghi tên) và được đếm trong `/metrics` (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Khôi phục một bản sao lưu cấu hình sẽ thu hồi mọi khóa, vì cơ sở dữ liệu được khôi phục có thể chứa các khóa bạn đã thu hồi sau khi nó được lưu. Hãy tạo khóa mới sau đó.
 - Khóa ngừng hoạt động khi `APP_KEY` thay đổi (cài lại, hoặc khôi phục sang container khác). Thẻ phát hiện điều này và đánh dấu khóa, còn **Thay khóa** cấp lại cho nó một bí mật hợp lệ.
-- Hãy đối xử với khóa như mật khẩu. Claude Code và Claude Desktop lưu khóa dạng văn bản thường trong cấu hình của chúng. Trên máy tính bạn ít tin cậy hơn, nên dùng khóa chỉ đọc.
+- Hãy đối xử với khóa như mật khẩu. Claude Code đọc khóa từ tệp khóa, còn Claude Desktop lưu khóa trong cấu hình của nó, cả hai đều ở dạng văn bản thường. Trên máy tính bạn ít tin cậy hơn, nên dùng khóa chỉ đọc.
 
 ## Những gì rời khỏi máy {#privacy}
 

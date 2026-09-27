@@ -61,15 +61,29 @@ BombVault は各キーの記録を最長 30 日間保持します。成功した
 
 ### Claude Code {#claude-code}
 
-カードのコマンドをターミナルで一度実行します。お使いのコンピューターが信頼する証明書であれば、次のようになります:
+Claude Code は `mcp-remote` を通して BombVault に接続し、そのコンピューターには Node.js が必要です。まず、キーだけを入れたテキストファイルを作り、次の 1 行で保存します:
 
-```bash
-claude mcp add --transport http bombvault --scope user https://bombvault.example.com/mcp --header "Authorization: Bearer <your key>"
+```text
+X-API-Key: <your key>
 ```
 
-接続は Claude Code の中で `/mcp` を使って確認できます。`--scope user` はキーをプロジェクトのファイルではなくユーザー設定に保存します。
+次に、カードのコマンドにそのファイルのパスを入れて、ターミナルで一度実行します。お使いのコンピューターが信頼する証明書の背後では、次のようになります:
 
-このコマンドにはキーが含まれており、シェルが履歴に残すことがあります。それを避けるには、プロジェクトのフォルダーに `.mcp.json` を置き、キーを環境変数に入れておきます。Claude Code はファイルを読むときに `${BOMBVAULT_MCP_KEY}` を置き換えます:
+```bash
+claude mcp add bombvault --scope user -- npx -y mcp-remote@latest https://bombvault.example.com/mcp --header-file "<path of the file with your key>"
+```
+
+BombVault 自身の証明書を使う場合 ([TLS と証明書](#tls) を参照)、コマンドはさらにダウンロードした証明書を Node.js に指定します:
+
+```bash
+claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
+```
+
+接続は Claude Code の中で `/mcp` を使って確認できます。`--scope user` を付けると、BombVault をすべてのプロジェクトで使えます。Claude Code が保存するのはキーファイルのパスだけなので、キーはコマンドにもシェルの履歴にも、プロセス一覧にも、`claude mcp list` にも現れません。ファイルは自分だけが読める場所で、コミットするフォルダーの外に置いてください。`@latest` を付けると `npx` が最新の `mcp-remote` を取得します。付けないとグローバルにインストールされた古いものが使われ、それは `--header-file` に対応していません。
+
+Claude Code 用の `mcp-remote` の引数に `${BOMBVAULT_MCP_KEY}` を書かないでください。Claude Code は `mcp-remote` を起動する前に、こうした参照を自分の環境の値で置き換えます。そのためキーがそのプロセスのコマンドラインに載り、コンピューター上のほかのプログラムやユーザーから読めてしまい、`claude mcp list` にも表示されます。
+
+Node.js がなくても、コンピューターが信頼する証明書の背後に限っては、Claude Code は自分で接続できます。プロジェクトのフォルダーに `.mcp.json` を置きます:
 
 ```json
 {
@@ -85,15 +99,7 @@ claude mcp add --transport http bombvault --scope user https://bombvault.example
 }
 ```
 
-`BOMBVAULT_MCP_KEY` は Claude Code が起動する環境で設定してください。たとえばシェルのプロファイルに、プロンプトで入力するのではなくテキストエディターで書きます。キーを書き込んだ `.mcp.json` は決してコミットしないでください。
-
-BombVault 自身の証明書を使う場合 ([TLS と証明書](#tls) を参照)、カードのコマンドは代わりに `mcp-remote` を実行し、ダウンロードした証明書を Node.js に指定します:
-
-```bash
-claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -e "BOMBVAULT_MCP_KEY=<your key>" -- npx -y mcp-remote https://192.168.1.10:3443/mcp --header 'X-API-Key:${BOMBVAULT_MCP_KEY}'
-```
-
-シングルクォートはシェルによる変数の展開を防ぎます。展開は `mcp-remote` 自身が行います。同じ形は `.mcp.json` でも使えます。下の Claude Desktop 用のエントリを使い、その `env` から `BOMBVAULT_MCP_KEY` を外せば、キーは環境から取られます。
+`BOMBVAULT_MCP_KEY` は Claude Code が起動する環境で設定してください。たとえば `~/.claude/settings.json` の `"env"` やシェルのプロファイルに、プロンプトで入力するのではなくテキストエディターで書きます。この場合は参照を使っても安全です。キーを受け取る 2 つ目のプロセスを Claude Code が起動しないからです。BombVault 自身の証明書ではこの方法は使えません。`NODE_EXTRA_CA_CERTS` を設定していても、Claude Code 自身の接続がその証明書を拒否します。キーを書き込んだ `.mcp.json` は決してコミットしないでください。
 
 ### Claude Desktop {#claude-desktop}
 
@@ -172,7 +178,7 @@ location /mcp {
 - ツールの呼び出しはすべて、キーの ID と末尾 4 文字 (名前は決して含まない) とともにコンテナのログに書かれ、`/metrics` で数えられます (`bombvault_mcp_requests_total`、`bombvault_mcp_tool_calls_total`、`bombvault_mcp_active_keys`)。
 - 設定のバックアップを復元すると、すべてのキーが取り消されます。復元したデータベースには、保存後に取り消したキーが含まれているかもしれないからです。その後に新しいキーを作成してください。
 - `APP_KEY` が変わると (再インストールや別のコンテナへの復元) キーは機能しなくなります。カードがそれを検出してキーに印を付け、**キーを交換** で再び有効なシークレットが得られます。
-- キーはパスワードと同じように扱ってください。Claude Code と Claude Desktop は設定の中に平文で保存します。あまり信頼できないコンピューターでは、読み取り専用のキーを選ぶほうがよいでしょう。
+- キーはパスワードと同じように扱ってください。Claude Code はキーファイルから読み取り、Claude Desktop は設定の中に保存します。どちらも平文です。あまり信頼できないコンピューターでは、読み取り専用のキーを選ぶほうがよいでしょう。
 
 ## マシンの外に出るもの {#privacy}
 

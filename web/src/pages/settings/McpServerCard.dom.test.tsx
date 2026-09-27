@@ -158,7 +158,10 @@ describe("minting a key", () => {
     );
     expect(screen.getByDisplayValue("bvmcp_abcdef123456")).toBeTruthy();
     expect(screen.getByRole("button", { name: en["mcp.copyKey"] })).toBeTruthy();
-    expect(cardText()).toContain("bvmcp_abcdef123456");
+    // The Claude Code command reads the key from a file, so only the field holds it.
+    expect(screen.getByText(/claude mcp add/).textContent).not.toContain("bvmcp_abcdef123456");
+    fireEvent.click(screen.getByRole("tab", { name: "Claude Desktop" }));
+    await waitFor(() => expect(screen.getByText(/mcp-remote/).textContent).toContain("bvmcp_abcdef123456"));
 
     fireEvent.click(screen.getByRole("button", { name: en["mcp.dismissKey"] }));
     await waitFor(() => expect(screen.queryByText(en["mcp.newKeyTitle"])).toBeNull());
@@ -207,7 +210,7 @@ describe("minting a key", () => {
     await waitFor(() => expect(screen.getByText(en["mcp.snippetsLabel"])).toBeTruthy());
     const clients = screen.getAllByRole("tab").map((el) => el.textContent);
     expect(clients).toEqual(["Claude Code", "Claude Desktop", en["mcp.snippetOther"]]);
-    expect(cardText()).toContain("<your key>");
+    expect(cardText()).toContain("--header-file");
 
     fireEvent.click(screen.getByRole("tab", { name: "Claude Desktop" }));
     await waitFor(() => expect(cardText()).toContain("mcp-remote"));

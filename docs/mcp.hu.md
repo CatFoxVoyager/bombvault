@@ -61,15 +61,29 @@ A kártya kész részleteket mutat ahhoz a címhez, amelyen megnyitottad: válas
 
 ### Claude Code {#claude-code}
 
-Futtasd le egyszer a kártya parancsát egy terminálban. Olyan tanúsítvánnyal, amelyben a számítógéped megbízik, így néz ki:
+A Claude Code az `mcp-remote` programon keresztül éri el a BombVaultot, amelyhez Node.js kell azon a számítógépen. Először mentsd el a kulcsot egy külön szövegfájlba, egyetlen sorként:
 
-```bash
-claude mcp add --transport http bombvault --scope user https://bombvault.example.com/mcp --header "Authorization: Bearer <your key>"
+```text
+X-API-Key: <your key>
 ```
 
-A kapcsolatot a Claude Code-ban a `/mcp` paranccsal ellenőrizheted. A `--scope user` a kulcsot a felhasználói beállításaidba teszi, nem egy projektfájlba.
+Ezután futtasd le egyszer a kártya parancsát egy terminálban, a fájl elérési útjával kitöltve. Olyan tanúsítvány mögött, amelyben a számítógéped megbízik, így néz ki:
 
-A parancs tartalmazza a kulcsot, és a shelled megőrizheti az előzményei között. Ezt elkerülheted egy `.mcp.json` fájllal a projekt mappájában és a kulccsal egy környezeti változóban. A Claude Code a fájl olvasásakor behelyettesíti a `${BOMBVAULT_MCP_KEY}` értékét:
+```bash
+claude mcp add bombvault --scope user -- npx -y mcp-remote@latest https://bombvault.example.com/mcp --header-file "<path of the file with your key>"
+```
+
+A BombVault saját tanúsítványával (lásd [TLS és tanúsítványok](#tls)) a parancs a Node.js-t is a letöltött tanúsítványra irányítja:
+
+```bash
+claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
+```
+
+A kapcsolatot a Claude Code-ban a `/mcp` paranccsal ellenőrizheted. A `--scope user` az összes projektedben elérhetővé teszi a BombVaultot. A Claude Code csak a kulcsfájl elérési útját tárolja, így a kulcs nem jelenik meg sem a parancsban és a shell előzményeiben, sem a folyamatlistában, sem a `claude mcp list` kimenetében. A fájlt olyan helyen tartsd, ahol csak te olvashatod, és minden olyan mappán kívül, amelyet commitolsz. Az `@latest` miatt az `npx` friss `mcp-remote` programot tölt le; különben egy régebbi, globálisan telepített változatot használna, amely nem ismeri a `--header-file` kapcsolót.
+
+Ne írd a `${BOMBVAULT_MCP_KEY}` hivatkozást a Claude Code `mcp-remote` argumentumai közé. A Claude Code az ilyen hivatkozást a saját környezetéből tölti ki, mielőtt elindítja az `mcp-remote` programot, így a kulcs annak a folyamatnak a parancssorába kerül, ahol a számítógép más programjai és felhasználói is olvashatják, és a `claude mcp list` is kiírja.
+
+Node.js nélkül, és csak olyan tanúsítvány mögött, amelyben a számítógéped megbízik, a Claude Code önállóan is tud kapcsolódni. Tegyél egy `.mcp.json` fájlt a projekt mappájába:
 
 ```json
 {
@@ -85,15 +99,7 @@ A parancs tartalmazza a kulcsot, és a shelled megőrizheti az előzményei köz
 }
 ```
 
-Állítsd be a `BOMBVAULT_MCP_KEY` változót ott, ahol a Claude Code indul, például a shell profiljában, szövegszerkesztővel és nem a parancssorba gépelve. Soha ne commitolj olyan `.mcp.json` fájlt, amelybe a kulcs bele van írva.
-
-A BombVault saját tanúsítványával (lásd [TLS és tanúsítványok](#tls)) a kártya parancsa ehelyett az `mcp-remote` programot indítja, és a Node.js-t a letöltött tanúsítványra irányítja:
-
-```bash
-claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -e "BOMBVAULT_MCP_KEY=<your key>" -- npx -y mcp-remote https://192.168.1.10:3443/mcp --header 'X-API-Key:${BOMBVAULT_MCP_KEY}'
-```
-
-Az egyszeres idézőjelek megakadályozzák, hogy a shell kifejtse a változót; ezt az `mcp-remote` maga végzi el. Ugyanez a forma működik a `.mcp.json` fájlban is: használd az alábbi Claude Desktop bejegyzést, és hagyd ki a `BOMBVAULT_MCP_KEY` változót az `env` részéből, így a kulcs a környezetedből jön.
+Állítsd be a `BOMBVAULT_MCP_KEY` változót ott, ahol a Claude Code indul, például a `~/.claude/settings.json` fájl `"env"` részében vagy a shell profiljában, szövegszerkesztővel és nem a parancssorba gépelve. Itt a hivatkozás biztonságos, mert a Claude Code nem indít második folyamatot, amelybe a kulcs bekerülne. A BombVault saját tanúsítványával ez nem működik: a Claude Code saját kapcsolata beállított `NODE_EXTRA_CA_CERTS` mellett is elutasítja. Soha ne commitolj olyan `.mcp.json` fájlt, amelybe a kulcs bele van írva.
 
 ### Claude Desktop {#claude-desktop}
 
@@ -172,7 +178,7 @@ Proxy mögött minden kérés a proxy címét viseli. Egyetlen rosszul beállít
 - Minden eszközhívás bekerül a konténer naplójába a kulcs azonosítójával és utolsó négy karakterével (a nevével soha), és a `/metrics` számolja (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Egy konfigurációs mentés visszaállítása minden kulcsot visszavon, mert a visszaállított adatbázis olyan kulcsokat is tartalmazhat, amelyeket a mentése után vontál vissza. Utána hozz létre új kulcsokat.
 - Egy kulcs megszűnik működni, ha az `APP_KEY` megváltozik (újratelepítés vagy visszaállítás egy másik konténerbe). A kártya ezt észleli és megjelöli a kulcsot, a **Kulcs cseréje** pedig újra érvényes titkot ad neki.
-- Úgy bánj a kulccsal, mint egy jelszóval. A Claude Code és a Claude Desktop nyílt szövegként tárolja a beállításaiban. Olyan számítógépen, amelyben kevésbé bízol, inkább csak olvasásra jogosult kulcsot használj.
+- Úgy bánj a kulccsal, mint egy jelszóval. A Claude Code a kulcsfájlból olvassa, a Claude Desktop pedig a beállításaiban tárolja, mindkettő nyílt szövegként. Olyan számítógépen, amelyben kevésbé bízol, inkább csak olvasásra jogosult kulcsot használj.
 
 ## Mi hagyja el a gépet {#privacy}
 

@@ -61,15 +61,29 @@ BombVault는 키마다 기록을 최대 30일 동안 보관합니다. 성공한 
 
 ### Claude Code {#claude-code}
 
-카드의 명령을 터미널에서 한 번 실행합니다. 컴퓨터가 신뢰하는 인증서라면 다음과 같습니다:
+Claude Code는 `mcp-remote`를 통해 BombVault에 연결하며, 그 컴퓨터에 Node.js가 필요합니다. 먼저 키만 담은 텍스트 파일을 만들어 다음 한 줄로 저장합니다:
 
-```bash
-claude mcp add --transport http bombvault --scope user https://bombvault.example.com/mcp --header "Authorization: Bearer <your key>"
+```text
+X-API-Key: <your key>
 ```
 
-연결은 Claude Code 안에서 `/mcp`로 확인합니다. `--scope user`는 키를 프로젝트 파일이 아닌 사용자 설정에 저장합니다.
+그런 다음 카드의 명령에 그 파일의 경로를 넣어 터미널에서 한 번 실행합니다. 컴퓨터가 신뢰하는 인증서 뒤에서는 다음과 같습니다:
 
-이 명령에는 키가 들어 있어 셸이 기록에 남길 수 있습니다. 이를 피하려면 프로젝트 폴더에 `.mcp.json`을 두고 키를 환경 변수에 넣으세요. Claude Code는 파일을 읽을 때 `${BOMBVAULT_MCP_KEY}`를 값으로 바꿉니다:
+```bash
+claude mcp add bombvault --scope user -- npx -y mcp-remote@latest https://bombvault.example.com/mcp --header-file "<path of the file with your key>"
+```
+
+BombVault 자체 인증서를 쓰는 경우([TLS와 인증서](#tls) 참고) 명령은 내려받은 인증서도 Node.js에 알려 줍니다:
+
+```bash
+claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
+```
+
+연결은 Claude Code 안에서 `/mcp`로 확인합니다. `--scope user`를 쓰면 모든 프로젝트에서 BombVault를 쓸 수 있습니다. Claude Code는 키 파일의 경로만 저장하므로, 키는 명령과 셸 기록에도, 프로세스 목록에도, `claude mcp list`에도 나타나지 않습니다. 파일은 본인만 읽을 수 있는 곳, 그리고 커밋하는 폴더 바깥에 두세요. `@latest`는 `npx`가 최신 `mcp-remote`를 가져오게 합니다. 이것이 없으면 전역으로 설치된 오래된 버전이 대신 쓰이는데, 그 버전은 `--header-file`을 지원하지 않습니다.
+
+Claude Code용 `mcp-remote` 인수에 `${BOMBVAULT_MCP_KEY}`를 쓰지 마세요. Claude Code는 `mcp-remote`를 시작하기 전에 이런 참조를 자기 환경의 값으로 바꾸므로, 키가 그 프로세스의 명령줄에 들어갑니다. 그러면 컴퓨터의 다른 프로그램과 사용자가 키를 읽을 수 있고, `claude mcp list`도 키를 출력합니다.
+
+Node.js가 없어도 Claude Code는 직접 연결할 수 있지만, 컴퓨터가 신뢰하는 인증서 뒤에서만 가능합니다. 프로젝트 폴더에 `.mcp.json`을 두세요:
 
 ```json
 {
@@ -85,15 +99,7 @@ claude mcp add --transport http bombvault --scope user https://bombvault.example
 }
 ```
 
-`BOMBVAULT_MCP_KEY`는 Claude Code가 시작되는 환경에 설정하세요. 예를 들어 셸 프로필에, 프롬프트에 입력하지 말고 텍스트 편집기로 적습니다. 키가 적힌 `.mcp.json`은 절대 커밋하지 마세요.
-
-BombVault 자체 인증서를 쓰는 경우([TLS와 인증서](#tls) 참고) 카드의 명령은 대신 `mcp-remote`를 실행하고 내려받은 인증서를 Node.js에 알려 줍니다:
-
-```bash
-claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -e "BOMBVAULT_MCP_KEY=<your key>" -- npx -y mcp-remote https://192.168.1.10:3443/mcp --header 'X-API-Key:${BOMBVAULT_MCP_KEY}'
-```
-
-작은따옴표는 셸이 변수를 펼치지 못하게 막습니다. 펼치는 일은 `mcp-remote`가 직접 합니다. 같은 형태를 `.mcp.json`에서도 쓸 수 있습니다. 아래의 Claude Desktop 항목을 쓰고 그 `env`에서 `BOMBVAULT_MCP_KEY`를 빼면 키는 환경에서 가져옵니다.
+`BOMBVAULT_MCP_KEY`는 Claude Code가 시작되는 환경에 설정하세요. 예를 들어 `~/.claude/settings.json`의 `"env"`나 셸 프로필에, 프롬프트에 입력하지 말고 텍스트 편집기로 적습니다. 이 경우에는 참조를 써도 안전합니다. Claude Code가 키를 넘겨받을 두 번째 프로세스를 시작하지 않기 때문입니다. BombVault 자체 인증서로는 이 방법이 통하지 않습니다. `NODE_EXTRA_CA_CERTS`를 설정해도 Claude Code 자체 연결이 그 인증서를 거부합니다. 키가 적힌 `.mcp.json`은 절대 커밋하지 마세요.
 
 ### Claude Desktop {#claude-desktop}
 
@@ -172,7 +178,7 @@ location /mcp {
 - 모든 도구 호출은 키의 ID와 마지막 네 글자(이름은 절대 아님)와 함께 컨테이너 로그에 기록되고 `/metrics`에서 집계됩니다(`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - 설정 백업을 복원하면 모든 키가 폐기됩니다. 복원한 데이터베이스에는 저장 뒤에 폐기한 키가 들어 있을 수 있기 때문입니다. 그 뒤에 새 키를 만드세요.
 - `APP_KEY`가 바뀌면(재설치나 다른 컨테이너로 복원) 키는 더 이상 작동하지 않습니다. 카드가 이를 감지해 키를 표시하고, **키 교체**로 다시 유효한 비밀을 받을 수 있습니다.
-- 키는 비밀번호처럼 다루세요. Claude Code와 Claude Desktop은 설정에 평문으로 저장합니다. 덜 신뢰하는 컴퓨터에서는 읽기 전용 키를 쓰는 편이 좋습니다.
+- 키는 비밀번호처럼 다루세요. Claude Code는 키 파일에서 읽고 Claude Desktop은 설정에 저장하며, 둘 다 평문입니다. 덜 신뢰하는 컴퓨터에서는 읽기 전용 키를 쓰는 편이 좋습니다.
 
 ## 기기 밖으로 나가는 것 {#privacy}
 

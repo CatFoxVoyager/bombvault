@@ -61,15 +61,29 @@ Karta zobrazuje hotové úryvky pro adresu, na které jste ji otevřeli: vyberte
 
 ### Claude Code {#claude-code}
 
-Příkaz z karty spusťte jednou v terminálu. S certifikátem, kterému váš počítač důvěřuje, vypadá takto:
+Claude Code se k BombVaultu dostane přes `mcp-remote`, který na daném počítači potřebuje Node.js. Nejdřív uložte klíč do samostatného textového souboru, na jeden řádek:
 
-```bash
-claude mcp add --transport http bombvault --scope user https://bombvault.example.com/mcp --header "Authorization: Bearer <your key>"
+```text
+X-API-Key: <your key>
 ```
 
-Připojení ověříte příkazem `/mcp` v Claude Code. `--scope user` uloží klíč do vaší uživatelské konfigurace, ne do souboru projektu.
+Pak příkaz z karty jednou spusťte v terminálu, s doplněnou cestou k tomuto souboru. Za certifikátem, kterému váš počítač důvěřuje, vypadá takto:
 
-Příkaz obsahuje klíč a váš shell si ho může uložit do historie. Tomu se vyhnete souborem `.mcp.json` ve složce projektu a klíčem v proměnné prostředí. Claude Code při čtení souboru dosadí `${BOMBVAULT_MCP_KEY}`:
+```bash
+claude mcp add bombvault --scope user -- npx -y mcp-remote@latest https://bombvault.example.com/mcp --header-file "<path of the file with your key>"
+```
+
+S vlastním certifikátem BombVaultu (viz [TLS a certifikáty](#tls)) příkaz navíc nasměruje Node.js na stažený certifikát:
+
+```bash
+claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
+```
+
+Připojení ověříte příkazem `/mcp` v Claude Code. `--scope user` zpřístupní BombVault ve všech vašich projektech. Claude Code si pamatuje jen cestu k souboru s klíčem, takže se klíč neobjeví v příkazu ani v historii shellu, v seznamu procesů ani v `claude mcp list`. Soubor mějte tam, kde ho můžete číst jen vy, a mimo každou složku, kterou commitujete. Díky `@latest` si `npx` stáhne aktuální `mcp-remote`; jinak by se použil starší, globálně nainstalovaný, který `--header-file` nezná.
+
+Nepište `${BOMBVAULT_MCP_KEY}` do argumentů `mcp-remote` pro Claude Code. Claude Code takový odkaz dosadí ze svého vlastního prostředí ještě před spuštěním `mcp-remote`, takže klíč skončí v příkazovém řádku tohoto procesu, kde ho mohou číst jiné programy a uživatelé počítače, a `claude mcp list` ho vypíše.
+
+Bez Node.js se Claude Code umí připojit sám, ale jen za certifikátem, kterému váš počítač důvěřuje. Do složky projektu dejte soubor `.mcp.json`:
 
 ```json
 {
@@ -85,15 +99,7 @@ Příkaz obsahuje klíč a váš shell si ho může uložit do historie. Tomu se
 }
 ```
 
-Proměnnou `BOMBVAULT_MCP_KEY` nastavte tam, kde se Claude Code spouští, například v profilu shellu, a to v textovém editoru, ne napsáním do příkazového řádku. Nikdy necommitujte `.mcp.json`, ve kterém je klíč vypsaný.
-
-S vlastním certifikátem BombVaultu (viz [TLS a certifikáty](#tls)) spustí příkaz z karty místo toho `mcp-remote` a nasměruje Node.js na stažený certifikát:
-
-```bash
-claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -e "BOMBVAULT_MCP_KEY=<your key>" -- npx -y mcp-remote https://192.168.1.10:3443/mcp --header 'X-API-Key:${BOMBVAULT_MCP_KEY}'
-```
-
-Jednoduché uvozovky brání shellu v rozvinutí proměnné; to udělá `mcp-remote` sám. Stejná podoba funguje v `.mcp.json`: použijte položku pro Claude Desktop níže a vynechte `BOMBVAULT_MCP_KEY` z jejího `env`, klíč se pak vezme z vašeho prostředí.
+Proměnnou `BOMBVAULT_MCP_KEY` nastavte tam, kde se Claude Code spouští, například pod `"env"` v `~/.claude/settings.json` nebo v profilu shellu, a to v textovém editoru, ne napsáním do příkazového řádku. Tady je odkaz bezpečný, protože Claude Code nespouští žádný druhý proces, který by ho nesl. S vlastním certifikátem BombVaultu to takto nefunguje: připojení, které Claude Code navazuje sám, ho odmítne i s nastavenou `NODE_EXTRA_CA_CERTS`. Nikdy necommitujte `.mcp.json`, ve kterém je klíč vypsaný.
 
 ### Claude Desktop {#claude-desktop}
 
@@ -172,7 +178,7 @@ Za proxy nese každý požadavek adresu proxy. Pět špatných klíčů od jedin
 - Každé volání nástroje se zapíše do logu kontejneru s id klíče a jeho posledními čtyřmi znaky (nikdy s názvem) a započítá se v `/metrics` (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Obnova zálohy konfigurace odvolá všechny klíče, protože obnovená databáze může obsahovat klíče, které jste odvolali až po jejím uložení. Potom vytvořte nové.
 - Klíč přestane fungovat, když se změní `APP_KEY` (reinstalace nebo obnova do jiného kontejneru). Karta to pozná a klíč označí a **Nahradit klíč** mu dá znovu platné tajemství.
-- Zacházejte s klíčem jako s heslem. Claude Code a Claude Desktop ho ukládají v otevřeném textu ve své konfiguraci. Na počítači, kterému důvěřujete méně, dejte přednost klíči, který smí jen číst.
+- Zacházejte s klíčem jako s heslem. Claude Code ho čte ze souboru s klíčem a Claude Desktop ho ukládá ve své konfiguraci, v obou případech v otevřeném textu. Na počítači, kterému důvěřujete méně, dejte přednost klíči, který smí jen číst.
 
 ## Co opouští stroj {#privacy}
 

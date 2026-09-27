@@ -61,15 +61,29 @@ O cartão mostra excertos prontos para o endereço com que o abriu: escolha o cl
 
 ### Claude Code {#claude-code}
 
-Execute uma vez num terminal o comando do cartão. Com um certificado em que o seu computador confia, fica assim:
+O Claude Code chega ao BombVault através do `mcp-remote`, que precisa de Node.js nesse computador. Primeiro guarde a chave num ficheiro de texto à parte, numa única linha:
 
-```bash
-claude mcp add --transport http bombvault --scope user https://bombvault.example.com/mcp --header "Authorization: Bearer <your key>"
+```text
+X-API-Key: <your key>
 ```
 
-Verifique a ligação com `/mcp` dentro do Claude Code. `--scope user` guarda a chave na sua configuração de utilizador e não num ficheiro de projeto.
+Depois execute uma vez num terminal o comando do cartão, com o caminho desse ficheiro. Atrás de um certificado em que o seu computador confia, fica assim:
 
-O comando contém a chave, e a sua shell pode guardá-lo no histórico. Para o evitar, coloque um `.mcp.json` na pasta do projeto e guarde a chave numa variável de ambiente. O Claude Code substitui `${BOMBVAULT_MCP_KEY}` ao ler o ficheiro:
+```bash
+claude mcp add bombvault --scope user -- npx -y mcp-remote@latest https://bombvault.example.com/mcp --header-file "<path of the file with your key>"
+```
+
+Com o certificado próprio do BombVault (ver [TLS e certificados](#tls)), o comando indica também ao Node.js o certificado descarregado:
+
+```bash
+claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
+```
+
+Verifique a ligação com `/mcp` dentro do Claude Code. `--scope user` torna o BombVault disponível em todos os seus projetos. O Claude Code guarda só o caminho do ficheiro da chave, por isso a chave não aparece no comando nem no histórico da shell, nem na lista de processos, nem em `claude mcp list`. Guarde o ficheiro onde mais ninguém o possa ler, e fora de qualquer pasta de que faça commit. `@latest` faz o `npx` ir buscar um `mcp-remote` atual; caso contrário seria usado um mais antigo instalado globalmente, que não conhece `--header-file`.
+
+Não escreva `${BOMBVAULT_MCP_KEY}` nos argumentos do `mcp-remote` para o Claude Code. O Claude Code substitui essa referência a partir do seu próprio ambiente antes de iniciar o `mcp-remote`, por isso a chave acaba na linha de comandos desse processo, onde outros programas e utilizadores do computador a podem ler, e `claude mcp list` mostra-a.
+
+Sem Node.js, e só atrás de um certificado em que o seu computador confia, o Claude Code consegue ligar-se sozinho. Coloque um `.mcp.json` na pasta do projeto:
 
 ```json
 {
@@ -85,15 +99,7 @@ O comando contém a chave, e a sua shell pode guardá-lo no histórico. Para o e
 }
 ```
 
-Defina `BOMBVAULT_MCP_KEY` onde o Claude Code arranca, por exemplo no perfil da sua shell, editado num editor de texto em vez de escrito na linha de comandos. Nunca faça commit de um `.mcp.json` com a chave escrita lá dentro.
-
-Com o certificado próprio do BombVault (ver [TLS e certificados](#tls)), o comando do cartão corre em vez disso o `mcp-remote` e indica ao Node.js o certificado descarregado:
-
-```bash
-claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -e "BOMBVAULT_MCP_KEY=<your key>" -- npx -y mcp-remote https://192.168.1.10:3443/mcp --header 'X-API-Key:${BOMBVAULT_MCP_KEY}'
-```
-
-As plicas impedem a shell de expandir a variável; é o `mcp-remote` que o faz. A mesma forma funciona em `.mcp.json`: use a entrada do Claude Desktop abaixo e retire `BOMBVAULT_MCP_KEY` do seu `env`, assim a chave vem do seu ambiente.
+Defina `BOMBVAULT_MCP_KEY` onde o Claude Code arranca, por exemplo em `"env"` no `~/.claude/settings.json` ou no perfil da sua shell, editado num editor de texto em vez de escrito na linha de comandos. Aqui a referência é segura, porque o Claude Code não inicia um segundo processo que a leve consigo. O certificado próprio do BombVault não funciona desta forma: a ligação que o próprio Claude Code abre recusa-o, mesmo com `NODE_EXTRA_CA_CERTS` definido. Nunca faça commit de um `.mcp.json` com a chave escrita lá dentro.
 
 ### Claude Desktop {#claude-desktop}
 
@@ -172,7 +178,7 @@ Atrás de um proxy, cada pedido traz o endereço do proxy. Cinco chaves erradas 
 - Cada chamada a uma ferramenta é escrita no registo do contentor com o id da chave e os seus últimos quatro caracteres (nunca o nome) e contada em `/metrics` (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Restaurar uma cópia da configuração revoga todas as chaves, porque a base de dados restaurada pode conter chaves que revogou depois de ela ter sido guardada. Crie chaves novas a seguir.
 - Uma chave deixa de funcionar quando `APP_KEY` muda (uma reinstalação, ou um restauro noutro contentor). O cartão deteta isso e marca a chave, e **Substituir chave** volta a dar-lhe um segredo válido.
-- Trate uma chave como uma palavra-passe. O Claude Code e o Claude Desktop guardam-na em texto simples na sua configuração. Num computador em que confie menos, prefira uma chave só de leitura.
+- Trate uma chave como uma palavra-passe. O Claude Code lê-a do ficheiro da chave e o Claude Desktop guarda-a na sua configuração, ambos em texto simples. Num computador em que confie menos, prefira uma chave só de leitura.
 
 ## O que sai da máquina {#privacy}
 

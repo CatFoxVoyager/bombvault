@@ -4,6 +4,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CERT_PATH_PLACEHOLDER,
+  KEY_FILE_PLACEHOLDER,
   KEY_PLACEHOLDER,
   claudeCodeSnippet,
   claudeDesktopSnippet,
@@ -43,8 +44,8 @@ function shellWords(command: string): string[] {
 describe("the client snippets", () => {
   it("builds the Claude Code command", () => {
     expect(claudeCodeSnippet(trusted)).toBe(
-      "claude mcp add --transport http bombvault --scope user " +
-        `https://backup.example.com/mcp --header "Authorization: Bearer ${KEY}"`
+      "claude mcp add bombvault --scope user -- npx -y mcp-remote@latest " +
+        `https://backup.example.com/mcp --header-file "${KEY_FILE_PLACEHOLDER}"`
     );
     expect(mcpUrl({ ...trusted, origin: "https://backup.example.com/" })).toBe(
       "https://backup.example.com/mcp"
@@ -52,16 +53,32 @@ describe("the client snippets", () => {
 
     expect(claudeCodeSnippet(own)).toBe(
       `claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=${CERT_PATH_PLACEHOLDER}" ` +
-        `-e "BOMBVAULT_MCP_KEY=${KEY}" -- npx -y mcp-remote https://192.168.1.10:3443/mcp ` +
-        "--header 'X-API-Key:${BOMBVAULT_MCP_KEY}'"
+        "-- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp " +
+        `--header-file "${KEY_FILE_PLACEHOLDER}"`
     );
+    expect(shellWords(claudeCodeSnippet(plain))).toContain("--allow-http");
+    expect(shellWords(claudeCodeSnippet(trusted))).not.toContain("--allow-http");
   });
 
-  it("keeps a certificate path with a space in one argument", () => {
-    const path = "/Users/sam/My Downloads/bombvault-cert.pem";
-    const words = shellWords(claudeCodeSnippet(own).replace(CERT_PATH_PLACEHOLDER, path));
-    expect(words).toContain(`NODE_EXTRA_CA_CERTS=${path}`);
-    expect(words).toContain(`BOMBVAULT_MCP_KEY=${KEY}`);
+  // Claude Code fills a ${VAR} in a server's arguments from its own
+  // environment before it starts the server, which would put the key on the
+  // process's command line and into `claude mcp list`.
+  it("keeps the key out of the Claude Code command", () => {
+    for (const input of [trusted, own, plain]) {
+      const command = claudeCodeSnippet(input);
+      expect(command).not.toContain(KEY);
+      expect(command).not.toContain("${");
+    }
+  });
+
+  it("keeps a certificate or key file path with a space in one argument", () => {
+    const cert = "/Users/sam/My Downloads/bombvault-cert.pem";
+    const keyFile = "C:\\Users\\Sam Doe\\bombvault-key.txt";
+    const words = shellWords(
+      claudeCodeSnippet(own).replace(CERT_PATH_PLACEHOLDER, cert).replace(KEY_FILE_PLACEHOLDER, keyFile)
+    );
+    expect(words).toContain(`NODE_EXTRA_CA_CERTS=${cert}`);
+    expect(words[words.indexOf("--header-file") + 1]).toBe(keyFile);
   });
 
   it("builds a valid Claude Desktop entry", () => {
@@ -97,11 +114,7 @@ describe("the client snippets", () => {
 
   it("uses the placeholder verbatim", () => {
     const anonymous = { ...own, key: KEY_PLACEHOLDER };
-    for (const snippet of [
-      claudeCodeSnippet(anonymous),
-      claudeDesktopSnippet(anonymous),
-      genericSnippet(anonymous),
-    ]) {
+    for (const snippet of [claudeDesktopSnippet(anonymous), genericSnippet(anonymous)]) {
       expect(snippet).toContain(KEY_PLACEHOLDER);
       expect(snippet).not.toContain("bvmcp_");
     }

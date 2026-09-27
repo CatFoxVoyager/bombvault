@@ -61,15 +61,29 @@ BombVault 为每个密钥保留最长 30 天的记录：最新的 500 次成功�
 
 ### Claude Code {#claude-code}
 
-在终端中运行一次卡片里的命令。使用你的电脑信任的证书时，它是这样的：
+Claude Code 通过 `mcp-remote` 连接 BombVault，这需要该电脑上装有 Node.js。先把密钥单独存进一个文本文件，写成一行：
 
-```bash
-claude mcp add --transport http bombvault --scope user https://bombvault.example.com/mcp --header "Authorization: Bearer <your key>"
+```text
+X-API-Key: <your key>
 ```
 
-在 Claude Code 中用 `/mcp` 检查连接。`--scope user` 会把密钥保存在你的用户配置中，而不是项目文件里。
+然后在卡片的命令里填入这个文件的路径，在终端中运行一次。使用你的电脑信任的证书时，它是这样的：
 
-这条命令包含密钥，你的 shell 可能会把它留在历史记录里。为避免这种情况，可以在项目文件夹中放一个 `.mcp.json`，并把密钥放在环境变量中。Claude Code 读取文件时会替换 `${BOMBVAULT_MCP_KEY}`：
+```bash
+claude mcp add bombvault --scope user -- npx -y mcp-remote@latest https://bombvault.example.com/mcp --header-file "<path of the file with your key>"
+```
+
+使用 BombVault 自己的证书时（见 [TLS 与证书](#tls)），命令还会让 Node.js 使用下载的证书：
+
+```bash
+claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
+```
+
+在 Claude Code 中用 `/mcp` 检查连接。`--scope user` 让 BombVault 在你的所有项目中都可用。Claude Code 只保存密钥文件的路径，所以密钥既不会出现在命令和 shell 历史记录中，也不会出现在进程列表或 `claude mcp list` 中。把这个文件放在只有你能读取的位置，并且不要放在任何会提交的文件夹里。`@latest` 让 `npx` 获取最新的 `mcp-remote`；否则会改用全局安装的旧版本，而旧版本不支持 `--header-file`。
+
+不要把 `${BOMBVAULT_MCP_KEY}` 写进 Claude Code 的 `mcp-remote` 参数里。Claude Code 在启动 `mcp-remote` 之前，会用自己环境中的值替换这类引用，于是密钥会出现在该进程的命令行上，电脑上的其他程序和用户都能读到它，`claude mcp list` 也会把它打印出来。
+
+没有 Node.js 时，Claude Code 也能自己连接，但仅限于使用你的电脑信任的证书。在项目文件夹中放一个 `.mcp.json`：
 
 ```json
 {
@@ -85,15 +99,7 @@ claude mcp add --transport http bombvault --scope user https://bombvault.example
 }
 ```
 
-在 Claude Code 启动的环境中设置 `BOMBVAULT_MCP_KEY`，例如写在 shell 的配置文件里，用文本编辑器写，而不是在命令行中输入。绝不要提交写有密钥的 `.mcp.json`。
-
-使用 BombVault 自己的证书时（见 [TLS 与证书](#tls)），卡片里的命令改为运行 `mcp-remote`，并让 Node.js 使用下载的证书：
-
-```bash
-claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -e "BOMBVAULT_MCP_KEY=<your key>" -- npx -y mcp-remote https://192.168.1.10:3443/mcp --header 'X-API-Key:${BOMBVAULT_MCP_KEY}'
-```
-
-单引号阻止 shell 展开这个变量；展开由 `mcp-remote` 自己完成。同样的写法也适用于 `.mcp.json`：使用下面 Claude Desktop 的条目，并从它的 `env` 中去掉 `BOMBVAULT_MCP_KEY`，密钥就会来自你的环境。
+在 Claude Code 启动的环境中设置 `BOMBVAULT_MCP_KEY`，例如写在 `~/.claude/settings.json` 的 `"env"` 下，或写在 shell 的配置文件里，用文本编辑器写，而不是在命令行中输入。这里使用引用是安全的，因为 Claude Code 不会另外启动一个会拿到密钥的进程。BombVault 自己的证书不能这样用：即使设置了 `NODE_EXTRA_CA_CERTS`，Claude Code 自己建立的连接也会拒绝它。绝不要提交写有密钥的 `.mcp.json`。
 
 ### Claude Desktop {#claude-desktop}
 
@@ -172,7 +178,7 @@ location /mcp {
 - 每次工具调用都会连同密钥的 ID 和最后四个字符（从不包含名称）写入容器日志，并在 `/metrics` 中计数（`bombvault_mcp_requests_total`、`bombvault_mcp_tool_calls_total`、`bombvault_mcp_active_keys`）。
 - 还原配置备份会撤销所有密钥，因为还原的数据库中可能含有你在它保存之后才撤销的密钥。之后请创建新的密钥。
 - 当 `APP_KEY` 改变时（重新安装，或还原到另一个容器），密钥会失效。卡片会检测到并标记该密钥，**更换密钥** 会重新给它一个有效的密钥值。
-- 像对待密码一样对待密钥。Claude Code 和 Claude Desktop 会在配置中以明文保存它。在你不太信任的电脑上，最好使用只读密钥。
+- 像对待密码一样对待密钥。Claude Code 从密钥文件读取它，Claude Desktop 把它保存在配置中，两者都是明文。在你不太信任的电脑上，最好使用只读密钥。
 
 ## 哪些信息会离开本机 {#privacy}
 

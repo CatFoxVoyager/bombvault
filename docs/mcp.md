@@ -61,15 +61,29 @@ The card shows ready-made snippets for the address you opened it at: pick your c
 
 ### Claude Code {#claude-code}
 
-Run the command from the card once in a terminal. With a certificate your computer trusts, it looks like this:
+Claude Code reaches BombVault through `mcp-remote`, which needs Node.js on that computer. First save the key in a text file of its own, as a single line:
 
-```bash
-claude mcp add --transport http bombvault --scope user https://bombvault.example.com/mcp --header "Authorization: Bearer <your key>"
+```text
+X-API-Key: <your key>
 ```
 
-Check the connection with `/mcp` inside Claude Code. `--scope user` keeps the key in your user configuration rather than in a project file.
+Then run the command from the card once in a terminal, with the path of that file filled in. Behind a certificate your computer trusts, it looks like this:
 
-The command contains the key, and your shell may keep it in its history. To avoid that, put a `.mcp.json` into the project folder and keep the key in an environment variable. Claude Code fills in `${BOMBVAULT_MCP_KEY}` when it reads the file:
+```bash
+claude mcp add bombvault --scope user -- npx -y mcp-remote@latest https://bombvault.example.com/mcp --header-file "<path of the file with your key>"
+```
+
+With BombVault's own certificate (see [TLS and certificates](#tls)) the command also points Node.js at the downloaded certificate:
+
+```bash
+claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
+```
+
+Check the connection with `/mcp` inside Claude Code. `--scope user` makes BombVault available in all your projects. Claude Code keeps only the path of the key file, so the key shows up neither in the command and your shell history, nor in the process list, nor in `claude mcp list`. Keep the file where only you can read it, and outside any folder you commit. `@latest` makes `npx` fetch a current `mcp-remote`; an older one installed globally would be used instead, and it does not know `--header-file`.
+
+Do not write `${BOMBVAULT_MCP_KEY}` into the `mcp-remote` arguments for Claude Code. Claude Code fills such a reference in from its own environment before it starts `mcp-remote`, so the key ends up on the command line of that process, where other programs and users of the computer can read it, and `claude mcp list` prints it.
+
+Without Node.js, and only behind a certificate your computer trusts, Claude Code can connect by itself. Put a `.mcp.json` into the project folder:
 
 ```json
 {
@@ -85,15 +99,7 @@ The command contains the key, and your shell may keep it in its history. To avoi
 }
 ```
 
-Set `BOMBVAULT_MCP_KEY` where Claude Code starts, for example in your shell profile, edited in a text editor rather than typed at the prompt. Never commit a `.mcp.json` with the key written into it.
-
-With BombVault's own certificate (see [TLS and certificates](#tls)) the card's command runs `mcp-remote` instead and points Node.js at the downloaded certificate:
-
-```bash
-claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -e "BOMBVAULT_MCP_KEY=<your key>" -- npx -y mcp-remote https://192.168.1.10:3443/mcp --header 'X-API-Key:${BOMBVAULT_MCP_KEY}'
-```
-
-The single quotes keep your shell from expanding the variable; `mcp-remote` does that itself. The same form works in `.mcp.json`: use the Claude Desktop entry below and leave `BOMBVAULT_MCP_KEY` out of its `env`, so the key comes from your environment.
+Set `BOMBVAULT_MCP_KEY` where Claude Code starts, for example under `"env"` in `~/.claude/settings.json` or in your shell profile, edited in a text editor rather than typed at the prompt. Here the reference is safe, because Claude Code starts no second process that would carry it. BombVault's own certificate does not work this way: Claude Code's own connection refuses it even with `NODE_EXTRA_CA_CERTS` set. Never commit a `.mcp.json` with the key written into it.
 
 ### Claude Desktop {#claude-desktop}
 
@@ -172,7 +178,7 @@ Behind a proxy every request carries the proxy's address. Five wrong keys from o
 - Every tool call is written to the container log with the key's id and last four characters (never its name) and counted in `/metrics` (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Restoring a configuration backup revokes every key, because the restored database may hold keys you revoked after it was saved. Create new keys afterwards.
 - A key stops working when `APP_KEY` changes (a reinstall, or a restore onto another container). The card detects that and marks the key, and **Replace key** gives it a working secret again.
-- Treat a key like a password. Claude Code and Claude Desktop keep it in plain text in their configuration. Prefer a read-only key on a computer you trust less.
+- Treat a key like a password. Claude Code reads it from the key file and Claude Desktop keeps it in its configuration, both in plain text. Prefer a read-only key on a computer you trust less.
 
 ## What leaves the box {#privacy}
 

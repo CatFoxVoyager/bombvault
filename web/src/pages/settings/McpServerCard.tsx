@@ -278,12 +278,7 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
 
   /** What to do with a client's snippet, for the (i) beside the client strip. */
   function clientHint(id: ClientId): string {
-    const extra =
-      id === "code"
-        ? t("mcp.snippetShellHistory")
-        : id === "other" && ownCertificate
-          ? t("mcp.snippetOtherCert")
-          : "";
+    const extra = id === "other" && ownCertificate ? t("mcp.snippetOtherCert") : "";
     return [t(SNIPPET_HINT[id]), extra].filter(Boolean).join(" ");
   }
 

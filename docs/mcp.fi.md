@@ -61,15 +61,29 @@ Kortti näyttää valmiit katkelmat sille osoitteelle, jolla avasit sen: valitse
 
 ### Claude Code {#claude-code}
 
-Aja kortin komento kerran päätteessä. Varmenteella, johon tietokoneesi luottaa, se näyttää tältä:
+Claude Code tavoittaa BombVaultin `mcp-remote`n kautta, joka tarvitsee Node.js:n kyseiselle tietokoneelle. Tallenna ensin avain omaan tekstitiedostoonsa yhdelle riville:
 
-```bash
-claude mcp add --transport http bombvault --scope user https://bombvault.example.com/mcp --header "Authorization: Bearer <your key>"
+```text
+X-API-Key: <your key>
 ```
 
-Tarkista yhteys komennolla `/mcp` Claude Coden sisällä. `--scope user` tallentaa avaimen käyttäjäasetuksiisi eikä projektitiedostoon.
+Aja sitten kortin komento kerran päätteessä niin, että siihen on täytetty tämän tiedoston polku. Varmenteella, johon tietokoneesi luottaa, se näyttää tältä:
 
-Komento sisältää avaimen, ja komentotulkkisi voi tallentaa sen historiaansa. Sen välttääksesi laita projektikansioon `.mcp.json` ja pidä avain ympäristömuuttujassa. Claude Code sijoittaa `${BOMBVAULT_MCP_KEY}`:n paikalle arvon lukiessaan tiedoston:
+```bash
+claude mcp add bombvault --scope user -- npx -y mcp-remote@latest https://bombvault.example.com/mcp --header-file "<path of the file with your key>"
+```
+
+BombVaultin omalla varmenteella (katso [TLS ja varmenteet](#tls)) komento ohjaa lisäksi Node.js:n ladattuun varmenteeseen:
+
+```bash
+claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -- npx -y mcp-remote@latest https://192.168.1.10:3443/mcp --header-file "<path of the file with your key>"
+```
+
+Tarkista yhteys komennolla `/mcp` Claude Coden sisällä. `--scope user` tuo BombVaultin käyttöön kaikissa projekteissasi. Claude Code tallentaa vain avaintiedoston polun, joten avain ei näy komennossa eikä komentotulkkisi historiassa, ei prosessiluettelossa eikä `claude mcp list` -komennon tulosteessa. Pidä tiedosto paikassa, jossa vain sinä voit lukea sen, ja minkään commitoitavan kansion ulkopuolella. `@latest` saa `npx`:n hakemaan ajantasaisen `mcp-remote`n; muuten käytettäisiin vanhempaa, globaalisti asennettua versiota, joka ei tunne valitsinta `--header-file`.
+
+Älä kirjoita viittausta `${BOMBVAULT_MCP_KEY}` Claude Coden `mcp-remote`-argumentteihin. Claude Code täyttää tällaisen viittauksen omasta ympäristöstään ennen kuin se käynnistää `mcp-remote`n, joten avain päätyy sen prosessin komentoriville, josta tietokoneen muut ohjelmat ja käyttäjät voivat lukea sen, ja `claude mcp list` tulostaa sen.
+
+Ilman Node.js:ää ja vain varmenteella, johon tietokoneesi luottaa, Claude Code voi muodostaa yhteyden itse. Laita projektikansioon `.mcp.json`:
 
 ```json
 {
@@ -85,15 +99,7 @@ Komento sisältää avaimen, ja komentotulkkisi voi tallentaa sen historiaansa. 
 }
 ```
 
-Aseta `BOMBVAULT_MCP_KEY` siellä, missä Claude Code käynnistyy, esimerkiksi komentotulkin profiiliin tekstieditorilla eikä kehotteeseen kirjoittamalla. Älä koskaan commitoi `.mcp.json`-tiedostoa, johon avain on kirjoitettu.
-
-BombVaultin omalla varmenteella (katso [TLS ja varmenteet](#tls)) kortin komento käynnistää sen sijaan `mcp-remote`n ja ohjaa Node.js:n ladattuun varmenteeseen:
-
-```bash
-claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=<path of the downloaded bombvault-cert.pem>" -e "BOMBVAULT_MCP_KEY=<your key>" -- npx -y mcp-remote https://192.168.1.10:3443/mcp --header 'X-API-Key:${BOMBVAULT_MCP_KEY}'
-```
-
-Yksinkertaiset lainausmerkit estävät komentotulkkia laajentamasta muuttujaa; sen tekee `mcp-remote` itse. Sama muoto toimii `.mcp.json`-tiedostossa: käytä alla olevaa Claude Desktopin merkintää ja jätä `BOMBVAULT_MCP_KEY` pois sen `env`-osasta, jolloin avain tulee ympäristöstäsi.
+Aseta `BOMBVAULT_MCP_KEY` siellä, missä Claude Code käynnistyy, esimerkiksi tiedoston `~/.claude/settings.json` kohtaan `"env"` tai komentotulkin profiiliin tekstieditorilla eikä kehotteeseen kirjoittamalla. Tässä viittaus on turvallinen, koska Claude Code ei käynnistä toista prosessia, johon avain päätyisi. BombVaultin oma varmenne ei toimi tällä tavalla: Claude Coden oma yhteys hylkää sen, vaikka `NODE_EXTRA_CA_CERTS` olisi asetettu. Älä koskaan commitoi `.mcp.json`-tiedostoa, johon avain on kirjoitettu.
 
 ### Claude Desktop {#claude-desktop}
 
@@ -172,7 +178,7 @@ Välityspalvelimen takana jokaisessa pyynnössä on välityspalvelimen osoite. V
 - Jokainen työkalukutsu kirjoitetaan kontin lokiin avaimen tunnisteen ja sen neljän viimeisen merkin kera (ei koskaan nimeä) ja lasketaan `/metrics`-sivulla (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Asetusten varmuuskopion palauttaminen peruuttaa kaikki avaimet, koska palautettu tietokanta voi sisältää avaimia, jotka peruutit sen tallentamisen jälkeen. Luo uudet avaimet sen jälkeen.
 - Avain lakkaa toimimasta, kun `APP_KEY` muuttuu (uudelleenasennus tai palautus toiseen konttiin). Kortti huomaa sen ja merkitsee avaimen, ja **Vaihda avain** antaa sille taas kelvollisen salaisuuden.
-- Käsittele avainta kuin salasanaa. Claude Code ja Claude Desktop säilyttävät sen selväkielisenä asetuksissaan. Tietokoneella, johon luotat vähemmän, käytä mieluummin avainta, joka saa vain lukea.
+- Käsittele avainta kuin salasanaa. Claude Code lukee sen avaintiedostosta ja Claude Desktop säilyttää sen asetuksissaan, molemmat selväkielisenä. Tietokoneella, johon luotat vähemmän, käytä mieluummin avainta, joka saa vain lukea.
 
 ## Mitä koneelta lähtee {#privacy}
 

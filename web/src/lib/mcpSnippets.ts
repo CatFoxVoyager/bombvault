@@ -15,6 +15,7 @@ export interface McpSnippetInput {
 
 export const KEY_PLACEHOLDER = "<your key>";
 export const CERT_PATH_PLACEHOLDER = "<path of the downloaded bombvault-cert.pem>";
+export const KEY_FILE_PLACEHOLDER = "<path of the file with your key>";
 
 /** mcpUrl joins the origin and the endpoint path without doubling the slash
  *  between them. */
@@ -24,24 +25,21 @@ export function mcpUrl(i: McpSnippetInput): string {
 
 /**
  * claudeCodeSnippet returns the `claude mcp add` command for one terminal run.
- * Behind BombVault's own certificate it reaches the server through mcp-remote,
- * because the client's HTTP transport would want NODE_EXTRA_CA_CERTS in the
- * environment the client itself started in, while `-e` sets it for this server
- * alone. The header reference keeps its single quotes so no shell expands it,
- * and both `-e` pairs are quoted because the operator fills the certificate
- * path in by hand and a path with a space would otherwise split in two.
+ * mcp-remote reads the key from a file, so neither the command, the process
+ * list nor `claude mcp list` shows it. A `${VAR}` in the arguments would not
+ * keep it out: Claude Code fills it from its own environment before it starts
+ * the server. Claude Code's own HTTP transport is no way round that either,
+ * since it refuses BombVault's self-issued certificate even with
+ * NODE_EXTRA_CA_CERTS set. `@latest` keeps an older global mcp-remote without
+ * `--header-file` from being picked, and the paths are quoted because the
+ * operator fills them in by hand and a space would split them in two.
  */
 export function claudeCodeSnippet(i: McpSnippetInput): string {
-  if (!i.selfSigned) {
-    return (
-      "claude mcp add --transport http bombvault --scope user " +
-      `${mcpUrl(i)} --header "Authorization: Bearer ${i.key}"`
-    );
-  }
+  const cert = i.selfSigned ? `-e "NODE_EXTRA_CA_CERTS=${CERT_PATH_PLACEHOLDER}" ` : "";
+  const http = i.origin.toLowerCase().startsWith("http:") ? " --allow-http" : "";
   return (
-    `claude mcp add bombvault --scope user -e "NODE_EXTRA_CA_CERTS=${CERT_PATH_PLACEHOLDER}" ` +
-    `-e "BOMBVAULT_MCP_KEY=${i.key}" -- npx -y mcp-remote ${mcpUrl(i)} ` +
-    "--header 'X-API-Key:${BOMBVAULT_MCP_KEY}'"
+    `claude mcp add bombvault --scope user ${cert}-- npx -y mcp-remote@latest ${mcpUrl(i)} ` +
+    `--header-file "${KEY_FILE_PLACEHOLDER}"${http}`
   );
 }
 
