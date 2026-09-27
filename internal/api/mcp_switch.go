@@ -7,7 +7,7 @@ import "net/http"
 // bundle and the recovery kit. Switched off, /mcp answers 404 exactly as it
 // does while no key exists, and the tables stay in place. It is a variable so
 // the tests can run the server either way.
-var mcpShipped = false
+var mcpShipped = true
 
 // mountMCP registers the endpoint, the routes that manage its keys and its
 // OAuth authorization server. The endpoint sits outside /api like /metrics, is
