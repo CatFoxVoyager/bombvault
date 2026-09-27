@@ -377,3 +377,16 @@ test("every rendered card clears the 44px touch floor", async ({ page }, testInf
   );
   expect(minHeight).toBeGreaterThanOrEqual(44);
 });
+
+test("a restore link from the anomalies page opens that container with its backups", async ({ page }, testInfo) => {
+  test.skip(!MOBILE_PROJECTS.has(testInfo.project.name), "mobile presentation only");
+  await stageContainersDomain(page, containerList(3));
+  await page.route("**/api/containers/*/snapshots*", (route) => route.fulfill({ json: { ok: true, snapshots: [] } }));
+  const snapshots = page.waitForRequest(/\/api\/containers\/svc-01\/snapshots/);
+
+  await page.goto("/containers?restore=snap-9&at=1700000000&item=svc-01");
+
+  await expect(page.getByRole("heading", { level: 2, name: "svc-01" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^svc-00/ })).toHaveCount(0);
+  await snapshots;
+});

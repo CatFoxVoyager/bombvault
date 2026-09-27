@@ -11,8 +11,9 @@ import { useTipBubble } from "../lib/useTipBubble";
 // actually lands on is a comfortable 27px instead of the icon's own 15px (the
 // same compensating-padding trick Toast's close button uses).
 //
-// `onAccent` is for an icon inside a heading badge on the accent fill: it
-// inherits the badge's --accent-contrast ink and keeps full opacity.
+// `onAccent` is for an icon that sits on a control's own surface, such as a
+// heading badge on the accent fill or a button that HintSlot lays it over: it
+// inherits that surface's ink and keeps full opacity.
 export function InfoBubble({ tip, onAccent = false }: { tip: string; onAccent?: boolean }) {
   const tooltip = useTipBubble(tip);
 

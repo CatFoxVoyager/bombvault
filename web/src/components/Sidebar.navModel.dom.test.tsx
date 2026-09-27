@@ -46,6 +46,8 @@ const ALL_OFF = {
   receiverEnabled: false,
   fleetEnabled: false,
   pullEnabled: false,
+  zfsEnabled: false,
+  anomalyEnabled: false,
 } as Settings;
 
 const ALL_ON = {
@@ -57,6 +59,8 @@ const ALL_ON = {
   receiverEnabled: true,
   fleetEnabled: true,
   pullEnabled: true,
+  zfsEnabled: true,
+  anomalyEnabled: true,
 } as Settings;
 
 // A mixed middle state: consecutive gated tabs split on/off around the list,

@@ -6,6 +6,7 @@ import { getSettings, getAuth, getHealth, type Settings } from "../lib/api";
 import { useIsDesktop } from "../lib/useMediaQuery";
 import { LoginPage } from "../pages/Login";
 import { WhatsNewDialog } from "../components/WhatsNewDialog";
+import { AnomalyProvider } from "../lib/useAnomalies";
 import { sync as syncDisplayPrefs } from "../lib/displayPrefs";
 
 // The last BombVault version this browser has seen. The "What's new" dialog
@@ -312,49 +313,55 @@ export function Layout() {
   // bottom bar (the bar is a flex sibling of `main`, never a fixed overlay,
   // so the browser reserves its height and the scroller ends above it by
   // construction).
+  //
+  // The desktop frame's side paddings take the same safe-area max() the
+  // phone main does: the frame is the chrome a landscape phone renders once
+  // the width breakpoint matches, and viewport-fit=cover puts its rail and
+  // content under the side notch without it. On a real desktop env() reads
+  // 0px and max() leaves the 1rem gutter, so the desktop rendering is
+  // unchanged. The phone branch keeps its plain flex-col; its main and the
+  // bottom bar's card each carry their own insets.
+  //
+  // Inside the gate, so a browser that may not enter polls nothing. The rail's
+  // count and the dashboard card read the same summary from here.
   return (
-    // The desktop frame's side paddings take the same safe-area max() the
-    // phone main does: the frame is the chrome a landscape phone renders once
-    // the width breakpoint matches, and viewport-fit=cover puts its rail and
-    // content under the side notch without it. On a real desktop env() reads
-    // 0px and max() leaves the 1rem gutter, so the desktop rendering is
-    // unchanged. The phone branch keeps its plain flex-col; its main and the
-    // bottom bar's card each carry their own insets.
-    <div
-      ref={shellRef}
-      className={`flex h-dvh overflow-hidden bg-carbon-background ${
-        isDesktop
-          ? "gap-4 p-4 pl-[max(1rem,var(--safe-area-left))] pr-[max(1rem,var(--safe-area-right))]"
-          : "flex-col"
-      }`}
-    >
-      {/* the one chrome switch; exactly one chrome surface renders at a time.
-          The desktop branch is upstream's desktop tree verbatim (same Sidebar,
-          same frame gutter, same wrapper padding); the mobile branch is the
-          same scroller with the bottom bar as its flex sibling below it. The
-          hidden surface is not rendered at all, never CSS-hidden: a
-          display:none Sidebar would still run its subscriptions, dialogs and
-          label engine below the breakpoint. What'sNewDialog renders outside
-          the switch; it is a fixed-position dialog and belongs to both
-          shells. */}
-      {isDesktop ? (
-        <>
-          <Sidebar settings={settings} authEnabled={authEnabled} />
-          {scroller}
-        </>
-      ) : (
-        <>
-          {scroller}
-          <BottomNav
-            settings={settings}
-            authEnabled={authEnabled}
-            scrollMainToTop={scrollMainToTop}
-          />
-        </>
-      )}
-      {whatsNewVersion && (
-        <WhatsNewDialog version={whatsNewVersion} onClose={() => setWhatsNewVersion(null)} />
-      )}
-    </div>
+    <AnomalyProvider>
+      <div
+        ref={shellRef}
+        className={`flex h-dvh overflow-hidden bg-carbon-background ${
+          isDesktop
+            ? "gap-4 p-4 pl-[max(1rem,var(--safe-area-left))] pr-[max(1rem,var(--safe-area-right))]"
+            : "flex-col"
+        }`}
+      >
+        {/* the one chrome switch; exactly one chrome surface renders at a time.
+            The desktop branch is upstream's desktop tree verbatim (same Sidebar,
+            same frame gutter, same wrapper padding); the mobile branch is the
+            same scroller with the bottom bar as its flex sibling below it. The
+            hidden surface is not rendered at all, never CSS-hidden: a
+            display:none Sidebar would still run its subscriptions, dialogs and
+            label engine below the breakpoint. What'sNewDialog renders outside
+            the switch; it is a fixed-position dialog and belongs to both
+            shells. */}
+        {isDesktop ? (
+          <>
+            <Sidebar settings={settings} authEnabled={authEnabled} />
+            {scroller}
+          </>
+        ) : (
+          <>
+            {scroller}
+            <BottomNav
+              settings={settings}
+              authEnabled={authEnabled}
+              scrollMainToTop={scrollMainToTop}
+            />
+          </>
+        )}
+        {whatsNewVersion && (
+          <WhatsNewDialog version={whatsNewVersion} onClose={() => setWhatsNewVersion(null)} />
+        )}
+      </div>
+    </AnomalyProvider>
   );
 }

@@ -103,7 +103,7 @@ function TargetTestButton({ id, t }: { id: string; t: T }) {
       onClick={() => void go()}
       disabled={busy}
       title={t("offsite.test")}
-      className={shake ? "glim-shake" : undefined}
+      className={shake ? "glim-tile-raise glim-shake" : "glim-tile-raise"}
     >
       {busy ? t("offsite.testing") : t("offsite.targets.test")}
     </Badge>
@@ -256,7 +256,7 @@ export function OffsiteTargetsSection({
     "rounded-control bg-carbon-surface3 text-carbon-text text-sm px-3 py-1.5 w-full glim-field-focus-well";
 
   return (
-    <div className="mt-2 flex flex-col gap-3 rounded-card bg-carbon-surface2 p-3">
+    <div className="mt-2 flex flex-col gap-3">
       <div className="flex flex-col gap-0.5">
         <span className="text-xs font-semibold text-carbon-textSub uppercase tracking-widest">
           {t("offsite.targets.title")}
@@ -275,7 +275,7 @@ export function OffsiteTargetsSection({
       {targets.map((tgt) => (
         <div
           key={tgt.id}
-          className="flex items-start justify-between gap-3 rounded-card bg-carbon-surface p-3"
+          className="glim-tile flex items-start justify-between gap-3 rounded-card p-3"
         >
           <div className="flex min-w-0 flex-col gap-1">
             <span className="text-sm text-carbon-text truncate">{tgt.name || tgt.repo}</span>
@@ -284,7 +284,7 @@ export function OffsiteTargetsSection({
                 to several lines; without `wrap` the tinted background would
                 stay one line tall. */}
             <span className="flex flex-wrap gap-2">
-              <Badge tone="neutral" size={ROW_BADGE_SIZE} wrap>
+              <Badge tone="neutral" size={ROW_BADGE_SIZE} wrap className="glim-tile-raise">
                 {tgt.storageClass || t("cloud.storageClass.default")}
               </Badge>
               {tgt.immutable && (
@@ -296,7 +296,7 @@ export function OffsiteTargetsSection({
           </div>
           <div className="flex shrink-0 items-start gap-2">
             <TargetTestButton id={tgt.id} t={t} />
-            <Badge as="button" tone="neutral" size={ROW_BADGE_SIZE} onClick={() => openEdit(tgt)}>
+            <Badge as="button" tone="neutral" size={ROW_BADGE_SIZE} onClick={() => openEdit(tgt)} className="glim-tile-raise">
               {t("offsite.targets.edit")}
             </Badge>
             {/* Neutral like Edit, not red. The two-click confirm, whose label
@@ -309,7 +309,7 @@ export function OffsiteTargetsSection({
                 size={ROW_BADGE_SIZE}
                 onClick={() => void remove(tgt.id)}
                 disabled={removingId === tgt.id}
-                className={removeShake ? "glim-shake" : undefined}
+                className={removeShake ? "glim-tile-raise glim-shake" : "glim-tile-raise"}
               >
                 {removingId === tgt.id ? t("offsite.targets.removing") : t("offsite.targets.confirmRemove")}
               </Badge>
@@ -319,6 +319,7 @@ export function OffsiteTargetsSection({
                 tone="neutral"
                 size={ROW_BADGE_SIZE}
                 onClick={() => setConfirmRemove(tgt.id)}
+                className="glim-tile-raise"
               >
                 {t("offsite.targets.remove")}
               </Badge>
@@ -329,7 +330,7 @@ export function OffsiteTargetsSection({
 
       {/* Editor form (new or edit) */}
       {draft && (
-        <div className="flex flex-col gap-3 rounded-card bg-carbon-surface p-3">
+        <div className="glim-tile flex flex-col gap-3 rounded-card p-3">
           <label className="flex flex-col gap-1">
             <span className="text-xs text-carbon-textSub">{t("offsite.targets.name")}</span>
             <input
