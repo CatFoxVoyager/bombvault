@@ -19,6 +19,7 @@ import {
   type McpKeySecretResponse,
   type McpKeyView,
   type McpKeysResponse,
+  type McpOAuthView,
   type OkEnvelope,
 } from "../../lib/api";
 import { copyText } from "../../lib/clipboard";
@@ -66,6 +67,8 @@ const REVOKED_REASON: Partial<Record<McpKeyView["revokedReason"], TranslationKey
   "refresh-reuse": "mcp.revokedReuse",
   "code-replay": "mcp.revokedReuse",
   client: "mcp.revokedByClient",
+  "oauth-off": "mcp.revokedOAuthOff",
+  "oauth-moved": "mcp.revokedOAuthMoved",
 };
 
 type Pending =
@@ -147,6 +150,14 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
       setFailed(true);
     }
   }, []);
+
+  // Switching sign-in through OAuth off, or moving its address, revokes every
+  // grant, so their tiles are read again.
+  const oauthChanged = (oauth: McpOAuthView) => {
+    const ended = !oauth.enabled || oauth.issuer !== data?.oauth.issuer;
+    setData((prev) => (prev ? { ...prev, oauth } : prev));
+    if (ended && data?.keys.some((k) => k.viaOAuth)) void reload();
+  };
 
   // Setting or clearing the login password further down the tab changes what
   // this card may offer, so it asks the server again.
@@ -443,7 +454,7 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
           <McpOAuthSettings
             oauth={data.oauth}
             authEnabled={data.authEnabled}
-            onChange={(oauth) => setData((prev) => (prev ? { ...prev, oauth } : prev))}
+            onChange={oauthChanged}
             idPrefix="bv-mcp-card"
             t={t}
           />
@@ -702,7 +713,7 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
           limitNote={staticKeys >= limit ? t("mcp.limitReached", limit) : undefined}
           oauth={data.oauth}
           authEnabled={data.authEnabled}
-          onOAuthChange={(oauth) => setData((prev) => (prev ? { ...prev, oauth } : prev))}
+          onOAuthChange={oauthChanged}
           allowStartHint={t("mcp.allowStartHint")
             .replace("{n}", String(data.startsPerHour))
             .replace("{minutes}", String(data.cooldownMinutes))

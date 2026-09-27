@@ -348,7 +348,13 @@ func (h *Handler) handleSetMCPOAuth(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	if err := h.store.SetMCPOAuthSettings(store.MCPOAuthSettings{Enabled: body.Enabled, Issuer: issuer}, h.mcp.now().Unix()); err != nil {
+	before, err := h.store.MCPOAuthSettings()
+	if err != nil {
+		writeJSON(w, http.StatusOK, failEnvelope(err))
+		return
+	}
+	now := h.mcp.now().Unix()
+	if err := h.store.SetMCPOAuthSettings(store.MCPOAuthSettings{Enabled: body.Enabled, Issuer: issuer}, now); err != nil {
 		writeJSON(w, http.StatusOK, failEnvelope(err))
 		return
 	}
@@ -357,6 +363,27 @@ func (h *Handler) handleSetMCPOAuth(w http.ResponseWriter, r *http.Request) {
 		state = "on"
 	}
 	log.Printf("api: mcp: sign-in through OAuth switched %s", state)
+
+	// Switching off is how the operator cuts every cloud client off, so the
+	// grants end here instead of waking up again with the switch. A new
+	// address leaves them with tokens nothing accepts any more.
+	reason, why := "", ""
+	switch {
+	case !body.Enabled:
+		reason, why = "oauth-off", "revoked when sign-in through OAuth was switched off"
+	case issuer != before.Issuer:
+		reason, why = "oauth-moved", "revoked when the public address changed"
+	}
+	if reason != "" {
+		rows, err := h.store.RevokeOAuthGrants(reason, now)
+		if err != nil {
+			writeJSON(w, http.StatusOK, failEnvelope(err))
+			return
+		}
+		for _, k := range rows {
+			h.recordMCPKeyChange(r, k, why, "")
+		}
+	}
 	view, err := h.mcpOAuthView()
 	if err != nil {
 		writeJSON(w, http.StatusOK, failEnvelope(err))

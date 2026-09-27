@@ -1100,6 +1100,19 @@ describe("sign-in through OAuth on the card", () => {
     await waitFor(() => expect(setMcpOAuth).toHaveBeenCalledWith(false, "https://vault.example"));
   });
 
+  it("reads the tiles again after switching off, which ends every grant", async () => {
+    const grant = key({ id: "g1", viaOAuth: true, client: "chatgpt", label: "ChatGPT", hint: "" });
+    const ended = { ...grant, revokedAt: 1_700_000_100, revokedReason: "oauth-off" as const };
+    await renderCard(payload({ oauth: on, keys: [grant] }));
+    await screen.findByRole("listitem");
+    listMcpKeys.mockResolvedValue(payload({ oauth: { ...on, enabled: false, active: false }, keys: [], revoked: [ended] }));
+    setMcpOAuth.mockResolvedValue({ ok: true, oauth: { ...on, enabled: false, active: false } });
+    fireEvent.click(screen.getByRole("switch", { name: en["mcp.oauthToggle"] }));
+    fireEvent.click(await screen.findByRole("button", { name: countText(en["mcp.revokedList"], "en", 1) }));
+    expect(cardText()).toContain(en["mcp.revokedOAuthOff"].split("{date}")[0]);
+    expect(screen.queryByRole("button", { name: en["mcp.revoke"] })).toBeNull();
+  });
+
   it("says the endpoint is on while only sign-in can reach it", async () => {
     await renderCard(payload({ oauth: on }));
     await waitFor(() => expect(screen.getByText(en["mcp.statusOAuthOnly"])).toBeTruthy());

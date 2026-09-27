@@ -4708,7 +4708,17 @@ export interface McpKeyView {
   /** Address of the last request that used the key, "" when it has not been used. */
   lastUsedFrom: string;
   revokedAt: number;
-  revokedReason: "" | "user" | "config-restore" | "replaced" | "expired" | "refresh-reuse" | "code-replay" | "client";
+  revokedReason:
+    | ""
+    | "user"
+    | "config-restore"
+    | "replaced"
+    | "expired"
+    | "refresh-reuse"
+    | "code-replay"
+    | "client"
+    | "oauth-off"
+    | "oauth-moved";
   /** The run history still names this key, so purging it would orphan those rows. */
   inUse: boolean;
   unusable: "" | "app-key-changed";

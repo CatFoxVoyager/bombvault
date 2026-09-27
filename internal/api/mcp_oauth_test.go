@@ -747,6 +747,48 @@ func TestNoTokensAreIssuedForAnAddressThatMoved(t *testing.T) {
 	}
 }
 
+func TestSwitchingOAuthOffEndsEveryGrant(t *testing.T) {
+	e := newOAuthEnv(t)
+	client, tok := e.signIn(t, false)
+	for _, enabled := range []bool{false, true} {
+		if _, m := doMCPKeyJSON(t, e.h, http.MethodPut, "/api/mcp/oauth",
+			fmt.Sprintf(`{"enabled":%t,"issuer":%q}`, enabled, oauthIssuer), oauthHost, e.cookie); m["ok"] != true {
+			t.Fatalf("switch enabled=%t: %v", enabled, m)
+		}
+	}
+	if got := mcpStatus(t, e.h, str(tok, "access_token")); got != http.StatusUnauthorized {
+		t.Fatalf("an access token from before the switch-off: %d", got)
+	}
+	refresh := url.Values{"grant_type": {"refresh_token"}, "client_id": {client}, "refresh_token": {str(tok, "refresh_token")}}
+	if w, m := e.token(t, refresh, "", ""); w.Code != http.StatusBadRequest || m["error"] != "invalid_grant" {
+		t.Fatalf("a refresh token from before the switch-off: %d %v", w.Code, m)
+	}
+	revoked := mcpKeyRows(t, mcpKeyListAs(t, e), "revoked")
+	if len(revoked) != 1 || revoked[0]["revokedReason"] != "oauth-off" {
+		t.Fatalf("revoked rows %v", revoked)
+	}
+}
+
+func TestMovingThePublicAddressEndsEveryGrant(t *testing.T) {
+	e := newOAuthEnv(t)
+	e.signIn(t, false)
+	w, m := doMCPKeyJSON(t, e.h, http.MethodPost, "/api/mcp/keys", `{"label":"Laptop","canStartBackups":false}`, oauthHost, e.cookie)
+	if w.Code != http.StatusOK || m["ok"] != true {
+		t.Fatalf("create key: %d %v", w.Code, m)
+	}
+	if _, m := doMCPKeyJSON(t, e.h, http.MethodPut, "/api/mcp/oauth",
+		`{"enabled":true,"issuer":"https://elsewhere.example"}`, oauthHost, e.cookie); m["ok"] != true {
+		t.Fatalf("moving the issuer: %v", m)
+	}
+	list := mcpKeyListAs(t, e)
+	if revoked := mcpKeyRows(t, list, "revoked"); len(revoked) != 1 || revoked[0]["revokedReason"] != "oauth-moved" {
+		t.Fatalf("revoked rows %v", revoked)
+	}
+	if keys := mcpKeyRows(t, list, "keys"); len(keys) != 1 || keys[0]["viaOAuth"] == true {
+		t.Fatalf("the key went with the grants: %v", keys)
+	}
+}
+
 func TestARevokedGrantStopsAtOnce(t *testing.T) {
 	e := newOAuthEnv(t)
 	client, tok := e.signIn(t, false)

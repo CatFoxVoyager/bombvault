@@ -239,6 +239,38 @@ func (r *Repo) CreateOAuthGrant(g OAuthGrant, now int64) (MCPKey, error) {
 	return r.GetMCPKey(g.ID)
 }
 
+// RevokeOAuthGrants revokes every active grant, keys untouched, and returns
+// the rows it revoked.
+func (r *Repo) RevokeOAuthGrants(reason string, now int64) ([]MCPKey, error) {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("RevokeOAuthGrants: %w", err)
+	}
+	defer tx.Rollback() //nolint:errcheck // rollback after a successful commit is a no-op
+
+	ids, err := grantIDs(tx, `SELECT id FROM mcp_keys WHERE kind = 'oauth' AND revoked_at = 0`)
+	if err != nil {
+		return nil, fmt.Errorf("RevokeOAuthGrants: %w", err)
+	}
+	for _, id := range ids {
+		if _, err := revokeMCPKeyTx(tx, id, reason, now); err != nil {
+			return nil, fmt.Errorf("RevokeOAuthGrants: %w", err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("RevokeOAuthGrants commit: %w", err)
+	}
+	rows := make([]MCPKey, 0, len(ids))
+	for _, id := range ids {
+		k, err := r.GetMCPKey(id)
+		if err != nil {
+			return nil, fmt.Errorf("RevokeOAuthGrants: %w", err)
+		}
+		rows = append(rows, k)
+	}
+	return rows, nil
+}
+
 func grantIDs(tx *sql.Tx, query string, args ...any) ([]string, error) {
 	rows, err := tx.Query(query, args...)
 	if err != nil {

@@ -402,6 +402,24 @@ func TestARefreshTokenWorksOnlyForTheAddressItWasIssuedFor(t *testing.T) {
 	}
 }
 
+func TestRevokingEveryGrantLeavesTheKeys(t *testing.T) {
+	r := newMCPRepo(t)
+	addMCPKey(t, r, "key1", "Laptop", false, 10)
+	addOAuthClient(t, r, "c1", 10)
+	addSignedIn(t, r, "g1", "c1", "a1", "r1", 100)
+	rows, err := r.RevokeOAuthGrants("oauth-off", 200)
+	if err != nil || len(rows) != 1 || rows[0].ID != "g1" || rows[0].RevokedReason != "oauth-off" {
+		t.Fatalf("revoked %+v, %v", rows, err)
+	}
+	if _, err := r.OAuthAccessGrant("a1", 210); !errors.Is(err, store.ErrOAuthTokenNotFound) {
+		t.Fatalf("the grant's access token survived: %v", err)
+	}
+	key, err := r.GetMCPKey("key1")
+	if err != nil || key.RevokedAt != 0 {
+		t.Fatalf("the key went too: %+v, %v", key, err)
+	}
+}
+
 func TestAnExpiredRefreshTokenIsRefused(t *testing.T) {
 	r := newMCPRepo(t)
 	addOAuthClient(t, r, "c1", 10)
