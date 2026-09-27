@@ -2030,7 +2030,7 @@ const lv: Partial<Translations> = {
   "mcp.groupLocal": "Šajā datorā",
   "mcp.groupCloud": "Mākonī",
   "mcp.cloudWarningTitle": "BombVault jābūt sasniedzamam no interneta",
-  "mcp.cloudWarning": "Šie pakalpojumi izsauc BombVault no sava pakalpojumu sniedzēja serveriem, nevis no tava datora. Tad BombVault jābūt sasniedzamam no interneta, aiz reversā starpniekservera ar savu pieteikšanos un publiski uzticamu sertifikātu. Le Chat noraida pašparakstītus sertifikātus.",
+  "mcp.cloudWarning": "Šie pakalpojumi izsauc BombVault no sava pakalpojumu sniedzēja serveriem, nevis no tava datora. Tad BombVault jābūt sasniedzamam no interneta ar publiski uzticamu sertifikātu, piemēram, aiz reversā starpniekservera. Pieteikšanās šajā starpniekserverī var aizsargāt tīmekļa saskarni, bet /mcp jālaiž cauri līdz BombVault, kas pats pārbauda atslēgu: šie pakalpojumi nevar pieteikties starpniekserverī. Le Chat noraida pašparakstītus sertifikātus.",
   "mcp.otherClient": "Cits klients",
   "mcp.kindTerminal": "Terminālis",
   "mcp.kindEditor": "Redaktors",

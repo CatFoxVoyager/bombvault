@@ -1798,7 +1798,7 @@ const ja: Partial<Translations> = {
   "mcp.groupLocal": "このコンピューター上",
   "mcp.groupCloud": "クラウド",
   "mcp.cloudWarningTitle": "BombVault にインターネットから到達できる必要があります",
-  "mcp.cloudWarning": "これらのサービスは、あなたのコンピューターからではなく、提供元のサーバーから BombVault を呼び出します。そのため BombVault は、独自のログインと公的に信頼された証明書を持つリバースプロキシの背後で、インターネットから到達できる必要があります。Le Chat は自己署名証明書を拒否します。",
+  "mcp.cloudWarning": "これらのサービスは、あなたのコンピューターからではなく、提供元のサーバーから BombVault を呼び出します。そのため BombVault は、たとえばリバースプロキシの背後に置き、公的に信頼された証明書でインターネットから到達できるようにする必要があります。プロキシのログインで Web インターフェースを守るのは構いませんが、/mcp はそのまま BombVault まで通してください。キーは BombVault 自身が確認し、これらのサービスはプロキシにログインできません。Le Chat は自己署名証明書を拒否します。",
   "mcp.otherClient": "その他のクライアント",
   "mcp.kindTerminal": "ターミナル",
   "mcp.kindEditor": "エディター",

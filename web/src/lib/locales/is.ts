@@ -2030,7 +2030,7 @@ const is: Partial<Translations> = {
   "mcp.groupLocal": "Á þessari tölvu",
   "mcp.groupCloud": "Í skýinu",
   "mcp.cloudWarningTitle": "BombVault þarf að vera aðgengilegt af netinu",
-  "mcp.cloudWarning": "Þessar þjónustur kalla á BombVault frá netþjónum söluaðila síns, ekki frá tölvunni þinni. BombVault þarf þá að vera aðgengilegt af netinu, á bak við öfugan milliþjón með eigin innskráningu og opinberlega traust skilríki. Le Chat hafnar sjálfundirrituðum skilríkjum.",
+  "mcp.cloudWarning": "Þessar þjónustur kalla á BombVault frá netþjónum söluaðila síns, ekki frá tölvunni þinni. BombVault þarf þá að vera aðgengilegt af netinu með opinberlega traustu skilríki, til dæmis á bak við öfugan milliþjón. Innskráning á þeim milliþjóni má vernda vefviðmótið, en /mcp þarf að komast í gegn til BombVault, sem athugar lykilinn sjálft: þessar þjónustur geta ekki skráð sig inn á milliþjón. Le Chat hafnar sjálfundirrituðum skilríkjum.",
   "mcp.otherClient": "Annar biðlari",
   "mcp.kindTerminal": "Skipanalína",
   "mcp.kindEditor": "Ritill",

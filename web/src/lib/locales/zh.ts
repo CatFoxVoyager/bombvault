@@ -1798,7 +1798,7 @@ const zh: Partial<Translations> = {
   "mcp.groupLocal": "在这台电脑上",
   "mcp.groupCloud": "在云端",
   "mcp.cloudWarningTitle": "BombVault 必须能从互联网访问",
-  "mcp.cloudWarning": "这些服务从其提供商的服务器调用 BombVault，而不是从你的电脑。因此 BombVault 必须能从互联网访问，并放在一个带有自己登录和公开受信任证书的反向代理之后。Le Chat 会拒绝自签名证书。",
+  "mcp.cloudWarning": "这些服务从其提供商的服务器调用 BombVault，而不是从你的电脑。因此 BombVault 必须能从互联网访问，并使用公开受信任的证书，例如放在反向代理之后。代理上的登录可以保护网页界面，但 /mcp 必须直接放行到 BombVault，由它自己检查密钥：这些服务无法登录代理。Le Chat 会拒绝自签名证书。",
   "mcp.otherClient": "其他客户端",
   "mcp.kindTerminal": "终端",
   "mcp.kindEditor": "编辑器",

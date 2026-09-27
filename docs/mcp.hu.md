@@ -167,7 +167,7 @@ A Claude Desktop az `mcp-remote` programon keresztül éri el a BombVaultot, ame
 
 ### Kliensek a felhőben {#cloud-clients}
 
-A ChatGPT, a Claude a claude.ai-on, a Grok és a Le Chat a szolgáltatójuk szervereiről hívja a BombVaultot, ezért a BombVaultnak elérhetőnek kell lennie az internetről, egy saját bejelentkezéssel és nyilvánosan megbízható tanúsítvánnyal rendelkező fordított proxy mögött; a Le Chat elutasítja az önaláírtakat. A Grok és a Le Chat tud rögzített kulcsot küldeni, és a gombjaik ugyanúgy beállítják őket, mint a többit. A ChatGPT csak OAuth-bejelentkezéssel csatlakozik, a claude.ai-os Claude pedig csak egyes szervezetekben fogad el rögzített kulcsos fejlécet. A BombVault a következő frissítéssel kap OAuth-bejelentkezést; addig a gombjaik ezt mondják el beállítás helyett.
+A ChatGPT, a Claude a claude.ai-on, a Grok és a Le Chat a szolgáltatójuk szervereiről hívja a BombVaultot, ezért a BombVaultnak nyilvánosan megbízható tanúsítvánnyal elérhetőnek kell lennie az internetről, például egy fordított proxy mögött; a Le Chat elutasítja az önaláírtakat. A proxy bejelentkezése védheti a webes felületet, de a `/mcp` útvonalnak nélküle kell átjutnia a BombVaulthoz: ezek a szolgáltatások nem tudnak bejelentkezni egy proxyba, a kulcsukat pedig a BombVault maga ellenőrzi. A Grok és a Le Chat tud rögzített kulcsot küldeni, és a gombjaik ugyanúgy beállítják őket, mint a többit. A ChatGPT csak OAuth-bejelentkezéssel csatlakozik, a claude.ai-os Claude pedig csak egyes szervezetekben fogad el rögzített kulcsos fejlécet. A BombVault a következő frissítéssel kap OAuth-bejelentkezést; addig a gombjaik ezt mondják el beállítás helyett.
 
 ### Más kliensek {#other-clients}
 

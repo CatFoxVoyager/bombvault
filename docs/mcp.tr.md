@@ -167,7 +167,7 @@ Claude Desktop BombVault'a, o bilgisayarda Node.js gerektiren `mcp-remote` üzer
 
 ### Buluttaki istemciler {#cloud-clients}
 
-ChatGPT, claude.ai üzerindeki Claude, Grok ve Le Chat BombVault'u sağlayıcılarının sunucularından çağırır; bu yüzden BombVault internetten erişilebilir olmalı, kendi oturum açma sayfası ve herkesçe güvenilen bir sertifikası olan bir ters proxy'nin arkasında; Le Chat kendinden imzalı sertifikaları reddeder. Grok ve Le Chat sabit bir anahtar gönderebilir ve düğmeleri onları diğerleri gibi kurar. ChatGPT yalnızca OAuth oturum açmasıyla bağlanır, claude.ai üzerindeki Claude ise sabit anahtarlı başlığı yalnızca bazı kuruluşlarda kabul eder. BombVault bir sonraki güncellemeyle OAuth oturum açma desteği alıyor; o zamana kadar düğmeleri kurulum sunmak yerine bunu söyler.
+ChatGPT, claude.ai üzerindeki Claude, Grok ve Le Chat BombVault'u sağlayıcılarının sunucularından çağırır; bu yüzden BombVault herkesçe güvenilen bir sertifikayla internetten erişilebilir olmalı, örneğin bir ters proxy'nin arkasında; Le Chat kendinden imzalı sertifikaları reddeder. Proxy'deki bir oturum açma web arayüzünü koruyabilir, ama `/mcp` o olmadan BombVault'a kadar geçmeli: bu hizmetler bir proxy'de oturum açamaz ve anahtarlarını BombVault kendisi denetler. Grok ve Le Chat sabit bir anahtar gönderebilir ve düğmeleri onları diğerleri gibi kurar. ChatGPT yalnızca OAuth oturum açmasıyla bağlanır, claude.ai üzerindeki Claude ise sabit anahtarlı başlığı yalnızca bazı kuruluşlarda kabul eder. BombVault bir sonraki güncellemeyle OAuth oturum açma desteği alıyor; o zamana kadar düğmeleri kurulum sunmak yerine bunu söyler.
 
 ### Diğer istemciler {#other-clients}
 

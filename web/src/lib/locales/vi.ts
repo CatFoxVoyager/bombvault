@@ -1798,7 +1798,7 @@ const vi: Partial<Translations> = {
   "mcp.groupLocal": "Trên máy tính này",
   "mcp.groupCloud": "Trên đám mây",
   "mcp.cloudWarningTitle": "BombVault phải truy cập được từ internet",
-  "mcp.cloudWarning": "Các dịch vụ này gọi BombVault từ máy chủ của nhà cung cấp, không phải từ máy tính của bạn. Khi đó BombVault phải truy cập được từ internet, sau một reverse proxy có đăng nhập riêng và chứng chỉ được tin cậy công khai. Le Chat từ chối chứng chỉ tự ký.",
+  "mcp.cloudWarning": "Các dịch vụ này gọi BombVault từ máy chủ của nhà cung cấp, không phải từ máy tính của bạn. Khi đó BombVault phải truy cập được từ internet với chứng chỉ được tin cậy công khai, ví dụ sau một reverse proxy. Đăng nhập trên proxy đó có thể bảo vệ giao diện web, nhưng /mcp phải được chuyển thẳng tới BombVault, nơi tự kiểm tra khóa: các dịch vụ này không đăng nhập vào proxy được. Le Chat từ chối chứng chỉ tự ký.",
   "mcp.otherClient": "Máy khách khác",
   "mcp.kindTerminal": "Terminal",
   "mcp.kindEditor": "Trình soạn thảo",

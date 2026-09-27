@@ -167,7 +167,7 @@ Claude Desktop は `mcp-remote` を通して BombVault に接続し、そのコ�
 
 ### クラウドのクライアント {#cloud-clients}
 
-ChatGPT、claude.ai の Claude、Grok、Le Chat は提供元のサーバーから BombVault を呼び出します。そのため BombVault は、独自のログインと公的に信頼された証明書を持つリバースプロキシの背後で、インターネットから到達できる必要があります。Le Chat は自己署名証明書を拒否します。Grok と Le Chat は固定キーを送れるので、ボタンからほかのクライアントと同じようにセットアップできます。ChatGPT は OAuth サインインでしか接続せず、claude.ai の Claude が固定のキーヘッダーを受け付けるのは一部の組織だけです。BombVault は次の更新で OAuth サインインに対応します。それまで、これらのボタンはセットアップの代わりにその旨を表示します。
+ChatGPT、claude.ai の Claude、Grok、Le Chat は提供元のサーバーから BombVault を呼び出します。そのため BombVault は、たとえばリバースプロキシの背後に置き、公的に信頼された証明書でインターネットから到達できるようにする必要があります。Le Chat は自己署名証明書を拒否します。プロキシのログインで Web インターフェースを守るのは構いませんが、`/mcp` はログインなしで BombVault まで通してください。これらのサービスはプロキシにログインできず、キーは BombVault 自身が確認します。Grok と Le Chat は固定キーを送れるので、ボタンからほかのクライアントと同じようにセットアップできます。ChatGPT は OAuth サインインでしか接続せず、claude.ai の Claude が固定のキーヘッダーを受け付けるのは一部の組織だけです。BombVault は次の更新で OAuth サインインに対応します。それまで、これらのボタンはセットアップの代わりにその旨を表示します。
 
 ### その他のクライアント {#other-clients}
 

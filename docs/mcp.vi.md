@@ -167,7 +167,7 @@ Claude Desktop kết nối tới BombVault qua `mcp-remote`, vốn cần Node.js
 
 ### Máy khách trên đám mây {#cloud-clients}
 
-ChatGPT, Claude trên claude.ai, Grok và Le Chat gọi BombVault từ máy chủ của nhà cung cấp, nên BombVault phải truy cập được từ internet, sau một reverse proxy có đăng nhập riêng và chứng chỉ được tin cậy công khai; Le Chat từ chối chứng chỉ tự ký. Grok và Le Chat gửi được khóa cố định, và nút của chúng thiết lập như các máy khách khác. ChatGPT chỉ kết nối qua đăng nhập OAuth, còn Claude trên claude.ai chỉ nhận header khóa cố định ở một số tổ chức. BombVault sẽ có đăng nhập OAuth ở bản cập nhật tới; đến lúc đó nút của chúng nói rõ điều này thay vì đưa ra phần thiết lập.
+ChatGPT, Claude trên claude.ai, Grok và Le Chat gọi BombVault từ máy chủ của nhà cung cấp, nên BombVault phải truy cập được từ internet với chứng chỉ được tin cậy công khai, ví dụ sau một reverse proxy; Le Chat từ chối chứng chỉ tự ký. Đăng nhập trên proxy có thể bảo vệ giao diện web, nhưng `/mcp` phải được chuyển tới BombVault mà không cần đăng nhập đó: các dịch vụ này không đăng nhập vào proxy được, và BombVault tự kiểm tra khóa của chúng. Grok và Le Chat gửi được khóa cố định, và nút của chúng thiết lập như các máy khách khác. ChatGPT chỉ kết nối qua đăng nhập OAuth, còn Claude trên claude.ai chỉ nhận header khóa cố định ở một số tổ chức. BombVault sẽ có đăng nhập OAuth ở bản cập nhật tới; đến lúc đó nút của chúng nói rõ điều này thay vì đưa ra phần thiết lập.
 
 ### Máy khách khác {#other-clients}
 

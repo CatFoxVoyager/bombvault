@@ -167,7 +167,7 @@ Claude Desktop ajunge la BombVault prin `mcp-remote`, care are nevoie de Node.js
 
 ### Clienți în cloud {#cloud-clients}
 
-ChatGPT, Claude pe claude.ai, Grok și Le Chat apelează BombVault de pe serverele furnizorilor lor, așa că BombVault trebuie să fie accesibil din internet, în spatele unui proxy invers cu propria autentificare și un certificat de încredere publică; Le Chat respinge certificatele autosemnate. Grok și Le Chat pot trimite o cheie fixă, iar butoanele lor îi configurează ca pe ceilalți. ChatGPT se conectează doar printr-o autentificare OAuth, iar Claude pe claude.ai acceptă un antet cu cheie fixă doar în unele organizații. BombVault primește autentificarea OAuth cu următoarea actualizare; până atunci butoanele lor spun asta în loc să ofere o configurare.
+ChatGPT, Claude pe claude.ai, Grok și Le Chat apelează BombVault de pe serverele furnizorilor lor, așa că BombVault trebuie să fie accesibil din internet cu un certificat de încredere publică, de exemplu în spatele unui proxy invers; Le Chat respinge certificatele autosemnate. O autentificare pe proxy poate proteja interfața web, dar `/mcp` trebuie să ajungă la BombVault fără ea: aceste servicii nu se pot autentifica la un proxy, iar BombVault le verifică singur cheia. Grok și Le Chat pot trimite o cheie fixă, iar butoanele lor îi configurează ca pe ceilalți. ChatGPT se conectează doar printr-o autentificare OAuth, iar Claude pe claude.ai acceptă un antet cu cheie fixă doar în unele organizații. BombVault primește autentificarea OAuth cu următoarea actualizare; până atunci butoanele lor spun asta în loc să ofere o configurare.
 
 ### Alți clienți {#other-clients}
 

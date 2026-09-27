@@ -167,7 +167,7 @@ Claude Desktop se k BombVaultu dostane přes `mcp-remote`, který na daném poč
 
 ### Klienti v cloudu {#cloud-clients}
 
-ChatGPT, Claude na claude.ai, Grok a Le Chat volají BombVault ze serverů svých poskytovatelů, takže BombVault musí být dostupný z internetu, za reverzní proxy s vlastním přihlášením a veřejně důvěryhodným certifikátem; Le Chat odmítá certifikáty podepsané sebou samým. Grok a Le Chat umějí posílat pevný klíč a jejich tlačítka je nastaví jako ostatní. ChatGPT se připojuje jen přes přihlášení OAuth a Claude na claude.ai přijímá hlavičku s pevným klíčem jen v některých organizacích. BombVault dostane přihlášení OAuth v příští aktualizaci; do té doby to jejich tlačítka říkají místo nabídky nastavení.
+ChatGPT, Claude na claude.ai, Grok a Le Chat volají BombVault ze serverů svých poskytovatelů, takže BombVault musí být dostupný z internetu s veřejně důvěryhodným certifikátem, například za reverzní proxy; Le Chat odmítá certifikáty podepsané sebou samým. Přihlášení na proxy může chránit webové rozhraní, ale `/mcp` musí projít k BombVaultu bez něj: tyto služby se k proxy přihlásit neumějí a BombVault jejich klíč kontroluje sám. Grok a Le Chat umějí posílat pevný klíč a jejich tlačítka je nastaví jako ostatní. ChatGPT se připojuje jen přes přihlášení OAuth a Claude na claude.ai přijímá hlavičku s pevným klíčem jen v některých organizacích. BombVault dostane přihlášení OAuth v příští aktualizaci; do té doby to jejich tlačítka říkají místo nabídky nastavení.
 
 ### Ostatní klienti {#other-clients}
 

@@ -2014,7 +2014,7 @@ const sl: Partial<Translations> = {
   "mcp.groupLocal": "Na tem računalniku",
   "mcp.groupCloud": "V oblaku",
   "mcp.cloudWarningTitle": "BombVault mora biti dosegljiv iz interneta",
-  "mcp.cloudWarning": "Te storitve kličejo BombVault s strežnikov svojega ponudnika, ne s tvojega računalnika. BombVault mora biti takrat dosegljiv iz interneta, za povratnim posredniškim strežnikom z lastno prijavo in javno zaupanja vrednim potrdilom. Le Chat zavrne samopodpisana potrdila.",
+  "mcp.cloudWarning": "Te storitve kličejo BombVault s strežnikov svojega ponudnika, ne s tvojega računalnika. BombVault mora biti takrat dosegljiv iz interneta z javno zaupanja vrednim potrdilom, na primer za povratnim posredniškim strežnikom. Prijava na tem strežniku lahko ščiti spletni vmesnik, a /mcp mora priti do BombVaulta, ki ključ preveri sam: te storitve se ne morejo prijaviti na posredniški strežnik. Le Chat zavrne samopodpisana potrdila.",
   "mcp.otherClient": "Drug odjemalec",
   "mcp.kindTerminal": "Terminal",
   "mcp.kindEditor": "Urejevalnik",

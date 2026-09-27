@@ -167,7 +167,7 @@ Claude Desktop bereikt BombVault via `mcp-remote`, dat Node.js op die computer n
 
 ### Clients in de cloud {#cloud-clients}
 
-ChatGPT, Claude op claude.ai, Grok en Le Chat roepen BombVault aan vanaf de servers van hun aanbieder, dus BombVault moet vanaf internet bereikbaar zijn, achter een reverse proxy met een eigen aanmelding en een publiek vertrouwd certificaat; Le Chat weigert zelfondertekende. Grok en Le Chat kunnen een vaste sleutel sturen, en hun knoppen richten ze in zoals de andere. ChatGPT verbindt alleen via een OAuth-aanmelding, en Claude op claude.ai accepteert een vaste sleutelheader alleen in sommige organisaties. BombVault krijgt OAuth-aanmelding met de volgende update; tot dan zeggen hun knoppen dat in plaats van een installatie te bieden.
+ChatGPT, Claude op claude.ai, Grok en Le Chat roepen BombVault aan vanaf de servers van hun aanbieder, dus BombVault moet vanaf internet bereikbaar zijn met een publiek vertrouwd certificaat, bijvoorbeeld achter een reverse proxy; Le Chat weigert zelfondertekende. Een aanmelding op de proxy mag de webinterface beschermen, maar `/mcp` moet zonder aanmelding door naar BombVault: deze diensten kunnen zich niet bij een proxy aanmelden, en BombVault controleert hun sleutel zelf. Grok en Le Chat kunnen een vaste sleutel sturen, en hun knoppen richten ze in zoals de andere. ChatGPT verbindt alleen via een OAuth-aanmelding, en Claude op claude.ai accepteert een vaste sleutelheader alleen in sommige organisaties. BombVault krijgt OAuth-aanmelding met de volgende update; tot dan zeggen hun knoppen dat in plaats van een installatie te bieden.
 
 ### Andere clients {#other-clients}
 

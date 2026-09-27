@@ -1806,7 +1806,7 @@ const no: Partial<Translations> = {
   "mcp.groupLocal": "På denne datamaskinen",
   "mcp.groupCloud": "I skyen",
   "mcp.cloudWarningTitle": "BombVault må kunne nås fra internett",
-  "mcp.cloudWarning": "Disse tjenestene kaller BombVault fra leverandørens servere, ikke fra datamaskinen din. BombVault må da kunne nås fra internett, bak en omvendt proxy med egen pålogging og et offentlig klarert sertifikat. Le Chat avviser selvsignerte sertifikater.",
+  "mcp.cloudWarning": "Disse tjenestene kaller BombVault fra leverandørens servere, ikke fra datamaskinen din. BombVault må da kunne nås fra internett med et offentlig klarert sertifikat, for eksempel bak en omvendt proxy. En pålogging på den proxyen kan beskytte nettgrensesnittet, men /mcp må slippe gjennom til BombVault, som sjekker nøkkelen selv: disse tjenestene kan ikke logge på en proxy. Le Chat avviser selvsignerte sertifikater.",
   "mcp.otherClient": "Annen klient",
   "mcp.kindTerminal": "Terminal",
   "mcp.kindEditor": "Redigeringsprogram",

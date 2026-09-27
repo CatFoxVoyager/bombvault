@@ -1806,7 +1806,7 @@ const fr: Partial<Translations> = {
   "mcp.groupLocal": "Sur cet ordinateur",
   "mcp.groupCloud": "Dans le cloud",
   "mcp.cloudWarningTitle": "BombVault doit être joignable depuis Internet",
-  "mcp.cloudWarning": "Ces services appellent BombVault depuis les serveurs de leur éditeur, pas depuis ton ordinateur. BombVault doit alors être joignable depuis Internet, derrière un proxy inverse avec sa propre connexion et un certificat reconnu publiquement. Le Chat refuse les certificats autosignés.",
+  "mcp.cloudWarning": "Ces services appellent BombVault depuis les serveurs de leur éditeur, pas depuis ton ordinateur. BombVault doit alors être joignable depuis Internet avec un certificat reconnu publiquement, par exemple derrière un proxy inverse. Une connexion sur ce proxy peut protéger l'interface web, mais /mcp doit passer jusqu'à BombVault, qui vérifie la clé lui-même : ces services ne savent pas se connecter à un proxy. Le Chat refuse les certificats autosignés.",
   "mcp.otherClient": "Autre client",
   "mcp.kindTerminal": "Terminal",
   "mcp.kindEditor": "Éditeur",

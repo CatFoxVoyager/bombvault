@@ -1798,7 +1798,7 @@ const ko: Partial<Translations> = {
   "mcp.groupLocal": "이 컴퓨터에서",
   "mcp.groupCloud": "클라우드에서",
   "mcp.cloudWarningTitle": "BombVault에 인터넷에서 접근할 수 있어야 합니다",
-  "mcp.cloudWarning": "이 서비스들은 여러분의 컴퓨터가 아니라 제공업체의 서버에서 BombVault를 호출합니다. 그래서 BombVault는 자체 로그인과 공개적으로 신뢰되는 인증서를 갖춘 리버스 프록시 뒤에서 인터넷으로 접근할 수 있어야 합니다. Le Chat은 자체 서명 인증서를 거부합니다.",
+  "mcp.cloudWarning": "이 서비스들은 여러분의 컴퓨터가 아니라 제공업체의 서버에서 BombVault를 호출합니다. 그래서 BombVault는 예를 들어 리버스 프록시 뒤에서, 공개적으로 신뢰되는 인증서로 인터넷에서 접근할 수 있어야 합니다. 그 프록시의 로그인으로 웹 인터페이스를 보호해도 되지만, /mcp는 BombVault까지 그대로 통과시켜야 합니다. 키는 BombVault가 직접 확인하며, 이 서비스들은 프록시에 로그인할 수 없습니다. Le Chat은 자체 서명 인증서를 거부합니다.",
   "mcp.otherClient": "다른 클라이언트",
   "mcp.kindTerminal": "터미널",
   "mcp.kindEditor": "에디터",

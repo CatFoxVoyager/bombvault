@@ -2030,7 +2030,7 @@ const ca: Partial<Translations> = {
   "mcp.groupLocal": "En aquest ordinador",
   "mcp.groupCloud": "Al núvol",
   "mcp.cloudWarningTitle": "El BombVault ha de ser accessible des d'internet",
-  "mcp.cloudWarning": "Aquests serveis criden el BombVault des dels servidors del seu proveïdor, no des del teu ordinador. Aleshores el BombVault ha de ser accessible des d'internet, darrere d'un servidor intermediari invers amb el seu propi inici de sessió i un certificat de confiança pública. Le Chat rebutja els certificats autosignats.",
+  "mcp.cloudWarning": "Aquests serveis criden el BombVault des dels servidors del seu proveïdor, no des del teu ordinador. Aleshores el BombVault ha de ser accessible des d'internet amb un certificat de confiança pública, per exemple darrere d'un servidor intermediari invers. Un inici de sessió en aquest servidor intermediari pot protegir la interfície web, però /mcp ha d'arribar fins al BombVault, que comprova la clau ell mateix: aquests serveis no poden iniciar sessió en un servidor intermediari. Le Chat rebutja els certificats autosignats.",
   "mcp.otherClient": "Un altre client",
   "mcp.kindTerminal": "Terminal",
   "mcp.kindEditor": "Editor",

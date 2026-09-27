@@ -1809,7 +1809,7 @@ const ro: Partial<Translations> = {
   "mcp.groupLocal": "Pe acest computer",
   "mcp.groupCloud": "În cloud",
   "mcp.cloudWarningTitle": "BombVault trebuie să fie accesibil din internet",
-  "mcp.cloudWarning": "Aceste servicii apelează BombVault de pe serverele furnizorului lor, nu de pe computerul tău. BombVault trebuie atunci să fie accesibil din internet, în spatele unui proxy invers cu propria autentificare și un certificat de încredere publică. Le Chat respinge certificatele autosemnate.",
+  "mcp.cloudWarning": "Aceste servicii apelează BombVault de pe serverele furnizorului lor, nu de pe computerul tău. BombVault trebuie atunci să fie accesibil din internet cu un certificat de încredere publică, de exemplu în spatele unui proxy invers. O autentificare pe acel proxy poate proteja interfața web, dar /mcp trebuie să treacă până la BombVault, care verifică singur cheia: aceste servicii nu se pot autentifica la un proxy. Le Chat respinge certificatele autosemnate.",
   "mcp.otherClient": "Alt client",
   "mcp.kindTerminal": "Terminal",
   "mcp.kindEditor": "Editor",

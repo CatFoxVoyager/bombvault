@@ -167,7 +167,7 @@ Claude Desktop은 `mcp-remote`를 통해 BombVault에 연결하며, 그 컴퓨�
 
 ### 클라우드의 클라이언트 {#cloud-clients}
 
-ChatGPT, claude.ai의 Claude, Grok, Le Chat은 제공업체 서버에서 BombVault를 호출합니다. 그래서 BombVault는 자체 로그인과 공개적으로 신뢰되는 인증서를 갖춘 리버스 프록시 뒤에서 인터넷으로 접근할 수 있어야 합니다. Le Chat은 자체 서명 인증서를 거부합니다. Grok과 Le Chat은 고정 키를 보낼 수 있어서, 버튼으로 다른 클라이언트처럼 설정됩니다. ChatGPT는 OAuth 로그인으로만 연결되고, claude.ai의 Claude는 일부 조직에서만 고정 키 헤더를 받습니다. BombVault는 다음 업데이트에서 OAuth 로그인을 지원하며, 그때까지 이 버튼들은 설정 대신 그 사실을 알려 줍니다.
+ChatGPT, claude.ai의 Claude, Grok, Le Chat은 제공업체 서버에서 BombVault를 호출합니다. 그래서 BombVault는 예를 들어 리버스 프록시 뒤에서, 공개적으로 신뢰되는 인증서로 인터넷에서 접근할 수 있어야 합니다. Le Chat은 자체 서명 인증서를 거부합니다. 프록시의 로그인으로 웹 인터페이스를 보호해도 되지만, `/mcp`는 로그인 없이 BombVault까지 통과시켜야 합니다. 이 서비스들은 프록시에 로그인할 수 없고, 키는 BombVault가 직접 확인합니다. Grok과 Le Chat은 고정 키를 보낼 수 있어서, 버튼으로 다른 클라이언트처럼 설정됩니다. ChatGPT는 OAuth 로그인으로만 연결되고, claude.ai의 Claude는 일부 조직에서만 고정 키 헤더를 받습니다. BombVault는 다음 업데이트에서 OAuth 로그인을 지원하며, 그때까지 이 버튼들은 설정 대신 그 사실을 알려 줍니다.
 
 ### 다른 클라이언트 {#other-clients}
 

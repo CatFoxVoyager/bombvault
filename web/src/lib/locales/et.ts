@@ -2030,7 +2030,7 @@ const et: Partial<Translations> = {
   "mcp.groupLocal": "Selles arvutis",
   "mcp.groupCloud": "Pilves",
   "mcp.cloudWarningTitle": "BombVault peab olema internetist kättesaadav",
-  "mcp.cloudWarning": "Need teenused kutsuvad BombVaulti oma pakkuja serveritest, mitte sinu arvutist. BombVault peab siis olema internetist kättesaadav, pöördpuhverserveri taga, millel on oma sisselogimine ja avalikult usaldatud sertifikaat. Le Chat lükkab endasigneeritud sertifikaadid tagasi.",
+  "mcp.cloudWarning": "Need teenused kutsuvad BombVaulti oma pakkuja serveritest, mitte sinu arvutist. BombVault peab siis olema internetist kättesaadav avalikult usaldatud sertifikaadiga, näiteks pöördpuhverserveri taga. Selle puhverserveri sisselogimine võib kaitsta veebiliidest, kuid /mcp peab jõudma läbi BombVaultini, mis kontrollib võtit ise: need teenused ei oska puhverserverisse sisse logida. Le Chat lükkab endasigneeritud sertifikaadid tagasi.",
   "mcp.otherClient": "Muu klient",
   "mcp.kindTerminal": "Terminal",
   "mcp.kindEditor": "Redaktor",

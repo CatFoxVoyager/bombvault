@@ -2030,7 +2030,7 @@ const eu: Partial<Translations> = {
   "mcp.groupLocal": "Ordenagailu honetan",
   "mcp.groupCloud": "Hodeian",
   "mcp.cloudWarningTitle": "BombVault internetetik eskuragarri egon behar da",
-  "mcp.cloudWarning": "Zerbitzu hauek beren hornitzailearen zerbitzarietatik deitzen diote BombVaulti, ez zure ordenagailutik. Orduan BombVault internetetik eskuragarri egon behar da, saio-hasiera propioa eta publikoki fidagarria den ziurtagiria dituen alderantzizko proxy baten atzean. Le Chatek auto-sinatutako ziurtagiriak baztertzen ditu.",
+  "mcp.cloudWarning": "Zerbitzu hauek beren hornitzailearen zerbitzarietatik deitzen diote BombVaulti, ez zure ordenagailutik. Orduan BombVault internetetik eskuragarri egon behar da, publikoki fidagarria den ziurtagiri batekin, adibidez alderantzizko proxy baten atzean. Proxy horretako saio-hasierak web-interfazea babes dezake, baina /mcp-k BombVaultera iritsi behar du, gakoa berak egiaztatzen baitu: zerbitzu hauek ezin dute proxy batean saioa hasi. Le Chatek auto-sinatutako ziurtagiriak baztertzen ditu.",
   "mcp.otherClient": "Beste bezero bat",
   "mcp.kindTerminal": "Terminala",
   "mcp.kindEditor": "Editorea",

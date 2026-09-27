@@ -167,7 +167,7 @@ Claude Desktop når BombVault via `mcp-remote`, som trenger Node.js på den data
 
 ### Klienter i skyen {#cloud-clients}
 
-ChatGPT, Claude på claude.ai, Grok og Le Chat kaller BombVault fra leverandørenes servere, så BombVault må kunne nås fra internett, bak en omvendt proxy med egen pålogging og et offentlig klarert sertifikat; Le Chat avviser selvsignerte. Grok og Le Chat kan sende en fast nøkkel, og knappene deres setter dem opp som de andre. ChatGPT kobler bare til via en OAuth-pålogging, og Claude på claude.ai godtar en fast nøkkelheader bare i noen organisasjoner. BombVault får OAuth-pålogging med neste oppdatering; til da sier knappene deres det i stedet for å tilby et oppsett.
+ChatGPT, Claude på claude.ai, Grok og Le Chat kaller BombVault fra leverandørenes servere, så BombVault må kunne nås fra internett med et offentlig klarert sertifikat, for eksempel bak en omvendt proxy; Le Chat avviser selvsignerte. En pålogging på proxyen kan beskytte nettgrensesnittet, men `/mcp` må slippe gjennom til BombVault uten den: disse tjenestene kan ikke logge på en proxy, og BombVault sjekker nøkkelen deres selv. Grok og Le Chat kan sende en fast nøkkel, og knappene deres setter dem opp som de andre. ChatGPT kobler bare til via en OAuth-pålogging, og Claude på claude.ai godtar en fast nøkkelheader bare i noen organisasjoner. BombVault får OAuth-pålogging med neste oppdatering; til da sier knappene deres det i stedet for å tilby et oppsett.
 
 ### Andre klienter {#other-clients}
 

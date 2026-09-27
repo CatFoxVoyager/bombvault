@@ -167,7 +167,7 @@ Claude Desktop llega a BombVault a través de `mcp-remote`, que necesita Node.js
 
 ### Clientes en la nube {#cloud-clients}
 
-ChatGPT, Claude en claude.ai, Grok y Le Chat llaman a BombVault desde los servidores de su proveedor, así que BombVault tiene que ser accesible desde internet, detrás de un proxy inverso con su propio inicio de sesión y un certificado de confianza pública; Le Chat rechaza los autofirmados. Grok y Le Chat pueden enviar una clave fija, y sus botones los configuran como a los demás. ChatGPT solo se conecta con un inicio de sesión OAuth, y Claude en claude.ai solo acepta una cabecera con clave fija en algunas organizaciones. BombVault tendrá inicio de sesión OAuth en la próxima actualización; hasta entonces sus botones lo dicen en lugar de ofrecer una configuración.
+ChatGPT, Claude en claude.ai, Grok y Le Chat llaman a BombVault desde los servidores de su proveedor, así que BombVault tiene que ser accesible desde internet con un certificado de confianza pública, por ejemplo detrás de un proxy inverso; Le Chat rechaza los autofirmados. Un inicio de sesión en el proxy puede proteger la interfaz web, pero `/mcp` tiene que llegar a BombVault sin él: estos servicios no pueden iniciar sesión en un proxy, y BombVault comprueba su clave por sí mismo. Grok y Le Chat pueden enviar una clave fija, y sus botones los configuran como a los demás. ChatGPT solo se conecta con un inicio de sesión OAuth, y Claude en claude.ai solo acepta una cabecera con clave fija en algunas organizaciones. BombVault tendrá inicio de sesión OAuth en la próxima actualización; hasta entonces sus botones lo dicen en lugar de ofrecer una configuración.
 
 ### Otros clientes {#other-clients}
 

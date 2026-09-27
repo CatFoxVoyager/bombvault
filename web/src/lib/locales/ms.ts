@@ -2030,7 +2030,7 @@ const ms: Partial<Translations> = {
   "mcp.groupLocal": "Pada komputer ini",
   "mcp.groupCloud": "Dalam awan",
   "mcp.cloudWarningTitle": "BombVault mesti boleh dicapai dari internet",
-  "mcp.cloudWarning": "Perkhidmatan ini memanggil BombVault dari pelayan penyedianya, bukan dari komputer anda. BombVault kemudiannya mesti boleh dicapai dari internet, di belakang proksi songsang dengan log masuk sendiri dan sijil yang dipercayai umum. Le Chat menolak sijil yang ditandatangani sendiri.",
+  "mcp.cloudWarning": "Perkhidmatan ini memanggil BombVault dari pelayan penyedianya, bukan dari komputer anda. BombVault kemudiannya mesti boleh dicapai dari internet dengan sijil yang dipercayai umum, contohnya di belakang proksi songsang. Log masuk pada proksi itu boleh melindungi antara muka web, tetapi /mcp mesti diteruskan kepada BombVault, yang menyemak kunci itu sendiri: perkhidmatan ini tidak boleh log masuk ke proksi. Le Chat menolak sijil yang ditandatangani sendiri.",
   "mcp.otherClient": "Klien lain",
   "mcp.kindTerminal": "Terminal",
   "mcp.kindEditor": "Editor",

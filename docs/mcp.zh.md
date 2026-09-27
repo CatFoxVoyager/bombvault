@@ -167,7 +167,7 @@ Claude Desktop 通过 `mcp-remote` 连接 BombVault，这需要该电脑上装�
 
 ### 云端客户端 {#cloud-clients}
 
-ChatGPT、claude.ai 上的 Claude、Grok 和 Le Chat 从各自提供商的服务器调用 BombVault，因此 BombVault 必须能从互联网访问，并放在一个带有自己登录和公开受信任证书的反向代理之后；Le Chat 会拒绝自签名证书。Grok 和 Le Chat 可以发送固定密钥，它们的按钮会像其他客户端一样完成设置。ChatGPT 只能通过 OAuth 登录连接，claude.ai 上的 Claude 只在部分组织中接受固定密钥头。BombVault 将在下一次更新中支持 OAuth 登录；在此之前，这些按钮会说明这一点，而不是提供设置。
+ChatGPT、claude.ai 上的 Claude、Grok 和 Le Chat 从各自提供商的服务器调用 BombVault，因此 BombVault 必须能从互联网访问，并使用公开受信任的证书，例如放在反向代理之后；Le Chat 会拒绝自签名证书。代理上的登录可以保护网页界面，但 `/mcp` 必须不经登录直接放行到 BombVault：这些服务无法登录代理，BombVault 会自己检查它们的密钥。Grok 和 Le Chat 可以发送固定密钥，它们的按钮会像其他客户端一样完成设置。ChatGPT 只能通过 OAuth 登录连接，claude.ai 上的 Claude 只在部分组织中接受固定密钥头。BombVault 将在下一次更新中支持 OAuth 登录；在此之前，这些按钮会说明这一点，而不是提供设置。
 
 ### 其他客户端 {#other-clients}
 

@@ -2030,7 +2030,7 @@ const hr: Partial<Translations> = {
   "mcp.groupLocal": "Na ovom računalu",
   "mcp.groupCloud": "U oblaku",
   "mcp.cloudWarningTitle": "BombVault mora biti dostupan s interneta",
-  "mcp.cloudWarning": "Ove usluge pozivaju BombVault s poslužitelja svog pružatelja, ne s tvog računala. BombVault tada mora biti dostupan s interneta, iza obrnutog proxyja s vlastitom prijavom i javno pouzdanim certifikatom. Le Chat odbija samopotpisane certifikate.",
+  "mcp.cloudWarning": "Ove usluge pozivaju BombVault s poslužitelja svog pružatelja, ne s tvog računala. BombVault tada mora biti dostupan s interneta s javno pouzdanim certifikatom, na primjer iza obrnutog proxyja. Prijava na tom proxyju smije štititi web sučelje, ali /mcp mora prolaziti do BombVaulta, koji sam provjerava ključ: ove se usluge ne mogu prijaviti na proxy. Le Chat odbija samopotpisane certifikate.",
   "mcp.otherClient": "Drugi klijent",
   "mcp.kindTerminal": "Terminal",
   "mcp.kindEditor": "Uređivač",

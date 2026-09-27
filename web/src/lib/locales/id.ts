@@ -2030,7 +2030,7 @@ const id: Partial<Translations> = {
   "mcp.groupLocal": "Di komputer ini",
   "mcp.groupCloud": "Di cloud",
   "mcp.cloudWarningTitle": "BombVault harus bisa dijangkau dari internet",
-  "mcp.cloudWarning": "Layanan ini memanggil BombVault dari server penyedianya, bukan dari komputermu. BombVault lalu harus bisa dijangkau dari internet, di balik reverse proxy dengan login sendiri dan sertifikat yang dipercaya publik. Le Chat menolak sertifikat yang ditandatangani sendiri.",
+  "mcp.cloudWarning": "Layanan ini memanggil BombVault dari server penyedianya, bukan dari komputermu. BombVault lalu harus bisa dijangkau dari internet dengan sertifikat yang dipercaya publik, misalnya di balik reverse proxy. Login di proxy itu boleh melindungi antarmuka web, tetapi /mcp harus diteruskan ke BombVault, yang memeriksa kuncinya sendiri: layanan ini tidak bisa login ke proxy. Le Chat menolak sertifikat yang ditandatangani sendiri.",
   "mcp.otherClient": "Klien lain",
   "mcp.kindTerminal": "Terminal",
   "mcp.kindEditor": "Editor",

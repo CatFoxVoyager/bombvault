@@ -1806,7 +1806,7 @@ const tr: Partial<Translations> = {
   "mcp.groupLocal": "Bu bilgisayarda",
   "mcp.groupCloud": "Bulutta",
   "mcp.cloudWarningTitle": "BombVault internetten erişilebilir olmalı",
-  "mcp.cloudWarning": "Bu hizmetler BombVault'u senin bilgisayarından değil, sağlayıcılarının sunucularından çağırır. BombVault bu durumda internetten erişilebilir olmalı; kendi oturum açma sayfası ve herkesçe güvenilen bir sertifikası olan bir ters proxy'nin arkasında. Le Chat kendinden imzalı sertifikaları reddeder.",
+  "mcp.cloudWarning": "Bu hizmetler BombVault'u senin bilgisayarından değil, sağlayıcılarının sunucularından çağırır. BombVault bu durumda herkesçe güvenilen bir sertifikayla internetten erişilebilir olmalı, örneğin bir ters proxy'nin arkasında. O proxy'deki bir oturum açma web arayüzünü koruyabilir, ama /mcp anahtarı kendisi denetleyen BombVault'a kadar geçmeli: bu hizmetler bir proxy'de oturum açamaz. Le Chat kendinden imzalı sertifikaları reddeder.",
   "mcp.otherClient": "Başka istemci",
   "mcp.kindTerminal": "Terminal",
   "mcp.kindEditor": "Düzenleyici",

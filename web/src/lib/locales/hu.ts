@@ -1809,7 +1809,7 @@ const hu: Partial<Translations> = {
   "mcp.groupLocal": "Ezen a számítógépen",
   "mcp.groupCloud": "A felhőben",
   "mcp.cloudWarningTitle": "A BombVaultnak elérhetőnek kell lennie az internetről",
-  "mcp.cloudWarning": "Ezek a szolgáltatások a szolgáltatójuk szervereiről hívják a BombVaultot, nem a számítógépedről. A BombVaultnak ilyenkor elérhetőnek kell lennie az internetről, egy saját bejelentkezéssel és nyilvánosan megbízható tanúsítvánnyal rendelkező fordított proxy mögött. A Le Chat elutasítja az önaláírt tanúsítványokat.",
+  "mcp.cloudWarning": "Ezek a szolgáltatások a szolgáltatójuk szervereiről hívják a BombVaultot, nem a számítógépedről. A BombVaultnak ilyenkor nyilvánosan megbízható tanúsítvánnyal elérhetőnek kell lennie az internetről, például egy fordított proxy mögött. A proxy bejelentkezése védheti a webes felületet, de a /mcp útvonalnak át kell jutnia a BombVaulthoz, amely maga ellenőrzi a kulcsot: ezek a szolgáltatások nem tudnak bejelentkezni egy proxyba. A Le Chat elutasítja az önaláírt tanúsítványokat.",
   "mcp.otherClient": "Egyéb kliens",
   "mcp.kindTerminal": "Terminál",
   "mcp.kindEditor": "Szerkesztő",

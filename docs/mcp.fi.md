@@ -167,7 +167,7 @@ Claude Desktop tavoittaa BombVaultin `mcp-remote`n kautta, joka tarvitsee Node.j
 
 ### Asiakasohjelmat pilvessä {#cloud-clients}
 
-ChatGPT, Claude osoitteessa claude.ai, Grok ja Le Chat kutsuvat BombVaultia palveluntarjoajansa palvelimilta, joten BombVaultin on oltava tavoitettavissa internetistä käänteisen välityspalvelimen takana, jolla on oma kirjautuminen ja julkisesti luotettu varmenne; Le Chat hylkää itse allekirjoitetut. Grok ja Le Chat voivat lähettää kiinteän avaimen, ja niiden painikkeet ottavat ne käyttöön kuten muutkin. ChatGPT yhdistää vain OAuth-kirjautumisella, ja Claude osoitteessa claude.ai hyväksyy kiinteän avainotsakkeen vain joissakin organisaatioissa. BombVault saa OAuth-kirjautumisen seuraavassa päivityksessä; siihen asti niiden painikkeet kertovat tämän käyttöönoton sijaan.
+ChatGPT, Claude osoitteessa claude.ai, Grok ja Le Chat kutsuvat BombVaultia palveluntarjoajansa palvelimilta, joten BombVaultin on oltava tavoitettavissa internetistä julkisesti luotetulla varmenteella, esimerkiksi käänteisen välityspalvelimen takana; Le Chat hylkää itse allekirjoitetut. Välityspalvelimen kirjautuminen voi suojata verkkokäyttöliittymää, mutta `/mcp`:n on päästävä BombVaultille ilman sitä: nämä palvelut eivät osaa kirjautua välityspalvelimeen, ja BombVault tarkistaa niiden avaimen itse. Grok ja Le Chat voivat lähettää kiinteän avaimen, ja niiden painikkeet ottavat ne käyttöön kuten muutkin. ChatGPT yhdistää vain OAuth-kirjautumisella, ja Claude osoitteessa claude.ai hyväksyy kiinteän avainotsakkeen vain joissakin organisaatioissa. BombVault saa OAuth-kirjautumisen seuraavassa päivityksessä; siihen asti niiden painikkeet kertovat tämän käyttöönoton sijaan.
 
 ### Muut asiakasohjelmat {#other-clients}
 

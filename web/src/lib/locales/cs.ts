@@ -1804,7 +1804,7 @@ const cs: Partial<Translations> = {
   "mcp.groupLocal": "Na tomto počítači",
   "mcp.groupCloud": "V cloudu",
   "mcp.cloudWarningTitle": "BombVault musí být dostupný z internetu",
-  "mcp.cloudWarning": "Tyto služby volají BombVault ze serverů svého poskytovatele, ne z tvého počítače. BombVault pak musí být dostupný z internetu, za reverzní proxy s vlastním přihlášením a veřejně důvěryhodným certifikátem. Le Chat odmítá certifikáty podepsané sebou samým.",
+  "mcp.cloudWarning": "Tyto služby volají BombVault ze serverů svého poskytovatele, ne z tvého počítače. BombVault pak musí být dostupný z internetu s veřejně důvěryhodným certifikátem, například za reverzní proxy. Přihlášení na této proxy může chránit webové rozhraní, ale /mcp musí projít až k BombVaultu, který klíč kontroluje sám: tyto služby se k proxy přihlásit neumějí. Le Chat odmítá certifikáty podepsané sebou samým.",
   "mcp.otherClient": "Jiný klient",
   "mcp.kindTerminal": "Terminál",
   "mcp.kindEditor": "Editor",

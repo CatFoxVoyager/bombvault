@@ -1806,7 +1806,7 @@ const fi: Partial<Translations> = {
   "mcp.groupLocal": "Tällä tietokoneella",
   "mcp.groupCloud": "Pilvessä",
   "mcp.cloudWarningTitle": "BombVaultin on oltava tavoitettavissa internetistä",
-  "mcp.cloudWarning": "Nämä palvelut kutsuvat BombVaultia palveluntarjoajansa palvelimilta, eivät sinun tietokoneeltasi. BombVaultin on silloin oltava tavoitettavissa internetistä käänteisen välityspalvelimen takana, jolla on oma kirjautumisensa ja julkisesti luotettu varmenne. Le Chat hylkää itse allekirjoitetut varmenteet.",
+  "mcp.cloudWarning": "Nämä palvelut kutsuvat BombVaultia palveluntarjoajansa palvelimilta, eivät sinun tietokoneeltasi. BombVaultin on silloin oltava tavoitettavissa internetistä julkisesti luotetulla varmenteella, esimerkiksi käänteisen välityspalvelimen takana. Välityspalvelimen kirjautuminen voi suojata verkkokäyttöliittymää, mutta /mcp:n on päästävä läpi BombVaultille, joka tarkistaa avaimen itse: nämä palvelut eivät osaa kirjautua välityspalvelimeen. Le Chat hylkää itse allekirjoitetut varmenteet.",
   "mcp.otherClient": "Muu asiakasohjelma",
   "mcp.kindTerminal": "Pääte",
   "mcp.kindEditor": "Editori",

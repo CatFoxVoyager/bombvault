@@ -2030,7 +2030,7 @@ const lt: Partial<Translations> = {
   "mcp.groupLocal": "Šiame kompiuteryje",
   "mcp.groupCloud": "Debesyje",
   "mcp.cloudWarningTitle": "BombVault turi būti pasiekiamas iš interneto",
-  "mcp.cloudWarning": "Šios paslaugos kviečia BombVault iš savo teikėjo serverių, ne iš tavo kompiuterio. Tada BombVault turi būti pasiekiamas iš interneto, už atvirkštinio tarpinio serverio su savu prisijungimu ir viešai patikimu liudijimu. Le Chat atmeta savarankiškai pasirašytus liudijimus.",
+  "mcp.cloudWarning": "Šios paslaugos kviečia BombVault iš savo teikėjo serverių, ne iš tavo kompiuterio. Tada BombVault turi būti pasiekiamas iš interneto su viešai patikimu liudijimu, pavyzdžiui, už atvirkštinio tarpinio serverio. Prisijungimas tame tarpiniame serveryje gali saugoti žiniatinklio sąsają, bet /mcp turi būti praleidžiamas iki BombVault, kuris pats tikrina raktą: šios paslaugos negali prisijungti prie tarpinio serverio. Le Chat atmeta savarankiškai pasirašytus liudijimus.",
   "mcp.otherClient": "Kitas klientas",
   "mcp.kindTerminal": "Terminalas",
   "mcp.kindEditor": "Redaktorius",
