@@ -98,7 +98,6 @@ BombVault is a self-hosted, **Unraid-native** web app for **backup and full disa
 - **Optionally updates a container right after its backup** — flip on *Update after successful backup* on a container (advanced, off by default) and BombVault pulls the newest image and recreates it, but only when there's actually a newer image. A fresh restore point always exists first, so a bad update is one restore away. Optional extras: a **notification per updated container** so you know to check it, and **image cleanup** (Settings → Paths & Storage) that removes the superseded image afterwards — a base image shared by other containers is never deleted.
 - **Keeps an eye on your other BombVault boxes** — turn on **Fleet** (Settings, off by default) and a **Fleet** tab lists the other instances you run, each with its own protection scorecard. It is read-only in both directions: this box only ever *asks* a peer for its status. Fleet peers can also hand each other off-site storage, so setting up a mutual off-site no longer means mailing repository addresses and passwords around.
 - **Notices when a backup looks wrong.** BombVault compares each backup of an item with that item's own history: much more new data than usual, most of the data stored again, a source or database dump that is suddenly almost empty or much smaller, far fewer files, a much slower restic run, repeated or intermittent failures, a restore check that stopped passing, and a disk that is about to fill up. It learns from 10 backups per item and reads the existing history from restic 0.17 snapshots, so an existing install does not start from zero. When a source shrinks sharply, or one backup stores most of the data again, the old backups of that item are kept until you acknowledge the anomaly, and the anomaly links to the last good backup. A ZFS item is checked dataset by dataset, so a child dataset that was emptied shows even in a large tree.
-- **Answers your AI assistant.** The built-in MCP server lets Claude Code, Cursor, GitHub Copilot, LM Studio or another MCP client read backup status, coverage, run history, restore points (database dumps and ZFS datasets included) and the open anomalies, and, with a key that allows it, start a backup. Every client gets a key of its own and its setup from its own button on the card; restores, deletions and settings stay in the web interface. See [docs/mcp.md](docs/mcp.md).
 
 The core idea — one-click backup *and* automatic re-install of Docker containers — comes from [**VolumeVault**](https://github.com/Darkdragon14/VolumeVault) by [@Darkdragon14](https://github.com/Darkdragon14) (Apache-2.0). BombVault is a fresh, independent implementation with restic as the engine; see [Credits](#10-credits).
 
@@ -125,7 +124,6 @@ The closest counterpart is [**Vault**](https://github.com/ruaan-deysel/vault) by
 | Live progress and cancel, backup and restore | ✅ | ⚠️ no restore cancel | ⚠️ log, no percentage | ✅ | ⚠️ [no restore percentage](https://github.com/kopia/kopia/issues/3609) | ⚠️ CLI or Vorta |
 | Notifications | ✅ SMTP, Matrix, Apprise, more | ✅ Discord, Unraid | ✅ Unraid's agents | ✅ email, Telegram, HTTP | ✅ email, Pushover, webhook | ⚠️ via Borgmatic |
 | Anomaly detection (size, duration, shrink) | ✅ | ✅ | ❌ | ⚠️ paid Console | ❌ | ❌ |
-| AI assistant access (MCP) | ✅ | ✅ | ❌ | ⚠️ third party | ❌ | ❌ |
 | Backs up desktops and laptops | ❌ | ❌ | ❌ | ✅ | ✅ | ⚠️ Windows experimental |
 | Runs outside Unraid | ✅ | ⚠️ replica only | ❌ | ✅ | ✅ | ✅ |
 | In Unraid Community Applications | ✅ | ✅ | ✅ | ✅ community template | ✅ community template | ✅ community template |
@@ -133,7 +131,7 @@ The closest counterpart is [**Vault**](https://github.com/ruaan-deysel/vault) by
 | Web UI usable on a phone | ❌ in progress | ✅ per its README | ❓ | ✅ | ❓ | ❓ |
 | Track record | ⚠️ since 2026, one maintainer | ⚠️ since 2026, one maintainer | ⚠️ since 2023, feature-frozen | ✅ since 2008 | ✅ since 2019 | ✅ since 2015 |
 
-✅ yes · ⚠️ partly · ❌ no · ❓ not found in code or docs. "In progress" means the work is under way but not in a release yet. Checked on 25 September 2026 against BombVault v8.13.0 and the current code and docs of the others.
+✅ yes · ⚠️ partly · ❌ no · ❓ not found in code or docs. "In progress" means the work is under way but not in a release yet. Checked on 25 September 2026 against BombVault v9.0.0 and the current code and docs of the others.
 
 <br>
 
@@ -270,19 +268,6 @@ The closest counterpart is [**Vault**](https://github.com/ruaan-deysel/vault) by
 </details>
 
 <details>
-<summary><b>AI assistants (MCP)</b></summary>
-
-- **What an assistant can read:** backup status per domain, coverage, the protected items with their last backup and what a backup of them stops, run history, restore points including database dumps and ZFS datasets, current activity, repository growth and the open anomalies.
-- **What it can start:** a backup of one item, of one domain or Backup Everything, and it can cancel the backups its own key started. No other tool writes anything.
-- **A button per client:** 28 clients on your computer, among them Claude Code, Cursor, VS Code, Gemini CLI, LM Studio and n8n, and Grok and Le Chat in the cloud. Each button opens a setup that makes the key, shows the configuration in that client's own format without putting the key on a command line, and turns green on the client's first call. Anything else that speaks Streamable HTTP connects through **Other client**.
-- **Keys and limits:** one key per client, created under **Settings → System → MCP server**, shown once and stored as a fingerprint, with read-only keys for clients you trust less. 12 starts per hour per key, 15 minutes between starts of the same item, 4 per item a day, and a retention guard that keeps assistant backups from pushing your own restore points out of a "keep last N" policy.
-- **You see what it did:** every run it starts, and the prune and off-site copy that follow, reads "via MCP" with the key's name in the Activity log, the error panel and the backup notification. **Log** on each key's tile in the MCP card shows what that key did over the last 30 days: the backups it started, each linked to its run, and its calls with their outcome, including why a call was refused. Every key change sends a notification too.
-- **Works on a plain Unraid install:** the default self-signed certificate names only `localhost`, so the MCP card adds the address you use to it with one click and hands you the certificate file for the client. A reverse proxy or Tailscale works as well.
-- **Stays in the web interface:** restores, deletions, prune, settings, credentials and keys. Tool output carries text from your server, and no such text can set off any of them. The list of clients and how each one is set up are in [docs/mcp.md](docs/mcp.md).
-
-</details>
-
-<details>
 <summary><b>Other</b></summary>
 
 - **Stop a backup that is running** — every card that can start a backup carries a **Cancel backup** button beside its progress bar while the run is active: containers, VMs, flash, config, folder sets and ZFS datasets. The run it stops is recorded as *cancelled*, not failed. Interrupting a backup is safe, because restic writes its snapshot last, so an aborted run leaves unreferenced data and no snapshot. A restore keeps its own control, with its own warning about a half-restored target.
@@ -369,12 +354,6 @@ Two caveats for the security-conscious: with `HTTP_ONLY=true` the session cookie
 TLS-terminating proxy if confidentiality matters. And the VM-backup SSH connection trusts the
 host key on first connect (TOFU) and pins it thereafter — fine on a trusted LAN, but verify the
 host's key out-of-band if your container↔host path isn't trusted.
-
-The MCP endpoint `/mcp` is off until a key exists (it answers 404), and it asks every client for
-its key even with the login password off. No address is exempt, not even `localhost`, and it has no
-restore or delete tools. Keys are shown once and stored as fingerprints, restoring a configuration
-backup revokes all of them, and backups an assistant starts can never fill a "keep last N"
-retention window on their own.
 
 Backups are encrypted by restic when encryption is enabled (Settings; on by default), with the
 key derived from `APP_KEY`.

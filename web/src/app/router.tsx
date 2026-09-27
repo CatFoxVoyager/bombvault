@@ -13,6 +13,7 @@ import { SettingsPage } from "../pages/Settings";
 import Recovery from "../pages/Recovery";
 import { GlyphSheet } from "../pages/Glyphs";
 import { OAuthConsent } from "../pages/OAuthConsent";
+import { mcpShipped } from "../lib/mcpSwitch";
 import { I18nProvider } from "../lib/i18n";
 import { ToastProvider } from "../lib/toast";
 
@@ -26,7 +27,7 @@ export function AppRouter() {
             {/* The page an OAuth client sends the operator to. It stands on its
                 own like the login screen, without the rail, and checks the
                 session itself. */}
-            <Route path="/oauth/authorize" element={<OAuthConsent />} />
+            {mcpShipped && <Route path="/oauth/authorize" element={<OAuthConsent />} />}
             <Route element={<Layout />}>
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<Dashboard />} />

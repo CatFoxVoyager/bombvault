@@ -30,7 +30,6 @@ BombVault is a self-hosted, **Unraid-native** web app for **backup and full disa
 - **Restores automatically** — containers are reinstalled and restarted so they reappear in the Docker tab exactly as before; VMs are re-defined in the VM Manager with their disks + NVRAM reattached.
 - **Schedules** incremental backups per domain from one place, with one-click *"include all in schedule"*.
 - **Notices when a backup looks wrong.** Each backup is compared with the item's own history: much more new data than usual, most of the data stored again, a source or database dump that shrank sharply, a much slower run, repeated failures, a restore check that stopped passing, a disk about to fill up. When a source shrinks sharply, the old backups of that item are kept until you acknowledge it. A ZFS item is checked dataset by dataset.
-- **Answers your AI assistant.** The built-in MCP server lets Claude Code, Claude Desktop or another MCP client read backup status, restore points and the open anomalies and, with a key that allows it, start a backup. Every client gets a key of its own; restores, deletions and settings stay in the web interface.
 - **Optionally updates a container right after its backup** (advanced, off by default) — a fresh restore point always exists first, so a bad update is one restore away; it can notify per updated container and clean up the superseded image.
 
 <p align="center">

@@ -128,7 +128,7 @@ Un dataset che l'esecuzione precedente ha salvato e che questa non è riuscita a
 
 Nella scheda **Elementi** della pagina **Anomalie** ogni dataset ha una riga propria sotto il suo elemento, e l'albero dell'elemento in questa pagina mostra i rilevamenti aperti accanto a ogni dataset. Il link di un rilevamento apre il pannello di ripristino dell'elemento sull'ultimo backup buono del dataset. Se un'esecuzione arriva in fondo viene giudicato per l'intero elemento, perché un'esecuzione riesce o fallisce nel suo insieme.
 
-I controlli in sé sono descritti in [Funzionalità](features.md). Un assistente collegato tramite il [server MCP](mcp.md) può elencare i punti di ripristino di un elemento ZFS, avviarne il backup e leggere i rilevamenti, ma la presa visione di un rilevamento avviene nella pagina **Anomalie**.
+I controlli in sé sono descritti in [Funzionalità](features.md).
 
 ## Codici di motivo {#reason-codes}
 

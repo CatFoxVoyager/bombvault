@@ -35,7 +35,7 @@ type diagManifest struct {
 	CreatedAt string   `json:"createdAt"`
 	Redacted  bool     `json:"redacted"`
 	RemovedOn []string `json:"removedOnPurpose"`
-	MCP       diagMCP  `json:"mcp"`
+	MCP       *diagMCP `json:"mcp,omitempty"`
 	Notes     []string `json:"notes"`
 }
 
@@ -327,26 +327,31 @@ func (h *Handler) buildDiagnostics(ctx context.Context) ([]diagFile, error) {
 	}
 
 	// manifest.json: what this file is.
-	mcpCounts, mErr := h.mcpDiagnostics()
-	if mErr != nil {
-		log.Printf("api: diagnostics: reading the MCP key counts failed: %v", mErr)
+	removed := []string{
+		"login password hash, TOTP secret and recovery codes",
+		"metrics, widget and fleet tokens",
+		"the rclone config, S3/REST credentials and named credential sets",
+		"notification credentials (SMTP password, Matrix token)",
+		"registry authentications",
+		"the Backup Everything pre/post hook commands",
+		"passwords embedded in repository locations",
+	}
+	var mcpCounts *diagMCP
+	if mcpShipped {
+		removed = append(removed, "MCP keys, their names and what each key did (only counts are included)")
+		counts, mErr := h.mcpDiagnostics()
+		if mErr != nil {
+			log.Printf("api: diagnostics: reading the MCP key counts failed: %v", mErr)
+		}
+		mcpCounts = &counts
 	}
 	add("manifest.json", diagManifest{
 		Product:   "BombVault",
 		Version:   Version,
 		CreatedAt: time.Now().Format(time.RFC3339),
 		Redacted:  true,
-		RemovedOn: []string{
-			"login password hash, TOTP secret and recovery codes",
-			"metrics, widget and fleet tokens",
-			"the rclone config, S3/REST credentials and named credential sets",
-			"notification credentials (SMTP password, Matrix token)",
-			"registry authentications",
-			"the Backup Everything pre/post hook commands",
-			"passwords embedded in repository locations",
-			"MCP keys, their names and what each key did (only counts are included)",
-		},
-		MCP: mcpCounts,
+		RemovedOn: removed,
+		MCP:       mcpCounts,
 		Notes: []string{
 			"This is a support bundle, not a configuration backup. Do not restore from it.",
 			"log.txt holds this process's recent output. After a container restart it starts empty; use `docker logs` for the run that failed.",

@@ -83,6 +83,7 @@ import { SettingsPortabilityCard } from "./settings/SettingsPortabilityCard";
 import { AboutCard } from "./settings/AboutCard";
 import { DashboardWidgetCard } from "./settings/DashboardWidgetCard";
 import { McpServerCard } from "./settings/McpServerCard";
+import { mcpShipped } from "../lib/mcpSwitch";
 
 
 
@@ -4375,7 +4376,7 @@ export function SettingsPage() {
           }}
           hueIndex={nextHue()}
         />
-        <McpServerCard hueIndex={nextHue()} passwordSet={authEnabled} />
+        {mcpShipped && <McpServerCard hueIndex={nextHue()} passwordSet={authEnabled} />}
         </>
       )}
 

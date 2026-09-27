@@ -128,7 +128,7 @@ Egy adatkészlet, amelyet az előző futás mentett, de ez a futás nem tudott b
 
 Az **Anomáliák** oldal **Elemek** lapján minden adatkészletnek saját sora van az eleme alatt, és az elem fája ezen az oldalon minden adatkészlet mellett mutatja a nyitott megállapításokat. Egy megállapítás hivatkozása az elem visszaállítási paneljét az adatkészlet utolsó jó mentésénél nyitja meg. Azt, hogy egy futás befejeződik-e, az egész elemre nézve ítéljük meg, mert egy futás egészként sikerül vagy hiúsul meg.
 
-Magukat az ellenőrzéseket a [Funkciók](features.md) írja le. Egy, az [MCP-kiszolgálón](mcp.md) keresztül kapcsolódó asszisztens listázhatja egy ZFS-elem visszaállítási pontjait, elindíthatja a mentését és olvashatja a megállapításokat, de egy megállapítás nyugtázása az **Anomáliák** oldalon történik.
+Magukat az ellenőrzéseket a [Funkciók](features.md) írja le.
 
 ## Okkódok {#reason-codes}
 
