@@ -1,6 +1,6 @@
 # MCP server
 
-BombVault has a built-in server for the Model Context Protocol (MCP), the protocol AI assistants such as Claude Code and Claude Desktop use to reach outside tools. Through it an assistant can read how your backups are doing and, if you allow it, start a backup or cancel one it started. It is off until you create a key: without an active key the endpoint `/mcp` answers `404` to everything.
+BombVault has a built-in server for the Model Context Protocol (MCP), the protocol AI assistants such as Claude Code and Claude Desktop use to reach outside tools. Through it an assistant can read how your backups are doing and, if you allow it, start a backup or cancel one it started. It is off until you create a key or switch on [sign-in through OAuth](#oauth): until then the endpoint `/mcp` answers `404` to everything.
 
 ## What an assistant can and cannot do {#tools}
 
@@ -95,8 +95,8 @@ The dialog keeps the key off every command line. Where the client can read it fr
 | Zed | configuration file | the configuration file |
 | Grok | form, in the cloud | the vendor's servers |
 | Le Chat | form, in the cloud | the vendor's servers |
-| ChatGPT | in the cloud | OAuth only, see below |
-| Claude (claude.ai) | in the cloud | OAuth in most organisations, see below |
+| ChatGPT | sign-in through OAuth, in the cloud | an access token, see [below](#oauth) |
+| Claude (claude.ai) | sign-in through OAuth, in the cloud | an access token, see [below](#oauth) |
 
 The sections below explain the Claude Code and Claude Desktop setups in more detail and list what any other client needs.
 
@@ -167,7 +167,21 @@ Claude Desktop reaches BombVault through `mcp-remote`, which needs Node.js on th
 
 ### Clients in the cloud {#cloud-clients}
 
-ChatGPT, Claude on claude.ai, Grok and Le Chat call BombVault from their vendors' servers, so BombVault has to be reachable from the internet with a publicly trusted certificate, for example behind a reverse proxy; Le Chat refuses self-signed ones. A login on the proxy can protect the web interface, but `/mcp` has to pass through to BombVault without it: these services cannot sign in to a proxy, and BombVault checks their key itself. Grok and Le Chat can send a fixed key, and their buttons set them up like the others. ChatGPT connects only through an OAuth sign-in, and Claude on claude.ai takes a fixed key header only in some organisations. BombVault gets OAuth sign-in with the next update; until then their buttons say so instead of offering a setup.
+ChatGPT, Claude on claude.ai, Grok and Le Chat call BombVault from their vendors' servers, so BombVault has to be reachable from the internet with a publicly trusted certificate, for example behind a reverse proxy; Le Chat refuses self-signed ones. A login on the proxy can protect the web interface, but `/mcp` has to pass through to BombVault without it: these services cannot sign in to a proxy, and BombVault checks their key or token itself. Grok and Le Chat send a fixed key, and their buttons set them up like the others. ChatGPT, and Claude on claude.ai in most organisations, connect only through sign-in with OAuth, described next.
+
+### Sign-in through OAuth {#oauth}
+
+For a client that cannot take a key, BombVault is its own OAuth authorization server. The client registers itself, sends you to a BombVault page, and there you sign in with your login password (and the second factor, if you set one up) and allow it. The client then gets a token that works only for the MCP endpoint of this BombVault, and renews it by itself.
+
+1. Set a login password under **Settings, System**. Without one BombVault offers no sign-in at all, because there would be nobody to ask for consent.
+2. Make BombVault reachable from the internet over https with a certificate browsers trust, usually through a reverse proxy. The client calls `/mcp`, `/oauth/` and `/.well-known/` from its own servers, so a proxy with a login of its own has to let those three paths through to BombVault. The consent page at `/oauth/authorize` opens in your own browser and may stay behind the proxy login.
+3. On the MCP card, switch on **Sign-in through OAuth** and enter the **Public address**: the https address without a path, for example `https://backup.example.com`. Every token is tied to this address, so after a change each client has to sign in again.
+4. Click the ChatGPT or Claude button. The dialog shows the **Connector URL**, which is the public address plus `/mcp`, and where it goes in that client. In ChatGPT, switch on Developer mode under **Settings, Apps & Connectors, Advanced settings**, choose **Create**, paste the connector URL as the MCP server URL and pick OAuth as authentication. On claude.ai, open **Settings, Connectors, Add custom connector**, paste the connector URL, leave the OAuth client ID and secret empty and choose **Connect**.
+5. The client opens the consent page. It shows who asks, where your answer sends you back to, and the **Allow starting backups** switch, which starts off. Choose **Allow** or **Deny**.
+
+Each client that signed in gets a tile beside the keys, with its mark, its log, **Revoke** and **Allow starting backups**, and the same limits as a key. Revoking it takes effect at once. When the same client signs in again, its new grant replaces the old one, and a grant nobody used for 30 days expires. Up to 10 clients can be signed in at a time, on top of the 10 keys.
+
+The consent page accepts a request only from a registered client that names one of its registered return addresses exactly: https, or a loopback address on any port for a client on your own computer. Only the authorization code flow with PKCE (S256) is accepted, and your answer is bound to your session, so no other website can send it for you. Access tokens last an hour. A refresh token is replaced each time it is used, and one that shows up again after that revokes the grant, because someone else holds a copy. BombVault does not fetch client metadata documents from the internet, so clients register through dynamic client registration.
 
 ### Other clients {#other-clients}
 
@@ -208,7 +222,10 @@ Behind a proxy every request carries the proxy's address. Five wrong keys from o
 
 ## Security model {#security}
 
-- Without an active key, `/mcp` answers `404`.
+- Without an active key and with sign-in through OAuth off, `/mcp` answers `404`.
+- Sign-in through OAuth is only offered while a login password is set. Tokens, codes and client secrets are stored as fingerprints only, and a token works only for the address it was issued for.
+- A client can register at most 10 times an hour from one address, and BombVault keeps at most 100 registered clients nobody signed in with, each for a day. Wrong codes and refresh tokens count towards the same lockout as wrong keys.
+- Grants behave like keys when a configuration backup is restored or `APP_KEY` changes: after a restore every client has to sign in again.
 - No exempt addresses. Requests from `localhost`, the Unraid host, a reverse proxy or `tailscale serve` need a key like any other, also when the web interface has no login password.
 - Keys are stored as fingerprints only, shown once, and can be renamed, replaced and revoked. Up to 10 active keys, each with its own **Allow starting backups** switch.
 - Every create, replace, permission change and revoke sends a notification through your notification channels, with the address it came from, unless notifications are switched off.
@@ -229,7 +246,7 @@ Whatever an assistant reads goes to the AI provider behind it: item names, sched
 
 | What you see | What it means |
 |---|---|
-| `404` | No active key, or a wrong path such as `/api/mcp`. The endpoint is `/mcp`. |
+| `404` | No active key and sign-in through OAuth is off, or a wrong path such as `/api/mcp`. The endpoint is `/mcp`. |
 | `401` | The key is missing, mistyped, revoked or replaced. A proxy may be dropping the `Authorization` header (try `X-API-Key`). If the card marks the key as no longer valid, `APP_KEY` has changed: replace the key. |
 | `403` | The request came from a browser page on another origin. Use a desktop or command-line client. |
 | `405` on GET | Normal. The endpoint only takes `POST`. |
@@ -244,5 +261,8 @@ Whatever an assistant reads goes to the AI provider behind it: item names, sched
 | `not_permitted` on a start | The key is read-only. Switch **Allow starting backups** on in the card; no reconnect needed. On a cancel it means the run was not started by this key. |
 | `domain_off` | That backup type is switched off in Settings. |
 | `not_found` | The item is not protected by BombVault. Add it in the web interface first; MCP never creates configuration. |
+| The client cannot find the authorization server | Sign-in through OAuth is off, no login password is set, or the proxy does not let `/.well-known/` through to BombVault. |
+| The consent page says the return address is not registered | The client sent a return address it did not register. Remove the connector in the client and add it again. |
+| A signed-in client gets `401` | Its grant was revoked, it expired after 30 days without use, or the public address changed. The client signs in again. |
 
 Do not set the environment variable `MCPGODEBUG` on the container. It changes how the MCP library behaves, and a malformed value stops BombVault at start before it writes a single log line.

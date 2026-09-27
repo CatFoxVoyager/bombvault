@@ -1,6 +1,6 @@
 # MCP-Server
 
-BombVault bringt einen Server für das Model Context Protocol (MCP) mit. Über dieses Protokoll greifen KI-Assistenten wie Claude Code und Claude Desktop auf fremde Werkzeuge zu. Ein Assistent kann damit nachlesen, wie es um deine Backups steht, und, wenn du es erlaubst, ein Backup starten oder eines abbrechen, das er selbst gestartet hat. Solange du keinen Schlüssel anlegst, ist der Server aus: Ohne aktiven Schlüssel antwortet der Endpunkt `/mcp` auf alles mit `404`.
+BombVault bringt einen Server für das Model Context Protocol (MCP) mit. Über dieses Protokoll greifen KI-Assistenten wie Claude Code und Claude Desktop auf fremde Werkzeuge zu. Ein Assistent kann damit nachlesen, wie es um deine Backups steht, und, wenn du es erlaubst, ein Backup starten oder eines abbrechen, das er selbst gestartet hat. Solange du keinen Schlüssel anlegst und die [Anmeldung über OAuth](#oauth) nicht einschaltest, ist der Server aus: Bis dahin antwortet der Endpunkt `/mcp` auf alles mit `404`.
 
 ## Was ein Assistent kann und was nicht {#tools}
 
@@ -95,8 +95,8 @@ Der Dialog hält den Schlüssel von jeder Befehlszeile fern. Wo der Client ihn a
 | Zed | Konfigurationsdatei | die Konfigurationsdatei |
 | Grok | Formular, in der Cloud | die Server des Anbieters |
 | Le Chat | Formular, in der Cloud | die Server des Anbieters |
-| ChatGPT | in der Cloud | nur OAuth, siehe unten |
-| Claude (claude.ai) | in der Cloud | OAuth in den meisten Organisationen, siehe unten |
+| ChatGPT | Anmeldung über OAuth, in der Cloud | ein Zugriffstoken, siehe [unten](#oauth) |
+| Claude (claude.ai) | Anmeldung über OAuth, in der Cloud | ein Zugriffstoken, siehe [unten](#oauth) |
 
 Die Abschnitte unten erklären die Einrichtung von Claude Code und Claude Desktop genauer und nennen, was jeder andere Client braucht.
 
@@ -167,7 +167,21 @@ Claude Desktop erreicht BombVault über `mcp-remote`, das Node.js auf dem Rechne
 
 ### Clients in der Cloud {#cloud-clients}
 
-ChatGPT, Claude auf claude.ai, Grok und Le Chat rufen BombVault von den Servern ihrer Anbieter auf, deshalb muss BombVault aus dem Internet erreichbar sein, mit einem öffentlich vertrauenswürdigen Zertifikat, zum Beispiel hinter einem Reverse-Proxy; Le Chat lehnt selbst signierte ab. Eine Anmeldung am Proxy kann die Weboberfläche schützen, aber `/mcp` muss ohne sie zu BombVault durchgehen: Diese Dienste können sich an keinem Proxy anmelden, und BombVault prüft ihren Schlüssel selbst. Grok und Le Chat können einen festen Schlüssel schicken, und ihre Knöpfe richten sie wie die anderen ein. ChatGPT verbindet sich nur über eine OAuth-Anmeldung, und Claude auf claude.ai nimmt einen festen Schlüssel-Header nur in manchen Organisationen an. BombVault bekommt die OAuth-Anmeldung mit dem nächsten Update; bis dahin sagen ihre Knöpfe das, statt eine Einrichtung anzubieten.
+ChatGPT, Claude auf claude.ai, Grok und Le Chat rufen BombVault von den Servern ihrer Anbieter aus auf. BombVault muss dafür aus dem Internet erreichbar sein, mit einem öffentlich vertrauenswürdigen Zertifikat, zum Beispiel hinter einem Reverse Proxy; Le Chat lehnt selbst ausgestellte ab. Ein Login am Proxy darf die Weboberfläche schützen, aber `/mcp` muss ohne ihn zu BombVault durchgehen: Diese Dienste können sich an keinem Proxy anmelden, und BombVault prüft ihren Schlüssel oder ihr Token selbst. Grok und Le Chat schicken einen festen Schlüssel, und ihre Knöpfe richten sie ein wie die anderen. ChatGPT und in den meisten Organisationen auch Claude auf claude.ai verbinden sich nur über eine Anmeldung mit OAuth, die als Nächstes beschrieben ist.
+
+### Anmeldung über OAuth {#oauth}
+
+Für einen Client, der keinen Schlüssel annimmt, ist BombVault sein eigener OAuth-Anmeldeserver. Der Client registriert sich selbst, schickt dich auf eine Seite von BombVault, und dort meldest du dich mit deinem Login-Passwort (und dem zweiten Faktor, falls eingerichtet) an und erlaubst ihn. Der Client bekommt dann ein Token, das nur für den MCP-Endpunkt dieses BombVault gilt, und erneuert es selbst.
+
+1. Setz unter **Einstellungen, System** ein Login-Passwort. Ohne Passwort bietet BombVault gar keine Anmeldung an, weil es niemanden gäbe, der zustimmen könnte.
+2. Mach BombVault über https aus dem Internet erreichbar, mit einem Zertifikat, dem Browser vertrauen, meist über einen Reverse Proxy. Der Client ruft `/mcp`, `/oauth/` und `/.well-known/` von seinen eigenen Servern aus auf, ein Proxy mit eigenem Login muss diese drei Pfade also zu BombVault durchlassen. Die Zustimmungsseite unter `/oauth/authorize` öffnet sich in deinem eigenen Browser und darf hinter dem Proxy-Login bleiben.
+3. Schalte auf der MCP-Karte **Anmeldung über OAuth** ein und trag die **Öffentliche Adresse** ein: die https-Adresse ohne Pfad, zum Beispiel `https://backup.example.com`. Jedes Token ist an diese Adresse gebunden, nach einer Änderung muss sich also jeder Client neu anmelden.
+4. Klick auf den Knopf von ChatGPT oder Claude. Der Dialog zeigt die **Connector-URL**, also die öffentliche Adresse mit `/mcp` dahinter, und wo sie in diesem Client hingehört. In ChatGPT schaltest du unter **Einstellungen, Apps & Connectors, Erweiterte Einstellungen** den Entwicklermodus ein, wählst **Erstellen**, fügst die Connector-URL als MCP-Server-URL ein und wählst OAuth als Authentifizierung. Auf claude.ai öffnest du **Einstellungen, Connectors, Benutzerdefinierten Connector hinzufügen**, fügst die Connector-URL ein, lässt OAuth-Client-ID und Secret leer und wählst **Verbinden**.
+5. Der Client öffnet die Zustimmungsseite. Sie zeigt, wer fragt, wohin dich deine Antwort zurückschickt, und den Schalter **Backups starten erlauben**, der aus ist. Wähle **Erlauben** oder **Ablehnen**.
+
+Jeder angemeldete Client bekommt eine Kachel neben den Schlüsseln, mit seinem Zeichen, seinem Log, **Widerrufen** und **Backups starten erlauben**, und dieselben Grenzen wie ein Schlüssel. Widerrufen wirkt sofort. Meldet sich derselbe Client neu an, ersetzt seine neue Freigabe die alte, und eine Freigabe, die 30 Tage niemand benutzt hat, läuft ab. Bis zu 10 Clients können gleichzeitig angemeldet sein, zusätzlich zu den 10 Schlüsseln.
+
+Die Zustimmungsseite nimmt eine Anfrage nur von einem registrierten Client an, der genau eine seiner registrierten Rücksprungadressen nennt: https, oder eine Loopback-Adresse mit beliebigem Port für einen Client auf deinem eigenen Rechner. Angenommen wird nur der Authorization-Code-Ablauf mit PKCE (S256), und deine Antwort ist an deine Sitzung gebunden, keine andere Website kann sie also für dich abschicken. Zugriffstokens gelten eine Stunde. Ein Refresh-Token wird bei jeder Benutzung ersetzt, und taucht eines danach noch einmal auf, widerruft BombVault die Freigabe, weil jemand anderes eine Kopie hat. BombVault lädt keine Client-Metadaten aus dem Internet, Clients registrieren sich daher über die dynamische Client-Registrierung.
 
 ### Andere Clients {#other-clients}
 
@@ -208,7 +222,10 @@ Hinter einem Proxy trägt jede Anfrage die Adresse des Proxys. Fünf falsche Sch
 
 ## Sicherheitsmodell {#security}
 
-- Ohne aktiven Schlüssel antwortet `/mcp` mit `404`.
+- Ohne aktiven Schlüssel und bei ausgeschalteter Anmeldung über OAuth antwortet `/mcp` mit `404`.
+- Die Anmeldung über OAuth wird nur angeboten, solange ein Login-Passwort gesetzt ist. Tokens, Codes und Client-Secrets werden nur als Fingerabdruck gespeichert, und ein Token gilt nur für die Adresse, für die es ausgestellt wurde.
+- Ein Client kann sich von einer Adresse aus höchstens 10-mal pro Stunde registrieren, und BombVault behält höchstens 100 registrierte Clients, mit denen sich niemand angemeldet hat, jeweils einen Tag lang. Falsche Codes und Refresh-Tokens zählen zur selben Sperre wie falsche Schlüssel.
+- Freigaben verhalten sich bei der Wiederherstellung eines Konfigurations-Backups und bei einem geänderten `APP_KEY` wie Schlüssel: Nach einer Wiederherstellung muss sich jeder Client neu anmelden.
 - Keine Ausnahmen für bestimmte Adressen. Anfragen von `localhost`, vom Unraid-Host, von einem Reverse Proxy oder von `tailscale serve` brauchen einen Schlüssel wie jede andere, auch wenn die Web-Oberfläche kein Login-Passwort hat.
 - Schlüssel werden nur als Fingerabdruck gespeichert, einmal angezeigt und lassen sich umbenennen, ersetzen und widerrufen. Bis zu 10 aktive Schlüssel, jeder mit eigenem Schalter **Backups starten erlauben**.
 - Jedes Anlegen, Ersetzen, jede Rechteänderung und jeder Widerruf schickt eine Benachrichtigung über deine Kanäle, mit der Adresse, von der es kam, außer die Benachrichtigungen sind ausgeschaltet.
@@ -229,7 +246,7 @@ Was ein Assistent liest, geht an den KI-Anbieter dahinter: Namen von Elementen, 
 
 | Was du siehst | Was es bedeutet |
 |---|---|
-| `404` | Kein aktiver Schlüssel, oder ein falscher Pfad wie `/api/mcp`. Der Endpunkt ist `/mcp`. |
+| `404` | Kein aktiver Schlüssel und die Anmeldung über OAuth ist aus, oder ein falscher Pfad wie `/api/mcp`. Der Endpunkt ist `/mcp`. |
 | `401` | Der Schlüssel fehlt, ist vertippt, widerrufen oder ersetzt. Vielleicht verwirft ein Proxy den `Authorization`-Header (versuch `X-API-Key`). Markiert die Karte den Schlüssel als ungültig, hat sich `APP_KEY` geändert: Ersetze den Schlüssel. |
 | `403` | Die Anfrage kam von einer Browserseite mit anderem Origin. Nimm einen Desktop- oder Kommandozeilen-Client. |
 | `405` bei GET | Normal. Der Endpunkt nimmt nur `POST`. |
@@ -244,5 +261,8 @@ Was ein Assistent liest, geht an den KI-Anbieter dahinter: Namen von Elementen, 
 | `not_permitted` bei einem Start | Der Schlüssel darf nur lesen. Schalte **Backups starten erlauben** in der Karte ein; eine neue Verbindung ist nicht nötig. Bei einem Abbruch heißt es, dass dieser Schlüssel den Lauf nicht gestartet hat. |
 | `domain_off` | Diese Backup-Art ist in den Einstellungen ausgeschaltet. |
 | `not_found` | BombVault schützt dieses Element nicht. Nimm es zuerst in der Web-Oberfläche auf; MCP legt nie Konfiguration an. |
+| Der Client findet den Anmeldeserver nicht | Die Anmeldung über OAuth ist aus, es ist kein Login-Passwort gesetzt, oder der Proxy lässt `/.well-known/` nicht zu BombVault durch. |
+| Die Zustimmungsseite meldet eine nicht registrierte Rücksprungadresse | Der Client hat eine Rücksprungadresse geschickt, die er nicht registriert hat. Entferne den Connector im Client und füge ihn neu hinzu. |
+| Ein angemeldeter Client bekommt `401` | Seine Freigabe wurde widerrufen, ist nach 30 Tagen ohne Nutzung abgelaufen, oder die öffentliche Adresse hat sich geändert. Der Client meldet sich neu an. |
 
 Setz die Umgebungsvariable `MCPGODEBUG` am Container nicht. Sie ändert das Verhalten der MCP-Bibliothek, und ein fehlerhafter Wert hält BombVault beim Start an, bevor es auch nur eine Log-Zeile schreibt.

@@ -1,6 +1,6 @@
 # MCP-server
 
-BombVault heeft een ingebouwde server voor het Model Context Protocol (MCP), het protocol waarmee AI-assistenten zoals Claude Code en Claude Desktop externe hulpmiddelen bereiken. Daarmee kan een assistent lezen hoe het met je back-ups staat en, als je dat toestaat, een back-up starten of er een annuleren die hij zelf heeft gestart. De server staat uit tot je een sleutel aanmaakt: zonder actieve sleutel antwoordt het eindpunt `/mcp` op alles met `404`.
+BombVault heeft een ingebouwde server voor het Model Context Protocol (MCP), het protocol waarmee AI-assistenten zoals Claude Code en Claude Desktop externe hulpmiddelen bereiken. Via die server kan een assistent lezen hoe het met je back-ups gaat en, als je het toestaat, een back-up starten of een back-up annuleren die hij zelf startte. Hij staat uit tot je een sleutel aanmaakt of [aanmelden via OAuth](#oauth) aanzet: tot dan antwoordt het eindpunt `/mcp` op alles met `404`.
 
 ## Wat een assistent wel en niet kan {#tools}
 
@@ -95,8 +95,8 @@ Het venster houdt de sleutel van elke opdrachtregel af. Waar de client hem uit e
 | Zed | configuratiebestand | het configuratiebestand |
 | Grok | formulier, in de cloud | de servers van de aanbieder |
 | Le Chat | formulier, in de cloud | de servers van de aanbieder |
-| ChatGPT | in de cloud | alleen OAuth, zie hieronder |
-| Claude (claude.ai) | in de cloud | OAuth in de meeste organisaties, zie hieronder |
+| ChatGPT | aanmelden via OAuth, in de cloud | een toegangstoken, zie [hieronder](#oauth) |
+| Claude (claude.ai) | aanmelden via OAuth, in de cloud | een toegangstoken, zie [hieronder](#oauth) |
 
 De onderdelen hieronder leggen de installatie van Claude Code en Claude Desktop nauwkeuriger uit en noemen wat elke andere client nodig heeft.
 
@@ -167,7 +167,21 @@ Claude Desktop bereikt BombVault via `mcp-remote`, dat Node.js op die computer n
 
 ### Clients in de cloud {#cloud-clients}
 
-ChatGPT, Claude op claude.ai, Grok en Le Chat roepen BombVault aan vanaf de servers van hun aanbieder, dus BombVault moet vanaf internet bereikbaar zijn met een publiek vertrouwd certificaat, bijvoorbeeld achter een reverse proxy; Le Chat weigert zelfondertekende. Een aanmelding op de proxy mag de webinterface beschermen, maar `/mcp` moet zonder aanmelding door naar BombVault: deze diensten kunnen zich niet bij een proxy aanmelden, en BombVault controleert hun sleutel zelf. Grok en Le Chat kunnen een vaste sleutel sturen, en hun knoppen richten ze in zoals de andere. ChatGPT verbindt alleen via een OAuth-aanmelding, en Claude op claude.ai accepteert een vaste sleutelheader alleen in sommige organisaties. BombVault krijgt OAuth-aanmelding met de volgende update; tot dan zeggen hun knoppen dat in plaats van een installatie te bieden.
+ChatGPT, Claude op claude.ai, Grok en Le Chat roepen BombVault aan vanaf de servers van hun leverancier, dus BombVault moet vanaf internet bereikbaar zijn met een publiek vertrouwd certificaat, bijvoorbeeld achter een reverse proxy; Le Chat weigert zelfondertekende. Een login op de proxy mag de webinterface beschermen, maar `/mcp` moet zonder die login bij BombVault aankomen: deze diensten kunnen zich niet bij een proxy aanmelden, en BombVault controleert hun sleutel of token zelf. Grok en Le Chat sturen een vaste sleutel, en hun knoppen stellen ze in zoals de andere. ChatGPT, en in de meeste organisaties ook Claude op claude.ai, verbinden alleen via aanmelden met OAuth, dat hieronder beschreven staat.
+
+### Aanmelden via OAuth {#oauth}
+
+Voor een client die geen sleutel aanneemt, is BombVault zijn eigen OAuth-autorisatieserver. De client registreert zich zelf, stuurt je naar een BombVault-pagina, en daar meld je je aan met je inlogwachtwoord (en de tweede factor, als je die hebt ingesteld) en sta je hem toe. De client krijgt dan een token dat alleen geldt voor het MCP-eindpunt van deze BombVault, en vernieuwt dat zelf.
+
+1. Stel een inlogwachtwoord in onder **Instellingen, Systeem**. Zonder wachtwoord biedt BombVault geen enkele aanmelding aan, omdat er niemand zou zijn om toestemming te geven.
+2. Maak BombVault via https bereikbaar vanaf internet met een certificaat dat browsers vertrouwen, meestal via een reverse proxy. De client roept `/mcp`, `/oauth/` en `/.well-known/` aan vanaf zijn eigen servers, dus een proxy met een eigen login moet die drie paden doorlaten naar BombVault. De toestemmingspagina op `/oauth/authorize` opent in je eigen browser en mag achter de proxylogin blijven.
+3. Zet op de MCP-kaart **Aanmelden via OAuth** aan en vul het **Openbaar adres** in: het https-adres zonder pad, bijvoorbeeld `https://backup.example.com`. Elk token is aan dit adres gebonden, dus na een wijziging moet elke client zich opnieuw aanmelden.
+4. Klik op de knop van ChatGPT of Claude. Het venster toont de **Connector-URL**, het openbare adres met `/mcp` erachter, en waar die in die client hoort. Zet in ChatGPT de ontwikkelaarsmodus aan onder **Instellingen, Apps en connectors, Geavanceerde instellingen**, kies **Aanmaken**, plak de connector-URL als MCP-server-URL en kies OAuth als authenticatie. Open op claude.ai **Instellingen, Connectors, Aangepaste connector toevoegen**, plak de connector-URL, laat de OAuth-client-ID en het geheim leeg en kies **Verbinden**.
+5. De client opent de toestemmingspagina. Die toont wie het vraagt, waarheen je antwoord je terugstuurt en de schakelaar **Back-ups laten starten**, die uit staat. Kies **Toestaan** of **Weigeren**.
+
+Elke aangemelde client krijgt een tegel naast de sleutels, met zijn logo, zijn logboek, **Intrekken** en **Back-ups laten starten**, en dezelfde grenzen als een sleutel. Intrekken werkt meteen. Meldt dezelfde client zich opnieuw aan, dan vervangt zijn nieuwe toestemming de oude, en een toestemming die 30 dagen niemand heeft gebruikt, verloopt. Er kunnen tot 10 clients tegelijk aangemeld zijn, naast de 10 sleutels.
+
+De toestemmingspagina neemt een verzoek alleen aan van een geregistreerde client die precies een van zijn geregistreerde terugkeeradressen noemt: https, of een loopbackadres op een willekeurige poort voor een client op je eigen computer. Alleen de autorisatiecodeflow met PKCE (S256) wordt aanvaard, en je antwoord is aan je sessie gebonden, dus geen andere website kan het voor je versturen. Toegangstokens gelden een uur. Een vernieuwingstoken wordt bij elk gebruik vervangen, en duikt er daarna een weer op, dan trekt BombVault de toestemming in, omdat iemand anders een kopie heeft. BombVault haalt geen clientmetadata van internet op, dus clients registreren zich via dynamische clientregistratie.
 
 ### Andere clients {#other-clients}
 
@@ -208,7 +222,10 @@ Achter een proxy draagt elk verzoek het adres van de proxy. Vijf verkeerde sleut
 
 ## Beveiligingsmodel {#security}
 
-- Zonder actieve sleutel antwoordt `/mcp` met `404`.
+- Zonder actieve sleutel en met aanmelden via OAuth uit antwoordt `/mcp` met `404`.
+- Aanmelden via OAuth wordt alleen aangeboden zolang er een inlogwachtwoord is ingesteld. Tokens, codes en clientgeheimen worden alleen als vingerafdruk opgeslagen, en een token geldt alleen voor het adres waarvoor het is uitgegeven.
+- Een client kan zich vanaf één adres hoogstens 10 keer per uur registreren, en BombVault bewaart hoogstens 100 geregistreerde clients waarmee niemand zich heeft aangemeld, elk een dag lang. Foute codes en vernieuwingstokens tellen mee voor dezelfde blokkade als foute sleutels.
+- Toestemmingen gedragen zich als sleutels bij het herstellen van een configuratieback-up of een gewijzigde `APP_KEY`: na een herstel moet elke client zich opnieuw aanmelden.
 - Geen uitzonderingen voor adressen. Verzoeken van `localhost`, van de Unraid-host, van een reverse proxy of van `tailscale serve` hebben een sleutel nodig zoals elk ander, ook als de webinterface geen inlogwachtwoord heeft.
 - Sleutels worden alleen als vingerafdruk opgeslagen, één keer getoond, en kunnen worden hernoemd, vervangen en ingetrokken. Tot 10 actieve sleutels, elk met een eigen schakelaar **Back-ups laten starten**.
 - Elk aanmaken, vervangen, elke rechtenwijziging en elke intrekking stuurt een melding via je meldingskanalen, met het adres waar het vandaan kwam, tenzij meldingen uit staan.
@@ -229,7 +246,7 @@ Wat een assistent leest, gaat naar de AI-aanbieder erachter: namen van items, pl
 
 | Wat je ziet | Wat het betekent |
 |---|---|
-| `404` | Geen actieve sleutel, of een verkeerd pad zoals `/api/mcp`. Het eindpunt is `/mcp`. |
+| `404` | Geen actieve sleutel en aanmelden via OAuth staat uit, of een verkeerd pad zoals `/api/mcp`. Het eindpunt is `/mcp`. |
 | `401` | De sleutel ontbreekt, is verkeerd getypt, ingetrokken of vervangen. Misschien laat een proxy de header `Authorization` vallen (probeer `X-API-Key`). Markeert de kaart de sleutel als niet meer geldig, dan is `APP_KEY` veranderd: vervang de sleutel. |
 | `403` | Het verzoek kwam van een browserpagina met een andere origin. Gebruik een desktop- of opdrachtregelclient. |
 | `405` bij GET | Normaal. Het eindpunt neemt alleen `POST` aan. |
@@ -244,5 +261,8 @@ Wat een assistent leest, gaat naar de AI-aanbieder erachter: namen van items, pl
 | `not_permitted` bij een start | De sleutel mag alleen lezen. Zet **Back-ups laten starten** aan in de kaart; een nieuwe verbinding is niet nodig. Bij een annulering betekent het dat deze sleutel de run niet heeft gestart. |
 | `domain_off` | Dat soort back-up staat uit in de instellingen. |
 | `not_found` | BombVault beschermt dat item niet. Voeg het eerst toe in de webinterface; MCP maakt nooit configuratie aan. |
+| De client vindt de autorisatieserver niet | Aanmelden via OAuth staat uit, er is geen inlogwachtwoord ingesteld, of de proxy laat `/.well-known/` niet door naar BombVault. |
+| De toestemmingspagina meldt een niet-geregistreerd terugkeeradres | De client stuurde een terugkeeradres dat hij niet heeft geregistreerd. Verwijder de connector in de client en voeg hem opnieuw toe. |
+| Een aangemelde client krijgt `401` | Zijn toestemming is ingetrokken, na 30 dagen zonder gebruik verlopen, of het openbare adres is gewijzigd. De client meldt zich opnieuw aan. |
 
 Zet de omgevingsvariabele `MCPGODEBUG` niet op de container. Die verandert het gedrag van de MCP-bibliotheek, en een onjuiste waarde houdt BombVault bij het starten tegen voordat het ook maar één logregel schrijft.

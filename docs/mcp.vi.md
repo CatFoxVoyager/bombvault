@@ -1,6 +1,6 @@
 # Máy chủ MCP
 
-BombVault có sẵn một máy chủ cho Model Context Protocol (MCP), giao thức mà các trợ lý AI như Claude Code và Claude Desktop dùng để truy cập công cụ bên ngoài. Qua máy chủ này, một trợ lý có thể đọc tình trạng các bản sao lưu của bạn và, nếu bạn cho phép, bắt đầu một lần sao lưu hoặc hủy một lần sao lưu do chính nó bắt đầu. Máy chủ tắt cho đến khi bạn tạo một khóa: khi không có khóa nào đang hoạt động, điểm kết nối `/mcp` trả lời `404` cho mọi yêu cầu.
+BombVault có sẵn một máy chủ cho Model Context Protocol (MCP), giao thức mà các trợ lý AI như Claude Code và Claude Desktop dùng để tiếp cận công cụ bên ngoài. Qua đó, một trợ lý có thể đọc tình trạng các bản sao lưu của bạn và, nếu bạn cho phép, bắt đầu một bản sao lưu hoặc hủy một bản mà chính nó đã bắt đầu. Máy chủ tắt cho đến khi bạn tạo một khóa hoặc bật [đăng nhập qua OAuth](#oauth): trước đó endpoint `/mcp` trả `404` cho mọi yêu cầu.
 
 ## Trợ lý làm được gì và không làm được gì {#tools}
 
@@ -95,8 +95,8 @@ Hộp thoại giữ khóa khỏi mọi dòng lệnh. Khi máy khách đọc đư
 | Zed | tệp cấu hình | tệp cấu hình |
 | Grok | biểu mẫu, trên đám mây | máy chủ của nhà cung cấp |
 | Le Chat | biểu mẫu, trên đám mây | máy chủ của nhà cung cấp |
-| ChatGPT | trên đám mây | chỉ OAuth, xem bên dưới |
-| Claude (claude.ai) | trên đám mây | OAuth ở phần lớn tổ chức, xem bên dưới |
+| ChatGPT | đăng nhập qua OAuth, trên đám mây | một access token, xem [bên dưới](#oauth) |
+| Claude (claude.ai) | đăng nhập qua OAuth, trên đám mây | một access token, xem [bên dưới](#oauth) |
 
 Các phần dưới đây giải thích kỹ hơn cách thiết lập Claude Code và Claude Desktop, và liệt kê những gì mọi máy khách khác cần.
 
@@ -167,7 +167,21 @@ Claude Desktop kết nối tới BombVault qua `mcp-remote`, vốn cần Node.js
 
 ### Máy khách trên đám mây {#cloud-clients}
 
-ChatGPT, Claude trên claude.ai, Grok và Le Chat gọi BombVault từ máy chủ của nhà cung cấp, nên BombVault phải truy cập được từ internet với chứng chỉ được tin cậy công khai, ví dụ sau một reverse proxy; Le Chat từ chối chứng chỉ tự ký. Đăng nhập trên proxy có thể bảo vệ giao diện web, nhưng `/mcp` phải được chuyển tới BombVault mà không cần đăng nhập đó: các dịch vụ này không đăng nhập vào proxy được, và BombVault tự kiểm tra khóa của chúng. Grok và Le Chat gửi được khóa cố định, và nút của chúng thiết lập như các máy khách khác. ChatGPT chỉ kết nối qua đăng nhập OAuth, còn Claude trên claude.ai chỉ nhận header khóa cố định ở một số tổ chức. BombVault sẽ có đăng nhập OAuth ở bản cập nhật tới; đến lúc đó nút của chúng nói rõ điều này thay vì đưa ra phần thiết lập.
+ChatGPT, Claude trên claude.ai, Grok và Le Chat gọi BombVault từ máy chủ của nhà cung cấp, nên BombVault phải truy cập được từ internet với chứng chỉ được tin cậy công khai, ví dụ phía sau một reverse proxy; Le Chat từ chối chứng chỉ tự ký. Đăng nhập trên proxy có thể bảo vệ giao diện web, nhưng `/mcp` phải tới được BombVault mà không qua nó: các dịch vụ này không đăng nhập được vào proxy, và BombVault tự kiểm tra khóa hoặc token của chúng. Grok và Le Chat gửi một khóa cố định, và nút của chúng thiết lập chúng như các máy khách khác. ChatGPT, và ở hầu hết tổ chức cả Claude trên claude.ai, chỉ kết nối qua đăng nhập bằng OAuth, được mô tả ngay sau đây.
+
+### Đăng nhập qua OAuth {#oauth}
+
+Với một máy khách không nhận được khóa, BombVault là máy chủ ủy quyền OAuth của chính nó. Máy khách tự đăng ký, đưa bạn tới một trang BombVault, và ở đó bạn đăng nhập bằng mật khẩu đăng nhập (và yếu tố thứ hai, nếu bạn đã thiết lập) rồi cho phép nó. Sau đó máy khách nhận một token chỉ dùng được cho endpoint MCP của BombVault này, và tự gia hạn token đó.
+
+1. Đặt mật khẩu đăng nhập trong **Cài đặt, Hệ thống**. Không có mật khẩu thì BombVault không cung cấp đăng nhập nào, vì không có ai để hỏi sự đồng ý.
+2. Làm cho BombVault truy cập được từ internet qua https với chứng chỉ mà trình duyệt tin cậy, thường là qua một reverse proxy. Máy khách gọi `/mcp`, `/oauth/` và `/.well-known/` từ máy chủ riêng, nên một proxy có đăng nhập riêng phải cho ba đường dẫn này đi qua tới BombVault. Trang đồng ý ở `/oauth/authorize` mở trong trình duyệt của chính bạn và có thể nằm sau đăng nhập của proxy.
+3. Trên thẻ MCP, bật **Đăng nhập qua OAuth** và nhập **Địa chỉ công khai**: địa chỉ https không có đường dẫn, ví dụ `https://backup.example.com`. Mọi token đều gắn với địa chỉ này, nên sau khi đổi, mọi máy khách phải đăng nhập lại.
+4. Bấm nút ChatGPT hoặc Claude. Hộp thoại hiển thị **URL trình kết nối**, tức địa chỉ công khai kèm `/mcp` phía sau, và chỗ nhập nó trong máy khách đó. Trong ChatGPT, bật chế độ nhà phát triển trong **Cài đặt, Ứng dụng và trình kết nối, Cài đặt nâng cao**, chọn **Tạo**, dán URL trình kết nối làm URL máy chủ MCP và chọn OAuth làm phương thức xác thực. Trên claude.ai, mở **Cài đặt, Trình kết nối, Thêm trình kết nối tùy chỉnh**, dán URL trình kết nối, để trống ID ứng dụng khách và bí mật OAuth rồi chọn **Kết nối**.
+5. Máy khách mở trang đồng ý. Trang cho thấy ai đang yêu cầu, câu trả lời của bạn sẽ đưa bạn quay về đâu, và công tắc **Cho phép bắt đầu sao lưu**, mặc định tắt. Chọn **Cho phép** hoặc **Từ chối**.
+
+Mỗi máy khách đã đăng nhập có một ô cạnh các khóa, với biểu tượng, nhật ký, **Thu hồi** và **Cho phép bắt đầu sao lưu**, và cùng giới hạn như một khóa. Thu hồi có hiệu lực ngay. Khi cùng một máy khách đăng nhập lại, quyền mới thay cho quyền cũ, và quyền mà không ai dùng trong 30 ngày sẽ hết hạn. Có thể có tối đa 10 máy khách đăng nhập cùng lúc, ngoài 10 khóa.
+
+Trang đồng ý chỉ nhận yêu cầu từ một máy khách đã đăng ký và nêu đúng chính xác một trong các địa chỉ quay về đã đăng ký: https, hoặc một địa chỉ loopback ở cổng bất kỳ cho máy khách trên chính máy tính của bạn. Chỉ luồng mã ủy quyền với PKCE (S256) được chấp nhận, và câu trả lời của bạn gắn với phiên của bạn, nên không trang web nào khác gửi thay bạn được. Access token có hiệu lực một giờ. Refresh token được thay mỗi lần dùng, và nếu một cái xuất hiện lại sau đó, BombVault thu hồi quyền, vì có người khác đang giữ bản sao. BombVault không tải siêu dữ liệu máy khách từ internet, nên máy khách đăng ký qua đăng ký máy khách động.
 
 ### Máy khách khác {#other-clients}
 
@@ -208,7 +222,10 @@ Sau một proxy, mọi yêu cầu đều mang địa chỉ của proxy. Khi đó
 
 ## Mô hình bảo mật {#security}
 
-- Khi không có khóa đang hoạt động, `/mcp` trả lời `404`.
+- Khi không có khóa đang hoạt động và đăng nhập qua OAuth tắt, `/mcp` trả `404`.
+- Đăng nhập qua OAuth chỉ được cung cấp khi đã đặt mật khẩu đăng nhập. Token, mã và bí mật máy khách chỉ được lưu dưới dạng dấu vân tay, và một token chỉ dùng được cho địa chỉ mà nó được cấp.
+- Một máy khách chỉ đăng ký được tối đa 10 lần mỗi giờ từ một địa chỉ, và BombVault giữ tối đa 100 máy khách đã đăng ký mà chưa ai đăng nhập qua, mỗi máy khách trong một ngày. Mã và refresh token sai được tính vào cùng lượt khóa như khóa sai.
+- Quyền hoạt động như khóa khi khôi phục bản sao lưu cấu hình hoặc khi `APP_KEY` thay đổi: sau khi khôi phục, mọi máy khách phải đăng nhập lại.
 - Không địa chỉ nào được miễn. Yêu cầu từ `localhost`, từ máy chủ Unraid, từ reverse proxy hay từ `tailscale serve` đều cần khóa như mọi yêu cầu khác, kể cả khi giao diện web không có mật khẩu đăng nhập.
 - Khóa chỉ được lưu dưới dạng dấu vân tay, chỉ hiện một lần, và có thể đổi tên, thay thế, thu hồi. Tối đa 10 khóa đang hoạt động, mỗi khóa có công tắc **Cho phép bắt đầu sao lưu** riêng.
 - Mỗi lần tạo, thay, đổi quyền và thu hồi đều gửi một thông báo qua các kênh thông báo của bạn, kèm địa chỉ gửi yêu cầu, trừ khi thông báo đang tắt.
@@ -229,7 +246,7 @@ Mọi thứ trợ lý đọc đều được gửi tới nhà cung cấp AI đ�
 
 | Bạn thấy gì | Ý nghĩa |
 |---|---|
-| `404` | Không có khóa đang hoạt động, hoặc sai đường dẫn như `/api/mcp`. Điểm kết nối là `/mcp`. |
+| `404` | Không có khóa đang hoạt động và đăng nhập qua OAuth tắt, hoặc đường dẫn sai như `/api/mcp`. Endpoint là `/mcp`. |
 | `401` | Thiếu khóa, gõ sai, đã thu hồi hoặc đã thay. Có thể proxy làm rơi header `Authorization` (thử `X-API-Key`). Nếu thẻ đánh dấu khóa không còn hợp lệ, `APP_KEY` đã thay đổi: hãy thay khóa. |
 | `403` | Yêu cầu đến từ trang trình duyệt có nguồn gốc khác. Hãy dùng máy khách trên máy tính hoặc dòng lệnh. |
 | `405` với GET | Bình thường. Điểm kết nối chỉ nhận `POST`. |
@@ -244,5 +261,8 @@ Mọi thứ trợ lý đọc đều được gửi tới nhà cung cấp AI đ�
 | `not_permitted` khi bắt đầu | Khóa chỉ được đọc. Bật **Cho phép bắt đầu sao lưu** trong thẻ; không cần kết nối lại. Khi hủy, nó có nghĩa là lần chạy đó không do khóa này bắt đầu. |
 | `domain_off` | Loại sao lưu đó đang tắt trong cài đặt. |
 | `not_found` | BombVault không bảo vệ mục đó. Hãy thêm nó trong giao diện web trước; MCP không bao giờ tạo cấu hình. |
+| Máy khách không tìm thấy máy chủ ủy quyền | Đăng nhập qua OAuth đang tắt, chưa đặt mật khẩu đăng nhập, hoặc proxy không cho `/.well-known/` đi qua tới BombVault. |
+| Trang đồng ý báo địa chỉ quay về chưa đăng ký | Máy khách gửi một địa chỉ quay về mà nó chưa đăng ký. Xóa trình kết nối trong máy khách rồi thêm lại. |
+| Máy khách đã đăng nhập nhận `401` | Quyền của nó đã bị thu hồi, hết hạn sau 30 ngày không dùng, hoặc địa chỉ công khai đã đổi. Máy khách sẽ đăng nhập lại. |
 
 Đừng đặt biến môi trường `MCPGODEBUG` trên container. Nó thay đổi cách thư viện MCP hoạt động, và một giá trị sai định dạng sẽ khiến BombVault dừng ngay khi khởi động, trước cả khi ghi được một dòng nhật ký nào.

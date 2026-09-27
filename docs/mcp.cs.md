@@ -1,6 +1,6 @@
 # Server MCP
 
-BombVault má vestavěný server pro Model Context Protocol (MCP), protokol, přes který asistenti s umělou inteligencí jako Claude Code a Claude Desktop sahají po vnějších nástrojích. Asistent si přes něj může přečíst, jak jsou na tom vaše zálohy, a pokud to dovolíte, spustit zálohu nebo zrušit zálohu, kterou sám spustil. Server je vypnutý, dokud nevytvoříte klíč: bez aktivního klíče odpovídá koncový bod `/mcp` na všechno `404`.
+BombVault má vestavěný server pro Model Context Protocol (MCP), protokol, kterým AI asistenti jako Claude Code a Claude Desktop sahají po vnějších nástrojích. Přes něj může asistent číst, jak jsou na tom tvoje zálohy, a pokud to povolíš, spustit zálohu nebo zrušit tu, kterou sám spustil. Je vypnutý, dokud nevytvoříš klíč nebo nezapneš [přihlášení přes OAuth](#oauth): do té doby koncový bod `/mcp` odpovídá na všechno `404`.
 
 ## Co asistent smí a co ne {#tools}
 
@@ -95,8 +95,8 @@ Okno drží klíč mimo každý příkazový řádek. Kde klient umí klíč č�
 | Zed | konfigurační soubor | konfigurační soubor |
 | Grok | formulář, v cloudu | servery poskytovatele |
 | Le Chat | formulář, v cloudu | servery poskytovatele |
-| ChatGPT | v cloudu | jen OAuth, viz níže |
-| Claude (claude.ai) | v cloudu | OAuth ve většině organizací, viz níže |
+| ChatGPT | přihlášení přes OAuth, v cloudu | přístupový token, viz [níže](#oauth) |
+| Claude (claude.ai) | přihlášení přes OAuth, v cloudu | přístupový token, viz [níže](#oauth) |
 
 Oddíly níže podrobněji vysvětlují nastavení Claude Code a Claude Desktop a uvádějí, co potřebuje každý jiný klient.
 
@@ -167,7 +167,21 @@ Claude Desktop se k BombVaultu dostane přes `mcp-remote`, který na daném poč
 
 ### Klienti v cloudu {#cloud-clients}
 
-ChatGPT, Claude na claude.ai, Grok a Le Chat volají BombVault ze serverů svých poskytovatelů, takže BombVault musí být dostupný z internetu s veřejně důvěryhodným certifikátem, například za reverzní proxy; Le Chat odmítá certifikáty podepsané sebou samým. Přihlášení na proxy může chránit webové rozhraní, ale `/mcp` musí projít k BombVaultu bez něj: tyto služby se k proxy přihlásit neumějí a BombVault jejich klíč kontroluje sám. Grok a Le Chat umějí posílat pevný klíč a jejich tlačítka je nastaví jako ostatní. ChatGPT se připojuje jen přes přihlášení OAuth a Claude na claude.ai přijímá hlavičku s pevným klíčem jen v některých organizacích. BombVault dostane přihlášení OAuth v příští aktualizaci; do té doby to jejich tlačítka říkají místo nabídky nastavení.
+ChatGPT, Claude na claude.ai, Grok a Le Chat volají BombVault ze serverů svého poskytovatele, takže BombVault musí být dostupný z internetu s veřejně důvěryhodným certifikátem, například za reverzní proxy; Le Chat odmítá certifikáty podepsané sebou samým. Přihlášení na proxy smí chránit webové rozhraní, ale `/mcp` musí k BombVault projít bez něj: tyto služby se k proxy přihlásit neumějí a BombVault kontroluje jejich klíč nebo token sám. Grok a Le Chat posílají pevný klíč a jejich tlačítka je nastaví jako ostatní. ChatGPT a ve většině organizací i Claude na claude.ai se připojují jen přihlášením přes OAuth, popsaným dál.
+
+### Přihlášení přes OAuth {#oauth}
+
+Pro klienta, který neumí převzít klíč, je BombVault jeho vlastním autorizačním serverem OAuth. Klient se sám zaregistruje, pošle tě na stránku BombVault a tam se přihlásíš svým přihlašovacím heslem (a druhým faktorem, pokud ho máš nastavený) a povolíš ho. Klient pak dostane token, který platí jen pro koncový bod MCP tohoto BombVault, a sám si ho obnovuje.
+
+1. Nastav přihlašovací heslo v **Nastavení, Systém**. Bez něj BombVault žádné přihlášení nenabízí, protože by nebylo koho požádat o souhlas.
+2. Zpřístupni BombVault z internetu přes https s certifikátem, kterému prohlížeče věří, obvykle přes reverzní proxy. Klient volá `/mcp`, `/oauth/` a `/.well-known/` ze svých vlastních serverů, takže proxy s vlastním přihlášením musí tyto tři cesty pustit až k BombVault. Stránka se souhlasem na `/oauth/authorize` se otevírá ve tvém vlastním prohlížeči a smí zůstat za přihlášením proxy.
+3. Na kartě MCP zapni **Přihlášení přes OAuth** a zadej **Veřejná adresa**: adresu https bez cesty, například `https://backup.example.com`. Každý token je na tuto adresu vázaný, takže po změně se musí každý klient přihlásit znovu.
+4. Klikni na tlačítko ChatGPT nebo Claude. Dialog ukáže **URL konektoru**, tedy veřejnou adresu s `/mcp` na konci, a kam v daném klientovi patří. V ChatGPT zapneš vývojářský režim v **Nastavení, Aplikace a konektory, Pokročilé nastavení**, zvolíš **Vytvořit**, vložíš URL konektoru jako URL MCP serveru a jako ověřování zvolíš OAuth. Na claude.ai otevřeš **Nastavení, Konektory, Přidat vlastní konektor**, vložíš URL konektoru, ID klienta a tajný klíč OAuth necháš prázdné a zvolíš **Připojit**.
+5. Klient otevře stránku se souhlasem. Ukazuje, kdo žádá, kam tě tvoje odpověď vrátí, a přepínač **Povolit spouštění záloh**, který je na začátku vypnutý. Zvol **Povolit** nebo **Odmítnout**.
+
+Každý přihlášený klient dostane dlaždici vedle klíčů, se svou značkou, svým protokolem, **Zneplatnit** a **Povolit spouštění záloh**, a stejné limity jako klíč. Zneplatnění platí okamžitě. Když se stejný klient přihlásí znovu, jeho nové povolení nahradí to staré, a povolení, které 30 dní nikdo nepoužil, vyprší. Najednou může být přihlášeno až 10 klientů, navíc k 10 klíčům.
+
+Stránka se souhlasem přijme požadavek jen od registrovaného klienta, který uvede přesně jednu ze svých registrovaných návratových adres: https, nebo adresu loopback s libovolným portem pro klienta na tvém vlastním počítači. Přijímá se jen tok autorizačního kódu s PKCE (S256) a tvoje odpověď je vázaná na tvou relaci, takže žádný jiný web ji za tebe odeslat nemůže. Přístupové tokeny platí hodinu. Obnovovací token se při každém použití nahradí, a pokud se některý potom objeví znovu, BombVault povolení zruší, protože kopii má někdo jiný. BombVault nestahuje metadata klientů z internetu, takže se klienti registrují přes dynamickou registraci klientů.
 
 ### Ostatní klienti {#other-clients}
 
@@ -208,7 +222,10 @@ Za proxy nese každý požadavek adresu proxy. Pět špatných klíčů od jedin
 
 ## Bezpečnostní model {#security}
 
-- Bez aktivního klíče odpovídá `/mcp` kódem `404`.
+- Bez aktivního klíče a s vypnutým přihlášením přes OAuth odpovídá `/mcp` `404`.
+- Přihlášení přes OAuth se nabízí jen, dokud je nastavené přihlašovací heslo. Tokeny, kódy a tajné klíče klientů se ukládají jen jako otisk a token platí jen pro adresu, pro kterou byl vydán.
+- Klient se z jedné adresy může zaregistrovat nejvýš 10krát za hodinu a BombVault drží nejvýš 100 registrovaných klientů, se kterými se nikdo nepřihlásil, každého jeden den. Špatné kódy a obnovovací tokeny se počítají do stejného blokování jako špatné klíče.
+- Povolení se při obnovení zálohy konfigurace nebo změně `APP_KEY` chovají jako klíče: po obnovení se musí každý klient přihlásit znovu.
 - Žádná adresa nemá výjimku. Požadavky z `localhost`, z hostitele Unraid, z reverzní proxy nebo z `tailscale serve` potřebují klíč jako všechny ostatní, i když webové rozhraní nemá přihlašovací heslo.
 - Klíče se ukládají jen jako otisky, zobrazí se jednou a lze je přejmenovat, nahradit a odvolat. Až 10 aktivních klíčů, každý s vlastním přepínačem **Povolit spouštění záloh**.
 - Každé vytvoření, nahrazení, změna oprávnění a odvolání odešle oznámení vašimi kanály oznámení i s adresou, odkud přišlo, pokud oznámení nemáte vypnutá.
@@ -229,7 +246,7 @@ Vše, co asistent přečte, odchází k poskytovateli umělé inteligence za ní
 
 | Co vidíte | Co to znamená |
 |---|---|
-| `404` | Žádný aktivní klíč, nebo špatná cesta jako `/api/mcp`. Koncový bod je `/mcp`. |
+| `404` | Žádný aktivní klíč a přihlášení přes OAuth je vypnuté, nebo špatná cesta jako `/api/mcp`. Koncový bod je `/mcp`. |
 | `401` | Klíč chybí, je překlepnutý, odvolaný nebo nahrazený. Možná proxy zahazuje hlavičku `Authorization` (zkuste `X-API-Key`). Pokud karta označí klíč jako už neplatný, změnil se `APP_KEY`: klíč nahraďte. |
 | `403` | Požadavek přišel ze stránky prohlížeče s jiným originem. Použijte desktopového klienta nebo klienta pro příkazový řádek. |
 | `405` u GET | Normální. Koncový bod přijímá jen `POST`. |
@@ -244,5 +261,8 @@ Vše, co asistent přečte, odchází k poskytovateli umělé inteligence za ní
 | `not_permitted` při spuštění | Klíč smí jen číst. Zapněte v kartě **Povolit spouštění záloh**; nové připojení není potřeba. U zrušení to znamená, že běh nespustil tento klíč. |
 | `domain_off` | Tento druh zálohy je v nastavení vypnutý. |
 | `not_found` | BombVault tuto položku nechrání. Nejdřív ji přidejte ve webovém rozhraní; MCP nikdy nevytváří konfiguraci. |
+| Klient nenajde autorizační server | Přihlášení přes OAuth je vypnuté, není nastavené přihlašovací heslo, nebo proxy nepouští `/.well-known/` k BombVault. |
+| Stránka se souhlasem hlásí neregistrovanou návratovou adresu | Klient poslal návratovou adresu, kterou nezaregistroval. Odeber konektor v klientovi a přidej ho znovu. |
+| Přihlášený klient dostává `401` | Jeho povolení bylo zneplatněno, vypršelo po 30 dnech bez použití, nebo se změnila veřejná adresa. Klient se přihlásí znovu. |
 
 Nenastavujte na kontejneru proměnnou prostředí `MCPGODEBUG`. Mění chování knihovny MCP a chybná hodnota zastaví BombVault při startu dřív, než zapíše jediný řádek logu.

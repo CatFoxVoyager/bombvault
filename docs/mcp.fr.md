@@ -1,6 +1,6 @@
 # Serveur MCP
 
-BombVault intègre un serveur pour le Model Context Protocol (MCP), le protocole par lequel des assistants IA comme Claude Code et Claude Desktop accèdent à des outils externes. Un assistant peut ainsi lire l'état de vos sauvegardes et, si vous l'autorisez, lancer une sauvegarde ou annuler une sauvegarde qu'il a lancée lui-même. Le serveur reste éteint tant que vous ne créez pas de clé : sans clé active, le point de connexion `/mcp` répond `404` à tout.
+BombVault intègre un serveur pour le Model Context Protocol (MCP), le protocole par lequel les assistants IA comme Claude Code et Claude Desktop accèdent à des outils externes. Par ce biais, un assistant peut lire l'état de tes sauvegardes et, si tu le permets, lancer une sauvegarde ou annuler une sauvegarde qu'il a lancée. Le serveur reste éteint tant que tu n'as pas créé de clé ni activé la [connexion par OAuth](#oauth) : jusque-là, le point de terminaison `/mcp` répond `404` à tout.
 
 ## Ce qu'un assistant peut faire et ne peut pas faire {#tools}
 
@@ -95,8 +95,8 @@ La boîte de dialogue garde la clé hors de toute ligne de commande. Quand le cl
 | Zed | fichier de configuration | le fichier de configuration |
 | Grok | formulaire, dans le cloud | les serveurs de l'éditeur |
 | Le Chat | formulaire, dans le cloud | les serveurs de l'éditeur |
-| ChatGPT | dans le cloud | OAuth uniquement, voir plus bas |
-| Claude (claude.ai) | dans le cloud | OAuth dans la plupart des organisations, voir plus bas |
+| ChatGPT | connexion par OAuth, dans le cloud | un jeton d'accès, voir [plus bas](#oauth) |
+| Claude (claude.ai) | connexion par OAuth, dans le cloud | un jeton d'accès, voir [plus bas](#oauth) |
 
 Les sections ci-dessous expliquent plus en détail la configuration de Claude Code et de Claude Desktop et listent ce dont tout autre client a besoin.
 
@@ -167,7 +167,21 @@ Claude Desktop atteint BombVault par `mcp-remote`, qui a besoin de Node.js sur l
 
 ### Clients dans le cloud {#cloud-clients}
 
-ChatGPT, Claude sur claude.ai, Grok et Le Chat appellent BombVault depuis les serveurs de leur éditeur ; BombVault doit donc être joignable depuis Internet avec un certificat reconnu publiquement, par exemple derrière un proxy inverse ; Le Chat refuse les certificats autosignés. Une connexion sur le proxy peut protéger l'interface web, mais `/mcp` doit passer jusqu'à BombVault sans elle : ces services ne savent pas se connecter à un proxy, et BombVault vérifie lui-même leur clé. Grok et Le Chat savent envoyer une clé fixe, et leurs boutons les configurent comme les autres. ChatGPT ne se connecte que par une connexion OAuth, et Claude sur claude.ai n'accepte un en-tête de clé fixe que dans certaines organisations. BombVault reçoit la connexion OAuth avec la prochaine mise à jour ; d'ici là, leurs boutons le disent au lieu de proposer une configuration.
+ChatGPT, Claude sur claude.ai, Grok et Le Chat appellent BombVault depuis les serveurs de leur éditeur. BombVault doit donc être joignable depuis Internet avec un certificat reconnu publiquement, par exemple derrière un proxy inverse ; Le Chat refuse les certificats auto-signés. Une connexion sur le proxy peut protéger l'interface web, mais `/mcp` doit passer jusqu'à BombVault sans elle : ces services ne savent pas se connecter à un proxy, et BombVault vérifie lui-même leur clé ou leur jeton. Grok et Le Chat envoient une clé fixe, et leurs boutons les configurent comme les autres. ChatGPT, et Claude sur claude.ai dans la plupart des organisations, se connectent uniquement par une connexion OAuth, décrite ci-dessous.
+
+### Connexion par OAuth {#oauth}
+
+Pour un client qui n'accepte pas de clé, BombVault est son propre serveur d'autorisation OAuth. Le client s'enregistre lui-même, t'envoie sur une page de BombVault, et là tu te connectes avec ton mot de passe de connexion (et le second facteur, si tu en as configuré un) et tu l'autorises. Le client reçoit alors un jeton qui ne vaut que pour le point de terminaison MCP de ce BombVault, et le renouvelle tout seul.
+
+1. Définis un mot de passe de connexion sous **Paramètres, Système**. Sans lui, BombVault ne propose aucune connexion, car personne ne pourrait donner son accord.
+2. Rends BombVault joignable depuis Internet en https avec un certificat auquel les navigateurs font confiance, en général via un proxy inverse. Le client appelle `/mcp`, `/oauth/` et `/.well-known/` depuis ses propres serveurs, donc un proxy avec sa propre connexion doit laisser passer ces trois chemins jusqu'à BombVault. La page de consentement sous `/oauth/authorize` s'ouvre dans ton propre navigateur et peut rester derrière la connexion du proxy.
+3. Sur la carte MCP, active **Connexion par OAuth** et saisis l'**Adresse publique** : l'adresse https sans chemin, par exemple `https://backup.example.com`. Chaque jeton est lié à cette adresse, donc après un changement chaque client doit se reconnecter.
+4. Clique sur le bouton de ChatGPT ou de Claude. La boîte de dialogue affiche l'**URL du connecteur**, c'est-à-dire l'adresse publique suivie de `/mcp`, et où la saisir dans ce client. Dans ChatGPT, active le mode développeur sous **Paramètres, Applications et connecteurs, Paramètres avancés**, choisis **Créer**, colle l'URL du connecteur comme URL du serveur MCP et choisis OAuth comme authentification. Sur claude.ai, ouvre **Paramètres, Connecteurs, Ajouter un connecteur personnalisé**, colle l'URL du connecteur, laisse vides l'ID client et le secret OAuth, puis choisis **Connecter**.
+5. Le client ouvre la page de consentement. Elle montre qui demande, où ta réponse te renvoie, et l'interrupteur **Autoriser le lancement de sauvegardes**, désactivé au départ. Choisis **Autoriser** ou **Refuser**.
+
+Chaque client connecté reçoit une tuile à côté des clés, avec son logo, son journal, **Révoquer** et **Autoriser le lancement de sauvegardes**, et les mêmes limites qu'une clé. La révocation agit immédiatement. Quand le même client se reconnecte, sa nouvelle autorisation remplace l'ancienne, et une autorisation que personne n'a utilisée pendant 30 jours expire. Jusqu'à 10 clients peuvent être connectés en même temps, en plus des 10 clés.
+
+La page de consentement n'accepte une demande que d'un client enregistré qui indique exactement l'une de ses adresses de retour enregistrées : https, ou une adresse de bouclage sur n'importe quel port pour un client sur ton propre ordinateur. Seul le flux par code d'autorisation avec PKCE (S256) est accepté, et ta réponse est liée à ta session, donc aucun autre site ne peut l'envoyer à ta place. Les jetons d'accès valent une heure. Un jeton d'actualisation est remplacé à chaque utilisation, et s'il réapparaît ensuite, BombVault révoque l'autorisation, car quelqu'un d'autre en détient une copie. BombVault ne télécharge pas de métadonnées de client depuis Internet, les clients s'enregistrent donc par l'enregistrement dynamique de client.
 
 ### Autres clients {#other-clients}
 
@@ -208,7 +222,10 @@ Derrière un proxy, chaque requête porte l'adresse du proxy. Cinq mauvaises cl�
 
 ## Modèle de sécurité {#security}
 
-- Sans clé active, `/mcp` répond `404`.
+- Sans clé active et avec la connexion par OAuth désactivée, `/mcp` répond `404`.
+- La connexion par OAuth n'est proposée que tant qu'un mot de passe de connexion est défini. Les jetons, les codes et les secrets de client ne sont stockés que sous forme d'empreinte, et un jeton ne vaut que pour l'adresse pour laquelle il a été émis.
+- Un client peut s'enregistrer au plus 10 fois par heure depuis une même adresse, et BombVault garde au plus 100 clients enregistrés avec lesquels personne ne s'est connecté, chacun pendant un jour. Les codes et jetons d'actualisation erronés comptent dans le même blocage que les clés erronées.
+- Les autorisations se comportent comme les clés lors de la restauration d'une sauvegarde de configuration ou d'un changement de `APP_KEY` : après une restauration, chaque client doit se reconnecter.
 - Aucune adresse n'est exemptée. Les requêtes venant de `localhost`, de l'hôte Unraid, d'un reverse proxy ou de `tailscale serve` ont besoin d'une clé comme toutes les autres, même quand l'interface web n'a pas de mot de passe de connexion.
 - Les clés ne sont stockées que sous forme d'empreinte, affichées une seule fois, et peuvent être renommées, remplacées et révoquées. Jusqu'à 10 clés actives, chacune avec son propre interrupteur **Autoriser le lancement de sauvegardes**.
 - Chaque création, remplacement, changement de droits et révocation envoie une notification par vos canaux de notification, avec l'adresse d'où elle vient, sauf si les notifications sont désactivées.
@@ -229,7 +246,7 @@ Tout ce qu'un assistant lit part chez le fournisseur d'IA qui se trouve derrièr
 
 | Ce que vous voyez | Ce que cela signifie |
 |---|---|
-| `404` | Pas de clé active, ou un mauvais chemin comme `/api/mcp`. Le point de connexion est `/mcp`. |
+| `404` | Aucune clé active et la connexion par OAuth est désactivée, ou un mauvais chemin comme `/api/mcp`. Le point de terminaison est `/mcp`. |
 | `401` | La clé manque, est mal saisie, révoquée ou remplacée. Un proxy supprime peut-être l'en-tête `Authorization` (essayez `X-API-Key`). Si la carte marque la clé comme n'étant plus valide, `APP_KEY` a changé : remplacez la clé. |
 | `403` | La requête vient d'une page de navigateur d'une autre origine. Utilisez un client de bureau ou en ligne de commande. |
 | `405` sur GET | Normal. Le point de connexion n'accepte que `POST`. |
@@ -244,5 +261,8 @@ Tout ce qu'un assistant lit part chez le fournisseur d'IA qui se trouve derrièr
 | `not_permitted` sur un lancement | La clé est en lecture seule. Activez **Autoriser le lancement de sauvegardes** dans la carte ; aucune reconnexion n'est nécessaire. Sur une annulation, cela signifie que l'exécution n'a pas été lancée par cette clé. |
 | `domain_off` | Ce type de sauvegarde est désactivé dans les paramètres. |
 | `not_found` | BombVault ne protège pas cet élément. Ajoutez-le d'abord dans l'interface web ; MCP ne crée jamais de configuration. |
+| Le client ne trouve pas le serveur d'autorisation | La connexion par OAuth est désactivée, aucun mot de passe de connexion n'est défini, ou le proxy ne laisse pas passer `/.well-known/` jusqu'à BombVault. |
+| La page de consentement signale une adresse de retour non enregistrée | Le client a envoyé une adresse de retour qu'il n'a pas enregistrée. Supprime le connecteur dans le client et ajoute-le à nouveau. |
+| Un client connecté reçoit `401` | Son autorisation a été révoquée, a expiré après 30 jours sans utilisation, ou l'adresse publique a changé. Le client se reconnecte. |
 
 Ne définissez pas la variable d'environnement `MCPGODEBUG` sur le conteneur. Elle modifie le comportement de la bibliothèque MCP, et une valeur mal formée arrête BombVault au démarrage avant même qu'il n'écrive une seule ligne de journal.

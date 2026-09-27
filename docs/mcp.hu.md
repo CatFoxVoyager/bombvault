@@ -1,6 +1,6 @@
 # MCP-kiszolgáló
 
-A BombVault beépített kiszolgálót kínál a Model Context Protocolhoz (MCP), ahhoz a protokollhoz, amelyen keresztül az olyan MI-asszisztensek, mint a Claude Code és a Claude Desktop, külső eszközöket érnek el. Ezen át egy asszisztens elolvashatja, hogyan állnak a mentéseid, és ha engeded, elindíthat egy mentést, vagy megszakíthat egy olyat, amelyet ő maga indított. A kiszolgáló ki van kapcsolva, amíg nem hozol létre kulcsot: aktív kulcs nélkül a `/mcp` végpont mindenre `404`-gyel válaszol.
+A BombVault beépített kiszolgálót tartalmaz a Model Context Protocolhoz (MCP), amelyen keresztül az olyan MI-asszisztensek, mint a Claude Code és a Claude Desktop, külső eszközöket érnek el. Ezen át egy asszisztens elolvashatja, hogy állnak a mentéseid, és ha engeded, elindíthat egy mentést, vagy megszakíthat egy általa indítottat. Ki van kapcsolva, amíg nem hozol létre kulcsot vagy nem kapcsolod be az [OAuth-bejelentkezést](#oauth): addig a `/mcp` végpont mindenre `404`-et válaszol.
 
 ## Mit tehet és mit nem egy asszisztens {#tools}
 
@@ -95,8 +95,8 @@ A párbeszédablak minden parancssortól távol tartja a kulcsot. Ahol a kliens 
 | Zed | konfigurációs fájl | a konfigurációs fájl |
 | Grok | űrlap, a felhőben | a szolgáltató szerverei |
 | Le Chat | űrlap, a felhőben | a szolgáltató szerverei |
-| ChatGPT | a felhőben | csak OAuth, lásd lent |
-| Claude (claude.ai) | a felhőben | a legtöbb szervezetben OAuth, lásd lent |
+| ChatGPT | OAuth-bejelentkezés, a felhőben | hozzáférési token, lásd [lent](#oauth) |
+| Claude (claude.ai) | OAuth-bejelentkezés, a felhőben | hozzáférési token, lásd [lent](#oauth) |
 
 Az alábbi szakaszok részletesebben leírják a Claude Code és a Claude Desktop beállítását, és felsorolják, mire van szüksége bármely más kliensnek.
 
@@ -167,7 +167,21 @@ A Claude Desktop az `mcp-remote` programon keresztül éri el a BombVaultot, ame
 
 ### Kliensek a felhőben {#cloud-clients}
 
-A ChatGPT, a Claude a claude.ai-on, a Grok és a Le Chat a szolgáltatójuk szervereiről hívja a BombVaultot, ezért a BombVaultnak nyilvánosan megbízható tanúsítvánnyal elérhetőnek kell lennie az internetről, például egy fordított proxy mögött; a Le Chat elutasítja az önaláírtakat. A proxy bejelentkezése védheti a webes felületet, de a `/mcp` útvonalnak nélküle kell átjutnia a BombVaulthoz: ezek a szolgáltatások nem tudnak bejelentkezni egy proxyba, a kulcsukat pedig a BombVault maga ellenőrzi. A Grok és a Le Chat tud rögzített kulcsot küldeni, és a gombjaik ugyanúgy beállítják őket, mint a többit. A ChatGPT csak OAuth-bejelentkezéssel csatlakozik, a claude.ai-os Claude pedig csak egyes szervezetekben fogad el rögzített kulcsos fejlécet. A BombVault a következő frissítéssel kap OAuth-bejelentkezést; addig a gombjaik ezt mondják el beállítás helyett.
+A ChatGPT, a claude.ai-os Claude, a Grok és a Le Chat a szolgáltatójuk szervereiről hívják a BombVaultot, ezért a BombVaultnak az internetről elérhetőnek kell lennie nyilvánosan megbízható tanúsítvánnyal, például fordított proxy mögött; a Le Chat elutasítja az önaláírtakat. A proxyn lévő bejelentkezés védheti a webes felületet, de a `/mcp` útvonalnak nélküle kell eljutnia a BombVaultig: ezek a szolgáltatások nem tudnak bejelentkezni egy proxyba, és a BombVault maga ellenőrzi a kulcsukat vagy tokenjüket. A Grok és a Le Chat rögzített kulcsot küld, és a gombjaik ugyanúgy állítják be őket, mint a többit. A ChatGPT, és a legtöbb szervezetben a claude.ai-os Claude is, csak OAuth-bejelentkezéssel csatlakozik, amelyet alább írunk le.
+
+### OAuth-bejelentkezés {#oauth}
+
+Az olyan kliens számára, amely nem fogad el kulcsot, a BombVault a saját OAuth-engedélyezési kiszolgálója. A kliens magától regisztrál, egy BombVault-oldalra küld, ahol a belépési jelszavaddal (és a második faktorral, ha beállítottad) bejelentkezel és engedélyezed. A kliens ezután olyan tokent kap, amely csak ennek a BombVaultnak az MCP-végpontjához érvényes, és magától megújítja.
+
+1. Állíts be belépési jelszót a **Beállítások, Rendszer** alatt. Enélkül a BombVault egyáltalán nem kínál bejelentkezést, mert nem volna kitől hozzájárulást kérni.
+2. Tedd a BombVaultot az internetről https-en elérhetővé olyan tanúsítvánnyal, amelyben a böngészők megbíznak, általában fordított proxyn keresztül. A kliens a saját szervereiről hívja a `/mcp`, `/oauth/` és `/.well-known/` útvonalakat, ezért egy saját bejelentkezéssel rendelkező proxynak ezt a hármat át kell engednie a BombVaultig. A `/oauth/authorize` alatti hozzájárulási oldal a saját böngésződben nyílik meg, és maradhat a proxy bejelentkezése mögött.
+3. Az MCP-kártyán kapcsold be az **OAuth-bejelentkezés** kapcsolót, és add meg a **Nyilvános cím** mezőt: a https-címet útvonal nélkül, például `https://backup.example.com`. Minden token ehhez a címhez kötődik, így módosítás után minden kliensnek újra be kell jelentkeznie.
+4. Kattints a ChatGPT vagy a Claude gombjára. A párbeszédablak mutatja a **Csatoló URL-je** értéket, vagyis a nyilvános címet `/mcp` végződéssel, és hogy hová kerül az adott kliensben. A ChatGPT-ben a **Beállítások, Alkalmazások és csatolók, Speciális beállítások** alatt bekapcsolod a fejlesztői módot, a **Létrehozás** lehetőséget választod, MCP-szerver URL-ként beilleszted a csatoló URL-jét, és hitelesítésnek az OAuth-ot választod. A claude.ai-on megnyitod a **Beállítások, Csatolók, Egyéni csatoló hozzáadása** részt, beilleszted a csatoló URL-jét, az OAuth kliensazonosítót és a titkot üresen hagyod, és a **Csatlakozás** lehetőséget választod.
+5. A kliens megnyitja a hozzájárulási oldalt. Ez mutatja, ki kér, hová küld vissza a válaszod, és a **Mentések indításának engedélyezése** kapcsolót, amely kezdetben ki van kapcsolva. Válaszd az **Engedélyezés** vagy az **Elutasítás** lehetőséget.
+
+Minden bejelentkezett kliens csempét kap a kulcsok mellett a jelével, a naplójával, a **Visszavonás** gombbal és a **Mentések indításának engedélyezése** kapcsolóval, és ugyanazok a korlátok vonatkoznak rá, mint egy kulcsra. A visszavonás azonnal hat. Ha ugyanaz a kliens újra bejelentkezik, az új engedélye felváltja a régit, és az az engedély, amelyet 30 napig senki nem használt, lejár. Egyszerre legfeljebb 10 kliens lehet bejelentkezve, a 10 kulcson felül.
+
+A hozzájárulási oldal csak olyan regisztrált klienstől fogad el kérést, amely pontosan az egyik regisztrált visszatérési címét adja meg: https, vagy tetszőleges portú loopback-cím a saját gépeden futó kliens esetén. Csak a PKCE-vel (S256) védett engedélyezési kódos folyamatot fogadja el, és a válaszod a munkamenetedhez kötődik, így más weboldal nem küldheti el helyetted. A hozzáférési tokenek egy óráig érvényesek. A frissítési tokent minden használatkor lecseréli, és ha utána újra felbukkan egy, a BombVault visszavonja az engedélyt, mert valaki másnál van egy másolata. A BombVault nem tölt le klienseknek szóló metaadatokat az internetről, ezért a kliensek dinamikus klienregisztrációval regisztrálnak.
 
 ### Más kliensek {#other-clients}
 
@@ -208,7 +222,10 @@ Proxy mögött minden kérés a proxy címét viseli. Egyetlen rosszul beállít
 
 ## Biztonsági modell {#security}
 
-- Aktív kulcs nélkül a `/mcp` `404`-gyel válaszol.
+- Aktív kulcs nélkül és kikapcsolt OAuth-bejelentkezésnél a `/mcp` `404`-et válaszol.
+- Az OAuth-bejelentkezés csak addig érhető el, amíg belépési jelszó van beállítva. A tokeneket, kódokat és klienstitkokat csak ujjlenyomatként tárolja, és egy token csak ahhoz a címhez érvényes, amelyhez kiállították.
+- Egy kliens egy címről óránként legfeljebb 10-szer regisztrálhat, és a BombVault legfeljebb 100 olyan regisztrált klienst tart meg, amellyel senki nem jelentkezett be, mindegyiket egy napig. A hibás kódok és frissítési tokenek ugyanabba a zárolásba számítanak, mint a hibás kulcsok.
+- Az engedélyek a konfigurációs mentés visszaállításakor vagy az `APP_KEY` megváltozásakor úgy viselkednek, mint a kulcsok: visszaállítás után minden kliensnek újra be kell jelentkeznie.
 - Nincs kivételezett cím. A `localhost`, az Unraid-gazdagép, egy fordított proxy vagy a `tailscale serve` felől érkező kérésekhez ugyanúgy kulcs kell, mint bármely máshoz, akkor is, ha a webes felületnek nincs bejelentkezési jelszava.
 - A kulcsokat csak ujjlenyomatként tárolja, egyszer jeleníti meg, és átnevezhetők, cserélhetők, visszavonhatók. Legfeljebb 10 aktív kulcs, mindegyik saját **Mentések indításának engedélyezése** kapcsolóval.
 - Minden létrehozás, csere, jogosultság-módosítás és visszavonás értesítést küld az értesítési csatornáidon a címmel együtt, ahonnan érkezett, hacsak nincsenek kikapcsolva az értesítések.
@@ -229,7 +246,7 @@ Mindaz, amit egy asszisztens elolvas, a mögötte álló MI-szolgáltatóhoz ker
 
 | Amit látsz | Amit jelent |
 |---|---|
-| `404` | Nincs aktív kulcs, vagy rossz az útvonal, például `/api/mcp`. A végpont a `/mcp`. |
+| `404` | Nincs aktív kulcs, és az OAuth-bejelentkezés ki van kapcsolva, vagy rossz az útvonal, például `/api/mcp`. A végpont a `/mcp`. |
 | `401` | A kulcs hiányzik, elgépelték, visszavonták vagy lecserélték. Lehet, hogy egy proxy eldobja az `Authorization` fejlécet (próbáld az `X-API-Key` fejlécet). Ha a kártya a kulcsot már nem érvényesnek jelöli, megváltozott az `APP_KEY`: cseréld le a kulcsot. |
 | `403` | A kérés egy másik originről érkező böngészőoldalról jött. Használj asztali vagy parancssori klienst. |
 | `405` GET esetén | Normális. A végpont csak `POST` kérést fogad. |
@@ -244,5 +261,8 @@ Mindaz, amit egy asszisztens elolvas, a mögötte álló MI-szolgáltatóhoz ker
 | `not_permitted` indításnál | A kulcs csak olvashat. Kapcsold be az **Mentések indításának engedélyezése** kapcsolót a kártyán; újracsatlakozás nem kell. Megszakításnál azt jelenti, hogy a futást nem ez a kulcs indította. |
 | `domain_off` | Ez a mentésfajta ki van kapcsolva a beállításokban. |
 | `not_found` | A BombVault nem védi ezt az elemet. Előbb vedd fel a webes felületen; az MCP soha nem hoz létre beállítást. |
+| A kliens nem találja az engedélyezési kiszolgálót | Az OAuth-bejelentkezés ki van kapcsolva, nincs belépési jelszó, vagy a proxy nem engedi át a `/.well-known/` útvonalat a BombVaultig. |
+| A hozzájárulási oldal szerint a visszatérési cím nincs regisztrálva | A kliens olyan visszatérési címet küldött, amelyet nem regisztrált. Távolítsd el a csatolót a kliensben, és add hozzá újra. |
+| Egy bejelentkezett kliens `401`-et kap | Az engedélyét visszavonták, 30 nap használaton kívül után lejárt, vagy megváltozott a nyilvános cím. A kliens újra bejelentkezik. |
 
 Ne állítsd be a konténeren az `MCPGODEBUG` környezeti változót. Megváltoztatja az MCP-könyvtár működését, és egy hibás érték indításkor leállítja a BombVaultot, mielőtt egyetlen naplósort is írna.

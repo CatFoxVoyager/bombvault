@@ -1,6 +1,6 @@
 # MCP sunucusu
 
-BombVault, Model Context Protocol (MCP) için yerleşik bir sunucu içerir. Bu protokol, Claude Code ve Claude Desktop gibi yapay zekâ asistanlarının dış araçlara ulaşmak için kullandığı protokoldür. Bu sunucu üzerinden bir asistan yedeklerinizin durumunu okuyabilir ve izin verirseniz bir yedekleme başlatabilir ya da kendi başlattığı bir yedeklemeyi iptal edebilir. Siz bir anahtar oluşturana kadar sunucu kapalıdır: etkin bir anahtar yokken `/mcp` uç noktası her şeye `404` ile yanıt verir.
+BombVault, Model Context Protocol (MCP) için yerleşik bir sunucu içerir; Claude Code ve Claude Desktop gibi yapay zekâ asistanları dış araçlara bu protokolle ulaşır. Bir asistan bunun üzerinden yedeklerinin durumunu okuyabilir ve sen izin verirsen bir yedekleme başlatabilir ya da kendi başlattığı bir yedeklemeyi iptal edebilir. Bir anahtar oluşturana ya da [OAuth ile oturum açmayı](#oauth) açana kadar kapalıdır: o zamana kadar `/mcp` uç noktası her şeye `404` yanıtı verir.
 
 ## Bir asistanın yapabildikleri ve yapamadıkları {#tools}
 
@@ -95,8 +95,8 @@ Pencere anahtarı her komut satırından uzak tutar. İstemci anahtarı bir orta
 | Zed | yapılandırma dosyası | yapılandırma dosyası |
 | Grok | form, bulutta | sağlayıcının sunucuları |
 | Le Chat | form, bulutta | sağlayıcının sunucuları |
-| ChatGPT | bulutta | yalnızca OAuth, aşağıya bak |
-| Claude (claude.ai) | bulutta | çoğu kuruluşta OAuth, aşağıya bak |
+| ChatGPT | OAuth ile oturum açma, bulutta | bir erişim belirteci, [aşağıya](#oauth) bak |
+| Claude (claude.ai) | OAuth ile oturum açma, bulutta | bir erişim belirteci, [aşağıya](#oauth) bak |
 
 Aşağıdaki bölümler Claude Code ve Claude Desktop kurulumunu daha ayrıntılı anlatır ve diğer her istemcinin neye ihtiyaç duyduğunu listeler.
 
@@ -167,7 +167,21 @@ Claude Desktop BombVault'a, o bilgisayarda Node.js gerektiren `mcp-remote` üzer
 
 ### Buluttaki istemciler {#cloud-clients}
 
-ChatGPT, claude.ai üzerindeki Claude, Grok ve Le Chat BombVault'u sağlayıcılarının sunucularından çağırır; bu yüzden BombVault herkesçe güvenilen bir sertifikayla internetten erişilebilir olmalı, örneğin bir ters proxy'nin arkasında; Le Chat kendinden imzalı sertifikaları reddeder. Proxy'deki bir oturum açma web arayüzünü koruyabilir, ama `/mcp` o olmadan BombVault'a kadar geçmeli: bu hizmetler bir proxy'de oturum açamaz ve anahtarlarını BombVault kendisi denetler. Grok ve Le Chat sabit bir anahtar gönderebilir ve düğmeleri onları diğerleri gibi kurar. ChatGPT yalnızca OAuth oturum açmasıyla bağlanır, claude.ai üzerindeki Claude ise sabit anahtarlı başlığı yalnızca bazı kuruluşlarda kabul eder. BombVault bir sonraki güncellemeyle OAuth oturum açma desteği alıyor; o zamana kadar düğmeleri kurulum sunmak yerine bunu söyler.
+ChatGPT, claude.ai üzerindeki Claude, Grok ve Le Chat, BombVault'u sağlayıcılarının sunucularından çağırır; bu yüzden BombVault'a internetten herkesçe güvenilen bir sertifikayla erişilebilmelidir, örneğin bir ters vekil sunucunun arkasında; Le Chat kendinden imzalı sertifikaları reddeder. Vekil sunucudaki bir oturum açma web arayüzünü koruyabilir, ama `/mcp` BombVault'a onsuz ulaşmalıdır: bu hizmetler bir vekil sunucuda oturum açamaz ve BombVault anahtarlarını ya da belirteçlerini kendisi denetler. Grok ve Le Chat sabit bir anahtar gönderir ve düğmeleri onları diğerleri gibi kurar. ChatGPT ve çoğu kuruluşta claude.ai üzerindeki Claude da yalnızca OAuth ile oturum açarak bağlanır; bu aşağıda anlatılıyor.
+
+### OAuth ile oturum açma {#oauth}
+
+Anahtar alamayan bir istemci için BombVault kendi OAuth yetkilendirme sunucusudur. İstemci kendini kaydeder, seni bir BombVault sayfasına gönderir; orada giriş parolanla (ve kurduysan ikinci faktörle) oturum açar ve ona izin verirsin. İstemci ardından yalnızca bu BombVault'un MCP uç noktası için geçerli bir belirteç alır ve bunu kendisi yeniler.
+
+1. **Ayarlar, Sistem** altında bir giriş parolası belirle. Parola yoksa BombVault hiç oturum açma sunmaz, çünkü onay istenecek kimse olmaz.
+2. BombVault'a internetten https üzerinden, tarayıcıların güvendiği bir sertifikayla erişilebilmesini sağla; genellikle bir ters vekil sunucu üzerinden. İstemci `/mcp`, `/oauth/` ve `/.well-known/` yollarını kendi sunucularından çağırır; bu yüzden kendi oturum açması olan bir vekil sunucu bu üç yolu BombVault'a geçirmelidir. `/oauth/authorize` adresindeki onay sayfası kendi tarayıcında açılır ve vekil sunucunun oturum açmasının arkasında kalabilir.
+3. MCP kartında **OAuth ile oturum açma** seçeneğini aç ve **Genel adres** alanına yolu olmayan https adresini gir, örneğin `https://backup.example.com`. Her belirteç bu adrese bağlıdır; bu yüzden değişiklikten sonra her istemcinin yeniden oturum açması gerekir.
+4. ChatGPT ya da Claude düğmesine tıkla. İletişim kutusu **Bağlayıcı URL'si** değerini, yani sonuna `/mcp` eklenmiş genel adresi, ve bunun o istemcide nereye yazılacağını gösterir. ChatGPT'de **Ayarlar, Uygulamalar ve bağlayıcılar, Gelişmiş ayarlar** altında geliştirici modunu açarsın, **Oluştur**'u seçer, bağlayıcı URL'sini MCP sunucusu URL'si olarak yapıştırır ve kimlik doğrulama olarak OAuth'u seçersin. claude.ai'de **Ayarlar, Bağlayıcılar, Özel bağlayıcı ekle**'yi açar, bağlayıcı URL'sini yapıştırır, OAuth istemci kimliğini ve sırrını boş bırakır ve **Bağlan**'ı seçersin.
+5. İstemci onay sayfasını açar. Sayfa kimin istediğini, yanıtının seni nereye geri götürdüğünü ve başta kapalı olan **Yedekleme başlatmaya izin ver** anahtarını gösterir. **İzin ver** ya da **Reddet**'i seç.
+
+Oturum açan her istemci anahtarların yanında kendi işaretiyle, kendi günlüğüyle, **İptal et** ve **Yedekleme başlatmaya izin ver** ile bir kutucuk alır ve bir anahtarla aynı sınırlara tabidir. İptal hemen etkili olur. Aynı istemci yeniden oturum açtığında yeni izni eskisinin yerini alır ve 30 gün kimsenin kullanmadığı bir izin sona erer. Aynı anda 10 anahtara ek olarak en çok 10 istemci oturum açmış olabilir.
+
+Onay sayfası bir isteği yalnızca kayıtlı dönüş adreslerinden birini tam olarak belirten kayıtlı bir istemciden kabul eder: https ya da kendi bilgisayarındaki bir istemci için herhangi bir bağlantı noktasında loopback adresi. Yalnızca PKCE (S256) ile yetkilendirme kodu akışı kabul edilir ve yanıtın oturumuna bağlıdır; bu yüzden başka hiçbir web sitesi onu senin yerine gönderemez. Erişim belirteçleri bir saat geçerlidir. Yenileme belirteci her kullanımda değiştirilir; biri sonradan yeniden ortaya çıkarsa BombVault izni iptal eder, çünkü başka birinde bir kopyası vardır. BombVault internetten istemci üst verisi indirmez; bu yüzden istemciler dinamik istemci kaydıyla kaydolur.
 
 ### Diğer istemciler {#other-clients}
 
@@ -208,7 +222,10 @@ Bir vekil sunucunun arkasında her istek vekil sunucunun adresini taşır. Yanl�
 
 ## Güvenlik modeli {#security}
 
-- Etkin bir anahtar yokken `/mcp` `404` ile yanıt verir.
+- Etkin bir anahtar yoksa ve OAuth ile oturum açma kapalıysa `/mcp` `404` yanıtı verir.
+- OAuth ile oturum açma yalnızca bir giriş parolası belirlenmişken sunulur. Belirteçler, kodlar ve istemci sırları yalnızca parmak izi olarak saklanır ve bir belirteç yalnızca verildiği adres için geçerlidir.
+- Bir istemci bir adresten saatte en çok 10 kez kaydolabilir ve BombVault, kimsenin oturum açmadığı kayıtlı istemcilerden en çok 100 tanesini, her birini bir gün saklar. Yanlış kodlar ve yenileme belirteçleri, yanlış anahtarlarla aynı kilitlemeye sayılır.
+- Bir yapılandırma yedeği geri yüklendiğinde ya da `APP_KEY` değiştiğinde izinler anahtarlar gibi davranır: geri yüklemeden sonra her istemcinin yeniden oturum açması gerekir.
 - Hiçbir adres muaf değildir. `localhost`, Unraid ana makinesi, bir ters vekil sunucu ya da `tailscale serve` üzerinden gelen istekler de diğerleri gibi anahtar ister; web arayüzünün giriş parolası olmasa bile.
 - Anahtarlar yalnızca parmak izi olarak saklanır, bir kez gösterilir; yeniden adlandırılabilir, değiştirilebilir ve iptal edilebilir. En fazla 10 etkin anahtar, her birinin kendi **Yedekleme başlatmaya izin ver** anahtarıyla.
 - Her oluşturma, değiştirme, izin değişikliği ve iptal, bildirimler kapalı değilse, geldiği adresle birlikte bildirim kanallarınız üzerinden bir bildirim gönderir.
@@ -229,7 +246,7 @@ Bir asistanın okuduğu her şey arkasındaki yapay zekâ sağlayıcısına gide
 
 | Gördüğünüz | Anlamı |
 |---|---|
-| `404` | Etkin anahtar yok ya da `/api/mcp` gibi yanlış bir yol. Uç nokta `/mcp`'dir. |
+| `404` | Etkin anahtar yok ve OAuth ile oturum açma kapalı ya da `/api/mcp` gibi yanlış bir yol. Uç nokta `/mcp`. |
 | `401` | Anahtar eksik, yanlış yazılmış, iptal edilmiş ya da değiştirilmiş. Bir vekil sunucu `Authorization` başlığını düşürüyor olabilir (`X-API-Key` deneyin). Kart anahtarı artık geçersiz olarak işaretliyorsa `APP_KEY` değişmiştir: anahtarı değiştirin. |
 | `403` | İstek, başka bir kaynaktan gelen bir tarayıcı sayfasından geldi. Masaüstü ya da komut satırı istemcisi kullanın. |
 | GET'te `405` | Normal. Uç nokta yalnızca `POST` kabul eder. |
@@ -244,5 +261,8 @@ Bir asistanın okuduğu her şey arkasındaki yapay zekâ sağlayıcısına gide
 | Başlatmada `not_permitted` | Anahtar yalnızca okuyabilir. Kartta **Yedekleme başlatmaya izin ver** seçeneğini açın; yeniden bağlanmak gerekmez. İptalde, çalıştırmanın bu anahtar tarafından başlatılmadığı anlamına gelir. |
 | `domain_off` | O yedekleme türü ayarlarda kapalı. |
 | `not_found` | BombVault bu öğeyi korumuyor. Önce web arayüzünde ekleyin; MCP asla yapılandırma oluşturmaz. |
+| İstemci yetkilendirme sunucusunu bulamıyor | OAuth ile oturum açma kapalı, giriş parolası belirlenmemiş ya da vekil sunucu `/.well-known/` yolunu BombVault'a geçirmiyor. |
+| Onay sayfası dönüş adresinin kayıtlı olmadığını söylüyor | İstemci kaydetmediği bir dönüş adresi gönderdi. Bağlayıcıyı istemcide kaldır ve yeniden ekle. |
+| Oturum açmış bir istemci `401` alıyor | İzni iptal edildi, 30 gün kullanılmadığı için sona erdi ya da genel adres değişti. İstemci yeniden oturum açar. |
 
 Kapsayıcıda `MCPGODEBUG` ortam değişkenini ayarlamayın. MCP kitaplığının davranışını değiştirir ve hatalı bir değer, BombVault'u tek bir günlük satırı yazmadan başlangıçta durdurur.

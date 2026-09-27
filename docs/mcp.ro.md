@@ -1,6 +1,6 @@
 # Server MCP
 
-BombVault are un server integrat pentru Model Context Protocol (MCP), protocolul prin care asistenți IA precum Claude Code și Claude Desktop ajung la unelte externe. Prin el, un asistent poate citi cum stau copiile tale de rezervă și, dacă îi permiți, poate porni o copie sau poate anula una pe care a pornit-o chiar el. Serverul e oprit până când creezi o cheie: fără o cheie activă, punctul de conectare `/mcp` răspunde `404` la orice.
+BombVault are un server integrat pentru Model Context Protocol (MCP), protocolul prin care asistenții AI precum Claude Code și Claude Desktop ajung la unelte externe. Prin el, un asistent poate citi cum stau copiile tale și, dacă îi permiți, poate porni o copie sau poate anula una pornită de el. Este oprit până când creezi o cheie sau activezi [autentificarea prin OAuth](#oauth): până atunci, endpoint-ul `/mcp` răspunde `404` la orice.
 
 ## Ce poate și ce nu poate face un asistent {#tools}
 
@@ -95,8 +95,8 @@ Dialogul ține cheia departe de orice linie de comandă. Acolo unde clientul o p
 | Zed | fișier de configurare | fișierul de configurare |
 | Grok | formular, în cloud | serverele furnizorului |
 | Le Chat | formular, în cloud | serverele furnizorului |
-| ChatGPT | în cloud | doar OAuth, vezi mai jos |
-| Claude (claude.ai) | în cloud | OAuth în majoritatea organizațiilor, vezi mai jos |
+| ChatGPT | autentificare prin OAuth, în cloud | un token de acces, vezi [mai jos](#oauth) |
+| Claude (claude.ai) | autentificare prin OAuth, în cloud | un token de acces, vezi [mai jos](#oauth) |
 
 Secțiunile de mai jos explică mai detaliat configurarea Claude Code și Claude Desktop și arată de ce are nevoie orice alt client.
 
@@ -167,7 +167,21 @@ Claude Desktop ajunge la BombVault prin `mcp-remote`, care are nevoie de Node.js
 
 ### Clienți în cloud {#cloud-clients}
 
-ChatGPT, Claude pe claude.ai, Grok și Le Chat apelează BombVault de pe serverele furnizorilor lor, așa că BombVault trebuie să fie accesibil din internet cu un certificat de încredere publică, de exemplu în spatele unui proxy invers; Le Chat respinge certificatele autosemnate. O autentificare pe proxy poate proteja interfața web, dar `/mcp` trebuie să ajungă la BombVault fără ea: aceste servicii nu se pot autentifica la un proxy, iar BombVault le verifică singur cheia. Grok și Le Chat pot trimite o cheie fixă, iar butoanele lor îi configurează ca pe ceilalți. ChatGPT se conectează doar printr-o autentificare OAuth, iar Claude pe claude.ai acceptă un antet cu cheie fixă doar în unele organizații. BombVault primește autentificarea OAuth cu următoarea actualizare; până atunci butoanele lor spun asta în loc să ofere o configurare.
+ChatGPT, Claude pe claude.ai, Grok și Le Chat apelează BombVault de pe serverele furnizorului lor, deci BombVault trebuie să fie accesibil din internet cu un certificat de încredere publică, de exemplu în spatele unui proxy invers; Le Chat refuză certificatele autosemnate. O autentificare pe proxy poate proteja interfața web, dar `/mcp` trebuie să ajungă la BombVault fără ea: aceste servicii nu se pot autentifica la un proxy, iar BombVault le verifică singur cheia sau tokenul. Grok și Le Chat trimit o cheie fixă, iar butoanele lor le configurează ca pe celelalte. ChatGPT, și în majoritatea organizațiilor și Claude pe claude.ai, se conectează doar prin autentificare cu OAuth, descrisă mai jos.
+
+### Autentificare prin OAuth {#oauth}
+
+Pentru un client care nu poate primi o cheie, BombVault este propriul lui server de autorizare OAuth. Clientul se înregistrează singur, te trimite pe o pagină BombVault, iar acolo te autentifici cu parola de conectare (și cu al doilea factor, dacă l-ai configurat) și îi dai permisiunea. Clientul primește apoi un token care funcționează doar pentru endpoint-ul MCP al acestui BombVault și îl reînnoiește singur.
+
+1. Setează o parolă de conectare la **Setări, Sistem**. Fără ea, BombVault nu oferă nicio autentificare, pentru că nu ar exista cineva căruia să i se ceară acordul.
+2. Fă BombVault accesibil din internet prin https, cu un certificat în care browserele au încredere, de obicei printr-un proxy invers. Clientul apelează `/mcp`, `/oauth/` și `/.well-known/` de pe propriile servere, așa că un proxy cu propria autentificare trebuie să lase aceste trei căi să treacă până la BombVault. Pagina de acord de la `/oauth/authorize` se deschide în propriul tău browser și poate rămâne în spatele autentificării proxy-ului.
+3. Pe cardul MCP, activează **Autentificare prin OAuth** și introdu **Adresă publică**: adresa https fără cale, de exemplu `https://backup.example.com`. Fiecare token este legat de această adresă, așa că după o schimbare fiecare client trebuie să se autentifice din nou.
+4. Apasă butonul ChatGPT sau Claude. Dialogul arată **URL-ul conectorului**, adică adresa publică urmată de `/mcp`, și unde se pune în acel client. În ChatGPT activezi modul dezvoltator la **Setări, Aplicații și conectori, Setări avansate**, alegi **Creează**, lipești URL-ul conectorului ca URL al serverului MCP și alegi OAuth ca autentificare. Pe claude.ai deschizi **Setări, Conectori, Adaugă conector personalizat**, lipești URL-ul conectorului, lași goale ID-ul de client și secretul OAuth și alegi **Conectează**.
+5. Clientul deschide pagina de acord. Ea arată cine cere, unde te trimite înapoi răspunsul tău și comutatorul **Permite pornirea copiilor**, care pornește dezactivat. Alege **Permite** sau **Refuză**.
+
+Fiecare client autentificat primește o placă lângă chei, cu sigla sa, jurnalul său, **Revocă** și **Permite pornirea copiilor**, și aceleași limite ca o cheie. Revocarea are efect imediat. Când același client se autentifică din nou, noua permisiune o înlocuiește pe cea veche, iar o permisiune pe care nimeni nu a folosit-o 30 de zile expiră. Pot fi autentificați până la 10 clienți în același timp, pe lângă cele 10 chei.
+
+Pagina de acord acceptă o cerere doar de la un client înregistrat care indică exact una dintre adresele de întoarcere înregistrate: https, sau o adresă loopback pe orice port pentru un client de pe propriul tău calculator. Se acceptă doar fluxul cu cod de autorizare și PKCE (S256), iar răspunsul tău este legat de sesiunea ta, deci niciun alt site nu îl poate trimite în locul tău. Tokenurile de acces sunt valabile o oră. Un token de reîmprospătare este înlocuit la fiecare utilizare, iar dacă unul reapare după aceea, BombVault revocă permisiunea, pentru că altcineva are o copie. BombVault nu descarcă metadate ale clienților din internet, deci clienții se înregistrează prin înregistrarea dinamică a clienților.
 
 ### Alți clienți {#other-clients}
 
@@ -208,7 +222,10 @@ location /mcp {
 
 ## Modelul de securitate {#security}
 
-- Fără o cheie activă, `/mcp` răspunde `404`.
+- Fără o cheie activă și cu autentificarea prin OAuth oprită, `/mcp` răspunde `404`.
+- Autentificarea prin OAuth este oferită doar cât timp este setată o parolă de conectare. Tokenurile, codurile și secretele clienților sunt stocate doar ca amprentă, iar un token funcționează doar pentru adresa pentru care a fost emis.
+- Un client se poate înregistra de cel mult 10 ori pe oră de la o adresă, iar BombVault păstrează cel mult 100 de clienți înregistrați cu care nu s-a autentificat nimeni, fiecare timp de o zi. Codurile și tokenurile de reîmprospătare greșite se socotesc la aceeași blocare ca cheile greșite.
+- Permisiunile se comportă ca cheile la restaurarea unei copii a configurației sau la schimbarea `APP_KEY`: după o restaurare, fiecare client trebuie să se autentifice din nou.
 - Nicio adresă nu e scutită. Cererile de la `localhost`, de la gazda Unraid, de la un proxy invers sau de la `tailscale serve` au nevoie de o cheie ca oricare altele, chiar și când interfața web nu are parolă de autentificare.
 - Cheile sunt stocate doar ca amprente, arătate o singură dată și pot fi redenumite, înlocuite și revocate. Până la 10 chei active, fiecare cu propriul comutator **Permite pornirea copiilor**.
 - Fiecare creare, înlocuire, schimbare de permisiune și revocare trimite o notificare pe canalele tale de notificare, cu adresa de la care a venit, în afară de cazul în care notificările sunt oprite.
@@ -229,7 +246,7 @@ Tot ce citește un asistent ajunge la furnizorul de IA din spatele lui: numele e
 
 | Ce vezi | Ce înseamnă |
 |---|---|
-| `404` | Nicio cheie activă, sau o cale greșită precum `/api/mcp`. Punctul de conectare este `/mcp`. |
+| `404` | Nicio cheie activă și autentificarea prin OAuth este oprită, sau o cale greșită precum `/api/mcp`. Endpoint-ul este `/mcp`. |
 | `401` | Cheia lipsește, e scrisă greșit, revocată sau înlocuită. Poate un proxy aruncă antetul `Authorization` (încearcă `X-API-Key`). Dacă cardul marchează cheia ca nemaifiind validă, `APP_KEY` s-a schimbat: înlocuiește cheia. |
 | `403` | Cererea a venit de la o pagină de browser cu altă origine. Folosește un client desktop sau de linie de comandă. |
 | `405` la GET | Normal. Punctul de conectare acceptă doar `POST`. |
@@ -244,5 +261,8 @@ Tot ce citește un asistent ajunge la furnizorul de IA din spatele lui: numele e
 | `not_permitted` la o pornire | Cheia poate doar să citească. Pornește **Permite pornirea copiilor** în card; nu e nevoie de reconectare. La o anulare înseamnă că rularea nu a fost pornită de această cheie. |
 | `domain_off` | Acel tip de copie e oprit în setări. |
 | `not_found` | BombVault nu protejează acel element. Adaugă-l întâi în interfața web; MCP nu creează niciodată configurație. |
+| Clientul nu găsește serverul de autorizare | Autentificarea prin OAuth este oprită, nu este setată o parolă de conectare, sau proxy-ul nu lasă `/.well-known/` să treacă până la BombVault. |
+| Pagina de acord spune că adresa de întoarcere nu este înregistrată | Clientul a trimis o adresă de întoarcere pe care nu a înregistrat-o. Elimină conectorul din client și adaugă-l din nou. |
+| Un client autentificat primește `401` | Permisiunea lui a fost revocată, a expirat după 30 de zile fără utilizare, sau adresa publică s-a schimbat. Clientul se autentifică din nou. |
 
 Nu seta variabila de mediu `MCPGODEBUG` pe container. Schimbă comportamentul bibliotecii MCP, iar o valoare greșită oprește BombVault la pornire înainte să scrie măcar o linie în jurnal.

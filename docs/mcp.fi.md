@@ -1,6 +1,6 @@
 # MCP-palvelin
 
-BombVaultissa on sisäänrakennettu palvelin Model Context Protocolia (MCP) varten. Sen protokollan kautta tekoälyavustajat, kuten Claude Code ja Claude Desktop, käyttävät ulkoisia työkaluja. Palvelimen kautta avustaja voi lukea, miten varmuuskopiosi voivat, ja jos sallit sen, käynnistää varmuuskopion tai perua sellaisen, jonka se itse käynnisti. Palvelin on pois päältä, kunnes luot avaimen: ilman aktiivista avainta päätepiste `/mcp` vastaa kaikkeen `404`.
+BombVaultissa on sisäänrakennettu palvelin Model Context Protocolille (MCP), jolla tekoälyavustajat kuten Claude Code ja Claude Desktop tavoittavat ulkoisia työkaluja. Sen kautta avustaja voi lukea, miten varmuuskopiosi voivat, ja jos sallit, käynnistää varmuuskopion tai perua itse käynnistämänsä. Palvelin on pois päältä, kunnes luot avaimen tai otat [OAuth-kirjautumisen](#oauth) käyttöön: siihen asti päätepiste `/mcp` vastaa kaikkeen `404`.
 
 ## Mitä avustaja voi ja ei voi tehdä {#tools}
 
@@ -95,8 +95,8 @@ Ikkuna pitää avaimen poissa kaikilta komentoriveiltä. Kun asiakasohjelma osaa
 | Zed | määritystiedosto | määritystiedosto |
 | Grok | lomake, pilvessä | palveluntarjoajan palvelimet |
 | Le Chat | lomake, pilvessä | palveluntarjoajan palvelimet |
-| ChatGPT | pilvessä | vain OAuth, katso alta |
-| Claude (claude.ai) | pilvessä | OAuth useimmissa organisaatioissa, katso alta |
+| ChatGPT | OAuth-kirjautuminen, pilvessä | käyttötunnus, katso [alta](#oauth) |
+| Claude (claude.ai) | OAuth-kirjautuminen, pilvessä | käyttötunnus, katso [alta](#oauth) |
 
 Alla olevat osiot selittävät Claude Coden ja Claude Desktopin käyttöönoton tarkemmin ja kertovat, mitä muu asiakasohjelma tarvitsee.
 
@@ -167,7 +167,21 @@ Claude Desktop tavoittaa BombVaultin `mcp-remote`n kautta, joka tarvitsee Node.j
 
 ### Asiakasohjelmat pilvessä {#cloud-clients}
 
-ChatGPT, Claude osoitteessa claude.ai, Grok ja Le Chat kutsuvat BombVaultia palveluntarjoajansa palvelimilta, joten BombVaultin on oltava tavoitettavissa internetistä julkisesti luotetulla varmenteella, esimerkiksi käänteisen välityspalvelimen takana; Le Chat hylkää itse allekirjoitetut. Välityspalvelimen kirjautuminen voi suojata verkkokäyttöliittymää, mutta `/mcp`:n on päästävä BombVaultille ilman sitä: nämä palvelut eivät osaa kirjautua välityspalvelimeen, ja BombVault tarkistaa niiden avaimen itse. Grok ja Le Chat voivat lähettää kiinteän avaimen, ja niiden painikkeet ottavat ne käyttöön kuten muutkin. ChatGPT yhdistää vain OAuth-kirjautumisella, ja Claude osoitteessa claude.ai hyväksyy kiinteän avainotsakkeen vain joissakin organisaatioissa. BombVault saa OAuth-kirjautumisen seuraavassa päivityksessä; siihen asti niiden painikkeet kertovat tämän käyttöönoton sijaan.
+ChatGPT, claude.ai:n Claude, Grok ja Le Chat kutsuvat BombVaultia toimittajansa palvelimilta, joten BombVaultin täytyy näkyä internetiin julkisesti luotetulla varmenteella, esimerkiksi käänteisen välityspalvelimen takana; Le Chat hylkää itse allekirjoitetut. Välityspalvelimen kirjautuminen voi suojata verkkokäyttöliittymää, mutta `/mcp`:n täytyy päästä BombVaultiin ilman sitä: nämä palvelut eivät osaa kirjautua välityspalvelimeen, ja BombVault tarkistaa niiden avaimen tai tunnuksen itse. Grok ja Le Chat lähettävät kiinteän avaimen, ja niiden painikkeet ottavat ne käyttöön kuten muutkin. ChatGPT ja useimmissa organisaatioissa myös claude.ai:n Claude yhdistävät vain OAuth-kirjautumisella, joka kuvataan seuraavaksi.
+
+### OAuth-kirjautuminen {#oauth}
+
+Asiakkaalle, joka ei ota vastaan avainta, BombVault on sen oma OAuth-valtuutuspalvelin. Asiakas rekisteröityy itse, ohjaa sinut BombVaultin sivulle, ja siellä kirjaudut kirjautumissalasanallasi (ja toisella tekijällä, jos olet ottanut sen käyttöön) ja sallit sen. Asiakas saa sitten tunnuksen, joka kelpaa vain tämän BombVaultin MCP-päätepisteeseen, ja uusii sen itse.
+
+1. Aseta kirjautumissalasana kohdassa **Asetukset, Järjestelmä**. Ilman sitä BombVault ei tarjoa kirjautumista lainkaan, koska suostumusta ei olisi keneltä kysyä.
+2. Tee BombVault tavoitettavaksi internetistä https-yhteydellä ja varmenteella, johon selaimet luottavat, yleensä käänteisen välityspalvelimen kautta. Asiakas kutsuu polkuja `/mcp`, `/oauth/` ja `/.well-known/` omilta palvelimiltaan, joten välityspalvelimen, jolla on oma kirjautuminen, täytyy päästää nämä kolme polkua läpi BombVaultiin. Suostumussivu osoitteessa `/oauth/authorize` aukeaa omassa selaimessasi ja saa jäädä välityspalvelimen kirjautumisen taakse.
+3. Ota MCP-kortilla käyttöön **OAuth-kirjautuminen** ja anna **Julkinen osoite**: https-osoite ilman polkua, esimerkiksi `https://backup.example.com`. Jokainen tunnus on sidottu tähän osoitteeseen, joten muutoksen jälkeen jokaisen asiakkaan on kirjauduttava uudelleen.
+4. Napsauta ChatGPT:n tai Clauden painiketta. Ikkuna näyttää **Liittimen URL**:n eli julkisen osoitteen, jonka perässä on `/mcp`, ja kertoo, mihin se kyseisessä asiakkaassa kuuluu. ChatGPT:ssä otat kehittäjätilan käyttöön kohdassa **Asetukset, Sovellukset ja liittimet, Lisäasetukset**, valitset **Luo**, liität liittimen URL:n MCP-palvelimen URL:ksi ja valitset todennukseksi OAuthin. claude.ai:ssa avaat **Asetukset, Liittimet, Lisää mukautettu liitin**, liität liittimen URL:n, jätät OAuth-asiakastunnuksen ja salaisuuden tyhjiksi ja valitset **Yhdistä**.
+5. Asiakas avaa suostumussivun. Se näyttää, kuka kysyy, minne vastauksesi vie sinut takaisin, sekä kytkimen **Salli varmuuskopioiden käynnistys**, joka on aluksi pois päältä. Valitse **Salli** tai **Estä**.
+
+Jokainen kirjautunut asiakas saa ruudun avainten viereen, jossa on sen tunnus, sen loki, **Mitätöi** ja **Salli varmuuskopioiden käynnistys**, ja samat rajat kuin avaimella. Mitätöinti tulee voimaan heti. Kun sama asiakas kirjautuu uudelleen, uusi lupa korvaa vanhan, ja lupa, jota kukaan ei ole käyttänyt 30 päivään, vanhenee. Samaan aikaan voi olla kirjautuneena enintään 10 asiakasta 10 avaimen lisäksi.
+
+Suostumussivu hyväksyy pyynnön vain rekisteröidyltä asiakkaalta, joka nimeää täsmälleen yhden rekisteröimistään paluuosoitteista: https, tai loopback-osoite millä tahansa portilla omalla tietokoneellasi olevalle asiakkaalle. Vain valtuutuskoodivirta PKCE:llä (S256) hyväksytään, ja vastauksesi on sidottu istuntoosi, joten mikään muu sivusto ei voi lähettää sitä puolestasi. Käyttötunnukset ovat voimassa tunnin. Päivitystunnus vaihdetaan joka käytöllä, ja jos sellainen ilmestyy sen jälkeen uudelleen, BombVault peruu luvan, koska jollakulla muulla on siitä kopio. BombVault ei hae asiakkaiden metatietoja internetistä, joten asiakkaat rekisteröityvät dynaamisella asiakasrekisteröinnillä.
 
 ### Muut asiakasohjelmat {#other-clients}
 
@@ -208,7 +222,10 @@ Välityspalvelimen takana jokaisessa pyynnössä on välityspalvelimen osoite. V
 
 ## Turvallisuusmalli {#security}
 
-- Ilman aktiivista avainta `/mcp` vastaa `404`.
+- Ilman aktiivista avainta ja OAuth-kirjautumisen ollessa pois päältä `/mcp` vastaa `404`.
+- OAuth-kirjautumista tarjotaan vain, kun kirjautumissalasana on asetettu. Tunnukset, koodit ja asiakassalaisuudet tallennetaan vain sormenjälkinä, ja tunnus kelpaa vain osoitteeseen, jolle se on myönnetty.
+- Asiakas voi rekisteröityä samasta osoitteesta enintään 10 kertaa tunnissa, ja BombVault säilyttää enintään 100 rekisteröityä asiakasta, joilla kukaan ei ole kirjautunut, kutakin vuorokauden. Väärät koodit ja päivitystunnukset lasketaan samaan estoon kuin väärät avaimet.
+- Luvat käyttäytyvät kuten avaimet, kun asetusten varmuuskopio palautetaan tai `APP_KEY` vaihtuu: palautuksen jälkeen jokaisen asiakkaan on kirjauduttava uudelleen.
 - Mikään osoite ei ole poikkeus. Pyynnöt osoitteesta `localhost`, Unraid-isännältä, käänteiseltä välityspalvelimelta tai `tailscale serve`:ltä tarvitsevat avaimen kuten kaikki muutkin, myös silloin kun verkkokäyttöliittymällä ei ole kirjautumissalasanaa.
 - Avaimet tallennetaan vain sormenjälkinä, näytetään kerran, ja ne voi nimetä uudelleen, vaihtaa ja peruuttaa. Enintään 10 aktiivista avainta, kullakin oma kytkin **Salli varmuuskopioiden käynnistys**.
 - Jokainen luonti, vaihto, oikeuksien muutos ja peruutus lähettää ilmoituksen ilmoituskanaviesi kautta osoitteen kera, josta se tuli, ellei ilmoituksia ole kytketty pois.
@@ -229,7 +246,7 @@ Kaikki, mitä avustaja lukee, menee sen takana olevalle tekoälypalvelun tarjoaj
 
 | Mitä näet | Mitä se tarkoittaa |
 |---|---|
-| `404` | Ei aktiivista avainta, tai väärä polku kuten `/api/mcp`. Päätepiste on `/mcp`. |
+| `404` | Aktiivista avainta ei ole ja OAuth-kirjautuminen on pois päältä, tai polku on väärä, kuten `/api/mcp`. Päätepiste on `/mcp`. |
 | `401` | Avain puuttuu, on kirjoitettu väärin, peruutettu tai vaihdettu. Ehkä välityspalvelin pudottaa otsakkeen `Authorization` (kokeile `X-API-Key`). Jos kortti merkitsee avaimen enää kelpaamattomaksi, `APP_KEY` on muuttunut: vaihda avain. |
 | `403` | Pyyntö tuli selainsivulta, jolla on eri origin. Käytä työpöytä- tai komentoriviasiakasta. |
 | `405` GET-pyynnöllä | Normaalia. Päätepiste ottaa vastaan vain `POST`-pyyntöjä. |
@@ -244,5 +261,8 @@ Kaikki, mitä avustaja lukee, menee sen takana olevalle tekoälypalvelun tarjoaj
 | `not_permitted` käynnistyksessä | Avain saa vain lukea. Kytke **Salli varmuuskopioiden käynnistys** päälle kortissa; uutta yhteyttä ei tarvita. Peruutuksessa se tarkoittaa, että tämä avain ei käynnistänyt ajoa. |
 | `domain_off` | Se varmuuskopiolaji on kytketty pois asetuksista. |
 | `not_found` | BombVault ei suojaa sitä kohdetta. Lisää se ensin verkkokäyttöliittymässä; MCP ei koskaan luo asetuksia. |
+| Asiakas ei löydä valtuutuspalvelinta | OAuth-kirjautuminen on pois päältä, kirjautumissalasanaa ei ole asetettu, tai välityspalvelin ei päästä polkua `/.well-known/` läpi BombVaultiin. |
+| Suostumussivu kertoo, ettei paluuosoitetta ole rekisteröity | Asiakas lähetti paluuosoitteen, jota se ei ole rekisteröinyt. Poista liitin asiakkaasta ja lisää se uudelleen. |
+| Kirjautunut asiakas saa vastauksen `401` | Sen lupa on peruttu, se on vanhentunut 30 käyttämättömän päivän jälkeen, tai julkinen osoite on muuttunut. Asiakas kirjautuu uudelleen. |
 
 Älä aseta kontille ympäristömuuttujaa `MCPGODEBUG`. Se muuttaa MCP-kirjaston toimintaa, ja virheellinen arvo pysäyttää BombVaultin käynnistyksessä ennen kuin se kirjoittaa yhtäkään lokiriviä.

@@ -1,6 +1,6 @@
 # Serwer MCP
 
-BombVault ma wbudowany serwer Model Context Protocol (MCP), czyli protokołu, przez który asystenci AI tacy jak Claude Code i Claude Desktop sięgają po zewnętrzne narzędzia. Dzięki niemu asystent może sprawdzić, jak mają się twoje kopie zapasowe, a jeśli na to pozwolisz, uruchomić kopię albo anulować taką, którą sam uruchomił. Serwer jest wyłączony, dopóki nie utworzysz klucza: bez aktywnego klucza punkt końcowy `/mcp` odpowiada na wszystko `404`.
+BombVault ma wbudowany serwer Model Context Protocol (MCP), protokołu, którym asystenci AI tacy jak Claude Code i Claude Desktop sięgają po zewnętrzne narzędzia. Przez niego asystent może odczytać, jak mają się twoje kopie, a jeśli pozwolisz, uruchomić kopię albo anulować tę, którą sam uruchomił. Jest wyłączony, dopóki nie utworzysz klucza albo nie włączysz [logowania przez OAuth](#oauth): do tego czasu punkt końcowy `/mcp` odpowiada na wszystko `404`.
 
 ## Co asystent może, a czego nie {#tools}
 
@@ -95,8 +95,8 @@ Okno trzyma klucz z dala od każdego wiersza poleceń. Gdy klient potrafi odczyt
 | Zed | plik konfiguracyjny | plik konfiguracyjny |
 | Grok | formularz, w chmurze | serwery dostawcy |
 | Le Chat | formularz, w chmurze | serwery dostawcy |
-| ChatGPT | w chmurze | tylko OAuth, zob. niżej |
-| Claude (claude.ai) | w chmurze | OAuth w większości organizacji, zob. niżej |
+| ChatGPT | logowanie przez OAuth, w chmurze | token dostępu, zobacz [niżej](#oauth) |
+| Claude (claude.ai) | logowanie przez OAuth, w chmurze | token dostępu, zobacz [niżej](#oauth) |
 
 Sekcje poniżej dokładniej opisują konfigurację Claude Code i Claude Desktop oraz to, czego potrzebuje każdy inny klient.
 
@@ -167,7 +167,21 @@ Claude Desktop łączy się z BombVault przez `mcp-remote`, który wymaga Node.j
 
 ### Klienci w chmurze {#cloud-clients}
 
-ChatGPT, Claude na claude.ai, Grok i Le Chat wywołują BombVault z serwerów swoich dostawców, więc BombVault musi być osiągalny z internetu z publicznie zaufanym certyfikatem, na przykład za odwrotnym proxy; Le Chat odrzuca certyfikaty z podpisem własnym. Logowanie na proxy może chronić interfejs WWW, ale `/mcp` musi przechodzić do BombVault bez niego: te usługi nie potrafią zalogować się do proxy, a BombVault sam sprawdza ich klucz. Grok i Le Chat potrafią wysłać stały klucz, a ich przyciski konfigurują je tak jak pozostałych. ChatGPT łączy się tylko przez logowanie OAuth, a Claude na claude.ai przyjmuje nagłówek ze stałym kluczem tylko w niektórych organizacjach. BombVault dostanie logowanie OAuth w następnej aktualizacji; do tego czasu ich przyciski mówią o tym, zamiast oferować konfigurację.
+ChatGPT, Claude na claude.ai, Grok i Le Chat wywołują BombVault z serwerów swojego dostawcy, więc BombVault musi być osiągalny z internetu z publicznie zaufanym certyfikatem, na przykład za odwrotnym proxy; Le Chat odrzuca certyfikaty samopodpisane. Logowanie na proxy może chronić interfejs WWW, ale `/mcp` musi docierać do BombVault bez niego: te usługi nie umieją zalogować się do proxy, a BombVault sam sprawdza ich klucz lub token. Grok i Le Chat wysyłają stały klucz, a ich przyciski konfigurują je jak pozostałe. ChatGPT, a w większości organizacji także Claude na claude.ai, łączą się tylko przez logowanie OAuth, opisane poniżej.
+
+### Logowanie przez OAuth {#oauth}
+
+Dla klienta, który nie przyjmuje klucza, BombVault jest jego własnym serwerem autoryzacji OAuth. Klient sam się rejestruje, wysyła cię na stronę BombVault, a tam logujesz się swoim hasłem logowania (i drugim składnikiem, jeśli go ustawiłeś) i na niego zezwalasz. Klient dostaje wtedy token, który działa tylko dla punktu końcowego MCP tego BombVault, i sam go odnawia.
+
+1. Ustaw hasło logowania w **Ustawienia, System**. Bez niego BombVault w ogóle nie oferuje logowania, bo nie byłoby kogo zapytać o zgodę.
+2. Udostępnij BombVault z internetu przez https z certyfikatem, któremu ufają przeglądarki, zwykle przez odwrotne proxy. Klient wywołuje `/mcp`, `/oauth/` i `/.well-known/` ze swoich własnych serwerów, więc proxy z własnym logowaniem musi przepuszczać te trzy ścieżki do BombVault. Strona zgody pod `/oauth/authorize` otwiera się w twojej własnej przeglądarce i może pozostać za logowaniem proxy.
+3. Na karcie MCP włącz **Logowanie przez OAuth** i wpisz **Adres publiczny**: adres https bez ścieżki, na przykład `https://backup.example.com`. Każdy token jest powiązany z tym adresem, więc po zmianie każdy klient musi zalogować się ponownie.
+4. Kliknij przycisk ChatGPT albo Claude. Okno pokazuje **URL łącznika**, czyli adres publiczny z `/mcp` na końcu, i gdzie go wpisać w danym kliencie. W ChatGPT włączasz tryb dewelopera w **Ustawienia, Aplikacje i łączniki, Ustawienia zaawansowane**, wybierasz **Utwórz**, wklejasz URL łącznika jako URL serwera MCP i wybierasz OAuth jako uwierzytelnianie. Na claude.ai otwierasz **Ustawienia, Łączniki, Dodaj własny łącznik**, wklejasz URL łącznika, zostawiasz puste identyfikator klienta i sekret OAuth i wybierasz **Połącz**.
+5. Klient otwiera stronę zgody. Pokazuje ona, kto pyta, dokąd odpowiedź cię odeśle, i przełącznik **Pozwól uruchamiać kopie**, który na początku jest wyłączony. Wybierz **Zezwól** albo **Odmów**.
+
+Każdy zalogowany klient dostaje kafelek obok kluczy, ze swoim znakiem, swoim dziennikiem, **Unieważnij** i **Pozwól uruchamiać kopie**, oraz te same limity co klucz. Unieważnienie działa od razu. Gdy ten sam klient zaloguje się ponownie, jego nowa zgoda zastępuje starą, a zgoda, której nikt nie używał przez 30 dni, wygasa. Naraz może być zalogowanych do 10 klientów, niezależnie od 10 kluczy.
+
+Strona zgody przyjmuje żądanie tylko od zarejestrowanego klienta, który podaje dokładnie jeden ze swoich zarejestrowanych adresów powrotu: https albo adres pętli zwrotnej na dowolnym porcie dla klienta na twoim własnym komputerze. Akceptowany jest tylko przepływ kodu autoryzacji z PKCE (S256), a twoja odpowiedź jest powiązana z twoją sesją, więc żadna inna strona nie może jej wysłać za ciebie. Tokeny dostępu są ważne godzinę. Token odświeżania jest zastępowany przy każdym użyciu, a jeśli któryś pojawi się potem ponownie, BombVault unieważnia zgodę, bo ktoś inny ma jego kopię. BombVault nie pobiera metadanych klientów z internetu, więc klienci rejestrują się przez dynamiczną rejestrację klientów.
 
 ### Inni klienci {#other-clients}
 
@@ -208,7 +222,10 @@ Za proxy każde żądanie niesie adres proxy. Pięć złych kluczy od jednego ź
 
 ## Model bezpieczeństwa {#security}
 
-- Bez aktywnego klucza `/mcp` odpowiada `404`.
+- Bez aktywnego klucza i przy wyłączonym logowaniu przez OAuth `/mcp` odpowiada `404`.
+- Logowanie przez OAuth jest oferowane tylko, gdy ustawione jest hasło logowania. Tokeny, kody i sekrety klientów są przechowywane tylko jako odcisk, a token działa tylko dla adresu, dla którego został wydany.
+- Klient może się zarejestrować z jednego adresu najwyżej 10 razy na godzinę, a BombVault trzyma najwyżej 100 zarejestrowanych klientów, przez których nikt się nie zalogował, każdego przez dobę. Błędne kody i tokeny odświeżania liczą się do tej samej blokady co błędne klucze.
+- Zgody zachowują się jak klucze przy przywracaniu kopii konfiguracji lub zmianie `APP_KEY`: po przywróceniu każdy klient musi zalogować się ponownie.
 - Żaden adres nie jest wyjątkiem. Żądania z `localhost`, z hosta Unraid, z reverse proxy albo z `tailscale serve` potrzebują klucza jak każde inne, także wtedy, gdy interfejs WWW nie ma hasła logowania.
 - Klucze są zapisywane tylko jako odciski, pokazywane raz i można je przemianować, wymienić i unieważnić. Do 10 aktywnych kluczy, każdy z własnym przełącznikiem **Pozwól uruchamiać kopie**.
 - Każde utworzenie, wymiana, zmiana uprawnień i unieważnienie wysyła powiadomienie twoimi kanałami powiadomień, z adresem, z którego przyszło, chyba że powiadomienia są wyłączone.
@@ -229,7 +246,7 @@ Wszystko, co czyta asystent, trafia do dostawcy AI, który za nim stoi: nazwy el
 
 | Co widzisz | Co to znaczy |
 |---|---|
-| `404` | Brak aktywnego klucza albo zła ścieżka, na przykład `/api/mcp`. Punkt końcowy to `/mcp`. |
+| `404` | Brak aktywnego klucza i wyłączone logowanie przez OAuth albo błędna ścieżka, np. `/api/mcp`. Punkt końcowy to `/mcp`. |
 | `401` | Klucza brakuje, ma literówkę, jest unieważniony albo wymieniony. Być może proxy gubi nagłówek `Authorization` (spróbuj `X-API-Key`). Jeśli karta oznacza klucz jako już nieważny, zmienił się `APP_KEY`: wymień klucz. |
 | `403` | Żądanie przyszło ze strony przeglądarki z innego originu. Użyj klienta desktopowego albo wiersza poleceń. |
 | `405` przy GET | Normalne. Punkt końcowy przyjmuje tylko `POST`. |
@@ -244,5 +261,8 @@ Wszystko, co czyta asystent, trafia do dostawcy AI, który za nim stoi: nazwy el
 | `not_permitted` przy uruchomieniu | Klucz może tylko czytać. Włącz w karcie **Pozwól uruchamiać kopie**; ponowne łączenie nie jest potrzebne. Przy anulowaniu oznacza to, że przebiegu nie uruchomił ten klucz. |
 | `domain_off` | Ten rodzaj kopii jest wyłączony w ustawieniach. |
 | `not_found` | BombVault nie chroni tego elementu. Najpierw dodaj go w interfejsie WWW; MCP nigdy nie tworzy konfiguracji. |
+| Klient nie znajduje serwera autoryzacji | Logowanie przez OAuth jest wyłączone, nie ustawiono hasła logowania albo proxy nie przepuszcza `/.well-known/` do BombVault. |
+| Strona zgody zgłasza niezarejestrowany adres powrotu | Klient wysłał adres powrotu, którego nie zarejestrował. Usuń łącznik w kliencie i dodaj go ponownie. |
+| Zalogowany klient dostaje `401` | Jego zgodę unieważniono, wygasła po 30 dniach bez użycia albo zmienił się adres publiczny. Klient zaloguje się ponownie. |
 
 Nie ustawiaj na kontenerze zmiennej środowiskowej `MCPGODEBUG`. Zmienia ona działanie biblioteki MCP, a błędna wartość zatrzymuje BombVault przy starcie, zanim zapisze on choćby jedną linię logu.

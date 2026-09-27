@@ -1,6 +1,6 @@
 # MCP-server
 
-BombVault har en innebygd server for Model Context Protocol (MCP), protokollet som AI-assistenter som Claude Code og Claude Desktop bruker for å nå eksterne verktøy. Gjennom den kan en assistent lese hvordan det står til med sikkerhetskopiene dine, og hvis du tillater det, starte en sikkerhetskopi eller avbryte en den selv har startet. Serveren er av til du lager en nøkkel: uten en aktiv nøkkel svarer endepunktet `/mcp` med `404` på alt.
+BombVault har en innebygd server for Model Context Protocol (MCP), protokollen som AI-assistenter som Claude Code og Claude Desktop bruker for å nå eksterne verktøy. Gjennom den kan en assistent lese hvordan det står til med sikkerhetskopiene dine og, hvis du tillater det, starte en sikkerhetskopi eller avbryte en den selv startet. Den er av til du lager en nøkkel eller slår på [pålogging via OAuth](#oauth): frem til da svarer endepunktet `/mcp` `404` på alt.
 
 ## Hva en assistent kan og ikke kan gjøre {#tools}
 
@@ -95,8 +95,8 @@ Dialogen holder nøkkelen unna alle kommandolinjer. Der klienten kan lese den fr
 | Zed | konfigurasjonsfil | konfigurasjonsfilen |
 | Grok | skjema, i skyen | leverandørens servere |
 | Le Chat | skjema, i skyen | leverandørens servere |
-| ChatGPT | i skyen | bare OAuth, se nedenfor |
-| Claude (claude.ai) | i skyen | OAuth i de fleste organisasjoner, se nedenfor |
+| ChatGPT | pålogging via OAuth, i skyen | et tilgangstoken, se [nedenfor](#oauth) |
+| Claude (claude.ai) | pålogging via OAuth, i skyen | et tilgangstoken, se [nedenfor](#oauth) |
 
 Avsnittene nedenfor forklarer oppsettet av Claude Code og Claude Desktop nærmere og sier hva enhver annen klient trenger.
 
@@ -167,7 +167,21 @@ Claude Desktop når BombVault via `mcp-remote`, som trenger Node.js på den data
 
 ### Klienter i skyen {#cloud-clients}
 
-ChatGPT, Claude på claude.ai, Grok og Le Chat kaller BombVault fra leverandørenes servere, så BombVault må kunne nås fra internett med et offentlig klarert sertifikat, for eksempel bak en omvendt proxy; Le Chat avviser selvsignerte. En pålogging på proxyen kan beskytte nettgrensesnittet, men `/mcp` må slippe gjennom til BombVault uten den: disse tjenestene kan ikke logge på en proxy, og BombVault sjekker nøkkelen deres selv. Grok og Le Chat kan sende en fast nøkkel, og knappene deres setter dem opp som de andre. ChatGPT kobler bare til via en OAuth-pålogging, og Claude på claude.ai godtar en fast nøkkelheader bare i noen organisasjoner. BombVault får OAuth-pålogging med neste oppdatering; til da sier knappene deres det i stedet for å tilby et oppsett.
+ChatGPT, Claude på claude.ai, Grok og Le Chat kaller BombVault fra leverandørens servere, så BombVault må kunne nås fra internett med et offentlig klarert sertifikat, for eksempel bak en omvendt proxy; Le Chat avviser selvsignerte. En pålogging på proxyen kan beskytte nettgrensesnittet, men `/mcp` må komme frem til BombVault uten den: disse tjenestene kan ikke logge på en proxy, og BombVault sjekker selv nøkkelen eller tokenet deres. Grok og Le Chat sender en fast nøkkel, og knappene deres setter dem opp som de andre. ChatGPT, og i de fleste organisasjoner også Claude på claude.ai, kobler seg bare til via pålogging med OAuth, som er beskrevet nedenfor.
+
+### Pålogging via OAuth {#oauth}
+
+For en klient som ikke kan ta en nøkkel, er BombVault sin egen OAuth-autorisasjonsserver. Klienten registrerer seg selv, sender deg til en BombVault-side, og der logger du på med innloggingspassordet ditt (og den andre faktoren, hvis du har satt en opp) og gir den tillatelse. Klienten får så et token som bare gjelder MCP-endepunktet i denne BombVault, og fornyer det selv.
+
+1. Sett et innloggingspassord under **Innstillinger, System**. Uten passord tilbyr BombVault ingen pålogging, fordi det ikke finnes noen å spørre om samtykke.
+2. Gjør BombVault tilgjengelig fra internett over https med et sertifikat som nettlesere stoler på, vanligvis via en omvendt proxy. Klienten kaller `/mcp`, `/oauth/` og `/.well-known/` fra sine egne servere, så en proxy med egen pålogging må slippe disse tre stiene gjennom til BombVault. Samtykkesiden på `/oauth/authorize` åpnes i din egen nettleser og kan bli bak proxyens pålogging.
+3. Slå på **Pålogging via OAuth** på MCP-kortet, og skriv inn **Offentlig adresse**: https-adressen uten sti, for eksempel `https://backup.example.com`. Hvert token er bundet til denne adressen, så etter en endring må hver klient logge på igjen.
+4. Klikk på knappen for ChatGPT eller Claude. Dialogen viser **Connector-URL**, altså den offentlige adressen med `/mcp` bak, og hvor den skal inn i den klienten. I ChatGPT slår du på utviklermodus under **Innstillinger, Apper og connectors, Avanserte innstillinger**, velger **Opprett**, limer inn connector-URL-en som MCP-server-URL og velger OAuth som autentisering. På claude.ai åpner du **Innstillinger, Connectors, Legg til egendefinert connector**, limer inn connector-URL-en, lar OAuth-klient-ID og hemmelighet stå tomme og velger **Koble til**.
+5. Klienten åpner samtykkesiden. Den viser hvem som spør, hvor svaret ditt sender deg tilbake til, og bryteren **Tillat å starte sikkerhetskopier**, som starter av. Velg **Tillat** eller **Avslå**.
+
+Hver klient som har logget på, får en flis ved siden av nøklene, med merket sitt, loggen sin, **Tilbakekall** og **Tillat å starte sikkerhetskopier**, og de samme grensene som en nøkkel. Tilbakekalling virker med en gang. Når samme klient logger på igjen, erstatter den nye tillatelsen den gamle, og en tillatelse som ingen har brukt på 30 dager, utløper. Opptil 10 klienter kan være pålogget samtidig, i tillegg til de 10 nøklene.
+
+Samtykkesiden tar bare imot en forespørsel fra en registrert klient som oppgir nøyaktig én av sine registrerte returadresser: https, eller en loopback-adresse på en hvilken som helst port for en klient på din egen datamaskin. Bare authorization code-flyten med PKCE (S256) godtas, og svaret ditt er bundet til økten din, så ingen annen nettside kan sende det for deg. Tilgangstokener gjelder en time. Et oppdateringstoken erstattes ved hver bruk, og dukker ett opp igjen etterpå, tilbakekaller BombVault tillatelsen, fordi noen andre har en kopi. BombVault henter ikke klientmetadata fra internett, så klienter registrerer seg via dynamisk klientregistrering.
 
 ### Andre klienter {#other-clients}
 
@@ -208,7 +222,10 @@ Bak en proxy bærer hver forespørsel proxyens adresse. Fem feil nøkler fra én
 
 ## Sikkerhetsmodell {#security}
 
-- Uten en aktiv nøkkel svarer `/mcp` med `404`.
+- Uten en aktiv nøkkel og med pålogging via OAuth av svarer `/mcp` `404`.
+- Pålogging via OAuth tilbys bare så lenge et innloggingspassord er satt. Tokener, koder og klienthemmeligheter lagres bare som fingeravtrykk, og et token gjelder bare for adressen det ble utstedt for.
+- En klient kan registrere seg høyst 10 ganger i timen fra én adresse, og BombVault beholder høyst 100 registrerte klienter som ingen har logget på med, hver i et døgn. Feil koder og oppdateringstokener teller mot samme sperre som feil nøkler.
+- Tillatelser oppfører seg som nøkler når en konfigurasjonskopi gjenopprettes eller `APP_KEY` endres: etter en gjenoppretting må hver klient logge på igjen.
 - Ingen adresser er unntatt. Forespørsler fra `localhost`, Unraid-verten, en omvendt proxy eller `tailscale serve` trenger en nøkkel som alle andre, også når webgrensesnittet ikke har påloggingspassord.
 - Nøkler lagres bare som fingeravtrykk, vises én gang og kan gis nytt navn, byttes og tilbakekalles. Opptil 10 aktive nøkler, hver med sin egen bryter **Tillat å starte sikkerhetskopier**.
 - Hver oppretting, utskifting, endring av rettigheter og tilbakekalling sender et varsel via varslingskanalene dine, med adressen det kom fra, med mindre varsler er slått av.
@@ -229,7 +246,7 @@ Det en assistent leser, går til AI-leverandøren bak den: navn på elementer, t
 
 | Hva du ser | Hva det betyr |
 |---|---|
-| `404` | Ingen aktiv nøkkel, eller en feil sti som `/api/mcp`. Endepunktet er `/mcp`. |
+| `404` | Ingen aktiv nøkkel og pålogging via OAuth er av, eller en feil sti som `/api/mcp`. Endepunktet er `/mcp`. |
 | `401` | Nøkkelen mangler, er feilskrevet, tilbakekalt eller byttet. Kanskje kaster en proxy headeren `Authorization` (prøv `X-API-Key`). Merker kortet nøkkelen som ikke lenger gyldig, er `APP_KEY` endret: bytt nøkkelen. |
 | `403` | Forespørselen kom fra en nettleserside med en annen origin. Bruk en skrivebords- eller kommandolinjeklient. |
 | `405` ved GET | Normalt. Endepunktet tar bare imot `POST`. |
@@ -244,5 +261,8 @@ Det en assistent leser, går til AI-leverandøren bak den: navn på elementer, t
 | `not_permitted` ved en start | Nøkkelen kan bare lese. Slå på **Tillat å starte sikkerhetskopier** i kortet; ny tilkobling trengs ikke. Ved en avbrytelse betyr det at denne nøkkelen ikke startet kjøringen. |
 | `domain_off` | Den typen sikkerhetskopi er slått av i innstillingene. |
 | `not_found` | BombVault beskytter ikke det elementet. Legg det først til i webgrensesnittet; MCP lager aldri konfigurasjon. |
+| Klienten finner ikke autorisasjonsserveren | Pålogging via OAuth er av, det er ikke satt noe innloggingspassord, eller proxyen slipper ikke `/.well-known/` gjennom til BombVault. |
+| Samtykkesiden sier at returadressen ikke er registrert | Klienten sendte en returadresse den ikke har registrert. Fjern connectoren i klienten og legg den til på nytt. |
+| En pålogget klient får `401` | Tillatelsen er tilbakekalt, har utløpt etter 30 dager uten bruk, eller den offentlige adressen er endret. Klienten logger på igjen. |
 
 Ikke sett miljøvariabelen `MCPGODEBUG` på containeren. Den endrer hvordan MCP-biblioteket oppfører seg, og en ugyldig verdi stopper BombVault ved oppstart før den skriver en eneste logglinje.

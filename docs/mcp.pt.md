@@ -1,6 +1,6 @@
 # Servidor MCP
 
-O BombVault traz um servidor para o Model Context Protocol (MCP), o protocolo com que assistentes de IA como o Claude Code e o Claude Desktop chegam a ferramentas externas. Através dele, um assistente pode ler como estão as suas cópias e, se o permitir, iniciar uma cópia ou cancelar uma que ele próprio iniciou. Fica desligado até criar uma chave: sem uma chave ativa, o ponto de ligação `/mcp` responde `404` a tudo.
+O BombVault tem um servidor integrado para o Model Context Protocol (MCP), o protocolo com que assistentes de IA como o Claude Code e o Claude Desktop chegam a ferramentas externas. Através dele, um assistente pode ler como estão as tuas cópias e, se o permitires, iniciar uma cópia ou cancelar uma que ele próprio iniciou. Está desligado até criares uma chave ou ligares a [autenticação por OAuth](#oauth): até lá, o endpoint `/mcp` responde `404` a tudo.
 
 ## O que um assistente pode e não pode fazer {#tools}
 
@@ -95,8 +95,8 @@ O diálogo mantém a chave fora de qualquer linha de comandos. Quando o cliente 
 | Zed | ficheiro de configuração | o ficheiro de configuração |
 | Grok | formulário, na nuvem | os servidores do fornecedor |
 | Le Chat | formulário, na nuvem | os servidores do fornecedor |
-| ChatGPT | na nuvem | só OAuth, ver abaixo |
-| Claude (claude.ai) | na nuvem | OAuth na maioria das organizações, ver abaixo |
+| ChatGPT | autenticação por OAuth, na nuvem | um token de acesso, ver [abaixo](#oauth) |
+| Claude (claude.ai) | autenticação por OAuth, na nuvem | um token de acesso, ver [abaixo](#oauth) |
 
 As secções abaixo explicam com mais pormenor a configuração do Claude Code e do Claude Desktop e indicam o que qualquer outro cliente precisa.
 
@@ -167,7 +167,21 @@ O Claude Desktop chega ao BombVault através do `mcp-remote`, que precisa de Nod
 
 ### Clientes na nuvem {#cloud-clients}
 
-O ChatGPT, o Claude em claude.ai, o Grok e o Le Chat chamam o BombVault a partir dos servidores do seu fornecedor, por isso o BombVault tem de estar acessível a partir da internet com um certificado de confiança pública, por exemplo atrás de um proxy inverso; o Le Chat recusa certificados autoassinados. Uma autenticação no proxy pode proteger a interface web, mas `/mcp` tem de chegar ao BombVault sem ela: estes serviços não conseguem autenticar-se num proxy, e o BombVault verifica ele próprio a chave deles. O Grok e o Le Chat conseguem enviar uma chave fixa, e os seus botões configuram-nos como os outros. O ChatGPT só se liga através de uma autenticação OAuth, e o Claude em claude.ai só aceita um cabeçalho com chave fixa em algumas organizações. O BombVault recebe a autenticação OAuth com a próxima atualização; até lá, os botões deles dizem isso em vez de oferecer uma configuração.
+O ChatGPT, o Claude em claude.ai, o Grok e o Le Chat chamam o BombVault a partir dos servidores do seu fornecedor, por isso o BombVault tem de estar acessível a partir da Internet com um certificado de confiança pública, por exemplo atrás de um proxy inverso; o Le Chat recusa certificados autoassinados. Um início de sessão no proxy pode proteger a interface web, mas `/mcp` tem de chegar ao BombVault sem ele: estes serviços não conseguem iniciar sessão num proxy, e o BombVault verifica ele próprio a chave ou o token. O Grok e o Le Chat enviam uma chave fixa, e os seus botões configuram-nos como os outros. O ChatGPT, e o Claude em claude.ai na maioria das organizações, só se ligam através de uma autenticação por OAuth, descrita a seguir.
+
+### Autenticação por OAuth {#oauth}
+
+Para um cliente que não aceita uma chave, o BombVault é o seu próprio servidor de autorização OAuth. O cliente regista-se sozinho, envia-te para uma página do BombVault, e aí entras com a tua palavra-passe de acesso (e o segundo fator, se o configuraste) e autoriza-lo. O cliente recebe depois um token que só serve para o endpoint MCP deste BombVault, e renova-o sozinho.
+
+1. Define uma palavra-passe de acesso em **Definições, Sistema**. Sem ela o BombVault não oferece nenhuma autenticação, porque não haveria ninguém a quem pedir consentimento.
+2. Torna o BombVault acessível a partir da Internet por https com um certificado em que os browsers confiem, normalmente através de um proxy inverso. O cliente chama `/mcp`, `/oauth/` e `/.well-known/` a partir dos seus próprios servidores, por isso um proxy com início de sessão próprio tem de deixar passar esses três caminhos até ao BombVault. A página de consentimento em `/oauth/authorize` abre no teu próprio browser e pode ficar atrás do início de sessão do proxy.
+3. No cartão MCP, liga **Autenticação por OAuth** e introduz o **Endereço público**: o endereço https sem caminho, por exemplo `https://backup.example.com`. Cada token fica ligado a este endereço, por isso após uma alteração cada cliente tem de se autenticar de novo.
+4. Clica no botão do ChatGPT ou do Claude. O diálogo mostra o **URL do conector**, ou seja, o endereço público seguido de `/mcp`, e onde entra nesse cliente. No ChatGPT, liga o modo de programador em **Definições, Apps e conectores, Definições avançadas**, escolhe **Criar**, cola o URL do conector como URL do servidor MCP e escolhe OAuth como autenticação. Em claude.ai, abre **Definições, Conectores, Adicionar conector personalizado**, cola o URL do conector, deixa vazios o ID de cliente e o segredo OAuth e escolhe **Ligar**.
+5. O cliente abre a página de consentimento. Mostra quem pede, para onde a tua resposta te leva de volta e o interruptor **Permitir iniciar cópias**, que começa desligado. Escolhe **Permitir** ou **Recusar**.
+
+Cada cliente autenticado recebe um mosaico ao lado das chaves, com o seu logótipo, o seu registo, **Revogar** e **Permitir iniciar cópias**, e os mesmos limites de uma chave. A revogação tem efeito imediato. Quando o mesmo cliente se autentica de novo, a nova autorização substitui a anterior, e uma autorização que ninguém usou durante 30 dias expira. Podem estar autenticados até 10 clientes ao mesmo tempo, além das 10 chaves.
+
+A página de consentimento só aceita um pedido de um cliente registado que indique exatamente um dos seus endereços de regresso registados: https, ou um endereço de loopback em qualquer porta para um cliente no teu próprio computador. Só é aceite o fluxo de código de autorização com PKCE (S256), e a tua resposta fica ligada à tua sessão, por isso nenhum outro site a pode enviar por ti. Os tokens de acesso duram uma hora. Um token de atualização é substituído a cada utilização, e se voltar a aparecer depois, o BombVault revoga a autorização, porque outra pessoa tem uma cópia. O BombVault não descarrega metadados de clientes da Internet, por isso os clientes registam-se através do registo dinâmico de clientes.
 
 ### Outros clientes {#other-clients}
 
@@ -208,7 +222,10 @@ Atrás de um proxy, cada pedido traz o endereço do proxy. Cinco chaves erradas 
 
 ## Modelo de segurança {#security}
 
-- Sem uma chave ativa, `/mcp` responde `404`.
+- Sem uma chave ativa e com a autenticação por OAuth desligada, `/mcp` responde `404`.
+- A autenticação por OAuth só é oferecida enquanto houver uma palavra-passe de acesso. Tokens, códigos e segredos de cliente são guardados apenas como impressão digital, e um token só serve para o endereço para o qual foi emitido.
+- Um cliente pode registar-se no máximo 10 vezes por hora a partir do mesmo endereço, e o BombVault guarda no máximo 100 clientes registados com que ninguém se autenticou, cada um durante um dia. Códigos e tokens de atualização errados contam para o mesmo bloqueio que as chaves erradas.
+- As autorizações comportam-se como as chaves ao restaurar uma cópia da configuração ou ao mudar o `APP_KEY`: após um restauro, cada cliente tem de se autenticar de novo.
 - Nenhum endereço está isento. Pedidos vindos de `localhost`, do anfitrião Unraid, de um proxy inverso ou de `tailscale serve` precisam de uma chave como qualquer outro, também quando a interface web não tem palavra-passe de início de sessão.
 - As chaves só são guardadas como impressão digital, mostradas uma vez, e podem ser renomeadas, substituídas e revogadas. Até 10 chaves ativas, cada uma com o seu interruptor **Permitir iniciar cópias**.
 - Cada criação, substituição, mudança de permissão e revogação envia uma notificação pelos seus canais de notificação, com o endereço de onde veio, a não ser que as notificações estejam desligadas.
@@ -229,7 +246,7 @@ Tudo o que um assistente lê vai para o fornecedor de IA por trás dele: nomes d
 
 | O que vê | O que significa |
 |---|---|
-| `404` | Não há chave ativa, ou o caminho está errado, como `/api/mcp`. O ponto de ligação é `/mcp`. |
+| `404` | Não há nenhuma chave ativa e a autenticação por OAuth está desligada, ou o caminho está errado, como `/api/mcp`. O endpoint é `/mcp`. |
 | `401` | A chave falta, está mal escrita, revogada ou substituída. Pode ser que um proxy descarte o cabeçalho `Authorization` (experimente `X-API-Key`). Se o cartão marcar a chave como já não válida, `APP_KEY` mudou: substitua a chave. |
 | `403` | O pedido veio de uma página de navegador de outra origem. Use um cliente de secretária ou de linha de comandos. |
 | `405` em GET | Normal. O ponto de ligação só aceita `POST`. |
@@ -244,5 +261,8 @@ Tudo o que um assistente lê vai para o fornecedor de IA por trás dele: nomes d
 | `not_permitted` num início | A chave é só de leitura. Ligue **Permitir iniciar cópias** no cartão; não é preciso voltar a ligar. Num cancelamento significa que a execução não foi iniciada por esta chave. |
 | `domain_off` | Esse tipo de cópia está desligado nas definições. |
 | `not_found` | O BombVault não protege esse elemento. Acrescente-o primeiro na interface web; o MCP nunca cria configuração. |
+| O cliente não encontra o servidor de autorização | A autenticação por OAuth está desligada, não há palavra-passe de acesso, ou o proxy não deixa passar `/.well-known/` até ao BombVault. |
+| A página de consentimento diz que o endereço de regresso não está registado | O cliente enviou um endereço de regresso que não registou. Remove o conector no cliente e volta a adicioná-lo. |
+| Um cliente autenticado recebe `401` | A sua autorização foi revogada, expirou após 30 dias sem uso, ou o endereço público mudou. O cliente autentica-se de novo. |
 
 Não defina a variável de ambiente `MCPGODEBUG` no contentor. Altera o comportamento da biblioteca MCP, e um valor mal formado para o BombVault no arranque antes de escrever uma única linha de registo.
