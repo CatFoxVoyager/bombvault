@@ -102,11 +102,13 @@ interface SelectorCommon {
  * colours at the default offset; pages/settings/hueOffsets.test.ts requires
  * every hued selector in that tree to take its offset from here.
  *
- * There are more selectors than the palette has colours, so two pairs share a
- * start: `drillKind` with the first label row, and `theme` with `notifyOn`.
- * Each pair sits in different tabs, which is the property the test checks.
- * General spends all eight positions, so a selector added there has no free
- * start and the table needs rethinking rather than another entry.
+ * There are more selectors than the palette has colours, so some share a
+ * start: `drillKind` with the first label row, and `theme`, `notifyOn` and
+ * `mcpClient` the last colour. `theme` sits in General, `notifyOn` in
+ * Notifications and the client picker in a dialog from System, so none of
+ * them is on screen with another. General spends all eight positions, so a
+ * selector added there has no free start and the table needs rethinking
+ * rather than another entry.
  */
 export const HUE_OFFSET = {
   tabs: 0,
@@ -118,6 +120,7 @@ export const HUE_OFFSET = {
   theme: 7,
   notifyOn: 7,
   drillKind: 1,
+  mcpClient: 7,
 } as const;
 
 export type SelectorProps =
@@ -484,7 +487,7 @@ export function Selector(props: SelectorProps) {
       className={[
         "flex items-center",
         well
-          ? "w-fit max-w-full flex-wrap gap-[0.2rem] rounded-control bg-carbon-surface3 p-[0.2rem]"
+          ? "w-fit max-w-full flex-wrap gap-[0.2rem] rounded-pill bg-carbon-surface3 p-[0.2rem]"
           : "flex-wrap gap-1",
         className,
       ]
@@ -499,8 +502,8 @@ export function Selector(props: SelectorProps) {
           // Well segments are rounded too, so the selected pill follows the
           // shape setting along with the groove.
           well
-            ? "rounded-control [transition:background-color_120ms_ease]"
-            : "rounded-control transition-colors",
+            ? "rounded-pill [transition:background-color_120ms_ease]"
+            : "rounded-pill transition-colors",
           "disabled:opacity-50 disabled:cursor-not-allowed",
           // An iconOnly segment is all glyph, and on an icon-only badge only
           // the fill takes the colour (design-language.md), so it skips the

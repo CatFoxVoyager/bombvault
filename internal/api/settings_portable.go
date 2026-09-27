@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -56,6 +57,26 @@ type settingsExport struct {
 	OffsiteTargets []offsiteTargetView `json:"offsiteTargets"`
 	NamedRepos     []offsiteTargetView `json:"namedRepos,omitempty"`
 	Credentials    *exportCredentials  `json:"credentials,omitempty"`
+	// predatesZFS is set when the file carries no zfsEnabled key: it comes from
+	// a build without the ZFS domain, so its empty ZFS fields say nothing about
+	// the ZFS setup of the instance it is applied to.
+	predatesZFS bool
+}
+
+func (e *settingsExport) UnmarshalJSON(b []byte) error {
+	type plain settingsExport
+	if err := json.Unmarshal(b, (*plain)(e)); err != nil {
+		return err
+	}
+	var probe struct {
+		Settings map[string]json.RawMessage `json:"settings"`
+	}
+	if err := json.Unmarshal(b, &probe); err != nil {
+		return err
+	}
+	_, hasZFS := probe.Settings["zfsEnabled"]
+	e.predatesZFS = !hasZFS
+	return nil
 }
 
 // buildSettingsView returns the export's settings block: the user-facing view with
@@ -109,19 +130,37 @@ func locationRedacted(loc string) bool {
 }
 
 // redactExportLocations strips URL-embedded credentials out of every repo
-// location the envelope carries: the five per-domain off-site locations in the
-// settings block and each off-site target's repo.
+// location the envelope carries: the five per-domain BACKUP PATHS, the five
+// per-domain off-site locations, and each off-site target's or named
+// repository's repo.
+//
+// The backup paths belong here for a reason that is easy to miss, because they
+// are called paths: a domain path may itself BE a restic remote. resolveRepo
+// hands "b2:…", "s3:…", "sftp:…", "rest:…" and "rclone:…" to restic verbatim
+// (see itemRepoPath's note in service.go), and restic accepts
+// rest:https://user:pass@host:8000/repo. So a primary location can carry a live
+// password exactly the way an off-site one can. It was scrubbed on the off-site
+// half from the start and not on this one, which put a password into the file
+// that is explicitly meant to be portable: mailed to someone, pasted into a
+// forum thread, attached to a support request.
 //
 // Applied to the PLAIN export only. The credentialed variant already hands out
 // every stored secret in the clear behind requireAuthForSecrets, so scrubbing
 // there would leave the one export that is meant to be a complete, portable copy
 // as the only one that is not.
 func redactExportLocations(exp *settingsExport) {
+	exp.Settings.ContainersPath = scrubRepoLocation(exp.Settings.ContainersPath)
+	exp.Settings.VMsPath = scrubRepoLocation(exp.Settings.VMsPath)
+	exp.Settings.FlashPath = scrubRepoLocation(exp.Settings.FlashPath)
+	exp.Settings.ConfigPath = scrubRepoLocation(exp.Settings.ConfigPath)
+	exp.Settings.FilesPath = scrubRepoLocation(exp.Settings.FilesPath)
+	exp.Settings.ZFSPath = scrubRepoLocation(exp.Settings.ZFSPath)
 	exp.Settings.ContainersOffsite = scrubRepoLocation(exp.Settings.ContainersOffsite)
 	exp.Settings.VMsOffsite = scrubRepoLocation(exp.Settings.VMsOffsite)
 	exp.Settings.FlashOffsite = scrubRepoLocation(exp.Settings.FlashOffsite)
 	exp.Settings.ConfigOffsite = scrubRepoLocation(exp.Settings.ConfigOffsite)
 	exp.Settings.FilesOffsite = scrubRepoLocation(exp.Settings.FilesOffsite)
+	exp.Settings.ZFSOffsite = scrubRepoLocation(exp.Settings.ZFSOffsite)
 	for i := range exp.OffsiteTargets {
 		exp.OffsiteTargets[i].Repo = scrubRepoLocation(exp.OffsiteTargets[i].Repo)
 	}
@@ -140,6 +179,7 @@ func redactedLocations(exp settingsExport) []string {
 		{"flashOffsite", exp.Settings.FlashOffsite},
 		{"configOffsite", exp.Settings.ConfigOffsite},
 		{"filesOffsite", exp.Settings.FilesOffsite},
+		{"zfsOffsite", exp.Settings.ZFSOffsite},
 	} {
 		if locationRedacted(f.loc) {
 			out = append(out, f.name)
@@ -480,21 +520,42 @@ func (h *Handler) rejectImportCollisions(exp settingsExport) string {
 	type place struct{ label, loc string }
 	var occupied []place
 	s := exp.Settings
+	offsite := exp.OffsiteTargets
+	if exp.predatesZFS {
+		// The apply keeps this instance's ZFS locations, so those are the ones
+		// a repository in the file must not land on.
+		cur, err := h.store.GetSettings()
+		if err != nil {
+			return "could not check this file against the repositories already set up; try again"
+		}
+		s.ZFSPath, s.ZFSOffsite = cur.ZFSPath, cur.ZFSOffsite
+		targets, err := h.store.ListOffsiteTargets()
+		if err != nil {
+			return "could not check this file against the repositories already set up; try again"
+		}
+		for _, t := range targets {
+			if t.Domain == zfsDomain {
+				offsite = append(slices.Clip(offsite), offsiteTargetView{Repo: t.Repo})
+			}
+		}
+	}
 	for _, p := range []place{
 		{"the Containers path", s.ContainersPath}, {"the VMs path", s.VMsPath},
 		{"the Flash path", s.FlashPath}, {"the Config path", s.ConfigPath},
 		{"the Folders path", s.FilesPath},
+		{"the ZFS datasets path", s.ZFSPath},
 		{"the Containers off-site destination", s.ContainersOffsite},
 		{"the VMs off-site destination", s.VMsOffsite},
 		{"the Flash off-site destination", s.FlashOffsite},
 		{"the Config off-site destination", s.ConfigOffsite},
 		{"the Folders off-site destination", s.FilesOffsite},
+		{"the ZFS datasets off-site destination", s.ZFSOffsite},
 	} {
 		if loc, ok := resolve(p.loc); ok {
 			occupied = append(occupied, place{p.label, loc})
 		}
 	}
-	for _, tv := range exp.OffsiteTargets {
+	for _, tv := range offsite {
 		if loc, ok := resolve(tv.Repo); ok {
 			occupied = append(occupied, place{"an off-site destination", loc})
 		}
@@ -605,6 +666,11 @@ func validateExport(exp settingsExport, mountRoot string) string {
 	if msg := rejectInvalidSettingsNames(exp.Settings); msg != "" {
 		return "invalid settings: " + msg
 	}
+	// The two anomaly presets, through the guard the save uses, so an import
+	// cannot persist a value the Settings page then refuses to save.
+	if msg := rejectInvalidAnomalySettings(exp.Settings); msg != "" {
+		return "invalid settings: " + msg
+	}
 	return ""
 }
 
@@ -613,8 +679,9 @@ func validateExport(exp settingsExport, mountRoot string) string {
 // missing here imports without ever being checked for grammar.
 func exportCadences(v settingsView) []string {
 	return []string{
-		v.ContainersSchedule, v.VMsSchedule, v.FlashSchedule, v.ConfigSchedule, v.FilesSchedule,
+		v.ContainersSchedule, v.VMsSchedule, v.FlashSchedule, v.ConfigSchedule, v.FilesSchedule, v.ZFSSchedule,
 		v.ContainersOffsiteSchedule, v.VMsOffsiteSchedule, v.FlashOffsiteSchedule, v.ConfigOffsiteSchedule, v.FilesOffsiteSchedule,
+		v.ZFSOffsiteSchedule,
 		v.DrillsSchedule, v.TamperTestSchedule, v.DigestSchedule, v.EverythingSchedule,
 	}
 }
@@ -655,21 +722,31 @@ func settingsGroups(v settingsView) []string {
 			groups = append(groups, name)
 		}
 	}
-	add("domains", v.ContainersEnabled || v.VMsEnabled || v.FlashEnabled || v.ConfigEnabled || v.FilesEnabled ||
-		v.ContainersPath != "" || v.VMsPath != "" || v.FlashPath != "" || v.ConfigPath != "" || v.FilesPath != "")
+	// The dump switch counts when it is off, the mirror image of the flags
+	// above: it is on by default, so switching it off is what an apply imposes.
+	add("domains", v.ContainersEnabled || v.VMsEnabled || v.FlashEnabled || v.ConfigEnabled || v.FilesEnabled || v.ZFSEnabled ||
+		v.ContainersPath != "" || v.VMsPath != "" || v.FlashPath != "" || v.ConfigPath != "" || v.FilesPath != "" || v.ZFSPath != "" ||
+		(v.DBDumpsEnabled != nil && !*v.DBDumpsEnabled))
 	add("schedules", v.ContainersSchedule != "" || v.VMsSchedule != "" || v.FlashSchedule != "" ||
-		v.ConfigSchedule != "" || v.FilesSchedule != "")
+		v.ConfigSchedule != "" || v.FilesSchedule != "" || v.ZFSSchedule != "")
 	// The whole-server pass is its own area, not part of "schedules": it is the
 	// one setting an apply can switch ON for a box that never ran it, so the
 	// preview has to name it.
 	add("everything", v.EverythingSchedule != "")
 	add("retention", v.RetentionKeepLast > 0 || v.RetentionKeepDaily > 0 || v.RetentionKeepWeekly > 0 || v.RetentionKeepMonthly > 0 ||
 		v.OffsiteRetentionKeepLast > 0 || v.OffsiteRetentionKeepDaily > 0 || v.OffsiteRetentionKeepWeekly > 0 || v.OffsiteRetentionKeepMonthly > 0)
-	add("offsite", v.ContainersOffsite != "" || v.VMsOffsite != "" || v.FlashOffsite != "" || v.ConfigOffsite != "" || v.FilesOffsite != "")
+	add("offsite", v.ContainersOffsite != "" || v.VMsOffsite != "" || v.FlashOffsite != "" || v.ConfigOffsite != "" ||
+		v.FilesOffsite != "" || v.ZFSOffsite != "")
 	add("drills", v.DrillsEnabled || v.DrillsSchedule != "" || v.OffsiteDrillsEnabled)
 	add("digest", v.DigestEnabled || v.DigestSchedule != "")
 	add("monitoring", v.MetricsEnabled || v.WidgetTokenSet)
 	add("language", v.DefaultLanguage != "")
+	// Named only when the file departs from the defaults, so importing a file
+	// that leaves detection as it ships says nothing about it.
+	add("anomalies", (v.AnomalyEnabled != nil && !*v.AnomalyEnabled) ||
+		(v.AnomalyRetentionHold != nil && !*v.AnomalyRetentionHold) ||
+		(v.AnomalySensitivity != "" && v.AnomalySensitivity != string(sensBalanced)) ||
+		(v.AnomalyNotifyMin != "" && v.AnomalyNotifyMin != "critical"))
 	add("exportEncryption", v.ExportEncryptEnabled || v.ExportAgeRecipients != "")
 	return groups
 }
@@ -706,17 +783,26 @@ func (h *Handler) applyImport(r *http.Request, exp settingsExport) error {
 			"or export again with credentials included.", strings.Join(slots, ", "))
 	}
 
+	var anomalyChanged bool
 	if _, err := h.store.MutateSettings(func(cur *store.Settings) error {
-		*cur = mergeImportedSettings(*cur, exp.Settings)
+		merged := mergeImportedSettings(*cur, exp.Settings)
+		if exp.predatesZFS {
+			keepZFSSettings(&merged, *cur)
+		}
+		anomalyChanged = anomalySettingsMoved(*cur, merged)
+		*cur = merged
 		return nil
 	}); err != nil {
 		return err
+	}
+	if anomalyChanged {
+		h.svc.anomalies.settingsChanged()
 	}
 
 	// Replace the off-site targets with the imported set (a clean, deterministic
 	// round-trip): drop the current rows, then upsert each imported target
 	// preserving its id + created_at so the far instance reproduces the source.
-	if err := h.replaceOffsiteTargets(exp.OffsiteTargets); err != nil {
+	if err := h.replaceOffsiteTargets(exp.OffsiteTargets, exp.predatesZFS); err != nil {
 		return err
 	}
 
@@ -746,9 +832,12 @@ func (h *Handler) applyImport(r *http.Request, exp settingsExport) error {
 	if err != nil {
 		return err
 	}
+	if _, err := h.svc.moveTargetsOffPrimarySlot(s); err != nil {
+		return err
+	}
 	h.svc.syncAllPrimaryOffsiteTargets(s)
 	if h.scheduler != nil {
-		if err := h.scheduler.ReloadWithDueChecks(s, h.containersLastRun, h.vmsLastRun, h.flashLastRun, h.configLastRun, h.filesLastRun, h.everythingLastRun); err != nil {
+		if err := h.scheduler.ReloadWithGates(s, h.dueGates()); err != nil {
 			return err
 		}
 	}
@@ -757,8 +846,9 @@ func (h *Handler) applyImport(r *http.Request, exp settingsExport) error {
 }
 
 // replaceOffsiteTargets drops all current off-site targets and re-inserts the
-// imported set, preserving each id + created_at for an exact round-trip.
-func (h *Handler) replaceOffsiteTargets(views []offsiteTargetView) error {
+// imported set, preserving each id + created_at for an exact round-trip. With
+// keepZFS the ZFS destinations stay, because the file cannot describe them.
+func (h *Handler) replaceOffsiteTargets(views []offsiteTargetView, keepZFS bool) error {
 	current, err := h.store.ListOffsiteTargets()
 	if err != nil {
 		return err
@@ -771,6 +861,9 @@ func (h *Handler) replaceOffsiteTargets(views []offsiteTargetView) error {
 		currentRepo[t.ID] = t.Repo
 	}
 	for _, t := range current {
+		if keepZFS && t.Domain == zfsDomain {
+			continue
+		}
 		if err := h.store.DeleteOffsiteTarget(t.ID); err != nil {
 			return err
 		}
@@ -899,6 +992,17 @@ func (h *Handler) applyImportedCredentials(c exportCredentials) error {
 	return nil
 }
 
+// keepZFSSettings puts the instance's own ZFS setup back over a merge from a
+// file that predates the domain, which would otherwise switch it off.
+func keepZFSSettings(out *store.Settings, existing store.Settings) {
+	out.ZFSEnabled = existing.ZFSEnabled
+	out.ZFSPath = existing.ZFSPath
+	out.ZFSSchedule = existing.ZFSSchedule
+	out.ZFSOffsite = existing.ZFSOffsite
+	out.ZFSOffsiteSchedule = existing.ZFSOffsiteSchedule
+	out.ZFSOffsiteImmutable = existing.ZFSOffsiteImmutable
+}
+
 // mergeImportedSettings maps the imported view onto a Settings row, keeping the
 // per-instance fields the export omits and clamping numeric fields the same way
 // the settings save does. Secret tokens (metrics/widget) blanked in the view are
@@ -940,11 +1044,19 @@ func mergeImportedSettings(existing store.Settings, v settingsView) store.Settin
 	out.FlashEnabled = v.FlashEnabled
 	out.ConfigEnabled = v.ConfigEnabled
 	out.FilesEnabled = v.FilesEnabled
-	out.ContainersPath = v.ContainersPath
-	out.VMsPath = v.VMsPath
-	out.FlashPath = v.FlashPath
-	out.ConfigPath = v.ConfigPath
-	out.FilesPath = v.FilesPath
+	out.ZFSEnabled = v.ZFSEnabled
+	// Backup paths, via importedLocation for the same reason the off-site
+	// locations below use it: a domain path may itself be a restic remote, so a
+	// plain export can carry a stripped credential here too. Writing the marker
+	// into the live settings would point the domain at a repository nobody can
+	// open. A path that is an ordinary subpath is unaffected: it never contains
+	// the marker, so importedLocation passes it straight through.
+	out.ContainersPath = importedLocation(existing.ContainersPath, v.ContainersPath)
+	out.VMsPath = importedLocation(existing.VMsPath, v.VMsPath)
+	out.FlashPath = importedLocation(existing.FlashPath, v.FlashPath)
+	out.ConfigPath = importedLocation(existing.ConfigPath, v.ConfigPath)
+	out.FilesPath = importedLocation(existing.FilesPath, v.FilesPath)
+	out.ZFSPath = importedLocation(existing.ZFSPath, v.ZFSPath)
 	out.RestoreFolder = v.RestoreFolder
 	// Off-site locations, via importedLocation: a location the plain export
 	// stripped a credential out of never overwrites a working one here.
@@ -953,16 +1065,19 @@ func mergeImportedSettings(existing store.Settings, v settingsView) store.Settin
 	out.FlashOffsite = importedLocation(existing.FlashOffsite, v.FlashOffsite)
 	out.ConfigOffsite = importedLocation(existing.ConfigOffsite, v.ConfigOffsite)
 	out.FilesOffsite = importedLocation(existing.FilesOffsite, v.FilesOffsite)
+	out.ZFSOffsite = importedLocation(existing.ZFSOffsite, v.ZFSOffsite)
 	out.ContainersOffsiteSchedule = v.ContainersOffsiteSchedule
 	out.VMsOffsiteSchedule = v.VMsOffsiteSchedule
 	out.FlashOffsiteSchedule = v.FlashOffsiteSchedule
 	out.ConfigOffsiteSchedule = v.ConfigOffsiteSchedule
 	out.FilesOffsiteSchedule = v.FilesOffsiteSchedule
+	out.ZFSOffsiteSchedule = v.ZFSOffsiteSchedule
 	out.ContainersSchedule = v.ContainersSchedule
 	out.VMsSchedule = v.VMsSchedule
 	out.FlashSchedule = v.FlashSchedule
 	out.ConfigSchedule = v.ConfigSchedule
 	out.FilesSchedule = v.FilesSchedule
+	out.ZFSSchedule = v.ZFSSchedule
 	// The whole-server pass's cadence. Missing here until now, so an import
 	// switched Backup Everything off on the instance it was applied to.
 	out.EverythingSchedule = v.EverythingSchedule
@@ -990,6 +1105,7 @@ func mergeImportedSettings(existing store.Settings, v settingsView) store.Settin
 	out.FlashOffsiteImmutable = v.FlashOffsiteImmutable
 	out.ConfigOffsiteImmutable = v.ConfigOffsiteImmutable
 	out.FilesOffsiteImmutable = v.FilesOffsiteImmutable
+	out.ZFSOffsiteImmutable = v.ZFSOffsiteImmutable
 	out.OffsiteGrowthBudgetGB = max(0, v.OffsiteGrowthBudgetGB)
 	out.TamperTestSchedule = v.TamperTestSchedule
 	out.DRDrillTarget = strings.TrimSpace(v.DRDrillTarget)
@@ -1007,6 +1123,16 @@ func mergeImportedSettings(existing store.Settings, v settingsView) store.Settin
 	out.RestartHealthWait = v.RestartHealthWait
 	out.RestartHealthTimeoutSec = clampHealthTimeoutSec(v.RestartHealthTimeoutSec)
 	out.PerItemSchedules = v.PerItemSchedules
+	// An export written before the switch existed carries no value for it, and
+	// taking that as "off" would stop dumping databases on the instance the
+	// file is applied to.
+	if v.DBDumpsEnabled != nil {
+		out.DBDumpsEnabled = *v.DBDumpsEnabled
+	}
+	// Same contract as the dump switch, and the same reason: a file written
+	// before this version carries none of the four, and reading that as "off"
+	// would take detection and the data-loss pause with it.
+	applyAnomalySettings(&out, v)
 
 	return out
 }
