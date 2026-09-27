@@ -29,6 +29,11 @@ function hostOf(url: string): string {
 
 type Gate = "loading" | "pass" | "blocked";
 
+/** How long Allow stays disabled after the page shows or comes back to the
+ *  front. A page opened under the pointer, or raised by another site, would
+ *  otherwise take the second click of a double click meant for something else. */
+const ALLOW_PAUSE_MS = 1000;
+
 /**
  * OAuthConsent is the page a client sends the operator to when it signs in
  * through OAuth. It needs a real session, so an operator who is not signed in
@@ -46,6 +51,7 @@ export function OAuthConsent() {
   const [allowStart, setAllowStart] = useState(false);
   const [busy, setBusy] = useState<"allow" | "deny" | null>(null);
   const [leaving, setLeaving] = useState<string | null>(null);
+  const [armed, setArmed] = useState(false);
 
   const checkAuth = useCallback(() => {
     getAuth()
@@ -81,6 +87,23 @@ export function OAuthConsent() {
       live = false;
     };
   }, [gate]);
+
+  useEffect(() => {
+    if (info === null) return;
+    let timer = window.setTimeout(() => setArmed(true), ALLOW_PAUSE_MS);
+    const pause = () => {
+      setArmed(false);
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setArmed(true), ALLOW_PAUSE_MS);
+    };
+    window.addEventListener("focus", pause);
+    document.addEventListener("visibilitychange", pause);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("focus", pause);
+      document.removeEventListener("visibilitychange", pause);
+    };
+  }, [info]);
 
   async function answer(allow: boolean) {
     if (!info?.ticket) return;
@@ -195,7 +218,7 @@ export function OAuthConsent() {
                   labelKey="oauth.accept"
                   tone="accent"
                   onClick={() => void answer(true)}
-                  disabled={busy !== null || info.limitReached === true}
+                  disabled={busy !== null || info.limitReached === true || !armed}
                   busy={busy === "allow"}
                 />
               </div>

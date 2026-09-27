@@ -37,6 +37,13 @@ function info(over: Partial<OAuthConsentInfo> = {}): OAuthConsentInfo {
   };
 }
 
+/** The Allow button once its start-up pause is over. */
+async function armedAllow(): Promise<HTMLButtonElement> {
+  const allow = (await screen.findByRole("button", { name: en["oauth.accept"] })) as HTMLButtonElement;
+  await waitFor(() => expect(allow.disabled).toBe(false), { timeout: 2000 });
+  return allow;
+}
+
 beforeEach(() => {
   getAuth.mockReset();
   getOAuthConsent.mockReset();
@@ -84,7 +91,7 @@ describe("the OAuth consent page", () => {
     answerOAuthConsent.mockResolvedValue({ ok: true, redirect: "https://chatgpt.com/cb?code=c&state=s" });
     render(<OAuthConsent />);
     fireEvent.click(await screen.findByRole("switch", { name: en["mcp.allowStart"] }));
-    fireEvent.click(screen.getByRole("button", { name: en["oauth.accept"] }));
+    fireEvent.click(await armedAllow());
     await waitFor(() => expect(assign).toHaveBeenCalledWith("https://chatgpt.com/cb?code=c&state=s"));
     expect(answerOAuthConsent).toHaveBeenCalledWith("ticket-1", true, true);
     expect(screen.getByText(en["oauth.returning"].replace("{host}", "chatgpt.com"))).toBeTruthy();
@@ -136,6 +143,21 @@ describe("the OAuth consent page", () => {
     expect(screen.queryByText(en["oauth.returning"].replace("{host}", "attacker.example"))).toBeNull();
   });
 
+  it("holds Allow back for a moment after the page shows and after it regains focus", async () => {
+    getOAuthConsent.mockResolvedValue(info());
+    render(<OAuthConsent />);
+    const allow = (await screen.findByRole("button", { name: en["oauth.accept"] })) as HTMLButtonElement;
+    expect(allow.disabled).toBe(true);
+    fireEvent.click(allow);
+    await armedAllow();
+    fireEvent.focus(window);
+    expect(allow.disabled).toBe(true);
+    fireEvent(document, new Event("visibilitychange"));
+    expect(allow.disabled).toBe(true);
+    await armedAllow();
+    expect(answerOAuthConsent).not.toHaveBeenCalled();
+  });
+
   it("keeps Allow disabled while the grant limit is reached", async () => {
     getOAuthConsent.mockResolvedValue(info({ limitReached: true }));
     render(<OAuthConsent />);
@@ -148,7 +170,7 @@ describe("the OAuth consent page", () => {
     getOAuthConsent.mockResolvedValue(info());
     answerOAuthConsent.mockResolvedValue({ ok: false, code: "oauth-consent-expired", error: "x" });
     render(<OAuthConsent />);
-    fireEvent.click(await screen.findByRole("button", { name: en["oauth.accept"] }));
+    fireEvent.click(await armedAllow());
     await screen.findByText(en["oauth.errorExpired"]);
     expect(assign).not.toHaveBeenCalled();
   });
