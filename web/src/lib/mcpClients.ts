@@ -290,7 +290,12 @@ export const LOCAL_CLIENTS: McpClient[] = [
     group: "local",
     mark: "jetbrains",
     tile: "glim-tile-jetbrains",
-    setup: { kind: "file", paths: home(".junie/mcp/mcp.json") },
+    setup: {
+      kind: "file",
+      paths: home(".junie/mcp/mcp.json"),
+      ui: "Settings, Tools, Junie, MCP Settings",
+      paste: "Settings, Tools, AI Assistant, Model Context Protocol (MCP), Add",
+    },
     key: { kind: "inFile" },
     cert: SYSTEM_CERT,
   },

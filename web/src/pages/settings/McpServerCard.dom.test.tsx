@@ -271,6 +271,21 @@ describe("a client's setup dialog", () => {
     expect(dialogText()).not.toContain(en["mcp.setupFileUi"].replace("{app}", "Warp").split("{ui}")[0]);
   });
 
+  it("names Junie for JetBrains' file and AI Assistant's own Add dialog", async () => {
+    await renderCard(payload());
+    await openClient("JetBrains", en["mcp.kindEditor"]);
+
+    expect(dialogText()).toContain("~/.junie/mcp/mcp.json");
+    expect(dialogText()).toContain(
+      en["mcp.setupFileUi"].replace("{app}", "JetBrains").replace("{ui}", "Settings, Tools, Junie, MCP Settings")
+    );
+    expect(dialogText()).toContain(
+      en["mcp.setupPaste"]
+        .replace("{app}", "JetBrains")
+        .replace("{ui}", "Settings, Tools, AI Assistant, Model Context Protocol (MCP), Add")
+    );
+  });
+
   it("hands an unused new key back to the card when it closes", async () => {
     await renderCard(payload());
     listMcpKeys.mockRejectedValueOnce(new Error("503"));
