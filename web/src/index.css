@@ -559,6 +559,14 @@
   /* Nav text, a touch brighter than --carbon-text-sub. */
   --sidebar-text:     #e0e0e0;
 
+  /* A tile set straight on a card (an MCP key, an off-site target): one step
+     lighter than the card, with its chips and switch one step above that. */
+  --glim-tile-bg:           var(--carbon-surface2);
+  --glim-tile-raised:       var(--carbon-surface3);
+  --glim-tile-raised-hover: var(--carbon-hover-raised);
+  --glim-tile-switch-off:   var(--carbon-hover-raised);
+  --glim-tile-well:         var(--carbon-bg);
+
   /* The default accent, sunflower yellow. lib/accent.ts overrides it at
      runtime and computes --accent-contrast and --accent-soft for the active
      hex; these are the values before hydration or without JS. BombVault keeps
@@ -699,6 +707,13 @@
   /* The raised surface tone, as in the reference. */
   --carbon-sidebar:   #ffffff;
 
+  /* A faint grey tile on the white card; see the dark block. */
+  --glim-tile-bg:           var(--carbon-bg);
+  --glim-tile-raised:       var(--carbon-surface2);
+  --glim-tile-raised-hover: var(--carbon-surface3);
+  --glim-tile-switch-off:   var(--carbon-surface3);
+  --glim-tile-well:         var(--carbon-surface);
+
   --sidebar-text:     #393939;
 
   /* One accent hex in both themes, so these match the dark block. */
@@ -809,6 +824,11 @@
     --carbon-text-sub:  #525252;
     --carbon-text-muted:#6f6f6f;
     --sidebar-text:     #393939;
+    --glim-tile-bg:           var(--carbon-bg);
+    --glim-tile-raised:       var(--carbon-surface2);
+    --glim-tile-raised-hover: var(--carbon-surface3);
+    --glim-tile-switch-off:   var(--carbon-surface3);
+    --glim-tile-well:         var(--carbon-surface);
 
     --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
     --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
@@ -1464,6 +1484,18 @@ body {
 .glim-tile-warp { --tile: #01a4ff; --tile-ink: #ffffff; } /* 2.7:1 */
 .glim-tile-windsurf { --tile: #58e5c0; --tile-ink: #161616; } /* 11.5:1 */
 .glim-tile-zed { --tile: #0866ff; --tile-ink: #ffffff; } /* 4.8:1 */
+
+/* A tile set straight on a card. Its chips, its switch while off and a panel
+   opened inside it each keep one step of contrast to the tile, which the
+   card's own tones would not: a neutral chip is the dark tile's colour. */
+.glim-tile {
+  background-color: var(--glim-tile-bg);
+  --mark-ground: var(--glim-tile-bg);
+}
+.glim-tile .glim-tile-raise { background-color: var(--glim-tile-raised); }
+.glim-tile button.glim-tile-raise:hover:not(:disabled) { background-color: var(--glim-tile-raised-hover); }
+.glim-tile [role="switch"][aria-checked="false"] { background-color: var(--glim-tile-switch-off); }
+.glim-tile .glim-tile-well { background-color: var(--glim-tile-well); }
 
 /* A client's mark beside a key's name and in the setup dialog. The hover
    version only belongs to a lit README button. */

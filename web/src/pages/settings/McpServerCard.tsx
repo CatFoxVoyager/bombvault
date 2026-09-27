@@ -479,9 +479,9 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
           </div>
 
           {keys.length > 0 && (
-            <ul className="flex flex-col gap-3 rounded-card bg-carbon-surface2 p-3">
+            <ul className="flex flex-col gap-3">
               {keys.map((k) => (
-                <li key={k.id} className="flex flex-col gap-3 rounded-card bg-carbon-surface p-3">
+                <li key={k.id} className="glim-tile flex flex-col gap-3 rounded-card p-3">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="flex min-w-0 flex-col gap-1">
                       <div className="flex min-w-0 items-center gap-2">
@@ -499,7 +499,7 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
                               if (e.key === "Enter") void rename(k);
                               if (e.key === "Escape") setRenaming("");
                             }}
-                            className={`w-64 rounded-control bg-carbon-surface2 px-3 py-1 text-sm text-carbon-text glim-field-focus${
+                            className={`w-64 rounded-control bg-carbon-surface3 px-3 py-1 text-sm text-carbon-text glim-field-focus-well${
                               shake[`rename:${k.id}`] ? " glim-shake" : ""
                             }`}
                           />
@@ -513,7 +513,7 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
                               label={t("common.edit")}
                               labelKey="common.edit"
                               variant="icon"
-                              tone="subtle"
+                              tone="neutral"
                               onClick={() => {
                                 setDraft(k.label);
                                 setRenaming(k.id);
@@ -546,10 +546,10 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
                         </>
                       )}
                       <span className="flex flex-wrap gap-2">
-                        <Badge tone="neutral" size={TILE_BADGE_SIZE} wrap>
+                        <Badge tone="neutral" size={TILE_BADGE_SIZE} wrap className="glim-tile-raise">
                           {k.canStartBackups ? t("mcp.canStart") : t("mcp.readOnly")}
                         </Badge>
-                        <Badge tone="neutral" size={TILE_BADGE_SIZE} wrap>
+                        <Badge tone="neutral" size={TILE_BADGE_SIZE} wrap className="glim-tile-raise">
                           <span className="glim-num">{t("mcp.callsToday", k.callsToday)}</span>
                         </Badge>
                       </span>
@@ -606,9 +606,9 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
                 {t("mcp.revokedList", revoked.length)}
               </button>
               {revokedOpen && (
-                <ul className="flex flex-col gap-3 rounded-card bg-carbon-surface2 p-3">
+                <ul className="flex flex-col gap-3">
                   {revoked.map((k) => (
-                    <li key={k.id} className="flex flex-col gap-3 rounded-card bg-carbon-surface p-3">
+                    <li key={k.id} className="glim-tile flex flex-col gap-3 rounded-card p-3">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="flex min-w-0 flex-col gap-1">
                           <span className="truncate text-sm text-carbon-text">{k.label}</span>

@@ -90,7 +90,7 @@ export function McpKeyLog({ keyId, used, t }: { keyId: string; used: boolean; t:
   }, [keyId]);
 
   return (
-    <div id={keyLogId(keyId)} className="flex flex-col gap-3 rounded-card bg-carbon-background px-3 py-2">
+    <div id={keyLogId(keyId)} className="glim-tile-well flex flex-col gap-3 rounded-card bg-carbon-background px-3 py-2">
       {failed && <p className="text-xs text-statusWarn">{t("mcp.logFailed")}</p>}
       {!failed && data === null && <p className="text-xs text-carbon-textMuted">{t("folder.loading")}</p>}
 
