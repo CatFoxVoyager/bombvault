@@ -503,26 +503,30 @@ func oauthForm(w http.ResponseWriter, r *http.Request) bool {
 }
 
 // handleOAuthToken is the token endpoint: a code for tokens, and a refresh
-// token for new ones. Failures count towards the same throttle as failed
-// logins, per address.
+// token for new ones. Codes and tokens carry 256 bits, so there is nothing to
+// guess and a wrong one costs nothing; throttling them per address would let
+// anyone behind the same proxy lock every connector out. Only a wrong client
+// secret counts, towards a throttle of that client.
 func (h *Handler) handleOAuthToken(w http.ResponseWriter, r *http.Request) {
 	issuer, on := h.oauthIssuer()
 	if !on {
 		http.NotFound(w, r)
 		return
 	}
-	bucket := "oauth|" + h.loginClientKey(r)
-	if h.loginThrottled(bucket) {
-		w.Header().Set("Retry-After", strconv.Itoa(int(loginWindow.Seconds())))
-		oauthError(w, http.StatusTooManyRequests, "invalid_request", "too many failed attempts, wait a minute")
-		return
-	}
 	if !oauthForm(w, r) {
 		return
 	}
 	client, ok := h.oauthClientFrom(r)
+	bucket := "oauth|" + client.ID
+	if client.ID != "" && h.loginThrottled(bucket) {
+		w.Header().Set("Retry-After", strconv.Itoa(int(loginWindow.Seconds())))
+		oauthError(w, http.StatusTooManyRequests, "invalid_request", "too many failed attempts, wait a minute")
+		return
+	}
 	if !ok {
-		h.recordLoginFail(bucket)
+		if client.ID != "" {
+			h.recordLoginFail(bucket)
+		}
 		oauthError(w, http.StatusUnauthorized, "invalid_client", "the client is unknown or did not authenticate")
 		return
 	}
@@ -532,9 +536,9 @@ func (h *Handler) handleOAuthToken(w http.ResponseWriter, r *http.Request) {
 	}
 	switch r.PostForm.Get("grant_type") {
 	case "authorization_code":
-		h.exchangeOAuthCode(w, r, client, bucket)
+		h.exchangeOAuthCode(w, r, client)
 	case "refresh_token":
-		h.refreshOAuthGrant(w, r, client, bucket)
+		h.refreshOAuthGrant(w, r, client)
 	default:
 		oauthError(w, http.StatusBadRequest, "unsupported_grant_type", "only authorization_code and refresh_token are supported")
 	}
@@ -565,7 +569,7 @@ func writeOAuthTokens(w http.ResponseWriter, access, refresh string) {
 	})
 }
 
-func (h *Handler) exchangeOAuthCode(w http.ResponseWriter, r *http.Request, client store.OAuthClient, bucket string) {
+func (h *Handler) exchangeOAuthCode(w http.ResponseWriter, r *http.Request, client store.OAuthClient) {
 	now := h.mcp.now()
 	f := r.PostForm
 	code, replayed := h.mcp.oauth.redeem(secret.HashOAuthSecret(h.cfg.AppKey, "code", f.Get("code")),
@@ -580,7 +584,6 @@ func (h *Handler) exchangeOAuthCode(w http.ResponseWriter, r *http.Request, clie
 		}
 	}
 	if code == nil {
-		h.recordLoginFail(bucket)
 		oauthError(w, http.StatusBadRequest, "invalid_grant", "the code is unknown, expired, already used, or does not match this client, redirect URI and verifier")
 		return
 	}
@@ -618,7 +621,7 @@ func (h *Handler) exchangeOAuthCode(w http.ResponseWriter, r *http.Request, clie
 	writeOAuthTokens(w, access, refresh)
 }
 
-func (h *Handler) refreshOAuthGrant(w http.ResponseWriter, r *http.Request, client store.OAuthClient, bucket string) {
+func (h *Handler) refreshOAuthGrant(w http.ResponseWriter, r *http.Request, client store.OAuthClient) {
 	now := h.mcp.now()
 	old := r.PostForm.Get("refresh_token")
 	access, refresh, accessDigest, refreshDigest, err := h.newOAuthTokens()
@@ -630,12 +633,10 @@ func (h *Handler) refreshOAuthGrant(w http.ResponseWriter, r *http.Request, clie
 		accessDigest, refreshDigest, now.Add(oauthAccessTTL).Unix(), now.Add(oauthRefreshTTL).Unix(), now.Unix())
 	switch {
 	case errors.Is(err, store.ErrOAuthRefreshReused):
-		h.recordLoginFail(bucket)
 		h.recordMCPKeyChange(r, grant, "revoked after a refresh token was used twice", "revoked after one of its refresh tokens was used twice")
 		oauthError(w, http.StatusBadRequest, "invalid_grant", "the refresh token was already used")
 		return
 	case errors.Is(err, store.ErrOAuthTokenNotFound):
-		h.recordLoginFail(bucket)
 		oauthError(w, http.StatusBadRequest, "invalid_grant", "the refresh token is unknown, expired or revoked")
 		return
 	case err != nil:

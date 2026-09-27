@@ -535,6 +535,70 @@ func TestRefreshRotatesAndAReusedTokenRevokesTheGrant(t *testing.T) {
 	}
 }
 
+// Every request in these tests comes from one address, which is what clients
+// behind a reverse proxy without TRUSTED_PROXY look like.
+func TestJunkAtTheTokenEndpointDoesNotStopARefresh(t *testing.T) {
+	e := newOAuthEnv(t)
+	client, tok := e.signIn(t, false)
+	for i := 0; i < 5; i++ {
+		e.token(t, url.Values{"grant_type": {"refresh_token"}, "client_id": {"bvc_nope"}, "refresh_token": {"x"}}, "", "")
+		e.token(t, url.Values{"grant_type": {"refresh_token"}, "client_id": {client}, "refresh_token": {"bvrt_expired"}}, "", "")
+		e.token(t, codeExchange(client, "bvac_unknown", chatgptReturn), "", "")
+	}
+	w, m := e.token(t, url.Values{"grant_type": {"refresh_token"}, "client_id": {client}, "refresh_token": {str(tok, "refresh_token")}}, "", "")
+	if w.Code != http.StatusOK {
+		t.Fatalf("the client's own refresh after junk from its address: %d %v", w.Code, m)
+	}
+}
+
+func TestAWrongClientSecretIsThrottledPerClient(t *testing.T) {
+	e := newOAuthEnv(t)
+	_, reg := e.register(t, `{"redirect_uris":["`+chatgptReturn+`"]}`, "")
+	client, clientSecret := str(reg, "client_id"), str(reg, "client_secret")
+	code := e.approve(t, authorizeQuery(client, chatgptReturn), false).Query().Get("code")
+	for i := 0; i < 5; i++ {
+		if w, _ := e.token(t, codeExchange(client, code, chatgptReturn), client, "bvcs_wrong"); w.Code != http.StatusUnauthorized {
+			t.Fatalf("wrong secret %d: %d", i, w.Code)
+		}
+	}
+	if w, _ := e.token(t, codeExchange(client, code, chatgptReturn), client, clientSecret); w.Code != http.StatusTooManyRequests {
+		t.Fatalf("the right secret after five wrong ones: %d, want 429", w.Code)
+	}
+	other, tok := e.signIn(t, false)
+	refresh := url.Values{"grant_type": {"refresh_token"}, "client_id": {other}, "refresh_token": {str(tok, "refresh_token")}}
+	if w, m := e.token(t, refresh, "", ""); w.Code != http.StatusOK {
+		t.Fatalf("another client from the same address: %d %v", w.Code, m)
+	}
+}
+
+func TestWrongKeysFromAProxyDoNotStopAnOAuthClient(t *testing.T) {
+	e := newOAuthEnv(t)
+	_, tok := e.signIn(t, false)
+	for i := 0; i < 5; i++ {
+		mcpStatus(t, e.h, "bvmcp_wrong")
+	}
+	if got := mcpStatus(t, e.h, str(tok, "access_token")); got != http.StatusOK {
+		t.Fatalf("an access token after five wrong keys from its address: %d", got)
+	}
+}
+
+func TestStaleAccessTokensDoNotCountAsFailedAttempts(t *testing.T) {
+	e := newOAuthEnv(t)
+	w, m := doMCPKeyJSON(t, e.h, http.MethodPost, "/api/mcp/keys", `{"label":"Laptop","canStartBackups":false}`, oauthHost, e.cookie)
+	key := str(m, "key")
+	if w.Code != http.StatusOK || key == "" {
+		t.Fatalf("create key: %d %v", w.Code, m)
+	}
+	for i := 0; i < 5; i++ {
+		if got := mcpStatus(t, e.h, secret.OAuthAccessPrefix+"expired"); got != http.StatusUnauthorized {
+			t.Fatalf("a stale access token: %d", got)
+		}
+	}
+	if got := mcpStatus(t, e.h, key); got != http.StatusOK {
+		t.Fatalf("a key after five stale access tokens from its address: %d", got)
+	}
+}
+
 func TestATokenForAnotherResourceIsRefused(t *testing.T) {
 	e := newOAuthEnv(t)
 	client := e.publicClient(t, "ChatGPT", chatgptReturn)

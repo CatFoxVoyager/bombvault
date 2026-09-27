@@ -202,9 +202,15 @@ func (h *Handler) serveMCP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// An access token is left out of the address throttle both ways. A client
+	// presents its expired one as a matter of course, and behind a proxy the
+	// failures of anybody else would otherwise lock every connector out, for
+	// the sake of a 256-bit secret nobody can guess.
 	addr := h.loginClientKey(r)
 	bucket := "mcp|" + addr
-	if h.loginThrottled(bucket) {
+	presented, present, conflict := presentedMCPKey(r)
+	accessToken := oauthOn && strings.HasPrefix(presented, secret.OAuthAccessPrefix)
+	if !accessToken && h.loginThrottled(bucket) {
 		h.countMCPRequest("throttled")
 		w.Header().Set("Retry-After", strconv.Itoa(int(loginWindow.Seconds())))
 		writeJSON(w, http.StatusTooManyRequests, map[string]any{"error": "too many failed attempts, wait a minute"})
@@ -212,7 +218,6 @@ func (h *Handler) serveMCP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	challenge := mcpChallenge(issuer, oauthOn)
-	presented, present, conflict := presentedMCPKey(r)
 	if !present {
 		h.countMCPRequest("no_key")
 		w.Header().Set("WWW-Authenticate", challenge)
@@ -222,13 +227,15 @@ func (h *Handler) serveMCP(w http.ResponseWriter, r *http.Request) {
 	now := h.mcp.now()
 	var k store.MCPKey
 	var match bool
-	if oauthOn && strings.HasPrefix(presented, secret.OAuthAccessPrefix) {
+	if accessToken {
 		k, match = h.oauthGrantFor(presented, issuer, now)
 	} else {
 		k, match = matchMCPKey(secret.HashMCPKey(h.cfg.AppKey, presented), keys)
 	}
 	if conflict || !match {
-		h.recordLoginFail(bucket)
+		if !accessToken {
+			h.recordLoginFail(bucket)
+		}
 		h.logMCPAuthFailure(addr, conflict)
 		h.countMCPRequest("invalid_key")
 		w.Header().Set("WWW-Authenticate", challenge+`, error="invalid_token"`)
