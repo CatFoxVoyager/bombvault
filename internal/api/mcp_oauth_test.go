@@ -727,6 +727,26 @@ func TestATokenForAnotherResourceIsRefused(t *testing.T) {
 	}
 }
 
+func TestNoTokensAreIssuedForAnAddressThatMoved(t *testing.T) {
+	e := newOAuthEnv(t)
+	client, tok := e.signIn(t, false)
+	pending := e.publicClient(t, "ChatGPT", chatgptReturn)
+	code := e.approve(t, authorizeQuery(pending, chatgptReturn), false).Query().Get("code")
+	if _, m := doMCPKeyJSON(t, e.h, http.MethodPut, "/api/mcp/oauth",
+		`{"enabled":true,"issuer":"https://elsewhere.example"}`, oauthHost, e.cookie); m["ok"] != true {
+		t.Fatalf("moving the issuer: %v", m)
+	}
+	refresh := url.Values{"grant_type": {"refresh_token"}, "client_id": {client}, "refresh_token": {str(tok, "refresh_token")}}
+	if w, m := e.token(t, refresh, "", ""); w.Code != http.StatusBadRequest || m["error"] != "invalid_grant" {
+		t.Fatalf("a refresh of a grant for the old address: %d %v", w.Code, m)
+	}
+	exchange := codeExchange(pending, code, chatgptReturn)
+	exchange.Del("resource")
+	if w, m := e.token(t, exchange, "", ""); w.Code != http.StatusBadRequest || m["error"] != "invalid_grant" {
+		t.Fatalf("a code allowed for the old address: %d %v", w.Code, m)
+	}
+}
+
 func TestARevokedGrantStopsAtOnce(t *testing.T) {
 	e := newOAuthEnv(t)
 	client, tok := e.signIn(t, false)

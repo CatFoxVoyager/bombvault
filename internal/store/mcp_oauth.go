@@ -304,12 +304,13 @@ func (r *Repo) OAuthAccessGrant(digest string, now int64) (MCPKey, error) {
 }
 
 // RotateOAuthRefresh trades a live refresh token of clientID for a new access
-// and refresh token. A spent one presented again revokes the grant and answers
-// ErrOAuthRefreshReused with it, because somebody may hold a copy, unless it
-// is the one spent last and back within OAuthRefreshRetryWindow: that is a
-// client whose answer got lost. The newest access token stays beside the new
-// one, so a request already on its way still gets through.
-func (r *Repo) RotateOAuthRefresh(oldDigest, clientID, access, refresh string, accessExp, refreshExp, now int64) (MCPKey, error) {
+// and refresh token, as long as its grant was issued for resource. A spent one
+// presented again revokes the grant and answers ErrOAuthRefreshReused with it,
+// because somebody may hold a copy, unless it is the one spent last and back
+// within OAuthRefreshRetryWindow: that is a client whose answer got lost. The
+// newest access token stays beside the new one, so a request already on its
+// way still gets through.
+func (r *Repo) RotateOAuthRefresh(oldDigest, clientID, resource, access, refresh string, accessExp, refreshExp, now int64) (MCPKey, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return MCPKey{}, fmt.Errorf("RotateOAuthRefresh: %w", err)
@@ -327,7 +328,7 @@ func (r *Repo) RotateOAuthRefresh(oldDigest, clientID, access, refresh string, a
 		return MCPKey{}, fmt.Errorf("RotateOAuthRefresh: %w", err)
 	}
 	grant, err := scanMCPKey(tx.QueryRow(`SELECT `+mcpKeyCols+` FROM mcp_keys WHERE id = ? AND kind = 'oauth' AND revoked_at = 0`, grantID))
-	if errors.Is(err, sql.ErrNoRows) || (err == nil && grant.OAuthClient != clientID) {
+	if errors.Is(err, sql.ErrNoRows) || (err == nil && (grant.OAuthClient != clientID || grant.Resource != resource)) {
 		return MCPKey{}, ErrOAuthTokenNotFound
 	}
 	if err != nil {

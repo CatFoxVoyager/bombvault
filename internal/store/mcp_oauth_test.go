@@ -8,6 +8,8 @@ import (
 	"github.com/junkerderprovinz/bombvault/internal/store"
 )
 
+const testResource = "https://vault.example/mcp"
+
 func addOAuthClient(t *testing.T, r *store.Repo, id string, now int64) store.OAuthClient {
 	t.Helper()
 	c := store.OAuthClient{
@@ -28,7 +30,7 @@ func addGrant(t *testing.T, r *store.Repo, id, client string, now int64) store.M
 		ID:          id,
 		Label:       "Assistant",
 		OAuthClient: client,
-		Resource:    "https://vault.example/mcp",
+		Resource:    testResource,
 		Check:       "check-" + id,
 	}, now)
 	if err != nil {
@@ -45,7 +47,7 @@ func addSignedIn(t *testing.T, r *store.Repo, id, client, access, refresh string
 		ID:             id,
 		Label:          "Assistant",
 		OAuthClient:    client,
-		Resource:       "https://vault.example/mcp",
+		Resource:       testResource,
 		Check:          "check-" + id,
 		AccessDigest:   access,
 		RefreshDigest:  refresh,
@@ -283,7 +285,7 @@ func TestRevokingAGrantStopsItsTokensAtOnce(t *testing.T) {
 	if _, err := r.OAuthAccessGrant("a1", 160); !errors.Is(err, store.ErrOAuthTokenNotFound) {
 		t.Fatalf("access after revoke gave %v", err)
 	}
-	_, err := r.RotateOAuthRefresh("r1", "c1", "a2", "r2", 3600, 86400, 160)
+	_, err := r.RotateOAuthRefresh("r1", "c1", testResource, "a2", "r2", 3600, 86400, 160)
 	if !errors.Is(err, store.ErrOAuthTokenNotFound) {
 		t.Fatalf("refresh after revoke gave %v", err)
 	}
@@ -294,14 +296,14 @@ func TestRefreshRotationSpendsTheOldToken(t *testing.T) {
 	addOAuthClient(t, r, "c1", 10)
 	addSignedIn(t, r, "g1", "c1", "a1", "r1", 100)
 
-	got, err := r.RotateOAuthRefresh("r1", "c1", "a2", "r2", 200+3600, 200+86400, 200)
+	got, err := r.RotateOAuthRefresh("r1", "c1", testResource, "a2", "r2", 200+3600, 200+86400, 200)
 	if err != nil || got.ID != "g1" {
 		t.Fatalf("rotation gave %+v, %v", got, err)
 	}
 	if _, err := r.OAuthAccessGrant("a2", 300); err != nil {
 		t.Fatalf("the new access token does not work: %v", err)
 	}
-	if _, err := r.RotateOAuthRefresh("r2", "c1", "a3", "r3", 400+3600, 400+86400, 400); err != nil {
+	if _, err := r.RotateOAuthRefresh("r2", "c1", testResource, "a3", "r3", 400+3600, 400+86400, 400); err != nil {
 		t.Fatalf("the new refresh token does not work: %v", err)
 	}
 }
@@ -310,11 +312,11 @@ func TestAReusedRefreshTokenRevokesTheGrant(t *testing.T) {
 	r := newMCPRepo(t)
 	addOAuthClient(t, r, "c1", 10)
 	addSignedIn(t, r, "g1", "c1", "a1", "r1", 100)
-	if _, err := r.RotateOAuthRefresh("r1", "c1", "a2", "r2", 200+3600, 200+86400, 200); err != nil {
+	if _, err := r.RotateOAuthRefresh("r1", "c1", testResource, "a2", "r2", 200+3600, 200+86400, 200); err != nil {
 		t.Fatal(err)
 	}
 
-	got, err := r.RotateOAuthRefresh("r1", "c1", "a3", "r3", 300+3600, 300+86400, 300)
+	got, err := r.RotateOAuthRefresh("r1", "c1", testResource, "a3", "r3", 300+3600, 300+86400, 300)
 	if !errors.Is(err, store.ErrOAuthRefreshReused) || got.ID != "g1" {
 		t.Fatalf("replaying a spent refresh token gave %+v, %v", got, err)
 	}
@@ -334,17 +336,17 @@ func TestARefreshRetriedRightAwayGetsNewTokensAndKeepsTheGrant(t *testing.T) {
 	r := newMCPRepo(t)
 	addOAuthClient(t, r, "c1", 10)
 	addSignedIn(t, r, "g1", "c1", "a1", "r1", 100)
-	if _, err := r.RotateOAuthRefresh("r1", "c1", "a2", "r2", 200+3600, 200+86400, 200); err != nil {
+	if _, err := r.RotateOAuthRefresh("r1", "c1", testResource, "a2", "r2", 200+3600, 200+86400, 200); err != nil {
 		t.Fatal(err)
 	}
 	retry := int64(200 + store.OAuthRefreshRetryWindow)
-	if _, err := r.RotateOAuthRefresh("r1", "c1", "a3", "r3", retry+3600, retry+86400, retry); err != nil {
+	if _, err := r.RotateOAuthRefresh("r1", "c1", testResource, "a3", "r3", retry+3600, retry+86400, retry); err != nil {
 		t.Fatalf("a retry within the window gave %v", err)
 	}
 	if _, err := r.OAuthAccessGrant("a3", retry); err != nil {
 		t.Fatalf("the retry's access token does not work: %v", err)
 	}
-	if _, err := r.RotateOAuthRefresh("r3", "c1", "a4", "r4", 0, retry+86400, retry+60); err != nil {
+	if _, err := r.RotateOAuthRefresh("r3", "c1", testResource, "a4", "r4", 0, retry+86400, retry+60); err != nil {
 		t.Fatalf("the retry's refresh token does not work: %v", err)
 	}
 }
@@ -363,7 +365,7 @@ func TestARefreshRetriedTooLateOrOutOfOrderRevokesTheGrant(t *testing.T) {
 			if s[1] == "late" {
 				now += store.OAuthRefreshRetryWindow + 1
 			}
-			_, err = r.RotateOAuthRefresh(s[0], "c1", "a-"+s[1], s[1], now+3600, now+86400, now)
+			_, err = r.RotateOAuthRefresh(s[0], "c1", testResource, "a-"+s[1], s[1], now+3600, now+86400, now)
 			if i < len(steps)-1 && err != nil {
 				t.Fatalf("%s: step %d: %v", name, i, err)
 			}
@@ -380,10 +382,22 @@ func TestARefreshTokenWorksOnlyForItsOwnClient(t *testing.T) {
 	addOAuthClient(t, r, "c1", 10)
 	addOAuthClient(t, r, "c2", 10)
 	addSignedIn(t, r, "g1", "c1", "a1", "r1", 100)
-	if _, err := r.RotateOAuthRefresh("r1", "c2", "a2", "r2", 3800, 86500, 200); !errors.Is(err, store.ErrOAuthTokenNotFound) {
+	if _, err := r.RotateOAuthRefresh("r1", "c2", testResource, "a2", "r2", 3800, 86500, 200); !errors.Is(err, store.ErrOAuthTokenNotFound) {
 		t.Fatalf("another client's refresh gave %v", err)
 	}
-	if _, err := r.RotateOAuthRefresh("r1", "c1", "a2", "r2", 3800, 86500, 200); err != nil {
+	if _, err := r.RotateOAuthRefresh("r1", "c1", testResource, "a2", "r2", 3800, 86500, 200); err != nil {
+		t.Fatalf("the refused attempt spent the token: %v", err)
+	}
+}
+
+func TestARefreshTokenWorksOnlyForTheAddressItWasIssuedFor(t *testing.T) {
+	r := newMCPRepo(t)
+	addOAuthClient(t, r, "c1", 10)
+	addSignedIn(t, r, "g1", "c1", "a1", "r1", 100)
+	if _, err := r.RotateOAuthRefresh("r1", "c1", "https://elsewhere.example/mcp", "a2", "r2", 3800, 86500, 200); !errors.Is(err, store.ErrOAuthTokenNotFound) {
+		t.Fatalf("a refresh for another address gave %v", err)
+	}
+	if _, err := r.RotateOAuthRefresh("r1", "c1", testResource, "a2", "r2", 3800, 86500, 200); err != nil {
 		t.Fatalf("the refused attempt spent the token: %v", err)
 	}
 }
@@ -392,7 +406,7 @@ func TestAnExpiredRefreshTokenIsRefused(t *testing.T) {
 	r := newMCPRepo(t)
 	addOAuthClient(t, r, "c1", 10)
 	addSignedIn(t, r, "g1", "c1", "a1", "r1", 100)
-	_, err := r.RotateOAuthRefresh("r1", "c1", "a2", "r2", 0, 0, 100+30*86400)
+	_, err := r.RotateOAuthRefresh("r1", "c1", testResource, "a2", "r2", 0, 0, 100+30*86400)
 	if !errors.Is(err, store.ErrOAuthTokenNotFound) {
 		t.Fatalf("an expired refresh token gave %v", err)
 	}
@@ -405,7 +419,7 @@ func TestOnlyTheNewestSpentRefreshTokensAreKept(t *testing.T) {
 	for i := 1; i <= store.OAuthSpentRefreshKept+5; i++ {
 		now := int64(100 + i)
 		old := fmt.Sprintf("r%d", i-1)
-		if _, err := r.RotateOAuthRefresh(old, "c1", fmt.Sprintf("a%d", i), fmt.Sprintf("r%d", i), now+3600, now+86400, now); err != nil {
+		if _, err := r.RotateOAuthRefresh(old, "c1", testResource, fmt.Sprintf("a%d", i), fmt.Sprintf("r%d", i), now+3600, now+86400, now); err != nil {
 			t.Fatalf("rotation %d: %v", i, err)
 		}
 	}

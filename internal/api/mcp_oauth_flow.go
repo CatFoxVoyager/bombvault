@@ -536,9 +536,9 @@ func (h *Handler) handleOAuthToken(w http.ResponseWriter, r *http.Request) {
 	}
 	switch r.PostForm.Get("grant_type") {
 	case "authorization_code":
-		h.exchangeOAuthCode(w, r, client)
+		h.exchangeOAuthCode(w, r, client, oauthResource(issuer))
 	case "refresh_token":
-		h.refreshOAuthGrant(w, r, client)
+		h.refreshOAuthGrant(w, r, client, oauthResource(issuer))
 	default:
 		oauthError(w, http.StatusBadRequest, "unsupported_grant_type", "only authorization_code and refresh_token are supported")
 	}
@@ -569,7 +569,7 @@ func writeOAuthTokens(w http.ResponseWriter, access, refresh string) {
 	})
 }
 
-func (h *Handler) exchangeOAuthCode(w http.ResponseWriter, r *http.Request, client store.OAuthClient) {
+func (h *Handler) exchangeOAuthCode(w http.ResponseWriter, r *http.Request, client store.OAuthClient, resource string) {
 	now := h.mcp.now()
 	f := r.PostForm
 	code, replayed := h.mcp.oauth.redeem(secret.HashOAuthSecret(h.cfg.AppKey, "code", f.Get("code")),
@@ -583,7 +583,9 @@ func (h *Handler) exchangeOAuthCode(w http.ResponseWriter, r *http.Request, clie
 			}
 		}
 	}
-	if code == nil {
+	// A code allowed before the public address changed would make a grant
+	// whose tokens /mcp no longer accepts.
+	if code == nil || code.resource != resource {
 		oauthError(w, http.StatusBadRequest, "invalid_grant", "the code is unknown, expired, already used, or does not match this client, redirect URI and verifier")
 		return
 	}
@@ -621,7 +623,7 @@ func (h *Handler) exchangeOAuthCode(w http.ResponseWriter, r *http.Request, clie
 	writeOAuthTokens(w, access, refresh)
 }
 
-func (h *Handler) refreshOAuthGrant(w http.ResponseWriter, r *http.Request, client store.OAuthClient) {
+func (h *Handler) refreshOAuthGrant(w http.ResponseWriter, r *http.Request, client store.OAuthClient, resource string) {
 	now := h.mcp.now()
 	old := r.PostForm.Get("refresh_token")
 	access, refresh, accessDigest, refreshDigest, err := h.newOAuthTokens()
@@ -629,7 +631,7 @@ func (h *Handler) refreshOAuthGrant(w http.ResponseWriter, r *http.Request, clie
 		oauthError(w, http.StatusInternalServerError, "server_error", "could not create the tokens")
 		return
 	}
-	grant, err := h.store.RotateOAuthRefresh(secret.HashOAuthSecret(h.cfg.AppKey, "refresh", old), client.ID,
+	grant, err := h.store.RotateOAuthRefresh(secret.HashOAuthSecret(h.cfg.AppKey, "refresh", old), client.ID, resource,
 		accessDigest, refreshDigest, now.Add(oauthAccessTTL).Unix(), now.Add(oauthRefreshTTL).Unix(), now.Unix())
 	switch {
 	case errors.Is(err, store.ErrOAuthRefreshReused):
