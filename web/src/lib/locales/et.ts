@@ -2043,6 +2043,7 @@ const et: Partial<Translations> = {
   "mcp.stepKey": "Võti",
   "mcp.existingKey": "Olemasolev võti",
   "mcp.pickHint": "BombVault näitas iga võtit ühe korra, selle loomisel. Kui sul seda enam pole, loo uus.",
+  "mcp.pickShared": "Samm 3 muutub roheliseks järgmise selle võtmega tehtud kutse peale, ükskõik milline klient selle teeb. Et olla kindel, et see oli just see klient, anna igale kliendile oma võti, nagu teeb Uus võti.",
   "mcp.stepConfig": "Lisa BombVault rakendusse {name}",
   "mcp.stepConfigOther": "Kliendi seaded",
   "mcp.copyCommand": "Kopeeri käsk",

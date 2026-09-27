@@ -1817,6 +1817,7 @@ const cs: Partial<Translations> = {
   "mcp.stepKey": "Klíč",
   "mcp.existingKey": "Existující klíč",
   "mcp.pickHint": "BombVault ukázal každý klíč jen jednou, když vznikl. Pokud ho už nemáš, vytvoř nový.",
+  "mcp.pickShared": "Krok 3 zezelená při dalším volání s tímto klíčem, ať ho udělá kterýkoli klient. Abys měl jistotu, že to byl tento, dej každému klientovi vlastní klíč, jako to dělá Nový klíč.",
   "mcp.stepConfig": "Přidat BombVault do {name}",
   "mcp.stepConfigOther": "Nastavení pro klienta",
   "mcp.copyCommand": "Kopírovat příkaz",

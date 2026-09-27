@@ -1811,6 +1811,7 @@ const ko: Partial<Translations> = {
   "mcp.stepKey": "키",
   "mcp.existingKey": "기존 키",
   "mcp.pickHint": "BombVault는 각 키를 만들 때 한 번만 보여 주었습니다. 더 이상 키가 없다면 새로 만드세요.",
+  "mcp.pickShared": "3단계는 어느 클라이언트든 이 키로 다음 호출을 하면 녹색이 됩니다. 이 클라이언트의 호출인지 확실히 하려면 새 키처럼 클라이언트마다 따로 키를 주세요.",
   "mcp.stepConfig": "{name}에 BombVault 추가",
   "mcp.stepConfigOther": "클라이언트 설정",
   "mcp.copyCommand": "명령 복사",

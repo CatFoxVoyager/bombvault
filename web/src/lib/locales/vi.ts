@@ -1811,6 +1811,7 @@ const vi: Partial<Translations> = {
   "mcp.stepKey": "Khóa",
   "mcp.existingKey": "Khóa hiện có",
   "mcp.pickHint": "BombVault chỉ hiện mỗi khóa một lần, khi nó được tạo. Nếu bạn không còn giữ nó, hãy tạo khóa mới.",
+  "mcp.pickShared": "Bước 3 chuyển sang màu xanh ở lần gọi tiếp theo bằng khóa này, bất kể máy khách nào thực hiện. Để chắc chắn đó là máy khách này, hãy cho mỗi máy khách một khóa riêng, như Khóa mới làm.",
   "mcp.stepConfig": "Thêm BombVault vào {name}",
   "mcp.stepConfigOther": "Cài đặt cho máy khách",
   "mcp.copyCommand": "Sao chép lệnh",

@@ -1819,6 +1819,7 @@ const he: Partial<Translations> = {
   "mcp.stepKey": "מפתח",
   "mcp.existingKey": "מפתח קיים",
   "mcp.pickHint": "BombVault הציג כל מפתח פעם אחת, כשהוא נוצר. אם הוא כבר לא אצלך, צור מפתח חדש.",
+  "mcp.pickShared": "שלב 3 הופך לירוק בקריאה הבאה עם המפתח הזה, לא משנה איזה לקוח מבצע אותה. כדי לדעת בוודאות שזה הלקוח הזה, תן לכל לקוח מפתח משלו, כמו שעושה האפשרות מפתח חדש.",
   "mcp.stepConfig": "הוספת BombVault ל-{name}",
   "mcp.stepConfigOther": "הגדרות ללקוח",
   "mcp.copyCommand": "העתק פקודה",

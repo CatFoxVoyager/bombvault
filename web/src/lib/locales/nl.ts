@@ -1816,6 +1816,7 @@ const nl: Partial<Translations> = {
   "mcp.stepKey": "Sleutel",
   "mcp.existingKey": "Bestaande sleutel",
   "mcp.pickHint": "BombVault heeft elke sleutel één keer getoond, toen hij werd gemaakt. Heb je hem niet meer, maak dan een nieuwe.",
+  "mcp.pickShared": "Stap 3 wordt groen bij de volgende aanroep met deze sleutel, welke client die ook doet. Wil je zeker weten dat het deze was, geef dan elke client een eigen sleutel, zoals Nieuwe sleutel doet.",
   "mcp.stepConfig": "BombVault aan {name} toevoegen",
   "mcp.stepConfigOther": "Instellingen voor de client",
   "mcp.copyCommand": "Opdracht kopiëren",

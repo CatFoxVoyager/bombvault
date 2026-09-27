@@ -1819,6 +1819,7 @@ const pt: Partial<Translations> = {
   "mcp.stepKey": "Chave",
   "mcp.existingKey": "Chave existente",
   "mcp.pickHint": "O BombVault mostrou cada chave uma única vez, quando foi criada. Se já não a tens, cria uma nova.",
+  "mcp.pickShared": "O passo 3 fica verde na próxima chamada com esta chave, seja qual for o cliente que a faça. Para teres a certeza de que é este, dá a cada cliente a sua própria chave, como faz Chave nova.",
   "mcp.stepConfig": "Adicionar o BombVault ao {name}",
   "mcp.stepConfigOther": "Definições para o cliente",
   "mcp.copyCommand": "Copiar comando",

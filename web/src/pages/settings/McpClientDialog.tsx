@@ -27,6 +27,9 @@ export interface McpClientDialogProps {
   client: McpClient;
   /** The keys that still work, which the client can be given instead of a new one. */
   keys: McpKeyView[];
+  /** Counts the key lists the card has fetched, so the dialog can tell a
+   *  fresh one from the one it opened with. */
+  lists: number;
   /** The address, endpoint and certificate state the snippets are written for. */
   snippetBase: Omit<McpSnippetInput, "key">;
   /** Why this address may not create a key; undefined when it may. */
@@ -62,6 +65,7 @@ const OS_PATHS: [keyof ConfigPaths, string][] = [
 export function McpClientDialog({
   client,
   keys,
+  lists,
   snippetBase,
   mintRefused,
   limitNote,
@@ -86,10 +90,19 @@ export function McpClientDialog({
   const [keyVisible, setKeyVisible] = useState(true);
   const [created, setCreated] = useState<FreshKey | null>(null);
   const [picked, setPicked] = useState<{ id: string; since: number } | null>(null);
+  // Each key's last use in the first list fetched after the dialog opened. The
+  // list it opened with can be minutes old, and a call from before the dialog
+  // must not count as the client's first.
+  const [openedAt] = useState(lists);
+  const [baseline, setBaseline] = useState<Record<string, number> | null>(null);
+  if (baseline === null && lists !== openedAt) {
+    setBaseline(Object.fromEntries(keys.map((k) => [k.id, k.lastUsedAt])));
+  }
 
   const chosenId = created?.id ?? picked?.id;
   const chosen = keys.find((k) => k.id === chosenId);
-  const since = created ? 0 : (picked?.since ?? 0);
+  let since = 0;
+  if (!created && picked) since = baseline ? Math.max(picked.since, baseline[picked.id] ?? 0) : Infinity;
   const connected = chosen !== undefined && chosen.lastUsedAt > since;
 
   const closeRef = useRef(() => onClose(null));
@@ -331,6 +344,7 @@ export function McpClientDialog({
                 })}
               </ul>
               <p className="text-xs text-carbon-textSub">{t("mcp.pickHint")}</p>
+              {picked && <p className="text-xs text-carbon-textSub">{t("mcp.pickShared")}</p>}
             </>
           )}
         </>

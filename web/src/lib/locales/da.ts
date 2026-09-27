@@ -1819,6 +1819,7 @@ const da: Partial<Translations> = {
   "mcp.stepKey": "Nøgle",
   "mcp.existingKey": "Eksisterende nøgle",
   "mcp.pickHint": "BombVault viste hver nøgle én gang, da den blev lavet. Hvis du ikke har den længere, så lav en ny.",
+  "mcp.pickShared": "Trin 3 bliver grønt ved næste kald med denne nøgle, uanset hvilken klient der laver det. Vil du være sikker på, at det er denne, så giv hver klient sin egen nøgle, som Ny nøgle gør.",
   "mcp.stepConfig": "Tilføj BombVault til {name}",
   "mcp.stepConfigOther": "Indstillinger til klienten",
   "mcp.copyCommand": "Kopiér kommando",

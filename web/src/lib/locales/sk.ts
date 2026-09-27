@@ -2043,6 +2043,7 @@ const sk: Partial<Translations> = {
   "mcp.stepKey": "Kľúč",
   "mcp.existingKey": "Existujúci kľúč",
   "mcp.pickHint": "BombVault ukázal každý kľúč len raz, keď vznikol. Ak ho už nemáš, vytvor nový.",
+  "mcp.pickShared": "Krok 3 zozelenie pri ďalšom volaní s týmto kľúčom, nech ho urobí ktorýkoľvek klient. Aby si mal istotu, že to bol tento, daj každému klientovi vlastný kľúč, ako to robí Nový kľúč.",
   "mcp.stepConfig": "Pridať BombVault do {name}",
   "mcp.stepConfigOther": "Nastavenia pre klienta",
   "mcp.copyCommand": "Kopírovať príkaz",

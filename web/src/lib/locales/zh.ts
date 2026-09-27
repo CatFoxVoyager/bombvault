@@ -1811,6 +1811,7 @@ const zh: Partial<Translations> = {
   "mcp.stepKey": "密钥",
   "mcp.existingKey": "现有密钥",
   "mcp.pickHint": "每个密钥只在创建时由 BombVault 显示一次。如果你手上已经没有，请新建一个。",
+  "mcp.pickShared": "无论哪个客户端使用这把密钥发起下一次调用，第 3 步都会变绿。要确认是这个客户端，请像新密钥那样给每个客户端单独一把密钥。",
   "mcp.stepConfig": "把 BombVault 添加到 {name}",
   "mcp.stepConfigOther": "客户端设置",
   "mcp.copyCommand": "复制命令",

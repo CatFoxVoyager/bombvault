@@ -97,6 +97,7 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
   const { t } = useT();
   const { push } = useToast();
   const [data, setData] = useState<McpKeysResponse | null>(null);
+  const [lists, setLists] = useState(0);
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [fresh, setFresh] = useState<FreshKey | null>(null);
@@ -125,6 +126,7 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
         return;
       }
       setData(res);
+      setLists((n) => n + 1);
       setFailed(false);
       // A handed-out key stays until it is dismissed, unless the list shows
       // that it stopped working: revoked, or replaced from another tab.
@@ -141,9 +143,11 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
   }, [reload, passwordSet]);
 
   // An open setup dialog waits for the client's first call, which shows as a
-  // change in the key's last use.
+  // change in the key's last use. It asks at once too, so the dialog learns
+  // each key's last use as of its opening.
   useEffect(() => {
     if (dialog === null) return;
+    void reload();
     const timer = window.setInterval(() => void reload(), FIRST_CALL_POLL_MS);
     return () => window.clearInterval(timer);
   }, [dialog, reload]);
@@ -661,6 +665,7 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
           key={dialog.id}
           client={dialog}
           keys={keys}
+          lists={lists}
           snippetBase={snippetBase}
           mintRefused={canMint ? undefined : t("mcp.needsPasswordForHost").replace("{host}", host)}
           limitNote={keys.length >= limit ? t("mcp.limitReached", limit) : undefined}

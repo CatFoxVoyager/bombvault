@@ -1811,6 +1811,7 @@ const ja: Partial<Translations> = {
   "mcp.stepKey": "キー",
   "mcp.existingKey": "既存のキー",
   "mcp.pickHint": "BombVault は各キーを作成時に一度だけ表示しました。手元にない場合は、新しいキーを作成してください。",
+  "mcp.pickShared": "手順 3 は、どのクライアントからであれ、このキーを使った次の呼び出しで緑になります。このクライアントからだと確かめるには、新しいキーのようにクライアントごとに専用のキーを渡してください。",
   "mcp.stepConfig": "{name} に BombVault を追加",
   "mcp.stepConfigOther": "クライアントの設定",
   "mcp.copyCommand": "コマンドをコピー",

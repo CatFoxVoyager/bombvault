@@ -2043,6 +2043,7 @@ const gl: Partial<Translations> = {
   "mcp.stepKey": "Chave",
   "mcp.existingKey": "Chave existente",
   "mcp.pickHint": "BombVault amosou cada chave unha soa vez, cando se creou. Se xa non a tes, crea unha nova.",
+  "mcp.pickShared": "O paso 3 ponse en verde coa seguinte chamada con esta chave, faga a chamada o cliente que a faga. Para estar seguro de que é este, dálle a cada cliente a súa propia chave, como fai Chave nova.",
   "mcp.stepConfig": "Engadir BombVault a {name}",
   "mcp.stepConfigOther": "Axustes para o cliente",
   "mcp.copyCommand": "Copiar a orde",

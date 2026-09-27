@@ -1822,6 +1822,7 @@ const ar: Partial<Translations> = {
   "mcp.stepKey": "المفتاح",
   "mcp.existingKey": "مفتاح موجود",
   "mcp.pickHint": "عرض BombVault كل مفتاح مرة واحدة، عند إنشائه. إن لم يعد معك، فأنشئ مفتاحا جديدا.",
+  "mcp.pickShared": "تصبح الخطوة 3 خضراء عند الاستدعاء التالي بهذا المفتاح، أيا كان العميل الذي أجراه. لتتأكد أنه هذا العميل، أعط كل عميل مفتاحا خاصا به، كما يفعل مفتاح جديد.",
   "mcp.stepConfig": "إضافة BombVault إلى {name}",
   "mcp.stepConfigOther": "إعدادات العميل",
   "mcp.copyCommand": "نسخ الأمر",

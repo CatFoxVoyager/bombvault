@@ -2043,6 +2043,7 @@ const is: Partial<Translations> = {
   "mcp.stepKey": "Lykill",
   "mcp.existingKey": "Fyrirliggjandi lykill",
   "mcp.pickHint": "BombVault sýndi hvern lykil einu sinni, þegar hann var búinn til. Ef þú ert ekki lengur með hann skaltu búa til nýjan.",
+  "mcp.pickShared": "Skref 3 verður grænt við næsta kall með þessum lykli, sama hvaða biðlari gerir það. Til að vera viss um að það sé þessi, gefðu hverjum biðlara sinn eigin lykil, eins og Nýr lykill gerir.",
   "mcp.stepConfig": "Bæta BombVault við {name}",
   "mcp.stepConfigOther": "Stillingar fyrir biðlarann",
   "mcp.copyCommand": "Afrita skipun",

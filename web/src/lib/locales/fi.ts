@@ -1819,6 +1819,7 @@ const fi: Partial<Translations> = {
   "mcp.stepKey": "Avain",
   "mcp.existingKey": "Olemassa oleva avain",
   "mcp.pickHint": "BombVault näytti jokaisen avaimen kerran, kun se luotiin. Jos sinulla ei enää ole sitä, luo uusi.",
+  "mcp.pickShared": "Vaihe 3 muuttuu vihreäksi seuraavasta tällä avaimella tehdystä kutsusta, teki sen mikä asiakas tahansa. Jotta voit olla varma, että se oli tämä, anna jokaiselle asiakkaalle oma avain, kuten Uusi avain tekee.",
   "mcp.stepConfig": "Lisää BombVault ohjelmaan {name}",
   "mcp.stepConfigOther": "Asetukset asiakasohjelmalle",
   "mcp.copyCommand": "Kopioi komento",

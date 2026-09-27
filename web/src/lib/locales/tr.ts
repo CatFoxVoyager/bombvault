@@ -1819,6 +1819,7 @@ const tr: Partial<Translations> = {
   "mcp.stepKey": "Anahtar",
   "mcp.existingKey": "Mevcut anahtar",
   "mcp.pickHint": "BombVault her anahtarı bir kez, oluşturulduğunda gösterdi. Artık elinde yoksa yeni bir tane oluştur.",
+  "mcp.pickShared": "Adım 3, hangi istemci yaparsa yapsın bu anahtarla yapılan bir sonraki çağrıda yeşile döner. Bunun bu istemci olduğundan emin olmak için her istemciye, Yeni anahtar'ın yaptığı gibi kendi anahtarını ver.",
   "mcp.stepConfig": "BombVault'u {name} içine ekle",
   "mcp.stepConfigOther": "İstemci için ayarlar",
   "mcp.copyCommand": "Komutu kopyala",

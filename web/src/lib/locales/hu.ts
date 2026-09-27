@@ -1822,6 +1822,7 @@ const hu: Partial<Translations> = {
   "mcp.stepKey": "Kulcs",
   "mcp.existingKey": "Meglévő kulcs",
   "mcp.pickHint": "A BombVault minden kulcsot egyszer mutatott meg, a létrehozásakor. Ha már nincs meg, hozz létre újat.",
+  "mcp.pickShared": "A 3. lépés a következő, ezzel a kulccsal indított hívásra zöldre vált, bármelyik kliens indítja is. Hogy biztos legyél benne, hogy ez volt az, adj minden kliensnek saját kulcsot, ahogy az Új kulcs teszi.",
   "mcp.stepConfig": "A BombVault felvétele ide: {name}",
   "mcp.stepConfigOther": "Beállítások a kliensnek",
   "mcp.copyCommand": "Parancs másolása",

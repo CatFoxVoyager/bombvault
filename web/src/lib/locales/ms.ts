@@ -2043,6 +2043,7 @@ const ms: Partial<Translations> = {
   "mcp.stepKey": "Kunci",
   "mcp.existingKey": "Kunci sedia ada",
   "mcp.pickHint": "BombVault menunjukkan setiap kunci sekali sahaja, semasa kunci itu dibuat. Jika anda tidak lagi memilikinya, buat yang baharu.",
+  "mcp.pickShared": "Langkah 3 bertukar hijau pada panggilan seterusnya dengan kunci ini, tidak kira klien mana yang membuatnya. Untuk memastikan ia klien ini, berikan setiap klien kuncinya sendiri, seperti yang dilakukan Kunci baharu.",
   "mcp.stepConfig": "Tambah BombVault pada {name}",
   "mcp.stepConfigOther": "Tetapan untuk klien",
   "mcp.copyCommand": "Salin arahan",

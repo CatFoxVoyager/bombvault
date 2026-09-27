@@ -2043,6 +2043,7 @@ const ca: Partial<Translations> = {
   "mcp.stepKey": "Clau",
   "mcp.existingKey": "Clau existent",
   "mcp.pickHint": "El BombVault ha mostrat cada clau una sola vegada, quan es va crear. Si ja no la tens, crea'n una de nova.",
+  "mcp.pickShared": "El pas 3 es posa verd amb la propera crida amb aquesta clau, la faci el client que la faci. Per estar segur que és aquest, dona a cada client una clau pròpia, com fa Clau nova.",
   "mcp.stepConfig": "Afegeix el BombVault a {name}",
   "mcp.stepConfigOther": "Paràmetres per al client",
   "mcp.copyCommand": "Copia l'ordre",

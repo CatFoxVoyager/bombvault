@@ -2043,6 +2043,7 @@ const lv: Partial<Translations> = {
   "mcp.stepKey": "Atslēga",
   "mcp.existingKey": "Esoša atslēga",
   "mcp.pickHint": "BombVault katru atslēgu parādīja vienreiz, kad tā tika izveidota. Ja tev tās vairs nav, izveido jaunu.",
+  "mcp.pickShared": "3. solis kļūst zaļš pie nākamā izsaukuma ar šo atslēgu, lai kurš klients to veiktu. Lai būtu drošs, ka tas ir šis, dod katram klientam savu atslēgu, kā to dara Jauna atslēga.",
   "mcp.stepConfig": "Pievienot BombVault lietotnei {name}",
   "mcp.stepConfigOther": "Iestatījumi klientam",
   "mcp.copyCommand": "Kopēt komandu",

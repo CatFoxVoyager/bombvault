@@ -2027,6 +2027,7 @@ const sl: Partial<Translations> = {
   "mcp.stepKey": "Ključ",
   "mcp.existingKey": "Obstoječi ključ",
   "mcp.pickHint": "BombVault je vsak ključ pokazal samo enkrat, ko je nastal. Če ga nimaš več, ustvari novega.",
+  "mcp.pickShared": "Korak 3 postane zelen ob naslednjem klicu s tem ključem, ne glede na to, kateri odjemalec ga opravi. Da boš vedel, da je bil ta, daj vsakemu odjemalcu lasten ključ, kot to naredi Nov ključ.",
   "mcp.stepConfig": "Dodaj BombVault v {name}",
   "mcp.stepConfigOther": "Nastavitve za odjemalca",
   "mcp.copyCommand": "Kopiraj ukaz",

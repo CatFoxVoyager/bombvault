@@ -1822,6 +1822,7 @@ const ro: Partial<Translations> = {
   "mcp.stepKey": "Cheie",
   "mcp.existingKey": "Cheie existentă",
   "mcp.pickHint": "BombVault a arătat fiecare cheie o singură dată, la creare. Dacă n-o mai ai, creează una nouă.",
+  "mcp.pickShared": "Pasul 3 devine verde la următorul apel cu această cheie, oricare client l-ar face. Ca să fii sigur că e acesta, dă fiecărui client propria cheie, cum face Cheie nouă.",
   "mcp.stepConfig": "Adaugă BombVault în {name}",
   "mcp.stepConfigOther": "Setări pentru client",
   "mcp.copyCommand": "Copiază comanda",

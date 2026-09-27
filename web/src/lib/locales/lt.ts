@@ -2043,6 +2043,7 @@ const lt: Partial<Translations> = {
   "mcp.stepKey": "Raktas",
   "mcp.existingKey": "Esamas raktas",
   "mcp.pickHint": "BombVault kiekvieną raktą parodė vieną kartą, kai jis buvo sukurtas. Jei jo nebeturi, sukurk naują.",
+  "mcp.pickShared": "3 žingsnis tampa žalias po kito kvietimo šiuo raktu, nesvarbu, kuris klientas jį atliktų. Kad būtum tikras, jog tai šis klientas, duok kiekvienam klientui savo raktą, kaip daro Naujas raktas.",
   "mcp.stepConfig": "Pridėti BombVault prie {name}",
   "mcp.stepConfigOther": "Kliento nustatymai",
   "mcp.copyCommand": "Kopijuoti komandą",

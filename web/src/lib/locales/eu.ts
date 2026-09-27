@@ -2043,6 +2043,7 @@ const eu: Partial<Translations> = {
   "mcp.stepKey": "Gakoa",
   "mcp.existingKey": "Dagoen gakoa",
   "mcp.pickHint": "BombVaultek gako bakoitza behin bakarrik erakutsi zuen, sortu zenean. Jada ez baduzu, sortu berri bat.",
+  "mcp.pickShared": "3. urratsa berde jartzen da gako honekin egiten den hurrengo deian, edozein bezerok egiten duela ere. Hau dela ziurtatzeko, eman bezero bakoitzari bere gakoa, Gako berria aukerak egiten duen bezala.",
   "mcp.stepConfig": "Gehitu BombVault {name}(e)ri",
   "mcp.stepConfigOther": "Bezeroarentzako ezarpenak",
   "mcp.copyCommand": "Kopiatu komandoa",

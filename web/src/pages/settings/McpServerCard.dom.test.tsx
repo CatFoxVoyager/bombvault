@@ -399,6 +399,31 @@ describe("a client's setup dialog", () => {
     }
   });
 
+  it("does not turn green on a call an existing key made before the dialog opened", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const used = key({ label: "Cursor", client: "cursor", lastUsedAt: 1_700_000_500 });
+      await renderCard(payload({ keys: [used] }));
+      await screen.findByRole("listitem");
+
+      // Another client used the key after the card last loaded the list.
+      listMcpKeys.mockResolvedValue(payload({ keys: [{ ...used, lastUsedAt: 1_700_000_900 }] }));
+      const dialog = await openClient("Cursor", en["mcp.kindEditor"]);
+      fireEvent.click(within(dialog).getByRole("tab", { name: en["mcp.existingKey"] }));
+      fireEvent.click(within(dialog).getByRole("button", { name: /^Cursor/ }));
+      expect(dialogText()).toContain(en["mcp.pickShared"]);
+
+      await vi.advanceTimersByTimeAsync(3100);
+      expect(within(dialog).queryByText(en["mcp.connectedTitle"])).toBeNull();
+
+      listMcpKeys.mockResolvedValue(payload({ keys: [{ ...used, lastUsedAt: 1_700_001_300 }] }));
+      await vi.advanceTimersByTimeAsync(3100);
+      await waitFor(() => expect(within(dialog).getByText(en["mcp.connectedTitle"])).toBeTruthy());
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("puts the internet warning first in a cloud client's dialog", async () => {
     await renderCard(payload());
     const dialog = await openClient("Le Chat", en["mcp.kindWebChat"]);

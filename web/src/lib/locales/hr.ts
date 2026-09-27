@@ -2043,6 +2043,7 @@ const hr: Partial<Translations> = {
   "mcp.stepKey": "Ključ",
   "mcp.existingKey": "Postojeći ključ",
   "mcp.pickHint": "BombVault je svaki ključ pokazao samo jednom, kad je nastao. Ako ga više nemaš, stvori novi.",
+  "mcp.pickShared": "Korak 3 postaje zelen pri sljedećem pozivu s ovim ključem, koji god ga klijent uputio. Da budeš siguran da je to ovaj, daj svakom klijentu vlastiti ključ, kao što to radi Novi ključ.",
   "mcp.stepConfig": "Dodaj BombVault u {name}",
   "mcp.stepConfigOther": "Postavke za klijenta",
   "mcp.copyCommand": "Kopiraj naredbu",
