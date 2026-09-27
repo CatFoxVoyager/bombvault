@@ -109,13 +109,10 @@ markdown_extensions:
   - toc:
       permalink: true
 
-# The VM guide is read on GitHub, and the MCP pages wait for the server to ship.
-# Leaving them out of the site keeps --strict from failing on a page that is
-# not in nav.
+# The VM guide is read on GitHub. Leaving it out of the site keeps --strict from
+# failing on a page that is not in nav.
 exclude_docs: |
   vm-backup-ssh-setup.md
-  mcp.md
-  mcp.*.md
 
 # No titles: each page's translated H1 becomes its nav label.
 nav:
@@ -125,4 +122,5 @@ nav:
   - configuration.md
   - zfs-datasets.md
   - offsite-recovery.md
+  - mcp.md
   - troubleshooting.md

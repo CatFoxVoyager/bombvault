@@ -128,7 +128,7 @@ Et datasett som forrige kjøring sikkerhetskopierte og som denne kjøringen ikke
 
 På fanen **Elementer** på siden **Avvik** har hvert datasett sin egen linje under elementet sitt, og elementets tre på denne siden viser de åpne funnene ved hvert datasett. Lenken i et funn åpner elementets gjenopprettingspanel ved datasettets siste gode sikkerhetskopi. Om en kjøring blir ferdig, vurderes for hele elementet, fordi en kjøring lykkes eller feiler som en helhet.
 
-Selve kontrollene er beskrevet under [Funksjoner](features.md).
+Selve kontrollene er beskrevet under [Funksjoner](features.md). En assistent som er koblet til via [MCP-serveren](mcp.md), kan liste gjenopprettingspunktene til et ZFS-element, starte sikkerhetskopien og lese funnene, men et funn kvitteres på siden **Avvik**.
 
 ## Årsakskoder {#reason-codes}
 

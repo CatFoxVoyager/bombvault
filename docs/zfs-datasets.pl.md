@@ -128,7 +128,7 @@ Zbiór danych, który poprzedni przebieg skopiował, a którego ten przebieg nie
 
 Na karcie **Elementy** strony **Anomalie** każdy zbiór danych ma własny wiersz pod swoim elementem, a drzewo elementu na tej stronie pokazuje otwarte ustalenia obok każdego zbioru danych. Link w ustaleniu otwiera panel przywracania elementu na ostatniej dobrej kopii zbioru danych. To, czy przebieg dobiega końca, ocenia się dla całego elementu, bo przebieg udaje się albo nie jako całość.
 
-Same kontrole opisano w [Funkcje](features.md).
+Same kontrole opisano w [Funkcje](features.md). Asystent połączony przez [serwer MCP](mcp.md) może wypisać punkty przywracania elementu ZFS, uruchomić jego kopię i czytać ustalenia, ale potwierdzenie ustalenia odbywa się na stronie **Anomalie**.
 
 ## Kody przyczyn {#reason-codes}
 

@@ -128,7 +128,7 @@ Un set de date pe care rularea anterioară l-a salvat și pe care rularea aceast
 
 În fila **Elemente** a paginii **Anomalii**, fiecare set de date are propriul rând sub elementul său, iar arborele elementului de pe această pagină arată constatările deschise lângă fiecare set de date. Linkul dintr-o constatare deschide panoul de restaurare al elementului la ultima copie bună a setului de date. Dacă o rulare se termină se judecă pentru întregul element, pentru că o rulare reușește sau eșuează ca întreg.
 
-Verificările propriu-zise sunt descrise în [Funcționalitățile](features.md).
+Verificările propriu-zise sunt descrise în [Funcționalitățile](features.md). Un asistent conectat prin [serverul MCP](mcp.md) poate enumera punctele de restaurare ale unui element ZFS, îi poate porni copia și poate citi constatările, dar confirmarea unei constatări se face pe pagina **Anomalii**.
 
 ## Coduri de motiv {#reason-codes}
 

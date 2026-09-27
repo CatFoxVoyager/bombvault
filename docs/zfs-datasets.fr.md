@@ -128,7 +128,7 @@ Un jeu de données que l'exécution précédente a sauvegardé et que celle-ci n
 
 Dans l'onglet **Éléments** de la page **Anomalies**, chaque jeu de données a sa propre ligne sous son élément, et l'arborescence de l'élément sur cette page affiche les constats ouverts à côté de chaque jeu de données. Le lien d'un constat ouvre le panneau de restauration de l'élément sur la dernière bonne sauvegarde du jeu de données. La question de savoir si une exécution se termine est jugée pour l'élément entier, car une exécution réussit ou échoue d'un bloc.
 
-Les vérifications elles-mêmes sont décrites sous [Fonctionnalités](features.md).
+Les vérifications elles-mêmes sont décrites sous [Fonctionnalités](features.md). Un assistant connecté par le [serveur MCP](mcp.md) peut lister les points de restauration d'un élément ZFS, lancer sa sauvegarde et lire les constats, mais un constat se confirme sur la page **Anomalies**.
 
 ## Codes de raison {#reason-codes}
 

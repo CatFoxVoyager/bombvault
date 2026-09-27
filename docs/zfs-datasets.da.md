@@ -128,7 +128,7 @@ Et datasæt, som den forrige kørsel sikkerhedskopierede, og som denne kørsel i
 
 På fanen **Elementer** på siden **Afvigelser** har hvert datasæt sin egen linje under sit element, og elementets træ på denne side viser de åbne fund ved hvert datasæt. Linket i et fund åbner elementets gendannelsespanel ved datasættets sidste gode sikkerhedskopi. Om en kørsel bliver færdig, vurderes for hele elementet, fordi en kørsel lykkes eller fejler som helhed.
 
-Selve tjekkene er beskrevet under [Funktioner](features.md).
+Selve tjekkene er beskrevet under [Funktioner](features.md). En assistent, der er forbundet via [MCP-serveren](mcp.md), kan liste et ZFS-elements gendannelsespunkter, starte dets sikkerhedskopi og læse fundene, men et fund kvitteres på siden **Afvigelser**.
 
 ## Årsagskoder {#reason-codes}
 

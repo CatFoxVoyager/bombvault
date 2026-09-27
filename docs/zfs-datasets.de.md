@@ -128,7 +128,7 @@ Ein Dataset, das der vorige Lauf gesichert hat und das dieser Lauf nicht lesen k
 
 Im Reiter **Elemente** der Seite **Anomalien** hat jedes Dataset eine eigene Zeile unter seinem Element, und der Baum des Elements auf dieser Seite zeigt die offenen Funde neben jedem Dataset. Der Link in einem Fund öffnet die Wiederherstellung des Elements beim letzten guten Backup des Datasets. Ob ein Lauf fertig wird, wird für das ganze Element beurteilt, weil ein Lauf als Ganzes gelingt oder scheitert.
 
-Die Prüfungen selbst sind unter [Funktionen](features.md) beschrieben.
+Die Prüfungen selbst sind unter [Funktionen](features.md) beschrieben. Ein Assistent, der über den [MCP-Server](mcp.md) verbunden ist, kann die Wiederherstellungspunkte eines ZFS-Elements auflisten, sein Backup starten und die Funde lesen, quittiert wird ein Fund aber auf der Seite **Anomalien**.
 
 ## Grundcodes {#reason-codes}
 

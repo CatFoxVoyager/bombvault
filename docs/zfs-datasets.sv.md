@@ -128,7 +128,7 @@ En datauppsättning som föregående körning säkerhetskopierade och som den h�
 
 På fliken **Objekt** på sidan **Avvikelser** har varje datauppsättning en egen rad under sitt objekt, och objektets träd på den här sidan visar de öppna fynden bredvid varje datauppsättning. Länken i ett fynd öppnar objektets återställningspanel vid datauppsättningens senaste goda säkerhetskopia. Om en körning blir klar bedöms för hela objektet, eftersom en körning lyckas eller misslyckas som helhet.
 
-Själva kontrollerna beskrivs under [Funktioner](features.md).
+Själva kontrollerna beskrivs under [Funktioner](features.md). En assistent som är ansluten via [MCP-servern](mcp.md) kan lista ett ZFS-objekts återställningspunkter, starta dess säkerhetskopia och läsa fynden, men ett fynd kvitteras på sidan **Avvikelser**.
 
 ## Orsakskoder {#reason-codes}
 

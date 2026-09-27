@@ -128,7 +128,7 @@ Een dataset die de vorige run heeft geback-upt en die deze run niet kon lezen, t
 
 Op het tabblad **Items** van de pagina **Anomalieën** heeft elke dataset een eigen regel onder zijn item, en de boom van het item op deze pagina toont de open bevindingen naast elke dataset. De link in een bevinding opent het terugzetpaneel van het item bij de laatste goede back-up van de dataset. Of een run afloopt, wordt beoordeeld voor het hele item, omdat een run als geheel slaagt of mislukt.
 
-De controles zelf staan beschreven onder [Functies](features.md).
+De controles zelf staan beschreven onder [Functies](features.md). Een assistent die via de [MCP-server](mcp.md) is verbonden, kan de herstelpunten van een ZFS-item opsommen, zijn back-up starten en de bevindingen lezen, maar een bevinding bevestigen gebeurt op de pagina **Anomalieën**.
 
 ## Redencodes {#reason-codes}
 

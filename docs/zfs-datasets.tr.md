@@ -128,7 +128,7 @@ Boşaltılmış bir alt veri kümesi büyük bir ağacın toplamını neredeyse 
 
 **Anormallikler** sayfasının **Ögeler** sekmesinde her veri kümesinin, öğesinin altında kendi satırı vardır ve bu sayfadaki öğe ağacı her veri kümesinin yanında açık bulguları gösterir. Bir bulgudaki bağlantı, öğenin geri yükleme panelini veri kümesinin son iyi yedeğinde açar. Bir çalıştırmanın bitip bitmediği tüm öğe için değerlendirilir, çünkü bir çalıştırma bir bütün olarak başarılı ya da başarısız olur.
 
-Denetimlerin kendisi [Özellikler](features.md) altında anlatılır.
+Denetimlerin kendisi [Özellikler](features.md) altında anlatılır. [MCP sunucusu](mcp.md) üzerinden bağlanan bir asistan bir ZFS öğesinin geri yükleme noktalarını listeleyebilir, yedeğini başlatabilir ve bulguları okuyabilir, ama bir bulgunun onaylanması **Anormallikler** sayfasında yapılır.
 
 ## Neden kodları {#reason-codes}
 

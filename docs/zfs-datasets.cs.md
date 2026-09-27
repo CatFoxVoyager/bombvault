@@ -128,7 +128,7 @@ Datová sada, kterou předchozí běh zálohoval a kterou tento běh nemohl pře
 
 Na kartě **Položky** stránky **Anomálie** má každá datová sada vlastní řádek pod svou položkou a strom položky na této stránce ukazuje otevřená zjištění u každé datové sady. Odkaz ve zjištění otevře panel obnovy položky u poslední dobré zálohy datové sady. Zda běh doběhne, se posuzuje pro celou položku, protože běh uspěje nebo selže jako celek.
 
-Samotné kontroly popisuje [Funkce](features.md).
+Samotné kontroly popisuje [Funkce](features.md). Asistent připojený přes [server MCP](mcp.md) může vypsat body obnovy položky ZFS, spustit její zálohu a číst zjištění, ale potvrzení zjištění probíhá na stránce **Anomálie**.
 
 ## Kódy důvodů {#reason-codes}
 

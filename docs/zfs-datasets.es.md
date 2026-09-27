@@ -128,7 +128,7 @@ Un conjunto de datos que la ejecución anterior copió y que esta no pudo leer c
 
 En la pestaña **Elementos** de la página **Anomalías**, cada conjunto de datos tiene su propia línea bajo su elemento, y el árbol del elemento en esta página muestra los hallazgos abiertos junto a cada conjunto de datos. El enlace de un hallazgo abre el panel de restauración del elemento en la última copia buena del conjunto de datos. Si una ejecución termina se juzga para el elemento entero, porque una ejecución tiene éxito o falla en conjunto.
 
-Las comprobaciones en sí se describen en [Funciones](features.md).
+Las comprobaciones en sí se describen en [Funciones](features.md). Un asistente conectado a través del [servidor MCP](mcp.md) puede enumerar los puntos de restauración de un elemento ZFS, iniciar su copia y leer los hallazgos, pero reconocer uno se hace en la página **Anomalías**.
 
 ## Códigos de motivo {#reason-codes}
 

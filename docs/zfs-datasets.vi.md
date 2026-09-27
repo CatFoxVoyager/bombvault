@@ -128,7 +128,7 @@ Một tập dữ liệu mà lần chạy trước đã sao lưu và lần chạy
 
 Trong tab **Mục** của trang **Bất thường**, mỗi tập dữ liệu có một dòng riêng dưới mục của nó, và cây của mục trên trang này hiển thị các phát hiện đang mở bên cạnh từng tập dữ liệu. Liên kết trong một phát hiện mở bảng khôi phục của mục tại bản sao lưu tốt cuối cùng của tập dữ liệu. Việc một lần chạy có hoàn tất hay không được đánh giá cho cả mục, vì một lần chạy thành công hay thất bại như một khối.
 
-Bản thân các kiểm tra được mô tả trong [Tính năng](features.md).
+Bản thân các kiểm tra được mô tả trong [Tính năng](features.md). Trợ lý kết nối qua [máy chủ MCP](mcp.md) có thể liệt kê các điểm khôi phục của một mục ZFS, bắt đầu sao lưu nó và đọc các phát hiện, nhưng việc xác nhận một phát hiện được thực hiện trên trang **Bất thường**.
 
 ## Mã lý do {#reason-codes}
 

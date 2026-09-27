@@ -128,7 +128,7 @@ A dataset that the previous run backed up and this run could not read counts as 
 
 On the **Items** tab of the **Anomalies** page every dataset has a line of its own under its item, and the item's tree on this page shows the open findings next to each dataset. The link in a finding opens the item's restore panel on the dataset's last good backup. Whether a run finishes is judged for the whole item, because a run succeeds or fails as a whole.
 
-The checks themselves are described under [Features](features.md).
+The checks themselves are described under [Features](features.md). An assistant connected through the [MCP server](mcp.md) can list a ZFS item's restore points, start its backup and read the findings, but acknowledging one happens on the **Anomalies** page.
 
 ## Reason codes {#reason-codes}
 
