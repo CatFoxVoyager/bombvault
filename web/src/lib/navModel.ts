@@ -18,7 +18,7 @@
 // tab never burns a palette slot (the long-standing documented semantics;
 // see Sidebar.tsx's own header comment and the hueSeq/nextHue block comment
 // at the extraction site). A hue index precomputed in this list would be
-// frozen against the full nine-entry registry, so hiding a gated tab could no
+// frozen against the full registry, so hiding a gated tab could no
 // longer shift later tabs into earlier slots; the exact visible-rank
 // behaviour Sidebar.tabColor.dom.test.tsx pins. Hue assignment therefore
 // stays a render-time concern of each consumer; this module hands out data
@@ -48,6 +48,7 @@ import type { ComponentType } from "react";
 import type { Settings } from "./api";
 import type { TranslationKey } from "./i18n";
 import {
+  IconAnomalies,
   IconContainers,
   IconConfig,
   IconDashboard,
@@ -57,6 +58,7 @@ import {
   IconGear,
   IconRecovery,
   IconVM,
+  IconZFS,
 } from "../components/navGlyphs";
 
 /**
@@ -102,23 +104,21 @@ export interface NavDestination {
 export function destinations(settings: Settings | null): NavDestination[] {
   return [
     { to: "/dashboard", labelKey: "nav.dashboard", icon: IconDashboard, bar: true, enabled: true },
-    // Always visible: disaster recovery is a core, non-expert flow.
-    { to: "/recovery", labelKey: "nav.recovery", icon: IconRecovery, bar: true, enabled: true },
+    // Detection is a feature switch, not a domain, so the row goes when it is off.
+    { to: "/anomalies", labelKey: "nav.anomalies", icon: IconAnomalies, bar: false, enabled: settings?.anomalyEnabled ?? false },
     { to: "/containers", labelKey: "nav.containers", icon: IconContainers, bar: true, enabled: true },
     // The gated tabs appear only once their domain is enabled; the gate
     // computes `enabled`, it does not remove the entry (see this file's header).
     { to: "/vms", labelKey: "nav.vms", icon: IconVM, bar: false, enabled: settings?.vmsEnabled ?? false },
     { to: "/flash", labelKey: "nav.flash", icon: IconFlash, bar: false, enabled: settings?.flashEnabled ?? false },
     { to: "/files", labelKey: "nav.files", icon: IconFiles, bar: true, enabled: settings?.filesEnabled ?? false },
+    { to: "/zfs", labelKey: "nav.zfs", icon: IconZFS, bar: false, enabled: settings?.zfsEnabled ?? false },
     { to: "/config", labelKey: "nav.config", icon: IconConfig, bar: false, enabled: settings?.configEnabled ?? false },
-    // Everything about another instance lives behind one row now (upstream
-    // jdp: "ein eintrag aber der name gefällt mir nicht. sollen wir ihn nicht
-    // besser instanzen nennen"). Receiver, Fleet and Pull are still three
-    // separate objects with three separate tables - see Instances.tsx for why
-    // merging them would be wrong - but they were three rows answering one
-    // question, and two of them wore the same glyph. The row appears as soon
-    // as any of the three is switched on; the page then shows only the tabs
-    // whose own setting is on.
+    // Always visible: disaster recovery is a core, non-expert flow. It sits
+    // below the backup types because it restores them.
+    { to: "/recovery", labelKey: "nav.recovery", icon: IconRecovery, bar: true, enabled: true },
+    // Receiver, Fleet and Pull share one row. The Instances page shows only
+    // the tabs whose setting is on.
     { to: "/instances", labelKey: "instances.title", icon: IconFleet, bar: false, enabled: settings?.receiverEnabled || settings?.fleetEnabled || settings?.pullEnabled || false },
     { to: "/settings", labelKey: "nav.settings", icon: IconGear, bar: false, enabled: true },
   ];

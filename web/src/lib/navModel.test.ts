@@ -29,6 +29,8 @@ const ALL_OFF = {
   receiverEnabled: false,
   fleetEnabled: false,
   pullEnabled: false,
+  zfsEnabled: false,
+  anomalyEnabled: false,
 } as Settings;
 
 const ALL_ON = {
@@ -40,19 +42,23 @@ const ALL_ON = {
   receiverEnabled: true,
   fleetEnabled: true,
   pullEnabled: true,
+  zfsEnabled: true,
+  anomalyEnabled: true,
 } as Settings;
 
-// The documented desktop Sidebar order; dashboard, recovery, containers, the
-// gated tabs (instances last of them, gated by any of receiver/fleet/pull),
-// settings.
+// The desktop Sidebar order: dashboard, anomalies, containers, the gated
+// domains, recovery under the backup types it restores, instances (gated by
+// any of receiver/fleet/pull), settings.
 const SIDEBAR_ORDER = [
   "/dashboard",
-  "/recovery",
+  "/anomalies",
   "/containers",
   "/vms",
   "/flash",
   "/files",
+  "/zfs",
   "/config",
+  "/recovery",
   "/instances",
   "/settings",
 ];
@@ -60,14 +66,14 @@ const SIDEBAR_ORDER = [
 // The four bottom-bar destinations, in registry order (Recovery rides the
 // bar; it is what people open on a phone when something went wrong; and
 // Settings reaches mobile chrome through the More sheet instead).
-const BAR_ROUTES = ["/dashboard", "/recovery", "/containers", "/files"];
+const BAR_ROUTES = ["/dashboard", "/containers", "/files", "/recovery"];
 
 describe("destinations, the one ordered registry", () => {
   it("finds the full registry at all (guards against this test silently matching nothing)", () => {
     expect(destinations(ALL_ON)).toHaveLength(SIDEBAR_ORDER.length);
   });
 
-  it("returns all nine entries in desktop Sidebar order, all enabled with every gate on", () => {
+  it("returns every entry in desktop Sidebar order, all enabled with every gate on", () => {
     const dests = destinations(ALL_ON);
     expect(dests.map((d) => d.to)).toEqual(SIDEBAR_ORDER);
     expect(dests.every((d) => d.enabled)).toBe(true);
@@ -80,13 +86,13 @@ describe("destinations, the one ordered registry", () => {
 
   it("gates never pre-filter: with every domain off the full list still comes back, only `enabled` shrunken", () => {
     // Sidebar's nextHue() render counter consumes the full list and skips
-    // disabled entries itself, so the registry must always hand out all nine.
+    // disabled entries itself, so the registry must always hand out all of them.
     const dests = destinations(ALL_OFF);
     expect(dests.map((d) => d.to)).toEqual(SIDEBAR_ORDER);
     expect(dests.filter((d) => d.enabled).map((d) => d.to)).toEqual([
       "/dashboard",
-      "/recovery",
       "/containers",
+      "/recovery",
       "/settings",
     ]);
   });
@@ -95,8 +101,8 @@ describe("destinations, the one ordered registry", () => {
     expect(destinations(null).map((d) => d.to)).toEqual(SIDEBAR_ORDER);
     expect(destinations(null).filter((d) => d.enabled).map((d) => d.to)).toEqual([
       "/dashboard",
-      "/recovery",
       "/containers",
+      "/recovery",
       "/settings",
     ]);
   });
@@ -128,7 +134,9 @@ describe("destinations; each gate flips exactly its own entry", () => {
     ["vmsEnabled", "/vms"],
     ["flashEnabled", "/flash"],
     ["filesEnabled", "/files"],
+    ["zfsEnabled", "/zfs"],
     ["configEnabled", "/config"],
+    ["anomalyEnabled", "/anomalies"],
     ["receiverEnabled", "/instances"],
     ["fleetEnabled", "/instances"],
     ["pullEnabled", "/instances"],
@@ -166,14 +174,14 @@ describe("destinations; each gate flips exactly its own entry", () => {
 });
 
 describe("barDestinations; the bottom bar's slot list", () => {
-  it("at full config: dashboard, recovery, containers, files in registry order (Settings lives in More)", () => {
+  it("at full config: dashboard, containers, files, recovery in registry order (Settings lives in More)", () => {
     expect(barDestinations(ALL_ON).map((d) => d.to)).toEqual(BAR_ROUTES);
   });
 
   it("filesEnabled=false drops exactly the Files slot (bar slots are destinations(settings) filtered to enabled bar entries, matching desktop Sidebar gating, so a gated tab never appears in mobile chrome when the Sidebar hides it)", () => {
     const filesOn = { ...ALL_OFF, filesEnabled: true } as Settings;
-    expect(barDestinations(filesOn).map((d) => d.to)).toEqual(["/dashboard", "/recovery", "/containers", "/files"]);
-    expect(barDestinations(ALL_OFF).map((d) => d.to)).toEqual(["/dashboard", "/recovery", "/containers"]);
+    expect(barDestinations(filesOn).map((d) => d.to)).toEqual(["/dashboard", "/containers", "/files", "/recovery"]);
+    expect(barDestinations(ALL_OFF).map((d) => d.to)).toEqual(["/dashboard", "/containers", "/recovery"]);
   });
 
   it("never surfaces a disabled entry, whatever else is on (a gated tab can never reach mobile chrome while the Sidebar hides it)", () => {
@@ -189,7 +197,7 @@ describe("barDestinations; the bottom bar's slot list", () => {
 describe("moreDestinations; the More sheet's list", () => {
   it("desktop Sidebar order at full config, excluding every bar destination (Settings rides in More)", () => {
     const more = moreDestinations(ALL_ON);
-    expect(more.map((d) => d.to)).toEqual(["/vms", "/flash", "/config", "/instances", "/settings"]);
+    expect(more.map((d) => d.to)).toEqual(["/anomalies", "/vms", "/flash", "/zfs", "/config", "/instances", "/settings"]);
     for (const bar of BAR_ROUTES) {
       expect(more.find((d) => d.to === bar), `${bar} must never appear in More`).toBeUndefined();
     }

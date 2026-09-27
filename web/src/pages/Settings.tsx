@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { ApiError, backupEverythingNow, downloadRecoveryKit, getAuth, getSettings, importSettingsApply, listContainers, listFileSets, listVMs, patchFileSet, putSettings, replicateOffsite, setAuthPassword, setScheduleCadence, setVMScheduleCadence, testOffsite } from "../lib/api";
+import { ApiError, backupEverythingNow, downloadRecoveryKit, getAuth, getSettings, importSettingsApply, listContainers, listFileSets, listVMs, listZFSDatasets, patchFileSet, patchZFSDataset, putSettings, replicateOffsite, setAuthPassword, setScheduleCadence, setVMScheduleCadence, testOffsite } from "../lib/api";
 import { useOffsiteTargets, type OffsiteDomain } from "../lib/useOffsiteTargets";
 import { FolderBrowser } from "../components/FolderBrowser";
 import { AccentCard, IconResetArrow } from "./settings/AccentCard";
@@ -9,6 +9,8 @@ import { LanguageCard } from "./settings/LanguageCard";
 import { ReposCard } from "./settings/ReposCard";
 import { ThemeCard } from "./settings/ThemeCard";
 import { RestoreChecksSection } from "./settings/RestoreChecksSection";
+import { AnomalyCard } from "./settings/AnomalyCard";
+import { useAnomalySummary } from "../lib/useAnomalies";
 import { RcloneCard } from "./settings/RcloneCard";
 import { CloudCard } from "./settings/CloudCard";
 import { NumberField } from "../components/NumberField";
@@ -24,14 +26,13 @@ import {
 } from "../lib/controls";
 import { labelModeChanged } from "../lib/useLabelMode";
 import { InfoBubble } from "../components/InfoBubble";
+import { RetentionPreview } from "../components/RetentionPreview";
 import { OffsiteTargetsSection } from "../components/OffsiteTargetsSection";
-// No EXACT_CADENCE_MODES here any more (#166): every cadence PICKER on this page
-// edits a schedule that can now count an interval — the five domains and Backup
-// Everything from their LastSuccessful*Backup gates, and drills/tamper/digest
-// from schedule_job_runs (migration v89). The off-site cadences on this page are
-// raw text inputs, not pickers, so they have no mode list to restrict; their
-// everyN refusal is enforced server-side by rejectEveryNSchedules. The one
-// remaining consumer of the constant is ItemScheduleOverride.tsx.
+// Every cadence picker on this page edits a schedule that can count an
+// interval (#166): the six domains and Backup Everything from their last
+// successful backup, drills, tamper test and digest from schedule_job_runs.
+// The off-site cadences are raw text inputs; rejectEveryNSchedules refuses
+// everyN for them on the server.
 import { CadenceBuilder } from "../components/CadenceBuilder";
 import { PAGE_SHELL_TABBED } from "../lib/pageShell";
 import { EffectiveScheduleLine } from "../components/EffectiveScheduleLine";
@@ -42,16 +43,17 @@ import { Button } from "../components/Button";
 import { ScheduleRow, scheduleStatus } from "../components/ScheduleBadge";
 import { RevealInput } from "../components/RevealInput";
 import { useReveal } from "../lib/useReveal";
-import type { Settings, Container, VM, FileSetView, RegistryAuthEntry } from "../lib/api";
+import type { Settings, Container, VM, FileSetView, RegistryAuthEntry, ZFSDatasetView } from "../lib/api";
 import { useT, type TranslationKey } from "../lib/i18n";
 import { useToast } from "../lib/toast";
+import { useConfirm } from "../lib/useConfirm";
 import { REPO_LOCAL_HINT_LTR_FRAGMENTS, tLtr, withLtrFragments } from "../lib/ltrFragments";
 import { randomId } from "../lib/uuid";
 import { useAdvanced } from "../lib/advanced";
 import { SpikePanel } from "../components/SpikePanel";
 import { ColorPickerSwatch } from "../components/ColorPickerPopover";
 import { RAINBOW, getRainbow, setRainbow, type RainbowState } from "../lib/appearance";
-import { SHAPES, getShape, setShape, type Shape } from "../lib/shape";
+import { SHAPES, getShape, leafTap, setShape, type Shape } from "../lib/shape";
 import { MOTION_INTENSITIES, getMotionIntensity, setMotionIntensity, stormTap, type MotionIntensity } from "../lib/motion";
 import { applyStoredDisco, discoTap, getDisco, setDisco } from "../lib/disco";
 import { HUE_OFFSET, Selector } from "../components/Selector";
@@ -72,7 +74,7 @@ import {
 // line because the split is by generator file, not by meaning: `upload-box-1`
 // and `download-box-1` are one Streamline drawing with the arrow reversed.
 import { NotifyCard } from "./settings/NotifyCard";
-import { Card, ToggleRow, type SaveState } from "./settings/shared";
+import { Card, LOGIN_PASSWORD_FIELD, ToggleRow, type SaveState } from "./settings/shared";
 import { IntegrityCard } from "./settings/IntegrityCard";
 import { VMSSHCard } from "./settings/VMSSHCard";
 import { FleetSettingsCard } from "./settings/FleetSettingsCard";
@@ -80,6 +82,8 @@ import { CloudCredSetsCard } from "./settings/CloudCredSetsCard";
 import { SettingsPortabilityCard } from "./settings/SettingsPortabilityCard";
 import { AboutCard } from "./settings/AboutCard";
 import { DashboardWidgetCard } from "./settings/DashboardWidgetCard";
+import { McpServerCard } from "./settings/McpServerCard";
+import { mcpShipped } from "../lib/mcpSwitch";
 
 
 
@@ -476,12 +480,8 @@ function FlashSection({
   const schedule = syncSchedules ? settings.containersSchedule : settings.flashSchedule;
 
   return (
-    // See ContainersSection's own comment above — `title` restored
-    // (jobs.flashScheduleHint's own text, added when the title was dropped,
-    // stays too: unlike Containers/VMs/Folders, Flash has no per-item member
-    // list, so the hint states what a Flash backup actually covers rather
-    // than explaining a list). Same Task 3 `hueIndex` threaded into
-    // CadenceBuilder below.
+    // jobs.flashScheduleHint says what a Flash backup covers: unlike
+    // Containers, VMs, Folders and ZFS, Flash has no per-item list to show it.
     <Card title={t("jobs.flashSection")} hint={tLtr(t, "jobs.flashScheduleHint")} hueIndex={hueIndex}>
       {/* Same synced-owner bubble as VMsSection above. */}
       <ScheduleRow schedule={schedule} hint={syncSchedules ? t("jobs.syncSchedulesHint") : undefined} />
@@ -674,6 +674,111 @@ function FilesSection({
   );
 }
 
+// Domain section for ZFS, in the same shape as FilesSection: the cadence card
+// plus one row per item whose "include in schedule" toggle PATCHes the item
+// directly rather than going through a save bar.
+function ZFSSection({
+  settings,
+  syncSchedules,
+  items,
+  perItem,
+  onChange,
+  onItemsChanged,
+  t,
+  hueIndex,
+}: {
+  settings: Settings;
+  syncSchedules: boolean;
+  items: ZFSDatasetView[];
+  perItem: boolean;
+  onChange: (schedule: string) => void;
+  onItemsChanged: () => void;
+  t: ReturnType<typeof useT>["t"];
+  hueIndex?: number;
+}) {
+  const { push } = useToast();
+  const schedule = syncSchedules ? settings.containersSchedule : settings.zfsSchedule;
+  const [busy, setBusy] = useState<Record<string, boolean>>({});
+
+  async function setItemCadence(id: string, cadence: string) {
+    const res = await patchZFSDataset(id, { scheduleCadence: cadence });
+    if (res.ok) onItemsChanged();
+    return res;
+  }
+
+  async function toggle(item: ZFSDatasetView) {
+    setBusy((b) => ({ ...b, [item.id]: true }));
+    try {
+      const res = await patchZFSDataset(item.id, { enabled: !item.enabled });
+      if (res.ok) onItemsChanged();
+      else push(res.error ?? t("settings.error"), "fail");
+    } catch (err) {
+      push(err instanceof Error ? err.message : t("settings.error"), "fail");
+    } finally {
+      setBusy((b) => ({ ...b, [item.id]: false }));
+    }
+  }
+
+  return (
+    <Card title={t("jobs.zfsSection")} hint={t("jobs.zfsIncludeHint")} hueIndex={hueIndex}>
+      <ScheduleRow schedule={schedule} hint={syncSchedules ? t("jobs.syncSchedulesHint") : undefined} />
+      <div className="rounded-card bg-carbon-surface2 p-4">
+        <CadenceBuilder
+          label={t("jobs.zfsSection")}
+          value={schedule}
+          disabled={syncSchedules}
+          onChange={onChange}
+          hueIndex={hueIndex}
+        />
+      </div>
+
+      {items.length === 0 ? (
+        <p className="text-sm text-carbon-textMuted">{t("jobs.noZfsDatasetsIncluded")}</p>
+      ) : (
+        <div className="flex flex-col gap-1 divide-y divide-carbon-border">
+          {items.map((d) => (
+            <div key={d.id} className="flex flex-col gap-2 py-2 text-sm">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-2 h-2 rounded-full shrink-0 ${
+                    d.enabled ? "bg-statusOkSolid" : "bg-carbon-surface3"
+                  }`}
+                />
+                <span dir="ltr" className="font-medium text-carbon-text flex-1 min-w-0 truncate text-start">
+                  {d.dataset}
+                </span>
+                {d.hostMountpoint && (
+                  <span dir="ltr" className="text-xs font-mono text-carbon-textMuted truncate hidden sm:block max-w-xs text-start">
+                    {d.hostMountpoint}
+                  </span>
+                )}
+                <label className="flex items-center gap-2 shrink-0 cursor-pointer">
+                  <span className="text-xs text-carbon-textSub">{t("files.enabled")}</span>
+                  <Toggle
+                    hideLabel
+                    label={`${t("files.enabled")}: ${d.dataset}`}
+                    checked={d.enabled}
+                    onChange={() => void toggle(d)}
+                    disabled={!!busy[d.id]}
+                  />
+                </label>
+              </div>
+              <EffectiveScheduleLine effective={d.effectiveSchedule} domainLabelKey="jobs.zfsSection" />
+              {perItem && (
+                <ItemScheduleOverride
+                  name={d.dataset}
+                  initial={d.scheduleCadence}
+                  onSave={(cadence) => setItemCadence(d.id, cadence)}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 export function EverythingSection({
   settings,
   update,
@@ -692,15 +797,16 @@ export function EverythingSection({
   // badge so the CSS animation restarts on a repeat failure.
   const [shake, setShake] = useState(0);
 
-  // The overlap this card warns about is only real when THIS cadence is on
-  // AND at least one of the five domain cadences above is too — configSchedule
-  // included, since the pass ends with the self-backup.
+  // The overlap this card warns about is only real when this cadence is on
+  // and at least one domain cadence is too, the self-backup included, since
+  // the pass ends with it.
   const everythingOn = scheduleStatus(settings.everythingSchedule) !== "off";
   const anyDomainOn = [
     settings.containersSchedule,
     settings.vmsSchedule,
     settings.flashSchedule,
     settings.filesSchedule,
+    settings.zfsSchedule,
     settings.configSchedule,
   ].some((s) => scheduleStatus(s) !== "off");
   const overlapWarning = everythingOn && anyDomainOn;
@@ -861,6 +967,12 @@ const TAB_ORDER: TabKey[] = [
   "integrity",
   "system",
 ];
+
+/** Hashes that name a card rather than a tab: the tab holding the card opens
+ *  and the card scrolls into view, since it sits below the fold. */
+const CARD_TAB: Record<string, TabKey> = {
+  anomalies: "integrity",
+};
 
 // ---------------------------------------------------------------------------
 // Settings tab icons (GlimStone form-engine Phase 2, Task 3 — design-language
@@ -1113,6 +1225,8 @@ const TAB_ICON: Record<TabKey, ReactNode> = {
 // reordering, nothing to get wrong.
 export function SettingsPage() {
   const { t } = useT();
+  const { summary: anomalySummary } = useAnomalySummary();
+  const { confirm, confirmDialog } = useConfirm();
   const { advanced } = useAdvanced();
   const { push, quiet, setQuiet } = useToast();
 
@@ -1298,6 +1412,11 @@ export function SettingsPage() {
   // to/from localStorage via shape.ts, the same pattern the old accentHex
   // state used before its move.
   const [shape, setShapeLocal] = useState<Shape>(() => getShape());
+  // The hidden leaf follows the storm below: found and counted in this
+  // screen's state, never in storage, so it is offered only while chosen or
+  // until this page is left.
+  const [leafFound, setLeafFound] = useState(false);
+  const leafClicks = useRef({ taps: 0 });
 
   // Motion-intensity state (GlimStone motion-engine — the deliberate
   // reversal of design-language.md's own prior "kein fünfter Nutzer-
@@ -1406,10 +1525,12 @@ export function SettingsPage() {
     | "vmsEnabled"
     | "flashEnabled"
     | "filesEnabled"
+    | "zfsEnabled"
     | "configEnabled"
     | "receiverEnabled"
     | "pullEnabled"
-    | "fleetEnabled";
+    | "fleetEnabled"
+    | "dbDumpsEnabled";
   const [domainToggleBusy, setDomainToggleBusy] = useState<Partial<Record<DomainToggleKey, boolean>>>({});
   const [domainToggleShake, setDomainToggleShake] = useState<Partial<Record<DomainToggleKey, number>>>({});
 
@@ -1459,6 +1580,11 @@ export function SettingsPage() {
   const [, setWatchdogSaveState] = useState<SaveState>("idle");
   const [, setWatchdogSaveError] = useState<string | null>(null);
 
+  // Anomalies card (integrity tab): every field saves on its own through
+  // autoSaveToggle, which puts the old value back when the save is refused.
+  const [, setAnomalySaveState] = useState<SaveState>("idle");
+  const [, setAnomalySaveError] = useState<string | null>(null);
+
   // Schedules tab (migrated from the retired Plans page). The container list
   // feeds the Containers schedule section's included-members list; syncSchedules
   // applies the Containers cadence to VMs + Flash + Folders.
@@ -1467,6 +1593,8 @@ export function SettingsPage() {
   const [vms, setVMs] = useState<VM[]>([]);
   // File sets feed the Files schedule section's member list (live enabled toggles).
   const [fileSets, setFileSets] = useState<FileSetView[]>([]);
+  // ZFS items do the same for the ZFS schedule section.
+  const [zfsItems, setZFSItems] = useState<ZFSDatasetView[]>([]);
   const [syncSchedules, setSyncSchedules] = useState(false);
   // Task 5 (live-review — "Speichern-Buttons können weg, es soll immer alles
   // live gespeichert werden"): this whole tab used to funnel every field
@@ -1548,18 +1676,15 @@ export function SettingsPage() {
     // mount load lands in that promise's .catch — killing the whole Settings
     // page, not just this card (see lib/uuid.ts).
     setRegistryRowIds(s.registryAuths.map(() => randomId()));
-    // Detect whether the domain schedules are already in sync (Containers ==
-    // VMs == Flash == Folders, and not off), so the Schedules tab's sync
-    // toggle reflects the server state. Reproduced from the retired Plans
-    // page; filesSchedule is part of the comparison alongside Task 2's own
-    // extension of the toggle's live effect to cover Folders too — without it,
-    // a server state where Containers/VMs/Flash already matched but Folders
-    // didn't would show the toggle ON while Folders still quietly held its own
-    // independent value until the next edit.
+    // The sync toggle reads as on only when Containers, VMs, Flash, Folders
+    // and ZFS already share one cadence that is not off. A domain that differs
+    // keeps its own value until the next edit, so the toggle must not claim
+    // otherwise.
     setSyncSchedules(
       s.vmsSchedule === s.containersSchedule &&
         s.flashSchedule === s.containersSchedule &&
         s.filesSchedule === s.containersSchedule &&
+        s.zfsSchedule === s.containersSchedule &&
         s.containersSchedule !== "off" &&
         s.containersSchedule !== ""
     );
@@ -1611,6 +1736,7 @@ export function SettingsPage() {
 
     // Load the file sets for the Schedules tab's Files section. Non-fatal too.
     loadFileSets();
+    loadZFSItems();
   }, []);
 
   // loadFileSets (re)fetches the file-set list — on mount and after a Files
@@ -1625,29 +1751,50 @@ export function SettingsPage() {
       });
   }
 
-  // Deep-link support: /settings#offsite (and every other tab hash) selects the
-  // matching tab instead of scrolling. Read once on mount, and also listen for
-  // hashchange so an in-app "#offsite" link fired while already on /settings
-  // switches the tab (no remount happens in that case). The Dashboard's
-  // "Link to /settings#offsite" therefore lands on the Off-site tab.
+  // loadZFSItems does for the ZFS section what loadFileSets does for Folders.
+  function loadZFSItems() {
+    listZFSDatasets()
+      .then((r) => {
+        if (r.ok) setZFSItems(r.datasets ?? []);
+      })
+      .catch(() => {
+        // Non-fatal: the ZFS schedule section shows an empty member list.
+      });
+  }
+
+  // A tab hash such as /settings#offsite selects that tab, and a card hash
+  // (CARD_TAB) selects the card's tab. Read on mount and on hashchange, since
+  // an in-app hash link fired while already on /settings remounts nothing.
+  const [cardAnchor, setCardAnchor] = useState("");
   useEffect(() => {
     const applyHash = () => {
       const h = window.location.hash.replace(/^#/, "");
-      if ((TAB_ORDER as string[]).includes(h)) {
-        // Direction (motion-engine animation 7): computed the same way the
-        // tab strip's own onChange below does, just reading the CURRENT tab
-        // off tabRef instead of a closed-over (and here, permanently stale —
-        // this effect only ever runs once, at mount) `tab` value.
+      const target = CARD_TAB[h] ?? h;
+      if ((TAB_ORDER as string[]).includes(target)) {
+        // The slide direction reads the current tab off tabRef: this effect
+        // runs once, so its own `tab` is the one from mount.
         const from = TAB_ORDER.indexOf(tabRef.current);
-        const to = TAB_ORDER.indexOf(h as TabKey);
+        const to = TAB_ORDER.indexOf(target as TabKey);
         if (from !== -1 && to !== -1) setTabDir(to > from ? 1 : -1);
-        setTab(h as TabKey);
+        setTab(target as TabKey);
+        setCardAnchor(target === h ? "" : h);
       }
     };
     applyHash();
     window.addEventListener("hashchange", applyHash);
     return () => window.removeEventListener("hashchange", applyHash);
   }, []);
+
+  // The card exists only once the settings have loaded and its tab is showing.
+  const settingsLoaded = settings !== null;
+  useEffect(() => {
+    if (!cardAnchor || !settingsLoaded) return;
+    const card = document.getElementById(cardAnchor);
+    if (!card) return;
+    // jsdom has no scrollIntoView.
+    card.scrollIntoView?.({ block: "start" });
+    setCardAnchor("");
+  }, [cardAnchor, settingsLoaded, tab]);
 
   // While "sync" is on, mirror the Containers cadence onto VMs + Flash +
   // Folders (Task 2 — "der toggle soll auch ordner einschließen") in live
@@ -1667,16 +1814,19 @@ export function SettingsPage() {
     if (
       settings.vmsSchedule === merged &&
       settings.flashSchedule === merged &&
-      settings.filesSchedule === merged
+      settings.filesSchedule === merged &&
+      settings.zfsSchedule === merged
     ) {
       return;
     }
     setSettings((prev) =>
-      prev ? { ...prev, vmsSchedule: merged, flashSchedule: merged, filesSchedule: merged } : prev
+      prev
+        ? { ...prev, vmsSchedule: merged, flashSchedule: merged, filesSchedule: merged, zfsSchedule: merged }
+        : prev
     );
     debouncedSave("schedSync", () => {
       void save(
-        { vmsSchedule: merged, flashSchedule: merged, filesSchedule: merged },
+        { vmsSchedule: merged, flashSchedule: merged, filesSchedule: merged, zfsSchedule: merged },
         setSchedSaveState,
         setSchedSaveError
       );
@@ -1827,6 +1977,31 @@ export function SettingsPage() {
       setSettings((s) => (s ? { ...s, [key]: prev ?? !next } : s));
       setDomainToggleShake((sh) => ({ ...sh, [key]: (sh[key] ?? 0) + 1 }));
     }
+  }
+
+  // Switching every dump off at once can leave a database with no consistent
+  // copy at all, and the containers it happens to are named before it does.
+  // Only a dump that runs today can be lost, and "unknown" coverage cannot
+  // carry the claim that the dump is the only consistent copy. A label naming
+  // the engine wins over the switch on the card.
+  async function toggleDbDumps(next: boolean) {
+    if (!next) {
+      const atRisk = containers
+        .filter(
+          (c) =>
+            c.dbTier !== "" &&
+            (!c.dbDumpOff || c.dbTier === "label") &&
+            !c.dbDumpLabelOff &&
+            (c.dbTier !== "lookalike" || c.dbDumpEngine !== "") &&
+            (c.dbDataCoverage === "live" || c.dbDataCoverage === "none")
+        )
+        .map((c) => c.name);
+      const question = atRisk.length
+        ? t("settings.dbDumpsOffConfirm", atRisk.length).replace("{names}", atRisk.join(", "))
+        : t("settings.dbDumpsOffConfirmPlain");
+      if (!(await confirm(question, { confirmKey: "common.confirm" }))) return;
+    }
+    await toggleDomainEnabled("dbDumpsEnabled", next);
   }
 
   // autoSaveField (GlimStone follow-up round, Paths & Storage tab rework,
@@ -2200,12 +2375,15 @@ export function SettingsPage() {
     const prevVms = settings.vmsSchedule;
     const prevFlash = settings.flashSchedule;
     const prevFiles = settings.filesSchedule;
+    const prevZFS = settings.zfsSchedule;
     setSettings((s) =>
-      s ? { ...s, vmsSchedule: merged, flashSchedule: merged, filesSchedule: merged } : s
+      s
+        ? { ...s, vmsSchedule: merged, flashSchedule: merged, filesSchedule: merged, zfsSchedule: merged }
+        : s
     );
     setSyncToggleBusy(true);
     const ok = await save(
-      { vmsSchedule: merged, flashSchedule: merged, filesSchedule: merged },
+      { vmsSchedule: merged, flashSchedule: merged, filesSchedule: merged, zfsSchedule: merged },
       setSchedSaveState,
       setSchedSaveError
     );
@@ -2213,7 +2391,9 @@ export function SettingsPage() {
     if (!ok) {
       setSyncSchedules(false);
       setSettings((s) =>
-        s ? { ...s, vmsSchedule: prevVms, flashSchedule: prevFlash, filesSchedule: prevFiles } : s
+        s
+          ? { ...s, vmsSchedule: prevVms, flashSchedule: prevFlash, filesSchedule: prevFiles, zfsSchedule: prevZFS }
+          : s
       );
       setSyncToggleShake((n) => n + 1);
     }
@@ -2355,7 +2535,8 @@ export function SettingsPage() {
     (settings.vmsOffsite !== "" && settings.vmsOffsiteImmutable) ||
     (settings.flashOffsite !== "" && settings.flashOffsiteImmutable) ||
     (settings.configOffsite !== "" && settings.configOffsiteImmutable) ||
-    (settings.filesOffsite !== "" && settings.filesOffsiteImmutable);
+    (settings.filesOffsite !== "" && settings.filesOffsiteImmutable) ||
+    (settings.zfsOffsite !== "" && settings.zfsOffsiteImmutable);
 
   // hueSeq/nextHue (GlimStone follow-up pass, jdp's second live-review round
   // — "Die ganzen... Abschnittsbadges sind nicht in der Farbengine!!"):
@@ -2733,6 +2914,16 @@ export function SettingsPage() {
             t={t}
             hueIndex={nextHue()}
           />
+          <ZFSSection
+            settings={settings}
+            syncSchedules={syncSchedules}
+            items={zfsItems}
+            perItem={settings.perItemSchedules}
+            onChange={(v) => scheduleField("zfsSchedule", v)}
+            onItemsChanged={loadZFSItems}
+            t={t}
+            hueIndex={nextHue()}
+          />
 
           {/* Off-site replication schedules (schedulesOffsite): one cadence per
               domain (+ config + files). Editors here are the sole owner of these
@@ -2744,6 +2935,7 @@ export function SettingsPage() {
               ["flashOffsiteSchedule", "nav.flash"],
               ["configOffsiteSchedule", "nav.config"],
               ["filesOffsiteSchedule", "nav.files"],
+              ["zfsOffsiteSchedule", "nav.zfs"],
             ] as const).map(([key, label]) => (
               <div key={key} className="flex flex-col gap-1">
                 <span className="text-xs text-carbon-textSub">{t(label)}</span>
@@ -2948,6 +3140,19 @@ export function SettingsPage() {
           pulseNonce={fieldPulse.containersEnabled}
           hueIndex={0}
         />
+        {/* Indented under Containers: it only acts on containers, and reads as
+            a sub-option of that domain rather than a domain of its own. */}
+        <div className="ps-6">
+          <ToggleRow
+            label={t("settings.dbDumps")}
+            hint={t("settings.dbDumpsHint")}
+            checked={settings.dbDumpsEnabled}
+            onChange={(v) => void toggleDbDumps(v)}
+            disabled={domainToggleBusy.dbDumpsEnabled}
+            shakeNonce={domainToggleShake.dbDumpsEnabled}
+            pulseNonce={fieldPulse.dbDumpsEnabled}
+          />
+        </div>
         <ToggleRow
           label={t("settings.vmsEnabled")}
           hint={t("settings.vmsEnabledHint")}
@@ -2979,6 +3184,16 @@ export function SettingsPage() {
           hueIndex={3}
         />
         <ToggleRow
+          label={t("settings.zfsEnabled")}
+          hint={t("settings.zfsEnabledHint")}
+          checked={settings.zfsEnabled}
+          onChange={(v) => void toggleDomainEnabled("zfsEnabled", v)}
+          disabled={domainToggleBusy.zfsEnabled}
+          shakeNonce={domainToggleShake.zfsEnabled}
+          pulseNonce={fieldPulse.zfsEnabled}
+          hueIndex={4}
+        />
+        <ToggleRow
           label={t("settings.configEnabled")}
           hint={t("settings.configEnabledHint")}
           checked={settings.configEnabled}
@@ -2986,7 +3201,7 @@ export function SettingsPage() {
           disabled={domainToggleBusy.configEnabled}
           shakeNonce={domainToggleShake.configEnabled}
           pulseNonce={fieldPulse.configEnabled}
-          hueIndex={4}
+          hueIndex={5}
         />
         <ToggleRow
           label={t("settings.receiverEnabled")}
@@ -2996,7 +3211,7 @@ export function SettingsPage() {
           disabled={domainToggleBusy.receiverEnabled}
           shakeNonce={domainToggleShake.receiverEnabled}
           pulseNonce={fieldPulse.receiverEnabled}
-          hueIndex={5}
+          hueIndex={6}
         />
         <ToggleRow
           label={t("settings.fleetEnabled")}
@@ -3006,7 +3221,7 @@ export function SettingsPage() {
           disabled={domainToggleBusy.fleetEnabled}
           shakeNonce={domainToggleShake.fleetEnabled}
           pulseNonce={fieldPulse.fleetEnabled}
-          hueIndex={6}
+          hueIndex={7}
         />
         {/* Pull (#227). Last of the three and the only one that WRITES: the two
             above watch, this one fetches another instance's backups into this
@@ -3020,7 +3235,7 @@ export function SettingsPage() {
           disabled={domainToggleBusy.pullEnabled}
           shakeNonce={domainToggleShake.pullEnabled}
           pulseNonce={fieldPulse.pullEnabled}
-          hueIndex={7}
+          hueIndex={8}
         />
       </Card>
       )}
@@ -3038,21 +3253,10 @@ export function SettingsPage() {
       {/* ------------------------------------------------------------------ */}
       {tab === "storage" && (
       <Card title={t("settings.paths")} hint={t("settings.pathsHint").replace("{root}", hostMountRoot)} hueIndex={nextHue()}>
-        {/* Full-page Speichern-Button sweep (jdp, live review, emphatic:
-            "Die Speicher-Buttons sollen in allen Tabs weg. Überall soll es
-            automatisch speichern."): all six fields below used to batch into
-            one bottom SaveBar. Each now debounce-auto-saves itself instead —
-            the exact same `debouncedSave`-keyed-by-field-name shape the
-            Schedules tab's own `scheduleField` already established for
-            continuously-typed values (a path is typed/browsed the same way a
-            cron string is), just called directly here since these six PATCH
-            single independent fields rather than a whole cadence group.
-              `hueIndex={0..4}` below (GlimStone standing colour-engine rule,
-            closing the gap OffsiteWizard's own hueIndex doc comment already
-            named): these five PathModeSwitch rows are one related GROUP (own
-            local 0-based index per group, same rule as the Domains Card's
-            seven ToggleRows), separate from this Card's own heading
-            `nextHue()` call above. */}
+        {/* Each field saves itself, debounced per field name like the
+            Schedules tab's cadence fields. The six PathModeSwitch rows are
+            one group with their own 0-based hueIndex, separate from this
+            card's heading. */}
         <PathModeSwitch
           label={t("settings.containersPath")}
           domain="containers"
@@ -3133,6 +3337,22 @@ export function SettingsPage() {
           save={save}
           hueIndex={4}
         />
+        <PathModeSwitch
+          label={t("settings.zfsPath")}
+          domain="zfs"
+          value={settings.zfsPath}
+          hostMountRoot={hostMountRoot}
+          onChange={(v) => {
+            setSettings((prev) => prev ? { ...prev, zfsPath: v } : prev);
+            debouncedSave("zfsPath", () =>
+              void save({ zfsPath: v }, setPathSaveState, setPathSaveError)
+            );
+          }}
+          settings={settings}
+          setSettings={setSettings}
+          save={save}
+          hueIndex={5}
+        />
         <FolderBrowser
           label={t("settings.restoreFolder")}
           value={settings.restoreFolder}
@@ -3198,6 +3418,21 @@ export function SettingsPage() {
             </label>
           ))}
         </div>
+        {/* The answer the numbers above never give: which restore points the
+            next run is about to delete. Advanced-only, because it costs one
+            restic call per item per repository and is a question you ask
+            deliberately rather than one a page should poll. */}
+        {advanced && (
+          <div className="mt-4 border-t border-carbon-border pt-3">
+            <div className="flex items-center gap-1 text-sm text-carbon-text">
+              {t("retentionPreview.title")}
+              <InfoBubble tip={t("retentionPreview.hint")} />
+            </div>
+            <div className="mt-2">
+              <RetentionPreview t={t} source="local" />
+            </div>
+          </div>
+        )}
       </Card>
       )}
 
@@ -3605,7 +3840,7 @@ export function SettingsPage() {
               heading standing in front of it. */}
           <ToggleRow
             label={t("export.encrypt.enable")}
-            hint={`${t("export.encrypt.hint")} ${t("export.encrypt.ageInfo")} ${t("export.encrypt.enableHint")}`}
+            hint={`${t("export.encrypt.hint")} ${t("export.encrypt.ageInfo")} ${t("export.encrypt.enableHint")} ${t("export.encrypt.kitSealed")}`}
             checked={settings.exportEncryptEnabled}
             onChange={(v) => void autoSaveField("exportEncryptEnabled", v, setExportEncSaveState, setExportEncSaveError)}
             disabled={mergedFieldBusy.exportEncryptEnabled}
@@ -3850,6 +4085,7 @@ export function SettingsPage() {
         ["vmsOffsite", "nav.vms", "vms"],
         ["flashOffsite", "nav.flash", "flash"],
         ["filesOffsite", "nav.files", "files"],
+        ["zfsOffsite", "nav.zfs", "zfs"],
         ["configOffsite", "nav.config", "config"],
       ] as const).map(([repoKey, label, domain]) => {
         const wizardOpen = offsiteWizard === domain;
@@ -4004,6 +4240,20 @@ export function SettingsPage() {
             </label>
           ))}
         </div>
+        {/* The off-site twin. Its own source, because the off-site policy is a
+            SEPARATE policy: an archive kept longer off-site than locally would
+            otherwise be previewed against the wrong rule. */}
+        {advanced && (
+          <div className="mt-4 border-t border-carbon-border pt-3">
+            <div className="flex items-center gap-1 text-sm text-carbon-text">
+              {t("retentionPreview.title")}
+              <InfoBubble tip={t("retentionPreview.hint")} />
+            </div>
+            <div className="mt-2">
+              <RetentionPreview t={t} source="offsite" />
+            </div>
+          </div>
+        )}
       </Card>
       )}
 
@@ -4140,6 +4390,7 @@ export function SettingsPage() {
           }}
           hueIndex={nextHue()}
         />
+        {mcpShipped && <McpServerCard hueIndex={nextHue()} passwordSet={authEnabled} />}
         </>
       )}
 
@@ -4148,7 +4399,9 @@ export function SettingsPage() {
       {/* Advanced, OR shown whenever VMs are enabled so the SSH setup you    */}
       {/* need to make VM backups work is never hidden behind Advanced.       */}
       {/* ------------------------------------------------------------------ */}
-      {tab === "system" && (advanced || settings.vmsEnabled) && <VMSSHCard t={t} hueIndex={nextHue()} />}
+      {tab === "system" && (advanced || settings.vmsEnabled || settings.zfsEnabled) && (
+        <VMSSHCard t={t} hueIndex={nextHue()} />
+      )}
 
       {/* ------------------------------------------------------------------ */}
       {/* OFFSITE — Off-site backends (rclone + cloud credentials). Same     */}
@@ -4402,6 +4655,22 @@ export function SettingsPage() {
             </Card>
           );
         })()}
+
+        {/* Last, so the restore checks and their schedule stay next to each
+            other. The target of /settings#anomalies; the margin keeps the
+            heading badge, which straddles the card's top edge, in view. */}
+        <div id="anomalies" className="scroll-mt-6">
+          <AnomalyCard
+            t={t}
+            settings={settings}
+            summary={anomalySummary}
+            save={(key, next) => void autoSaveToggle(key, next, setAnomalySaveState, setAnomalySaveError)}
+            busy={fieldBusy}
+            shake={fieldShake}
+            pulse={fieldPulse}
+            hueIndex={nextHue()}
+          />
+        </div>
       </>
       )}
 
@@ -4440,6 +4709,7 @@ export function SettingsPage() {
             </label>
             <RevealInput
               {...revealPwNew}
+              id={LOGIN_PASSWORD_FIELD}
               value={pwNew}
               onChange={(e) => setPwNew(e.target.value)}
               autoComplete="new-password"
@@ -4654,7 +4924,7 @@ export function SettingsPage() {
             `align-items: stretch` without an extra element. See the Theme
             Card's own Selector above for the full note. */}
         <Selector
-          items={SHAPES.map((s) => ({
+          items={[...SHAPES, ...(leafFound || shape === "leaf" ? (["leaf"] as const) : [])].map((s) => ({
             id: s,
             label: t(`settings.shape.${s}` as TranslationKey),
           }))}
@@ -4662,8 +4932,11 @@ export function SettingsPage() {
           select="one"
           active={shape}
           onChange={(id) => {
-            setShapeLocal(id as Shape);
-            setShape(id as Shape);
+            const leaf = leafTap(leafClicks.current, id, shape);
+            if (leaf) setLeafFound(true);
+            const next = (leaf ?? id) as Shape;
+            setShapeLocal(next);
+            setShape(next);
           }}
           size="lg"
           variant="well"
@@ -4990,8 +5263,8 @@ export function SettingsPage() {
                 mismatched afterthought.
                   SQUARE (jdp, live-review: "Die Zurücksetzen-Option soll ein
                 quadratischer Badge mit Glyph sein") — `shape="square"` still
-                resolves through `rounded-control`, the shape engine's own
-                live token, so this genuinely tracks round/soft/square (under
+                resolves through `rounded-pill`, the shape engine's own
+                live token, so this tracks every shape (under
                 "Rund" it renders as a full circle, same as every other
                 square badge in the app).
                   NEUTRAL now, not hue-tinted (jdp, re-reporting: "Der
@@ -5166,6 +5439,7 @@ export function SettingsPage() {
         <AboutCard hueIndex={nextHue()} />
       )}
       </div>
+      {confirmDialog}
 
     </div>
   );

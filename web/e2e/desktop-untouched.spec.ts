@@ -1,14 +1,14 @@
 // ---------------------------------------------------------------------------
 // Desktop-untouched: the per-page desktop invariance contract.
 //
-// The headline guarantee, made executable: for every one of the eleven routed
-// destinations, on both desktop projects (desktop-768 = the 48rem breakpoint
+// The headline guarantee, made executable: for every routed destination,
+// on both desktop projects (desktop-768 = the 48rem breakpoint
 // boundary, desktop-1280 = comfortable desktop), today's shell is exactly
 // what renders: the desktop Sidebar is visible, the mobile bottom bar has
 // zero matches in the DOM (not CSS-hidden: the Layout chrome switch never
 // renders it), and the `bv-main` scroller is present.
 //
-// Parameterized as an 11-route loop rather than spot checks: a future route
+// Parameterized as a route loop rather than spot checks: a future route
 // added to the frozen router without joining this loop is a visible gap in
 // the report, and any desktop-layout regression on any single destination
 // fails the gate by name. /receiver, /pull and /fleet are Navigate
@@ -51,12 +51,14 @@ const DESKTOP_PROJECTS = new Set(["desktop-1280", "desktop-768"]);
 // /glyphs contact sheet are not destinations, so they are absent here.
 const ROUTES = [
   "/dashboard",
-  "/recovery",
+  "/anomalies",
   "/containers",
   "/vms",
   "/flash",
   "/files",
+  "/zfs",
   "/config",
+  "/recovery",
   "/instances",
   "/receiver",
   "/fleet",

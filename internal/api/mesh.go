@@ -143,12 +143,17 @@ func (h *Handler) handleAcceptMeshOffer(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if !validOffsiteDomain(in.Domain) {
-		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": "invalid domain: must be one of containers, vms, flash, config, files"})
+		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": invalidOffsiteDomain})
 		return
 	}
 	password, err := secret.Decrypt(h.cfg.AppKey, offer.RESTPasswordEnc)
 	if err != nil {
 		writeJSON(w, http.StatusOK, failEnvelope(fmt.Errorf("decrypt offer credential: %w", err)))
+		return
+	}
+	sortOrder, err := h.svc.nextOffsiteSortOrder(in.Domain)
+	if err != nil {
+		writeJSON(w, http.StatusOK, failEnvelope(err))
 		return
 	}
 
@@ -176,11 +181,12 @@ func (h *Handler) handleAcceptMeshOffer(w http.ResponseWriter, r *http.Request) 
 	}
 
 	target := store.OffsiteTarget{
-		Domain:   in.Domain,
-		Name:     "mesh: " + label,
-		Repo:     offer.Repo,
-		CredsRef: setID,
-		Enabled:  true,
+		Domain:    in.Domain,
+		Name:      "mesh: " + label,
+		Repo:      offer.Repo,
+		CredsRef:  setID,
+		Enabled:   true,
+		SortOrder: sortOrder,
 	}
 	stored, err := h.store.UpsertOffsiteTarget(target)
 	if err != nil {
@@ -245,7 +251,7 @@ func (h *Handler) handleProposeMeshOffer(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	if !validOffsiteDomain(in.Domain) {
-		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": "invalid domain: must be one of containers, vms, flash, config, files"})
+		writeJSON(w, http.StatusOK, map[string]any{"ok": false, "error": invalidOffsiteDomain})
 		return
 	}
 	base := strings.TrimRight(strings.TrimSpace(in.BaseURL), "/")
