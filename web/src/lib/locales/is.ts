@@ -2051,6 +2051,7 @@ const is: Partial<Translations> = {
   "mcp.setupCommand": "Keyrðu þetta einu sinni í skipanalínu.",
   "mcp.setupFile": "Bættu þessu við stillingaskrána, við hliðina á þeim netþjónum sem þar eru fyrir.",
   "mcp.setupFileUi": "Í {app} opnar {ui} skrána.",
+  "mcp.setupPaste": "Þú getur líka límt hana inn í {app} undir {ui}.",
   "mcp.setupForm": "Sláðu þessi gildi inn í {app} undir {ui}.",
   "mcp.setupOther": "Hver sá biðlari sem talar Streamable HTTP dugar. Sláðu þetta inn þar sem hann biður um fjartengdan MCP-netþjón, með lykilinn í öðrum hvorum hausnum.",
   "mcp.setupWhere": "Hvar skráin er",

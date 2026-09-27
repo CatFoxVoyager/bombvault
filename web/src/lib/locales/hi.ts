@@ -2051,6 +2051,7 @@ const hi: Partial<Translations> = {
   "mcp.setupCommand": "इसे एक बार टर्मिनल में चलाओ।",
   "mcp.setupFile": "इसे कॉन्फ़िगरेशन फ़ाइल में वहाँ पहले से मौजूद सर्वरों के बगल में जोड़ो।",
   "mcp.setupFileUi": "{app} में {ui} यह फ़ाइल खोलता है।",
+  "mcp.setupPaste": "इसे {app} में {ui} के तहत पेस्ट भी कर सकते हो।",
   "mcp.setupForm": "ये मान {app} में {ui} के तहत भरो।",
   "mcp.setupOther": "Streamable HTTP बोलने वाला कोई भी क्लाइंट चलेगा। इन्हें वहाँ भरो जहाँ वह रिमोट MCP सर्वर माँगता है, कुंजी दोनों में से किसी एक हेडर में।",
   "mcp.setupWhere": "फ़ाइल कहाँ है",

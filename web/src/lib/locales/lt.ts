@@ -2051,6 +2051,7 @@ const lt: Partial<Translations> = {
   "mcp.setupCommand": "Paleisk tai vieną kartą terminale.",
   "mcp.setupFile": "Pridėk tai prie konfigūracijos failo, šalia ten jau esančių serverių.",
   "mcp.setupFileUi": "Programoje {app} failą atidaro {ui}.",
+  "mcp.setupPaste": "Ją taip pat gali įklijuoti programoje {app} skiltyje {ui}.",
   "mcp.setupForm": "Įvesk šias reikšmes programoje {app} skiltyje {ui}.",
   "mcp.setupOther": "Tinka bet kuris klientas, kalbantis Streamable HTTP. Įvesk tai ten, kur jis prašo nuotolinio MCP serverio, su raktu vienoje iš dviejų antraščių.",
   "mcp.setupWhere": "Kur yra failas",

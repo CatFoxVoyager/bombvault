@@ -1827,6 +1827,7 @@ const fi: Partial<Translations> = {
   "mcp.setupCommand": "Suorita tämä kerran päätteessä.",
   "mcp.setupFile": "Lisää tämä määritystiedostoon siellä jo olevien palvelimien viereen.",
   "mcp.setupFileUi": "Ohjelmassa {app} tiedoston avaa {ui}.",
+  "mcp.setupPaste": "Voit myös liittää sen ohjelmassa {app} kohtaan {ui}.",
   "mcp.setupForm": "Syötä nämä arvot ohjelmassa {app} kohtaan {ui}.",
   "mcp.setupOther": "Mikä tahansa Streamable HTTP:tä puhuva asiakasohjelma käy. Syötä nämä siihen kohtaan, jossa se kysyy etä-MCP-palvelinta, ja avain jompaankumpaan otsakkeeseen.",
   "mcp.setupWhere": "Missä tiedosto on",

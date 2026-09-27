@@ -2051,6 +2051,7 @@ const ms: Partial<Translations> = {
   "mcp.setupCommand": "Jalankan ini sekali dalam terminal.",
   "mcp.setupFile": "Tambah ini pada fail konfigurasi, di sebelah pelayan yang sudah ada di sana.",
   "mcp.setupFileUi": "Dalam {app}, {ui} membuka fail itu.",
+  "mcp.setupPaste": "Anda juga boleh menampalnya dalam {app} di bawah {ui}.",
   "mcp.setupForm": "Masukkan nilai-nilai ini dalam {app} di bawah {ui}.",
   "mcp.setupOther": "Mana-mana klien yang bertutur Streamable HTTP boleh digunakan. Masukkan ini di tempat ia meminta pelayan MCP jauh, dengan kunci dalam salah satu daripada dua pengepala.",
   "mcp.setupWhere": "Lokasi fail",

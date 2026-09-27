@@ -2051,6 +2051,7 @@ const hr: Partial<Translations> = {
   "mcp.setupCommand": "Pokreni ovo jednom u terminalu.",
   "mcp.setupFile": "Dodaj ovo u konfiguracijsku datoteku, pokraj poslužitelja koji su već tamo.",
   "mcp.setupFileUi": "U {app} datoteku otvara {ui}.",
+  "mcp.setupPaste": "Možeš je i zalijepiti u {app} pod {ui}.",
   "mcp.setupForm": "Unesi ove vrijednosti u {app} pod {ui}.",
   "mcp.setupOther": "Radi svaki klijent koji govori Streamable HTTP. Unesi ovo tamo gdje traži udaljeni MCP poslužitelj, s ključem u jednom od dva zaglavlja.",
   "mcp.setupWhere": "Gdje je datoteka",

@@ -1830,6 +1830,7 @@ const ar: Partial<Translations> = {
   "mcp.setupCommand": "شغّل هذا مرة واحدة في طرفية.",
   "mcp.setupFile": "أضف هذا إلى ملف الإعدادات، بجانب الخوادم الموجودة فيه.",
   "mcp.setupFileUi": "في {app}، يفتح {ui} الملف.",
+  "mcp.setupPaste": "يمكنك أيضا لصقها في {app} ضمن {ui}.",
   "mcp.setupForm": "أدخل هذه القيم في {app} ضمن {ui}.",
   "mcp.setupOther": "يعمل أي عميل يتحدث Streamable HTTP. أدخل هذا حيث يطلب خادم MCP بعيدا، مع المفتاح في أحد الترويستين.",
   "mcp.setupWhere": "مكان الملف",

@@ -260,6 +260,17 @@ describe("a client's setup dialog", () => {
     expect(within(dialog).getByLabelText(en["mcp.keyFileJsonTip"].replace("{app}", "Claude Desktop"))).toBeTruthy();
   });
 
+  it("offers Warp's + Add field next to its file, without claiming the button opens the file", async () => {
+    await renderCard(payload());
+    await openClient("Warp", en["mcp.kindTerminal"]);
+
+    expect(dialogText()).toContain("~/.warp/.mcp.json");
+    expect(dialogText()).toContain(
+      en["mcp.setupPaste"].replace("{app}", "Warp").replace("{ui}", "Settings, Agents, Warp Agent, Manage MCP servers, + Add")
+    );
+    expect(dialogText()).not.toContain(en["mcp.setupFileUi"].replace("{app}", "Warp").split("{ui}")[0]);
+  });
+
   it("hands an unused new key back to the card when it closes", async () => {
     await renderCard(payload());
     listMcpKeys.mockRejectedValueOnce(new Error("503"));

@@ -1819,6 +1819,7 @@ const ko: Partial<Translations> = {
   "mcp.setupCommand": "터미널에서 이것을 한 번 실행하세요.",
   "mcp.setupFile": "이것을 구성 파일에, 이미 있는 서버 옆에 추가하세요.",
   "mcp.setupFileUi": "{app}에서는 {ui}에서 이 파일이 열립니다.",
+  "mcp.setupPaste": "{app}의 {ui}에 붙여 넣어도 됩니다.",
   "mcp.setupForm": "{app}의 {ui}에 다음 값을 입력하세요.",
   "mcp.setupOther": "Streamable HTTP로 말하는 클라이언트면 무엇이든 됩니다. 원격 MCP 서버를 묻는 곳에 입력하고, 키는 두 헤더 중 하나에 넣으세요.",
   "mcp.setupWhere": "파일 위치",

@@ -1824,6 +1824,7 @@ const nl: Partial<Translations> = {
   "mcp.setupCommand": "Voer dit één keer uit in een terminal.",
   "mcp.setupFile": "Voeg dit toe aan het configuratiebestand, naast de servers die er al staan.",
   "mcp.setupFileUi": "In {app} opent {ui} het bestand.",
+  "mcp.setupPaste": "Je kunt hem ook plakken in {app} onder {ui}.",
   "mcp.setupForm": "Vul deze waarden in {app} in onder {ui}.",
   "mcp.setupOther": "Elke client die Streamable HTTP spreekt werkt. Vul dit in waar hij om een externe MCP-server vraagt, met de sleutel in een van beide headers.",
   "mcp.setupWhere": "Waar het bestand staat",

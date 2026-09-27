@@ -1827,6 +1827,7 @@ const no: Partial<Translations> = {
   "mcp.setupCommand": "Kjør dette én gang i en terminal.",
   "mcp.setupFile": "Legg dette til i konfigurasjonsfilen, ved siden av serverne som allerede står der.",
   "mcp.setupFileUi": "I {app} åpner {ui} filen.",
+  "mcp.setupPaste": "Du kan også lime den inn i {app} under {ui}.",
   "mcp.setupForm": "Skriv inn disse verdiene i {app} under {ui}.",
   "mcp.setupOther": "Enhver klient som snakker Streamable HTTP, duger. Skriv inn dette der den ber om en ekstern MCP-server, med nøkkelen i en av de to headerne.",
   "mcp.setupWhere": "Hvor filen ligger",

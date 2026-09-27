@@ -2051,6 +2051,7 @@ const eu: Partial<Translations> = {
   "mcp.setupCommand": "Exekutatu hau behin terminal batean.",
   "mcp.setupFile": "Gehitu hau konfigurazio-fitxategira, lehendik dauden zerbitzarien ondoan.",
   "mcp.setupFileUi": "{app} aplikazioan, {ui} aukerak irekitzen du fitxategia.",
+  "mcp.setupPaste": "{app} aplikazioan ere itsats dezakezu, {ui} atalean.",
   "mcp.setupForm": "Sartu balio hauek {app} aplikazioan, {ui} atalean.",
   "mcp.setupOther": "Streamable HTTP hitz egiten duen edozein bezerok balio du. Sartu hau urruneko MCP zerbitzari bat eskatzen duen lekuan, gakoa bi goiburuetako batean duela.",
   "mcp.setupWhere": "Non dagoen fitxategia",

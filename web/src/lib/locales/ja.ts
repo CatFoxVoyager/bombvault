@@ -1819,6 +1819,7 @@ const ja: Partial<Translations> = {
   "mcp.setupCommand": "これをターミナルで一度実行してください。",
   "mcp.setupFile": "これを設定ファイルに、既にあるサーバーの隣に追加してください。",
   "mcp.setupFileUi": "{app} では {ui} でこのファイルが開きます。",
+  "mcp.setupPaste": "{app} の {ui} に貼り付けることもできます。",
   "mcp.setupForm": "{app} の {ui} に次の値を入力してください。",
   "mcp.setupOther": "Streamable HTTP を話すクライアントならどれでも使えます。リモート MCP サーバーを求められる場所に入力し、キーは 2 つのヘッダーのどちらかに入れてください。",
   "mcp.setupWhere": "ファイルの場所",

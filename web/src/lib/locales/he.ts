@@ -1827,6 +1827,7 @@ const he: Partial<Translations> = {
   "mcp.setupCommand": "הרץ את זה פעם אחת במסוף.",
   "mcp.setupFile": "הוסף את זה לקובץ התצורה, ליד השרתים שכבר נמצאים בו.",
   "mcp.setupFileUi": "ב-{app}, הקובץ נפתח דרך {ui}.",
+  "mcp.setupPaste": "אפשר גם להדביק אותה ב-{app} תחת {ui}.",
   "mcp.setupForm": "הזן את הערכים האלה ב-{app} תחת {ui}.",
   "mcp.setupOther": "כל לקוח שמדבר Streamable HTTP מתאים. הזן את זה איפה שהוא מבקש שרת MCP מרוחק, עם המפתח באחת משתי הכותרות.",
   "mcp.setupWhere": "איפה הקובץ נמצא",

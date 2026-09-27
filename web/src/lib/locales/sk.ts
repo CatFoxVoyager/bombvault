@@ -2051,6 +2051,7 @@ const sk: Partial<Translations> = {
   "mcp.setupCommand": "Spusti toto raz v termináli.",
   "mcp.setupFile": "Pridaj toto do konfiguračného súboru vedľa serverov, ktoré tam už sú.",
   "mcp.setupFileUi": "V {app} otvorí súbor {ui}.",
+  "mcp.setupPaste": "Môžeš ju aj vložiť v {app} v časti {ui}.",
   "mcp.setupForm": "Zadaj tieto hodnoty v {app} v časti {ui}.",
   "mcp.setupOther": "Funguje každý klient, ktorý hovorí Streamable HTTP. Zadaj toto tam, kde sa pýta na vzdialený MCP server, s kľúčom v jednej z dvoch hlavičiek.",
   "mcp.setupWhere": "Kde súbor leží",

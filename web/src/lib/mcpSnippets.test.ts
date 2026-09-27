@@ -212,6 +212,13 @@ describe("the Claude snippets", () => {
   });
 });
 
+describe("Warp", () => {
+  it("puts the server under mcpServers, which its + Add field and its file both expect", () => {
+    const config = JSON.parse(SNIPPETS.warp(trusted)) as { mcpServers: { bombvault: { url: string } } };
+    expect(config.mcpServers.bombvault.url).toBe("https://backup.example.com/mcp");
+  });
+});
+
 describe("the generic block", () => {
   it("lists literal fields only", () => {
     const block = genericSnippet(trusted);

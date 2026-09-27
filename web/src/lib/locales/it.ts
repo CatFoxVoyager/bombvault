@@ -1827,6 +1827,7 @@ const it: Partial<Translations> = {
   "mcp.setupCommand": "Esegui questo una volta in un terminale.",
   "mcp.setupFile": "Aggiungi questo al file di configurazione, accanto ai server già presenti.",
   "mcp.setupFileUi": "In {app}, {ui} apre il file.",
+  "mcp.setupPaste": "Puoi anche incollarla in {app} in {ui}.",
   "mcp.setupForm": "Inserisci questi valori in {app} in {ui}.",
   "mcp.setupOther": "Va bene qualsiasi client che parli Streamable HTTP. Inserisci questi dati dove chiede un server MCP remoto, con la chiave in uno dei due header.",
   "mcp.setupWhere": "Dove si trova il file",

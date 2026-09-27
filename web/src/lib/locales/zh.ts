@@ -1819,6 +1819,7 @@ const zh: Partial<Translations> = {
   "mcp.setupCommand": "在终端里运行一次。",
   "mcp.setupFile": "把这段加到配置文件里，放在已有的服务器旁边。",
   "mcp.setupFileUi": "在 {app} 中，{ui} 会打开这个文件。",
+  "mcp.setupPaste": "也可以在 {app} 的 {ui} 中直接粘贴。",
   "mcp.setupForm": "在 {app} 的 {ui} 中填写这些值。",
   "mcp.setupOther": "任何会说 Streamable HTTP 的客户端都可以。在它要求填写远程 MCP 服务器的地方填入这些内容，密钥放在两个头中的任意一个。",
   "mcp.setupWhere": "文件位置",

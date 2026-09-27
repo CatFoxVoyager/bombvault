@@ -369,14 +369,14 @@ export function McpClientDialog({
             className="self-start"
           />
         )}
-        {setup.kind === "file" && where(setup.paths, setup.ui)}
+        {setup.kind === "file" && where(setup.paths, setup.ui, setup.paste)}
         {keyLine()}
         {snippetBase.selfSigned && client.cert.kind !== "none" && certLine()}
       </Step>
     );
   }
 
-  function where(paths: ConfigPaths, ui?: string) {
+  function where(paths: ConfigPaths, ui?: string, paste?: string) {
     return (
       <div className="flex flex-col gap-1 pt-1">
         <span className="text-xs text-carbon-textSub">{t("mcp.setupWhere")}</span>
@@ -391,6 +391,7 @@ export function McpClientDialog({
           ))}
         </dl>
         {ui && <p className="text-sm text-carbon-textSub">{fill("mcp.setupFileUi", { app: name, ui })}</p>}
+        {paste && <p className="text-sm text-carbon-textSub">{fill("mcp.setupPaste", { app: name, ui: paste })}</p>}
       </div>
     );
   }

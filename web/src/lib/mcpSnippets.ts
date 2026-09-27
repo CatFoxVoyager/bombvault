@@ -223,7 +223,7 @@ export const SNIPPETS = {
     }),
   visualstudio: (i: McpSnippetInput) =>
     json({ servers: { bombvault: { url: mcpUrl(i), requestInit: { headers: bearer(i) } } } }),
-  warp: (i: McpSnippetInput) => json({ bombvault: { url: mcpUrl(i), headers: bearer(i) } }),
+  warp: (i: McpSnippetInput) => json({ mcpServers: { bombvault: { url: mcpUrl(i), headers: bearer(i) } } }),
   windsurf: (i: McpSnippetInput) =>
     json({ mcpServers: { bombvault: { serverUrl: mcpUrl(i), headers: bearerFrom(`\${env:${KEY_VARIABLE}}`) } } }),
   zed: (i: McpSnippetInput) => json({ context_servers: { bombvault: { url: mcpUrl(i), headers: bearer(i) } } }),

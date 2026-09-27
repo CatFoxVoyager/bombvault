@@ -1830,6 +1830,7 @@ const hu: Partial<Translations> = {
   "mcp.setupCommand": "Futtasd ezt egyszer egy terminálban.",
   "mcp.setupFile": "Add ezt a konfigurációs fájlhoz, a már ott lévő szerverek mellé.",
   "mcp.setupFileUi": "A(z) {app} alkalmazásban a fájlt ez nyitja meg: {ui}.",
+  "mcp.setupPaste": "Be is illesztheted a(z) {app} alkalmazásban itt: {ui}.",
   "mcp.setupForm": "Add meg ezeket az értékeket a(z) {app} alkalmazásban itt: {ui}.",
   "mcp.setupOther": "Bármelyik kliens megfelel, amely Streamable HTTP-t beszél. Add meg ezeket ott, ahol távoli MCP-szervert kér, a kulccsal a két fejléc egyikében.",
   "mcp.setupWhere": "Hol van a fájl",

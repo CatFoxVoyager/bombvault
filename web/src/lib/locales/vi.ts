@@ -1819,6 +1819,7 @@ const vi: Partial<Translations> = {
   "mcp.setupCommand": "Chạy lệnh này một lần trong terminal.",
   "mcp.setupFile": "Thêm đoạn này vào tệp cấu hình, cạnh các máy chủ đã có ở đó.",
   "mcp.setupFileUi": "Trong {app}, {ui} mở tệp này.",
+  "mcp.setupPaste": "Bạn cũng có thể dán nó vào {app} tại {ui}.",
   "mcp.setupForm": "Nhập các giá trị này trong {app} tại {ui}.",
   "mcp.setupOther": "Bất kỳ máy khách nào nói Streamable HTTP đều dùng được. Nhập các giá trị này ở chỗ nó hỏi máy chủ MCP từ xa, với khóa ở một trong hai header.",
   "mcp.setupWhere": "Vị trí của tệp",

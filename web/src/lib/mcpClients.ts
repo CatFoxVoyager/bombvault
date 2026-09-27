@@ -31,7 +31,8 @@ export interface ConfigPaths {
 /** How the configuration gets into the client. */
 export type SetupWay =
   | { kind: "command" }
-  | { kind: "file"; paths: ConfigPaths; ui?: string }
+  /** `ui` opens the file in the client; `paste` takes the same text pasted in. */
+  | { kind: "file"; paths: ConfigPaths; ui?: string; paste?: string }
   | { kind: "form"; ui: string }
   | { kind: "other" };
 
@@ -429,7 +430,11 @@ export const LOCAL_CLIENTS: McpClient[] = [
     group: "local",
     mark: "warp",
     tile: "glim-tile-warp",
-    setup: { kind: "file", paths: { unix: "~/.warp/.mcp.json" }, ui: "Settings, Agents, MCP servers, Add" },
+    setup: {
+      kind: "file",
+      paths: { unix: "~/.warp/.mcp.json" },
+      paste: "Settings, Agents, Warp Agent, Manage MCP servers, + Add",
+    },
     key: { kind: "inFile" },
     cert: SYSTEM_CERT,
   },

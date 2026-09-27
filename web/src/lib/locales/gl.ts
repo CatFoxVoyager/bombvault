@@ -2051,6 +2051,7 @@ const gl: Partial<Translations> = {
   "mcp.setupCommand": "Executa isto unha vez nun terminal.",
   "mcp.setupFile": "Engade isto ao ficheiro de configuración, xunto aos servidores que xa haxa.",
   "mcp.setupFileUi": "En {app}, {ui} abre o ficheiro.",
+  "mcp.setupPaste": "Tamén a podes pegar en {app} en {ui}.",
   "mcp.setupForm": "Introduce estes valores en {app} en {ui}.",
   "mcp.setupOther": "Funciona calquera cliente que fale Streamable HTTP. Introduce isto onde pida un servidor MCP remoto, coa chave en calquera das dúas cabeceiras.",
   "mcp.setupWhere": "Onde está o ficheiro",

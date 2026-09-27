@@ -1830,6 +1830,7 @@ const ro: Partial<Translations> = {
   "mcp.setupCommand": "Rulează asta o dată într-un terminal.",
   "mcp.setupFile": "Adaugă asta în fișierul de configurare, lângă serverele care sunt deja acolo.",
   "mcp.setupFileUi": "În {app}, {ui} deschide fișierul.",
+  "mcp.setupPaste": "O poți și lipi în {app} la {ui}.",
   "mcp.setupForm": "Introdu aceste valori în {app} la {ui}.",
   "mcp.setupOther": "Merge orice client care vorbește Streamable HTTP. Introdu asta acolo unde cere un server MCP la distanță, cu cheia în oricare dintre cele două antete.",
   "mcp.setupWhere": "Unde se află fișierul",

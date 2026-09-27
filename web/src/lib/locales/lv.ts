@@ -2051,6 +2051,7 @@ const lv: Partial<Translations> = {
   "mcp.setupCommand": "Palaid šo vienreiz terminālī.",
   "mcp.setupFile": "Pievieno šo konfigurācijas failam blakus serveriem, kas tur jau ir.",
   "mcp.setupFileUi": "Lietotnē {app} failu atver {ui}.",
+  "mcp.setupPaste": "To var arī ielīmēt lietotnē {app} sadaļā {ui}.",
   "mcp.setupForm": "Ievadi šīs vērtības lietotnē {app} sadaļā {ui}.",
   "mcp.setupOther": "Der jebkurš klients, kas runā Streamable HTTP. Ievadi šo tur, kur tas prasa attālu MCP serveri, ar atslēgu vienā no abām galvenēm.",
   "mcp.setupWhere": "Kur atrodas fails",

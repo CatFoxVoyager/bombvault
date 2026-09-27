@@ -2051,6 +2051,7 @@ const bg: Partial<Translations> = {
   "mcp.setupCommand": "Изпълни това веднъж в терминал.",
   "mcp.setupFile": "Добави това към конфигурационния файл, до сървърите, които вече са там.",
   "mcp.setupFileUi": "В {app} файлът се отваря от {ui}.",
+  "mcp.setupPaste": "Можеш и да я поставиш в {app} в {ui}.",
   "mcp.setupForm": "Въведи тези стойности в {app} в {ui}.",
   "mcp.setupOther": "Работи всеки клиент, който говори Streamable HTTP. Въведи това там, където пита за отдалечен MCP сървър, с ключа в един от двата хедъра.",
   "mcp.setupWhere": "Къде е файлът",

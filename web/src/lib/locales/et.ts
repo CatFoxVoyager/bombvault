@@ -2051,6 +2051,7 @@ const et: Partial<Translations> = {
   "mcp.setupCommand": "Käivita see üks kord terminalis.",
   "mcp.setupFile": "Lisa see konfiguratsioonifaili, sinna juba lisatud serverite kõrvale.",
   "mcp.setupFileUi": "Rakenduses {app} avab faili {ui}.",
+  "mcp.setupPaste": "Selle võib ka kleepida rakenduses {app} kohta {ui}.",
   "mcp.setupForm": "Sisesta need väärtused rakenduses {app} kohas {ui}.",
   "mcp.setupOther": "Töötab iga klient, kes räägib Streamable HTTP-d. Sisesta need sinna, kus ta küsib kaug-MCP-serverit, võti ühes kahest päisest.",
   "mcp.setupWhere": "Kus fail asub",

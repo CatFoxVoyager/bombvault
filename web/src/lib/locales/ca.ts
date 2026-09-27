@@ -2051,6 +2051,7 @@ const ca: Partial<Translations> = {
   "mcp.setupCommand": "Executa això una vegada en un terminal.",
   "mcp.setupFile": "Afegeix això al fitxer de configuració, al costat dels servidors que ja hi ha.",
   "mcp.setupFileUi": "A {app}, {ui} obre el fitxer.",
+  "mcp.setupPaste": "També la pots enganxar a {app} a {ui}.",
   "mcp.setupForm": "Introdueix aquests valors a {app} a {ui}.",
   "mcp.setupOther": "Funciona qualsevol client que parli Streamable HTTP. Introdueix això on demani un servidor MCP remot, amb la clau en qualsevol de les dues capçaleres.",
   "mcp.setupWhere": "On és el fitxer",

@@ -1827,6 +1827,7 @@ const tr: Partial<Translations> = {
   "mcp.setupCommand": "Bunu bir terminalde bir kez çalıştır.",
   "mcp.setupFile": "Bunu yapılandırma dosyasına, orada zaten bulunan sunucuların yanına ekle.",
   "mcp.setupFileUi": "{app} içinde dosyayı {ui} açar.",
+  "mcp.setupPaste": "Bunu {app} içinde {ui} altına da yapıştırabilirsin.",
   "mcp.setupForm": "Bu değerleri {app} içinde {ui} altına gir.",
   "mcp.setupOther": "Streamable HTTP konuşan her istemci olur. Bunları uzak bir MCP sunucusu istediği yere gir, anahtar iki başlıktan birinde olsun.",
   "mcp.setupWhere": "Dosyanın yeri",

@@ -2051,6 +2051,7 @@ const fa: Partial<Translations> = {
   "mcp.setupCommand": "این را یک بار در ترمینال اجرا کن.",
   "mcp.setupFile": "این را به فایل پیکربندی اضافه کن، کنار سرورهایی که از قبل در آن هستند.",
   "mcp.setupFileUi": "در {app}، فایل با {ui} باز می‌شود.",
+  "mcp.setupPaste": "می‌توانی آن را در {app} در بخش {ui} هم جای‌گذاری کنی.",
   "mcp.setupForm": "این مقدارها را در {app} در بخش {ui} وارد کن.",
   "mcp.setupOther": "هر کلاینتی که Streamable HTTP صحبت کند کار می‌کند. این‌ها را جایی وارد کن که سرور MCP دور را می‌خواهد، با کلید در یکی از دو سرآیند.",
   "mcp.setupWhere": "جای فایل",
