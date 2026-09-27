@@ -128,7 +128,7 @@ Tietojoukko, jonka edellinen ajo varmuuskopioi ja jota tämä ajo ei voinut luke
 
 **Poikkeamat**-sivun välilehdellä **Kohteet** jokaisella tietojoukolla on oma rivinsä kohteensa alla, ja kohteen puu tällä sivulla näyttää avoimet löydökset kunkin tietojoukon vieressä. Löydöksen linkki avaa kohteen palautuspaneelin tietojoukon viimeisimmän hyvän varmuuskopion kohdalta. Se, valmistuuko ajo, arvioidaan koko kohteelle, koska ajo onnistuu tai epäonnistuu kokonaisuutena.
 
-Itse tarkistukset kuvataan kohdassa [Ominaisuudet](features.md). [MCP-palvelimen](mcp.md) kautta yhdistetty avustaja voi luetella ZFS-kohteen palautuspisteet, käynnistää sen varmuuskopion ja lukea löydökset, mutta löydös kuitataan **Poikkeamat**-sivulla.
+Itse tarkistukset kuvataan kohdassa [Ominaisuudet](features.md).
 
 ## Syykoodit {#reason-codes}
 

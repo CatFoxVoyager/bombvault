@@ -128,7 +128,7 @@ Um conjunto de dados que a execução anterior guardou e que esta não conseguiu
 
 No separador **Elementos** da página **Anomalias**, cada conjunto de dados tem uma linha própria sob o seu elemento, e a árvore do elemento nesta página mostra as deteções abertas junto a cada conjunto de dados. A ligação numa deteção abre o painel de restauro do elemento no último backup bom do conjunto de dados. Se uma execução chega ao fim é avaliado para o elemento inteiro, porque uma execução tem êxito ou falha como um todo.
 
-As verificações em si estão descritas em [Funcionalidades](features.md). Um assistente ligado através do [servidor MCP](mcp.md) pode listar os pontos de restauro de um elemento ZFS, iniciar o seu backup e ler as deteções, mas confirmar uma deteção faz-se na página **Anomalias**.
+As verificações em si estão descritas em [Funcionalidades](features.md).
 
 ## Códigos de motivo {#reason-codes}
 
