@@ -88,17 +88,16 @@ export function ZFSConnectionCard() {
         <div className="flex flex-col gap-2">
           {connected && (
             <p className="flex items-center gap-2 flex-wrap text-sm text-carbon-text">
-              <span>{t("zfs.connection.target").replace("{target}", result.target)}</span>
+              <span className="flex items-center gap-1.5">
+                {t("zfs.connection.target").replace("{target}", result.target)}
+                {code === "host-fallback" && <InfoBubble tip={zfsCodeSentence(t, code)} />}
+              </span>
               {result.version && (
                 <span className="text-carbon-textMuted">
                   {t("zfs.connection.version").replace("{version}", result.version)}
                 </span>
               )}
             </p>
-          )}
-
-          {code === "host-fallback" && (
-            <p className="text-xs text-carbon-textMuted">{zfsCodeSentence(t, code)}</p>
           )}
 
           {code === "propagation-missing" && (
@@ -118,10 +117,14 @@ export function ZFSConnectionCard() {
           {needsKey && publicKey && (
             <div className="flex flex-col gap-2 rounded-card bg-carbon-surface2 p-3">
               <span className="text-xs text-carbon-textMuted">{tLtr(t, "vm.ssh.publicKey")}</span>
-              <div className="flex items-start gap-2">
-                <code className="flex-1 break-all rounded-control bg-carbon-surface p-2 text-xs text-carbon-text">
-                  {publicKey}
-                </code>
+              <div className="flex items-center gap-2">
+                <input
+                  readOnly
+                  value={publicKey}
+                  aria-label={tLtr(t, "vm.ssh.publicKey")}
+                  dir="ltr"
+                  className="min-w-0 flex-1 rounded-control bg-carbon-surface px-3 py-1.5 font-mono text-sm text-carbon-text glim-field-focus"
+                />
                 <Button
                   label={t("common.copy")}
                   labelKey="common.copy"

@@ -84,8 +84,9 @@ describe("ZFS connection card", () => {
   it("names the fallback address it had to use", async () => {
     connection = result({ code: "host-fallback" });
     renderCard();
-    await screen.findByText("Connected as root@192.168.1.10");
-    expect(screen.getByText(en["zfs.code.host-fallback"])).toBeTruthy();
+    const target = await screen.findByText("Connected as root@192.168.1.10");
+    expect(target.parentElement?.contains(screen.getByLabelText(en["zfs.code.host-fallback"]))).toBe(true);
+    expect(screen.queryByText(en["zfs.code.host-fallback"])).toBeNull();
   });
 
   it("shows the sentence, the fix and the raw output of a failure", async () => {
@@ -107,7 +108,8 @@ describe("ZFS connection card", () => {
     connection = result({ ok: false, code: "ssh-auth", version: "", detail: "Permission denied (publickey)." });
     renderCard();
     await screen.findByText(en["zfs.code.ssh-auth"]);
-    expect(await screen.findByText("ssh-ed25519 AAAAKEY bombvault")).toBeTruthy();
+    const key = (await screen.findByDisplayValue("ssh-ed25519 AAAAKEY bombvault")) as HTMLInputElement;
+    expect(key.readOnly).toBe(true);
     expect(screen.getByText(en["zfs.connection.authorize"])).toBeTruthy();
     expect(screen.getByText(/chmod 600/)).toBeTruthy();
     expect(screen.getByRole("button", { name: en["vm.ssh.copyCmd"] })).toBeTruthy();

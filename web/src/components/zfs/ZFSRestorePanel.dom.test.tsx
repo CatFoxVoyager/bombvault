@@ -266,6 +266,16 @@ describe("ZFS restore panel", () => {
     expect(stop.getAttribute("aria-checked")).toBe("true");
   });
 
+  it("explains each switch through an (i) beside its own label", async () => {
+    await openPanel(item({ stopContainers: ["plex"] }));
+    for (const [label, hint] of [
+      [en["zfs.restore.safetySnapshot"], en["zfs.restore.safetySnapshotHint"]],
+      [en["zfs.restore.stopContainers"].replace("{names}", "plex"), en["zfs.restore.stopContainersHint"]],
+    ]) {
+      expect(screen.getByText(label).parentElement?.contains(screen.getByLabelText(hint))).toBe(true);
+    }
+  });
+
   it("shows a refusal the server coded as its sentence alone", async () => {
     ack = { ok: false, code: "read-only-mount", error: "read-only-mount: cache/appdata" };
     await openPanel();

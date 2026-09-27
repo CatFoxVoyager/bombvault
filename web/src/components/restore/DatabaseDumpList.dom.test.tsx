@@ -204,8 +204,11 @@ describe("the database dump list", () => {
     renderList();
 
     fireEvent.click(await screen.findByRole("button", { name: en["dbdump.saveToFolder"] }));
-    expect(screen.getByText(en["dbdump.saveHint"])).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: en["common.confirm"] }));
+    const confirm = screen.getByRole("button", { name: en["common.confirm"] });
+    // What saving writes is explained in the confirm button, not in grey above it.
+    expect(confirm.parentElement?.contains(screen.getByLabelText(en["dbdump.saveHint"]))).toBe(true);
+    expect(screen.queryByText(en["dbdump.saveHint"])).toBeNull();
+    fireEvent.click(confirm);
 
     await waitFor(() => expect(saveDbDumpTo).toHaveBeenCalled());
     expect(watched.some((w) => w.kind === "dbdumpsave")).toBe(true);

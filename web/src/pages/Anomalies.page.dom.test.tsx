@@ -330,6 +330,20 @@ describe("settling several findings at once", () => {
     expect(markAnomaliesExpected).not.toHaveBeenCalled();
   });
 
+  it("explains acknowledging and marking as expected inside the finding's own buttons", async () => {
+    getAnomalies.mockImplementation(() => page([finding({ name: "plex" })]));
+    await renderPage();
+    for (const [label, hint] of [
+      [en["anomaly.action.acknowledge"], en["anomaly.acknowledgeHint"]],
+      [en["anomaly.action.expected"], en["anomaly.expectedHint"]],
+    ]) {
+      const info = await screen.findByLabelText(hint);
+      const own = screen.getAllByRole("button", { name: label }).filter((b) => b.parentElement?.contains(info));
+      expect(own).toHaveLength(1);
+      expect(own[0].contains(info)).toBe(false);
+    }
+  });
+
   it("says that a selection covers the loaded entries only while a page is left", async () => {
     getAnomalies.mockImplementation(() => page([finding({ name: "plex" })], "cur-2"));
     await renderPage();

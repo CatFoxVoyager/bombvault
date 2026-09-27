@@ -411,28 +411,21 @@ export function ZFSRestorePanel({
 
               {inPlace && (
                 <div className="flex flex-col gap-1">
-                  <span className="flex items-center gap-1.5">
+                  <ToggleRow
+                    label={t("zfs.restore.safetySnapshot")}
+                    hint={t("zfs.restore.safetySnapshotHint")}
+                    checked={safety}
+                    onChange={(next) => void handleSafety(next)}
+                    disabled={isPending}
+                  />
+                  {item.stopContainers.length > 0 && (
                     <ToggleRow
-                      label={t("zfs.restore.safetySnapshot")}
-                      checked={safety}
-                      onChange={(next) => void handleSafety(next)}
+                      label={t("zfs.restore.stopContainers").replace("{names}", item.stopContainers.join(", "))}
+                      hint={t("zfs.restore.stopContainersHint")}
+                      checked={stopContainers}
+                      onChange={setStopContainers}
                       disabled={isPending}
                     />
-                    <InfoBubble tip={t("zfs.restore.safetySnapshotHint")} />
-                  </span>
-                  {item.stopContainers.length > 0 && (
-                    <span className="flex items-center gap-1.5">
-                      <ToggleRow
-                        label={t("zfs.restore.stopContainers").replace(
-                          "{names}",
-                          item.stopContainers.join(", "),
-                        )}
-                        checked={stopContainers}
-                        onChange={setStopContainers}
-                        disabled={isPending}
-                      />
-                      <InfoBubble tip={t("zfs.restore.stopContainersHint")} />
-                    </span>
                   )}
                 </div>
               )}

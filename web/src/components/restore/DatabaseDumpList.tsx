@@ -328,7 +328,6 @@ function DumpRow({
 
       {saveOpen && !dump.damaged && (
         <div className="mt-1 rounded-card bg-carbon-background p-2 flex flex-col gap-1.5">
-          <p className="text-caption text-carbon-textMuted">{t("dbdump.saveHint")}</p>
           <FormatPicker format={format} onChange={onFormat} t={t} />
           <FolderBrowser
             label={t("restore.targetPath")}
@@ -344,6 +343,7 @@ function DumpRow({
             disabled={!folder.trim() || saving}
             busy={saving}
             title={saving ? t("dbdump.busySaving") : undefined}
+            hint={t("dbdump.saveHint")}
             className="self-start"
           />
           <RestoreProgress

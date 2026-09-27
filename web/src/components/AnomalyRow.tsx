@@ -232,26 +232,22 @@ export function AnomalyRow({
         {isOpen && (onAcknowledge || onExpected) && (
           <div className="flex flex-wrap items-center gap-2">
             {onAcknowledge && (
-              <span className="inline-flex items-center gap-1">
-                <Button
-                  label={t("anomaly.action.acknowledge")}
-                  labelKey="anomaly.action.acknowledge"
-                  onClick={() => void run(onAcknowledge, "anomaly.action.acknowledge")}
-                  disabled={busy}
-                />
-                <InfoBubble tip={t("anomaly.acknowledgeHint")} />
-              </span>
+              <Button
+                label={t("anomaly.action.acknowledge")}
+                labelKey="anomaly.action.acknowledge"
+                onClick={() => void run(onAcknowledge, "anomaly.action.acknowledge")}
+                disabled={busy}
+                hint={t("anomaly.acknowledgeHint")}
+              />
             )}
             {onExpected && a.expectable && (
-              <span className="inline-flex items-center gap-1">
-                <Button
-                  label={t("anomaly.action.expected")}
-                  labelKey="anomaly.action.expected"
-                  onClick={() => void run(onExpected, "anomaly.action.expected")}
-                  disabled={busy}
-                />
-                <InfoBubble tip={t("anomaly.expectedHint")} />
-              </span>
+              <Button
+                label={t("anomaly.action.expected")}
+                labelKey="anomaly.action.expected"
+                onClick={() => void run(onExpected, "anomaly.action.expected")}
+                disabled={busy}
+                hint={t("anomaly.expectedHint")}
+              />
             )}
           </div>
         )}
