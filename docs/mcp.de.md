@@ -40,10 +40,10 @@ Ein Start einer Domäne oder des Gesamt-Backups lässt die Elemente aus, die ein
 
 ## Einschalten {#switch-on}
 
-1. Öffne **Einstellungen, System, MCP-Server** und klick auf **Neuer Schlüssel**.
-2. Gib dem Schlüssel einen Namen, der sagt, wo er benutzt wird, zum Beispiel "Claude Code auf dem Laptop". Mit einem Schlüssel pro Client kannst du einen widerrufen, ohne die anderen anzufassen.
-3. Lass **Backups starten erlauben** an, oder schalte es für einen Schlüssel aus, der nur lesen soll. Du kannst das später auf der Kachel des Schlüssels ändern, und die Änderung gilt ab der nächsten Anfrage des Assistenten, ohne neue Verbindung.
-4. Klick auf **Schlüssel anlegen**. Der Schlüssel wird einmal angezeigt. BombVault behält nur einen Fingerabdruck davon und kann ihn nicht noch einmal zeigen, also kopiere ihn gleich oder nimm einen der Ausschnitte darunter, die dann den echten Schlüssel enthalten.
+1. Öffne **Einstellungen, System, MCP-Server** und klick auf den Knopf deines Clients. Ein Client, der nicht in der Liste steht, verbindet sich über **Anderer Client**.
+2. Lass unter **Schlüssel** die Auswahl **Neuer Schlüssel** und den vorgeschlagenen Namen, also den des Clients, oder gib einen ein, der sagt, wo der Schlüssel benutzt wird, zum Beispiel „Claude Code auf dem Laptop“. Ein Schlüssel pro Client erlaubt es, einen zu widerrufen, ohne die anderen anzufassen. **Vorhandener Schlüssel** gibt dem Client einen Schlüssel, den du früher angelegt hast.
+3. Schalte **Backups starten erlauben** für einen Schlüssel ein, der Backups starten können soll; ohne das kann er nur lesen. Du kannst es später auf der Kachel des Schlüssels ändern, und die Änderung gilt ab der nächsten Anfrage des Assistenten, ohne neue Verbindung.
+4. Klick auf **Schlüssel anlegen**. Der Schlüssel wird einmal angezeigt. BombVault behält nur einen Fingerabdruck davon und kann ihn nicht noch einmal zeigen, also kopier ihn jetzt. Schließt du den Dialog, bevor der Client den Schlüssel benutzt hat, zeigt die Karte ihn weiter an, bis du bestätigst, dass du ihn kopiert hast.
 
 Ohne Login-Passwort ist schon die Web-Oberfläche für alle in deinem Netz offen, und wer sie öffnen kann, kann auch einen Schlüssel anlegen. Die Karte sagt das. Öffnest du BombVault unter einem öffentlich aussehenden Namen (zum Beispiel `bombvault.example.com` über einen Reverse Proxy) und ist kein Login-Passwort gesetzt, lassen sich von dieser Adresse keine Schlüssel anlegen oder ersetzen. So kann keine Webseite im Internet deinen Browser dazu bringen, einen anzulegen. Setz ein Login-Passwort, oder öffne BombVault über seine IP-Adresse oder einen lokalen Namen wie `tower` oder `tower.local`.
 
@@ -51,13 +51,54 @@ Ohne Login-Passwort ist schon die Web-Oberfläche für alle in deinem Netz offen
 
 Jeder Schlüssel hat auf der Karte eine eigene Kachel. Sie zeigt den Namen, ob der Schlüssel Backups starten darf oder nur liest, die letzten vier Zeichen des Schlüssels, wann er angelegt oder zuletzt ersetzt wurde, wann ein Client ihn zuletzt benutzt hat und wie viele Aufrufe er heute gemacht hat. Auf der Kachel benennst du den Schlüssel um, änderst seine Berechtigung, ersetzt ihn oder widerrufst ihn. Ein widerrufener Schlüssel wandert in die Liste der widerrufenen Schlüssel. Dort kannst du ihn endgültig löschen, sobald kein Lauf im Verlauf ihn mehr nennt.
 
+Neben dem Namen zeigt die Kachel das Zeichen des Clients, für den der Schlüssel angelegt wurde. Ein Schlüssel, der über **Anderer Client** entstanden ist oder bevor die Karte Clients aufgelistet hat, zeigt stattdessen einen Schlüssel.
+
 **Protokoll** auf einer Kachel zeigt, was dieser Schlüssel getan hat. Oben stehen die Backups, die er gestartet hat, jeweils mit ihrem Stand und einem Link auf diesen Lauf im Aktivitätsprotokoll des Dashboards. Darunter stehen seine Aufrufe, die neuesten zuerst, mit dem Werkzeug und dem Ergebnis. Eine Ablehnung nennt den Grund: Der Schlüssel darf nur lesen, der Aufbewahrungsschutz hat das Backup zurückgehalten, es lief schon ein anderes Backup, das Element wurde vor wenigen Minuten über MCP gesichert, oder der Schlüssel hat zu viele Anfragen geschickt. Ein Abbruch verlinkt den Lauf, um den es ging.
 
 BombVault hebt die Einträge jedes Schlüssels bis zu 30 Tage auf: die neuesten 500 erfolgreichen Starts und Abbrüche und daneben die neuesten 200 übrigen Aufrufe (Lesezugriffe, Ablehnungen und Fehler). Ein Assistent, der ein laufendes Backup immer wieder abfragt oder einen abgelehnten Aufruf immer wieder versucht, kann so dessen Start nicht aus dem Protokoll drängen. Zu jedem Aufruf speichert es das Werkzeug, das Ergebnis und bei einem Abbruch den Lauf. Was der Assistent geschickt hat, speichert es nie, den Schlüssel und seinen Fingerabdruck auch nicht. Das Diagnosepaket zählt die Einträge nur, und ein Einstellungsexport lässt sie weg.
 
 ## Client verbinden {#clients}
 
-Die Karte zeigt fertige Ausschnitte für die Adresse, unter der du sie geöffnet hast: Client wählen und Ausschnitt kopieren. Hier steht, was die Ausschnitte tun, und die Formen, die die Karte nicht zeigt.
+Jeder Client hat auf der Karte einen Knopf, unter **Auf diesem Rechner** oder **In der Cloud**. Der Knopf öffnet einen Dialog in drei Schritten: der Schlüssel; die Konfiguration für diesen Client, mit der Adresse, unter der du die Karte geöffnet hast, einem Knopf zum Kopieren, dem Ort, an dem die Konfiguration liegt, und bei BombVaults eigenem Zertifikat dem, was der Client braucht, um ihm zu vertrauen; und das Warten auf den ersten Aufruf des Clients. Der Dialog beobachtet die letzte Nutzung des Schlüssels und wird grün, sobald dieser Aufruf ankommt.
+
+Der Dialog hält den Schlüssel von jeder Befehlszeile fern. Wo der Client ihn aus einer Umgebungsvariable (`BOMBVAULT_MCP_KEY`), einer verdeckten Abfrage oder einer eigenen Datei lesen kann, nennt die Konfiguration ihn nur. Wo der Client das nicht kann, steht der Schlüssel in seiner Konfigurationsdatei oder seinen Einstellungen, und der Dialog sagt das. Wo die Dokumentation eines Clients nicht sagt, wie er mit einem unbekannten Zertifikat umgeht, schreibt der Dialog diesen Schritt als das, was zu tun ist, wenn der Client BombVaults Zertifikat ablehnt.
+
+| Client | Einrichtung | Woher der Schlüssel kommt |
+|---|---|---|
+| AnythingLLM | Konfigurationsdatei | die Konfigurationsdatei |
+| Antigravity | Konfigurationsdatei | Umgebungsvariable |
+| Claude Code | Befehl | Schlüsseldatei |
+| Claude Desktop | Konfigurationsdatei | die Konfigurationsdatei |
+| Cline | Konfigurationsdatei | die Konfigurationsdatei |
+| Codex CLI | Konfigurationsdatei | Umgebungsvariable |
+| Continue | Konfigurationsdatei | `~/.continue/.env` |
+| Copilot CLI | Konfigurationsdatei | die Konfigurationsdatei |
+| Cursor | Konfigurationsdatei | Umgebungsvariable |
+| Gemini CLI | Konfigurationsdatei | Umgebungsvariable |
+| GitHub Copilot (VS Code) | Konfigurationsdatei | verdeckte Abfrage |
+| Goose | Konfigurationsdatei | Umgebungsvariable |
+| Jan | Formular in der App | die Einstellungen der App |
+| JetBrains (AI Assistant, Junie) | Konfigurationsdatei | die Konfigurationsdatei |
+| Kimi Code | Konfigurationsdatei | die Konfigurationsdatei |
+| LM Studio | Konfigurationsdatei | die Konfigurationsdatei |
+| Mistral Vibe | Konfigurationsdatei | Umgebungsvariable |
+| Msty | Formular in der App | die Einstellungen der App |
+| n8n | Formular in der App | die Zugangsdaten von n8n |
+| Open WebUI | Formular in der App | die Einstellungen der App |
+| opencode | Konfigurationsdatei | Umgebungsvariable |
+| Perplexity (Mac) | Formular in der App | Schlüsseldatei |
+| Qwen Code | Konfigurationsdatei | Umgebungsvariable |
+| Roo Code | Konfigurationsdatei | Umgebungsvariable |
+| Visual Studio | Konfigurationsdatei | die Konfigurationsdatei |
+| Warp | Konfigurationsdatei | die Konfigurationsdatei |
+| Windsurf | Konfigurationsdatei | Umgebungsvariable |
+| Zed | Konfigurationsdatei | die Konfigurationsdatei |
+| Grok | Formular, in der Cloud | die Server des Anbieters |
+| Le Chat | Formular, in der Cloud | die Server des Anbieters |
+| ChatGPT | in der Cloud | nur OAuth, siehe unten |
+| Claude (claude.ai) | in der Cloud | OAuth in den meisten Organisationen, siehe unten |
+
+Die Abschnitte unten erklären die Einrichtung von Claude Code und Claude Desktop genauer und nennen, was jeder andere Client braucht.
 
 ### Claude Code {#claude-code}
 
@@ -124,9 +165,9 @@ Claude Desktop erreicht BombVault über `mcp-remote`, das Node.js auf dem Rechne
 - `--allow-http` kommt nur bei einer schlichten `http://`-Adresse dazu.
 - Der Header steht als `X-API-Key:${BOMBVAULT_MCP_KEY}` da, ohne Leerzeichen nach dem Doppelpunkt und mit dem Schlüssel in `env`. `mcp-remote` trennt einen `--header`-Wert auf manchen Systemen am ersten Leerzeichen, und ein Schlüssel hinter einem Leerzeichen ginge verloren.
 
-### Eigene Connectors in Claudes Einstellungen {#custom-connectors}
+### Clients in der Cloud {#cloud-clients}
 
-Connectors, die du in Claudes eigenen Einstellungen hinzufügst (auf claude.ai und in der Connector-Liste von Claude Desktop), werden noch nicht unterstützt. Diese Connectors werden aus der Cloud von Anthropic angesprochen, brauchen also eine öffentliche HTTPS-Adresse, und sie melden sich über OAuth an. Einen festen Schlüssel können sie nicht mitschicken, und BombVault bietet nur feste Schlüssel, keine OAuth-Anmeldung. BombVault dafür ins Internet zu stellen, würde also nichts bringen. Nimm Claude Code, oder Claude Desktop über `mcp-remote` wie oben.
+ChatGPT, Claude auf claude.ai, Grok und Le Chat rufen BombVault von den Servern ihrer Anbieter auf, deshalb muss BombVault aus dem Internet erreichbar sein, hinter einem Reverse-Proxy mit eigener Anmeldung und einem öffentlich vertrauenswürdigen Zertifikat; Le Chat lehnt selbst signierte ab. Grok und Le Chat können einen festen Schlüssel schicken, und ihre Knöpfe richten sie wie die anderen ein. ChatGPT verbindet sich nur über eine OAuth-Anmeldung, und Claude auf claude.ai nimmt einen festen Schlüssel-Header nur in manchen Organisationen an. BombVault bekommt die OAuth-Anmeldung mit dem nächsten Update; bis dahin sagen ihre Knöpfe das, statt eine Einrichtung anzubieten.
 
 ### Andere Clients {#other-clients}
 
@@ -178,7 +219,7 @@ Hinter einem Proxy trägt jede Anfrage die Adresse des Proxys. Fünf falsche Sch
 - Jeder Werkzeugaufruf landet im Container-Log mit der ID und den letzten vier Zeichen des Schlüssels (nie mit seinem Namen) und wird in `/metrics` gezählt (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Das Wiederherstellen eines Konfigurations-Backups widerruft jeden Schlüssel, weil die wiederhergestellte Datenbank Schlüssel enthalten kann, die du nach ihrer Sicherung widerrufen hast. Leg danach neue an.
 - Ein Schlüssel hört auf zu funktionieren, wenn sich `APP_KEY` ändert (eine Neuinstallation oder eine Wiederherstellung in einen anderen Container). Die Karte erkennt das und markiert den Schlüssel, und **Schlüssel ersetzen** gibt ihm wieder ein gültiges Geheimnis.
-- Behandle einen Schlüssel wie ein Passwort. Claude Code liest ihn aus der Schlüsseldatei, und Claude Desktop legt ihn in seiner Konfiguration ab, beide im Klartext. Nimm auf einem Rechner, dem du weniger traust, lieber einen Schlüssel, der nur lesen darf.
+- Behandle einen Schlüssel wie ein Passwort. Ein Client, der den Schlüssel weder aus einer Umgebungsvariable noch aus einer Abfrage oder einer Schlüsseldatei lesen kann, hält ihn im Klartext in seiner Konfiguration oder seinen Einstellungen, und sein Dialog sagt das. Nimm auf einem Rechner, dem du weniger vertraust, lieber einen Schlüssel, der nur lesen darf.
 
 ## Was die Box verlässt {#privacy}
 

@@ -40,10 +40,10 @@ Khi bắt đầu một miền hoặc Backup Everything, các mục bị một gi
 
 ## Bật tính năng {#switch-on}
 
-1. Mở **Cài đặt, Hệ thống, Máy chủ MCP** và nhấn **Khóa mới**.
-2. Đặt cho khóa một tên cho biết nơi dùng nó, ví dụ "Claude Code trên laptop". Mỗi máy khách một khóa thì bạn có thể thu hồi một khóa mà không động đến các khóa khác.
-3. Để bật **Cho phép bắt đầu sao lưu**, hoặc tắt nó cho khóa chỉ cần đọc. Bạn có thể đổi sau ở ô của khóa, và thay đổi có hiệu lực từ yêu cầu tiếp theo của trợ lý mà không cần kết nối lại.
-4. Nhấn **Tạo khóa**. Khóa chỉ hiện một lần. BombVault chỉ giữ dấu vân tay của khóa và không thể hiện lại, nên hãy sao chép ngay hoặc dùng một trong các đoạn mã bên dưới, lúc đó chứa khóa thật.
+1. Mở **Cài đặt, Hệ thống, Máy chủ MCP** và bấm nút của máy khách bạn dùng. Máy khách không có trong danh sách kết nối qua **Máy khách khác**.
+2. Trong **Khóa**, giữ **Khóa mới** và tên được đề xuất, tức tên của máy khách, hoặc gõ một tên cho biết khóa dùng ở đâu, ví dụ "Claude Code trên laptop". Mỗi máy khách một khóa giúp bạn thu hồi một khóa mà không động đến các khóa khác. **Khóa hiện có** cấp cho máy khách một khóa bạn đã tạo trước đó.
+3. Bật **Cho phép bắt đầu sao lưu** cho khóa cần bắt đầu được bản sao lưu; nếu không, khóa chỉ đọc được. Bạn có thể đổi sau trên ô của khóa, và thay đổi có hiệu lực từ yêu cầu tiếp theo của trợ lý mà không cần kết nối lại.
+4. Bấm **Tạo khóa**. Khóa chỉ hiện một lần. BombVault chỉ giữ dấu vân của khóa và không thể hiện lại nó, nên hãy sao chép ngay. Nếu bạn đóng hộp thoại trước khi máy khách dùng khóa, thẻ vẫn tiếp tục hiện khóa cho đến khi bạn xác nhận đã sao chép.
 
 Khi không có mật khẩu đăng nhập, chính giao diện web đã mở cho mọi người trong mạng của bạn, và ai mở được nó cũng có thể tạo khóa. Thẻ sẽ báo điều này. Nếu bạn mở BombVault bằng một tên trông như công khai (ví dụ `bombvault.example.com` sau một reverse proxy) và chưa đặt mật khẩu đăng nhập, thì không thể tạo hay thay khóa từ địa chỉ đó, để không trang web nào trên Internet có thể khiến trình duyệt của bạn tạo khóa. Hãy đặt mật khẩu đăng nhập, hoặc mở BombVault bằng địa chỉ IP hay một tên cục bộ như `tower` hoặc `tower.local`.
 
@@ -51,13 +51,54 @@ Khi không có mật khẩu đăng nhập, chính giao diện web đã mở cho 
 
 Mỗi khóa có một ô riêng trên thẻ. Ô hiển thị tên khóa, khóa được phép bắt đầu sao lưu hay chỉ đọc, bốn ký tự cuối của khóa, thời điểm tạo hoặc thay thế gần nhất, lần gần nhất một ứng dụng khách dùng nó và số lượt gọi hôm nay. Trên ô, bạn đổi tên khóa, đổi quyền, thay thế hoặc thu hồi khóa. Khóa đã thu hồi chuyển sang danh sách khóa đã thu hồi, và bạn có thể xóa hẳn nó ở đó khi không còn lần chạy nào trong lịch sử nhắc đến nó.
 
+Cạnh tên, ô hiện logo của máy khách mà khóa được tạo cho. Khóa tạo qua **Máy khách khác**, hoặc trước khi thẻ liệt kê máy khách, sẽ hiện biểu tượng chiếc khóa thay vào đó.
+
 **Nhật ký** trên một ô mở ra những gì khóa đó đã làm. Đầu tiên là các bản sao lưu nó đã bắt đầu, mỗi bản kèm trạng thái và liên kết tới lần chạy đó trong nhật ký hoạt động trên bảng điều khiển. Bên dưới là các lượt gọi, mới nhất trước, kèm công cụ và kết quả. Một lần từ chối có ghi lý do: khóa chỉ được đọc, cơ chế bảo vệ lưu giữ đã giữ bản sao lưu lại, một bản sao lưu khác đang chạy, mục này vừa được sao lưu qua MCP vài phút trước, hoặc khóa gửi quá nhiều yêu cầu. Một lần hủy liên kết tới lần chạy liên quan.
 
 BombVault giữ các mục của mỗi khóa tối đa 30 ngày: 500 lần khởi chạy và hủy thành công gần nhất, cùng với đó là 200 lượt gọi khác gần nhất (đọc, từ chối và lỗi), nên một trợ lý hỏi đi hỏi lại về một bản sao lưu đang chạy hoặc thử lại mãi một lượt gọi bị từ chối không thể đẩy lần khởi chạy của nó ra khỏi nhật ký. Với mỗi lượt gọi, nó lưu công cụ, kết quả và lần chạy mà lệnh hủy nêu tên. Nó không bao giờ lưu nội dung trợ lý đã gửi, cũng không lưu khóa hay dấu vân tay của khóa. Gói chẩn đoán chỉ đếm số mục, và bản xuất cài đặt không chứa chúng.
 
 ## Kết nối máy khách {#clients}
 
-Thẻ hiển thị sẵn các đoạn mã cho địa chỉ bạn dùng để mở nó: chọn máy khách và sao chép đoạn mã. Phần còn lại giải thích các đoạn mã làm gì và đưa ra những dạng mà thẻ không hiển thị.
+Mỗi máy khách có một nút trên thẻ, trong nhóm **Trên máy tính này** hoặc **Trên đám mây**. Nút mở một hộp thoại ba bước: khóa; cấu hình cho máy khách đó, với địa chỉ bạn đã mở thẻ, một nút để sao chép, nơi cấu hình nằm và, với chứng chỉ riêng của BombVault, những gì máy khách cần để tin nó; và chờ lần gọi đầu tiên của máy khách. Hộp thoại theo dõi lần dùng gần nhất của khóa và chuyển sang màu xanh khi lần gọi đó đến.
+
+Hộp thoại giữ khóa khỏi mọi dòng lệnh. Khi máy khách đọc được khóa từ biến môi trường (`BOMBVAULT_MCP_KEY`), từ lời nhắc ẩn hoặc từ tệp riêng, cấu hình chỉ nêu tên nó. Khi máy khách không có cách như vậy, khóa nằm trong tệp cấu hình hoặc cài đặt của nó, và hộp thoại nói rõ điều đó. Khi tài liệu của máy khách không nói nó xử lý chứng chỉ lạ ra sao, hộp thoại viết bước đó thành việc cần làm nếu máy khách từ chối chứng chỉ của BombVault.
+
+| Máy khách | Thiết lập | Khóa lấy từ đâu |
+|---|---|---|
+| AnythingLLM | tệp cấu hình | tệp cấu hình |
+| Antigravity | tệp cấu hình | biến môi trường |
+| Claude Code | lệnh | tệp khóa |
+| Claude Desktop | tệp cấu hình | tệp cấu hình |
+| Cline | tệp cấu hình | tệp cấu hình |
+| Codex CLI | tệp cấu hình | biến môi trường |
+| Continue | tệp cấu hình | `~/.continue/.env` |
+| Copilot CLI | tệp cấu hình | tệp cấu hình |
+| Cursor | tệp cấu hình | biến môi trường |
+| Gemini CLI | tệp cấu hình | biến môi trường |
+| GitHub Copilot (VS Code) | tệp cấu hình | lời nhắc ẩn |
+| Goose | tệp cấu hình | biến môi trường |
+| Jan | biểu mẫu trong ứng dụng | cài đặt của ứng dụng |
+| JetBrains (AI Assistant, Junie) | tệp cấu hình | tệp cấu hình |
+| Kimi Code | tệp cấu hình | tệp cấu hình |
+| LM Studio | tệp cấu hình | tệp cấu hình |
+| Mistral Vibe | tệp cấu hình | biến môi trường |
+| Msty | biểu mẫu trong ứng dụng | cài đặt của ứng dụng |
+| n8n | biểu mẫu trong ứng dụng | kho thông tin đăng nhập của n8n |
+| Open WebUI | biểu mẫu trong ứng dụng | cài đặt của ứng dụng |
+| opencode | tệp cấu hình | biến môi trường |
+| Perplexity (Mac) | biểu mẫu trong ứng dụng | tệp khóa |
+| Qwen Code | tệp cấu hình | biến môi trường |
+| Roo Code | tệp cấu hình | biến môi trường |
+| Visual Studio | tệp cấu hình | tệp cấu hình |
+| Warp | tệp cấu hình | tệp cấu hình |
+| Windsurf | tệp cấu hình | biến môi trường |
+| Zed | tệp cấu hình | tệp cấu hình |
+| Grok | biểu mẫu, trên đám mây | máy chủ của nhà cung cấp |
+| Le Chat | biểu mẫu, trên đám mây | máy chủ của nhà cung cấp |
+| ChatGPT | trên đám mây | chỉ OAuth, xem bên dưới |
+| Claude (claude.ai) | trên đám mây | OAuth ở phần lớn tổ chức, xem bên dưới |
+
+Các phần dưới đây giải thích kỹ hơn cách thiết lập Claude Code và Claude Desktop, và liệt kê những gì mọi máy khách khác cần.
 
 ### Claude Code {#claude-code}
 
@@ -124,9 +165,9 @@ Claude Desktop kết nối tới BombVault qua `mcp-remote`, vốn cần Node.js
 - `--allow-http` chỉ được thêm cho địa chỉ `http://` thông thường.
 - Header được viết là `X-API-Key:${BOMBVAULT_MCP_KEY}`, không có khoảng trắng sau dấu hai chấm và khóa nằm trong `env`. Trên một số hệ thống, `mcp-remote` tách giá trị của `--header` tại khoảng trắng đầu tiên, và khóa viết sau khoảng trắng sẽ bị mất.
 
-### Connector tùy chỉnh trong cài đặt của Claude {#custom-connectors}
+### Máy khách trên đám mây {#cloud-clients}
 
-Các connector bạn thêm trong cài đặt của chính Claude (trên claude.ai và trong danh sách connector của Claude Desktop) hiện chưa được hỗ trợ. Các connector này được gọi từ đám mây của Anthropic, nên cần một địa chỉ HTTPS công khai, và chúng đăng nhập qua OAuth. Chúng không gửi được khóa cố định, còn BombVault chỉ cung cấp khóa cố định, không có đăng nhập OAuth. Đưa BombVault lên Internet vì chúng cũng không giúp được gì. Hãy dùng Claude Code, hoặc Claude Desktop qua `mcp-remote` như trên.
+ChatGPT, Claude trên claude.ai, Grok và Le Chat gọi BombVault từ máy chủ của nhà cung cấp, nên BombVault phải truy cập được từ internet, sau một reverse proxy có đăng nhập riêng và chứng chỉ được tin cậy công khai; Le Chat từ chối chứng chỉ tự ký. Grok và Le Chat gửi được khóa cố định, và nút của chúng thiết lập như các máy khách khác. ChatGPT chỉ kết nối qua đăng nhập OAuth, còn Claude trên claude.ai chỉ nhận header khóa cố định ở một số tổ chức. BombVault sẽ có đăng nhập OAuth ở bản cập nhật tới; đến lúc đó nút của chúng nói rõ điều này thay vì đưa ra phần thiết lập.
 
 ### Máy khách khác {#other-clients}
 
@@ -178,7 +219,7 @@ Sau một proxy, mọi yêu cầu đều mang địa chỉ của proxy. Khi đó
 - Mọi lệnh gọi công cụ được ghi vào nhật ký container cùng id của khóa và bốn ký tự cuối (không bao giờ ghi tên) và được đếm trong `/metrics` (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Khôi phục một bản sao lưu cấu hình sẽ thu hồi mọi khóa, vì cơ sở dữ liệu được khôi phục có thể chứa các khóa bạn đã thu hồi sau khi nó được lưu. Hãy tạo khóa mới sau đó.
 - Khóa ngừng hoạt động khi `APP_KEY` thay đổi (cài lại, hoặc khôi phục sang container khác). Thẻ phát hiện điều này và đánh dấu khóa, còn **Thay khóa** cấp lại cho nó một bí mật hợp lệ.
-- Hãy đối xử với khóa như mật khẩu. Claude Code đọc khóa từ tệp khóa, còn Claude Desktop lưu khóa trong cấu hình của nó, cả hai đều ở dạng văn bản thường. Trên máy tính bạn ít tin cậy hơn, nên dùng khóa chỉ đọc.
+- Hãy coi khóa như mật khẩu. Máy khách không đọc được khóa từ biến môi trường, lời nhắc hay tệp khóa sẽ giữ nó dạng văn bản thường trong cấu hình hoặc cài đặt, và hộp thoại của nó nói rõ điều đó. Trên máy tính bạn ít tin tưởng hơn, hãy dùng khóa chỉ đọc.
 
 ## Những gì rời khỏi máy {#privacy}
 

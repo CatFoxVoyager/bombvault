@@ -40,10 +40,10 @@ Un avvio di dominio o di Backup Everything lascia fuori gli elementi trattenuti 
 
 ## Attivarlo {#switch-on}
 
-1. Apri **Impostazioni, Sistema, Server MCP** e fai clic su **Nuova chiave**.
-2. Dai alla chiave un nome che dica dove viene usata, per esempio "Claude Code sul portatile". Con una chiave per client puoi revocarne una senza toccare le altre.
-3. Lascia attivo **Consenti di avviare backup**, oppure disattivalo per una chiave che deve solo leggere. Puoi cambiarlo più tardi sulla scheda della chiave, e la modifica vale dalla richiesta successiva dell'assistente, senza riconnessione.
-4. Fai clic su **Crea chiave**. La chiave viene mostrata una sola volta. BombVault ne conserva solo un'impronta e non può mostrarla di nuovo, quindi copiala subito oppure prendi uno degli snippet sotto, che a quel punto contengono la chiave vera.
+1. Apri **Impostazioni, Sistema, Server MCP** e fai clic sul pulsante del tuo client. Un client che non è nell'elenco si collega tramite **Altro client**.
+2. In **Chiave** lascia **Nuova chiave** e il nome proposto, cioè quello del client, oppure scrivine uno che dica dove si usa la chiave, per esempio «Claude Code sul portatile». Una chiave per client ti permette di revocarne una senza toccare le altre. **Chiave esistente** dà al client una chiave che hai creato prima.
+3. Attiva **Consenti di avviare backup** per una chiave che deve poter avviare backup; senza, può solo leggere. Puoi cambiarlo più tardi sul riquadro della chiave, e la modifica vale dalla richiesta successiva dell'assistente, senza riconnessione.
+4. Fai clic su **Crea chiave**. La chiave viene mostrata una volta sola. BombVault ne conserva solo un'impronta e non può mostrarla di nuovo, quindi copiala adesso. Se chiudi la finestra prima che il client abbia usato la chiave, la scheda continua a mostrarla finché non confermi di averla copiata.
 
 Senza password di accesso l'interfaccia web stessa è aperta a tutta la tua rete, e chi può aprirla può anche creare una chiave. La scheda lo segnala. Se apri BombVault con un nome che sembra pubblico (per esempio `bombvault.example.com` dietro un reverse proxy) e non è impostata una password di accesso, da quell'indirizzo non si possono creare né sostituire chiavi, così nessuna pagina web su Internet può indurre il tuo browser a crearne una. Imposta una password di accesso, oppure apri BombVault dal suo indirizzo IP o da un nome locale come `tower` o `tower.local`.
 
@@ -51,13 +51,54 @@ Senza password di accesso l'interfaccia web stessa è aperta a tutta la tua rete
 
 Ogni chiave ha una scheda sua nella card. Mostra il nome della chiave, se può avviare backup o solo leggere, gli ultimi quattro caratteri della chiave, quando è stata creata o sostituita l'ultima volta, quando un client l'ha usata l'ultima volta e quante chiamate ha fatto oggi. Dalla scheda rinomini la chiave, ne cambi il permesso, la sostituisci o la revochi. Una chiave revocata passa nell'elenco delle chiavi revocate, dove puoi eliminarla per sempre quando nessuna esecuzione nella cronologia la nomina più.
 
+Accanto al nome, il riquadro mostra il logo del client per cui la chiave è stata creata. Una chiave creata tramite **Altro client**, o prima che la scheda elencasse i client, mostra invece una chiave.
+
 **Registro** su una scheda apre ciò che ha fatto quella chiave. Prima vengono i backup che ha avviato, ognuno con il suo stato e un link a quell'esecuzione nel registro attività della dashboard. Sotto ci sono le sue chiamate, le più recenti prima, con lo strumento e l'esito. Un rifiuto dice il motivo: la chiave può solo leggere, la protezione della conservazione ha trattenuto il backup, era già in corso un altro backup, l'elemento è stato salvato tramite MCP pochi minuti fa, oppure la chiave ha inviato troppe richieste. Un annullamento rimanda all'esecuzione a cui si riferiva.
 
 BombVault conserva le voci di ogni chiave per 30 giorni al massimo: gli ultimi 500 avvii e annullamenti riusciti e, accanto a questi, le ultime 200 altre chiamate (letture, rifiuti ed errori). Così un assistente che interroga di continuo un backup in corso, o che ripete una chiamata rifiutata, non può spingere il suo avvio fuori dal registro. Per ogni chiamata salva lo strumento, l'esito e l'esecuzione nominata da un annullamento. Non salva mai ciò che l'assistente ha inviato, né la chiave o la sua impronta. Il pacchetto di diagnostica conta soltanto le voci, e un'esportazione delle impostazioni le lascia fuori.
 
 ## Collegare un client {#clients}
 
-La scheda mostra snippet pronti per l'indirizzo con cui l'hai aperta: scegli il client e copia lo snippet. Qui sotto trovi cosa fanno gli snippet e le forme che la scheda non mostra.
+Ogni client ha un pulsante sulla scheda, sotto **Su questo computer** o **Nel cloud**. Il pulsante apre una finestra in tre passaggi: la chiave; la configurazione per quel client, con l'indirizzo con cui hai aperto la scheda, un pulsante per copiarla, dove si trova la configurazione e, con il certificato proprio di BombVault, ciò che serve al client per fidarsene; e l'attesa della prima chiamata del client. La finestra osserva l'ultimo uso della chiave e diventa verde quando arriva quella chiamata.
+
+La finestra tiene la chiave lontana da ogni riga di comando. Se il client sa leggerla da una variabile d'ambiente (`BOMBVAULT_MCP_KEY`), da una richiesta mascherata o da un file suo, la configurazione si limita a nominarla. Se il client non ha un modo simile, la chiave sta nel suo file di configurazione o nelle sue impostazioni, e la finestra lo dice. Se la documentazione di un client non dice come tratta un certificato che non conosce, la finestra scrive quel passaggio come ciò che va fatto se il client rifiuta il certificato di BombVault.
+
+| Client | Configurazione | Da dove arriva la chiave |
+|---|---|---|
+| AnythingLLM | file di configurazione | il file di configurazione |
+| Antigravity | file di configurazione | variabile d'ambiente |
+| Claude Code | comando | file della chiave |
+| Claude Desktop | file di configurazione | il file di configurazione |
+| Cline | file di configurazione | il file di configurazione |
+| Codex CLI | file di configurazione | variabile d'ambiente |
+| Continue | file di configurazione | `~/.continue/.env` |
+| Copilot CLI | file di configurazione | il file di configurazione |
+| Cursor | file di configurazione | variabile d'ambiente |
+| Gemini CLI | file di configurazione | variabile d'ambiente |
+| GitHub Copilot (VS Code) | file di configurazione | richiesta mascherata |
+| Goose | file di configurazione | variabile d'ambiente |
+| Jan | modulo nell'app | le impostazioni dell'app |
+| JetBrains (AI Assistant, Junie) | file di configurazione | il file di configurazione |
+| Kimi Code | file di configurazione | il file di configurazione |
+| LM Studio | file di configurazione | il file di configurazione |
+| Mistral Vibe | file di configurazione | variabile d'ambiente |
+| Msty | modulo nell'app | le impostazioni dell'app |
+| n8n | modulo nell'app | le credenziali di n8n |
+| Open WebUI | modulo nell'app | le impostazioni dell'app |
+| opencode | file di configurazione | variabile d'ambiente |
+| Perplexity (Mac) | modulo nell'app | file della chiave |
+| Qwen Code | file di configurazione | variabile d'ambiente |
+| Roo Code | file di configurazione | variabile d'ambiente |
+| Visual Studio | file di configurazione | il file di configurazione |
+| Warp | file di configurazione | il file di configurazione |
+| Windsurf | file di configurazione | variabile d'ambiente |
+| Zed | file di configurazione | il file di configurazione |
+| Grok | modulo, nel cloud | i server del fornitore |
+| Le Chat | modulo, nel cloud | i server del fornitore |
+| ChatGPT | nel cloud | solo OAuth, vedi sotto |
+| Claude (claude.ai) | nel cloud | OAuth nella maggior parte delle organizzazioni, vedi sotto |
+
+Le sezioni seguenti spiegano più nel dettaglio la configurazione di Claude Code e Claude Desktop ed elencano ciò che serve a qualsiasi altro client.
 
 ### Claude Code {#claude-code}
 
@@ -124,9 +165,9 @@ Claude Desktop raggiunge BombVault tramite `mcp-remote`, che richiede Node.js su
 - `--allow-http` viene aggiunto solo per un indirizzo `http://` in chiaro.
 - L'intestazione è scritta `X-API-Key:${BOMBVAULT_MCP_KEY}`, senza spazio dopo i due punti e con la chiave in `env`. Su alcuni sistemi `mcp-remote` spezza un valore di `--header` al primo spazio, e una chiave scritta dopo uno spazio andrebbe persa.
 
-### Connettori personalizzati nelle impostazioni di Claude {#custom-connectors}
+### Client nel cloud {#cloud-clients}
 
-I connettori aggiunti nelle impostazioni di Claude stesso (su claude.ai e nell'elenco dei connettori di Claude Desktop) non sono ancora supportati. Questi connettori vengono contattati dal cloud di Anthropic, quindi serve loro un indirizzo HTTPS pubblico, e accedono tramite OAuth. Non possono inviare una chiave fissa, e BombVault offre solo chiavi fisse, senza accesso OAuth. Mettere BombVault su Internet per loro non servirebbe. Usa Claude Code, oppure Claude Desktop tramite `mcp-remote` come sopra.
+ChatGPT, Claude su claude.ai, Grok e Le Chat chiamano BombVault dai server del loro fornitore, quindi BombVault deve essere raggiungibile da internet, dietro un reverse proxy con un proprio accesso e un certificato attendibile pubblicamente; Le Chat rifiuta quelli autofirmati. Grok e Le Chat possono inviare una chiave fissa, e i loro pulsanti li configurano come gli altri. ChatGPT si collega solo tramite un accesso OAuth, e Claude su claude.ai accetta un header con chiave fissa solo in alcune organizzazioni. BombVault riceve l'accesso OAuth con il prossimo aggiornamento; fino ad allora i loro pulsanti lo dicono invece di offrire una configurazione.
 
 ### Altri client {#other-clients}
 
@@ -178,7 +219,7 @@ Dietro un proxy ogni richiesta porta l'indirizzo del proxy. Cinque chiavi sbagli
 - Ogni chiamata a uno strumento viene scritta nel log del container con l'id della chiave e i suoi ultimi quattro caratteri (mai il nome) e contata in `/metrics` (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Ripristinare un backup della configurazione revoca tutte le chiavi, perché il database ripristinato può contenere chiavi che hai revocato dopo il suo salvataggio. Poi crea chiavi nuove.
 - Una chiave smette di funzionare quando cambia `APP_KEY` (una reinstallazione o un ripristino su un altro container). La scheda lo rileva e segna la chiave, e **Sostituisci chiave** le ridà un segreto valido.
-- Tratta una chiave come una password. Claude Code la legge dal file della chiave e Claude Desktop la conserva nella sua configurazione, entrambi in chiaro. Su un computer di cui ti fidi meno, preferisci una chiave di sola lettura.
+- Tratta una chiave come una password. Un client che non sa leggere la chiave da una variabile d'ambiente, da una richiesta o da un file della chiave la tiene in chiaro nella sua configurazione o nelle sue impostazioni, e la sua finestra lo dice. Su un computer di cui ti fidi meno, meglio una chiave di sola lettura.
 
 ## Cosa esce dalla macchina {#privacy}
 

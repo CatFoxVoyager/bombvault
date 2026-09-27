@@ -40,10 +40,10 @@ Un lancement de domaine ou de Backup Everything laisse de côté les éléments 
 
 ## Activer le serveur {#switch-on}
 
-1. Ouvrez **Paramètres, Système, Serveur MCP** et cliquez sur **Nouvelle clé**.
-2. Donnez à la clé un nom qui dit où elle sert, par exemple « Claude Code sur le portable ». Avec une clé par client, vous pouvez en révoquer une sans toucher aux autres.
-3. Laissez **Autoriser le lancement de sauvegardes** activé, ou désactivez-le pour une clé qui doit seulement lire. Vous pouvez le changer plus tard sur la tuile de la clé, et le changement s'applique dès la requête suivante de l'assistant, sans reconnexion.
-4. Cliquez sur **Créer la clé**. La clé s'affiche une seule fois. BombVault n'en garde qu'une empreinte et ne peut plus l'afficher, alors copiez-la tout de suite ou prenez l'un des extraits en dessous, qui contiennent alors la vraie clé.
+1. Ouvre **Paramètres, Système, Serveur MCP** et clique sur le bouton de ton client. Un client qui n'est pas dans la liste se connecte via **Autre client**.
+2. Sous **Clé**, garde **Nouvelle clé** et le nom proposé, celui du client, ou saisis un nom qui dit où la clé sert, par exemple « Claude Code sur le portable ». Une clé par client permet d'en révoquer une sans toucher aux autres. **Clé existante** donne au client une clé que tu as créée avant.
+3. Active **Autoriser le lancement de sauvegardes** pour une clé qui doit pouvoir lancer des sauvegardes ; sans cela, elle peut seulement lire. Tu peux le changer plus tard sur la tuile de la clé, et le changement vaut dès la requête suivante de l'assistant, sans reconnexion.
+4. Clique sur **Créer la clé**. La clé s'affiche une seule fois. BombVault n'en garde qu'une empreinte et ne peut pas la remontrer, alors copie-la maintenant. Si tu fermes la boîte de dialogue avant que le client ait utilisé la clé, la carte continue de l'afficher jusqu'à ce que tu confirmes l'avoir copiée.
 
 Sans mot de passe de connexion, l'interface web elle-même est ouverte à tout votre réseau, et quiconque peut l'ouvrir peut aussi créer une clé. La carte le signale. Si vous ouvrez BombVault sous un nom qui a l'air public (par exemple `bombvault.example.com` derrière un reverse proxy) et qu'aucun mot de passe de connexion n'est défini, aucune clé ne peut être créée ni remplacée depuis cette adresse, pour qu'aucune page web sur Internet ne puisse amener votre navigateur à en créer une. Définissez un mot de passe de connexion, ou ouvrez BombVault par son adresse IP ou par un nom local comme `tower` ou `tower.local`.
 
@@ -51,13 +51,54 @@ Sans mot de passe de connexion, l'interface web elle-même est ouverte à tout v
 
 Chaque clé a sa propre tuile sur la carte. Elle affiche le nom de la clé, si elle peut lancer des sauvegardes ou seulement lire, les quatre derniers caractères de la clé, quand elle a été créée ou remplacée pour la dernière fois, quand un client l'a utilisée pour la dernière fois et combien d'appels elle a faits aujourd'hui. Sur la tuile, vous renommez la clé, changez son autorisation, la remplacez ou la révoquez. Une clé révoquée passe dans la liste des clés révoquées, où vous pouvez la supprimer définitivement dès qu'aucune exécution de l'historique ne la nomme.
 
+À côté de son nom, la tuile montre le logo du client pour lequel la clé a été créée. Une clé créée via **Autre client**, ou avant que la carte liste les clients, montre une clé à la place.
+
 **Journal** sur une tuile ouvre ce que cette clé a fait. D'abord les sauvegardes qu'elle a lancées, chacune avec son état et un lien vers cette exécution dans le journal d'activité du tableau de bord. En dessous, ses appels, les plus récents d'abord, avec l'outil et ce qu'est devenu l'appel. Un refus dit pourquoi : la clé peut seulement lire, la protection de rétention a retenu la sauvegarde, une autre sauvegarde était déjà en cours, l'élément a été sauvegardé via MCP il y a quelques minutes, ou la clé a envoyé trop de requêtes. Une annulation renvoie vers l'exécution concernée.
 
 BombVault garde les entrées de chaque clé pendant 30 jours au plus : les 500 lancements et annulations réussis les plus récents et, à côté, les 200 autres appels les plus récents (lectures, refus et erreurs). Un assistant qui interroge sans cesse une sauvegarde en cours, ou qui répète un appel refusé, ne peut donc pas faire sortir son lancement du journal. Pour chaque appel, il enregistre l'outil, le résultat et l'exécution nommée par une annulation. Il n'enregistre jamais ce que l'assistant a envoyé, ni la clé ou son empreinte. Le paquet de diagnostic ne fait que compter les entrées, et un export des réglages les laisse de côté.
 
 ## Connecter un client {#clients}
 
-La carte affiche des extraits prêts à l'emploi pour l'adresse à laquelle vous l'avez ouverte : choisissez votre client et copiez l'extrait. La suite explique ce que font les extraits et donne les formes que la carte ne montre pas.
+Chaque client a un bouton sur la carte, sous **Sur cet ordinateur** ou **Dans le cloud**. Le bouton ouvre une boîte de dialogue en trois étapes : la clé ; la configuration pour ce client, avec l'adresse à laquelle tu as ouvert la carte, un bouton pour la copier, l'endroit où se trouve la configuration et, avec le certificat propre de BombVault, ce dont le client a besoin pour lui faire confiance ; puis l'attente du premier appel du client. La boîte de dialogue surveille la dernière utilisation de la clé et passe au vert quand cet appel arrive.
+
+La boîte de dialogue garde la clé hors de toute ligne de commande. Quand le client sait la lire dans une variable d'environnement (`BOMBVAULT_MCP_KEY`), une invite masquée ou un fichier à lui, la configuration ne fait que la nommer. Quand le client ne le sait pas, la clé se trouve dans son fichier de configuration ou ses réglages, et la boîte de dialogue le dit. Quand la documentation d'un client ne dit pas comment il traite un certificat inconnu, la boîte de dialogue écrit cette étape comme ce qu'il faut faire si le client refuse le certificat de BombVault.
+
+| Client | Configuration | D'où vient la clé |
+|---|---|---|
+| AnythingLLM | fichier de configuration | le fichier de configuration |
+| Antigravity | fichier de configuration | variable d'environnement |
+| Claude Code | commande | fichier de clé |
+| Claude Desktop | fichier de configuration | le fichier de configuration |
+| Cline | fichier de configuration | le fichier de configuration |
+| Codex CLI | fichier de configuration | variable d'environnement |
+| Continue | fichier de configuration | `~/.continue/.env` |
+| Copilot CLI | fichier de configuration | le fichier de configuration |
+| Cursor | fichier de configuration | variable d'environnement |
+| Gemini CLI | fichier de configuration | variable d'environnement |
+| GitHub Copilot (VS Code) | fichier de configuration | invite masquée |
+| Goose | fichier de configuration | variable d'environnement |
+| Jan | formulaire dans l'app | les réglages de l'app |
+| JetBrains (AI Assistant, Junie) | fichier de configuration | le fichier de configuration |
+| Kimi Code | fichier de configuration | le fichier de configuration |
+| LM Studio | fichier de configuration | le fichier de configuration |
+| Mistral Vibe | fichier de configuration | variable d'environnement |
+| Msty | formulaire dans l'app | les réglages de l'app |
+| n8n | formulaire dans l'app | les identifiants de n8n |
+| Open WebUI | formulaire dans l'app | les réglages de l'app |
+| opencode | fichier de configuration | variable d'environnement |
+| Perplexity (Mac) | formulaire dans l'app | fichier de clé |
+| Qwen Code | fichier de configuration | variable d'environnement |
+| Roo Code | fichier de configuration | variable d'environnement |
+| Visual Studio | fichier de configuration | le fichier de configuration |
+| Warp | fichier de configuration | le fichier de configuration |
+| Windsurf | fichier de configuration | variable d'environnement |
+| Zed | fichier de configuration | le fichier de configuration |
+| Grok | formulaire, dans le cloud | les serveurs de l'éditeur |
+| Le Chat | formulaire, dans le cloud | les serveurs de l'éditeur |
+| ChatGPT | dans le cloud | OAuth uniquement, voir plus bas |
+| Claude (claude.ai) | dans le cloud | OAuth dans la plupart des organisations, voir plus bas |
+
+Les sections ci-dessous expliquent plus en détail la configuration de Claude Code et de Claude Desktop et listent ce dont tout autre client a besoin.
 
 ### Claude Code {#claude-code}
 
@@ -124,9 +165,9 @@ Claude Desktop atteint BombVault par `mcp-remote`, qui a besoin de Node.js sur l
 - `--allow-http` n'est ajouté que pour une adresse `http://` simple.
 - L'en-tête s'écrit `X-API-Key:${BOMBVAULT_MCP_KEY}`, sans espace après les deux-points et avec la clé dans `env`. Sur certains systèmes, `mcp-remote` coupe une valeur `--header` au premier espace, et une clé écrite après un espace serait perdue.
 
-### Connecteurs personnalisés dans les réglages de Claude {#custom-connectors}
+### Clients dans le cloud {#cloud-clients}
 
-Les connecteurs ajoutés dans les réglages de Claude lui-même (sur claude.ai et dans la liste des connecteurs de Claude Desktop) ne sont pas encore pris en charge. Ces connecteurs sont appelés depuis le cloud d'Anthropic : il leur faut donc une adresse HTTPS publique, et ils se connectent par OAuth. Ils ne peuvent pas envoyer une clé fixe, et BombVault ne propose que des clés fixes, sans connexion OAuth. Mettre BombVault sur Internet pour eux n'y changerait rien. Utilisez Claude Code, ou Claude Desktop par `mcp-remote` comme ci-dessus.
+ChatGPT, Claude sur claude.ai, Grok et Le Chat appellent BombVault depuis les serveurs de leur éditeur ; BombVault doit donc être joignable depuis Internet, derrière un proxy inverse avec sa propre connexion et un certificat reconnu publiquement ; Le Chat refuse les certificats autosignés. Grok et Le Chat savent envoyer une clé fixe, et leurs boutons les configurent comme les autres. ChatGPT ne se connecte que par une connexion OAuth, et Claude sur claude.ai n'accepte un en-tête de clé fixe que dans certaines organisations. BombVault reçoit la connexion OAuth avec la prochaine mise à jour ; d'ici là, leurs boutons le disent au lieu de proposer une configuration.
 
 ### Autres clients {#other-clients}
 
@@ -178,7 +219,7 @@ Derrière un proxy, chaque requête porte l'adresse du proxy. Cinq mauvaises cl�
 - Chaque appel d'outil est écrit dans le journal du conteneur avec l'identifiant de la clé et ses quatre derniers caractères (jamais son nom) et compté dans `/metrics` (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Restaurer une sauvegarde de la configuration révoque toutes les clés, parce que la base restaurée peut contenir des clés que vous avez révoquées après son enregistrement. Créez-en de nouvelles ensuite.
 - Une clé cesse de fonctionner quand `APP_KEY` change (une réinstallation, ou une restauration dans un autre conteneur). La carte le détecte et marque la clé, et **Remplacer la clé** lui redonne un secret valide.
-- Traitez une clé comme un mot de passe. Claude Code la lit dans le fichier de clé et Claude Desktop la conserve dans sa configuration, les deux en clair. Sur un ordinateur auquel vous faites moins confiance, préférez une clé en lecture seule.
+- Traite une clé comme un mot de passe. Un client qui ne sait lire la clé ni dans une variable d'environnement, ni par une invite, ni dans un fichier de clé la garde en clair dans sa configuration ou ses réglages, et sa boîte de dialogue le dit. Préfère une clé en lecture seule sur un ordinateur auquel tu fais moins confiance.
 
 ## Ce qui sort de la machine {#privacy}
 

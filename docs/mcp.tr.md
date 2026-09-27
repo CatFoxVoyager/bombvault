@@ -40,10 +40,10 @@ Bir alanın ya da Backup Everything'in başlatılması, bir sınırın geri tutt
 
 ## Açmak {#switch-on}
 
-1. **Ayarlar, Sistem, MCP sunucusu** bölümünü açın ve **Yeni anahtar** düğmesine tıklayın.
-2. Anahtara nerede kullanıldığını söyleyen bir ad verin, örneğin "Dizüstündeki Claude Code". İstemci başına bir anahtarla diğerlerine dokunmadan birini iptal edebilirsiniz.
-3. **Yedekleme başlatmaya izin ver** seçeneğini açık bırakın ya da yalnızca okuması gereken bir anahtar için kapatın. Bunu daha sonra anahtarın kutucuğunda değiştirebilirsiniz; değişiklik, yeniden bağlanmaya gerek kalmadan asistanın bir sonraki isteğinden itibaren geçerli olur.
-4. **Anahtar oluştur** düğmesine tıklayın. Anahtar bir kez gösterilir. BombVault yalnızca parmak izini saklar ve onu yeniden gösteremez; bu yüzden hemen kopyalayın ya da altındaki parçacıklardan birini alın, o zaman parçacık gerçek anahtarı içerir.
+1. **Ayarlar, Sistem, MCP sunucusu** bölümünü aç ve istemcinin düğmesine tıkla. Listede olmayan bir istemci **Başka istemci** üzerinden bağlanır.
+2. **Anahtar** altında **Yeni anahtar** seçimini ve önerilen adı, yani istemcinin adını bırak ya da anahtarın nerede kullanıldığını söyleyen bir ad yaz, örneğin "Dizüstündeki Claude Code". İstemci başına bir anahtar, diğerlerine dokunmadan birini iptal etmeni sağlar. **Mevcut anahtar** istemciye daha önce oluşturduğun bir anahtarı verir.
+3. Yedekleme başlatabilmesi gereken bir anahtar için **Yedekleme başlatmaya izin ver** seçeneğini aç; açmazsan anahtar yalnızca okuyabilir. Bunu daha sonra anahtarın kutucuğunda değiştirebilirsin; değişiklik asistanın bir sonraki isteğinden itibaren, yeniden bağlanmadan geçerli olur.
+4. **Anahtar oluştur** düğmesine tıkla. Anahtar bir kez gösterilir. BombVault yalnızca parmak izini saklar ve anahtarı bir daha gösteremez, bu yüzden şimdi kopyala. İstemci anahtarı kullanmadan pencereyi kapatırsan kart, kopyaladığını onaylayana kadar anahtarı göstermeye devam eder.
 
 Giriş parolası yokken web arayüzünün kendisi ağınızdaki herkese açıktır ve onu açabilen herkes bir anahtar da oluşturabilir. Kart bunu söyler. BombVault'u herkese açık görünen bir adla açarsanız (örneğin bir ters vekil sunucunun arkasında `bombvault.example.com`) ve giriş parolası ayarlanmamışsa, o adresten anahtar oluşturulamaz ve değiştirilemez; böylece internetteki hiçbir web sayfası tarayıcınıza anahtar oluşturtamaz. Bir giriş parolası ayarlayın ya da BombVault'u IP adresiyle veya `tower` ya da `tower.local` gibi yerel bir adla açın.
 
@@ -51,13 +51,54 @@ Giriş parolası yokken web arayüzünün kendisi ağınızdaki herkese açıkt�
 
 Her anahtarın kartta kendi kutucuğu vardır. Kutucuk anahtarın adını, yedekleme başlatabildiğini ya da yalnızca okuduğunu, anahtarın son dört karakterini, ne zaman oluşturulduğunu ya da en son değiştirildiğini, bir istemcinin onu en son ne zaman kullandığını ve bugün kaç çağrı yaptığını gösterir. Kutucuktan anahtarı yeniden adlandırır, iznini değiştirir, yenisiyle değiştirir ya da iptal edersiniz. İptal edilen anahtar iptal edilmiş anahtarlar listesine taşınır; geçmişteki hiçbir çalıştırma onu anmadığında oradan kalıcı olarak silebilirsiniz.
 
+Kutucuk, adın yanında anahtarın oluşturulduğu istemcinin logosunu gösterir. **Başka istemci** üzerinden ya da kart istemcileri listelemeden önce oluşturulmuş bir anahtar bunun yerine bir anahtar simgesi gösterir.
+
 Kutucuktaki **Günlük**, o anahtarın yaptıklarını açar. Önce başlattığı yedeklemeler gelir; her biri durumuyla ve panodaki etkinlik günlüğünde o çalıştırmaya giden bir bağlantıyla. Altında çağrıları vardır, en yenisi önce, aracı ve çağrının sonucuyla. Bir ret nedenini söyler: anahtar yalnızca okuyabilir, saklama koruması yedeklemeyi durdurdu, başka bir yedekleme zaten çalışıyordu, öğe birkaç dakika önce MCP üzerinden yedeklendi ya da anahtar çok fazla istek gönderdi. Bir iptal, ilgili çalıştırmaya bağlantı verir.
 
 BombVault her anahtarın kayıtlarını en fazla 30 gün saklar: en yeni 500 başarılı başlatma ve iptali, bunların yanında da en yeni 200 diğer çağrıyı (okumalar, retler ve hatalar). Böylece süren bir yedeklemeyi tekrar tekrar sorgulayan ya da reddedilen bir çağrıyı tekrar tekrar deneyen bir asistan, o yedeklemenin başlatılmasını günlükten dışarı itemez. Her çağrı için aracı, sonucu ve bir iptalin andığı çalıştırmayı kaydeder. Asistanın gönderdiğini, anahtarı ya da parmak izini asla kaydetmez. Tanılama paketi kayıtları yalnızca sayar, ayar dışa aktarımı ise onları dışarıda bırakır.
 
 ## Bir istemci bağlamak {#clients}
 
-Kart, onu açtığınız adres için hazır parçacıklar gösterir: istemcinizi seçin ve parçacığı kopyalayın. Bölümün geri kalanı parçacıkların ne yaptığını açıklar ve kartın göstermediği biçimleri verir.
+Her istemcinin kartta, **Bu bilgisayarda** ya da **Bulutta** altında bir düğmesi vardır. Düğme üç adımlı bir pencere açar: anahtar; kartı açtığın adresle o istemcinin yapılandırması, kopyalama düğmesi, yapılandırmanın nerede durduğu ve BombVault'un kendi sertifikasıyla, istemcinin ona güvenmesi için gerekenler; ve istemcinin ilk çağrısının beklenmesi. Pencere anahtarın son kullanımını izler ve çağrı gelince yeşile döner.
+
+Pencere anahtarı her komut satırından uzak tutar. İstemci anahtarı bir ortam değişkeninden (`BOMBVAULT_MCP_KEY`), gizli bir istemden ya da kendi dosyasından okuyabiliyorsa yapılandırma onu yalnızca anar. İstemcinin böyle bir yolu yoksa anahtar yapılandırma dosyasında ya da ayarlarında durur ve pencere bunu söyler. Bir istemcinin belgeleri tanımadığı bir sertifikaya nasıl davrandığını söylemiyorsa pencere o adımı, istemci BombVault'un sertifikasını reddederse ne yapılacağı olarak yazar.
+
+| İstemci | Kurulum | Anahtarın geldiği yer |
+|---|---|---|
+| AnythingLLM | yapılandırma dosyası | yapılandırma dosyası |
+| Antigravity | yapılandırma dosyası | ortam değişkeni |
+| Claude Code | komut | anahtar dosyası |
+| Claude Desktop | yapılandırma dosyası | yapılandırma dosyası |
+| Cline | yapılandırma dosyası | yapılandırma dosyası |
+| Codex CLI | yapılandırma dosyası | ortam değişkeni |
+| Continue | yapılandırma dosyası | `~/.continue/.env` |
+| Copilot CLI | yapılandırma dosyası | yapılandırma dosyası |
+| Cursor | yapılandırma dosyası | ortam değişkeni |
+| Gemini CLI | yapılandırma dosyası | ortam değişkeni |
+| GitHub Copilot (VS Code) | yapılandırma dosyası | gizli istem |
+| Goose | yapılandırma dosyası | ortam değişkeni |
+| Jan | uygulamadaki form | uygulamanın ayarları |
+| JetBrains (AI Assistant, Junie) | yapılandırma dosyası | yapılandırma dosyası |
+| Kimi Code | yapılandırma dosyası | yapılandırma dosyası |
+| LM Studio | yapılandırma dosyası | yapılandırma dosyası |
+| Mistral Vibe | yapılandırma dosyası | ortam değişkeni |
+| Msty | uygulamadaki form | uygulamanın ayarları |
+| n8n | uygulamadaki form | n8n kimlik bilgileri |
+| Open WebUI | uygulamadaki form | uygulamanın ayarları |
+| opencode | yapılandırma dosyası | ortam değişkeni |
+| Perplexity (Mac) | uygulamadaki form | anahtar dosyası |
+| Qwen Code | yapılandırma dosyası | ortam değişkeni |
+| Roo Code | yapılandırma dosyası | ortam değişkeni |
+| Visual Studio | yapılandırma dosyası | yapılandırma dosyası |
+| Warp | yapılandırma dosyası | yapılandırma dosyası |
+| Windsurf | yapılandırma dosyası | ortam değişkeni |
+| Zed | yapılandırma dosyası | yapılandırma dosyası |
+| Grok | form, bulutta | sağlayıcının sunucuları |
+| Le Chat | form, bulutta | sağlayıcının sunucuları |
+| ChatGPT | bulutta | yalnızca OAuth, aşağıya bak |
+| Claude (claude.ai) | bulutta | çoğu kuruluşta OAuth, aşağıya bak |
+
+Aşağıdaki bölümler Claude Code ve Claude Desktop kurulumunu daha ayrıntılı anlatır ve diğer her istemcinin neye ihtiyaç duyduğunu listeler.
 
 ### Claude Code {#claude-code}
 
@@ -124,9 +165,9 @@ Claude Desktop BombVault'a, o bilgisayarda Node.js gerektiren `mcp-remote` üzer
 - `--allow-http` yalnızca düz bir `http://` adresi için eklenir.
 - Başlık, iki noktadan sonra boşluk olmadan ve anahtar `env` içinde olacak şekilde `X-API-Key:${BOMBVAULT_MCP_KEY}` olarak yazılır. Bazı sistemlerde `mcp-remote` bir `--header` değerini ilk boşlukta böler ve boşluktan sonra yazılan bir anahtar kaybolur.
 
-### Claude ayarlarındaki özel bağlayıcılar {#custom-connectors}
+### Buluttaki istemciler {#cloud-clients}
 
-Claude'un kendi ayarlarına eklenen bağlayıcılar (claude.ai'de ve Claude Desktop'taki bağlayıcı listesinde) henüz desteklenmiyor. Bu bağlayıcılara Anthropic'in bulutundan erişilir; bu yüzden herkese açık bir HTTPS adresine ihtiyaç duyarlar ve OAuth ile oturum açarlar. Sabit bir anahtar gönderemezler, BombVault ise yalnızca sabit anahtarlar sunar, OAuth oturumu sunmaz. Onlar için BombVault'u internete açmak işe yaramaz. Claude Code'u ya da yukarıdaki gibi `mcp-remote` üzerinden Claude Desktop'u kullanın.
+ChatGPT, claude.ai üzerindeki Claude, Grok ve Le Chat BombVault'u sağlayıcılarının sunucularından çağırır; bu yüzden BombVault internetten erişilebilir olmalı, kendi oturum açma sayfası ve herkesçe güvenilen bir sertifikası olan bir ters proxy'nin arkasında; Le Chat kendinden imzalı sertifikaları reddeder. Grok ve Le Chat sabit bir anahtar gönderebilir ve düğmeleri onları diğerleri gibi kurar. ChatGPT yalnızca OAuth oturum açmasıyla bağlanır, claude.ai üzerindeki Claude ise sabit anahtarlı başlığı yalnızca bazı kuruluşlarda kabul eder. BombVault bir sonraki güncellemeyle OAuth oturum açma desteği alıyor; o zamana kadar düğmeleri kurulum sunmak yerine bunu söyler.
 
 ### Diğer istemciler {#other-clients}
 
@@ -178,7 +219,7 @@ Bir vekil sunucunun arkasında her istek vekil sunucunun adresini taşır. Yanl�
 - Her araç çağrısı, anahtarın kimliği ve son dört karakteriyle (adıyla asla) kapsayıcı günlüğüne yazılır ve `/metrics` içinde sayılır (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Bir yapılandırma yedeğini geri yüklemek tüm anahtarları iptal eder, çünkü geri yüklenen veritabanı, kaydedildikten sonra iptal ettiğiniz anahtarları içerebilir. Ardından yeni anahtarlar oluşturun.
 - `APP_KEY` değiştiğinde (yeniden kurulum ya da başka bir kapsayıcıya geri yükleme) bir anahtar çalışmayı bırakır. Kart bunu fark eder ve anahtarı işaretler; **Anahtarı değiştir** ona yeniden geçerli bir gizli değer verir.
-- Bir anahtara parola gibi davranın. Claude Code onu anahtar dosyasından okur, Claude Desktop ise yapılandırmasında saklar; ikisinde de düz metin olarak durur. Daha az güvendiğiniz bir bilgisayarda yalnızca okuyabilen bir anahtarı tercih edin.
+- Anahtara parola gibi davran. Anahtarı bir ortam değişkeninden, bir istemden ya da bir anahtar dosyasından okuyamayan istemci onu yapılandırmasında ya da ayarlarında düz metin olarak tutar ve penceresi bunu söyler. Daha az güvendiğin bir bilgisayarda yalnızca okuyabilen bir anahtarı tercih et.
 
 ## Makineden ne çıkar {#privacy}
 

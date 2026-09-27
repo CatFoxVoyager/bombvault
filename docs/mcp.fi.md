@@ -40,10 +40,10 @@ Toimialueen tai Backup Everythingin käynnistys jättää pois kohteet, jotka jo
 
 ## Ota käyttöön {#switch-on}
 
-1. Avaa **Asetukset, Järjestelmä, MCP-palvelin** ja napsauta **Uusi avain**.
-2. Anna avaimelle nimi, joka kertoo, missä sitä käytetään, esimerkiksi "Claude Code läppärillä". Kun jokaisella asiakkaalla on oma avaimensa, voit peruuttaa yhden koskematta muihin.
-3. Jätä **Salli varmuuskopioiden käynnistys** päälle, tai kytke se pois avaimelta, jonka pitää vain lukea. Voit muuttaa sitä myöhemmin avaimen ruudussa, ja muutos koskee avustajan seuraavaa pyyntöä ilman uutta yhteyttä.
-4. Napsauta **Luo avain**. Avain näytetään kerran. BombVault tallentaa siitä vain sormenjäljen eikä voi näyttää sitä uudelleen, joten kopioi se heti tai ota jokin alla olevista katkelmista, joissa on silloin oikea avain.
+1. Avaa **Asetukset, Järjestelmä, MCP-palvelin** ja napsauta asiakasohjelmasi painiketta. Luettelosta puuttuva asiakasohjelma yhdistää kohdan **Muu asiakasohjelma** kautta.
+2. Jätä kohtaan **Avain** valinta **Uusi avain** ja ehdotettu nimi, joka on asiakasohjelman nimi, tai kirjoita nimi, joka kertoo, missä avainta käytetään, esimerkiksi ”Claude Code kannettavalla”. Yksi avain asiakasohjelmaa kohden antaa perua yhden koskematta muihin. **Olemassa oleva avain** antaa asiakasohjelmalle aiemmin luomasi avaimen.
+3. Kytke **Salli varmuuskopioiden käynnistys** päälle avaimelle, jonka pitää voida käynnistää varmuuskopioita; ilman sitä avain voi vain lukea. Voit muuttaa sitä myöhemmin avaimen ruudussa, ja muutos pätee avustajan seuraavasta pyynnöstä alkaen ilman uutta yhteyttä.
+4. Napsauta **Luo avain**. Avain näytetään kerran. BombVault säilyttää siitä vain sormenjäljen eikä voi näyttää sitä uudelleen, joten kopioi se nyt. Jos suljet ikkunan ennen kuin asiakasohjelma on käyttänyt avainta, kortti näyttää sitä edelleen, kunnes vahvistat kopioineesi sen.
 
 Ilman kirjautumissalasanaa itse verkkokäyttöliittymä on auki kaikille verkossasi, ja kuka tahansa, joka voi avata sen, voi myös luoda avaimen. Kortti kertoo tämän. Jos avaat BombVaultin julkiselta näyttävällä nimellä (esimerkiksi `bombvault.example.com` käänteisen välityspalvelimen takana) eikä kirjautumissalasanaa ole asetettu, siitä osoitteesta ei voi luoda eikä vaihtaa avaimia, jotta mikään internetin verkkosivu ei voi saada selaintasi luomaan sellaista. Aseta kirjautumissalasana, tai avaa BombVault sen IP-osoitteella tai paikallisella nimellä, kuten `tower` tai `tower.local`.
 
@@ -51,13 +51,54 @@ Ilman kirjautumissalasanaa itse verkkokäyttöliittymä on auki kaikille verkoss
 
 Jokaisella avaimella on kortilla oma ruutunsa. Siinä näkyy avaimen nimi, saako se käynnistää varmuuskopioita vai vain lukea, avaimen neljä viimeistä merkkiä, milloin se luotiin tai korvattiin viimeksi, milloin asiakas viimeksi käytti sitä ja montako kutsua se on tehnyt tänään. Ruudussa nimeät avaimen uudelleen, muutat sen oikeutta, korvaat sen tai peruutat sen. Peruutettu avain siirtyy peruutettujen avainten luetteloon, josta voit poistaa sen lopullisesti, kun mikään historian ajo ei enää mainitse sitä.
 
+Nimen vieressä ruutu näyttää sen asiakasohjelman merkin, jolle avain luotiin. Kohdan **Muu asiakasohjelma** kautta tai ennen asiakasohjelmien luetteloa luotu avain näyttää sen sijaan avaimen.
+
 Ruudun **Loki** avaa sen, mitä avain on tehnyt. Ensin tulevat sen käynnistämät varmuuskopiot, kukin tilansa kanssa ja linkillä ajoon kojelaudan toimintalokissa. Niiden alla ovat sen kutsut uusin ensin, työkalu ja kutsun lopputulos. Hylkäys kertoo syyn: avain saa vain lukea, säilytyssuoja pidätti varmuuskopion, toinen varmuuskopiointi oli jo käynnissä, kohde varmuuskopioitiin MCP:n kautta muutama minuutti sitten, tai avain lähetti liian monta pyyntöä. Peruutus linkittää ajoon, jota se koski.
 
 BombVault säilyttää kunkin avaimen merkinnät enintään 30 päivää: 500 uusinta onnistunutta käynnistystä ja peruutusta sekä niiden rinnalla 200 uusinta muuta kutsua (luvut, hylkäykset ja virheet), joten avustaja, joka kyselee käynnissä olevaa varmuuskopiointia tai yrittää hylättyä kutsua yhä uudelleen, ei voi työntää sen käynnistystä pois lokista. Jokaisesta kutsusta se tallentaa työkalun, lopputuloksen ja peruutuksen nimeämän ajon. Se ei koskaan tallenna sitä, mitä avustaja lähetti, eikä avainta tai sen sormenjälkeä. Diagnostiikkapaketti vain laskee merkinnät, ja asetusten vienti jättää ne pois.
 
 ## Yhdistä asiakasohjelma {#clients}
 
-Kortti näyttää valmiit katkelmat sille osoitteelle, jolla avasit sen: valitse asiakasohjelma ja kopioi katkelma. Loput tästä osiosta kertovat, mitä katkelmat tekevät, ja antavat muodot, joita kortti ei näytä.
+Jokaisella asiakasohjelmalla on kortilla painike, otsikon **Tällä tietokoneella** tai **Pilvessä** alla. Painike avaa kolmivaiheisen ikkunan: avain; asiakasohjelman määritys osoitteella, jolla avasit kortin, kopiointipainike, määrityksen sijainti ja BombVaultin omaa varmennetta käytettäessä se, mitä asiakasohjelma tarvitsee luottaakseen siihen; sekä asiakasohjelman ensimmäisen kutsun odotus. Ikkuna seuraa avaimen viimeisintä käyttöä ja muuttuu vihreäksi, kun kutsu saapuu.
+
+Ikkuna pitää avaimen poissa kaikilta komentoriveiltä. Kun asiakasohjelma osaa lukea sen ympäristömuuttujasta (`BOMBVAULT_MCP_KEY`), piilotetusta kyselystä tai omasta tiedostostaan, määritys vain mainitsee sen. Kun asiakasohjelmalla ei ole sellaista keinoa, avain on sen määritystiedostossa tai asetuksissa, ja ikkuna kertoo sen. Kun asiakasohjelman dokumentaatio ei kerro, miten se kohtelee tuntematonta varmennetta, ikkuna kirjoittaa vaiheen ohjeeksi siltä varalta, että asiakasohjelma hylkää BombVaultin varmenteen.
+
+| Asiakasohjelma | Käyttöönotto | Mistä avain tulee |
+|---|---|---|
+| AnythingLLM | määritystiedosto | määritystiedosto |
+| Antigravity | määritystiedosto | ympäristömuuttuja |
+| Claude Code | komento | avaintiedosto |
+| Claude Desktop | määritystiedosto | määritystiedosto |
+| Cline | määritystiedosto | määritystiedosto |
+| Codex CLI | määritystiedosto | ympäristömuuttuja |
+| Continue | määritystiedosto | `~/.continue/.env` |
+| Copilot CLI | määritystiedosto | määritystiedosto |
+| Cursor | määritystiedosto | ympäristömuuttuja |
+| Gemini CLI | määritystiedosto | ympäristömuuttuja |
+| GitHub Copilot (VS Code) | määritystiedosto | piilotettu kysely |
+| Goose | määritystiedosto | ympäristömuuttuja |
+| Jan | lomake sovelluksessa | sovelluksen asetukset |
+| JetBrains (AI Assistant, Junie) | määritystiedosto | määritystiedosto |
+| Kimi Code | määritystiedosto | määritystiedosto |
+| LM Studio | määritystiedosto | määritystiedosto |
+| Mistral Vibe | määritystiedosto | ympäristömuuttuja |
+| Msty | lomake sovelluksessa | sovelluksen asetukset |
+| n8n | lomake sovelluksessa | n8n:n tunnistetiedot |
+| Open WebUI | lomake sovelluksessa | sovelluksen asetukset |
+| opencode | määritystiedosto | ympäristömuuttuja |
+| Perplexity (Mac) | lomake sovelluksessa | avaintiedosto |
+| Qwen Code | määritystiedosto | ympäristömuuttuja |
+| Roo Code | määritystiedosto | ympäristömuuttuja |
+| Visual Studio | määritystiedosto | määritystiedosto |
+| Warp | määritystiedosto | määritystiedosto |
+| Windsurf | määritystiedosto | ympäristömuuttuja |
+| Zed | määritystiedosto | määritystiedosto |
+| Grok | lomake, pilvessä | palveluntarjoajan palvelimet |
+| Le Chat | lomake, pilvessä | palveluntarjoajan palvelimet |
+| ChatGPT | pilvessä | vain OAuth, katso alta |
+| Claude (claude.ai) | pilvessä | OAuth useimmissa organisaatioissa, katso alta |
+
+Alla olevat osiot selittävät Claude Coden ja Claude Desktopin käyttöönoton tarkemmin ja kertovat, mitä muu asiakasohjelma tarvitsee.
 
 ### Claude Code {#claude-code}
 
@@ -124,9 +165,9 @@ Claude Desktop tavoittaa BombVaultin `mcp-remote`n kautta, joka tarvitsee Node.j
 - `--allow-http` lisätään vain tavalliselle `http://`-osoitteelle.
 - Otsake kirjoitetaan `X-API-Key:${BOMBVAULT_MCP_KEY}` ilman välilyöntiä kaksoispisteen jälkeen ja avain `env`-osassa. Joissakin järjestelmissä `mcp-remote` katkaisee `--header`-arvon ensimmäisen välilyönnin kohdalta, ja välilyönnin jälkeen kirjoitettu avain katoaisi.
 
-### Omat liittimet Clauden asetuksissa {#custom-connectors}
+### Asiakasohjelmat pilvessä {#cloud-clients}
 
-Liittimiä (connectors), jotka lisäät Clauden omiin asetuksiin (claude.ai:ssa ja Claude Desktopin liitinluettelossa), ei vielä tueta. Niihin otetaan yhteys Anthropicin pilvestä, joten ne tarvitsevat julkisen HTTPS-osoitteen, ja ne kirjautuvat OAuthin kautta. Ne eivät voi lähettää kiinteää avainta, ja BombVault tarjoaa vain kiinteitä avaimia, ei OAuth-kirjautumista. BombVaultin vieminen internetiin niiden vuoksi ei auttaisi. Käytä Claude Codea tai Claude Desktopia `mcp-remote`n kautta kuten yllä.
+ChatGPT, Claude osoitteessa claude.ai, Grok ja Le Chat kutsuvat BombVaultia palveluntarjoajansa palvelimilta, joten BombVaultin on oltava tavoitettavissa internetistä käänteisen välityspalvelimen takana, jolla on oma kirjautuminen ja julkisesti luotettu varmenne; Le Chat hylkää itse allekirjoitetut. Grok ja Le Chat voivat lähettää kiinteän avaimen, ja niiden painikkeet ottavat ne käyttöön kuten muutkin. ChatGPT yhdistää vain OAuth-kirjautumisella, ja Claude osoitteessa claude.ai hyväksyy kiinteän avainotsakkeen vain joissakin organisaatioissa. BombVault saa OAuth-kirjautumisen seuraavassa päivityksessä; siihen asti niiden painikkeet kertovat tämän käyttöönoton sijaan.
 
 ### Muut asiakasohjelmat {#other-clients}
 
@@ -178,7 +219,7 @@ Välityspalvelimen takana jokaisessa pyynnössä on välityspalvelimen osoite. V
 - Jokainen työkalukutsu kirjoitetaan kontin lokiin avaimen tunnisteen ja sen neljän viimeisen merkin kera (ei koskaan nimeä) ja lasketaan `/metrics`-sivulla (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Asetusten varmuuskopion palauttaminen peruuttaa kaikki avaimet, koska palautettu tietokanta voi sisältää avaimia, jotka peruutit sen tallentamisen jälkeen. Luo uudet avaimet sen jälkeen.
 - Avain lakkaa toimimasta, kun `APP_KEY` muuttuu (uudelleenasennus tai palautus toiseen konttiin). Kortti huomaa sen ja merkitsee avaimen, ja **Vaihda avain** antaa sille taas kelvollisen salaisuuden.
-- Käsittele avainta kuin salasanaa. Claude Code lukee sen avaintiedostosta ja Claude Desktop säilyttää sen asetuksissaan, molemmat selväkielisenä. Tietokoneella, johon luotat vähemmän, käytä mieluummin avainta, joka saa vain lukea.
+- Kohtele avainta kuin salasanaa. Asiakasohjelma, joka ei osaa lukea avainta ympäristömuuttujasta, kyselystä tai avaintiedostosta, pitää sen selväkielisenä määrityksissään tai asetuksissaan, ja sen ikkuna kertoo sen. Käytä mieluummin vain lukevaa avainta tietokoneella, johon luotat vähemmän.
 
 ## Mitä koneelta lähtee {#privacy}
 

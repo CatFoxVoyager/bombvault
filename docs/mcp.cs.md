@@ -40,10 +40,10 @@ Spuštění domény nebo Backup Everything vynechá položky, které nějaký li
 
 ## Zapnutí {#switch-on}
 
-1. Otevřete **Nastavení, Systém, Server MCP** a klikněte na **Nový klíč**.
-2. Dejte klíči název, který říká, kde se používá, například "Claude Code na notebooku". S jedním klíčem na klienta můžete jeden odvolat, aniž byste sahali na ostatní.
-3. Nechte zapnuté **Povolit spouštění záloh**, nebo ho vypněte u klíče, který má jen číst. Později to můžete změnit na dlaždici klíče a změna platí od příštího požadavku asistenta, bez nového připojení.
-4. Klikněte na **Vytvořit klíč**. Klíč se zobrazí jednou. BombVault si z něj uchová jen otisk a znovu ho ukázat nemůže, proto ho hned zkopírujte, nebo si vezměte některý z úryvků pod ním, které pak obsahují skutečný klíč.
+1. Otevři **Nastavení, Systém, Server MCP** a klikni na tlačítko svého klienta. Klient, který v seznamu není, se připojí přes **Jiný klient**.
+2. V části **Klíč** nech **Nový klíč** a navržený název, tedy název klienta, nebo napiš takový, který říká, kde se klíč používá, například „Claude Code na notebooku“. Jeden klíč na klienta ti dovolí jeden odvolat, aniž bys sahal na ostatní. **Existující klíč** dá klientovi klíč, který jsi vytvořil dřív.
+3. Zapni **Povolit spouštění záloh** u klíče, který má moci spouštět zálohy; bez toho může jen číst. Později to můžeš změnit na dlaždici klíče a změna platí od dalšího požadavku asistenta, bez nového připojení.
+4. Klikni na **Vytvořit klíč**. Klíč se zobrazí jen jednou. BombVault si nechává jen jeho otisk a znovu ho ukázat nedokáže, takže si ho hned zkopíruj. Když zavřeš okno dřív, než klient klíč použije, karta ho dál ukazuje, dokud nepotvrdíš, že sis ho zkopíroval.
 
 Bez přihlašovacího hesla je samotné webové rozhraní otevřené všem ve vaší síti a kdo ho otevře, může také vytvořit klíč. Karta na to upozorňuje. Pokud BombVault otevřete pod názvem, který vypadá veřejně (například `bombvault.example.com` za reverzní proxy), a přihlašovací heslo nastavené není, nelze z této adresy klíče vytvářet ani nahrazovat, aby žádná webová stránka na internetu nemohla přimět váš prohlížeč, aby nějaký vytvořil. Nastavte přihlašovací heslo, nebo otevřete BombVault přes jeho IP adresu či místní název jako `tower` nebo `tower.local`.
 
@@ -51,13 +51,54 @@ Bez přihlašovacího hesla je samotné webové rozhraní otevřené všem ve va
 
 Každý klíč má na kartě vlastní dlaždici. Ukazuje název klíče, zda smí spouštět zálohy, nebo jen čte, poslední čtyři znaky klíče, kdy byl vytvořen nebo naposledy nahrazen, kdy ho klient naposledy použil a kolik volání dnes udělal. Na dlaždici klíč přejmenujete, změníte jeho oprávnění, nahradíte ho nebo zneplatníte. Zneplatněný klíč se přesune do seznamu zneplatněných klíčů, kde ho můžete natrvalo smazat, jakmile ho už žádný běh v historii neuvádí.
 
+Vedle názvu ukazuje dlaždice logo klienta, pro kterého byl klíč vytvořen. Klíč vytvořený přes **Jiný klient**, nebo dřív, než karta klienty vypisovala, ukazuje místo toho klíč.
+
 **Protokol** na dlaždici otevře, co tento klíč dělal. Nahoře jsou zálohy, které spustil, každá se svým stavem a odkazem na daný běh v protokolu aktivit na přehledu. Pod nimi jsou jeho volání, od nejnovějšího, s nástrojem a výsledkem. Odmítnutí uvádí důvod: klíč smí jen číst, ochrana uchovávání zálohu zadržela, už běžela jiná záloha, položka byla přes MCP zálohována před několika minutami, nebo klíč poslal příliš mnoho požadavků. Zrušení odkazuje na běh, o který šlo.
 
 BombVault uchovává záznamy každého klíče nejvýše 30 dní: nejnovějších 500 úspěšných spuštění a zrušení a vedle nich nejnovějších 200 ostatních volání (čtení, odmítnutí a chyby), takže asistent, který se opakovaně ptá na běžící zálohu nebo znovu zkouší odmítnuté volání, nemůže z protokolu vytlačit její spuštění. U každého volání ukládá nástroj, výsledek a u zrušení daný běh. Nikdy neukládá, co asistent poslal, ani klíč či jeho otisk. Diagnostický balíček záznamy jen počítá a export nastavení je vynechává.
 
 ## Připojení klienta {#clients}
 
-Karta zobrazuje hotové úryvky pro adresu, na které jste ji otevřeli: vyberte klienta a zkopírujte úryvek. Zbytek oddílu vysvětluje, co úryvky dělají, a uvádí podoby, které karta nezobrazuje.
+Každý klient má na kartě tlačítko, ve skupině **Na tomto počítači** nebo **V cloudu**. Tlačítko otevře okno ve třech krocích: klíč; konfigurace pro daného klienta s adresou, na které jsi kartu otevřel, tlačítkem pro kopírování, místem, kde konfigurace leží, a u vlastního certifikátu BombVaultu i tím, co klient potřebuje, aby mu důvěřoval; a čekání na první volání klienta. Okno sleduje poslední použití klíče a zezelená, jakmile to volání přijde.
+
+Okno drží klíč mimo každý příkazový řádek. Kde klient umí klíč číst z proměnné prostředí (`BOMBVAULT_MCP_KEY`), ze skrytého dotazu nebo z vlastního souboru, konfigurace ho jen jmenuje. Kde klient takovou možnost nemá, leží klíč v jeho konfiguračním souboru nebo nastavení a okno to řekne. Kde dokumentace klienta neříká, jak zachází s neznámým certifikátem, popíše okno tento krok jako to, co udělat, když klient certifikát BombVaultu odmítne.
+
+| Klient | Nastavení | Odkud klíč pochází |
+|---|---|---|
+| AnythingLLM | konfigurační soubor | konfigurační soubor |
+| Antigravity | konfigurační soubor | proměnná prostředí |
+| Claude Code | příkaz | soubor s klíčem |
+| Claude Desktop | konfigurační soubor | konfigurační soubor |
+| Cline | konfigurační soubor | konfigurační soubor |
+| Codex CLI | konfigurační soubor | proměnná prostředí |
+| Continue | konfigurační soubor | `~/.continue/.env` |
+| Copilot CLI | konfigurační soubor | konfigurační soubor |
+| Cursor | konfigurační soubor | proměnná prostředí |
+| Gemini CLI | konfigurační soubor | proměnná prostředí |
+| GitHub Copilot (VS Code) | konfigurační soubor | skrytý dotaz |
+| Goose | konfigurační soubor | proměnná prostředí |
+| Jan | formulář v aplikaci | nastavení aplikace |
+| JetBrains (AI Assistant, Junie) | konfigurační soubor | konfigurační soubor |
+| Kimi Code | konfigurační soubor | konfigurační soubor |
+| LM Studio | konfigurační soubor | konfigurační soubor |
+| Mistral Vibe | konfigurační soubor | proměnná prostředí |
+| Msty | formulář v aplikaci | nastavení aplikace |
+| n8n | formulář v aplikaci | přihlašovací údaje v n8n |
+| Open WebUI | formulář v aplikaci | nastavení aplikace |
+| opencode | konfigurační soubor | proměnná prostředí |
+| Perplexity (Mac) | formulář v aplikaci | soubor s klíčem |
+| Qwen Code | konfigurační soubor | proměnná prostředí |
+| Roo Code | konfigurační soubor | proměnná prostředí |
+| Visual Studio | konfigurační soubor | konfigurační soubor |
+| Warp | konfigurační soubor | konfigurační soubor |
+| Windsurf | konfigurační soubor | proměnná prostředí |
+| Zed | konfigurační soubor | konfigurační soubor |
+| Grok | formulář, v cloudu | servery poskytovatele |
+| Le Chat | formulář, v cloudu | servery poskytovatele |
+| ChatGPT | v cloudu | jen OAuth, viz níže |
+| Claude (claude.ai) | v cloudu | OAuth ve většině organizací, viz níže |
+
+Oddíly níže podrobněji vysvětlují nastavení Claude Code a Claude Desktop a uvádějí, co potřebuje každý jiný klient.
 
 ### Claude Code {#claude-code}
 
@@ -124,9 +165,9 @@ Claude Desktop se k BombVaultu dostane přes `mcp-remote`, který na daném poč
 - `--allow-http` se přidává jen u prosté adresy `http://`.
 - Hlavička se píše `X-API-Key:${BOMBVAULT_MCP_KEY}`, bez mezery za dvojtečkou a s klíčem v `env`. Na některých systémech `mcp-remote` rozdělí hodnotu `--header` na první mezeře a klíč napsaný za mezerou by se ztratil.
 
-### Vlastní konektory v nastavení Claude {#custom-connectors}
+### Klienti v cloudu {#cloud-clients}
 
-Konektory přidané v nastavení samotného Claude (na claude.ai a v seznamu konektorů Claude Desktop) zatím podporované nejsou. Tyto konektory se volají z cloudu společnosti Anthropic, takže potřebují veřejnou adresu HTTPS, a přihlašují se přes OAuth. Pevný klíč poslat neumějí a BombVault nabízí jen pevné klíče, žádné přihlášení OAuth. Vystavit kvůli nim BombVault do internetu by nepomohlo. Použijte Claude Code, nebo Claude Desktop přes `mcp-remote` jako výše.
+ChatGPT, Claude na claude.ai, Grok a Le Chat volají BombVault ze serverů svých poskytovatelů, takže BombVault musí být dostupný z internetu, za reverzní proxy s vlastním přihlášením a veřejně důvěryhodným certifikátem; Le Chat odmítá certifikáty podepsané sebou samým. Grok a Le Chat umějí posílat pevný klíč a jejich tlačítka je nastaví jako ostatní. ChatGPT se připojuje jen přes přihlášení OAuth a Claude na claude.ai přijímá hlavičku s pevným klíčem jen v některých organizacích. BombVault dostane přihlášení OAuth v příští aktualizaci; do té doby to jejich tlačítka říkají místo nabídky nastavení.
 
 ### Ostatní klienti {#other-clients}
 
@@ -178,7 +219,7 @@ Za proxy nese každý požadavek adresu proxy. Pět špatných klíčů od jedin
 - Každé volání nástroje se zapíše do logu kontejneru s id klíče a jeho posledními čtyřmi znaky (nikdy s názvem) a započítá se v `/metrics` (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Obnova zálohy konfigurace odvolá všechny klíče, protože obnovená databáze může obsahovat klíče, které jste odvolali až po jejím uložení. Potom vytvořte nové.
 - Klíč přestane fungovat, když se změní `APP_KEY` (reinstalace nebo obnova do jiného kontejneru). Karta to pozná a klíč označí a **Nahradit klíč** mu dá znovu platné tajemství.
-- Zacházejte s klíčem jako s heslem. Claude Code ho čte ze souboru s klíčem a Claude Desktop ho ukládá ve své konfiguraci, v obou případech v otevřeném textu. Na počítači, kterému důvěřujete méně, dejte přednost klíči, který smí jen číst.
+- Zacházej s klíčem jako s heslem. Klient, který neumí číst klíč z proměnné prostředí, z dotazu ani ze souboru s klíčem, ho má jako prostý text v konfiguraci nebo nastavení a jeho okno to řekne. Na počítači, kterému věříš méně, použij raději klíč jen pro čtení.
 
 ## Co opouští stroj {#privacy}
 

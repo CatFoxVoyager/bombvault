@@ -40,10 +40,10 @@ Egy tartomány vagy a Backup Everything indítása kihagyja azokat az elemeket, 
 
 ## Bekapcsolás {#switch-on}
 
-1. Nyisd meg a **Beállítások, Rendszer, MCP-kiszolgáló** részt, és kattints az **Új kulcs** gombra.
-2. Adj a kulcsnak olyan nevet, amely megmondja, hol használod, például "Claude Code a laptopon". Kliensenként egy kulccsal visszavonhatsz egyet anélkül, hogy a többihez hozzányúlnál.
-3. Hagyd bekapcsolva a **Mentések indításának engedélyezése** kapcsolót, vagy kapcsold ki egy olyan kulcsnál, amelynek csak olvasnia kell. Később a kulcs csempéjén módosíthatod, és a változás az asszisztens következő kérésétől él, újracsatlakozás nélkül.
-4. Kattints a **Kulcs létrehozása** gombra. A kulcs egyszer jelenik meg. A BombVault csak egy ujjlenyomatot őriz meg belőle, és nem tudja újra megmutatni, ezért másold ki most, vagy vedd az alatta lévő részletek egyikét, amely ekkor a valódi kulcsot tartalmazza.
+1. Nyisd meg a **Beállítások, Rendszer, MCP-kiszolgáló** részt, és kattints a kliensed gombjára. A listában nem szereplő kliens az **Egyéb kliens** gombon át csatlakozik.
+2. A **Kulcs** alatt hagyd meg az **Új kulcs** lehetőséget és a javasolt nevet, ami a kliens neve, vagy írj be egy olyat, amely megmondja, hol használod a kulcsot, például „Claude Code a laptopon”. Kliensenként egy kulccsal egyet visszavonhatsz a többi érintése nélkül. A **Meglévő kulcs** egy korábban létrehozott kulcsot ad a kliensnek.
+3. Kapcsold be a **Mentések indításának engedélyezése** kapcsolót annál a kulcsnál, amelynek mentéseket kell tudnia indítani; enélkül a kulcs csak olvasni tud. Később a kulcs csempéjén módosíthatod, és a változás az asszisztens következő kérésétől érvényes, újracsatlakozás nélkül.
+4. Kattints a **Kulcs létrehozása** gombra. A kulcs egyszer jelenik meg. A BombVault csak egy ujjlenyomatot őriz belőle, és nem tudja újra megmutatni, ezért most másold ki. Ha bezárod a párbeszédablakot, mielőtt a kliens használta a kulcsot, a kártya tovább mutatja, amíg meg nem erősíted, hogy kimásoltad.
 
 Bejelentkezési jelszó nélkül maga a webes felület is nyitva áll mindenki előtt a hálózatodon, és aki meg tudja nyitni, kulcsot is létrehozhat. A kártya ezt jelzi. Ha a BombVaultot nyilvánosnak tűnő néven nyitod meg (például `bombvault.example.com` egy fordított proxy mögött), és nincs bejelentkezési jelszó, arról a címről nem lehet kulcsot létrehozni vagy cserélni, így egyetlen internetes weboldal sem veheti rá a böngésződet, hogy létrehozzon egyet. Állíts be bejelentkezési jelszót, vagy nyisd meg a BombVaultot az IP-címén vagy egy helyi néven, például `tower` vagy `tower.local`.
 
@@ -51,13 +51,54 @@ Bejelentkezési jelszó nélkül maga a webes felület is nyitva áll mindenki e
 
 Minden kulcsnak saját csempéje van a kártyán. Mutatja a kulcs nevét, hogy indíthat-e mentést vagy csak olvas, a kulcs utolsó négy karakterét, mikor hozták létre vagy cserélték utoljára, mikor használta utoljára egy kliens, és hány hívást tett ma. A csempén átnevezed a kulcsot, módosítod a jogosultságát, lecseréled vagy visszavonod. A visszavont kulcs a visszavont kulcsok listájába kerül, ahol végleg törölheted, amint az előzményekben egyetlen futás sem hivatkozik rá.
 
+A csempe a neve mellett annak a kliensnek a jelét mutatja, amelyhez a kulcs készült. Az **Egyéb kliens** gombon át, vagy a kliensek listája előtt készült kulcsnál helyette egy kulcs látszik.
+
 A csempe **Napló** gombja megnyitja, mit csinált a kulcs. Elöl az általa indított mentések állnak, mindegyik az állapotával és egy hivatkozással a futásra az irányítópult tevékenységnaplójában. Alattuk a hívásai, a legújabb elöl, az eszközzel és a hívás kimenetelével. Az elutasítás megmondja az okát: a kulcs csak olvashat, a megőrzésvédelem visszatartotta a mentést, már futott egy másik mentés, az elemet néhány perce mentették MCP-n keresztül, vagy a kulcs túl sok kérést küldött. A megszakítás arra a futásra hivatkozik, amelyről szólt.
 
 A BombVault kulcsonként legfeljebb 30 napig őrzi a bejegyzéseket: a legújabb 500 sikeres indítást és megszakítást, mellettük pedig a legújabb 200 egyéb hívást (olvasások, elutasítások és hibák), így egy futó mentést újra és újra lekérdező vagy egy elutasított hívással újra és újra próbálkozó asszisztens nem tudja kiszorítani a naplóból a mentés indítását. Minden hívásnál az eszközt, a kimenetelt és a megszakítás által megnevezett futást tárolja. Soha nem tárolja, amit az asszisztens küldött, sem a kulcsot vagy az ujjlenyomatát. A diagnosztikai csomag csak megszámolja a bejegyzéseket, a beállítások exportja pedig kihagyja őket.
 
 ## Kliens csatlakoztatása {#clients}
 
-A kártya kész részleteket mutat ahhoz a címhez, amelyen megnyitottad: válaszd ki a klienst, és másold ki a részletet. A szakasz többi része elmagyarázza, mit csinálnak a részletek, és megadja azokat a formákat, amelyeket a kártya nem mutat.
+Minden kliensnek van egy gombja a kártyán, az **Ezen a számítógépen** vagy **A felhőben** csoportban. A gomb három lépésből álló párbeszédablakot nyit: a kulcs; a kliens konfigurációja azzal a címmel, amelyen a kártyát megnyitottad, egy másológombbal, a konfiguráció helyével és a BombVault saját tanúsítványánál azzal, ami a kliensnek kell ahhoz, hogy megbízzon benne; végül a kliens első hívásának várása. A párbeszédablak figyeli a kulcs utolsó használatát, és zöldre vált, amikor a hívás megérkezik.
+
+A párbeszédablak minden parancssortól távol tartja a kulcsot. Ahol a kliens környezeti változóból (`BOMBVAULT_MCP_KEY`), rejtett bekérésből vagy saját fájlból tudja olvasni, ott a konfiguráció csak megnevezi. Ahol a kliensnek nincs ilyen módja, a kulcs a konfigurációs fájljában vagy a beállításaiban van, és a párbeszédablak ezt ki is mondja. Ahol egy kliens dokumentációja nem mondja meg, hogyan bánik egy ismeretlen tanúsítvánnyal, ott a párbeszédablak ezt a lépést arra az esetre írja le, ha a kliens elutasítja a BombVault tanúsítványát.
+
+| Kliens | Beállítás | Honnan jön a kulcs |
+|---|---|---|
+| AnythingLLM | konfigurációs fájl | a konfigurációs fájl |
+| Antigravity | konfigurációs fájl | környezeti változó |
+| Claude Code | parancs | kulcsfájl |
+| Claude Desktop | konfigurációs fájl | a konfigurációs fájl |
+| Cline | konfigurációs fájl | a konfigurációs fájl |
+| Codex CLI | konfigurációs fájl | környezeti változó |
+| Continue | konfigurációs fájl | `~/.continue/.env` |
+| Copilot CLI | konfigurációs fájl | a konfigurációs fájl |
+| Cursor | konfigurációs fájl | környezeti változó |
+| Gemini CLI | konfigurációs fájl | környezeti változó |
+| GitHub Copilot (VS Code) | konfigurációs fájl | rejtett bekérés |
+| Goose | konfigurációs fájl | környezeti változó |
+| Jan | űrlap az alkalmazásban | az alkalmazás beállításai |
+| JetBrains (AI Assistant, Junie) | konfigurációs fájl | a konfigurációs fájl |
+| Kimi Code | konfigurációs fájl | a konfigurációs fájl |
+| LM Studio | konfigurációs fájl | a konfigurációs fájl |
+| Mistral Vibe | konfigurációs fájl | környezeti változó |
+| Msty | űrlap az alkalmazásban | az alkalmazás beállításai |
+| n8n | űrlap az alkalmazásban | az n8n hitelesítő adatai |
+| Open WebUI | űrlap az alkalmazásban | az alkalmazás beállításai |
+| opencode | konfigurációs fájl | környezeti változó |
+| Perplexity (Mac) | űrlap az alkalmazásban | kulcsfájl |
+| Qwen Code | konfigurációs fájl | környezeti változó |
+| Roo Code | konfigurációs fájl | környezeti változó |
+| Visual Studio | konfigurációs fájl | a konfigurációs fájl |
+| Warp | konfigurációs fájl | a konfigurációs fájl |
+| Windsurf | konfigurációs fájl | környezeti változó |
+| Zed | konfigurációs fájl | a konfigurációs fájl |
+| Grok | űrlap, a felhőben | a szolgáltató szerverei |
+| Le Chat | űrlap, a felhőben | a szolgáltató szerverei |
+| ChatGPT | a felhőben | csak OAuth, lásd lent |
+| Claude (claude.ai) | a felhőben | a legtöbb szervezetben OAuth, lásd lent |
+
+Az alábbi szakaszok részletesebben leírják a Claude Code és a Claude Desktop beállítását, és felsorolják, mire van szüksége bármely más kliensnek.
 
 ### Claude Code {#claude-code}
 
@@ -124,9 +165,9 @@ A Claude Desktop az `mcp-remote` programon keresztül éri el a BombVaultot, ame
 - A `--allow-http` csak egyszerű `http://` címnél kerül bele.
 - A fejléc `X-API-Key:${BOMBVAULT_MCP_KEY}` alakban áll, szóköz nélkül a kettőspont után, a kulccsal az `env` részben. Egyes rendszereken az `mcp-remote` az első szóköznél kettévágja a `--header` értékét, és egy szóköz után írt kulcs elveszne.
 
-### Saját csatlakozók a Claude beállításaiban {#custom-connectors}
+### Kliensek a felhőben {#cloud-clients}
 
-Azok a csatlakozók (connectors), amelyeket magának a Claude-nak a beállításaiban adsz hozzá (a claude.ai oldalon és a Claude Desktop csatlakozólistájában), még nem támogatottak. Ezeket az Anthropic felhőjéből érik el, ezért nyilvános HTTPS-címre van szükségük, és OAuth-on keresztül jelentkeznek be. Rögzített kulcsot nem tudnak küldeni, a BombVault pedig csak rögzített kulcsokat kínál, OAuth-bejelentkezést nem. Ha miattuk kitennéd a BombVaultot az internetre, az sem segítene. Használd a Claude Code-ot, vagy a Claude Desktopot az `mcp-remote` programon keresztül, ahogy fent.
+A ChatGPT, a Claude a claude.ai-on, a Grok és a Le Chat a szolgáltatójuk szervereiről hívja a BombVaultot, ezért a BombVaultnak elérhetőnek kell lennie az internetről, egy saját bejelentkezéssel és nyilvánosan megbízható tanúsítvánnyal rendelkező fordított proxy mögött; a Le Chat elutasítja az önaláírtakat. A Grok és a Le Chat tud rögzített kulcsot küldeni, és a gombjaik ugyanúgy beállítják őket, mint a többit. A ChatGPT csak OAuth-bejelentkezéssel csatlakozik, a claude.ai-os Claude pedig csak egyes szervezetekben fogad el rögzített kulcsos fejlécet. A BombVault a következő frissítéssel kap OAuth-bejelentkezést; addig a gombjaik ezt mondják el beállítás helyett.
 
 ### Más kliensek {#other-clients}
 
@@ -178,7 +219,7 @@ Proxy mögött minden kérés a proxy címét viseli. Egyetlen rosszul beállít
 - Minden eszközhívás bekerül a konténer naplójába a kulcs azonosítójával és utolsó négy karakterével (a nevével soha), és a `/metrics` számolja (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Egy konfigurációs mentés visszaállítása minden kulcsot visszavon, mert a visszaállított adatbázis olyan kulcsokat is tartalmazhat, amelyeket a mentése után vontál vissza. Utána hozz létre új kulcsokat.
 - Egy kulcs megszűnik működni, ha az `APP_KEY` megváltozik (újratelepítés vagy visszaállítás egy másik konténerbe). A kártya ezt észleli és megjelöli a kulcsot, a **Kulcs cseréje** pedig újra érvényes titkot ad neki.
-- Úgy bánj a kulccsal, mint egy jelszóval. A Claude Code a kulcsfájlból olvassa, a Claude Desktop pedig a beállításaiban tárolja, mindkettő nyílt szövegként. Olyan számítógépen, amelyben kevésbé bízol, inkább csak olvasásra jogosult kulcsot használj.
+- Kezeld a kulcsot jelszóként. Az a kliens, amely sem környezeti változóból, sem bekérésből, sem kulcsfájlból nem tudja olvasni a kulcsot, titkosítatlan szövegként tartja a konfigurációjában vagy a beállításaiban, és a párbeszédablaka ezt ki is mondja. Egy kevésbé megbízható számítógépen inkább csak olvasó kulcsot használj.
 
 ## Mi hagyja el a gépet {#privacy}
 

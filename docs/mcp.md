@@ -40,10 +40,10 @@ A domain or Backup Everything start leaves out the items a limit holds back and 
 
 ## Switch it on {#switch-on}
 
-1. Open **Settings, System, MCP server** and click **New key**.
-2. Give the key a name that says where it is used, for example "Claude Code on the laptop". One key per client lets you revoke one without touching the others.
-3. Leave **Allow starting backups** on, or switch it off for a key that should only read. You can change it later on the key's tile, and the change applies to the assistant's next request without a reconnect.
-4. Click **Create key**. The key is shown once. BombVault keeps only a fingerprint of it and cannot show it again, so copy it now or pick a snippet below it, which then carries the real key.
+1. Open **Settings, System, MCP server** and click the button of your client. A client that is not listed connects through **Other client**.
+2. Under **Key**, keep **New key** and the name it suggests, which is the client's, or type one that says where the key is used, for example "Claude Code on the laptop". One key per client lets you revoke one without touching the others. **Existing key** gives the client a key you made before.
+3. Switch **Allow starting backups** on for a key that should be able to start backups; without it the key can only read. You can change it later on the key's tile, and the change applies to the assistant's next request without a reconnect.
+4. Click **Create key**. The key is shown once. BombVault keeps only a fingerprint of it and cannot show it again, so copy it now. If you close the dialog before the client has used the key, the card keeps showing it until you confirm that you have copied it.
 
 Without a login password the web interface itself is open to everyone on your network, and anyone who can open it can also create a key. The card says so. If you open BombVault under a public-looking name (for example `bombvault.example.com` through a reverse proxy) and no login password is set, keys cannot be created or replaced from that address, so that no web page on the internet can make your browser create one. Set a login password, or open BombVault by its IP address or a local name such as `tower` or `tower.local`.
 
@@ -51,13 +51,54 @@ Without a login password the web interface itself is open to everyone on your ne
 
 Each key has a tile of its own on the card. It shows the key's name, whether it may start backups or only read, the last four characters of the key, when it was created or last replaced, when a client last used it and how many calls it made today. On the tile you rename the key, change its permission, replace it or revoke it. A revoked key moves to the list of revoked keys, where you can delete it for good once no run in the history names it.
 
+Next to its name, the tile shows the mark of the client the key was made for. A key made through **Other client**, or before the card listed clients, shows a key instead.
+
 **Log** on a tile opens what that key did. The backups it started come first, each with its state and a link to that run in the activity log on the dashboard. Below them are its calls, newest first, with the tool and what became of the call. A refusal says why: the key may only read, the retention guard held the backup back, another backup was already running, the same item, domain or pass was started through MCP a few minutes earlier, or the key sent too many requests. A cancel links to the run it was about.
 
 BombVault keeps each key's entries for up to 30 days: the newest 500 successful starts and cancels, and next to them the newest 200 other calls (reads, refusals and errors). An assistant that keeps polling a running backup, or keeps retrying a refused call, cannot push the start of that backup out of the log. For each call it stores the tool, the outcome and the run a cancel named. It never stores what the assistant sent, and never the key or its fingerprint. The diagnostics bundle only counts the entries, and a settings export leaves them out.
 
 ## Connect a client {#clients}
 
-The card shows ready-made snippets for the address you opened it at: pick your client and copy the snippet. The sections below explain what the snippets do and give the forms the card leaves out.
+Each client has a button on the card, under **On this computer** or **In the cloud**. The button opens a dialog in three steps: the key; the configuration for that client, with the address you opened the card at, a button to copy it, where the configuration lives and, with BombVault's own certificate, what the client needs to trust it; and the wait for the client's first call. The dialog watches the key's last use and turns green when that call comes in.
+
+The dialog keeps the key off every command line. Where the client can read it from an environment variable (`BOMBVAULT_MCP_KEY`), a masked prompt or a file of its own, the configuration only names it. Where the client has no such way, the key sits in its configuration file or its settings, and the dialog says so. Where a client's documentation does not say how it treats a certificate it does not know, the dialog writes that step as what to do if the client refuses BombVault's certificate.
+
+| Client | Setup | Where the key comes from |
+|---|---|---|
+| AnythingLLM | configuration file | the configuration file |
+| Antigravity | configuration file | environment variable |
+| Claude Code | command | key file |
+| Claude Desktop | configuration file | the configuration file |
+| Cline | configuration file | the configuration file |
+| Codex CLI | configuration file | environment variable |
+| Continue | configuration file | `~/.continue/.env` |
+| Copilot CLI | configuration file | the configuration file |
+| Cursor | configuration file | environment variable |
+| Gemini CLI | configuration file | environment variable |
+| GitHub Copilot (VS Code) | configuration file | masked prompt |
+| Goose | configuration file | environment variable |
+| Jan | form in the app | the app's settings |
+| JetBrains (AI Assistant, Junie) | configuration file | the configuration file |
+| Kimi Code | configuration file | the configuration file |
+| LM Studio | configuration file | the configuration file |
+| Mistral Vibe | configuration file | environment variable |
+| Msty | form in the app | the app's settings |
+| n8n | form in the app | n8n's credential store |
+| Open WebUI | form in the app | the app's settings |
+| opencode | configuration file | environment variable |
+| Perplexity (Mac) | form in the app | key file |
+| Qwen Code | configuration file | environment variable |
+| Roo Code | configuration file | environment variable |
+| Visual Studio | configuration file | the configuration file |
+| Warp | configuration file | the configuration file |
+| Windsurf | configuration file | environment variable |
+| Zed | configuration file | the configuration file |
+| Grok | form, in the cloud | the vendor's servers |
+| Le Chat | form, in the cloud | the vendor's servers |
+| ChatGPT | in the cloud | OAuth only, see below |
+| Claude (claude.ai) | in the cloud | OAuth in most organisations, see below |
+
+The sections below explain the Claude Code and Claude Desktop setups in more detail and list what any other client needs.
 
 ### Claude Code {#claude-code}
 
@@ -124,9 +165,9 @@ Claude Desktop reaches BombVault through `mcp-remote`, which needs Node.js on th
 - `--allow-http` is added only for a plain `http://` address.
 - The header is written `X-API-Key:${BOMBVAULT_MCP_KEY}`, with no space after the colon and the key in `env`. `mcp-remote` splits a `--header` value at the first space on some systems, and a key written after a space would get lost.
 
-### Custom connectors in Claude's settings {#custom-connectors}
+### Clients in the cloud {#cloud-clients}
 
-Connectors added in Claude's own settings (on claude.ai, and the connector list in Claude Desktop) are not supported yet. Those connectors are reached from Anthropic's cloud, so they need a public HTTPS address, and they sign in through OAuth. They cannot send a fixed key, and BombVault offers static keys only, no OAuth sign-in. Putting BombVault on the internet for them would not help. Use Claude Code, or Claude Desktop through `mcp-remote` as above.
+ChatGPT, Claude on claude.ai, Grok and Le Chat call BombVault from their vendors' servers, so BombVault has to be reachable from the internet, behind a reverse proxy with its own login and a publicly trusted certificate; Le Chat refuses self-signed ones. Grok and Le Chat can send a fixed key, and their buttons set them up like the others. ChatGPT connects only through an OAuth sign-in, and Claude on claude.ai takes a fixed key header only in some organisations. BombVault gets OAuth sign-in with the next update; until then their buttons say so instead of offering a setup.
 
 ### Other clients {#other-clients}
 
@@ -178,7 +219,7 @@ Behind a proxy every request carries the proxy's address. Five wrong keys from o
 - Every tool call is written to the container log with the key's id and last four characters (never its name) and counted in `/metrics` (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Restoring a configuration backup revokes every key, because the restored database may hold keys you revoked after it was saved. Create new keys afterwards.
 - A key stops working when `APP_KEY` changes (a reinstall, or a restore onto another container). The card detects that and marks the key, and **Replace key** gives it a working secret again.
-- Treat a key like a password. Claude Code reads it from the key file and Claude Desktop keeps it in its configuration, both in plain text. Prefer a read-only key on a computer you trust less.
+- Treat a key like a password. A client that cannot read the key from an environment variable, a prompt or a key file keeps it in plain text in its configuration or settings, and its dialog says so. Prefer a read-only key on a computer you trust less.
 
 ## What leaves the box {#privacy}
 

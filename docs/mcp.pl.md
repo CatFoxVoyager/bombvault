@@ -40,10 +40,10 @@ Uruchomienie domeny lub Backup Everything pomija elementy zatrzymane przez któr
 
 ## Włączanie {#switch-on}
 
-1. Otwórz **Ustawienia, System, Serwer MCP** i kliknij **Nowy klucz**.
-2. Nadaj kluczowi nazwę, która mówi, gdzie jest używany, na przykład "Claude Code na laptopie". Z jednym kluczem na klienta możesz unieważnić jeden bez ruszania pozostałych.
-3. Zostaw włączone **Pozwól uruchamiać kopie** albo wyłącz je dla klucza, który ma tylko czytać. Możesz to później zmienić na kafelku klucza, a zmiana obowiązuje od następnego żądania asystenta, bez ponownego łączenia.
-4. Kliknij **Utwórz klucz**. Klucz pokazuje się raz. BombVault zachowuje tylko jego odcisk i nie może go pokazać ponownie, więc skopiuj go od razu albo weź jeden z fragmentów poniżej, które wtedy zawierają prawdziwy klucz.
+1. Otwórz **Ustawienia, System, Serwer MCP** i kliknij przycisk swojego klienta. Klient, którego nie ma na liście, łączy się przez **Inny klient**.
+2. W sekcji **Klucz** zostaw **Nowy klucz** i proponowaną nazwę, czyli nazwę klienta, albo wpisz taką, która mówi, gdzie klucz jest używany, na przykład „Claude Code na laptopie”. Jeden klucz na klienta pozwala odwołać jeden bez ruszania pozostałych. **Istniejący klucz** daje klientowi klucz utworzony wcześniej.
+3. Włącz **Pozwól uruchamiać kopie** dla klucza, który ma móc uruchamiać kopie; bez tego klucz może tylko czytać. Możesz to zmienić później na kafelku klucza, a zmiana obowiązuje od następnego żądania asystenta, bez ponownego łączenia.
+4. Kliknij **Utwórz klucz**. Klucz jest pokazywany raz. BombVault trzyma tylko jego odcisk i nie pokaże go ponownie, więc skopiuj go teraz. Jeśli zamkniesz okno, zanim klient użyje klucza, karta nadal go pokazuje, dopóki nie potwierdzisz, że go skopiowałeś.
 
 Bez hasła logowania sam interfejs WWW jest otwarty dla wszystkich w twojej sieci, a kto może go otworzyć, może też utworzyć klucz. Karta o tym informuje. Jeśli otworzysz BombVault pod nazwą wyglądającą na publiczną (na przykład `bombvault.example.com` za reverse proxy), a hasło logowania nie jest ustawione, z tego adresu nie da się tworzyć ani wymieniać kluczy, żeby żadna strona w internecie nie mogła skłonić twojej przeglądarki do utworzenia klucza. Ustaw hasło logowania albo otwórz BombVault przez adres IP lub lokalną nazwę, taką jak `tower` czy `tower.local`.
 
@@ -51,13 +51,54 @@ Bez hasła logowania sam interfejs WWW jest otwarty dla wszystkich w twojej siec
 
 Każdy klucz ma na karcie własny kafelek. Pokazuje nazwę klucza, czy może uruchamiać kopie, czy tylko czyta, cztery ostatnie znaki klucza, kiedy go utworzono lub ostatnio zastąpiono, kiedy klient ostatnio go użył i ile wywołań wykonał dzisiaj. Na kafelku zmieniasz nazwę klucza, jego uprawnienie, zastępujesz go albo unieważniasz. Unieważniony klucz trafia na listę unieważnionych kluczy, gdzie możesz go usunąć na zawsze, gdy żadne uruchomienie w historii już go nie wymienia.
 
+Obok nazwy kafelek pokazuje logo klienta, dla którego utworzono klucz. Klucz utworzony przez **Inny klient** albo zanim karta zaczęła wymieniać klientów pokazuje zamiast tego klucz.
+
 **Dziennik** na kafelku otwiera to, co zrobił ten klucz. Najpierw są kopie, które uruchomił, każda ze stanem i linkiem do tego uruchomienia w dzienniku aktywności na pulpicie. Pod nimi są jego wywołania, od najnowszych, z narzędziem i wynikiem. Odmowa podaje powód: klucz może tylko czytać, ochrona przechowywania wstrzymała kopię, trwała już inna kopia, element skopiowano przez MCP kilka minut temu albo klucz wysłał zbyt wiele żądań. Anulowanie prowadzi do uruchomienia, którego dotyczyło.
 
 BombVault przechowuje wpisy każdego klucza przez najwyżej 30 dni: 500 najnowszych udanych uruchomień i anulowań, a obok nich 200 najnowszych pozostałych wywołań (odczyty, odmowy i błędy), więc asystent, który raz po raz odpytuje trwającą kopię albo ponawia odrzucone wywołanie, nie wypchnie z dziennika jej uruchomienia. Przy każdym wywołaniu zapisuje narzędzie, wynik i uruchomienie wskazane przez anulowanie. Nigdy nie zapisuje tego, co wysłał asystent, ani klucza czy jego odcisku. Pakiet diagnostyczny tylko liczy wpisy, a eksport ustawień je pomija.
 
 ## Podłączanie klienta {#clients}
 
-Karta pokazuje gotowe fragmenty dla adresu, pod którym ją otwarto: wybierz klienta i skopiuj fragment. Dalsza część wyjaśnia, co robią fragmenty, i podaje formy, których karta nie pokazuje.
+Każdy klient ma na karcie przycisk, w grupie **Na tym komputerze** albo **W chmurze**. Przycisk otwiera okno w trzech krokach: klucz; konfiguracja dla tego klienta z adresem, pod którym otworzyłeś kartę, przyciskiem do jej skopiowania, miejscem, gdzie leży konfiguracja, a przy własnym certyfikacie BombVault także tym, czego klient potrzebuje, żeby mu zaufać; oraz czekanie na pierwsze wywołanie klienta. Okno śledzi ostatnie użycie klucza i robi się zielone, gdy to wywołanie nadejdzie.
+
+Okno trzyma klucz z dala od każdego wiersza poleceń. Gdy klient potrafi odczytać go ze zmiennej środowiskowej (`BOMBVAULT_MCP_KEY`), z ukrytego zapytania albo z własnego pliku, konfiguracja tylko go wskazuje. Gdy klient nie ma takiej możliwości, klucz leży w jego pliku konfiguracyjnym albo ustawieniach, a okno to mówi. Gdy dokumentacja klienta nie mówi, jak traktuje nieznany certyfikat, okno opisuje ten krok jako to, co zrobić, jeśli klient odrzuci certyfikat BombVault.
+
+| Klient | Konfiguracja | Skąd pochodzi klucz |
+|---|---|---|
+| AnythingLLM | plik konfiguracyjny | plik konfiguracyjny |
+| Antigravity | plik konfiguracyjny | zmienna środowiskowa |
+| Claude Code | polecenie | plik klucza |
+| Claude Desktop | plik konfiguracyjny | plik konfiguracyjny |
+| Cline | plik konfiguracyjny | plik konfiguracyjny |
+| Codex CLI | plik konfiguracyjny | zmienna środowiskowa |
+| Continue | plik konfiguracyjny | `~/.continue/.env` |
+| Copilot CLI | plik konfiguracyjny | plik konfiguracyjny |
+| Cursor | plik konfiguracyjny | zmienna środowiskowa |
+| Gemini CLI | plik konfiguracyjny | zmienna środowiskowa |
+| GitHub Copilot (VS Code) | plik konfiguracyjny | ukryte zapytanie |
+| Goose | plik konfiguracyjny | zmienna środowiskowa |
+| Jan | formularz w aplikacji | ustawienia aplikacji |
+| JetBrains (AI Assistant, Junie) | plik konfiguracyjny | plik konfiguracyjny |
+| Kimi Code | plik konfiguracyjny | plik konfiguracyjny |
+| LM Studio | plik konfiguracyjny | plik konfiguracyjny |
+| Mistral Vibe | plik konfiguracyjny | zmienna środowiskowa |
+| Msty | formularz w aplikacji | ustawienia aplikacji |
+| n8n | formularz w aplikacji | dane logowania n8n |
+| Open WebUI | formularz w aplikacji | ustawienia aplikacji |
+| opencode | plik konfiguracyjny | zmienna środowiskowa |
+| Perplexity (Mac) | formularz w aplikacji | plik klucza |
+| Qwen Code | plik konfiguracyjny | zmienna środowiskowa |
+| Roo Code | plik konfiguracyjny | zmienna środowiskowa |
+| Visual Studio | plik konfiguracyjny | plik konfiguracyjny |
+| Warp | plik konfiguracyjny | plik konfiguracyjny |
+| Windsurf | plik konfiguracyjny | zmienna środowiskowa |
+| Zed | plik konfiguracyjny | plik konfiguracyjny |
+| Grok | formularz, w chmurze | serwery dostawcy |
+| Le Chat | formularz, w chmurze | serwery dostawcy |
+| ChatGPT | w chmurze | tylko OAuth, zob. niżej |
+| Claude (claude.ai) | w chmurze | OAuth w większości organizacji, zob. niżej |
+
+Sekcje poniżej dokładniej opisują konfigurację Claude Code i Claude Desktop oraz to, czego potrzebuje każdy inny klient.
 
 ### Claude Code {#claude-code}
 
@@ -124,9 +165,9 @@ Claude Desktop łączy się z BombVault przez `mcp-remote`, który wymaga Node.j
 - `--allow-http` dochodzi tylko przy zwykłym adresie `http://`.
 - Nagłówek zapisuje się jako `X-API-Key:${BOMBVAULT_MCP_KEY}`, bez spacji po dwukropku i z kluczem w `env`. Na niektórych systemach `mcp-remote` dzieli wartość `--header` na pierwszej spacji, a klucz zapisany po spacji by przepadł.
 
-### Własne konektory w ustawieniach Claude {#custom-connectors}
+### Klienci w chmurze {#cloud-clients}
 
-Konektory dodawane w ustawieniach samego Claude (na claude.ai i na liście konektorów w Claude Desktop) nie są jeszcze obsługiwane. Łączy się z nimi chmura Anthropic, więc potrzebują publicznego adresu HTTPS, a logują się przez OAuth. Nie potrafią wysłać stałego klucza, a BombVault oferuje tylko stałe klucze, bez logowania OAuth. Wystawienie BombVault do internetu z ich powodu by nie pomogło. Użyj Claude Code albo Claude Desktop przez `mcp-remote`, jak wyżej.
+ChatGPT, Claude na claude.ai, Grok i Le Chat wywołują BombVault z serwerów swoich dostawców, więc BombVault musi być osiągalny z internetu, za odwrotnym proxy z własnym logowaniem i publicznie zaufanym certyfikatem; Le Chat odrzuca certyfikaty z podpisem własnym. Grok i Le Chat potrafią wysłać stały klucz, a ich przyciski konfigurują je tak jak pozostałych. ChatGPT łączy się tylko przez logowanie OAuth, a Claude na claude.ai przyjmuje nagłówek ze stałym kluczem tylko w niektórych organizacjach. BombVault dostanie logowanie OAuth w następnej aktualizacji; do tego czasu ich przyciski mówią o tym, zamiast oferować konfigurację.
 
 ### Inni klienci {#other-clients}
 
@@ -178,7 +219,7 @@ Za proxy każde żądanie niesie adres proxy. Pięć złych kluczy od jednego ź
 - Każde wywołanie narzędzia trafia do logu kontenera z id klucza i jego czterema ostatnimi znakami (nigdy z nazwą) i jest liczone w `/metrics` (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Przywrócenie kopii konfiguracji unieważnia wszystkie klucze, bo przywrócona baza może zawierać klucze, które unieważniłeś po jej zapisaniu. Potem utwórz nowe.
 - Klucz przestaje działać, gdy zmieni się `APP_KEY` (ponowna instalacja albo przywrócenie do innego kontenera). Karta to wykrywa i oznacza klucz, a **Wymień klucz** daje mu znowu ważny sekret.
-- Traktuj klucz jak hasło. Claude Code odczytuje go z pliku z kluczem, a Claude Desktop trzyma go w swojej konfiguracji, w obu przypadkach jawnym tekstem. Na komputerze, któremu mniej ufasz, wybierz raczej klucz tylko do odczytu.
+- Traktuj klucz jak hasło. Klient, który nie potrafi odczytać klucza ze zmiennej środowiskowej, z zapytania ani z pliku klucza, trzyma go jawnym tekstem w swojej konfiguracji lub ustawieniach, a jego okno to mówi. Na komputerze, któremu mniej ufasz, lepiej użyj klucza tylko do odczytu.
 
 ## Co opuszcza maszynę {#privacy}
 

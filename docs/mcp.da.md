@@ -40,10 +40,10 @@ En start af et domæne eller af Backup Everything udelader de elementer, som en 
 
 ## Slå det til {#switch-on}
 
-1. Åbn **Indstillinger, System, MCP-server**, og klik på **Ny nøgle**.
-2. Giv nøglen et navn, der siger, hvor den bruges, for eksempel "Claude Code på den bærbare". Med én nøgle pr. klient kan du tilbagekalde én uden at røre de andre.
-3. Lad **Tillad at starte sikkerhedskopier** være slået til, eller slå det fra for en nøgle, der kun skal læse. Du kan ændre det senere på nøglens felt, og ændringen gælder fra assistentens næste forespørgsel uden ny forbindelse.
-4. Klik på **Opret nøgle**. Nøglen vises én gang. BombVault gemmer kun et fingeraftryk af den og kan ikke vise den igen, så kopiér den nu, eller tag et af uddragene nedenunder, som så indeholder den rigtige nøgle.
+1. Åbn **Indstillinger, System, MCP-server**, og klik på knappen for din klient. En klient, der ikke står på listen, forbinder via **Anden klient**.
+2. Behold under **Nøgle** valget **Ny nøgle** og det foreslåede navn, klientens, eller skriv et, der siger, hvor nøglen bruges, for eksempel "Claude Code på laptoppen". Én nøgle pr. klient lader dig tilbagekalde én uden at røre de andre. **Eksisterende nøgle** giver klienten en nøgle, du har lavet før.
+3. Slå **Tillad at starte sikkerhedskopier** til for en nøgle, der skal kunne starte sikkerhedskopier; uden det kan den kun læse. Du kan ændre det senere på nøglens felt, og ændringen gælder fra assistentens næste forespørgsel uden ny forbindelse.
+4. Klik på **Opret nøgle**. Nøglen vises én gang. BombVault gemmer kun et fingeraftryk af den og kan ikke vise den igen, så kopiér den nu. Lukker du dialogen, før klienten har brugt nøglen, bliver kortet ved med at vise den, til du bekræfter, at du har kopieret den.
 
 Uden en login-adgangskode er selve webgrænsefladen åben for alle på dit netværk, og alle, der kan åbne den, kan også oprette en nøgle. Kortet siger det. Åbner du BombVault under et navn, der ser offentligt ud (for eksempel `bombvault.example.com` bag en reverse proxy), og er der ingen login-adgangskode, kan der ikke oprettes eller udskiftes nøgler fra den adresse, så ingen webside på internettet kan få din browser til at oprette en. Sæt en login-adgangskode, eller åbn BombVault via dens IP-adresse eller et lokalt navn som `tower` eller `tower.local`.
 
@@ -51,13 +51,54 @@ Uden en login-adgangskode er selve webgrænsefladen åben for alle på dit netv�
 
 Hver nøgle har sit eget felt på kortet. Det viser nøglens navn, om den må starte sikkerhedskopier eller kun læse, de sidste fire tegn af nøglen, hvornår den blev oprettet eller sidst udskiftet, hvornår en klient sidst brugte den, og hvor mange kald den har lavet i dag. På feltet omdøber du nøglen, ændrer dens tilladelse, udskifter den eller tilbagekalder den. En tilbagekaldt nøgle flytter til listen over tilbagekaldte nøgler, hvor du kan slette den for altid, når ingen kørsel i historikken nævner den længere.
 
+Ved siden af navnet viser feltet logoet for den klient, nøglen blev lavet til. En nøgle lavet via **Anden klient**, eller før kortet viste klienter, viser en nøgle i stedet.
+
 **Log** på et felt viser, hvad nøglen har gjort. Først kommer de sikkerhedskopier, den startede, hver med sin status og et link til kørslen i aktivitetsloggen på dashboardet. Under dem står dens kald, nyeste først, med værktøjet og hvad der blev af kaldet. En afvisning siger hvorfor: nøglen må kun læse, opbevaringsværnet holdt sikkerhedskopien tilbage, en anden sikkerhedskopi kørte allerede, elementet blev sikkerhedskopieret via MCP for få minutter siden, eller nøglen sendte for mange forespørgsler. En annullering linker til den kørsel, den handlede om.
 
 BombVault gemmer hver nøgles poster i op til 30 dage: de nyeste 500 vellykkede starter og annulleringer og ved siden af dem de nyeste 200 øvrige kald (læsninger, afvisninger og fejl), så en assistent, der gentagne gange spørger til en kørende sikkerhedskopi eller prøver et afvist kald igen og igen, ikke kan skubbe dens start ud af loggen. For hvert kald gemmer det værktøjet, resultatet og den kørsel, en annullering nævnte. Det gemmer aldrig, hvad assistenten sendte, og aldrig nøglen eller dens fingeraftryk. Diagnosepakken tæller kun posterne, og en eksport af indstillingerne udelader dem.
 
 ## Tilslut en klient {#clients}
 
-Kortet viser færdige uddrag til den adresse, du åbnede det på: vælg din klient, og kopiér uddraget. Resten af afsnittet forklarer, hvad uddragene gør, og giver de former, kortet ikke viser.
+Hver klient har en knap på kortet, under **På denne computer** eller **I skyen**. Knappen åbner en dialog i tre trin: nøglen; konfigurationen til den klient, med den adresse, du åbnede kortet på, en knap til at kopiere den, hvor konfigurationen ligger og, med BombVaults eget certifikat, hvad klienten skal bruge for at stole på det; og ventetiden på klientens første kald. Dialogen følger nøglens seneste brug og bliver grøn, når det kald kommer.
+
+Dialogen holder nøglen væk fra alle kommandolinjer. Hvor klienten kan læse den fra en miljøvariabel (`BOMBVAULT_MCP_KEY`), en skjult forespørgsel eller en fil af sin egen, nævner konfigurationen den kun. Hvor klienten ikke kan det, står nøglen i dens konfigurationsfil eller indstillinger, og dialogen siger det. Hvor en klients dokumentation ikke siger, hvordan den behandler et ukendt certifikat, skriver dialogen det trin som det, du gør, hvis klienten afviser BombVaults certifikat.
+
+| Klient | Opsætning | Hvor nøglen kommer fra |
+|---|---|---|
+| AnythingLLM | konfigurationsfil | konfigurationsfilen |
+| Antigravity | konfigurationsfil | miljøvariabel |
+| Claude Code | kommando | nøglefil |
+| Claude Desktop | konfigurationsfil | konfigurationsfilen |
+| Cline | konfigurationsfil | konfigurationsfilen |
+| Codex CLI | konfigurationsfil | miljøvariabel |
+| Continue | konfigurationsfil | `~/.continue/.env` |
+| Copilot CLI | konfigurationsfil | konfigurationsfilen |
+| Cursor | konfigurationsfil | miljøvariabel |
+| Gemini CLI | konfigurationsfil | miljøvariabel |
+| GitHub Copilot (VS Code) | konfigurationsfil | skjult forespørgsel |
+| Goose | konfigurationsfil | miljøvariabel |
+| Jan | formular i appen | appens indstillinger |
+| JetBrains (AI Assistant, Junie) | konfigurationsfil | konfigurationsfilen |
+| Kimi Code | konfigurationsfil | konfigurationsfilen |
+| LM Studio | konfigurationsfil | konfigurationsfilen |
+| Mistral Vibe | konfigurationsfil | miljøvariabel |
+| Msty | formular i appen | appens indstillinger |
+| n8n | formular i appen | n8n's loginoplysninger |
+| Open WebUI | formular i appen | appens indstillinger |
+| opencode | konfigurationsfil | miljøvariabel |
+| Perplexity (Mac) | formular i appen | nøglefil |
+| Qwen Code | konfigurationsfil | miljøvariabel |
+| Roo Code | konfigurationsfil | miljøvariabel |
+| Visual Studio | konfigurationsfil | konfigurationsfilen |
+| Warp | konfigurationsfil | konfigurationsfilen |
+| Windsurf | konfigurationsfil | miljøvariabel |
+| Zed | konfigurationsfil | konfigurationsfilen |
+| Grok | formular, i skyen | udbyderens servere |
+| Le Chat | formular, i skyen | udbyderens servere |
+| ChatGPT | i skyen | kun OAuth, se nedenfor |
+| Claude (claude.ai) | i skyen | OAuth i de fleste organisationer, se nedenfor |
+
+Afsnittene nedenfor forklarer opsætningen af Claude Code og Claude Desktop nærmere og nævner, hvad enhver anden klient har brug for.
 
 ### Claude Code {#claude-code}
 
@@ -124,9 +165,9 @@ Claude Desktop når BombVault via `mcp-remote`, som kræver Node.js på den comp
 - `--allow-http` tilføjes kun for en almindelig `http://`-adresse.
 - Headeren skrives `X-API-Key:${BOMBVAULT_MCP_KEY}`, uden mellemrum efter kolonet og med nøglen i `env`. På nogle systemer deler `mcp-remote` en `--header`-værdi ved det første mellemrum, og en nøgle skrevet efter et mellemrum ville gå tabt.
 
-### Egne connectors i Claudes indstillinger {#custom-connectors}
+### Klienter i skyen {#cloud-clients}
 
-Connectors, som du tilføjer i Claudes egne indstillinger (på claude.ai og i connectorlisten i Claude Desktop), understøttes endnu ikke. De connectors kontaktes fra Anthropics sky, så de kræver en offentlig HTTPS-adresse, og de logger ind via OAuth. De kan ikke sende en fast nøgle med, og BombVault tilbyder kun faste nøgler, ingen OAuth-login. At lægge BombVault ud på internettet for deres skyld ville ikke hjælpe. Brug Claude Code, eller Claude Desktop via `mcp-remote` som ovenfor.
+ChatGPT, Claude på claude.ai, Grok og Le Chat kalder BombVault fra deres udbyders servere, så BombVault skal kunne nås fra internettet, bag en reverse proxy med sit eget login og et offentligt betroet certifikat; Le Chat afviser selvsignerede. Grok og Le Chat kan sende en fast nøgle, og deres knapper sætter dem op som de andre. ChatGPT forbinder kun via et OAuth-login, og Claude på claude.ai tager kun imod en fast nøgleheader i nogle organisationer. BombVault får OAuth-login med næste opdatering; indtil da siger deres knapper det i stedet for at tilbyde en opsætning.
 
 ### Andre klienter {#other-clients}
 
@@ -178,7 +219,7 @@ Bag en proxy bærer hver forespørgsel proxyens adresse. Fem forkerte nøgler fr
 - Hvert værktøjskald skrives i containerens log med nøglens id og dens sidste fire tegn (aldrig navnet) og tælles i `/metrics` (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Gendannelse af en konfigurationssikkerhedskopi tilbagekalder alle nøgler, fordi den gendannede database kan indeholde nøgler, du tilbagekaldte, efter den blev gemt. Opret nye nøgler bagefter.
 - En nøgle holder op med at virke, når `APP_KEY` ændres (en geninstallation eller en gendannelse i en anden container). Kortet opdager det og markerer nøglen, og **Udskift nøgle** giver den en gyldig hemmelighed igen.
-- Behandl en nøgle som en adgangskode. Claude Code læser den fra nøglefilen, og Claude Desktop gemmer den i sin konfiguration, begge i klartekst. På en computer, du stoler mindre på, er en nøgle, der kun må læse, at foretrække.
+- Behandl en nøgle som en adgangskode. En klient, der ikke kan læse nøglen fra en miljøvariabel, en forespørgsel eller en nøglefil, gemmer den i klartekst i sin konfiguration eller sine indstillinger, og dens dialog siger det. Brug hellere en nøgle, der kun må læse, på en computer, du stoler mindre på.
 
 ## Hvad der forlader maskinen {#privacy}
 

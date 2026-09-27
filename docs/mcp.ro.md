@@ -40,10 +40,10 @@ O pornire de domeniu sau de Backup Everything lasă pe dinafară elementele reț
 
 ## Pornire {#switch-on}
 
-1. Deschide **Setări, Sistem, Server MCP** și dă clic pe **Cheie nouă**.
-2. Dă cheii un nume care spune unde e folosită, de exemplu "Claude Code pe laptop". Cu o cheie pentru fiecare client poți revoca una fără să le atingi pe celelalte.
-3. Lasă pornit **Permite pornirea copiilor** sau oprește-l pentru o cheie care trebuie doar să citească. Poți schimba asta mai târziu pe dala cheii, iar schimbarea se aplică de la următoarea cerere a asistentului, fără reconectare.
-4. Dă clic pe **Creează cheia**. Cheia apare o singură dată. BombVault păstrează doar o amprentă a ei și nu o mai poate arăta, așa că copiaz-o acum sau ia unul dintre fragmentele de dedesubt, care conțin atunci cheia reală.
+1. Deschide **Setări, Sistem, Server MCP** și dă clic pe butonul clientului tău. Un client care nu e în listă se conectează prin **Alt client**.
+2. La **Cheie** lasă **Cheie nouă** și numele propus, adică al clientului, sau scrie unul care spune unde e folosită cheia, de exemplu „Claude Code pe laptop”. O cheie pentru fiecare client îți permite să revoci una fără să le atingi pe celelalte. **Cheie existentă** îi dă clientului o cheie creată mai devreme.
+3. Pornește **Permite pornirea copiilor** pentru o cheie care trebuie să poată porni copii; fără asta poate doar să citească. Poți schimba asta mai târziu pe placa cheii, iar schimbarea se aplică de la următoarea cerere a asistentului, fără reconectare.
+4. Dă clic pe **Creează cheia**. Cheia e afișată o singură dată. BombVault păstrează doar o amprentă a ei și nu o mai poate arăta, așa că copiaz-o acum. Dacă închizi dialogul înainte ca clientul să fi folosit cheia, cardul continuă să o afișeze până confirmi că ai copiat-o.
 
 Fără parolă de autentificare, interfața web însăși e deschisă pentru toată lumea din rețeaua ta, iar cine o poate deschide poate crea și o cheie. Cardul spune asta. Dacă deschizi BombVault sub un nume care pare public (de exemplu `bombvault.example.com` în spatele unui proxy invers) și nu e setată nicio parolă de autentificare, de la acea adresă nu se pot crea și nici înlocui chei, ca nicio pagină web de pe internet să nu-ți poată face browserul să creeze una. Setează o parolă de autentificare sau deschide BombVault prin adresa IP ori printr-un nume local precum `tower` sau `tower.local`.
 
@@ -51,13 +51,54 @@ Fără parolă de autentificare, interfața web însăși e deschisă pentru toa
 
 Fiecare cheie are propria dală pe card. Arată numele cheii, dacă poate porni copii sau doar citește, ultimele patru caractere ale cheii, când a fost creată sau înlocuită ultima dată, când a folosit-o ultima dată un client și câte apeluri a făcut azi. Pe dală redenumești cheia, îi schimbi permisiunea, o înlocuiești sau o revoci. O cheie revocată trece în lista cheilor revocate, unde o poți șterge definitiv când nicio rulare din istoric nu o mai numește.
 
+Lângă nume, placa arată sigla clientului pentru care a fost creată cheia. O cheie creată prin **Alt client**, sau înainte ca cardul să listeze clienți, arată în schimb o cheie.
+
 **Jurnal** pe o dală deschide ce a făcut acea cheie. Întâi vin copiile pe care le-a pornit, fiecare cu starea ei și un link către acea rulare în jurnalul de activitate de pe tabloul de bord. Dedesubt sunt apelurile ei, cele mai noi primele, cu instrumentul și rezultatul apelului. Un refuz spune de ce: cheia poate doar citi, protecția de păstrare a oprit copia, rula deja altă copie, elementul a fost copiat prin MCP acum câteva minute sau cheia a trimis prea multe cereri. O anulare trimite la rularea la care se referea.
 
 BombVault păstrează intrările fiecărei chei cel mult 30 de zile: cele mai noi 500 de porniri și anulări reușite și, alături de ele, cele mai noi 200 de alte apeluri (citiri, refuzuri și erori), astfel încât un asistent care interoghează mereu o copie în curs sau reîncearcă mereu un apel refuzat nu poate împinge pornirea ei afară din jurnal. Pentru fiecare apel salvează instrumentul, rezultatul și rularea numită de o anulare. Nu salvează niciodată ce a trimis asistentul, nici cheia sau amprenta ei. Pachetul de diagnostic doar numără intrările, iar un export al setărilor le lasă deoparte.
 
 ## Conectarea unui client {#clients}
 
-Cardul arată fragmente gata făcute pentru adresa la care l-ai deschis: alege clientul și copiază fragmentul. Restul secțiunii explică ce fac fragmentele și dă formele pe care cardul nu le arată.
+Fiecare client are un buton pe card, sub **Pe acest computer** sau **În cloud**. Butonul deschide un dialog în trei pași: cheia; configurația pentru acel client, cu adresa la care ai deschis cardul, un buton pentru copiere, locul unde stă configurația și, cu certificatul propriu al BombVault, ce îi trebuie clientului ca să aibă încredere în el; și așteptarea primului apel al clientului. Dialogul urmărește ultima folosire a cheii și devine verde când apelul sosește.
+
+Dialogul ține cheia departe de orice linie de comandă. Acolo unde clientul o poate citi dintr-o variabilă de mediu (`BOMBVAULT_MCP_KEY`), dintr-o solicitare mascată sau dintr-un fișier propriu, configurația doar o numește. Acolo unde clientul nu are o asemenea cale, cheia stă în fișierul lui de configurare sau în setări, iar dialogul spune asta. Acolo unde documentația unui client nu spune cum tratează un certificat necunoscut, dialogul scrie pasul ca ce e de făcut dacă clientul respinge certificatul BombVault.
+
+| Client | Configurare | De unde vine cheia |
+|---|---|---|
+| AnythingLLM | fișier de configurare | fișierul de configurare |
+| Antigravity | fișier de configurare | variabilă de mediu |
+| Claude Code | comandă | fișierul cheii |
+| Claude Desktop | fișier de configurare | fișierul de configurare |
+| Cline | fișier de configurare | fișierul de configurare |
+| Codex CLI | fișier de configurare | variabilă de mediu |
+| Continue | fișier de configurare | `~/.continue/.env` |
+| Copilot CLI | fișier de configurare | fișierul de configurare |
+| Cursor | fișier de configurare | variabilă de mediu |
+| Gemini CLI | fișier de configurare | variabilă de mediu |
+| GitHub Copilot (VS Code) | fișier de configurare | solicitare mascată |
+| Goose | fișier de configurare | variabilă de mediu |
+| Jan | formular în aplicație | setările aplicației |
+| JetBrains (AI Assistant, Junie) | fișier de configurare | fișierul de configurare |
+| Kimi Code | fișier de configurare | fișierul de configurare |
+| LM Studio | fișier de configurare | fișierul de configurare |
+| Mistral Vibe | fișier de configurare | variabilă de mediu |
+| Msty | formular în aplicație | setările aplicației |
+| n8n | formular în aplicație | datele de autentificare din n8n |
+| Open WebUI | formular în aplicație | setările aplicației |
+| opencode | fișier de configurare | variabilă de mediu |
+| Perplexity (Mac) | formular în aplicație | fișierul cheii |
+| Qwen Code | fișier de configurare | variabilă de mediu |
+| Roo Code | fișier de configurare | variabilă de mediu |
+| Visual Studio | fișier de configurare | fișierul de configurare |
+| Warp | fișier de configurare | fișierul de configurare |
+| Windsurf | fișier de configurare | variabilă de mediu |
+| Zed | fișier de configurare | fișierul de configurare |
+| Grok | formular, în cloud | serverele furnizorului |
+| Le Chat | formular, în cloud | serverele furnizorului |
+| ChatGPT | în cloud | doar OAuth, vezi mai jos |
+| Claude (claude.ai) | în cloud | OAuth în majoritatea organizațiilor, vezi mai jos |
+
+Secțiunile de mai jos explică mai detaliat configurarea Claude Code și Claude Desktop și arată de ce are nevoie orice alt client.
 
 ### Claude Code {#claude-code}
 
@@ -124,9 +165,9 @@ Claude Desktop ajunge la BombVault prin `mcp-remote`, care are nevoie de Node.js
 - `--allow-http` se adaugă doar pentru o adresă `http://` simplă.
 - Antetul se scrie `X-API-Key:${BOMBVAULT_MCP_KEY}`, fără spațiu după două puncte și cu cheia în `env`. Pe unele sisteme, `mcp-remote` taie o valoare `--header` la primul spațiu, iar o cheie scrisă după un spațiu s-ar pierde.
 
-### Conectori proprii în setările Claude {#custom-connectors}
+### Clienți în cloud {#cloud-clients}
 
-Conectorii adăugați în setările lui Claude însuși (pe claude.ai și în lista de conectori din Claude Desktop) nu sunt încă suportați. Acești conectori sunt contactați din cloudul Anthropic, deci au nevoie de o adresă HTTPS publică, și se autentifică prin OAuth. Nu pot trimite o cheie fixă, iar BombVault oferă doar chei fixe, fără autentificare OAuth. Să pui BombVault pe internet pentru ei nu ar ajuta. Folosește Claude Code sau Claude Desktop prin `mcp-remote`, ca mai sus.
+ChatGPT, Claude pe claude.ai, Grok și Le Chat apelează BombVault de pe serverele furnizorilor lor, așa că BombVault trebuie să fie accesibil din internet, în spatele unui proxy invers cu propria autentificare și un certificat de încredere publică; Le Chat respinge certificatele autosemnate. Grok și Le Chat pot trimite o cheie fixă, iar butoanele lor îi configurează ca pe ceilalți. ChatGPT se conectează doar printr-o autentificare OAuth, iar Claude pe claude.ai acceptă un antet cu cheie fixă doar în unele organizații. BombVault primește autentificarea OAuth cu următoarea actualizare; până atunci butoanele lor spun asta în loc să ofere o configurare.
 
 ### Alți clienți {#other-clients}
 
@@ -178,7 +219,7 @@ location /mcp {
 - Fiecare apel de unealtă e scris în jurnalul containerului cu id-ul cheii și ultimele ei patru caractere (niciodată cu numele) și e numărat în `/metrics` (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Restaurarea unei copii a configurației revocă toate cheile, pentru că baza de date restaurată poate conține chei pe care le-ai revocat după ce a fost salvată. Creează chei noi după aceea.
 - O cheie nu mai funcționează când se schimbă `APP_KEY` (o reinstalare sau o restaurare în alt container). Cardul detectează asta și marchează cheia, iar **Înlocuiește cheia** îi dă din nou un secret valid.
-- Tratează o cheie ca pe o parolă. Claude Code o citește din fișierul cu cheia, iar Claude Desktop o păstrează în configurația sa, ambele în text simplu. Pe un calculator în care ai mai puțină încredere, folosește mai bine o cheie doar pentru citire.
+- Tratează o cheie ca pe o parolă. Un client care nu poate citi cheia dintr-o variabilă de mediu, dintr-o solicitare sau dintr-un fișier al cheii o ține ca text simplu în configurația sau setările lui, iar dialogul lui spune asta. Pe un computer în care ai mai puțină încredere, alege mai bine o cheie doar pentru citire.
 
 ## Ce iese din mașină {#privacy}
 

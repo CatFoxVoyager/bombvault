@@ -40,10 +40,10 @@ Een start van een domein of van Backup Everything laat de items weg die een gren
 
 ## Inschakelen {#switch-on}
 
-1. Open **Instellingen, Systeem, MCP-server** en klik op **Nieuwe sleutel**.
-2. Geef de sleutel een naam die zegt waar hij wordt gebruikt, bijvoorbeeld "Claude Code op de laptop". Met één sleutel per client kun je er een intrekken zonder de andere aan te raken.
-3. Laat **Back-ups laten starten** aan, of zet het uit voor een sleutel die alleen mag lezen. Je kunt dit later op de tegel van de sleutel wijzigen, en de wijziging geldt vanaf het volgende verzoek van de assistent, zonder nieuwe verbinding.
-4. Klik op **Sleutel aanmaken**. De sleutel wordt één keer getoond. BombVault bewaart er alleen een vingerafdruk van en kan hem niet opnieuw tonen, dus kopieer hem meteen of neem een van de fragmenten eronder, die dan de echte sleutel bevatten.
+1. Open **Instellingen, Systeem, MCP-server** en klik op de knop van je client. Een client die niet in de lijst staat, verbindt via **Andere client**.
+2. Laat onder **Sleutel** de keuze **Nieuwe sleutel** en de voorgestelde naam staan, die van de client, of typ een naam die zegt waar de sleutel gebruikt wordt, bijvoorbeeld "Claude Code op de laptop". Eén sleutel per client laat je er één intrekken zonder de andere aan te raken. **Bestaande sleutel** geeft de client een sleutel die je eerder hebt gemaakt.
+3. Zet **Back-ups laten starten** aan voor een sleutel die back-ups moet kunnen starten; zonder dat kan hij alleen lezen. Je kunt het later op de tegel van de sleutel wijzigen, en de wijziging geldt vanaf het volgende verzoek van de assistent, zonder opnieuw te verbinden.
+4. Klik op **Sleutel aanmaken**. De sleutel wordt één keer getoond. BombVault bewaart er alleen een vingerafdruk van en kan hem niet nog eens tonen, dus kopieer hem nu. Sluit je het venster voordat de client de sleutel heeft gebruikt, dan blijft de kaart hem tonen tot je bevestigt dat je hem hebt gekopieerd.
 
 Zonder inlogwachtwoord staat de webinterface zelf open voor iedereen in je netwerk, en wie hem kan openen, kan ook een sleutel aanmaken. De kaart zegt dat. Open je BombVault onder een naam die er openbaar uitziet (bijvoorbeeld `bombvault.example.com` achter een reverse proxy) en is er geen inlogwachtwoord ingesteld, dan kunnen vanaf dat adres geen sleutels worden aangemaakt of vervangen, zodat geen webpagina op internet je browser er een kan laten aanmaken. Stel een inlogwachtwoord in, of open BombVault via zijn IP-adres of een lokale naam zoals `tower` of `tower.local`.
 
@@ -51,13 +51,54 @@ Zonder inlogwachtwoord staat de webinterface zelf open voor iedereen in je netwe
 
 Elke sleutel heeft een eigen tegel op de kaart. Die toont de naam van de sleutel, of hij back-ups mag starten of alleen leest, de laatste vier tekens van de sleutel, wanneer hij is aangemaakt of voor het laatst vervangen, wanneer een client hem voor het laatst gebruikte en hoeveel aanroepen hij vandaag deed. Op de tegel geef je de sleutel een andere naam, wijzig je zijn recht, vervang je hem of trek je hem in. Een ingetrokken sleutel verhuist naar de lijst met ingetrokken sleutels, waar je hem voorgoed kunt verwijderen zodra geen run in de geschiedenis hem nog noemt.
 
+Naast de naam toont de tegel het logo van de client waarvoor de sleutel is gemaakt. Een sleutel die via **Andere client** is gemaakt, of voordat de kaart clients opsomde, toont in plaats daarvan een sleutel.
+
 **Logboek** op een tegel opent wat die sleutel deed. Eerst komen de back-ups die hij startte, elk met zijn stand en een link naar die run in het activiteitenlogboek op het dashboard. Daaronder staan zijn aanroepen, nieuwste eerst, met de tool en wat er van de aanroep werd. Een weigering zegt waarom: de sleutel mag alleen lezen, de bewaarbeveiliging hield de back-up tegen, er liep al een andere back-up, het item is een paar minuten geleden via MCP geback-upt, of de sleutel stuurde te veel verzoeken. Een annulering linkt naar de run waar het om ging.
 
 BombVault bewaart de regels van elke sleutel hooguit 30 dagen: de nieuwste 500 geslaagde starts en annuleringen en daarnaast de nieuwste 200 overige aanroepen (leesacties, weigeringen en fouten), zodat een assistent die een lopende back-up steeds opnieuw opvraagt of een geweigerde aanroep steeds opnieuw probeert de start ervan niet uit het logboek kan drukken. Per aanroep bewaart het de tool, de uitkomst en de run die een annulering noemde. Wat de assistent stuurde bewaart het nooit, en de sleutel of zijn vingerafdruk evenmin. Het diagnosepakket telt de regels alleen, en een export van de instellingen laat ze weg.
 
 ## Een client koppelen {#clients}
 
-De kaart toont kant-en-klare fragmenten voor het adres waarop je hem hebt geopend: kies je client en kopieer het fragment. Hieronder staat wat de fragmenten doen, plus de vormen die de kaart niet toont.
+Elke client heeft een knop op de kaart, onder **Op deze computer** of **In de cloud**. De knop opent een venster in drie stappen: de sleutel; de configuratie voor die client, met het adres waarop je de kaart hebt geopend, een knop om haar te kopiëren, de plek waar de configuratie staat en, bij het eigen certificaat van BombVault, wat de client nodig heeft om het te vertrouwen; en het wachten op de eerste aanroep van de client. Het venster volgt het laatste gebruik van de sleutel en wordt groen zodra die aanroep binnenkomt.
+
+Het venster houdt de sleutel van elke opdrachtregel af. Waar de client hem uit een omgevingsvariabele (`BOMBVAULT_MCP_KEY`), een gemaskeerde vraag of een eigen bestand kan lezen, noemt de configuratie hem alleen. Waar de client dat niet kan, staat de sleutel in zijn configuratiebestand of instellingen, en het venster zegt dat. Waar de documentatie van een client niet zegt hoe hij met een onbekend certificaat omgaat, schrijft het venster die stap als wat je doet als de client het certificaat van BombVault weigert.
+
+| Client | Installatie | Waar de sleutel vandaan komt |
+|---|---|---|
+| AnythingLLM | configuratiebestand | het configuratiebestand |
+| Antigravity | configuratiebestand | omgevingsvariabele |
+| Claude Code | opdracht | sleutelbestand |
+| Claude Desktop | configuratiebestand | het configuratiebestand |
+| Cline | configuratiebestand | het configuratiebestand |
+| Codex CLI | configuratiebestand | omgevingsvariabele |
+| Continue | configuratiebestand | `~/.continue/.env` |
+| Copilot CLI | configuratiebestand | het configuratiebestand |
+| Cursor | configuratiebestand | omgevingsvariabele |
+| Gemini CLI | configuratiebestand | omgevingsvariabele |
+| GitHub Copilot (VS Code) | configuratiebestand | gemaskeerde vraag |
+| Goose | configuratiebestand | omgevingsvariabele |
+| Jan | formulier in de app | de instellingen van de app |
+| JetBrains (AI Assistant, Junie) | configuratiebestand | het configuratiebestand |
+| Kimi Code | configuratiebestand | het configuratiebestand |
+| LM Studio | configuratiebestand | het configuratiebestand |
+| Mistral Vibe | configuratiebestand | omgevingsvariabele |
+| Msty | formulier in de app | de instellingen van de app |
+| n8n | formulier in de app | de inloggegevens van n8n |
+| Open WebUI | formulier in de app | de instellingen van de app |
+| opencode | configuratiebestand | omgevingsvariabele |
+| Perplexity (Mac) | formulier in de app | sleutelbestand |
+| Qwen Code | configuratiebestand | omgevingsvariabele |
+| Roo Code | configuratiebestand | omgevingsvariabele |
+| Visual Studio | configuratiebestand | het configuratiebestand |
+| Warp | configuratiebestand | het configuratiebestand |
+| Windsurf | configuratiebestand | omgevingsvariabele |
+| Zed | configuratiebestand | het configuratiebestand |
+| Grok | formulier, in de cloud | de servers van de aanbieder |
+| Le Chat | formulier, in de cloud | de servers van de aanbieder |
+| ChatGPT | in de cloud | alleen OAuth, zie hieronder |
+| Claude (claude.ai) | in de cloud | OAuth in de meeste organisaties, zie hieronder |
+
+De onderdelen hieronder leggen de installatie van Claude Code en Claude Desktop nauwkeuriger uit en noemen wat elke andere client nodig heeft.
 
 ### Claude Code {#claude-code}
 
@@ -124,9 +165,9 @@ Claude Desktop bereikt BombVault via `mcp-remote`, dat Node.js op die computer n
 - `--allow-http` komt er alleen bij voor een gewoon `http://`-adres.
 - De header staat er als `X-API-Key:${BOMBVAULT_MCP_KEY}`, zonder spatie na de dubbele punt en met de sleutel in `env`. Op sommige systemen knipt `mcp-remote` een `--header`-waarde bij de eerste spatie af, en een sleutel na een spatie zou verloren gaan.
 
-### Eigen connectors in de instellingen van Claude {#custom-connectors}
+### Clients in de cloud {#cloud-clients}
 
-Connectors die je in de instellingen van Claude zelf toevoegt (op claude.ai en in de connectorlijst van Claude Desktop) worden nog niet ondersteund. Die connectors worden vanuit de cloud van Anthropic aangesproken, hebben dus een openbaar HTTPS-adres nodig, en melden zich aan via OAuth. Ze kunnen geen vaste sleutel meesturen, en BombVault biedt alleen vaste sleutels, geen OAuth-aanmelding. BombVault daarvoor op internet zetten zou dus niet helpen. Gebruik Claude Code, of Claude Desktop via `mcp-remote` zoals hierboven.
+ChatGPT, Claude op claude.ai, Grok en Le Chat roepen BombVault aan vanaf de servers van hun aanbieder, dus BombVault moet vanaf internet bereikbaar zijn, achter een reverse proxy met een eigen aanmelding en een publiek vertrouwd certificaat; Le Chat weigert zelfondertekende. Grok en Le Chat kunnen een vaste sleutel sturen, en hun knoppen richten ze in zoals de andere. ChatGPT verbindt alleen via een OAuth-aanmelding, en Claude op claude.ai accepteert een vaste sleutelheader alleen in sommige organisaties. BombVault krijgt OAuth-aanmelding met de volgende update; tot dan zeggen hun knoppen dat in plaats van een installatie te bieden.
 
 ### Andere clients {#other-clients}
 
@@ -178,7 +219,7 @@ Achter een proxy draagt elk verzoek het adres van de proxy. Vijf verkeerde sleut
 - Elke aanroep van een hulpmiddel komt in het containerlog met de id van de sleutel en de laatste vier tekens (nooit de naam) en wordt geteld in `/metrics` (`bombvault_mcp_requests_total`, `bombvault_mcp_tool_calls_total`, `bombvault_mcp_active_keys`).
 - Het herstellen van een configuratieback-up trekt elke sleutel in, omdat de herstelde database sleutels kan bevatten die je na het opslaan ervan hebt ingetrokken. Maak daarna nieuwe aan.
 - Een sleutel werkt niet meer als `APP_KEY` verandert (een herinstallatie of een herstel in een andere container). De kaart merkt dat op en markeert de sleutel, en **Sleutel vervangen** geeft hem weer een geldig geheim.
-- Behandel een sleutel als een wachtwoord. Claude Code leest hem uit het sleutelbestand en Claude Desktop bewaart hem in zijn configuratie, allebei als platte tekst. Neem op een computer die je minder vertrouwt liever een sleutel die alleen mag lezen.
+- Behandel een sleutel als een wachtwoord. Een client die de sleutel niet uit een omgevingsvariabele, een vraag of een sleutelbestand kan lezen, bewaart hem als platte tekst in zijn configuratie of instellingen, en zijn venster zegt dat. Neem op een computer die je minder vertrouwt liever een sleutel die alleen mag lezen.
 
 ## Wat de machine verlaat {#privacy}
 
