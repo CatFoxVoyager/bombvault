@@ -30,6 +30,7 @@ import { useToast } from "../../lib/toast";
 import { McpClientDialog, type FreshKey } from "./McpClientDialog";
 import { ClientMark } from "./McpClientMark";
 import { keyLogId, McpKeyLog } from "./McpKeyLog";
+import { McpOAuthSettings } from "./McpOAuthSettings";
 import { Card, LOGIN_PASSWORD_FIELD } from "./shared";
 
 // McpServerCard is where an MCP key comes from, and the only place it is ever
@@ -54,6 +55,17 @@ const CODE_MESSAGE: Record<string, TranslationKey> = {
   "cert-name-invalid": "mcp.certNameInvalid",
   "cert-name-limit": "mcp.certNameLimit",
   "cert-write-failed": "mcp.certWriteFailed",
+};
+
+/** Why a revoked key or grant is in the list, where it is not the operator's
+ *  own Revoke. */
+const REVOKED_REASON: Partial<Record<McpKeyView["revokedReason"], TranslationKey>> = {
+  "config-restore": "mcp.revokedByRestore",
+  replaced: "mcp.revokedReplaced",
+  expired: "mcp.revokedExpired",
+  "refresh-reuse": "mcp.revokedReuse",
+  "code-replay": "mcp.revokedReuse",
+  client: "mcp.revokedByClient",
 };
 
 type Pending =
@@ -161,6 +173,9 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
   // A key APP_KEY no longer matches is listed so it can be replaced, but it
   // lets no assistant in.
   const working = keys.filter((k) => !k.unusable).length;
+  // Grants have a limit of their own, so only the keys count against this one.
+  const staticKeys = keys.filter((k) => !k.viaOAuth).length;
+  const oauthActive = data?.oauth.active === true;
   const revoked = data?.revoked ?? [];
   const limit = data?.limit ?? 0;
   const certificate = data?.certificate ?? null;
@@ -329,9 +344,11 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
               ? t("folder.loading")
               : working > 0
                 ? t("mcp.statusOn", working)
-                : keys.length > 0
-                  ? t("mcp.statusNoneWorks")
-                  : t("mcp.statusOff")}
+                : oauthActive
+                  ? t("mcp.statusOAuthOnly")
+                  : keys.length > 0
+                    ? t("mcp.statusNoneWorks")
+                    : t("mcp.statusOff")}
           </span>
         </div>
       )}
@@ -422,6 +439,14 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
               )}
             </div>
           </div>
+
+          <McpOAuthSettings
+            oauth={data.oauth}
+            authEnabled={data.authEnabled}
+            onChange={(oauth) => setData((prev) => (prev ? { ...prev, oauth } : prev))}
+            idPrefix="bv-mcp-card"
+            t={t}
+          />
         </>
       )}
 
@@ -538,11 +563,17 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
                       ) : (
                         <>
                           <span className="text-xs text-carbon-textMuted">
-                            {t("mcp.keyHint").replace("{hint}", k.hint)}
-                            {" · "}
-                            {k.rotatedAt > 0
-                              ? t("mcp.keyRotated").replace("{date}", formatTs(k.rotatedAt))
-                              : t("mcp.keyCreated").replace("{date}", formatTs(k.createdAt))}
+                            {k.viaOAuth ? (
+                              t("mcp.grantCreated").replace("{date}", formatTs(k.createdAt))
+                            ) : (
+                              <>
+                                {t("mcp.keyHint").replace("{hint}", k.hint)}
+                                {" · "}
+                                {k.rotatedAt > 0
+                                  ? t("mcp.keyRotated").replace("{date}", formatTs(k.rotatedAt))
+                                  : t("mcp.keyCreated").replace("{date}", formatTs(k.createdAt))}
+                              </>
+                            )}
                           </span>
                           <span className="text-xs text-carbon-textMuted">
                             {k.lastUsedAt === 0
@@ -575,7 +606,7 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
                         className={shake[`revoke:${k.id}`] ? "glim-shake" : ""}
                         hueIndex={hueIndex}
                       />
-                      {canMint && (
+                      {canMint && !k.viaOAuth && (
                         <Button
                           label={t("mcp.rotate")}
                           labelKey="mcp.rotate"
@@ -623,10 +654,10 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
                         <div className="flex min-w-0 flex-col gap-1">
                           <span className="truncate text-sm text-carbon-text">{k.label}</span>
                           <span className="text-xs text-carbon-textMuted">
-                            {(k.revokedReason === "config-restore"
-                              ? t("mcp.revokedByRestore")
-                              : t("mcp.revokedAt")
-                            ).replace("{date}", formatTs(k.revokedAt))}
+                            {t(REVOKED_REASON[k.revokedReason] ?? "mcp.revokedAt").replace(
+                              "{date}",
+                              formatTs(k.revokedAt)
+                            )}
                           </span>
                           <span className="text-xs text-carbon-textMuted">
                             {t("mcp.keyCreated").replace("{date}", formatTs(k.createdAt))}
@@ -668,7 +699,10 @@ export function McpServerCard({ hueIndex, passwordSet }: { hueIndex?: number; pa
           lists={lists}
           snippetBase={snippetBase}
           mintRefused={canMint ? undefined : t("mcp.needsPasswordForHost").replace("{host}", host)}
-          limitNote={keys.length >= limit ? t("mcp.limitReached", limit) : undefined}
+          limitNote={staticKeys >= limit ? t("mcp.limitReached", limit) : undefined}
+          oauth={data.oauth}
+          authEnabled={data.authEnabled}
+          onOAuthChange={(oauth) => setData((prev) => (prev ? { ...prev, oauth } : prev))}
           allowStartHint={t("mcp.allowStartHint")
             .replace("{n}", String(data.startsPerHour))
             .replace("{minutes}", String(data.cooldownMinutes))

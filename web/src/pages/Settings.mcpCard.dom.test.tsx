@@ -38,6 +38,7 @@ vi.mock("../lib/api", async (importOriginal) => {
         certificate: null,
         keys: [],
         revoked: [],
+        oauth: { enabled: false, issuer: "", active: false, grantLimit: 10, connectorPath: "/mcp" },
       }),
   };
 });

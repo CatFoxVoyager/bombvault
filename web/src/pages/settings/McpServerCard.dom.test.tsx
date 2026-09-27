@@ -19,6 +19,7 @@ const revokeMcpKey = vi.fn();
 const purgeMcpKey = vi.fn();
 const addMcpCertificateName = vi.fn();
 const getMcpKeyActivity = vi.fn();
+const setMcpOAuth = vi.fn();
 
 vi.mock("../../lib/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../lib/api")>();
@@ -32,6 +33,7 @@ vi.mock("../../lib/api", async (importOriginal) => {
     purgeMcpKey: (...a: unknown[]) => purgeMcpKey(...a),
     addMcpCertificateName: (...a: unknown[]) => addMcpCertificateName(...a),
     getMcpKeyActivity: (...a: unknown[]) => getMcpKeyActivity(...a),
+    setMcpOAuth: (...a: unknown[]) => setMcpOAuth(...a),
   };
 });
 
@@ -45,6 +47,7 @@ const { McpServerCard } = await import("./McpServerCard");
 function key(over: Partial<McpKeyView> = {}): McpKeyView {
   return {
     id: "k1",
+    viaOAuth: false,
     label: "office laptop",
     hint: "f3a9",
     canStartBackups: true,
@@ -75,6 +78,7 @@ function payload(over: Partial<McpKeysResponse> = {}): McpKeysResponse {
     certificate: null,
     keys: [],
     revoked: [],
+    oauth: { enabled: false, issuer: "", active: false, grantLimit: 10, connectorPath: "/mcp" },
     ...over,
   };
 }
@@ -95,7 +99,7 @@ function cardText(): string {
 
 beforeEach(() => {
   pushed.length = 0;
-  for (const m of [createMcpKey, updateMcpKey, rotateMcpKey, revokeMcpKey, purgeMcpKey, addMcpCertificateName, getMcpKeyActivity]) {
+  for (const m of [createMcpKey, updateMcpKey, rotateMcpKey, revokeMcpKey, purgeMcpKey, addMcpCertificateName, getMcpKeyActivity, setMcpOAuth]) {
     m.mockReset();
   }
 });
@@ -432,16 +436,49 @@ describe("a client's setup dialog", () => {
     expect(within(dialog).getByText(/Custom Connector/)).toBeTruthy();
   });
 
-  it("gives ChatGPT and Claude on the web a note instead of a setup", async () => {
+  it("sets up ChatGPT and Claude on the web through sign-in instead of a key", async () => {
     await renderCard(payload());
     let dialog = await openClient("ChatGPT", en["mcp.kindWebChat"]);
-    expect(dialogText()).toContain(en["mcp.noteOauth"].replaceAll("{app}", "ChatGPT"));
+    expect(within(dialog).getByText(en["mcp.stepOAuth"])).toBeTruthy();
+    expect(dialogText()).toContain(en["mcp.setupChatGPT"]);
+    // The paths sit in bidi isolates, so an RTL paragraph keeps their slashes in place.
+    expect(dialogText().replace(/[\u2066\u2069]/g, "")).toContain(en["mcp.oauthProxyNote"]);
+    expect(within(dialog).getByRole("switch", { name: en["mcp.oauthToggle"] })).toBeTruthy();
     expect(within(dialog).queryByRole("button", { name: en["mcp.createKey"] })).toBeNull();
     fireEvent.click(within(dialog).getByRole("button", { name: en["common.close"] }));
 
     dialog = await openClient("Claude", en["mcp.kindWebChat"]);
-    expect(dialogText()).toContain(en["mcp.noteClaudeAi"]);
+    expect(dialogText()).toContain(en["mcp.setupClaudeAi"]);
     expect(within(dialog).queryByRole("button", { name: en["mcp.createKey"] })).toBeNull();
+  });
+
+  it("hands a cloud client the connector URL and turns green when it has signed in", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const oauth = { enabled: true, issuer: "https://vault.example", active: true, grantLimit: 10, connectorPath: "/mcp" };
+      await renderCard(payload({ oauth }));
+      const dialog = await openClient("ChatGPT", en["mcp.kindWebChat"]);
+      expect(within(dialog).getByText("https://vault.example/mcp", { selector: "code" })).toBeTruthy();
+      expect(within(dialog).getByRole("button", { name: en["mcp.copyConnector"] })).toBeTruthy();
+      expect(within(dialog).getByText(en["mcp.oauthWaitTitle"])).toBeTruthy();
+
+      await vi.advanceTimersByTimeAsync(3100);
+      const grant = key({ id: "g1", viaOAuth: true, client: "chatgpt", label: "ChatGPT", hint: "" });
+      listMcpKeys.mockResolvedValue(payload({ oauth, keys: [grant] }));
+      await vi.advanceTimersByTimeAsync(3100);
+      await waitFor(() => expect(within(dialog).getByText(en["mcp.connectedTitle"])).toBeTruthy());
+      expect(dialogText()).toContain("ChatGPT signed in at");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not offer a grant as a key another client could reuse", async () => {
+    const grant = key({ id: "g1", viaOAuth: true, client: "chatgpt", label: "ChatGPT", hint: "" });
+    await renderCard(payload({ keys: [grant] }));
+    await screen.findByRole("listitem");
+    const dialog = await openClient("Cursor", en["mcp.kindEditor"]);
+    expect(within(dialog).queryByRole("tab", { name: en["mcp.existingKey"] })).toBeNull();
   });
 
   it("closes on Escape", async () => {
@@ -1016,5 +1053,84 @@ describe("a refusal from the server", () => {
 
     await waitFor(() => expect(screen.getByText(en["mcp.loadFailed"])).toBeTruthy());
     expect(screen.queryByRole("button", { name: en["mcp.otherClient"] })).toBeNull();
+  });
+});
+
+describe("sign-in through OAuth on the card", () => {
+  const on = { enabled: true, issuer: "https://vault.example", active: true, grantLimit: 10, connectorPath: "/mcp" };
+
+  it("asks for the public address before it switches on", async () => {
+    await renderCard(payload());
+    const toggle = await screen.findByRole("switch", { name: en["mcp.oauthToggle"] });
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+    fireEvent.click(toggle);
+    expect(setMcpOAuth).not.toHaveBeenCalled();
+
+    const field = screen.getByLabelText(en["mcp.oauthAddressLabel"]);
+    fireEvent.change(field, { target: { value: "https://vault.example" } });
+    setMcpOAuth.mockResolvedValue({ ok: true, oauth: on });
+    fireEvent.click(screen.getByRole("button", { name: en["mcp.oauthSave"] }));
+
+    await waitFor(() => expect(setMcpOAuth).toHaveBeenCalledWith(true, "https://vault.example"));
+    const connector = (await screen.findByLabelText(en["mcp.oauthConnectorLabel"])) as HTMLInputElement;
+    expect(connector.value).toBe("https://vault.example/mcp");
+    expect(pushed.at(-1)).toEqual({ message: en["mcp.oauthSaved"], severity: "success" });
+  });
+
+  it("names the rule a refused address broke", async () => {
+    await renderCard(payload());
+    fireEvent.click(await screen.findByRole("switch", { name: en["mcp.oauthToggle"] }));
+    fireEvent.change(screen.getByLabelText(en["mcp.oauthAddressLabel"]), { target: { value: "http://vault.example" } });
+    setMcpOAuth.mockResolvedValue({ ok: false, code: "mcp-oauth-issuer-invalid", error: "x" });
+    fireEvent.click(screen.getByRole("button", { name: en["mcp.oauthSave"] }));
+    await waitFor(() => expect(pushed.at(-1)).toEqual({ message: en["mcp.oauthAddressInvalid"], severity: "fail" }));
+  });
+
+  it("cannot be switched on without a login password", async () => {
+    await renderCard(payload({ authEnabled: false }));
+    const toggle = await screen.findByRole("switch", { name: en["mcp.oauthToggle"] });
+    expect((toggle as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText(en["mcp.oauthNeedsPassword"])).toBeTruthy();
+  });
+
+  it("switches off with the address kept", async () => {
+    await renderCard(payload({ oauth: on }));
+    setMcpOAuth.mockResolvedValue({ ok: true, oauth: { ...on, enabled: false, active: false } });
+    fireEvent.click(await screen.findByRole("switch", { name: en["mcp.oauthToggle"] }));
+    await waitFor(() => expect(setMcpOAuth).toHaveBeenCalledWith(false, "https://vault.example"));
+  });
+
+  it("says the endpoint is on while only sign-in can reach it", async () => {
+    await renderCard(payload({ oauth: on }));
+    await waitFor(() => expect(screen.getByText(en["mcp.statusOAuthOnly"])).toBeTruthy());
+  });
+
+  it("shows a grant as a tile with its log, Revoke and the start switch but nothing to replace", async () => {
+    const grant = key({ id: "g1", viaOAuth: true, client: "chatgpt", label: "ChatGPT", hint: "", canStartBackups: false });
+    await renderCard(payload({ oauth: on, keys: [grant] }));
+    const tile = await screen.findByRole("listitem");
+    expect(within(tile).getByText("ChatGPT")).toBeTruthy();
+    expect(tile.textContent).toContain(en["mcp.grantCreated"].split("{date}")[0]);
+    expect(within(tile).getByRole("button", { name: en["mcp.revoke"] })).toBeTruthy();
+    expect(within(tile).getByRole("button", { name: en["mcp.log"] })).toBeTruthy();
+    expect(within(tile).queryByRole("button", { name: en["mcp.rotate"] })).toBeNull();
+    const toggle = within(tile).getByRole("switch", { name: en["mcp.allowStart"] });
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+    expect(tile.querySelector(".glim-client-mark svg")).not.toBeNull();
+  });
+
+  it("says why a grant was revoked", async () => {
+    const reused = key({ id: "g1", viaOAuth: true, label: "ChatGPT", revokedAt: 1_700_000_100, revokedReason: "refresh-reuse" });
+    await renderCard(payload({ revoked: [reused] }));
+    fireEvent.click(await screen.findByRole("button", { name: countText(en["mcp.revokedList"], "en", 1) }));
+    expect(cardText()).toContain(en["mcp.revokedReuse"].split("{date}")[0]);
+  });
+
+  it("counts only keys against the key limit", async () => {
+    const grants = Array.from({ length: 10 }, (_, i) => key({ id: `g${i}`, viaOAuth: true, label: `Client ${i}`, hint: "" }));
+    await renderCard(payload({ oauth: on, keys: grants }));
+    const dialog = await openClient("Cursor", en["mcp.kindEditor"]);
+    const create = within(dialog).getByRole("button", { name: en["mcp.createKey"] }) as HTMLButtonElement;
+    expect(create.disabled).toBe(false);
   });
 });

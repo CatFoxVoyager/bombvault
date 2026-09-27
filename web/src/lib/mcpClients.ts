@@ -89,8 +89,9 @@ export interface McpClient {
   setup: SetupWay;
   key: KeyWay;
   cert: CertWay;
-  /** A cloud service with no key-based setup, only a note on what is coming. */
-  oauthOnly?: TranslationKey;
+  /** A cloud service that takes no key and signs in through OAuth instead. The
+   *  key is its setup text; the dialog replaces the key step with sign-in. */
+  oauth?: TranslationKey;
   /** A sentence the dialog puts first. */
   note?: TranslationKey;
   /** The client runs mcp-remote through npx. */
@@ -484,7 +485,7 @@ export const CLOUD_CLIENTS: McpClient[] = [
     setup: { kind: "other" },
     key: { kind: "vendor" },
     cert: { kind: "none" },
-    oauthOnly: "mcp.noteOauth",
+    oauth: "mcp.setupChatGPT",
   },
   {
     id: "claudeai",
@@ -496,7 +497,7 @@ export const CLOUD_CLIENTS: McpClient[] = [
     setup: { kind: "other" },
     key: { kind: "vendor" },
     cert: { kind: "none" },
-    oauthOnly: "mcp.noteClaudeAi",
+    oauth: "mcp.setupClaudeAi",
   },
   {
     id: "grok",

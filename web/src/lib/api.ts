@@ -4693,6 +4693,9 @@ export function forgetAnomalyExpectation(
  *  at creation and never again; `hint` is what tells two of them apart. */
 export interface McpKeyView {
   id: string;
+  /** A client that signed in through OAuth rather than a key. It has no key to
+   *  replace and no hint. */
+  viaOAuth: boolean;
   label: string;
   /** The id in the card's client list of the client the key was made for,
    *  "" for none. */
@@ -4705,7 +4708,7 @@ export interface McpKeyView {
   /** Address of the last request that used the key, "" when it has not been used. */
   lastUsedFrom: string;
   revokedAt: number;
-  revokedReason: "" | "user" | "config-restore";
+  revokedReason: "" | "user" | "config-restore" | "replaced" | "expired" | "refresh-reuse" | "code-replay" | "client";
   /** The run history still names this key, so purging it would orphan those rows. */
   inUse: boolean;
   unusable: "" | "app-key-changed";
@@ -4733,6 +4736,61 @@ export interface McpKeysResponse extends OkEnvelope {
   certificate: McpCertificateInfo | null;
   keys: McpKeyView[];
   revoked: McpKeyView[];
+  oauth: McpOAuthView;
+}
+
+/** Sign-in through OAuth for clients that cannot take a key. `active` is what
+ *  the server offers: the switch, a public address and a login password. */
+export interface McpOAuthView {
+  enabled: boolean;
+  issuer: string;
+  active: boolean;
+  grantLimit: number;
+  connectorPath: string;
+}
+
+export function setMcpOAuth(enabled: boolean, issuer: string): Promise<OkEnvelope & { oauth?: McpOAuthView }> {
+  return fetchJSON("/api/mcp/oauth", {
+    method: "PUT",
+    body: JSON.stringify({ enabled, issuer }),
+  });
+}
+
+/** What the consent page shows about the client asking to sign in. `known`
+ *  is the id of a client the card has a mark for, decided by where the client
+ *  returns to. */
+export interface OAuthConsentClient {
+  id: string;
+  name: string;
+  known: string;
+  redirectHost: string;
+  loopback: boolean;
+}
+
+export interface OAuthConsentInfo extends OkEnvelope {
+  client?: OAuthConsentClient;
+  ticket?: string;
+  limitReached?: boolean;
+  grantLimit?: number;
+  /** Where the client is sent with an error, for a request that names a
+   *  valid client and return address but asks for something unsupported. */
+  redirect?: string;
+}
+
+/** GET /api/oauth/authorize with the query the client sent to /oauth/authorize. */
+export function getOAuthConsent(search: string): Promise<OAuthConsentInfo> {
+  return fetchJSON(`/api/oauth/authorize${search}`);
+}
+
+export function answerOAuthConsent(
+  ticket: string,
+  allow: boolean,
+  canStartBackups: boolean
+): Promise<OkEnvelope & { redirect?: string }> {
+  return fetchJSON("/api/oauth/authorize", {
+    method: "POST",
+    body: JSON.stringify({ ticket, allow, canStartBackups }),
+  });
 }
 
 /** The answer to creating or replacing a key: the secret, shown once. */

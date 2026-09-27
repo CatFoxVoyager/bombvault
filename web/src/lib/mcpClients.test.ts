@@ -33,7 +33,7 @@ describe("the client list", () => {
 
   it("has a configuration to copy for every client that gets a setup", () => {
     for (const c of ALL) {
-      if (c.oauthOnly) expect(snippetFor(c, input), c.id).toBeUndefined();
+      if (c.oauth) expect(snippetFor(c, input), c.id).toBeUndefined();
       else expect(snippetFor(c, input), c.id).toContain("https://tower:3443/mcp");
     }
   });

@@ -157,6 +157,10 @@ export const ZFS_EXCLUDE_EXAMPLE_LTR_FRAGMENTS = ["/plex/Library/Cache"] as cons
  *  they cannot type back. */
 export const CRON_EXAMPLE_LTR_FRAGMENTS = ["0 */6 * * *"] as const;
 
+/** The three paths a cloud assistant calls, which a reverse proxy has to let
+ *  through for sign-in through OAuth. */
+export const MCP_OAUTH_PATHS_LTR_FRAGMENTS = ["/.well-known/", "/oauth/", "/mcp"] as const;
+
 /**
  * LTR_FRAGMENTS_BY_KEY maps each translation key to its fragment list. The
  * match is a literal substring, so a translator retyping a path silently
@@ -188,6 +192,7 @@ export const LTR_FRAGMENTS_BY_KEY = {
   "zfs.fix.shfs-only": USER_SHARE_VS_MOUNT_ROOT_LTR_FRAGMENTS,
   "zfs.fix.legacy-mount": MOUNT_ROOT_LTR_FRAGMENTS,
   "zfs.excludesHint": ZFS_EXCLUDE_EXAMPLE_LTR_FRAGMENTS,
+  "mcp.oauthProxyNote": MCP_OAUTH_PATHS_LTR_FRAGMENTS,
 } as const satisfies Record<string, readonly string[]>;
 
 /**

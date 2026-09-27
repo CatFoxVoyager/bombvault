@@ -7,12 +7,14 @@ import { IconCheckCircle, IconCopy, IconDownload } from "../../components/navGly
 import { RevealInput } from "../../components/RevealInput";
 import { HUE_OFFSET, Selector } from "../../components/Selector";
 import { Toggle } from "../../components/Toggle";
-import type { McpKeyView } from "../../lib/api";
+import type { McpKeyView, McpOAuthView } from "../../lib/api";
 import type { TranslationKey } from "../../lib/i18n";
 import { KIND_LABEL, OTHER_CLIENT, clientById, snippetFor, type ConfigPaths, type McpClient } from "../../lib/mcpClients";
 import { KEY_PLACEHOLDER, KEY_VARIABLE, type McpSnippetInput } from "../../lib/mcpSnippets";
+import { tLtr } from "../../lib/ltrFragments";
 import { focusableElements } from "../../lib/useConfirm";
 import { ClientMark } from "./McpClientMark";
+import { connectorUrl, McpOAuthSettings } from "./McpOAuthSettings";
 
 /** A key handed out by create, with the row it belongs to. */
 export interface FreshKey {
@@ -38,6 +40,10 @@ export interface McpClientDialogProps {
   limitNote?: string;
   /** The (i) of the permission switch, with the server's limits filled in. */
   allowStartHint: string;
+  /** Sign-in through OAuth, which a client that takes no key sets up with. */
+  oauth: McpOAuthView;
+  authEnabled: boolean;
+  onOAuthChange: (next: McpOAuthView) => void;
   /** Creates the key; null when the server refused, which the card reports. */
   onCreate: (label: string, canStartBackups: boolean) => Promise<FreshKey | null>;
   onCopy: (text: string) => void;
@@ -59,8 +65,9 @@ const OS_PATHS: [keyof ConfigPaths, string][] = [
  * McpClientDialog sets up one client in three steps: a key, the configuration
  * for that client, and the wait for its first call, which it sees in the key's
  * last use while the card polls the list. A cloud client carries the warning
- * that BombVault must then face the internet; one that only signs in through
- * OAuth gets a note instead of the steps.
+ * that BombVault must then face the internet. One that only signs in through
+ * OAuth gets sign-in as its first step instead of a key, and the dialog waits
+ * for its grant to appear.
  */
 export function McpClientDialog({
   client,
@@ -70,6 +77,9 @@ export function McpClientDialog({
   mintRefused,
   limitNote,
   allowStartHint,
+  oauth,
+  authEnabled,
+  onOAuthChange,
   onCreate,
   onCopy,
   onDownloadCertificate,
@@ -80,8 +90,11 @@ export function McpClientDialog({
   const canMint = mintRefused === undefined;
   const name = other ? t("mcp.otherClient") : client.name;
   const cardRef = useRef<HTMLDivElement>(null);
+  // A grant belongs to the client that signed in and cannot be handed to
+  // another one, so only keys are offered for reuse.
+  const staticKeys = keys.filter((k) => !k.viaOAuth);
   const [mode, setMode] = useState<"new" | "pick">(
-    (canMint && !limitNote) || keys.every((k) => k.unusable) ? "new" : "pick"
+    (canMint && !limitNote) || staticKeys.every((k) => k.unusable) ? "new" : "pick"
   );
   const [label, setLabel] = useState(other ? "" : client.name);
   const [allowStart, setAllowStart] = useState(false);
@@ -103,7 +116,12 @@ export function McpClientDialog({
   const chosen = keys.find((k) => k.id === chosenId);
   let since = 0;
   if (!created && picked) since = baseline ? Math.max(picked.since, baseline[picked.id] ?? 0) : Infinity;
-  const connected = chosen !== undefined && chosen.lastUsedAt > since;
+  // For an OAuth client the sign-in itself is the proof: a grant of this
+  // client that the first list after opening did not have.
+  const signedIn = client.oauth
+    ? keys.find((k) => k.viaOAuth && k.client === client.id && baseline !== null && !(k.id in baseline))
+    : undefined;
+  const connected = client.oauth ? signedIn !== undefined : chosen !== undefined && chosen.lastUsedAt > since;
 
   const closeRef = useRef(() => onClose(null));
   closeRef.current = () => onClose(created && connected ? created.id : null);
@@ -205,12 +223,14 @@ export function McpClientDialog({
   );
 
   let body;
-  if (client.oauthOnly) {
+  if (client.oauth) {
     body = (
       <>
         {warning}
         {who}
-        <p className="text-sm text-carbon-textSub">{fill(client.oauthOnly, { app: name })}</p>
+        {oauthStep()}
+        {oauthConfigStep(client.oauth)}
+        {oauthWaitStep()}
       </>
     );
   } else {
@@ -226,9 +246,87 @@ export function McpClientDialog({
     );
   }
 
+  function oauthStep() {
+    const grants = keys.filter((k) => k.viaOAuth).length;
+    return (
+      <Step n={1} title={t("mcp.stepOAuth")} done={oauth.active}>
+        <McpOAuthSettings
+          oauth={oauth}
+          authEnabled={authEnabled}
+          onChange={onOAuthChange}
+          idPrefix="bv-mcp-dialog"
+          t={t}
+        />
+        {oauth.active && grants >= oauth.grantLimit && (
+          <p className="rounded-card bg-statusWarnBgSoft px-3 py-2.5 text-sm leading-relaxed text-carbon-text">
+            {t("oauth.limitReached")}
+          </p>
+        )}
+      </Step>
+    );
+  }
+
+  function oauthConfigStep(setup: TranslationKey) {
+    const connector = connectorUrl(oauth);
+    return (
+      <Step n={2} title={fill("mcp.stepConfig", { name })}>
+        <p className="text-sm text-carbon-textSub">{t(setup)}</p>
+        {connector !== "" && (
+          <>
+            <pre
+              dir="ltr"
+              className="overflow-x-auto whitespace-pre-wrap rounded-control bg-carbon-surface2 px-3 py-2 text-start font-mono text-xs leading-relaxed text-carbon-text [overflow-wrap:anywhere]"
+            >
+              <code>{connector}</code>
+            </pre>
+            <Button
+              label={t("mcp.copyConnector")}
+              labelKey="mcp.copyConnector"
+              glyph={<IconCopy />}
+              tone="subtle"
+              onClick={() => onCopy(connector)}
+              className="self-start"
+            />
+          </>
+        )}
+        <p className="text-sm text-carbon-textSub">{tLtr(t, "mcp.oauthProxyNote")}</p>
+      </Step>
+    );
+  }
+
+  function oauthWaitStep() {
+    let content;
+    if (signedIn) {
+      content = (
+        <p role="status" className="flex items-start gap-2 text-sm text-statusOk">
+          <span className="mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full bg-statusOkSolid" />
+          {fill("mcp.oauthSignedIn", {
+            name: signedIn.label,
+            time: new Date(signedIn.createdAt * 1000).toLocaleTimeString(),
+          })}
+        </p>
+      );
+    } else {
+      content = (
+        <>
+          <p role="status" className="flex items-start gap-2 text-sm text-carbon-text">
+            <span className="glim-wait-dot mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full bg-accent" />
+            {fill("mcp.oauthWaitLine", { app: name })}
+          </p>
+          <p className="text-xs text-carbon-textMuted">{fill("mcp.oauthWaitHint", { app: name })}</p>
+        </>
+      );
+    }
+    return (
+      <Step n={3} title={connected ? t("mcp.connectedTitle") : t("mcp.oauthWaitTitle")} done={connected}>
+        {content}
+      </Step>
+    );
+  }
+
   function keyStep() {
     const done = created !== null || picked !== null;
-    const usable = keys.filter((k) => !k.unusable);
+    const usable = staticKeys.filter((k) => !k.unusable);
     let content;
     if (created) {
       content = (
